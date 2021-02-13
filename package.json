@@ -47,7 +47,8 @@
           ".yml",
           ".yaml"
         ]
-      }],
+      }
+    ],
     "commands": [
       {
         "command": "vscode-ansible.helloWorld",
