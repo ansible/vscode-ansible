@@ -1,7 +1,7 @@
 {
   "name": "vscode-ansible",
   "publisher": "zbr",
-  "icon": "images/icon128.png",
+  "icon": "icon/icon128.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ansible-community/vscode-ansible.git"
