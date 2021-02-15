@@ -31,7 +31,6 @@
     "validation"
   ],
   "activationEvents": [
-    "onCommand:vscode-ansible.helloWorld",
     "onLanguage:yaml"
   ],
   "main": "./out/extension.js",
@@ -47,12 +46,6 @@
           ".yml",
           ".yaml"
         ]
-      }
-    ],
-    "commands": [
-      {
-        "command": "vscode-ansible.helloWorld",
-        "title": "Hello World"
       }
     ],
     "configuration": {
