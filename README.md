@@ -8,7 +8,7 @@ ansible-lint and presents its results on file save.
 
 ## Features
 
-![ansible-lint](images/ansible-lint.png)
+![ansible-lint](images/gh-social-preview.png)
 
 ## Requirements
 
