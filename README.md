@@ -3,7 +3,7 @@
 Ansible extension aims to ease life of Ansible content creators by making
 easier to write Ansible playbooks, roles, collections, modules and plugins.
 
-![ansible-lint]([images/gh-social-preview.png](https://github.com/ansible-community/vscode-ansible/raw/master/images/gh-social-preview.png))
+![ansible-lint](https://github.com/ansible-community/vscode-ansible/raw/master/images/gh-social-preview.png)
 
 ## Features
 
