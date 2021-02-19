@@ -1,0 +1,5 @@
+{
+    "image": "quay.io/ansible/toolset:main",
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=remote-workspace,target=/workspace,type=volume"
+}
