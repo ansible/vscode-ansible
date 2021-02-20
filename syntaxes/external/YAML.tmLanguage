@@ -1,7 +1,13 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
     <dict>
+        <key>comment</key>
+        <array>
+            <string>Imported from:</string>
+            <string>https://github.com/textmate/yaml.tmbundle/blob/e54ceae3b719506dba7e481a77cea4a8b576ae46/Syntaxes/YAML.tmLanguage</string>
+            <string>Applied fix for entity.name.tag, which was split on the first letter</string>
+        </array>
         <key>fileTypes</key>
         <array>
             <string>yaml</string>
@@ -156,7 +162,7 @@
                             )*
                             \s*
                             :
-							(\s|$)
+                            (\s|$)
                         )
                         </string>
                         <key>end</key>
@@ -174,18 +180,11 @@
                             </dict>
                             <dict>
                                 <key>begin</key>
-                                <string>(?x)
-                                  [^\s[-?:,\[\]{}#&amp;*!|&gt;'"%@`]]
-                                | [?:-] \S
+                                <string>(?x) (?=
+                                      [^\s[-?:,\[\]{}#&amp;*!|&gt;'"%@`]]
+                                    | [?:-] \S
+                                )
                                 </string>
-                                <key>beginCaptures</key>
-                                <dict>
-                                    <key>0</key>
-                                    <dict>
-                                        <key>name</key>
-                                        <string>entity.name.tag.yaml</string>
-                                    </dict>
-                                </dict>
                                 <key>contentName</key>
                                 <string>entity.name.tag.yaml</string>
                                 <key>end</key>
@@ -580,7 +579,7 @@
                             )*
                             \s*
                             :
-							(\s|$)
+                            (\s|$)
                         )
                         </string>
                         <key>end</key>
@@ -602,18 +601,11 @@
                             </dict>
                             <dict>
                                 <key>begin</key>
-                                <string>(?x)
-                                  [^\s[-?:,\[\]{}#&amp;*!|&gt;'"%@`]]
-                                | [?:-] [^\s[\[\]{},]]
+                                <string>(?x) (?=
+                                      [^\s[-?:,\[\]{}#&amp;*!|&gt;'"%@`]]
+                                    | [?:-] [^\s[\[\]{},]]
+                                )
                                 </string>
-                                <key>beginCaptures</key>
-                                <dict>
-                                    <key>0</key>
-                                    <dict>
-                                        <key>name</key>
-                                        <string>entity.name.tag.yaml</string>
-                                    </dict>
-                                </dict>
                                 <key>contentName</key>
                                 <string>entity.name.tag.yaml</string>
                                 <key>end</key>
