@@ -24,6 +24,7 @@
                     or condition2)
             It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
             </string>
+            <string>Same as above applies to escaping quotes</string>
         </array>
         <key>repository</key>
         <dict>
@@ -77,7 +78,11 @@
                             </dict>
                             <dict>
                                 <key>include</key>
-                                <string>#yaml-quoted-string</string>
+                                <string>#yaml-double-quoted-string</string>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-single-quoted-string</string>
                             </dict>
                             <dict>
                                 <key>include</key>
@@ -243,7 +248,11 @@
                             </dict>
                             <dict>
                                 <key>include</key>
-                                <string>#yaml-quoted-string</string>
+                                <string>#yaml-double-quoted-string</string>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-single-quoted-string</string>
                             </dict>
                             <dict>
                                 <key>include</key>
@@ -284,7 +293,7 @@
                     </dict>
                 </array>
             </dict>
-            <key>yaml-quoted-string</key>
+            <key>yaml-single-quoted-string</key>
             <dict>
                 <key>patterns</key>
                 <array>
@@ -292,7 +301,7 @@
                         <key>name</key>
                         <string>meta.quoted-string.ansible.condition</string>
                         <key>begin</key>
-                        <string>["']</string>
+                        <string>'</string>
                         <key>beginCaptures</key>
                         <dict>
                             <key>0</key>
@@ -303,7 +312,8 @@
                         </dict>
                         <key>end</key>
                         <string>(?x)
-                            (\0) # 1; match the starting quote (TODO: add illegals matching)
+                            ('(?!')) # 1; match the starting quote (TODO: add illegals matching)
+                            (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
                         </string>
                         <key>endCaptures</key>
                         <dict>
@@ -312,11 +322,125 @@
                                 <key>name</key>
                                 <string>punctuation.definition.string.end.ansible</string>
                             </dict>
+                            <key>2</key>
+                            <dict>
+                                <key>name</key>
+                                <string>invalid.illegal.expected-comment-or-newline.ansible</string>
+                            </dict>
                         </dict>
                         <key>contentName</key>
                         <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
+                            <dict>
+                                <key>begin</key>
+                                <string>''</string>
+                                <key>beginCaptures</key>
+                                <dict>
+                                    <key>0</key>
+                                    <dict>
+                                        <key>name</key>
+                                        <string>constant.character.escape.single-quoted.ansible</string>
+                                    </dict>
+                                </dict>
+                                <key>end</key>
+                                <string>''</string>
+                                <key>endCaptures</key>
+                                <dict>
+                                    <key>0</key>
+                                    <dict>
+                                        <key>name</key>
+                                        <string>constant.character.escape.single-quoted.ansible</string>
+                                    </dict>
+                                </dict>
+                                <key>contentName</key>
+                                <string>string.quoted.single.jinja</string>
+                                <key>patterns</key>
+                                <array>
+                                    <dict>
+                                        <key>include</key>
+                                        <string>source.jinja#string</string>
+                                    </dict>
+                                </array>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>source.jinja#expression</string>
+                            </dict>
+                        </array>
+                    </dict>
+                </array>
+            </dict>
+            <key>yaml-double-quoted-string</key>
+            <dict>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.quoted-string.ansible.condition</string>
+                        <key>begin</key>
+                        <string>"</string>
+                        <key>beginCaptures</key>
+                        <dict>
+                            <key>0</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.definition.string.begin.ansible</string>
+                            </dict>
+                        </dict>
+                        <key>end</key>
+                        <string>(?x)
+                            (") # 1; match the starting quote (TODO: add illegals matching)
+                            (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
+                        </string>
+                        <key>endCaptures</key>
+                        <dict>
+                            <key>1</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.definition.string.end.ansible</string>
+                            </dict>
+                            <key>2</key>
+                            <dict>
+                                <key>name</key>
+                                <string>invalid.illegal.expected-comment-or-newline.ansible</string>
+                            </dict>
+                        </dict>
+                        <key>contentName</key>
+                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>begin</key>
+                                <string>\\"</string>
+                                <key>beginCaptures</key>
+                                <dict>
+                                    <key>0</key>
+                                    <dict>
+                                        <key>name</key>
+                                        <string>constant.character.escape.double-quoted.ansible</string>
+                                    </dict>
+                                </dict>
+                                <key>end</key>
+                                <string>\\"</string>
+                                <key>endCaptures</key>
+                                <dict>
+                                    <key>0</key>
+                                    <dict>
+                                        <key>name</key>
+                                        <string>constant.character.escape.double-quoted.ansible</string>
+                                    </dict>
+                                </dict>
+                                <key>contentName</key>
+                                <string>string.quoted.double.jinja</string>
+                                <key>patterns</key>
+                                <array>
+                                    <dict>
+                                        <key>include</key>
+                                        <string>source.jinja#string</string>
+                                    </dict>
+                                </array>
+                            </dict>
                             <dict>
                                 <key>include</key>
                                 <string>source.jinja#expression</string>

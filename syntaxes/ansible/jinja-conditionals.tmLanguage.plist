@@ -14,6 +14,7 @@
                 or condition2)
         It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
         ',
+        'Same as above applies to escaping quotes'
     );
     repository = {
         ansible-condition = {
@@ -48,7 +49,8 @@
                     ';
                     patterns = (
                         { include = 'source.ansible#comment'; },
-                        { include = '#yaml-quoted-string'; },
+                        { include = '#yaml-double-quoted-string'; },
+                        { include = '#yaml-single-quoted-string'; },
                         { include = '#yaml-unquoted-string'; }
                     );
                 },
@@ -157,7 +159,8 @@
                     ';
                     patterns = (
                         { include = 'source.ansible#comment'; },
-                        { include = '#yaml-quoted-string'; },
+                        { include = '#yaml-double-quoted-string'; },
+                        { include = '#yaml-single-quoted-string'; },
                         { include = '#yaml-unquoted-string'; }
                     );
                 }
@@ -183,26 +186,95 @@
                 }
             );
         };
-        yaml-quoted-string = {
+        yaml-single-quoted-string = {
             patterns = (
                 {
                     name = 'meta.quoted-string.ansible.condition';
-                    begin = '["'']';
+                    begin = "'";
                     beginCaptures = {
                         0 = {
                             name = 'punctuation.definition.string.begin.ansible';
                         };
                     };
                     end = '(?x)
-                        (\0) # 1; match the starting quote (TODO: add illegals matching)
+                        (''(?!'')) # 1; match the starting quote (TODO: add illegals matching)
+                        (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
                     ';
                     endCaptures = {
                         1 = {
                             name = 'punctuation.definition.string.end.ansible';
                         };
+                        2 = {
+                            name = 'invalid.illegal.expected-comment-or-newline.ansible';
+                        };
                     };
                     contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
                     patterns = (
+                        {
+                            begin = "''";
+                            beginCaptures = {
+                                0 = {
+                                    name = 'constant.character.escape.single-quoted.ansible';
+                                };
+                            };
+                            end = "''";
+                            endCaptures = {
+                                0 = {
+                                    name = 'constant.character.escape.single-quoted.ansible';
+                                };
+                            };
+                            contentName = 'string.quoted.single.jinja';
+                            patterns = (
+                                { include = 'source.jinja#string'; }
+                            );
+                        },
+                        { include = 'source.jinja#expression'; },
+                    );
+                }
+            );
+        };
+        yaml-double-quoted-string = {
+            patterns = (
+                {
+                    name = 'meta.quoted-string.ansible.condition';
+                    begin = '"';
+                    beginCaptures = {
+                        0 = {
+                            name = 'punctuation.definition.string.begin.ansible';
+                        };
+                    };
+                    end = '(?x)
+                        (") # 1; match the starting quote (TODO: add illegals matching)
+                        (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
+                    ';
+                    endCaptures = {
+                        1 = {
+                            name = 'punctuation.definition.string.end.ansible';
+                        };
+                        2 = {
+                            name = 'invalid.illegal.expected-comment-or-newline.ansible';
+                        };
+                    };
+                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    patterns = (
+                        {
+                            begin = '\\"';
+                            beginCaptures = {
+                                0 = {
+                                    name = 'constant.character.escape.double-quoted.ansible';
+                                };
+                            };
+                            end = '\\"';
+                            endCaptures = {
+                                0 = {
+                                    name = 'constant.character.escape.double-quoted.ansible';
+                                };
+                            };
+                            contentName = 'string.quoted.double.jinja';
+                            patterns = (
+                                { include = 'source.jinja#string'; }
+                            );
+                        },
                         { include = 'source.jinja#expression'; },
                     );
                 }
