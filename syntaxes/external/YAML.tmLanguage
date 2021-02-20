@@ -7,6 +7,8 @@
             <string>Imported from:</string>
             <string>https://github.com/textmate/yaml.tmbundle/blob/e54ceae3b719506dba7e481a77cea4a8b576ae46/Syntaxes/YAML.tmLanguage</string>
             <string>Applied fix for entity.name.tag, which was split on the first letter</string>
+            <string>Replaced all `.yaml` scopes with `.ansible` to avoid replacing syntax for regular YAML files.</string>
+            <string>Injected `jinja-conditionals`</string>
         </array>
         <key>fileTypes</key>
         <array>
@@ -29,6 +31,10 @@
         <array>
             <dict>
                 <key>include</key>
+                <string>injection.ansible.jinja-conditionals</string>
+            </dict>
+            <dict>
+                <key>include</key>
                 <string>#comment</string>
             </dict>
             <dict>
@@ -43,13 +49,13 @@
                 <key>match</key>
                 <string>^---</string>
                 <key>name</key>
-                <string>entity.other.document.begin.yaml</string>
+                <string>entity.other.document.begin.ansible</string>
             </dict>
             <dict>
                 <key>match</key>
                 <string>^\.{3}</string>
                 <key>name</key>
-                <string>entity.other.document.end.yaml</string>
+                <string>entity.other.document.end.ansible</string>
             </dict>
             <dict>
                 <key>include</key>
@@ -120,7 +126,7 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>punctuation.definition.key-value.begin.yaml</string>
+                                <string>punctuation.definition.key-value.begin.ansible</string>
                             </dict>
                         </dict>
                         <key>end</key>
@@ -130,16 +136,16 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>punctuation.separator.key-value.mapping.yaml</string>
+                                <string>punctuation.separator.key-value.mapping.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>invalid.illegal.expected-newline.yaml</string>
+                                <string>invalid.illegal.expected-newline.ansible</string>
                             </dict>
                         </dict>
                         <key>name</key>
-                        <string>meta.block-mapping.yaml</string>
+                        <string>meta.block-mapping.ansible</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -186,7 +192,7 @@
                                 )
                                 </string>
                                 <key>contentName</key>
-                                <string>entity.name.tag.yaml</string>
+                                <string>entity.name.tag.ansible</string>
                                 <key>end</key>
                                 <string>(?x) (?=
                                       \s* $
@@ -195,7 +201,7 @@
                                 )
                                 </string>
                                 <key>name</key>
-                                <string>string.unquoted.plain.out.yaml</string>
+                                <string>string.unquoted.plain.out.ansible</string>
                             </dict>
                         </array>
                     </dict>
@@ -203,7 +209,7 @@
                         <key>match</key>
                         <string>:(?=\s|$)</string>
                         <key>name</key>
-                        <string>punctuation.separator.key-value.mapping.yaml</string>
+                        <string>punctuation.separator.key-value.mapping.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -216,22 +222,22 @@
                     <key>1</key>
                     <dict>
                         <key>name</key>
-                        <string>keyword.control.flow.block-scalar.literal.yaml</string>
+                        <string>keyword.control.flow.block-scalar.literal.ansible</string>
                     </dict>
                     <key>2</key>
                     <dict>
                         <key>name</key>
-                        <string>keyword.control.flow.block-scalar.folded.yaml</string>
+                        <string>keyword.control.flow.block-scalar.folded.ansible</string>
                     </dict>
                     <key>3</key>
                     <dict>
                         <key>name</key>
-                        <string>constant.numeric.indentation-indicator.yaml</string>
+                        <string>constant.numeric.indentation-indicator.ansible</string>
                     </dict>
                     <key>4</key>
                     <dict>
                         <key>name</key>
-                        <string>storage.modifier.chomping-indicator.yaml</string>
+                        <string>storage.modifier.chomping-indicator.ansible</string>
                     </dict>
                     <key>5</key>
                     <dict>
@@ -245,7 +251,7 @@
                                 <key>match</key>
                                 <string>.+</string>
                                 <key>name</key>
-                                <string>invalid.illegal.expected-comment-or-newline.yaml</string>
+                                <string>invalid.illegal.expected-comment-or-newline.ansible</string>
                             </dict>
                         </array>
                     </dict>
@@ -260,7 +266,7 @@
                         <key>end</key>
                         <string>^(?!\1|\s*$)</string>
                         <key>name</key>
-                        <string>string.unquoted.block.yaml</string>
+                        <string>string.unquoted.block.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -269,7 +275,7 @@
                 <key>match</key>
                 <string>(-)(?!\S)</string>
                 <key>name</key>
-                <string>punctuation.definition.block.sequence.item.yaml</string>
+                <string>punctuation.definition.block.sequence.item.ansible</string>
             </dict>
             <key>comment</key>
             <dict>
@@ -280,7 +286,7 @@
                     <key>1</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.whitespace.comment.leading.yaml</string>
+                        <string>punctuation.whitespace.comment.leading.ansible</string>
                     </dict>
                 </dict>
                 <key>end</key>
@@ -295,13 +301,13 @@
                             <key>0</key>
                             <dict>
                                 <key>name</key>
-                                <string>punctuation.definition.comment.yaml</string>
+                                <string>punctuation.definition.comment.ansible</string>
                             </dict>
                         </dict>
                         <key>end</key>
                         <string>\n</string>
                         <key>name</key>
-                        <string>comment.line.number-sign.yaml</string>
+                        <string>comment.line.number-sign.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -314,13 +320,13 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.directive.begin.yaml</string>
+                        <string>punctuation.definition.directive.begin.ansible</string>
                     </dict>
                 </dict>
                 <key>end</key>
                 <string>(?=$|[ \t]+($|#))</string>
                 <key>name</key>
-                <string>meta.directive.yaml</string>
+                <string>meta.directive.ansible</string>
                 <key>patterns</key>
                 <array>
                     <dict>
@@ -329,12 +335,12 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>keyword.other.directive.yaml.yaml</string>
+                                <string>keyword.other.directive.yaml.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.numeric.yaml-version.yaml</string>
+                                <string>constant.numeric.yaml-version.ansible</string>
                             </dict>
                         </dict>
                         <key>match</key>
@@ -346,17 +352,17 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>keyword.other.directive.tag.yaml</string>
+                                <string>keyword.other.directive.tag.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>storage.type.tag-handle.yaml</string>
+                                <string>storage.type.tag-handle.ansible</string>
                             </dict>
                             <key>3</key>
                             <dict>
                                 <key>name</key>
-                                <string>support.type.tag-prefix.yaml</string>
+                                <string>support.type.tag-prefix.ansible</string>
                             </dict>
                         </dict>
                         <key>match</key>
@@ -379,17 +385,17 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>support.other.directive.reserved.yaml</string>
+                                <string>support.other.directive.reserved.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>string.unquoted.directive-name.yaml</string>
+                                <string>string.unquoted.directive-name.ansible</string>
                             </dict>
                             <key>3</key>
                             <dict>
                                 <key>name</key>
-                                <string>string.unquoted.directive-parameter.yaml</string>
+                                <string>string.unquoted.directive-parameter.ansible</string>
                             </dict>
                         </dict>
                         <key>match</key>
@@ -399,7 +405,7 @@
                         <key>match</key>
                         <string>\S+</string>
                         <key>name</key>
-                        <string>invalid.illegal.unrecognized.yaml</string>
+                        <string>invalid.illegal.unrecognized.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -410,22 +416,22 @@
                     <key>1</key>
                     <dict>
                         <key>name</key>
-                        <string>keyword.control.flow.alias.yaml</string>
+                        <string>keyword.control.flow.alias.ansible</string>
                     </dict>
                     <key>2</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.alias.yaml</string>
+                        <string>punctuation.definition.alias.ansible</string>
                     </dict>
                     <key>3</key>
                     <dict>
                         <key>name</key>
-                        <string>variable.other.alias.yaml</string>
+                        <string>variable.other.alias.ansible</string>
                     </dict>
                     <key>4</key>
                     <dict>
                         <key>name</key>
-                        <string>invalid.illegal.character.anchor.yaml</string>
+                        <string>invalid.illegal.character.anchor.ansible</string>
                     </dict>
                 </dict>
                 <key>match</key>
@@ -454,7 +460,7 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.mapping.begin.yaml</string>
+                        <string>punctuation.definition.mapping.begin.ansible</string>
                     </dict>
                 </dict>
                 <key>end</key>
@@ -464,11 +470,11 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.mapping.end.yaml</string>
+                        <string>punctuation.definition.mapping.end.ansible</string>
                     </dict>
                 </dict>
                 <key>name</key>
-                <string>meta.flow-mapping.yaml</string>
+                <string>meta.flow-mapping.ansible</string>
                 <key>patterns</key>
                 <array>
                     <dict>
@@ -479,7 +485,7 @@
                         <key>match</key>
                         <string>,</string>
                         <key>name</key>
-                        <string>punctuation.separator.mapping.yaml</string>
+                        <string>punctuation.separator.mapping.ansible</string>
                     </dict>
                     <dict>
                         <key>include</key>
@@ -521,13 +527,13 @@
                             <key>0</key>
                             <dict>
                                 <key>name</key>
-                                <string>punctuation.definition.key-value.begin.yaml</string>
+                                <string>punctuation.definition.key-value.begin.ansible</string>
                             </dict>
                         </dict>
                         <key>end</key>
                         <string>(?=[},\]])</string>
                         <key>name</key>
-                        <string>meta.flow-pair.explicit.yaml</string>
+                        <string>meta.flow-pair.explicit.ansible</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -550,7 +556,7 @@
                                     <key>0</key>
                                     <dict>
                                         <key>name</key>
-                                        <string>punctuation.separator.key-value.mapping.yaml</string>
+                                        <string>punctuation.separator.key-value.mapping.ansible</string>
                                     </dict>
                                 </dict>
                                 <key>end</key>
@@ -592,7 +598,7 @@
                         )
                         </string>
                         <key>name</key>
-                        <string>meta.flow-pair.key.yaml</string>
+                        <string>meta.flow-pair.key.ansible</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -607,7 +613,7 @@
                                 )
                                 </string>
                                 <key>contentName</key>
-                                <string>entity.name.tag.yaml</string>
+                                <string>entity.name.tag.ansible</string>
                                 <key>end</key>
                                 <string>(?x) (?=
                                       \s* $
@@ -618,7 +624,7 @@
                                 )
                                 </string>
                                 <key>name</key>
-                                <string>string.unquoted.plain.in.yaml</string>
+                                <string>string.unquoted.plain.in.ansible</string>
                             </dict>
                         </array>
                     </dict>
@@ -634,13 +640,13 @@
                             <key>0</key>
                             <dict>
                                 <key>name</key>
-                                <string>punctuation.separator.key-value.mapping.yaml</string>
+                                <string>punctuation.separator.key-value.mapping.ansible</string>
                             </dict>
                         </dict>
                         <key>end</key>
                         <string>(?=[},\]])</string>
                         <key>name</key>
-                        <string>meta.flow-pair.yaml</string>
+                        <string>meta.flow-pair.ansible</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -678,7 +684,7 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.string.begin.yaml</string>
+                        <string>punctuation.definition.string.begin.ansible</string>
                     </dict>
                 </dict>
                 <key>end</key>
@@ -688,24 +694,24 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.string.end.yaml</string>
+                        <string>punctuation.definition.string.end.ansible</string>
                     </dict>
                 </dict>
                 <key>name</key>
-                <string>string.quoted.double.yaml</string>
+                <string>string.quoted.double.ansible</string>
                 <key>patterns</key>
                 <array>
                     <dict>
                         <key>match</key>
                         <string>\\([0abtnvfre "/\\N_Lp]|x\d\d|u\d{4}|U\d{8})</string>
                         <key>name</key>
-                        <string>constant.character.escape.yaml</string>
+                        <string>constant.character.escape.ansible</string>
                     </dict>
                     <dict>
                         <key>match</key>
                         <string>\\\n</string>
                         <key>name</key>
-                        <string>constant.character.escape.double-quoted.newline.yaml</string>
+                        <string>constant.character.escape.double-quoted.newline.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -733,7 +739,7 @@
                         )
                         </string>
                         <key>name</key>
-                        <string>string.unquoted.plain.in.yaml</string>
+                        <string>string.unquoted.plain.in.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -747,37 +753,37 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.null.yaml</string>
+                                <string>constant.language.null.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.boolean.yaml</string>
+                                <string>constant.language.boolean.ansible</string>
                             </dict>
                             <key>3</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.numeric.integer.yaml</string>
+                                <string>constant.numeric.integer.ansible</string>
                             </dict>
                             <key>4</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.numeric.float.yaml</string>
+                                <string>constant.numeric.float.ansible</string>
                             </dict>
                             <key>5</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.other.timestamp.yaml</string>
+                                <string>constant.other.timestamp.ansible</string>
                             </dict>
                             <key>6</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.value.yaml</string>
+                                <string>constant.language.value.ansible</string>
                             </dict>
                             <key>7</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.merge.yaml</string>
+                                <string>constant.language.merge.ansible</string>
                             </dict>
                         </dict>
                         <key>match</key>
@@ -855,7 +861,7 @@
                         )
                         </string>
                         <key>name</key>
-                        <string>string.unquoted.plain.out.yaml</string>
+                        <string>string.unquoted.plain.out.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -869,37 +875,37 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.null.yaml</string>
+                                <string>constant.language.null.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.boolean.yaml</string>
+                                <string>constant.language.boolean.ansible</string>
                             </dict>
                             <key>3</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.numeric.integer.yaml</string>
+                                <string>constant.numeric.integer.ansible</string>
                             </dict>
                             <key>4</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.numeric.float.yaml</string>
+                                <string>constant.numeric.float.ansible</string>
                             </dict>
                             <key>5</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.other.timestamp.yaml</string>
+                                <string>constant.other.timestamp.ansible</string>
                             </dict>
                             <key>6</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.value.yaml</string>
+                                <string>constant.language.value.ansible</string>
                             </dict>
                             <key>7</key>
                             <dict>
                                 <key>name</key>
-                                <string>constant.language.merge.yaml</string>
+                                <string>constant.language.merge.ansible</string>
                             </dict>
                         </dict>
                         <key>match</key>
@@ -962,7 +968,7 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.string.begin.yaml</string>
+                        <string>punctuation.definition.string.begin.ansible</string>
                     </dict>
                 </dict>
                 <key>end</key>
@@ -972,18 +978,18 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.string.end.yaml</string>
+                        <string>punctuation.definition.string.end.ansible</string>
                     </dict>
                 </dict>
                 <key>name</key>
-                <string>string.quoted.single.yaml</string>
+                <string>string.quoted.single.ansible</string>
                 <key>patterns</key>
                 <array>
                     <dict>
                         <key>match</key>
                         <string>''</string>
                         <key>name</key>
-                        <string>constant.character.escape.single-quoted.yaml</string>
+                        <string>constant.character.escape.single-quoted.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -996,7 +1002,7 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.sequence.begin.yaml</string>
+                        <string>punctuation.definition.sequence.begin.ansible</string>
                     </dict>
                 </dict>
                 <key>end</key>
@@ -1006,11 +1012,11 @@
                     <key>0</key>
                     <dict>
                         <key>name</key>
-                        <string>punctuation.definition.sequence.end.yaml</string>
+                        <string>punctuation.definition.sequence.end.ansible</string>
                     </dict>
                 </dict>
                 <key>name</key>
-                <string>meta.flow-sequence.yaml</string>
+                <string>meta.flow-sequence.ansible</string>
                 <key>patterns</key>
                 <array>
                     <dict>
@@ -1021,7 +1027,7 @@
                         <key>match</key>
                         <string>,</string>
                         <key>name</key>
-                        <string>punctuation.separator.sequence.yaml</string>
+                        <string>punctuation.separator.sequence.ansible</string>
                     </dict>
                     <dict>
                         <key>include</key>
@@ -1043,7 +1049,7 @@
                         <key>end</key>
                         <string>(?=[},\]])</string>
                         <key>name</key>
-                        <string>meta.flow-pair.value.yaml</string>
+                        <string>meta.flow-pair.value.ansible</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -1071,7 +1077,7 @@
                 <key>end</key>
                 <string>(?!\G)</string>
                 <key>name</key>
-                <string>meta.property.yaml</string>
+                <string>meta.property.ansible</string>
                 <key>patterns</key>
                 <array>
                     <dict>
@@ -1080,22 +1086,22 @@
                             <key>1</key>
                             <dict>
                                 <key>name</key>
-                                <string>keyword.control.property.anchor.yaml</string>
+                                <string>keyword.control.property.anchor.ansible</string>
                             </dict>
                             <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>punctuation.definition.anchor.yaml</string>
+                                <string>punctuation.definition.anchor.ansible</string>
                             </dict>
                             <key>3</key>
                             <dict>
                                 <key>name</key>
-                                <string>entity.name.type.anchor.yaml</string>
+                                <string>entity.name.type.anchor.ansible</string>
                             </dict>
                             <key>4</key>
                             <dict>
                                 <key>name</key>
-                                <string>invalid.illegal.character.anchor.yaml</string>
+                                <string>invalid.illegal.character.anchor.ansible</string>
                             </dict>
                         </dict>
                         <key>match</key>
@@ -1112,13 +1118,13 @@
                         ) (?=\ |\t|$)
                         </string>
                         <key>name</key>
-                        <string>storage.type.tag-handle.yaml</string>
+                        <string>storage.type.tag-handle.ansible</string>
                     </dict>
                     <dict>
                         <key>match</key>
                         <string>\S+</string>
                         <key>name</key>
-                        <string>invalid.illegal.tag-handle.yaml</string>
+                        <string>invalid.illegal.tag-handle.ansible</string>
                     </dict>
                 </array>
             </dict>
@@ -1138,7 +1144,7 @@
             </dict>
         </dict>
         <key>scopeName</key>
-        <string>source.yaml</string>
+        <string>source.ansible</string>
         <key>uuid</key>
         <string>686AD6AE-33F3-4493-9512-9E9FC1D5417F</string>
     </dict>

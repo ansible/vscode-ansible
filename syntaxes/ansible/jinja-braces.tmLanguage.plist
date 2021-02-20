@@ -1,0 +1,19 @@
+{
+    scopeName = 'injection.ansible.jinja-braces';
+    injectionSelector = 'L:string';
+    name = 'Grammar for Jinja2 expressions surrounded by double curly braces';
+    patterns = (
+        { include = '#jinja-expression'; }
+    );
+    repository = {
+        jinja-expression = {
+            name = 'variable.other.constant.ansible variable.language';
+            begin = '\{\{';
+            end = '\}\}';
+            contentName = 'meta.embedded.inline.jinja';
+            patterns = (
+                { include = 'source.jinja#expression'; }
+            );
+        };
+    };
+}

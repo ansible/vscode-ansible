@@ -1,32 +1,15 @@
 {
-	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-	"name": "Ansible",
+	"scopeName": "todo-comment.injection",
+	"injectionSelector": "L:comment.line.number-sign.yaml",
 	"patterns": [
 		{
-			"include": "#keywords"
-		},
-		{
-			"include": "#strings"
+			"include": "#todo-keyword"
 		}
 	],
 	"repository": {
-		"keywords": {
-			"patterns": [{
-				"name": "keyword.control.ansible",
-				"match": "\\b(if|while|for|return)\\b"
-			}]
-		},
-		"strings": {
-			"name": "string.quoted.double.ansible",
-			"begin": "\"",
-			"end": "\"",
-			"patterns": [
-				{
-					"name": "constant.character.escape.ansible",
-					"match": "\\\\."
-				}
-			]
+		"todo-keyword": {
+			"match": "TODO",
+			"name": "keyword.todo"
 		}
-	},
-	"scopeName": "source.ansible"
+	}
 }

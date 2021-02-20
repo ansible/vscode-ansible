@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>scopeName</key>
+        <string>injection.ansible.jinja-braces</string>
+        <key>injectionSelector</key>
+        <string>L:string</string>
+        <key>name</key>
+        <string>Grammar for Jinja2 expressions surrounded by double curly braces</string>
+        <key>patterns</key>
+        <array>
+            <dict>
+                <key>include</key>
+                <string>#jinja-expression</string>
+            </dict>
+        </array>
+        <key>repository</key>
+        <dict>
+            <key>jinja-expression</key>
+            <dict>
+                <key>name</key>
+                <string>variable.other.constant.ansible variable.language</string>
+                <key>begin</key>
+                <string>\{\{</string>
+                <key>end</key>
+                <string>\}\}</string>
+                <key>contentName</key>
+                <string>meta.embedded.inline.jinja</string>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>include</key>
+                        <string>source.jinja#expression</string>
+                    </dict>
+                </array>
+            </dict>
+        </dict>
+    </dict>
+</plist>

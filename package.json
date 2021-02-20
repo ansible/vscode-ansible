@@ -10,16 +10,53 @@
         "Programming Languages"
     ],
     "contributes": {
-        "languages": [{
-            "id": "ansible",
-            "aliases": ["Ansible", "ansible"],
-            "extensions": [".yml",".yaml"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "ansible",
-            "scopeName": "source.ansible",
-            "path": "./syntaxes/ansible.tmLanguage.json"
-        }]
+        "languages": [
+            {
+                "id": "ansible",
+                "aliases": [
+                    "Ansible",
+                    "ansible"
+                ],
+                "extensions": [
+                    ".yml",
+                    ".yaml"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "ansible",
+                "scopeName": "source.ansible",
+                "path": "./syntaxes/external/YAML.tmLanguage"
+            },
+            {
+                "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
+                "scopeName": "injection.ansible.keywords",
+                "injectTo": [
+                    "source.ansible"
+                ]
+            },
+            {
+                "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
+                "scopeName": "injection.ansible.jinja-braces",
+                "embeddedLanguages": {
+                    "meta.embedded.inline.jinja": "jinja"
+                },
+                "injectTo": [
+                    "source.ansible"
+                ]
+            },
+            {
+                "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
+                "scopeName": "injection.ansible.jinja-conditionals",
+                "embeddedLanguages": {
+                    "meta.embedded.inline.jinja": "jinja"
+                },
+                "injectTo": [
+                    "source.ansible"
+                ]
+            }
+        ]
     }
 }
