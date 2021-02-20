@@ -14,7 +14,17 @@
             </dict>
         </array>
         <key>comment</key>
-        <string>Flow style collections are not supported (yet)</string>
+        <array>
+            <string>Flow style collections are not supported (yet)</string>
+            <string>Proper YAML comment highlighting will not work in nested Jinja expressions. For example:
+                when: condition1 # this works
+                    or condition2
+                
+                when: (condition1 # this will not work
+                    or condition2)
+            It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
+            </string>
+        </array>
         <key>repository</key>
         <dict>
             <key>ansible-condition</key>
@@ -61,6 +71,10 @@
                         </string>
                         <key>patterns</key>
                         <array>
+                            <dict>
+                                <key>include</key>
+                                <string>source.ansible#comment</string>
+                            </dict>
                             <dict>
                                 <key>include</key>
                                 <string>#yaml-quoted-string</string>
@@ -221,10 +235,12 @@
                         <string>(?x)
                             ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
                         </string>
-                        <key>contentName</key>
-                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
+                            <dict>
+                                <key>include</key>
+                                <string>source.ansible#comment</string>
+                            </dict>
                             <dict>
                                 <key>include</key>
                                 <string>#yaml-quoted-string</string>
@@ -262,7 +278,7 @@
                         <array>
                             <dict>
                                 <key>include</key>
-                                <string>source.jinja#expression</string>
+                                <string>#yaml-unquoted-string</string>
                             </dict>
                         </array>
                     </dict>
@@ -287,7 +303,7 @@
                         </dict>
                         <key>end</key>
                         <string>(?x)
-                            (\0) \s* $ # 1; if it started with a quote and the line ends (TODO: replace with illegals matching)
+                            (\0) # 1; match the starting quote (TODO: add illegals matching)
                         </string>
                         <key>endCaptures</key>
                         <dict>

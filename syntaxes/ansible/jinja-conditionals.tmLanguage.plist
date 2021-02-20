@@ -4,7 +4,17 @@
     patterns = (
         { include = '#ansible-condition'; }
     );
-    comment = 'Flow style collections are not supported (yet)';
+    comment = (
+        'Flow style collections are not supported (yet)',
+        'Proper YAML comment highlighting will not work in nested Jinja expressions. For example:
+            when: condition1 # this works
+                or condition2
+            
+            when: (condition1 # this will not work
+                or condition2)
+        It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
+        ',
+    );
     repository = {
         ansible-condition = {
             patterns = (
@@ -37,6 +47,7 @@
                         ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
                     ';
                     patterns = (
+                        { include = 'source.ansible#comment'; },
                         { include = '#yaml-quoted-string'; },
                         { include = '#yaml-unquoted-string'; }
                     );
@@ -144,8 +155,8 @@
                     end = '(?x)
                         ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
                     ';
-                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
                     patterns = (
+                        { include = 'source.ansible#comment'; },
                         { include = '#yaml-quoted-string'; },
                         { include = '#yaml-unquoted-string'; }
                     );
@@ -167,7 +178,7 @@
                     ';
                     contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
                     patterns = (
-                        { include = 'source.jinja#expression'; },
+                        { include = '#yaml-unquoted-string'; },
                     );
                 }
             );
@@ -183,7 +194,7 @@
                         };
                     };
                     end = '(?x)
-                        (\0) \s* $ # 1; if it started with a quote and the line ends (TODO: replace with illegals matching)
+                        (\0) # 1; match the starting quote (TODO: add illegals matching)
                     ';
                     endCaptures = {
                         1 = {
