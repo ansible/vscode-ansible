@@ -1,21 +1,50 @@
 {
     scopeName = 'injection.ansible.jinja-conditionals';
-    name = 'Grammar for Jinja2 expressions surrounded by double curly braces';
+    name = 'Grammar for Jinja2 expressions in Ansible conditionals';
     patterns = (
         { include = '#ansible-condition'; }
     );
     comment = 'Flow style collections are not supported (yet)';
     repository = {
-        test = {
-            begin = '^(\s*)';
-            end = '^(?!\1s+)';
-            name = 'asdf.test.ansible';
-        };
         ansible-condition = {
             patterns = (
                 {
+                    name = 'meta.flow.ansible.condition';
+                    begin = '(?x)
+                        ^(\s*) # 1
+                        (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
+                        \b( # 4
+                            changed_when
+                            | failed_when
+                            | when
+                            | check_mode
+                        )\b
+                        \s* (:) # 5
+                        \s+ (?![|>]|\s*$) # not starting a block (scalar or other)
+                    ';
+                    beginCaptures = {
+                        2 = {
+                            name = 'punctuation.definition.block.sequence.item.ansible';
+                        };
+                        4 = {
+                            name = 'keyword.other.special-method.ansible';
+                        };
+                        5 = {
+                            name = 'punctuation.separator.key-value.mapping.ansible';
+                        };
+                    };
+                    end = '(?x)
+                        ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                    ';
+                    patterns = (
+                        { include = '#yaml-quoted-string'; },
+                        { include = '#yaml-unquoted-string'; }
+                    );
+                },
+                {
+                    name = 'meta.block-scalar.ansible.condition';
                     comment = (
-                        'Flow style expression'
+                        'Keyword detection'
                     );
                     begin = '(?x)
                         ^(\s*) # 1
@@ -27,8 +56,7 @@
                             | check_mode
                         )\b
                         \s* (:) # 5
-                        (?!\s+[|>]|\s*$) # not starting a block
-                        \s+ (["'']?) # 6
+                        \s+ (?: (\|) | (>) ) ([1-9])? ([-+])? # 6,7,8,9; starting a scalar block
                     ';
                     beginCaptures = {
                         2 = {
@@ -41,14 +69,121 @@
                             name = 'punctuation.separator.key-value.mapping.ansible';
                         };
                         6 = {
+                            name = 'keyword.control.flow.block-scalar.literal.ansible';
+                        };
+                        7 = {
+                            name = 'keyword.control.flow.block-scalar.folded.ansible';
+                        };
+                        8 = {
+                            name = 'constant.numeric.indentation-indicator.ansible';
+                        };
+                        9 = {
+                            name = 'storage.modifier.chomping-indicator.ansible';
+                        };
+                    };
+                    end = '(?x)
+                        ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                    ';
+                    patterns = (
+                        { include = '#yaml-scalar-block'; },
+                    );
+                },
+                {
+                    name = 'meta.block.ansible.condition';
+                    comment = (
+                        'Keyword detection'
+                    );
+                    begin = '(?x)
+                        ^(\s*) # 1
+                        (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
+                        \b( # 4
+                            changed_when
+                            | failed_when
+                            | when
+                            | check_mode
+                        )\b
+                        \s* (:) # 5
+                        \s*$ # starting other block
+                    ';
+                    beginCaptures = {
+                        2 = {
+                            name = 'punctuation.definition.block.sequence.item.ansible';
+                        };
+                        4 = {
+                            name = 'keyword.other.special-method.ansible';
+                        };
+                        5 = {
+                            name = 'punctuation.separator.key-value.mapping.ansible';
+                        };
+                    };
+                    end = '(?x)
+                        ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                    ';
+                    patterns = (
+                        { include = '#yaml-block'; },
+                    );
+                }
+            );
+        };
+        yaml-block = {
+            patterns = (
+                {
+                    name = 'meta.yaml-block.ansible.condition';
+                    comment = (
+                        'Well-indented block; possibly list'
+                    );
+                    begin = '(?x)
+                        ^(\s*) # 1
+                        (?:(-)(\s+))? # 2, 3; in case it a list item
+                    ';
+                    beginCaptures = {
+                        2 = {
+                            name = 'punctuation.definition.block.sequence.item.ansible';
+                        };
+                    };
+                    end = '(?x)
+                        ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                    ';
+                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    patterns = (
+                        { include = '#yaml-quoted-string'; },
+                        { include = '#yaml-unquoted-string'; }
+                    );
+                }
+            );
+        };
+        yaml-scalar-block = {
+            patterns = (
+                {
+                    name = 'meta.yaml-block.ansible.condition';
+                    comment = (
+                        'Well-indented scalar block (for `>` and `|`)'
+                    );
+                    begin = '(?x)
+                        ^(\s*) # 1
+                    ';
+                    end = '(?x)
+                        ^(?!\1\s+) # if the indentation is too small
+                    ';
+                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    patterns = (
+                        { include = 'source.jinja#expression'; },
+                    );
+                }
+            );
+        };
+        yaml-quoted-string = {
+            patterns = (
+                {
+                    name = 'meta.quoted-string.ansible.condition';
+                    begin = '["'']';
+                    beginCaptures = {
+                        0 = {
                             name = 'punctuation.definition.string.begin.ansible';
                         };
                     };
                     end = '(?x)
-                        (
-                              ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
-                            | ((?=["''])\6) \s* $ # 1; if it started with a quote and the line ends
-                        )
+                        (\0) \s* $ # 1; if it started with a quote and the line ends (TODO: replace with illegals matching)
                     ';
                     endCaptures = {
                         1 = {
@@ -57,96 +192,21 @@
                     };
                     contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
                     patterns = (
-                        { include = '#test'; },
-                        { include = 'source.jinja#expression'; }
+                        { include = 'source.jinja#expression'; },
                     );
-                },
+                }
+            );
+        };
+        yaml-unquoted-string = {
+            patterns = (
                 {
-                    begin = '(?x)
-                        ^(\s*) # 1
-                        (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
-                        \b( # 4
-                            changed_when
-                            | failed_when
-                            | when
-                            | check_mode
-                        )\b
-                        \s* (:) # 5
-                        \s*$ # starting a block collection or string in block
-                    ';
-                    beginCaptures = {
-                        2 = {
-                            name = 'punctuation.definition.block.sequence.item.ansible';
-                        };
-                        4 = {
-                            name = 'keyword.other.special-method.ansible';
-                        };
-                        5 = {
-                            name = 'punctuation.separator.key-value.mapping.ansible';
-                        };
-                    };
-                    end = '(?x)
-                        (
-                              ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
-                            | ((?=["''])\6) \s* $ # 1; if it started with a quote and the line ends
-                        )
-                    ';
-                    end = '^(?!\1\s+-\s+|$)';
+                    comment = 'Capture any non-whitespace and end as fast as possible (when inner pattern ends)';
+                    name = 'meta.unquoted-string.ansible.condition';
+                    begin = '(?=\S)';
+                    end = '(?!\G)';
+                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
                     patterns = (
-                        {
-                            begin = '(?:["''])(.*)(?=["'']\s*?$)';
-                            beginCaptures = {
-                                1 = {
-                                    patterns = (
-                                        {
-                                            include = 'source.jinja#expression';
-                                        }
-                                    );
-                                };
-                            };
-                            end = '$';
-                        },
-                        {
-                            include = 'source.jinja#expression';
-                        }
-                    );
-                },
-                {
-                    begin = '(\s*)(?:(?:-\s+)?((?:changed_|failed_)?when|check_mode):\s+|-\s+)(?:(\|)|(>))([1-9])?([-+])?(.*\n?)';
-                    beginCaptures = {
-                        2 = {
-                            name = 'keyword.other.special-method.ansible';
-                        };
-                        3 = {
-                            name = 'punctuation.definition.block.scalar.literal.ansible';
-                        };
-                        4 = {
-                            name = 'punctuation.definition.block.scalar.folded.ansible';
-                        };
-                        5 = {
-                            name = 'constant.numeric.indentation-indicator.ansible';
-                        };
-                        6 = {
-                            name = 'support.other.chomping-indicator.ansible';
-                        };
-                        7 = {
-                            patterns = (
-                                {
-                                    include = '#comment';
-                                },
-                                {
-                                    match = '.+';
-                                    name = 'invalid.illegal.expected-comment-or-newline.ansible';
-                                }
-                            );
-                        };
-                    };
-                    contentName = 'string.unquoted.block.ansible';
-                    end = '^(?!\1\s+\S|$)';
-                    patterns = (
-                        {
-                            include = 'source.jinja#expression';
-                        }
+                        { include = 'source.jinja#expression'; },
                     );
                 }
             );

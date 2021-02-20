@@ -5,7 +5,7 @@
         <key>scopeName</key>
         <string>injection.ansible.jinja-conditionals</string>
         <key>name</key>
-        <string>Grammar for Jinja2 expressions surrounded by double curly braces</string>
+        <string>Grammar for Jinja2 expressions in Ansible conditionals</string>
         <key>patterns</key>
         <array>
             <dict>
@@ -17,23 +17,66 @@
         <string>Flow style collections are not supported (yet)</string>
         <key>repository</key>
         <dict>
-            <key>test</key>
-            <dict>
-                <key>begin</key>
-                <string>^(\s*)</string>
-                <key>end</key>
-                <string>^(?!\1s+)</string>
-                <key>name</key>
-                <string>asdf.test.ansible</string>
-            </dict>
             <key>ansible-condition</key>
             <dict>
                 <key>patterns</key>
                 <array>
                     <dict>
+                        <key>name</key>
+                        <string>meta.flow.ansible.condition</string>
+                        <key>begin</key>
+                        <string>(?x)
+                            ^(\s*) # 1
+                            (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
+                            \b( # 4
+                                changed_when
+                                | failed_when
+                                | when
+                                | check_mode
+                            )\b
+                            \s* (:) # 5
+                            \s+ (?![|&gt;]|\s*$) # not starting a block (scalar or other)
+                        </string>
+                        <key>beginCaptures</key>
+                        <dict>
+                            <key>2</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.definition.block.sequence.item.ansible</string>
+                            </dict>
+                            <key>4</key>
+                            <dict>
+                                <key>name</key>
+                                <string>keyword.other.special-method.ansible</string>
+                            </dict>
+                            <key>5</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.separator.key-value.mapping.ansible</string>
+                            </dict>
+                        </dict>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                        </string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-quoted-string</string>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-unquoted-string</string>
+                            </dict>
+                        </array>
+                    </dict>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.block-scalar.ansible.condition</string>
                         <key>comment</key>
                         <array>
-                            <string>Flow style expression</string>
+                            <string>Keyword detection</string>
                         </array>
                         <key>begin</key>
                         <string>(?x)
@@ -46,8 +89,7 @@
                                 | check_mode
                             )\b
                             \s* (:) # 5
-                            (?!\s+[|&gt;]|\s*$) # not starting a block
-                            \s+ (["']?) # 6
+                            \s+ (?: (\|) | (&gt;) ) ([1-9])? ([-+])? # 6,7,8,9; starting a scalar block
                         </string>
                         <key>beginCaptures</key>
                         <dict>
@@ -69,15 +111,183 @@
                             <key>6</key>
                             <dict>
                                 <key>name</key>
+                                <string>keyword.control.flow.block-scalar.literal.ansible</string>
+                            </dict>
+                            <key>7</key>
+                            <dict>
+                                <key>name</key>
+                                <string>keyword.control.flow.block-scalar.folded.ansible</string>
+                            </dict>
+                            <key>8</key>
+                            <dict>
+                                <key>name</key>
+                                <string>constant.numeric.indentation-indicator.ansible</string>
+                            </dict>
+                            <key>9</key>
+                            <dict>
+                                <key>name</key>
+                                <string>storage.modifier.chomping-indicator.ansible</string>
+                            </dict>
+                        </dict>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                        </string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-scalar-block</string>
+                            </dict>
+                        </array>
+                    </dict>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.block.ansible.condition</string>
+                        <key>comment</key>
+                        <array>
+                            <string>Keyword detection</string>
+                        </array>
+                        <key>begin</key>
+                        <string>(?x)
+                            ^(\s*) # 1
+                            (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
+                            \b( # 4
+                                changed_when
+                                | failed_when
+                                | when
+                                | check_mode
+                            )\b
+                            \s* (:) # 5
+                            \s*$ # starting other block
+                        </string>
+                        <key>beginCaptures</key>
+                        <dict>
+                            <key>2</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.definition.block.sequence.item.ansible</string>
+                            </dict>
+                            <key>4</key>
+                            <dict>
+                                <key>name</key>
+                                <string>keyword.other.special-method.ansible</string>
+                            </dict>
+                            <key>5</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.separator.key-value.mapping.ansible</string>
+                            </dict>
+                        </dict>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                        </string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-block</string>
+                            </dict>
+                        </array>
+                    </dict>
+                </array>
+            </dict>
+            <key>yaml-block</key>
+            <dict>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.yaml-block.ansible.condition</string>
+                        <key>comment</key>
+                        <array>
+                            <string>Well-indented block; possibly list</string>
+                        </array>
+                        <key>begin</key>
+                        <string>(?x)
+                            ^(\s*) # 1
+                            (?:(-)(\s+))? # 2, 3; in case it a list item
+                        </string>
+                        <key>beginCaptures</key>
+                        <dict>
+                            <key>2</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.definition.block.sequence.item.ansible</string>
+                            </dict>
+                        </dict>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                        </string>
+                        <key>contentName</key>
+                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-quoted-string</string>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-unquoted-string</string>
+                            </dict>
+                        </array>
+                    </dict>
+                </array>
+            </dict>
+            <key>yaml-scalar-block</key>
+            <dict>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.yaml-block.ansible.condition</string>
+                        <key>comment</key>
+                        <array>
+                            <string>Well-indented scalar block (for `&gt;` and `|`)</string>
+                        </array>
+                        <key>begin</key>
+                        <string>(?x)
+                            ^(\s*) # 1
+                        </string>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\s+) # if the indentation is too small
+                        </string>
+                        <key>contentName</key>
+                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>source.jinja#expression</string>
+                            </dict>
+                        </array>
+                    </dict>
+                </array>
+            </dict>
+            <key>yaml-quoted-string</key>
+            <dict>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.quoted-string.ansible.condition</string>
+                        <key>begin</key>
+                        <string>["']</string>
+                        <key>beginCaptures</key>
+                        <dict>
+                            <key>0</key>
+                            <dict>
+                                <key>name</key>
                                 <string>punctuation.definition.string.begin.ansible</string>
                             </dict>
                         </dict>
                         <key>end</key>
                         <string>(?x)
-                            (
-                                  ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
-                                | ((?=["'])\6) \s* $ # 1; if it started with a quote and the line ends
-                            )
+                            (\0) \s* $ # 1; if it started with a quote and the line ends (TODO: replace with illegals matching)
                         </string>
                         <key>endCaptures</key>
                         <dict>
@@ -93,133 +303,27 @@
                         <array>
                             <dict>
                                 <key>include</key>
-                                <string>#test</string>
-                            </dict>
-                            <dict>
-                                <key>include</key>
                                 <string>source.jinja#expression</string>
                             </dict>
                         </array>
                     </dict>
+                </array>
+            </dict>
+            <key>yaml-unquoted-string</key>
+            <dict>
+                <key>patterns</key>
+                <array>
                     <dict>
+                        <key>comment</key>
+                        <string>Capture any non-whitespace and end as fast as possible (when inner pattern ends)</string>
+                        <key>name</key>
+                        <string>meta.unquoted-string.ansible.condition</string>
                         <key>begin</key>
-                        <string>(?x)
-                            ^(\s*) # 1
-                            (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
-                            \b( # 4
-                                changed_when
-                                | failed_when
-                                | when
-                                | check_mode
-                            )\b
-                            \s* (:) # 5
-                            \s*$ # starting a block collection or string in block
-                        </string>
-                        <key>beginCaptures</key>
-                        <dict>
-                            <key>2</key>
-                            <dict>
-                                <key>name</key>
-                                <string>punctuation.definition.block.sequence.item.ansible</string>
-                            </dict>
-                            <key>4</key>
-                            <dict>
-                                <key>name</key>
-                                <string>keyword.other.special-method.ansible</string>
-                            </dict>
-                            <key>5</key>
-                            <dict>
-                                <key>name</key>
-                                <string>punctuation.separator.key-value.mapping.ansible</string>
-                            </dict>
-                        </dict>
+                        <string>(?=\S)</string>
                         <key>end</key>
-                        <string>(?x)
-                            (
-                                  ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
-                                | ((?=["'])\6) \s* $ # 1; if it started with a quote and the line ends
-                            )
-                        </string>
-                        <key>end</key>
-                        <string>^(?!\1\s+-\s+|$)</string>
-                        <key>patterns</key>
-                        <array>
-                            <dict>
-                                <key>begin</key>
-                                <string>(?:["'])(.*)(?=["']\s*?$)</string>
-                                <key>beginCaptures</key>
-                                <dict>
-                                    <key>1</key>
-                                    <dict>
-                                        <key>patterns</key>
-                                        <array>
-                                            <dict>
-                                                <key>include</key>
-                                                <string>source.jinja#expression</string>
-                                            </dict>
-                                        </array>
-                                    </dict>
-                                </dict>
-                                <key>end</key>
-                                <string>$</string>
-                            </dict>
-                            <dict>
-                                <key>include</key>
-                                <string>source.jinja#expression</string>
-                            </dict>
-                        </array>
-                    </dict>
-                    <dict>
-                        <key>begin</key>
-                        <string>(\s*)(?:(?:-\s+)?((?:changed_|failed_)?when|check_mode):\s+|-\s+)(?:(\|)|(&gt;))([1-9])?([-+])?(.*\n?)</string>
-                        <key>beginCaptures</key>
-                        <dict>
-                            <key>2</key>
-                            <dict>
-                                <key>name</key>
-                                <string>keyword.other.special-method.ansible</string>
-                            </dict>
-                            <key>3</key>
-                            <dict>
-                                <key>name</key>
-                                <string>punctuation.definition.block.scalar.literal.ansible</string>
-                            </dict>
-                            <key>4</key>
-                            <dict>
-                                <key>name</key>
-                                <string>punctuation.definition.block.scalar.folded.ansible</string>
-                            </dict>
-                            <key>5</key>
-                            <dict>
-                                <key>name</key>
-                                <string>constant.numeric.indentation-indicator.ansible</string>
-                            </dict>
-                            <key>6</key>
-                            <dict>
-                                <key>name</key>
-                                <string>support.other.chomping-indicator.ansible</string>
-                            </dict>
-                            <key>7</key>
-                            <dict>
-                                <key>patterns</key>
-                                <array>
-                                    <dict>
-                                        <key>include</key>
-                                        <string>#comment</string>
-                                    </dict>
-                                    <dict>
-                                        <key>match</key>
-                                        <string>.+</string>
-                                        <key>name</key>
-                                        <string>invalid.illegal.expected-comment-or-newline.ansible</string>
-                                    </dict>
-                                </array>
-                            </dict>
-                        </dict>
+                        <string>(?!\G)</string>
                         <key>contentName</key>
-                        <string>string.unquoted.block.ansible</string>
-                        <key>end</key>
-                        <string>^(?!\1\s+\S|$)</string>
+                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
