@@ -31,7 +31,7 @@
                 <array>
                     <dict>
                         <key>include</key>
-                        <string>source.jinja#expression</string>
+                        <string>source.ansible-jinja#expression</string>
                     </dict>
                 </array>
             </dict>

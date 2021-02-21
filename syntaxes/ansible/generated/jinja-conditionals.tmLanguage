@@ -109,6 +109,7 @@
                             )\b
                             \s* (:) # 5
                             \s+ (?: (\|) | (&gt;) ) ([1-9])? ([-+])? # 6,7,8,9; starting a scalar block
+                            (.*$) # comment or illegal
                         </string>
                         <key>beginCaptures</key>
                         <dict>
@@ -146,6 +147,22 @@
                             <dict>
                                 <key>name</key>
                                 <string>storage.modifier.chomping-indicator.ansible</string>
+                            </dict>
+                            <key>10</key>
+                            <dict>
+                                <key>patterns</key>
+                                <array>
+                                    <dict>
+                                        <key>include</key>
+                                        <string>source.ansible#comment</string>
+                                    </dict>
+                                    <dict>
+                                        <key>match</key>
+                                        <string>.+</string>
+                                        <key>name</key>
+                                        <string>invalid.illegal.expected-comment-or-newline.ansible</string>
+                                    </dict>
+                                </array>
                             </dict>
                         </dict>
                         <key>end</key>
@@ -299,7 +316,7 @@
                 <array>
                     <dict>
                         <key>name</key>
-                        <string>meta.quoted-string.ansible.condition</string>
+                        <string>string.quoted.single.ansible</string>
                         <key>begin</key>
                         <string>'</string>
                         <key>beginCaptures</key>
@@ -312,7 +329,7 @@
                         </dict>
                         <key>end</key>
                         <string>(?x)
-                            ('(?!')) # 1; match the starting quote (TODO: add illegals matching)
+                            ('(?!')) # 1; match the starting quote
                             (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
                         </string>
                         <key>endCaptures</key>
@@ -359,13 +376,13 @@
                                 <array>
                                     <dict>
                                         <key>include</key>
-                                        <string>source.jinja#string</string>
+                                        <string>source.ansible-jinja#string</string>
                                     </dict>
                                 </array>
                             </dict>
                             <dict>
                                 <key>include</key>
-                                <string>source.jinja#expression</string>
+                                <string>source.ansible-jinja#expression</string>
                             </dict>
                         </array>
                     </dict>
@@ -377,7 +394,7 @@
                 <array>
                     <dict>
                         <key>name</key>
-                        <string>meta.quoted-string.ansible.condition</string>
+                        <string>string.quoted.double.ansible</string>
                         <key>begin</key>
                         <string>"</string>
                         <key>beginCaptures</key>
@@ -390,7 +407,7 @@
                         </dict>
                         <key>end</key>
                         <string>(?x)
-                            (") # 1; match the starting quote (TODO: add illegals matching)
+                            (") # 1; match the starting quote
                             (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
                         </string>
                         <key>endCaptures</key>
@@ -437,13 +454,13 @@
                                 <array>
                                     <dict>
                                         <key>include</key>
-                                        <string>source.jinja#string</string>
+                                        <string>source.ansible-jinja#string</string>
                                     </dict>
                                 </array>
                             </dict>
                             <dict>
                                 <key>include</key>
-                                <string>source.jinja#expression</string>
+                                <string>source.ansible-jinja#expression</string>
                             </dict>
                         </array>
                     </dict>
@@ -457,7 +474,7 @@
                         <key>comment</key>
                         <string>Capture any non-whitespace and end as fast as possible (when inner pattern ends)</string>
                         <key>name</key>
-                        <string>meta.unquoted-string.ansible.condition</string>
+                        <string>string.unquoted.ansible</string>
                         <key>begin</key>
                         <string>(?=\S)</string>
                         <key>end</key>
@@ -468,7 +485,7 @@
                         <array>
                             <dict>
                                 <key>include</key>
-                                <string>source.jinja#expression</string>
+                                <string>source.ansible-jinja#expression</string>
                             </dict>
                         </array>
                     </dict>

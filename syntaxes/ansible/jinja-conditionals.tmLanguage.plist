@@ -6,7 +6,8 @@
     );
     comment = (
         'Flow style collections are not supported (yet)',
-        'Proper YAML comment highlighting will not work in nested Jinja expressions. For example:
+        'Without additional contextual injections (which VSCode fortunately suports and that has been used in this extenion)
+        proper YAML comment highlighting will not work in nested Jinja expressions. For example:
             when: condition1 # this works
                 or condition2
             
@@ -14,7 +15,8 @@
                 or condition2)
         It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
         ',
-        'Same as above applies to escaping quotes'
+        'Same as above applies to escaping quotes, except that it cannot be achieved just with TM grammars
+        even by modifying the Jinja grammar'
     );
     repository = {
         ansible-condition = {
@@ -70,6 +72,7 @@
                         )\b
                         \s* (:) # 5
                         \s+ (?: (\|) | (>) ) ([1-9])? ([-+])? # 6,7,8,9; starting a scalar block
+                        (.*$) # comment or illegal
                     ';
                     beginCaptures = {
                         2 = {
@@ -92,6 +95,17 @@
                         };
                         9 = {
                             name = 'storage.modifier.chomping-indicator.ansible';
+                        };
+                        10 = {
+                            patterns = (
+                                {
+                                    include = 'source.ansible#comment';
+                                },
+                                {
+                                    match = '.+';
+                                    name = 'invalid.illegal.expected-comment-or-newline.ansible';
+                                }
+                            );
                         };
                     };
                     end = '(?x)
@@ -189,7 +203,7 @@
         yaml-single-quoted-string = {
             patterns = (
                 {
-                    name = 'meta.quoted-string.ansible.condition';
+                    name = 'string.quoted.single.ansible';
                     begin = "'";
                     beginCaptures = {
                         0 = {
@@ -197,7 +211,7 @@
                         };
                     };
                     end = '(?x)
-                        (''(?!'')) # 1; match the starting quote (TODO: add illegals matching)
+                        (''(?!'')) # 1; match the starting quote
                         (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
                     ';
                     endCaptures = {
@@ -225,10 +239,10 @@
                             };
                             contentName = 'string.quoted.single.jinja';
                             patterns = (
-                                { include = 'source.jinja#string'; }
+                                { include = 'source.ansible-jinja#string'; }
                             );
                         },
-                        { include = 'source.jinja#expression'; },
+                        { include = 'source.ansible-jinja#expression'; },
                     );
                 }
             );
@@ -236,7 +250,7 @@
         yaml-double-quoted-string = {
             patterns = (
                 {
-                    name = 'meta.quoted-string.ansible.condition';
+                    name = 'string.quoted.double.ansible';
                     begin = '"';
                     beginCaptures = {
                         0 = {
@@ -244,7 +258,7 @@
                         };
                     };
                     end = '(?x)
-                        (") # 1; match the starting quote (TODO: add illegals matching)
+                        (") # 1; match the starting quote
                         (?: (?=\s+\#) | (.*$) ) # 2; unless it is a comment anything trailing here is illegal
                     ';
                     endCaptures = {
@@ -272,10 +286,10 @@
                             };
                             contentName = 'string.quoted.double.jinja';
                             patterns = (
-                                { include = 'source.jinja#string'; }
+                                { include = 'source.ansible-jinja#string'; }
                             );
                         },
-                        { include = 'source.jinja#expression'; },
+                        { include = 'source.ansible-jinja#expression'; },
                     );
                 }
             );
@@ -284,12 +298,12 @@
             patterns = (
                 {
                     comment = 'Capture any non-whitespace and end as fast as possible (when inner pattern ends)';
-                    name = 'meta.unquoted-string.ansible.condition';
+                    name = 'string.unquoted.ansible';
                     begin = '(?=\S)';
                     end = '(?!\G)';
                     contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
                     patterns = (
-                        { include = 'source.jinja#expression'; },
+                        { include = 'source.ansible-jinja#expression'; },
                     );
                 }
             );

@@ -21,16 +21,34 @@
                     ".yml",
                     ".yaml"
                 ],
-                "configuration": "./language-configuration.json"
+                "configuration": "./ansible-language-configuration.json"
+            },
+            {
+                // unfortunately this dummy entry is necessary for embedding to work
+                // on the bright side, we don't need to rely on Jinja extension being installed
+                "id": "ansible-jinja",
+                "configuration": "./jinja-language-configuration.json"
             }
         ],
         "grammars": [
             {
+                // YAML syntax as base for ansible
+                // scopeName changed so that injections don't affect regular YAML
                 "language": "ansible",
                 "scopeName": "source.ansible",
                 "path": "./syntaxes/external/YAML.tmLanguage"
             },
             {
+                // imported jinja syntax
+                // this is for supporting string escaping and comments (otherwise support would be limited)
+                // scopeName changed so that injections don't affect regular Jinja
+                "language": "ansible-jinja",
+                "scopeName": "source.ansible-jinja",
+                "path": "./syntaxes/external/jinja.tmLanguage.json"
+            },
+            {
+                // changes highlighting of Ansible tags
+                // makes Ansible keyword tags distinct from other tags
                 "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
                 "scopeName": "injection.ansible.keywords",
                 "injectTo": [
@@ -38,21 +56,51 @@
                 ]
             },
             {
+                // support for Jinja in double curly braces
                 "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
                 "scopeName": "injection.ansible.jinja-braces",
                 "embeddedLanguages": {
-                    "meta.embedded.inline.jinja": "jinja"
+                    "meta.embedded.inline.jinja": "ansible-jinja"
                 },
                 "injectTo": [
                     "source.ansible"
                 ]
             },
             {
+                // support for Jinja in conditionals
                 "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
                 "scopeName": "injection.ansible.jinja-conditionals",
                 "embeddedLanguages": {
-                    "meta.embedded.inline.jinja": "jinja"
+                    "meta.embedded.inline.jinja": "ansible-jinja"
                 },
+                "injectTo": [
+                    "source.ansible"
+                ]
+            },
+            {
+                // support for YAML comments in Jinja
+                "path": "./syntaxes/ansible/generated/jinja-yaml-comments.tmLanguage",
+                "scopeName": "injection.ansible.jinja-comments",
+                "injectTo": [
+                    "source.ansible"
+                ]
+            },
+            // What follows are techniques that are basically abusing the injection system of VSCode.
+            // These cannot be replicated in other IDEs with just TM grammars, unless similar injection system is used.
+            // The basic quote escapes (doesn't work inside brackets etc.) is implemented in the grammar anyway
+            // if someone finds it useful.
+            {
+                // support for single quote escapes in Jinja
+                "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
+                "scopeName": "injection.ansible.jinja-single-quote-escape",
+                "injectTo": [
+                    "source.ansible"
+                ]
+            },
+            {
+                // support for double quote escapes in Jinja
+                "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
+                "scopeName": "injection.ansible.jinja-double-quote-escape",
                 "injectTo": [
                     "source.ansible"
                 ]

@@ -12,7 +12,7 @@
             end = '\}\}';
             contentName = 'meta.embedded.inline.jinja';
             patterns = (
-                { include = 'source.jinja#expression'; }
+                { include = 'source.ansible-jinja#expression'; }
             );
         };
     };
