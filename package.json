@@ -25,7 +25,6 @@
             },
             {
                 // unfortunately this dummy entry is necessary for embedding to work
-                // on the bright side, we don't need to rely on Jinja extension being installed
                 "id": "ansible-jinja",
                 "configuration": "./jinja-language-configuration.json"
             }
@@ -33,15 +32,14 @@
         "grammars": [
             {
                 // YAML syntax as base for ansible
-                // scopeName changed so that injections don't affect regular YAML
+                // scopeName changed so that we can use it as base for injections
                 "language": "ansible",
                 "scopeName": "source.ansible",
                 "path": "./syntaxes/external/YAML.tmLanguage"
             },
             {
                 // imported jinja syntax
-                // this is for supporting string escaping and comments (otherwise support would be limited)
-                // scopeName changed so that injections don't affect regular Jinja
+                // this is so that we don't need to rely on Jinja extension being installed
                 "language": "ansible-jinja",
                 "scopeName": "source.ansible-jinja",
                 "path": "./syntaxes/external/jinja.tmLanguage.json"
