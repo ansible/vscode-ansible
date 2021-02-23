@@ -1,8 +1,13 @@
 {
     "name": "ansible",
+    "publisher": "tomaciazek",
     "displayName": "Ansible",
     "description": "Ansible language support",
     "version": "0.0.1",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tomaciazek/vscode-ansible.git"
+    },
     "engines": {
         "vscode": "^1.53.0"
     },
@@ -24,29 +29,35 @@
                 "configuration": "./ansible-language-configuration.json"
             },
             {
-                // unfortunately this dummy entry is necessary for embedding to work
+                "comments": "unfortunately this dummy entry is necessary for embedding to work",
                 "id": "ansible-jinja",
                 "configuration": "./jinja-language-configuration.json"
             }
         ],
         "grammars": [
             {
-                // YAML syntax as base for ansible
-                // scopeName changed so that we can use it as base for injections
+                "comments": [
+                    "YAML syntax as base for ansible",
+                    "scopeName changed so that we can use it as base for injections"
+                ],
                 "language": "ansible",
                 "scopeName": "source.ansible",
                 "path": "./syntaxes/external/YAML.tmLanguage"
             },
             {
-                // imported jinja syntax
-                // this is so that we don't need to rely on Jinja extension being installed
+                "comments": [
+                    "imported jinja syntax",
+                    "this is so that we do not need to rely on Jinja extension being installed"
+                ],
                 "language": "ansible-jinja",
                 "scopeName": "source.ansible-jinja",
                 "path": "./syntaxes/external/jinja.tmLanguage.json"
             },
             {
-                // changes highlighting of Ansible tags
-                // makes Ansible keyword tags distinct from other tags
+                "comments": [
+                    "changes highlighting of Ansible tags",
+                    "makes Ansible keyword tags distinct from other tags"
+                ],
                 "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
                 "scopeName": "injection.ansible.keywords",
                 "injectTo": [
@@ -54,7 +65,9 @@
                 ]
             },
             {
-                // support for Jinja in double curly braces
+                "comments": [
+                    "Support for Jinja in double curly braces"
+                ],
                 "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
                 "scopeName": "injection.ansible.jinja-braces",
                 "embeddedLanguages": {
@@ -65,7 +78,9 @@
                 ]
             },
             {
-                // support for Jinja in conditionals
+                "comments": [
+                    "Support for Jinja in conditionals"
+                ],
                 "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
                 "scopeName": "injection.ansible.jinja-conditionals",
                 "embeddedLanguages": {
@@ -76,19 +91,13 @@
                 ]
             },
             {
-                // support for YAML comments in Jinja
-                "path": "./syntaxes/ansible/generated/jinja-yaml-comments.tmLanguage",
-                "scopeName": "injection.ansible.jinja-comments",
-                "injectTo": [
-                    "source.ansible"
-                ]
-            },
-            // What follows are techniques that are basically abusing the injection system of VSCode.
-            // These cannot be replicated in other IDEs with just TM grammars, unless similar injection system is used.
-            // The basic quote escapes (doesn't work inside brackets etc.) is implemented in the grammar anyway
-            // if someone finds it useful.
-            {
-                // support for single quote escapes in Jinja
+                "comments": [
+                    "What follows are techniques that are basically abusing the injection system of VSCode.",
+                    "These cannot be replicated in other IDEs with just TM grammars unless similar injection system is used.",
+                    "The basic quote escapes (does not work inside brackets etc.) is implemented in the grammar anyway",
+                    "if someone finds it useful.",
+                    "Support for single quote escapes in Jinja"
+                ],
                 "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
                 "scopeName": "injection.ansible.jinja-single-quote-escape",
                 "injectTo": [
@@ -96,7 +105,9 @@
                 ]
             },
             {
-                // support for double quote escapes in Jinja
+                "comments": [
+                    "Support for double quote escapes in Jinja"
+                ],
                 "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
                 "scopeName": "injection.ansible.jinja-double-quote-escape",
                 "injectTo": [
