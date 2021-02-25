@@ -15,7 +15,7 @@
   "bugs": "https://github.com/ansible-community/vscode-ansible/issues",
   "preview": true,
   "displayName": "Ansible Language",
-  "description": "Reports problems identified by ansible-lint, yamllint.",
+  "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
   "license": "MIT",
   "version": "0.1.0",
   "engines": {
