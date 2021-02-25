@@ -9,10 +9,10 @@ import * as nls from 'vscode-nls';
 let localize = nls.loadMessageBundle();
 
 const enum Setting {
-	Run = 'ansible.validate.run',
-	CheckedExecutablePath = 'ansible.validate.checkedExecutablePath',
-	Enable = 'ansible.validate.enable',
-	ExecutablePath = 'ansible.validate.executablePath',
+	run = 'ansible.validate.run',
+	checkedExecutablePath = 'ansible.validate.checkedExecutablePath',
+	enable = 'ansible.validate.enable',
+	executablePath = 'ansible.validate.executablePath',
 }
 
 export class LineDecoder {
@@ -82,11 +82,11 @@ namespace RunTrigger {
 
 export default class AnsibleValidationProvider {
 
-	private static MatchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):(?<column>:(\d):)? (?<id>[\w-]+) (?<message>.*)/;
+	private static matchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):(?<column>:(\d):)? (?<id>[\w-]+) (?<message>.*)/;
 	///(?:(?:Parse|Fatal) error): (.*)(?: in )(.*?)(?: on line )(\d+)/;
-	private static BufferArgs: string[] = ['--nocolor', '-p', '-'];
+	private static bufferArgs: string[] = ['--nocolor', '-p', '-'];
 	//['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off'];
-	private static FileArgs: string[] = ['--nocolor', '-p'];
+	private static fileArgs: string[] = ['--nocolor', '-p'];
 	//['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off', '-f'];
 
 	private validationEnabled: boolean;
@@ -135,8 +135,8 @@ export default class AnsibleValidationProvider {
 		let section = vscode.workspace.getConfiguration();
 		let oldExecutable = this.executable;
 		if (section) {
-			this.validationEnabled = section.get<boolean>(Setting.Enable, true);
-			let inspect = section.inspect<string>(Setting.ExecutablePath);
+			this.validationEnabled = section.get<boolean>(Setting.enable, true);
+			let inspect = section.inspect<string>(Setting.executablePath);
 			if (inspect && inspect.workspaceValue) {
 				this.executable = inspect.workspaceValue;
 				this.executableIsUserDefined = false;
@@ -147,9 +147,9 @@ export default class AnsibleValidationProvider {
 				this.executable = undefined;
 				this.executableIsUserDefined = undefined;
 			}
-			this.trigger = RunTrigger.from(section.get<string>(Setting.Run, RunTrigger.strings.onSave));
+			this.trigger = RunTrigger.from(section.get<string>(Setting.run, RunTrigger.strings.onSave));
 		}
-		if (this.executableIsUserDefined !== true && this.workspaceStore.get<string | undefined>(Setting.CheckedExecutablePath, undefined) !== undefined) {
+		if (this.executableIsUserDefined !== true && this.workspaceStore.get<string | undefined>(Setting.checkedExecutablePath, undefined) !== undefined) {
 			vscode.commands.executeCommand('setContext', 'ansible.untrustValidationExecutableContext', true);
 		}
 		this.delayers = Object.create(null);
@@ -175,7 +175,7 @@ export default class AnsibleValidationProvider {
 	}
 
 	private untrustValidationExecutable() {
-		this.workspaceStore.update(Setting.CheckedExecutablePath, undefined);
+		this.workspaceStore.update(Setting.checkedExecutablePath, undefined);
 		vscode.commands.executeCommand('setContext', 'ansible.untrustValidationExecutableContext', false);
 	}
 
@@ -199,7 +199,7 @@ export default class AnsibleValidationProvider {
 		};
 
 		if (this.executableIsUserDefined !== undefined && !this.executableIsUserDefined) {
-			let checkedExecutablePath = this.workspaceStore.get<string | undefined>(Setting.CheckedExecutablePath, undefined);
+			let checkedExecutablePath = this.workspaceStore.get<string | undefined>(Setting.checkedExecutablePath, undefined);
 			if (!checkedExecutablePath || checkedExecutablePath !== this.executable) {
 				vscode.window.showInformationMessage<MessageItem>(
 					localize('ansible.useExecutablePath', 'Do you allow {0} (defined as a workspace setting) to be executed to lint Ansible files?', this.executable),
@@ -216,7 +216,7 @@ export default class AnsibleValidationProvider {
 					if (!selected || selected.id === 'no') {
 						this.pauseValidation = true;
 					} else if (selected.id === 'yes') {
-						this.workspaceStore.update(Setting.CheckedExecutablePath, this.executable);
+						this.workspaceStore.update(Setting.checkedExecutablePath, this.executable);
 						vscode.commands.executeCommand('setContext', 'ansible.untrustValidationExecutableContext', true);
 						trigger();
 					}
@@ -233,7 +233,7 @@ export default class AnsibleValidationProvider {
 			let decoder = new LineDecoder();
 			let diagnostics: vscode.Diagnostic[] = [];
 			let processLine = (line: string) => {
-				let matches = line.match(AnsibleValidationProvider.MatchExpression);
+				let matches = line.match(AnsibleValidationProvider.matchExpression);
 				if (matches) {
 					let message = matches.groups?.message ?? "unknown";
 					let line = parseInt(matches.groups?.line ?? "1") - 1;
@@ -248,10 +248,10 @@ export default class AnsibleValidationProvider {
 			let options = (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders[0]) ? { cwd: vscode.workspace.workspaceFolders[0].uri.fsPath } : undefined;
 			let args: string[];
 			if (this.trigger === RunTrigger.onSave) {
-				args = AnsibleValidationProvider.FileArgs.slice(0);
+				args = AnsibleValidationProvider.fileArgs.slice(0);
 				args.push(textDocument.fileName);
 			} else {
-				args = AnsibleValidationProvider.BufferArgs;
+				args = AnsibleValidationProvider.bufferArgs;
 			}
 			try {
 				let childProcess = cp.spawn(executable, args, options);
@@ -306,7 +306,7 @@ export default class AnsibleValidationProvider {
 
 		const openSettings = localize('goToSetting', 'Open Settings');
 		if (await vscode.window.showInformationMessage(message, openSettings) === openSettings) {
-			vscode.commands.executeCommand('workbench.action.openSettings', Setting.ExecutablePath);
+			vscode.commands.executeCommand('workbench.action.openSettings', Setting.executablePath);
 		}
 	}
 }
