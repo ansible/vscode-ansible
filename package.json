@@ -17,7 +17,7 @@
   "displayName": "Ansible Language",
   "description": "Reports problems identified by ansible-lint, yamllint.",
   "license": "MIT",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.53.0"
   },
@@ -82,7 +82,29 @@
           "description": "%configuration.validate.run%"
         }
       }
-    }
+    },
+    "yamlValidation": [
+      {
+        "fileMatch": "requirements.yml",
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-requirements.json"
+      },
+      {
+        "fileMatch": "meta/main.yml",
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"
+      },
+      {
+        "fileMatch": ["vars/*.yml", "defaults/*.yml", "host_vars/*.yml", "group_vars/*.yml"],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-vars.json"
+      },
+      {
+        "fileMatch": ["tasks/*.yml", "handlers/*.yml"],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-tasks.json"
+      },
+      {
+        "fileMatch": ["playbooks/*.yml", "playbooks/*.yaml"],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
