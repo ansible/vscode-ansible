@@ -14,10 +14,19 @@
   ],
   "bugs": "https://github.com/ansible-community/vscode-ansible/issues",
   "preview": true,
+  "qna": false,
+  "badges": [
+    {"description": "Ansible Language Extension",
+     "url": "https://vsmarketplacebadge.apphb.com/version/zbr.vscode-ansible.svg",
+     "href": "https://marketplace.visualstudio.com/items?itemName=zbr.vscode-ansible"},
+    {"description": "CI/CD Pipeline",
+     "url": "https://github.com/ansible-community/vscode-ansible/actions/workflows/release.yaml/badge.svg",
+     "href": "https://github.com/ansible-community/vscode-ansible/actions/workflows/release.yaml"}
+  ],
   "displayName": "Ansible Language",
   "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
   "license": "MIT",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "engines": {
     "vscode": "^1.53.0"
   },
