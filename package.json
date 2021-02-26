@@ -112,6 +112,10 @@
       {
         "fileMatch": ["playbooks/*.yml", "playbooks/*.yaml"],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"
+      },
+      {
+        "fileMatch": ["zuul.d/*.yaml", "zuul-tests.d/*.yaml", ".zuul.yaml"],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/zuul.json"
       }
     ]
   },
