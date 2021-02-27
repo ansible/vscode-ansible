@@ -18,10 +18,6 @@
         <array>
             <dict>
                 <key>include</key>
-                <string>#keyword</string>
-            </dict>
-            <dict>
-                <key>include</key>
                 <string>#ansible_tag</string>
             </dict>
         </array>

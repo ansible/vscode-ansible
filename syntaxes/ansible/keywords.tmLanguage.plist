@@ -8,7 +8,6 @@
         'Added `label`, `pause`, `loop_var`, `extended` as Ansible keywords (occur in loop_control)'
     );
     patterns = (
-        { include = '#keyword'; },
         { include = '#ansible_tag'; }
     );
     repository = {

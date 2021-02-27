@@ -14,6 +14,10 @@
     "categories": [
         "Programming Languages"
     ],
+    "activationEvents": [
+        "onLanguage:ansible"
+    ],
+    "main": "./out/extension.js",
     "contributes": {
         "languages": [
             {
@@ -55,8 +59,7 @@
             },
             {
                 "comments": [
-                    "changes highlighting of Ansible tags",
-                    "makes Ansible keyword tags distinct from other tags"
+                    "changes highlighting of Ansible tags"
                 ],
                 "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
                 "scopeName": "injection.ansible.keywords",
@@ -115,5 +118,30 @@
                 ]
             }
         ]
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./"
+    },
+    "devDependencies": {
+        "typescript": "^4.1.5",
+        "@types/node": "^14.14.31",
+        "@types/vscode": "^1.53.0",
+        "@typescript-eslint/eslint-plugin": "^4.15.2",
+        "@typescript-eslint/parser": "^4.15.2",
+        "eslint": "^7.20.0",
+        "eslint-config-standard": "^16.0.2",
+        "eslint-config-prettier": "^8.0.0",
+        "eslint-plugin-import": "^2.22.1",
+        "eslint-plugin-node": "^11.1.0",
+        "eslint-plugin-promise": "^4.3.1",
+        "eslint-plugin-standard": "^4.1.0",
+        "eslint-plugin-prettier": "^3.3.1",
+        "prettier": "^2.2.1"
+    },
+    "dependencies": {
+        "yaml": "^1.10.0",
+        "@flatten-js/interval-tree": "^1.0.13"
     }
 }
