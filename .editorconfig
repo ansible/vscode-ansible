@@ -12,6 +12,6 @@ insert_final_newline = true
 charset = utf-8
 
 # Indent with 2 spaces for JavaScript & TypeScript
-[*.{js,ts}]
+[*.{js,ts,json}]
 indent_style = space
 indent_size = 2

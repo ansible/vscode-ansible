@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "composite": true,
     "target": "ES2019",
     "lib": ["ES2019"],
     "module": "CommonJS",
@@ -10,6 +11,5 @@
     "strict": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", ".vscode-test"],
-  "references": [{ "path": "./client" }, { "path": "./server" }]
+  "exclude": ["node_modules", ".vscode-test"]
 }

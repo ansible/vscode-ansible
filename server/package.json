@@ -1,0 +1,26 @@
+{
+  "name": "ansible-language-server",
+  "publisher": "tomaciazek",
+  "description": "Ansible language server.",
+  "author": "Tomasz Maciążek",
+  "private": true,
+  "license": "MIT",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomaciazek/vscode-ansible.git"
+  },
+  "engines": {
+    "node": "*"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.108"
+  },
+  "dependencies": {
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.1",
+    "lodash": "^4.17.21",
+    "yaml": "^1.10.0",
+    "@flatten-js/interval-tree": "^1.0.13"
+  }
+}

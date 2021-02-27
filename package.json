@@ -3,6 +3,8 @@
   "publisher": "tomaciazek",
   "displayName": "Ansible",
   "description": "Ansible language support",
+  "author": "Tomasz Maciążek",
+  "license": "MIT",
   "version": "0.0.1",
   "repository": {
     "type": "git",
@@ -17,8 +19,31 @@
   "activationEvents": [
     "onLanguage:ansible"
   ],
-  "main": "./out/extension.js",
+  "main": "./client/out/extension.js",
   "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Example configuration",
+      "properties": {
+        "ansible.maxNumberOfProblems": {
+          "scope": "resource",
+          "type": "number",
+          "default": 100,
+          "description": "Controls the maximum number of problems produced by the server."
+        },
+        "ansible.trace.server": {
+          "scope": "window",
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    },
     "languages": [
       {
         "id": "ansible",
@@ -121,8 +146,9 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "postinstall": "cd client && npm install && cd ../server && npm install && cd .."
   },
   "devDependencies": {
     "typescript": "^4.1.5",
