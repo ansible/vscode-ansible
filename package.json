@@ -1,147 +1,140 @@
 {
-    "name": "ansible",
-    "publisher": "tomaciazek",
-    "displayName": "Ansible",
-    "description": "Ansible language support",
-    "version": "0.0.1",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/tomaciazek/vscode-ansible.git"
-    },
-    "engines": {
-        "vscode": "^1.53.0"
-    },
-    "categories": [
-        "Programming Languages"
-    ],
-    "activationEvents": [
-        "onLanguage:ansible"
-    ],
-    "main": "./out/extension.js",
-    "contributes": {
-        "languages": [
-            {
-                "id": "ansible",
-                "aliases": [
-                    "Ansible",
-                    "ansible"
-                ],
-                "extensions": [
-                    ".yml",
-                    ".yaml"
-                ],
-                "configuration": "./ansible-language-configuration.json"
-            },
-            {
-                "comments": "unfortunately this dummy entry is necessary for embedding to work",
-                "id": "ansible-jinja",
-                "configuration": "./jinja-language-configuration.json"
-            }
+  "name": "ansible",
+  "publisher": "tomaciazek",
+  "displayName": "Ansible",
+  "description": "Ansible language support",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tomaciazek/vscode-ansible.git"
+  },
+  "engines": {
+    "vscode": "^1.53.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:ansible"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "ansible",
+        "aliases": [
+          "Ansible",
+          "ansible"
         ],
-        "grammars": [
-            {
-                "comments": [
-                    "YAML syntax as base for ansible",
-                    "scopeName changed so that we can use it as base for injections"
-                ],
-                "language": "ansible",
-                "scopeName": "source.ansible",
-                "path": "./syntaxes/external/YAML.tmLanguage"
-            },
-            {
-                "comments": [
-                    "imported jinja syntax",
-                    "this is so that we do not need to rely on Jinja extension being installed"
-                ],
-                "language": "ansible-jinja",
-                "scopeName": "source.ansible-jinja",
-                "path": "./syntaxes/external/jinja.tmLanguage.json"
-            },
-            {
-                "comments": [
-                    "changes highlighting of Ansible tags"
-                ],
-                "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
-                "scopeName": "injection.ansible.keywords",
-                "injectTo": [
-                    "source.ansible"
-                ]
-            },
-            {
-                "comments": [
-                    "Support for Jinja in double curly braces"
-                ],
-                "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
-                "scopeName": "injection.ansible.jinja-braces",
-                "embeddedLanguages": {
-                    "meta.embedded.inline.jinja": "ansible-jinja"
-                },
-                "injectTo": [
-                    "source.ansible"
-                ]
-            },
-            {
-                "comments": [
-                    "Support for Jinja in conditionals"
-                ],
-                "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
-                "scopeName": "injection.ansible.jinja-conditionals",
-                "embeddedLanguages": {
-                    "meta.embedded.inline.jinja": "ansible-jinja"
-                },
-                "injectTo": [
-                    "source.ansible"
-                ]
-            },
-            {
-                "comments": [
-                    "What follows are techniques that are basically abusing the injection system of VSCode.",
-                    "These cannot be replicated in other IDEs with just TM grammars unless similar injection system is used.",
-                    "The basic quote escapes (does not work inside brackets etc.) is implemented in the grammar anyway",
-                    "if someone finds it useful.",
-                    "Support for single quote escapes in Jinja"
-                ],
-                "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
-                "scopeName": "injection.ansible.jinja-single-quote-escape",
-                "injectTo": [
-                    "source.ansible"
-                ]
-            },
-            {
-                "comments": [
-                    "Support for double quote escapes in Jinja"
-                ],
-                "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
-                "scopeName": "injection.ansible.jinja-double-quote-escape",
-                "injectTo": [
-                    "source.ansible"
-                ]
-            }
+        "extensions": [
+          ".yml",
+          ".yaml"
+        ],
+        "configuration": "./ansible-language-configuration.json"
+      },
+      {
+        "comments": "unfortunately this dummy entry is necessary for embedding to work",
+        "id": "ansible-jinja",
+        "configuration": "./jinja-language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "comments": [
+          "YAML syntax as base for ansible",
+          "scopeName changed so that we can use it as base for injections"
+        ],
+        "language": "ansible",
+        "scopeName": "source.ansible",
+        "path": "./syntaxes/external/YAML.tmLanguage"
+      },
+      {
+        "comments": [
+          "imported jinja syntax",
+          "this is so that we do not need to rely on Jinja extension being installed"
+        ],
+        "language": "ansible-jinja",
+        "scopeName": "source.ansible-jinja",
+        "path": "./syntaxes/external/jinja.tmLanguage.json"
+      },
+      {
+        "comments": [
+          "changes highlighting of Ansible tags"
+        ],
+        "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
+        "scopeName": "injection.ansible.keywords",
+        "injectTo": [
+          "source.ansible"
         ]
-    },
-    "scripts": {
-        "vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./"
-    },
-    "devDependencies": {
-        "typescript": "^4.1.5",
-        "@types/node": "^14.14.31",
-        "@types/vscode": "^1.53.0",
-        "@typescript-eslint/eslint-plugin": "^4.15.2",
-        "@typescript-eslint/parser": "^4.15.2",
-        "eslint": "^7.20.0",
-        "eslint-config-standard": "^16.0.2",
-        "eslint-config-prettier": "^8.0.0",
-        "eslint-plugin-import": "^2.22.1",
-        "eslint-plugin-node": "^11.1.0",
-        "eslint-plugin-promise": "^4.3.1",
-        "eslint-plugin-standard": "^4.1.0",
-        "eslint-plugin-prettier": "^3.3.1",
-        "prettier": "^2.2.1"
-    },
-    "dependencies": {
-        "yaml": "^1.10.0",
-        "@flatten-js/interval-tree": "^1.0.13"
-    }
+      },
+      {
+        "comments": [
+          "Support for Jinja in double curly braces"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
+        "scopeName": "injection.ansible.jinja-braces",
+        "embeddedLanguages": {
+          "meta.embedded.inline.jinja": "ansible-jinja"
+        },
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "Support for Jinja in conditionals"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
+        "scopeName": "injection.ansible.jinja-conditionals",
+        "embeddedLanguages": {
+          "meta.embedded.inline.jinja": "ansible-jinja"
+        },
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "What follows are techniques that are basically abusing the injection system of VSCode.",
+          "These cannot be replicated in other IDEs with just TM grammars unless similar injection system is used.",
+          "The basic quote escapes (does not work inside brackets etc.) is implemented in the grammar anyway",
+          "if someone finds it useful.",
+          "Support for single quote escapes in Jinja"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
+        "scopeName": "injection.ansible.jinja-single-quote-escape",
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "Support for double quote escapes in Jinja"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
+        "scopeName": "injection.ansible.jinja-double-quote-escape",
+        "injectTo": [
+          "source.ansible"
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "typescript": "^4.1.5",
+    "@types/node": "^14.14.31",
+    "@types/vscode": "^1.53.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.2",
+    "@typescript-eslint/parser": "^4.15.2",
+    "eslint": "^7.20.0",
+    "eslint-config-prettier": "^8.0.0"
+  },
+  "dependencies": {
+    "yaml": "^1.10.0",
+    "@flatten-js/interval-tree": "^1.0.13"
+  }
 }

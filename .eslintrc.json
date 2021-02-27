@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "env": {
+    "commonjs": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "rules": {
+    "prefer-template": "warn",
+    "quotes": ["warn", "single"]
+  }
+}
