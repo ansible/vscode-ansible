@@ -6,6 +6,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Launch Program",
+      "type": "node",
+      "request": "launch",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/server/src/docsExplorer.ts",
+      "outFiles": ["${workspaceFolder}/server/out/**/*.js"],
+      "preLaunchTask": "npm: watch"
+    },
+    {
       "name": "Launch Extension",
       "type": "extensionHost",
       "request": "launch",
