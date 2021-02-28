@@ -10,7 +10,7 @@
       "type": "node",
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/server/src/docsExplorer.ts",
+      "program": "${workspaceFolder}/server/src/docsLibrary.ts",
       "outFiles": ["${workspaceFolder}/server/out/**/*.js"],
       "preLaunchTask": "npm: watch"
     },

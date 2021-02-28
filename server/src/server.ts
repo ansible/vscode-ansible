@@ -16,6 +16,7 @@ import {
   TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
 import { parseAllDocuments } from 'yaml';
+import { AnsibleHoverProvider } from './hoverProvider';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -48,6 +49,7 @@ connection.onInitialize((params: InitializeParams) => {
   const result: InitializeResult = {
     capabilities: {
       textDocumentSync: TextDocumentSyncKind.Incremental,
+      hoverProvider: true,
       // Tell the client that this server supports code completion.
       completionProvider: {
         resolveProvider: true,
@@ -215,6 +217,14 @@ async function validateTextDocument(textDocument: TextDocument): Promise<void> {
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode
   connection.console.log('We received a file change event');
+});
+const hoverProvider = new AnsibleHoverProvider();
+connection.onHover((params) => {
+  const document = documents.get(params.textDocument.uri);
+  if (document) {
+    return hoverProvider.doHover(document, params.position);
+  }
+  return null;
 });
 
 // Make the text document manager listen on the connection
