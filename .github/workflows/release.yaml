@@ -1,9 +1,10 @@
 name: release
 
 on:
-    push:
-        tags:
-          - "v*"
+  # push.tags is not triggered when creating a release using release page
+  create:
+    tags:
+      - "v*"
 
 jobs:
  build:
