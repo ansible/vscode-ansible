@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.1.1
+## 0.2.0
 
 - Add JSON schema for Zuul CI config files
 - Add JSON schema for ansible-lint config files

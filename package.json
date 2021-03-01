@@ -26,7 +26,7 @@
   "displayName": "Ansible Language",
   "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "engines": {
     "vscode": "^1.53.0"
   },
