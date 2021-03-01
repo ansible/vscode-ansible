@@ -182,13 +182,18 @@
         "affectsGlobalScope": false
       },
       "./src/docsParser.ts": {
-        "version": "1efcd574b8c8ec29c35f769fd305e001b1401f8a8f7064b27e4928db9ed8b633",
+        "version": "7679730e4c037e3df0a7cd305df2c20ced11a792ddeef9ab4ef14098a0be3ec8",
         "signature": "ecc223d28dc821c023c7712e86faadbcca62a914af252641427c9d22cc7bd99a",
         "affectsGlobalScope": false
       },
       "./src/docsLibrary.ts": {
-        "version": "f84773c567a8f3ca6983e3114aa5d56452dbe924316a1b1b58e179a318ee2011",
-        "signature": "caeadc095399699b0443807d2acd3d3ced296f5aa5cca1c41c75efeb4ee6bd9d",
+        "version": "807e8944eed6e26970ed1c293e4211ac5d800d27a81de4cf6de80b1b0c8d09a5",
+        "signature": "75651603cb37c9115f83f3b4e0168d93d6e9eed8c41766dfa1882c6e51a5d59d",
+        "affectsGlobalScope": false
+      },
+      "./src/docsFormatter.ts": {
+        "version": "815562666bda7347b93a0e8ee2199806e91fdbeb6e4a48779e6475b15a27387d",
+        "signature": "eb6a8b480d86b7784743f0e93df6680e9672dab628581c9a1db52da67c828390",
         "affectsGlobalScope": false
       },
       "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts": {
@@ -472,18 +477,13 @@
         "affectsGlobalScope": true
       },
       "./src/utils.ts": {
-        "version": "7a06bbcae8aede133b146280d53c4e480c40381521f27d1a72f94582be960381",
-        "signature": "0133fcb261f6309d9150b2a3006835e56c844274386c3f502d7deb675762ddeb",
+        "version": "41a04c4a8d7266e82251cf03f4b9b0e45fb50dedc1eb95fc87690843bee01c33",
+        "signature": "d8bfe5fc53b97ae26a0d657b21a4856a2873c3591869bbdc0ac79566e81440f8",
         "affectsGlobalScope": false
       },
       "./src/hoverProvider.ts": {
-        "version": "603192d91c02d9ced89951cd3ef3745e0ce88c667fffd65ab392c382e1688118",
-        "signature": "3439a0d1973032d1a56fcaebf60c74681121b71791352a860b550c88385f634f",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@flatten-js/interval-tree/index.d.ts": {
-        "version": "bf7c29e7a08abac0ce48ae320749c8122a095d5bf0206168040caad4b7508b59",
-        "signature": "bf7c29e7a08abac0ce48ae320749c8122a095d5bf0206168040caad4b7508b59",
+        "version": "e935e75f9fd80f6e110067af0cc10cd70eb16cdfcd94f36a25e1aa2d1696d8a9",
+        "signature": "14028932ece44f3c48823c969d5b1bda30f5a0ed08b23db42deb6f187bb2da44",
         "affectsGlobalScope": false
       },
       "./node_modules/vscode-languageserver/typings/thenable.d.ts": {
@@ -761,8 +761,18 @@
         "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
         "affectsGlobalScope": false
       },
+      "./node_modules/@flatten-js/interval-tree/index.d.ts": {
+        "version": "bf7c29e7a08abac0ce48ae320749c8122a095d5bf0206168040caad4b7508b59",
+        "signature": "bf7c29e7a08abac0ce48ae320749c8122a095d5bf0206168040caad4b7508b59",
+        "affectsGlobalScope": false
+      },
+      "./src/validationProvider.ts": {
+        "version": "9dc725a7a92587836069827bf7d398499ad3ba9a68845f20ae69bb34f5c51bbc",
+        "signature": "f3360d2bdd3e9199b55bca984df20071810c51097a8a96fb0ee33b6a1abb0b63",
+        "affectsGlobalScope": false
+      },
       "./src/server.ts": {
-        "version": "c75e5842f1d0e577696701a312b2e80697d426c564dfda46b366c25b29fee984",
+        "version": "a0f0565e0894362cd3ccdf84c364e5123da270fa5b41f2420e62ef1035add39e",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -1470,6 +1480,9 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
+      "./src/docsFormatter.ts": [
+        "./src/docsLibrary.ts"
+      ],
       "./src/docsLibrary.ts": [
         "../node_modules/@types/node/path.d.ts",
         "./src/docsParser.ts"
@@ -1485,21 +1498,29 @@
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/types.d.ts",
+        "./src/docsFormatter.ts",
+        "./src/docsLibrary.ts",
         "./src/utils.ts"
       ],
       "./src/server.ts": [
-        "./node_modules/@flatten-js/interval-tree/index.d.ts",
-        "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/node.d.ts",
-        "./node_modules/yaml/index.d.ts",
-        "./src/hoverProvider.ts"
+        "./src/docsLibrary.ts",
+        "./src/hoverProvider.ts",
+        "./src/validationProvider.ts"
       ],
       "./src/utils.ts": [
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/types.d.ts"
+      ],
+      "./src/validationProvider.ts": [
+        "./node_modules/@flatten-js/interval-tree/index.d.ts",
+        "./node_modules/@types/lodash/index.d.ts",
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts"
       ]
     },
     "exportedModulesMap": {
@@ -2180,20 +2201,25 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
-      "./src/docsLibrary.ts": [
-        "./src/docsParser.ts"
+      "./src/docsFormatter.ts": [
+        "./src/docsLibrary.ts"
       ],
       "./src/docsParser.ts": [
         "./node_modules/yaml/util.d.ts"
       ],
       "./src/hoverProvider.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts"
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/docsLibrary.ts"
       ],
       "./src/utils.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/types.d.ts"
+      ],
+      "./src/validationProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts"
       ]
     },
     "semanticDiagnosticsPerFile": [
@@ -2347,11 +2373,13 @@
       "./node_modules/yaml/parse-cst.d.ts",
       "./node_modules/yaml/types.d.ts",
       "./node_modules/yaml/util.d.ts",
+      "./src/docsFormatter.ts",
       "./src/docsLibrary.ts",
       "./src/docsParser.ts",
       "./src/hoverProvider.ts",
       "./src/server.ts",
-      "./src/utils.ts"
+      "./src/utils.ts",
+      "./src/validationProvider.ts"
     ]
   },
   "version": "4.1.5"

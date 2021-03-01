@@ -8,7 +8,7 @@ export class DocsParser {
 
   public static async parseDirectory(dir: string): Promise<IDocumentation[]> {
     const files = await this._getFiles(dir);
-    return await Promise.all(
+    return Promise.all(
       files.map(async (file) => {
         const contents = await fs.readFile(file, { encoding: 'utf8' });
         const m = this.docsRegex.exec(contents);

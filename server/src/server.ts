@@ -1,22 +1,16 @@
-import IntervalTree from '@flatten-js/interval-tree';
-import * as _ from 'lodash';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
   createConnection,
-  Diagnostic,
-  DiagnosticRelatedInformation,
-  DiagnosticSeverity,
   DidChangeConfigurationNotification,
   InitializeParams,
   InitializeResult,
-  Location,
   ProposedFeatures,
-  Range,
   TextDocuments,
   TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
-import { parseAllDocuments } from 'yaml';
-import { AnsibleHoverProvider } from './hoverProvider';
+import { DocsLibrary } from './docsLibrary';
+import { doHover } from './hoverProvider';
+import { doValidate } from './validationProvider';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -107,7 +101,12 @@ connection.onDidChangeConfiguration((change) => {
   }
 
   // Revalidate all open text documents
-  documents.all().forEach(validateTextDocument);
+  documents.all().forEach((doc) => {
+    connection.sendDiagnostics({
+      uri: doc.uri,
+      diagnostics: doValidate(doc),
+    });
+  });
 });
 
 function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
@@ -133,98 +132,26 @@ documents.onDidClose((e) => {
 // The content of a text document has changed. This event is emitted
 // when the text document first opened or when its content has changed.
 documents.onDidChangeContent((change) => {
-  validateTextDocument(change.document);
+  connection.sendDiagnostics({
+    uri: change.document.uri,
+    diagnostics: doValidate(change.document),
+  });
 });
-
-async function validateTextDocument(textDocument: TextDocument): Promise<void> {
-  // In this simple example we get the settings for every validate run.
-  const settings = await getDocumentSettings(textDocument.uri);
-
-  const diagnostics: Diagnostic[] = [];
-  const yDocuments = parseAllDocuments(textDocument.getText(), {
-    prettyErrors: false,
-  });
-  const rangeTree = new IntervalTree<Diagnostic>();
-  yDocuments.forEach((yDoc) => {
-    yDoc.errors.forEach((error) => {
-      const errorRange = error.range || error.source?.range;
-      let range;
-      if (errorRange) {
-        const start = textDocument.positionAt(errorRange.start);
-        const end = textDocument.positionAt(errorRange.end);
-        range = Range.create(start, end);
-
-        let severity;
-        switch (error.name) {
-          case 'YAMLReferenceError':
-          case 'YAMLSemanticError':
-          case 'YAMLSyntaxError':
-            severity = DiagnosticSeverity.Error;
-            break;
-          case 'YAMLWarning':
-            severity = DiagnosticSeverity.Warning;
-            break;
-          default:
-            severity = DiagnosticSeverity.Information;
-            break;
-        }
-        rangeTree.insert([errorRange.start, errorRange.end], {
-          message: error.message,
-          range: range || Range.create(0, 0, 0, 0),
-          severity: severity,
-          source: 'Ansible [YAML]',
-        });
-      }
-    });
-  });
-  rangeTree.forEach((range, diag) => {
-    const searchResult = rangeTree.search(range);
-    if (searchResult) {
-      const allRangesAreEqual = searchResult.every((foundDiag: Diagnostic) => {
-        // (range start == range end) in case it has already been collapsed
-        return (
-          foundDiag.range.start === foundDiag.range.end ||
-          _.isEqual(foundDiag.range, diag.range)
-        );
-      });
-      if (!allRangesAreEqual) {
-        // Prevent large error scopes hiding/obscuring other error scopes
-        // In YAML this is very common in case of syntax errors
-        const range = diag.range;
-        diag.relatedInformation = [
-          DiagnosticRelatedInformation.create(
-            Location.create(textDocument.uri, {
-              start: range.end,
-              end: range.end,
-            }),
-            'the scope of this error ends here'
-          ),
-        ];
-        // collapse the range
-        diag.range = {
-          start: range.start,
-          end: range.start,
-        };
-      }
-    }
-    diagnostics.push(diag);
-  });
-
-  // Send the computed diagnostics to VSCode.
-  connection.sendDiagnostics({ uri: textDocument.uri, diagnostics });
-}
 
 connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode
   connection.console.log('We received a file change event');
 });
-const hoverProvider = new AnsibleHoverProvider();
-connection.onHover((params) => {
-  const document = documents.get(params.textDocument.uri);
-  if (document) {
-    return hoverProvider.doHover(document, params.position);
-  }
-  return null;
+
+const docsLibrary = new DocsLibrary();
+docsLibrary.initialize().then(() => {
+  connection.onHover((params) => {
+    const document = documents.get(params.textDocument.uri);
+    if (document) {
+      return doHover(document, params.position, docsLibrary);
+    }
+    return null;
+  });
 });
 
 // Make the text document manager listen on the connection
