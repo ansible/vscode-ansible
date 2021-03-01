@@ -1,8 +1,8 @@
 # Change Log
 
-## [Unreleased]
+## 0.1.1
 
-- Initial release
+- Add JSON schema for Zuul CI config files
 
 ## 0.1.0
 
