@@ -116,6 +116,10 @@
       {
         "fileMatch": ["zuul.d/*.yaml", "zuul-tests.d/*.yaml", ".zuul.yaml"],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/zuul.json"
+      },
+      {
+        "fileMatch": [".ansible-lint"],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-lint.json"
       }
     ]
   },
