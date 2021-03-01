@@ -20,8 +20,8 @@
      "url": "https://vsmarketplacebadge.apphb.com/version/zbr.vscode-ansible.svg",
      "href": "https://marketplace.visualstudio.com/items?itemName=zbr.vscode-ansible"},
     {"description": "CI/CD Pipeline",
-     "url": "https://github.com/ansible-community/vscode-ansible/actions/workflows/release.yaml/badge.svg",
-     "href": "https://github.com/ansible-community/vscode-ansible/actions/workflows/release.yaml"}
+     "url": "https://img.shields.io/github/workflow/status/ansible-community/vscode-ansible/ci.png",
+     "href": "https://github.com/ansible-community/vscode-ansible/actions/workflows/ci.yaml"}
   ],
   "displayName": "Ansible Language",
   "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
