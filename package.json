@@ -120,6 +120,10 @@
       {
         "fileMatch": [".ansible-lint"],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-lint.json"
+      },
+      {
+        "fileMatch": ["molecule/*/molecule.yml"],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/molecule.json"
       }
     ]
   },
