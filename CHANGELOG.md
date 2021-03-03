@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.3.0
+
+- Added file associations for common files found on Ansible and Python repos
+
 ## 0.2.0
 
 - Add JSON schema for Zuul CI config files
