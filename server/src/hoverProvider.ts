@@ -1,10 +1,35 @@
 import { Hover } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Pair, Scalar } from 'yaml/types';
+import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import { formatDescription, formatOption } from './docsFormatter';
 import { DocsLibrary } from './docsLibrary';
-import { getPathAt } from './utils';
+import { AncestryBuilder, getPathAt } from './utils';
+
+const tasksKey = /^(tasks|pre_tasks|post_tasks|block)$/;
+
+function moduleAncestry(path: Node[]) {
+  return new AncestryBuilder(path).parent(YAMLMap).parent(YAMLSeq);
+}
+
+function mayBeModule(path: Node[]): boolean {
+  const taskListPath = new AncestryBuilder(path)
+    .parent(YAMLMap)
+    .parent(YAMLSeq)
+    .getPath();
+  if (taskListPath) {
+    // basic shape of the task list has been found
+    if (taskListPath.length === 0) {
+      // case when the task list is at the top level of the document
+      return true;
+    }
+    if (new AncestryBuilder(taskListPath).parentKey(tasksKey).get()) {
+      // case when a task list is defined explicitly by a keyword
+      return true;
+    }
+  }
+  return false;
+}
 
 export function doHover(
   document: TextDocument,
@@ -15,30 +40,37 @@ export function doHover(
   const path = getPathAt(document, position, yamlDocs);
   if (path) {
     const node = path[path.length - 1];
-    if (node instanceof Scalar) {
-      // Check if options first
-      const parent_pair = path[path.length - 4]; //Pair[module_name, Map{Pair[option_name, ...], ...}]
-      if (
-        parent_pair instanceof Pair &&
-        parent_pair.key instanceof Scalar &&
-        docsLibrary.isModule(parent_pair.key.value)
-      ) {
-        const option = docsLibrary.getModuleOption(
-          parent_pair.key.value,
-          node.value
-        );
-        if (option) {
+    if (
+      node instanceof Scalar &&
+      new AncestryBuilder(path).parentKey(node.value).get() === node // ensure we look at a key, not value of a Pair
+    ) {
+      if (mayBeModule(path)) {
+        const description = docsLibrary.getModuleDescription(node.value);
+        if (description) {
           return {
-            contents: formatOption(option),
+            contents: formatDescription(description),
           };
         }
       }
-      // Check if module
-      const description = docsLibrary.getModuleDescription(node.value);
-      if (description) {
-        return {
-          contents: formatDescription(description),
-        };
+
+      const modulePath = new AncestryBuilder(path)
+        .parent(YAMLMap)
+        .parentKey()
+        .getPath();
+
+      if (modulePath && mayBeModule(modulePath)) {
+        const moduleNode = modulePath[modulePath.length - 1] as Scalar;
+        if (docsLibrary.isModule(moduleNode.value)) {
+          const option = docsLibrary.getModuleOption(
+            moduleNode.value,
+            node.value
+          );
+          if (option) {
+            return {
+              contents: formatOption(option),
+            };
+          }
+        }
       }
     }
   }

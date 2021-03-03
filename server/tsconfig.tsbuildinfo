@@ -477,12 +477,12 @@
         "affectsGlobalScope": true
       },
       "./src/utils.ts": {
-        "version": "41a04c4a8d7266e82251cf03f4b9b0e45fb50dedc1eb95fc87690843bee01c33",
-        "signature": "d8bfe5fc53b97ae26a0d657b21a4856a2873c3591869bbdc0ac79566e81440f8",
+        "version": "bda40365865be4cc2f3318794b8f7b97111a4b6efc486cdc63d790196119bcb9",
+        "signature": "624c5564317d2e2281f14d0f94ee0841431d655f20d9a062a1457d4bb43ce6d2",
         "affectsGlobalScope": false
       },
       "./src/hoverProvider.ts": {
-        "version": "e935e75f9fd80f6e110067af0cc10cd70eb16cdfcd94f36a25e1aa2d1696d8a9",
+        "version": "b437eb163679e61c7eaed7b2e018db3914a3bde58d283054717abad11f7509dd",
         "signature": "14028932ece44f3c48823c969d5b1bda30f5a0ed08b23db42deb6f187bb2da44",
         "affectsGlobalScope": false
       },
@@ -775,6 +775,21 @@
         "version": "a0f0565e0894362cd3ccdf84c364e5123da270fa5b41f2420e62ef1035add39e",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
+      },
+      "./node_modules/@types/chai/index.d.ts": {
+        "version": "267813ae499a9c070ea61bca2d235e31e785181d967e4461719cbcc78a35abfe",
+        "signature": "267813ae499a9c070ea61bca2d235e31e785181d967e4461719cbcc78a35abfe",
+        "affectsGlobalScope": true
+      },
+      "./src/test/utils.test.ts": {
+        "version": "4acd34dc83145f8fbe50ef509d989712ab9d14e337e9de94248a30ed32600ca0",
+        "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/mocha/index.d.ts": {
+        "version": "d8cebc259915afa4b2c56b7efcb8056739ec65f4479c1b880ff668eb98654ae7",
+        "signature": "d8cebc259915afa4b2c56b7efcb8056739ec65f4479c1b880ff668eb98654ae7",
+        "affectsGlobalScope": true
       },
       "../node_modules/@types/json-schema/index.d.ts": {
         "version": "3a1e165b22a1cb8df82c44c9a09502fd2b33f160cd277de2cd3a055d8e5c6b27",
@@ -1508,6 +1523,16 @@
         "./src/docsLibrary.ts",
         "./src/hoverProvider.ts",
         "./src/validationProvider.ts"
+      ],
+      "./src/test/utils.test.ts": [
+        "../node_modules/@types/node/assert.d.ts",
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/path.d.ts",
+        "./node_modules/@types/chai/index.d.ts",
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts",
+        "./src/utils.ts"
       ],
       "./src/utils.ts": [
         "./node_modules/@types/lodash/index.d.ts",
@@ -2305,6 +2330,7 @@
       "../node_modules/typescript/lib/lib.es5.d.ts",
       "../node_modules/typescript/lib/lib.esnext.intl.d.ts",
       "./node_modules/@flatten-js/interval-tree/index.d.ts",
+      "./node_modules/@types/chai/index.d.ts",
       "./node_modules/@types/lodash/common/array.d.ts",
       "./node_modules/@types/lodash/common/collection.d.ts",
       "./node_modules/@types/lodash/common/common.d.ts",
@@ -2318,6 +2344,7 @@
       "./node_modules/@types/lodash/common/string.d.ts",
       "./node_modules/@types/lodash/common/util.d.ts",
       "./node_modules/@types/lodash/index.d.ts",
+      "./node_modules/@types/mocha/index.d.ts",
       "./node_modules/vscode-jsonrpc/lib/common/api.d.ts",
       "./node_modules/vscode-jsonrpc/lib/common/cancellation.d.ts",
       "./node_modules/vscode-jsonrpc/lib/common/connection.d.ts",
@@ -2378,6 +2405,7 @@
       "./src/docsParser.ts",
       "./src/hoverProvider.ts",
       "./src/server.ts",
+      "./src/test/utils.test.ts",
       "./src/utils.ts",
       "./src/validationProvider.ts"
     ]

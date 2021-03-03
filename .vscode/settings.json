@@ -8,5 +8,16 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "mochaExplorer.files": "server/src/test/**/*.ts",
+  "mochaExplorer.require": "ts-node/register",
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/node_modules": true
+  },
+  "explorerExclude.backup": null
 }
