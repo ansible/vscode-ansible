@@ -4,32 +4,8 @@ import { parseAllDocuments } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import { formatDescription, formatOption } from './docsFormatter';
 import { DocsLibrary } from './docsLibrary';
+import { mayBeModule } from './utils';
 import { AncestryBuilder, getPathAt } from './utils';
-
-const tasksKey = /^(tasks|pre_tasks|post_tasks|block)$/;
-
-function moduleAncestry(path: Node[]) {
-  return new AncestryBuilder(path).parent(YAMLMap).parent(YAMLSeq);
-}
-
-function mayBeModule(path: Node[]): boolean {
-  const taskListPath = new AncestryBuilder(path)
-    .parent(YAMLMap)
-    .parent(YAMLSeq)
-    .getPath();
-  if (taskListPath) {
-    // basic shape of the task list has been found
-    if (taskListPath.length === 0) {
-      // case when the task list is at the top level of the document
-      return true;
-    }
-    if (new AncestryBuilder(taskListPath).parentKey(tasksKey).get()) {
-      // case when a task list is defined explicitly by a keyword
-      return true;
-    }
-  }
-  return false;
-}
 
 export function doHover(
   document: TextDocument,

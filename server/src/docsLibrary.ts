@@ -17,11 +17,30 @@ export class DocsLibrary {
     return doc?.contents.description;
   }
 
+  public getModuleOptions(module: string): IOption[] | undefined {
+    const doc = this.builtInModules.get(module);
+    const options = doc?.contents.options;
+    if (options) {
+      return Object.entries(options).map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ([optionName, optionObj]: [string, any]) => {
+          return {
+            name: optionName,
+            description: optionObj.description,
+            required: !!optionObj.required,
+            choices: optionObj.choices,
+          };
+        }
+      );
+    }
+  }
+
   public getModuleOption(module: string, option: string): IOption | undefined {
     const doc = this.builtInModules.get(module);
     const optionObj = doc?.contents.options[option];
     if (optionObj) {
       return {
+        name: option,
         description: optionObj.description,
         required: !!optionObj.required,
         choices: optionObj.choices,
@@ -37,6 +56,7 @@ export class DocsLibrary {
 export type IDescription = string | Array<string>;
 
 export interface IOption {
+  name: string;
   description?: IDescription;
   required: boolean;
   default?: unknown;

@@ -1,6 +1,10 @@
+import { MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { IDescription, IOption } from './docsLibrary';
 
-export function formatDescription(doc?: IDescription, asList = true): string {
+export function formatDescription(
+  doc?: IDescription,
+  asList = true
+): MarkupContent {
   let result = '';
   if (doc instanceof Array) {
     const lines: string[] = [];
@@ -15,22 +19,28 @@ export function formatDescription(doc?: IDescription, asList = true): string {
   } else if (typeof doc === 'string') {
     result += replaceMacros(doc);
   }
-  return `${result}\n`;
+  return {
+    kind: MarkupKind.Markdown,
+    value: `${result}\n`,
+  };
 }
 
-export function formatOption(option: IOption): string {
+export function formatOption(option: IOption): MarkupContent {
   const sections: string[] = [];
   if (option.required) {
     sections.push('**Required**\n');
   }
   if (option.description) {
-    sections.push(formatDescription(option.description, false));
+    sections.push(formatDescription(option.description, false).value);
   }
   if (option.choices) {
     const formattedChoiceArray = option.choices.map((c) => `\`${c}\``);
     sections.push(`*Choices*: [${formattedChoiceArray.toString()}]`);
   }
-  return sections.join('\n');
+  return {
+    kind: MarkupKind.Markdown,
+    value: sections.join('\n'),
+  };
 }
 
 // TODO: do something with links

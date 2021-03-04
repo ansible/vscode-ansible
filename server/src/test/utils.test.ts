@@ -23,7 +23,7 @@ async function getPathInFile(
   character: number
 ) {
   const textDoc = await getYamlDoc(yamlFile);
-  const parsedDocs = parseAllDocuments(textDoc.getText());
+  const parsedDocs = parseAllDocuments(`${textDoc.getText()}\n`); // the newline is crucial for completion provider
   return getPathAt(
     textDoc,
     { line: line - 1, character: character - 1 },
@@ -115,6 +115,39 @@ describe('utils', () => {
       expect(node)
         .to.be.an.instanceOf(Scalar)
         .to.have.property('value', 'block');
+    });
+
+    it('canGetIndentationParent', async () => {
+      const path = await getPathInFile('utils.block.yml', 7, 9);
+      const node = new AncestryBuilder(path)
+        .parent()
+        .parentKey('lineinfile')
+        .get();
+      expect(node)
+        .to.be.an.instanceOf(Scalar)
+        .to.have.property('value', 'lineinfile');
+    });
+
+    it('canGetIndentationParentAtEndOfMap', async () => {
+      const path = await getPathInFile('utils.block.yml', 9, 9);
+      const node = new AncestryBuilder(path)
+        .parent()
+        .parentKey('lineinfile')
+        .get();
+      expect(node)
+        .to.be.an.instanceOf(Scalar)
+        .to.have.property('value', 'lineinfile');
+    });
+
+    it('canGetIndentationParentAtEOF', async () => {
+      const path = await getPathInFile('utils.block.yml', 15, 9);
+      const node = new AncestryBuilder(path)
+        .parent()
+        .parentKey('lineinfile')
+        .get();
+      expect(node)
+        .to.be.an.instanceOf(Scalar)
+        .to.have.property('value', 'lineinfile');
     });
   });
 });

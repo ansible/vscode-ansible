@@ -161,41 +161,6 @@
         "signature": "89bf2b7a601b73ea4311eda9c41f86a58994fec1bee3b87c4a14d68d9adcdcbd",
         "affectsGlobalScope": true
       },
-      "./node_modules/yaml/types.d.ts": {
-        "version": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
-        "signature": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/yaml/util.d.ts": {
-        "version": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
-        "signature": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/yaml/parse-cst.d.ts": {
-        "version": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
-        "signature": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/yaml/index.d.ts": {
-        "version": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
-        "signature": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
-        "affectsGlobalScope": false
-      },
-      "./src/docsParser.ts": {
-        "version": "7679730e4c037e3df0a7cd305df2c20ced11a792ddeef9ab4ef14098a0be3ec8",
-        "signature": "ecc223d28dc821c023c7712e86faadbcca62a914af252641427c9d22cc7bd99a",
-        "affectsGlobalScope": false
-      },
-      "./src/docsLibrary.ts": {
-        "version": "807e8944eed6e26970ed1c293e4211ac5d800d27a81de4cf6de80b1b0c8d09a5",
-        "signature": "75651603cb37c9115f83f3b4e0168d93d6e9eed8c41766dfa1882c6e51a5d59d",
-        "affectsGlobalScope": false
-      },
-      "./src/docsFormatter.ts": {
-        "version": "815562666bda7347b93a0e8ee2199806e91fdbeb6e4a48779e6475b15a27387d",
-        "signature": "eb6a8b480d86b7784743f0e93df6680e9672dab628581c9a1db52da67c828390",
-        "affectsGlobalScope": false
-      },
       "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts": {
         "version": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
         "signature": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
@@ -411,6 +376,41 @@
         "signature": "21f9731fc2e8e009fdaef137a04546c27877314c748c6702fe9329518fb16538",
         "affectsGlobalScope": false
       },
+      "./node_modules/yaml/types.d.ts": {
+        "version": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
+        "signature": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/util.d.ts": {
+        "version": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
+        "signature": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/parse-cst.d.ts": {
+        "version": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
+        "signature": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/index.d.ts": {
+        "version": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
+        "signature": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
+        "affectsGlobalScope": false
+      },
+      "./src/docsParser.ts": {
+        "version": "7679730e4c037e3df0a7cd305df2c20ced11a792ddeef9ab4ef14098a0be3ec8",
+        "signature": "ecc223d28dc821c023c7712e86faadbcca62a914af252641427c9d22cc7bd99a",
+        "affectsGlobalScope": false
+      },
+      "./src/docsLibrary.ts": {
+        "version": "ea43a601b79af4e77a23b1a03cbc15b13a0f78ec54d0eb5516df03449579bf6b",
+        "signature": "7349ca6a3410401b96ebdfb580ccfd9c2ee6d935f0b35dde0e1bdc94482eb452",
+        "affectsGlobalScope": false
+      },
+      "./src/docsFormatter.ts": {
+        "version": "a072e9918cbf6a113524a0d56fa34f7cd8584bf0b7f755ed28d14ba339b91e14",
+        "signature": "0f153c55e776e5922dca1841dbba76d39c9ce52675db81b189599c1eb2117c04",
+        "affectsGlobalScope": false
+      },
       "./node_modules/@types/lodash/common/common.d.ts": {
         "version": "3594c022901a1c8993b0f78a3f534cfb81e7b619ed215348f7f6882f3db02abc",
         "signature": "3594c022901a1c8993b0f78a3f534cfb81e7b619ed215348f7f6882f3db02abc",
@@ -477,12 +477,17 @@
         "affectsGlobalScope": true
       },
       "./src/utils.ts": {
-        "version": "bda40365865be4cc2f3318794b8f7b97111a4b6efc486cdc63d790196119bcb9",
-        "signature": "624c5564317d2e2281f14d0f94ee0841431d655f20d9a062a1457d4bb43ce6d2",
+        "version": "60a3193784a6c0f4b6d39ef4a0a15c341b9ab69ec8a3023a14585f2560e15786",
+        "signature": "7dc80f76c84c260a67073e85bd7d455330c09f8bb540a9d904a25382c5113ed0",
+        "affectsGlobalScope": false
+      },
+      "./src/completionProvider.ts": {
+        "version": "134a4eed525da309fe2d6b887008a0a6e7b7f815208f10414a9a16e24f20a763",
+        "signature": "1d9b5063ca708d4b5f3e722b57f7c3d156b4eda96cc9b053e9fb64673586d102",
         "affectsGlobalScope": false
       },
       "./src/hoverProvider.ts": {
-        "version": "b437eb163679e61c7eaed7b2e018db3914a3bde58d283054717abad11f7509dd",
+        "version": "11967ff590c2cf717e9b78b53ce75bc9e0abe707d99da60d1e3c015ad583a116",
         "signature": "14028932ece44f3c48823c969d5b1bda30f5a0ed08b23db42deb6f187bb2da44",
         "affectsGlobalScope": false
       },
@@ -772,7 +777,7 @@
         "affectsGlobalScope": false
       },
       "./src/server.ts": {
-        "version": "a0f0565e0894362cd3ccdf84c364e5123da270fa5b41f2420e62ef1035add39e",
+        "version": "39932e6f24d89eae67ee46eb65aae4b82e03863b060a4f90a2c9a20f03e38619",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -782,7 +787,7 @@
         "affectsGlobalScope": true
       },
       "./src/test/utils.test.ts": {
-        "version": "4acd34dc83145f8fbe50ef509d989712ab9d14e337e9de94248a30ed32600ca0",
+        "version": "42e6d94bc31f32203bae378b204c36e8b0915ffb524b6af1214e03eda31fdd94",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -1495,7 +1500,17 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
+      "./src/completionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts",
+        "./src/docsFormatter.ts",
+        "./src/docsLibrary.ts",
+        "./src/utils.ts"
+      ],
       "./src/docsFormatter.ts": [
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./src/docsLibrary.ts"
       ],
       "./src/docsLibrary.ts": [
@@ -1520,6 +1535,7 @@
       "./src/server.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/node.d.ts",
+        "./src/completionProvider.ts",
         "./src/docsLibrary.ts",
         "./src/hoverProvider.ts",
         "./src/validationProvider.ts"
@@ -2226,7 +2242,13 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
+      "./src/completionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/docsLibrary.ts"
+      ],
       "./src/docsFormatter.ts": [
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./src/docsLibrary.ts"
       ],
       "./src/docsParser.ts": [
@@ -2400,6 +2422,7 @@
       "./node_modules/yaml/parse-cst.d.ts",
       "./node_modules/yaml/types.d.ts",
       "./node_modules/yaml/util.d.ts",
+      "./src/completionProvider.ts",
       "./src/docsFormatter.ts",
       "./src/docsLibrary.ts",
       "./src/docsParser.ts",

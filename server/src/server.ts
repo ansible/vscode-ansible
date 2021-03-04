@@ -8,6 +8,7 @@ import {
   TextDocuments,
   TextDocumentSyncKind,
 } from 'vscode-languageserver/node';
+import { doCompletion } from './completionProvider';
 import { DocsLibrary } from './docsLibrary';
 import { doHover } from './hoverProvider';
 import { doValidate } from './validationProvider';
@@ -46,7 +47,7 @@ connection.onInitialize((params: InitializeParams) => {
       hoverProvider: true,
       // Tell the client that this server supports code completion.
       completionProvider: {
-        resolveProvider: true,
+        resolveProvider: false,
       },
     },
   };
@@ -149,6 +150,13 @@ docsLibrary.initialize().then(() => {
     const document = documents.get(params.textDocument.uri);
     if (document) {
       return doHover(document, params.position, docsLibrary);
+    }
+    return null;
+  });
+  connection.onCompletion((params) => {
+    const document = documents.get(params.textDocument.uri);
+    if (document) {
+      return doCompletion(document, params.position, docsLibrary);
     }
     return null;
   });
