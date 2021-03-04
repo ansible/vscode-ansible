@@ -1,12 +1,11 @@
-
 {
-    "configuration.suggest.basic": "Controls whether the built-in Ansible language suggestions are enabled. The support suggests Ansible globals and variables.",
-	"configuration.validate.enable": "Enable/disable ansible-lint validation.",
-	"configuration.validate.executablePath": "Points to the ansible-lint executable.",
-	"configuration.validate.run": "Whether the linter is run on save or on type.",
-	"configuration.title": "Ansible",
-	"commands.categroy.ansible": "Ansible",
-	"command.untrustValidationExecutable": "Disallow ansible-lint validation executable (defined as workspace setting)",
-	"displayName": "Ansible Language Features",
-	"description": "Provides rich language support for Ansible files."
+  "command.untrustValidationExecutable": "Disallow ansible-lint validation executable (defined as workspace setting)",
+  "commands.categroy.ansible": "Ansible",
+  "configuration.suggest.basic": "Controls whether the built-in Ansible language suggestions are enabled. The support suggests Ansible globals and variables.",
+  "configuration.title": "Ansible",
+  "configuration.validate.enable": "Enable/disable ansible-lint validation.",
+  "configuration.validate.executablePath": "Points to the ansible-lint executable.",
+  "configuration.validate.run": "Whether the linter is run on save or on type.",
+  "description": "Provides rich language support for Ansible files.",
+  "displayName": "Ansible Language Features"
 }
