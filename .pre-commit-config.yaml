@@ -14,10 +14,17 @@ repos:
   - id: check-byte-order-marker
   - id: check-executables-have-shebangs
   - id: check-merge-conflict
+  - id: check-json
+  - id: pretty-format-json
+    args: ['--autofix']
   - id: debug-statements
     language_version: python3
 - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
   rev: v2.2.0
   hooks:
-      - id: commitlint
-        stages: [commit-msg]
+    - id: commitlint
+      stages: [commit-msg]
+- repo: https://github.com/pre-commit/mirrors-eslint
+  rev: v7.21.0
+  hooks:
+    - id: eslint

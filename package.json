@@ -1,53 +1,61 @@
 {
-  "name": "vscode-ansible",
-  "publisher": "zbr",
-  "icon": "icon/icon128.png",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ansible-community/vscode-ansible.git"
-  },
-  "contributors": [
+  "activationEvents": [
+    "onLanguage:yaml"
+  ],
+  "badges": [
     {
-      "name": "Sorin Sbarnea",
-      "email": "ssbarnea@redhat.com"
+      "description": "Ansible Language Extension",
+      "href": "https://marketplace.visualstudio.com/items?itemName=zbr.vscode-ansible",
+      "url": "https://vsmarketplacebadge.apphb.com/version/zbr.vscode-ansible.svg"
+    },
+    {
+      "description": "CI/CD Pipeline",
+      "href": "https://github.com/ansible-community/vscode-ansible/actions/workflows/ci.yaml",
+      "url": "https://img.shields.io/github/workflow/status/ansible-community/vscode-ansible/ci.png"
     }
   ],
   "bugs": "https://github.com/ansible-community/vscode-ansible/issues",
-  "preview": true,
-  "qna": false,
-  "badges": [
-    {"description": "Ansible Language Extension",
-     "url": "https://vsmarketplacebadge.apphb.com/version/zbr.vscode-ansible.svg",
-     "href": "https://marketplace.visualstudio.com/items?itemName=zbr.vscode-ansible"},
-    {"description": "CI/CD Pipeline",
-     "url": "https://img.shields.io/github/workflow/status/ansible-community/vscode-ansible/ci.png",
-     "href": "https://github.com/ansible-community/vscode-ansible/actions/workflows/ci.yaml"}
-  ],
-  "displayName": "Ansible Language",
-  "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
-  "license": "MIT",
-  "version": "0.2.0",
-  "engines": {
-    "vscode": "^1.53.0"
-  },
   "categories": [
     "Programming Languages",
     "Linters"
   ],
-  "keywords": [
-    "ansible",
-    "yaml",
-    "autocompletion",
-    "validation"
-  ],
-  "activationEvents": [
-    "onLanguage:yaml"
-  ],
-  "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "order": 20,
+      "properties": {
+        "ansible.suggest.basic": {
+          "default": true,
+          "description": "%configuration.suggest.basic%",
+          "type": "boolean"
+        },
+        "ansible.validate.enable": {
+          "default": true,
+          "description": "%configuration.validate.enable%",
+          "type": "boolean"
+        },
+        "ansible.validate.executablePath": {
+          "default": "ansible-lint",
+          "description": "%configuration.validate.executablePath%",
+          "scope": "machine-overridable",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ansible.validate.run": {
+          "default": "onSave",
+          "description": "%configuration.validate.run%",
+          "enum": [
+            "onSave"
+          ],
+          "type": "string"
+        }
+      },
+      "title": "%configuration.title%",
+      "type": "object"
+    },
     "languages": [
       {
-        "id": "yaml",
         "aliases": [
           "YAML",
           "yaml"
@@ -59,10 +67,10 @@
         "filenames": [
           ".ansible-lint",
           ".yamllint"
-        ]
+        ],
+        "id": "yaml"
       },
       {
-        "id": "ini",
         "filenames": [
           ".cookiecutterrc",
           ".coveragerc",
@@ -82,48 +90,16 @@
           "ansible.cfg",
           "hosts",
           "setup.cfg"
-        ]
-      },{
-        "id": "shellscript",
+        ],
+        "id": "ini"
+      },
+      {
         "extensions": [
           ".envrc"
-        ]
+        ],
+        "id": "shellscript"
       }
     ],
-    "configuration": {
-      "title": "%configuration.title%",
-      "type": "object",
-      "order": 20,
-      "properties": {
-        "ansible.suggest.basic": {
-          "type": "boolean",
-          "default": true,
-          "description": "%configuration.suggest.basic%"
-        },
-        "ansible.validate.enable": {
-          "type": "boolean",
-          "default": true,
-          "description": "%configuration.validate.enable%"
-        },
-        "ansible.validate.executablePath": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": "ansible-lint",
-          "description": "%configuration.validate.executablePath%",
-          "scope": "machine-overridable"
-        },
-        "ansible.validate.run": {
-          "type": "string",
-          "enum": [
-            "onSave"
-          ],
-          "default": "onSave",
-          "description": "%configuration.validate.run%"
-        }
-      }
-    },
     "yamlValidation": [
       {
         "fileMatch": "requirements.yml",
@@ -134,39 +110,63 @@
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"
       },
       {
-        "fileMatch": ["vars/*.yml", "defaults/*.yml", "host_vars/*.yml", "group_vars/*.yml"],
+        "fileMatch": [
+          "vars/*.yml",
+          "defaults/*.yml",
+          "host_vars/*.yml",
+          "group_vars/*.yml"
+        ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-vars.json"
       },
       {
-        "fileMatch": ["tasks/*.yml", "handlers/*.yml"],
+        "fileMatch": [
+          "tasks/*.yml",
+          "handlers/*.yml"
+        ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-tasks.json"
       },
       {
-        "fileMatch": ["playbooks/*.yml", "playbooks/*.yaml"],
+        "fileMatch": [
+          "playbooks/*.yml",
+          "playbooks/*.yaml"
+        ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"
       },
       {
-        "fileMatch": ["zuul.d/*.yaml", "zuul-tests.d/*.yaml", ".zuul.yaml"],
+        "fileMatch": [
+          "zuul.d/*.yaml",
+          "zuul-tests.d/*.yaml",
+          ".zuul.yaml"
+        ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/zuul.json"
       },
       {
-        "fileMatch": [".ansible-lint"],
+        "fileMatch": [
+          ".ansible-lint"
+        ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-lint.json"
       },
       {
-        "fileMatch": ["molecule/*/molecule.yml"],
+        "fileMatch": [
+          "molecule/*/molecule.yml"
+        ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/molecule.json"
       }
     ]
   },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src --ext ts",
-    "test": "node ./out/test/runTest.js"
+  "contributors": [
+    {
+      "email": "ssbarnea@redhat.com",
+      "name": "Sorin Sbarnea"
+    }
+  ],
+  "dependencies": {
+    "@commitlint/cli": "latest",
+    "@commitlint/config-conventional": "latest",
+    "husky": "latest",
+    "vscode-nls": "^5.0.0"
   },
+  "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
   "devDependencies": {
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.0.4",
@@ -181,15 +181,39 @@
     "typescript": "^4.1.3",
     "vscode-test": "^1.5.0"
   },
-  "dependencies": {
-    "@commitlint/cli": "latest",
-    "@commitlint/config-conventional": "latest",
-    "husky": "latest",
-    "vscode-nls": "^5.0.0"
+  "displayName": "Ansible Language",
+  "engines": {
+    "vscode": "^1.53.0"
   },
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
-  }
+  },
+  "icon": "icon/icon128.png",
+  "keywords": [
+    "ansible",
+    "yaml",
+    "autocompletion",
+    "validation"
+  ],
+  "license": "MIT",
+  "main": "./out/extension.js",
+  "name": "vscode-ansible",
+  "preview": true,
+  "publisher": "zbr",
+  "qna": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ansible-community/vscode-ansible.git"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "lint": "eslint src --ext ts",
+    "pretest": "npm run compile && npm run lint",
+    "test": "node ./out/test/runTest.js",
+    "vscode:prepublish": "npm run compile",
+    "watch": "tsc -watch -p ./"
+  },
+  "version": "0.2.0"
 }
