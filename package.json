@@ -55,6 +55,38 @@
         "extensions": [
           ".yml",
           ".yaml"
+        ],
+        "filenames": [
+          ".ansible-lint",
+          ".yamllint"
+        ]
+      },
+      {
+        "id": "ini",
+        "filenames": [
+          ".cookiecutterrc",
+          ".coveragerc",
+          ".eslintrc",
+          ".flake8",
+          ".gitreview",
+          ".isort.cfg",
+          ".jscsrc",
+          ".jshintrc",
+          ".npmrc",
+          ".pylintrc",
+          ".renovaterc",
+          ".stestr.conf",
+          ".testr.conf",
+          ".yarnrc",
+          ".zuul.conf",
+          "ansible.cfg",
+          "hosts",
+          "setup.cfg"
+        ]
+      },{
+        "id": "shellscript",
+        "extensions": [
+          ".envrc"
         ]
       }
     ],
