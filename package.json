@@ -102,6 +102,13 @@
     ],
     "yamlValidation": [
       {
+        "fileMatch": [
+          "playbooks/*.yml",
+          "playbooks/*.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"
+      },
+      {
         "fileMatch": "requirements.yml",
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-requirements.json"
       },
@@ -111,6 +118,7 @@
       },
       {
         "fileMatch": [
+          "playbooks/vars/*.yml",
           "vars/*.yml",
           "defaults/*.yml",
           "host_vars/*.yml",
@@ -124,13 +132,6 @@
           "handlers/*.yml"
         ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-tasks.json"
-      },
-      {
-        "fileMatch": [
-          "playbooks/*.yml",
-          "playbooks/*.yaml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-playbook.json"
       },
       {
         "fileMatch": [
@@ -151,6 +152,12 @@
           "molecule/*/molecule.yml"
         ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/molecule.json"
+      },
+      {
+        "fileMatch": [
+          "galaxy.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-galaxy.json"
       }
     ]
   },
@@ -215,5 +222,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.2.0"
+  "version": "0.3.0"
 }

@@ -3,6 +3,7 @@
 ## 0.3.0
 
 - Added file associations for common files found on Ansible and Python repos
+- Added schema verification for galaxy.tml files
 
 ## 0.2.0
 
