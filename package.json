@@ -167,9 +167,6 @@
       "name": "Sorin Sbarnea"
     }
   ],
-  "extensionDependencies": [
-    "redhat.vscode-yaml"
-  ],
   "dependencies": {
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
@@ -195,6 +192,9 @@
   "engines": {
     "vscode": "^1.53.0"
   },
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
