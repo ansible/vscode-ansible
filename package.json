@@ -167,6 +167,9 @@
       "name": "Sorin Sbarnea"
     }
   ],
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
   "dependencies": {
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
