@@ -106,7 +106,7 @@ export class AncestryBuilder {
     if (
       node instanceof Pair &&
       node.key instanceof Scalar &&
-      (!key || key.test(node.key.value))
+      (!key || (key instanceof RegExp && key.test(node.key.value)))
     ) {
       this._returnKey = true;
     } else {
@@ -134,7 +134,7 @@ export class AncestryBuilder {
   }
 }
 
-export const tasksKey = /^(tasks|pre_tasks|post_tasks|block)$/;
+export const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always)$/;
 export function mayBeModule(path: Node[]): boolean {
   const taskListPath = new AncestryBuilder(path)
     .parent(YAMLMap)
@@ -142,7 +142,7 @@ export function mayBeModule(path: Node[]): boolean {
     .getPath();
   if (taskListPath) {
     // basic shape of the task list has been found
-    if (taskListPath.length === 0) {
+    if (taskListPath.length === 1) {
       // case when the task list is at the top level of the document
       return true;
     }

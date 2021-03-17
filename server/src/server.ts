@@ -7,6 +7,7 @@ import {
   ProposedFeatures,
   TextDocuments,
   TextDocumentSyncKind,
+  WorkspaceFolder,
 } from 'vscode-languageserver/node';
 import { doCompletion } from './completionProvider';
 import { DocsLibrary } from './docsLibrary';
@@ -20,11 +21,15 @@ const connection = createConnection(ProposedFeatures.all);
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
+let rootFolder: WorkspaceFolder | undefined;
 let hasConfigurationCapability = false;
 let hasWorkspaceFolderCapability = false;
 let hasDiagnosticRelatedInformationCapability = false;
 
 connection.onInitialize((params: InitializeParams) => {
+  if (params.workspaceFolders) {
+    rootFolder = params.workspaceFolders[0]; //TODO: support multiroot
+  }
   const capabilities = params.capabilities;
 
   // Does the client support the `workspace/configuration` request?
@@ -144,7 +149,7 @@ connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log('We received a file change event');
 });
 
-const docsLibrary = new DocsLibrary();
+const docsLibrary = new DocsLibrary(rootFolder);
 docsLibrary.initialize().then(() => {
   connection.onHover((params) => {
     const document = documents.get(params.textDocument.uri);

@@ -161,6 +161,16 @@
         "signature": "89bf2b7a601b73ea4311eda9c41f86a58994fec1bee3b87c4a14d68d9adcdcbd",
         "affectsGlobalScope": true
       },
+      "./node_modules/@types/ini/index.d.ts": {
+        "version": "3cc26d1f94c768ae2896d3900ffa268e0657a332b399e94c1fb52da1f9e07625",
+        "signature": "3cc26d1f94c768ae2896d3900ffa268e0657a332b399e94c1fb52da1f9e07625",
+        "affectsGlobalScope": false
+      },
+      "./src/ansibleConfig.ts": {
+        "version": "908e0256743ded962a968ddf7b9cf97d38521bf3a720693277b5bb06b9f51d2e",
+        "signature": "9266b05f00ee02ff2816d0e87bb2dfe9a69416b75ac44d6a51d18df377cb8938",
+        "affectsGlobalScope": false
+      },
       "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts": {
         "version": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
         "signature": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
@@ -402,8 +412,8 @@
         "affectsGlobalScope": false
       },
       "./src/docsLibrary.ts": {
-        "version": "ea43a601b79af4e77a23b1a03cbc15b13a0f78ec54d0eb5516df03449579bf6b",
-        "signature": "7349ca6a3410401b96ebdfb580ccfd9c2ee6d935f0b35dde0e1bdc94482eb452",
+        "version": "e7e91b76d54349260bc3a2f61a49a092126b0b7e0068d6110e92c4193419ccca",
+        "signature": "691208ca2a7c84f7a273e735e701a2708535d93f85e7a31d02578466a9fddda7",
         "affectsGlobalScope": false
       },
       "./src/docsFormatter.ts": {
@@ -477,7 +487,7 @@
         "affectsGlobalScope": true
       },
       "./src/utils.ts": {
-        "version": "60a3193784a6c0f4b6d39ef4a0a15c341b9ab69ec8a3023a14585f2560e15786",
+        "version": "0b8870cc133814bb5d74284e4d24496772577e94dc9062fdf31222f11d76670e",
         "signature": "7dc80f76c84c260a67073e85bd7d455330c09f8bb540a9d904a25382c5113ed0",
         "affectsGlobalScope": false
       },
@@ -777,7 +787,7 @@
         "affectsGlobalScope": false
       },
       "./src/server.ts": {
-        "version": "39932e6f24d89eae67ee46eb65aae4b82e03863b060a4f90a2c9a20f03e38619",
+        "version": "3ef86b921a4e5b4e7ab5e0a6d2090fa57ba89eecd94e48a51e0f56eda1816fcf",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -1500,6 +1510,11 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
+      "./src/ansibleConfig.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/path.d.ts",
+        "./node_modules/@types/ini/index.d.ts"
+      ],
       "./src/completionProvider.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
@@ -1515,6 +1530,8 @@
       ],
       "./src/docsLibrary.ts": [
         "../node_modules/@types/node/path.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/ansibleConfig.ts",
         "./src/docsParser.ts"
       ],
       "./src/docsParser.ts": [
@@ -2251,6 +2268,9 @@
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./src/docsLibrary.ts"
       ],
+      "./src/docsLibrary.ts": [
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts"
+      ],
       "./src/docsParser.ts": [
         "./node_modules/yaml/util.d.ts"
       ],
@@ -2353,6 +2373,7 @@
       "../node_modules/typescript/lib/lib.esnext.intl.d.ts",
       "./node_modules/@flatten-js/interval-tree/index.d.ts",
       "./node_modules/@types/chai/index.d.ts",
+      "./node_modules/@types/ini/index.d.ts",
       "./node_modules/@types/lodash/common/array.d.ts",
       "./node_modules/@types/lodash/common/collection.d.ts",
       "./node_modules/@types/lodash/common/common.d.ts",
@@ -2422,6 +2443,7 @@
       "./node_modules/yaml/parse-cst.d.ts",
       "./node_modules/yaml/types.d.ts",
       "./node_modules/yaml/util.d.ts",
+      "./src/ansibleConfig.ts",
       "./src/completionProvider.ts",
       "./src/docsFormatter.ts",
       "./src/docsLibrary.ts",

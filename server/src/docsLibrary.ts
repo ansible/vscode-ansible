@@ -1,9 +1,19 @@
 import { DocsParser, IDocumentation } from './docsParser';
 import * as path from 'path';
+import { WorkspaceFolder } from 'vscode-languageserver';
+import { AnsibleConfig } from './ansibleConfig';
 export class DocsLibrary {
   private builtInModules = new Map<string, IDocumentation>();
+  // private config: AnsibleConfig = null;
+  private _workspace;
+
+  constructor(workspace?: WorkspaceFolder) {
+    this._workspace = workspace;
+  }
 
   public async initialize(): Promise<void> {
+    // this._workspace.uri;
+
     const ansibleLibPath = '/usr/local/lib/python3.6/dist-packages/ansible';
     const modulesPath = path.join(ansibleLibPath, 'modules');
     const docs = await DocsParser.parseDirectory(modulesPath);
