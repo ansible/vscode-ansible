@@ -1,34 +1,48 @@
-import { DocsParser, IDocumentation } from './docsParser';
+import {
+  collectionModuleFilter,
+  DocsParser,
+  IDocumentation,
+} from './docsParser';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode-languageserver';
 import { AnsibleConfig } from './ansibleConfig';
 export class DocsLibrary {
-  private builtInModules = new Map<string, IDocumentation>();
-  // private config: AnsibleConfig = null;
-  private _workspace;
+  private _builtInModules = new Map<string, IDocumentation>();
+  private _collectionModules = new Map<string, IDocumentation>();
+  private _config: AnsibleConfig;
+  private _workspace: WorkspaceFolder | undefined;
 
-  constructor(workspace?: WorkspaceFolder) {
+  constructor(config: AnsibleConfig, workspace?: WorkspaceFolder) {
+    this._config = config;
     this._workspace = workspace;
   }
 
   public async initialize(): Promise<void> {
     // this._workspace.uri;
-
-    const ansibleLibPath = '/usr/local/lib/python3.6/dist-packages/ansible';
-    const modulesPath = path.join(ansibleLibPath, 'modules');
-    const docs = await DocsParser.parseDirectory(modulesPath);
-    docs.forEach((doc) => {
-      this.builtInModules.set(doc.module, doc);
+    this._config.module_locations.forEach(async (modulesPath) => {
+      const docs = await DocsParser.parseDirectory(modulesPath);
+      docs.forEach((doc) => {
+        this._builtInModules.set(doc.module, doc);
+      });
+    });
+    this._config.collections_paths.forEach(async (collectionsPath) => {
+      const docs = await DocsParser.parseDirectory(
+        collectionsPath,
+        collectionModuleFilter(collectionsPath)
+      );
+      docs.forEach((doc) => {
+        this._collectionModules.set(doc.module, doc);
+      });
     });
   }
 
   public getModuleDescription(module: string): IDescription | undefined {
-    const doc = this.builtInModules.get(module);
+    const doc = this._builtInModules.get(module);
     return doc?.contents.description;
   }
 
   public getModuleOptions(module: string): IOption[] | undefined {
-    const doc = this.builtInModules.get(module);
+    const doc = this._builtInModules.get(module);
     const options = doc?.contents.options;
     if (options) {
       return Object.entries(options).map(
@@ -46,7 +60,7 @@ export class DocsLibrary {
   }
 
   public getModuleOption(module: string, option: string): IOption | undefined {
-    const doc = this.builtInModules.get(module);
+    const doc = this._builtInModules.get(module);
     const optionObj = doc?.contents.options[option];
     if (optionObj) {
       return {
@@ -59,7 +73,7 @@ export class DocsLibrary {
   }
 
   public isModule(module: string): boolean {
-    return this.builtInModules.has(module);
+    return this._builtInModules.has(module);
   }
 }
 

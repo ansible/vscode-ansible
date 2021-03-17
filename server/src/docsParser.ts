@@ -6,10 +6,13 @@ import { YAMLError } from 'yaml/util';
 export class DocsParser {
   private static docsRegex = /\s*DOCUMENTATION\s*=\s*r?('''|""")(?:\n---)?\n?(?<doc>.*?)\1/s;
 
-  public static async parseDirectory(dir: string): Promise<IDocumentation[]> {
+  public static async parseDirectory(
+    dir: string,
+    filter: (value: string) => unknown = () => true
+  ): Promise<IDocumentation[]> {
     const files = await this._getFiles(dir);
     return Promise.all(
-      files.map(async (file) => {
+      files.filter(filter).map(async (file) => {
         const contents = await fs.readFile(file, { encoding: 'utf8' });
         const m = this.docsRegex.exec(contents);
         if (m && m.groups && m.groups.doc) {
@@ -51,6 +54,15 @@ export class DocsParser {
     );
     return files.flat();
   }
+}
+
+export function collectionModuleFilter(
+  baseDir: string
+): (value: string) => boolean {
+  return (f: string) => {
+    const subPathArray = f.substr(baseDir.length).split(path.sep);
+    return subPathArray[subPathArray.length - 2] === 'modules';
+  };
 }
 
 export interface IDocumentation {

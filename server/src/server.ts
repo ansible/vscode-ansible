@@ -9,6 +9,7 @@ import {
   TextDocumentSyncKind,
   WorkspaceFolder,
 } from 'vscode-languageserver/node';
+import { AnsibleConfig } from './ansibleConfig';
 import { doCompletion } from './completionProvider';
 import { DocsLibrary } from './docsLibrary';
 import { doHover } from './hoverProvider';
@@ -149,7 +150,15 @@ connection.onDidChangeWatchedFiles((_change) => {
   connection.console.log('We received a file change event');
 });
 
-const docsLibrary = new DocsLibrary(rootFolder);
+setTimeout(() => {
+  const ansibleConfig = new AnsibleConfig(connection);
+  ansibleConfig.initialize(rootFolder?.uri);
+}, 5000);
+
+const ansibleConfig = new AnsibleConfig(connection);
+ansibleConfig.initialize(rootFolder?.uri);
+
+const docsLibrary = new DocsLibrary(ansibleConfig, rootFolder);
 docsLibrary.initialize().then(() => {
   connection.onHover((params) => {
     const document = documents.get(params.textDocument.uri);
