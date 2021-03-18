@@ -472,12 +472,12 @@
         "affectsGlobalScope": false
       },
       "./src/docsParser.ts": {
-        "version": "5966d116febd4955e3ea7d97446c54f9fcc289072ed3022552e07d71243fac5d",
-        "signature": "0c2afb12b1d55a14d57eaa5f83120c92b4f2033a4c5f7368efa18a3916ef84a1",
+        "version": "77f702f07ac3da984f3e7515bcbab791fdcab5988fd8aa3a68271df686c3e44d",
+        "signature": "082467a440ed9cd42ca216d8cda20d2e22d64bd61194012e1f5b33fb77f57b96",
         "affectsGlobalScope": false
       },
       "./src/docsLibrary.ts": {
-        "version": "29207ae039f0b7c1faec1872ca01e4734fe4bcf0e4695434c68e039a98803eb5",
+        "version": "afca8790fe2fe7ab96801ab58164c6bb82ec14e2a3468b98383172722f715f9c",
         "signature": "0fe06f87bfe517d686fe57a64e6e4f29b3d6a7b61a6e1749d5247e468f25153a",
         "affectsGlobalScope": false
       },
@@ -486,13 +486,18 @@
         "signature": "0f153c55e776e5922dca1841dbba76d39c9ce52675db81b189599c1eb2117c04",
         "affectsGlobalScope": false
       },
+      "./src/documentMeta.ts": {
+        "version": "0762b71d84f64011f2d1e49129d8add6c1828fd6af782b19a1507586f4017db8",
+        "signature": "deab2fffbcebd2149aa3a6d98cf2bb25d4ff9bcadf94a5cfe49851a8c07fb964",
+        "affectsGlobalScope": false
+      },
       "./src/utils.ts": {
-        "version": "0b8870cc133814bb5d74284e4d24496772577e94dc9062fdf31222f11d76670e",
-        "signature": "7dc80f76c84c260a67073e85bd7d455330c09f8bb540a9d904a25382c5113ed0",
+        "version": "558f94b2d4e487a555baa99eccbdd349edfc3ee80958bdef302cf60c64059623",
+        "signature": "6b4eac44812dc202931c75113a0c25a2227b069bdc14c501f58789b3ad47aaf2",
         "affectsGlobalScope": false
       },
       "./src/completionProvider.ts": {
-        "version": "134a4eed525da309fe2d6b887008a0a6e7b7f815208f10414a9a16e24f20a763",
+        "version": "8a190836c28c5114b55dc87baf86aa808db729fe94e5e6f449732608007955df",
         "signature": "1d9b5063ca708d4b5f3e722b57f7c3d156b4eda96cc9b053e9fb64673586d102",
         "affectsGlobalScope": false
       },
@@ -787,7 +792,7 @@
         "affectsGlobalScope": false
       },
       "./src/server.ts": {
-        "version": "c22c60ac847142bc82d2c6450135cf7db2ff6dab180c2adcc049ebbf91fc9f78",
+        "version": "4d62a9df8181fe3586b6ff90a3fa070071f3358077eb84442063bdff4b2ea291",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -1559,7 +1564,9 @@
         "./src/ansibleConfig.ts",
         "./src/completionProvider.ts",
         "./src/docsLibrary.ts",
+        "./src/documentMeta.ts",
         "./src/hoverProvider.ts",
+        "./src/utils.ts",
         "./src/validationProvider.ts"
       ],
       "./src/test/utils.test.ts": [
@@ -1573,10 +1580,15 @@
         "./src/utils.ts"
       ],
       "./src/utils.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/os.d.ts",
+        "../node_modules/@types/node/path.d.ts",
+        "../node_modules/@types/node/url.d.ts",
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts"
+        "./node_modules/yaml/types.d.ts",
+        "./src/documentMeta.ts"
       ],
       "./src/validationProvider.ts": [
         "./node_modules/@flatten-js/interval-tree/index.d.ts",
@@ -2291,7 +2303,8 @@
       "./src/utils.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts"
+        "./node_modules/yaml/types.d.ts",
+        "./src/documentMeta.ts"
       ],
       "./src/validationProvider.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
@@ -2457,6 +2470,7 @@
       "./src/docsFormatter.ts",
       "./src/docsLibrary.ts",
       "./src/docsParser.ts",
+      "./src/documentMeta.ts",
       "./src/hoverProvider.ts",
       "./src/server.ts",
       "./src/test/utils.test.ts",

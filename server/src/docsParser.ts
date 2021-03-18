@@ -8,9 +8,21 @@ export class DocsParser {
 
   public static async parseDirectory(
     dir: string,
-    filter: (value: string) => unknown = () => true
-  ): Promise<IDocumentation[]> {
+    kind: 'builtin' | 'collection'
+  ): Promise<IModuleDocumentation[]> {
     const files = await this._getFiles(dir);
+    let filter;
+    switch (kind) {
+      case 'builtin':
+        filter = () => true;
+        break;
+      case 'collection':
+        filter = (f: string) => {
+          const subPathArray = f.substr(dir.length).split(path.sep);
+          return subPathArray[subPathArray.length - 2] === 'modules';
+        };
+        break;
+    }
     return Promise.all(
       files.filter(filter).map(async (file) => {
         const contents = await fs.readFile(file, { encoding: 'utf8' });
@@ -20,9 +32,27 @@ export class DocsParser {
           // There's about 20 modules (out of ~3200) in Ansible 2.9 libs that contain YAML syntax errors
           // Still, document.toJSON() works on them
           const contents = document.toJSON();
+          const name = contents.module as string;
+          let namespace;
+          let collection;
+          switch (kind) {
+            case 'builtin':
+              namespace = 'ansible';
+              collection = 'builtin';
+              break;
+            case 'collection':
+              const subPathArray = file.substr(dir.length).split(path.sep);
+              namespace = subPathArray[1]; // the first entry is 'ansible_collections'
+              collection = subPathArray[2];
+              break;
+          }
+
           return {
             source: file,
-            module: contents.module as string,
+            fqcn: `${namespace}.${collection}.${name}`,
+            namespace: namespace,
+            collection: collection,
+            name: name,
             contents: contents,
             errors: document.errors,
           };
@@ -30,7 +60,9 @@ export class DocsParser {
       })
     ).then((results) => {
       return results.filter(
-        (i: IDocumentation | null | undefined): i is IDocumentation => !!i
+        (
+          i: IModuleDocumentation | null | undefined
+        ): i is IModuleDocumentation => !!i
       );
     });
   }
@@ -65,9 +97,12 @@ export function collectionModuleFilter(
   };
 }
 
-export interface IDocumentation {
+export interface IModuleDocumentation {
   source: string;
-  module: string;
+  fqcn: string;
+  namespace: string;
+  collection: string;
+  name: string;
   contents: any;
   errors: YAMLError[];
 }

@@ -12,10 +12,20 @@ export function doCompletion(
   position: Position,
   docsLibrary: DocsLibrary
 ): CompletionItem[] | null {
-  // we need a newline at the EOF, so that the YAML parser can properly recognize the scope
-  const yamlDocs = parseAllDocuments(`${document.getText()}\n`);
+  let preparedText = document.getText();
+  const offset = document.offsetAt(position);
+  // HACK: We need to insert a dummy character, so that the YAML parser can properly recognize the scope.
+  // This is particularly important when parser has nothing more than
+  // indentation to determine the scope of the current line. `_:` is ok here,
+  // since we expect to work on a Pair level
+  preparedText = insert(preparedText, offset, '_:');
+  // We need a newline at the EOF, so that the YAML parser can properly recognize the scope
+  // This is for future case when we might need to avoid the dummy character
+  preparedText = `${preparedText}\n`;
+  const yamlDocs = parseAllDocuments(preparedText);
 
-  // we need inclusive matching, since cursor position is the position of the character right after it
+  // We need inclusive matching, since cursor position is the position of the character right after it
+  // NOTE: Might no longer be required due to the hack above
   const path = getPathAt(document, position, yamlDocs, true);
   if (path) {
     const node = path[path.length - 1];
@@ -62,9 +72,13 @@ export function doCompletion(
   return null;
 }
 
+function insert(str: string, index: number, val: string) {
+  return `${str.substring(0, index)}${val}${str.substring(index)}`;
+}
+
 function atEndOfLine(document: TextDocument, position: Position): boolean {
   const charAfterCursor = `${document.getText()}\n`[
     document.offsetAt(position)
   ];
-  return charAfterCursor === '\n' || charAfterCursor === '\n';
+  return charAfterCursor === '\n' || charAfterCursor === '\r';
 }

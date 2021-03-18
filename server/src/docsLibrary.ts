@@ -1,14 +1,14 @@
 import {
   collectionModuleFilter,
   DocsParser,
-  IDocumentation,
+  IModuleDocumentation,
 } from './docsParser';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode-languageserver';
 import { AnsibleConfig } from './ansibleConfig';
 export class DocsLibrary {
-  private _builtInModules = new Map<string, IDocumentation>();
-  private _collectionModules = new Map<string, IDocumentation>();
+  private _builtInModules = new Map<string, IModuleDocumentation>();
+  private _collectionModules = new Map<string, IModuleDocumentation>();
   private _config: AnsibleConfig;
   private _workspace: WorkspaceFolder | undefined;
 
@@ -20,18 +20,18 @@ export class DocsLibrary {
   public async initialize(): Promise<void> {
     // this._workspace.uri;
     this._config.module_locations.forEach(async (modulesPath) => {
-      const docs = await DocsParser.parseDirectory(modulesPath);
+      const docs = await DocsParser.parseDirectory(modulesPath, 'builtin');
       docs.forEach((doc) => {
-        this._builtInModules.set(doc.module, doc);
+        this._builtInModules.set(doc.name, doc);
       });
     });
     this._config.collections_paths.forEach(async (collectionsPath) => {
       const docs = await DocsParser.parseDirectory(
         collectionsPath,
-        collectionModuleFilter(collectionsPath)
+        'collection'
       );
       docs.forEach((doc) => {
-        this._collectionModules.set(doc.module, doc);
+        this._collectionModules.set(doc.name, doc);
       });
     });
   }

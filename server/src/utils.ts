@@ -1,7 +1,12 @@
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { Document } from 'yaml';
+import { Document, parseAllDocuments } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import * as _ from 'lodash';
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import { type } from 'node:os';
+import { DocumentMetadata } from './documentMeta';
+import { URL } from 'url';
 
 export function getPathAt(
   document: TextDocument,
@@ -52,6 +57,18 @@ export function getPathAtOffset(
           offset,
           inclusive
         );
+      }
+      pair = _.find(currentNode.items, (p) => {
+        const inBetweenNode = new Node();
+        const start = (p.key as Node).range?.[1];
+        const end = (p.value as Node).range?.[0];
+        if (start && end) {
+          inBetweenNode.range = [start, end - 1];
+          return contains(inBetweenNode, offset, inclusive);
+        } else return false;
+      });
+      if (pair) {
+        return path.concat(pair, new Node());
       }
     } else if (currentNode instanceof YAMLSeq) {
       const item = _.find(currentNode.items, (n) =>
@@ -152,4 +169,50 @@ export function mayBeModule(path: Node[]): boolean {
     }
   }
   return false;
+}
+
+export async function getAnsibleMetadata(
+  uri: string
+): Promise<DocumentMetadata> {
+  let metaPath;
+  // const path = /file:\/\/(.*)/.exec(uri)?.groups
+  const pathArray = uri.split('/');
+  // Find first
+  for (let index = pathArray.length - 1; index >= 0; index--) {
+    if (pathArray[index] === 'tasks') {
+      metaPath = pathArray.slice(0, index).concat('meta', 'main.yml').join('/');
+    }
+  }
+  const metadata = {
+    collections: new Array<string>(),
+  };
+  if (metaPath) {
+    const metaContents = await fs.readFile(new URL(metaPath), {
+      encoding: 'utf8',
+    });
+    parseAllDocuments(metaContents).forEach((metaDoc) => {
+      const metaObject: unknown = metaDoc.toJSON();
+      if (
+        hasOwnProperty(metaObject, 'collections') &&
+        metaObject.collections instanceof Array
+      ) {
+        metaObject.collections.forEach((collection) => {
+          if (typeof collection === 'string') {
+            metadata.collections.push(collection);
+          }
+        });
+      }
+    });
+  }
+  return metadata;
+}
+
+export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
+  obj: X,
+  prop: Y
+): obj is X & Record<Y, unknown> {
+  return (
+    typeof obj === 'object' &&
+    (obj as Record<PropertyKey, unknown>).hasOwnProperty(prop)
+  );
 }

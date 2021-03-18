@@ -12,7 +12,9 @@ import {
 import { AnsibleConfig } from './ansibleConfig';
 import { doCompletion } from './completionProvider';
 import { DocsLibrary } from './docsLibrary';
+import { DocumentMetadata } from './documentMeta';
 import { doHover } from './hoverProvider';
+import { getAnsibleMetadata } from './utils';
 import { doValidate } from './validationProvider';
 
 // Create a connection for the server, using Node's IPC as a transport.
@@ -96,6 +98,7 @@ let globalSettings: ExampleSettings = defaultSettings;
 
 // Cache the settings of all open documents
 const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
+const documentMetadata: Map<string, Thenable<DocumentMetadata>> = new Map();
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) {
@@ -131,9 +134,14 @@ function getDocumentSettings(resource: string): Thenable<ExampleSettings> {
   return result;
 }
 
+documents.onDidOpen((e) => {
+  documentMetadata.set(e.document.uri, getAnsibleMetadata(e.document.uri));
+});
+
 // Only keep settings for open documents
 documents.onDidClose((e) => {
   documentSettings.delete(e.document.uri);
+  documentMetadata.delete(e.document.uri);
 });
 
 // The content of a text document has changed. This event is emitted
@@ -149,11 +157,6 @@ connection.onDidChangeWatchedFiles((_change) => {
   // Monitored files have change in VSCode
   connection.console.log('We received a file change event');
 });
-
-setTimeout(() => {
-  const ansibleConfig = new AnsibleConfig(connection);
-  ansibleConfig.initialize(rootFolder?.uri);
-}, 5000);
 
 const ansibleConfig = new AnsibleConfig(connection);
 ansibleConfig.initialize(rootFolder?.uri);
