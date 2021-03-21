@@ -7,11 +7,11 @@ import { DocsLibrary } from './docsLibrary';
 import { mayBeModule } from './utils';
 import { AncestryBuilder, getPathAt } from './utils';
 
-export function doHover(
+export async function doHover(
   document: TextDocument,
   position: Position,
   docsLibrary: DocsLibrary
-): Hover | null {
+): Promise<Hover | null> {
   const yamlDocs = parseAllDocuments(document.getText());
   const path = getPathAt(document, position, yamlDocs);
   if (path) {
@@ -21,7 +21,10 @@ export function doHover(
       new AncestryBuilder(path).parentKey(node.value).get() === node // ensure we look at a key, not value of a Pair
     ) {
       if (mayBeModule(path)) {
-        const description = docsLibrary.getModuleDescription(node.value);
+        const description = await docsLibrary.getModuleDescription(
+          node.value,
+          document
+        );
         if (description) {
           return {
             contents: formatDescription(description),
@@ -36,9 +39,10 @@ export function doHover(
 
       if (modulePath && mayBeModule(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        if (docsLibrary.isModule(moduleNode.value)) {
-          const option = docsLibrary.getModuleOption(
+        if (await docsLibrary.isModule(moduleNode.value, document)) {
+          const option = await docsLibrary.getModuleOption(
             moduleNode.value,
+            document,
             node.value
           );
           if (option) {

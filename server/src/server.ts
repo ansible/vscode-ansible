@@ -11,6 +11,7 @@ import {
 } from 'vscode-languageserver/node';
 import { AnsibleConfig } from './ansibleConfig';
 import { doCompletion } from './completionProvider';
+import { IContext } from './context';
 import { DocsLibrary } from './docsLibrary';
 import { DocumentMetadata } from './documentMeta';
 import { doHover } from './hoverProvider';
@@ -161,7 +162,12 @@ connection.onDidChangeWatchedFiles((_change) => {
 const ansibleConfig = new AnsibleConfig(connection);
 ansibleConfig.initialize(rootFolder?.uri);
 
-const docsLibrary = new DocsLibrary(ansibleConfig, rootFolder);
+const context: IContext = {
+  ansibleConfig: ansibleConfig,
+  documentMetadata: documentMetadata,
+};
+
+const docsLibrary = new DocsLibrary(context, rootFolder);
 docsLibrary.initialize().then(() => {
   connection.onHover((params) => {
     const document = documents.get(params.textDocument.uri);

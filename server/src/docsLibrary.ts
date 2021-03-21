@@ -3,48 +3,84 @@ import {
   DocsParser,
   IModuleDocumentation,
 } from './docsParser';
+import * as _ from 'lodash';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode-languageserver';
-import { AnsibleConfig } from './ansibleConfig';
+import { IContext } from './context';
+import { TextDocument } from 'vscode-languageserver-textdocument';
+import { hasOwnProperty } from './utils';
 export class DocsLibrary {
-  private _builtInModules = new Map<string, IModuleDocumentation>();
-  private _collectionModules = new Map<string, IModuleDocumentation>();
-  private _config: AnsibleConfig;
+  private _modules = new Map<string, IModuleDocumentation>();
+  private _context: IContext;
   private _workspace: WorkspaceFolder | undefined;
 
-  constructor(config: AnsibleConfig, workspace?: WorkspaceFolder) {
-    this._config = config;
+  constructor(context: IContext, workspace?: WorkspaceFolder) {
+    this._context = context;
     this._workspace = workspace;
   }
 
   public async initialize(): Promise<void> {
     // this._workspace.uri;
-    this._config.module_locations.forEach(async (modulesPath) => {
-      const docs = await DocsParser.parseDirectory(modulesPath, 'builtin');
-      docs.forEach((doc) => {
-        this._builtInModules.set(doc.name, doc);
-      });
-    });
-    this._config.collections_paths.forEach(async (collectionsPath) => {
-      const docs = await DocsParser.parseDirectory(
-        collectionsPath,
-        'collection'
-      );
-      docs.forEach((doc) => {
-        this._collectionModules.set(doc.name, doc);
-      });
-    });
+    this._context.ansibleConfig.module_locations.forEach(
+      async (modulesPath) => {
+        const docs = await DocsParser.parseDirectory(modulesPath, 'builtin');
+        docs.forEach((doc) => {
+          this._modules.set(doc.fqcn, doc);
+        });
+      }
+    );
+    this._context.ansibleConfig.collections_paths.forEach(
+      async (collectionsPath) => {
+        const docs = await DocsParser.parseDirectory(
+          collectionsPath,
+          'collection'
+        );
+        docs.forEach((doc) => {
+          this._modules.set(doc.fqcn, doc);
+        });
+      }
+    );
   }
 
-  public getModuleDescription(module: string): IDescription | undefined {
-    const doc = this._builtInModules.get(module);
-    return doc?.contents.description;
+  private async findModule(
+    searchText: string,
+    doc: TextDocument
+  ): Promise<IModuleDocumentation | undefined> {
+    const prefixOptions = [
+      '', // try searching as-is (FQCN match)
+      'ansible.builtin.', // try searching built-in
+    ];
+    const metadata = await this._context.documentMetadata.get(doc.uri);
+    if (metadata) {
+      // try searching declared collections
+      prefixOptions.push(...metadata.collections.map((s) => `${s}.`));
+    }
+    const prefix = prefixOptions.find((prefix) =>
+      this._modules.has(prefix + searchText)
+    );
+    return this._modules.get(prefix + searchText);
   }
 
-  public getModuleOptions(module: string): IOption[] | undefined {
-    const doc = this._builtInModules.get(module);
-    const options = doc?.contents.options;
-    if (options) {
+  public async getModuleDescription(
+    module: string,
+    doc: TextDocument
+  ): Promise<IDescription | undefined> {
+    const contents = (await this.findModule(module, doc))?.contents;
+    if (
+      hasOwnProperty(contents, 'description') &&
+      (contents.description instanceof Array || // won't check that all elements are string
+        typeof contents.description === 'string')
+    )
+      return contents.description;
+  }
+
+  public async getModuleOptions(
+    module: string,
+    doc: TextDocument
+  ): Promise<IOption[] | undefined> {
+    const moduleDoc = await this.findModule(module, doc);
+    const options = moduleDoc?.contents.options;
+    if (options && typeof options === 'object') {
       return Object.entries(options).map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ([optionName, optionObj]: [string, any]) => {
@@ -59,25 +95,48 @@ export class DocsLibrary {
     }
   }
 
-  public getModuleOption(module: string, option: string): IOption | undefined {
-    const doc = this._builtInModules.get(module);
-    const optionObj = doc?.contents.options[option];
-    if (optionObj) {
-      return {
+  public async getModuleOption(
+    module: string,
+    doc: TextDocument,
+    option: string
+  ): Promise<IOption | undefined> {
+    const options = (await this.findModule(module, doc))?.contents.options;
+    if (hasOwnProperty(options, option)) {
+      const optionObj = options[option];
+      const optionDoc: IOption = {
         name: option,
-        description: optionObj.description,
-        required: !!optionObj.required,
-        choices: optionObj.choices,
+        required: !!(
+          hasOwnProperty(optionObj, 'required') && optionObj.required
+        ),
       };
+      if (
+        hasOwnProperty(optionObj, 'description') &&
+        isIDescription(optionObj.description)
+      )
+        optionDoc.description = optionObj.description;
+      if (
+        hasOwnProperty(optionObj, 'choices') &&
+        optionObj.choices instanceof Array
+      )
+        optionDoc.choices = optionObj.choices;
+
+      return optionDoc;
     }
   }
 
-  public isModule(module: string): boolean {
-    return this._builtInModules.has(module);
+  public async isModule(module: string, doc: TextDocument): Promise<boolean> {
+    return !!(await this.findModule(module, doc));
   }
 }
 
 export type IDescription = string | Array<string>;
+
+function isIDescription(obj: unknown): obj is IDescription {
+  return (
+    obj instanceof Array || // won't check that all elements are string
+    typeof obj === 'string'
+  );
+}
 
 export interface IOption {
   name: string;

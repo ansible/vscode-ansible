@@ -212,6 +212,7 @@ export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
   prop: Y
 ): obj is X & Record<Y, unknown> {
   return (
+    obj &&
     typeof obj === 'object' &&
     (obj as Record<PropertyKey, unknown>).hasOwnProperty(prop)
   );

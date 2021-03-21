@@ -7,11 +7,11 @@ import { DocsLibrary } from './docsLibrary';
 import { mayBeModule } from './utils';
 import { AncestryBuilder, getPathAt } from './utils';
 
-export function doCompletion(
+export async function doCompletion(
   document: TextDocument,
   position: Position,
   docsLibrary: DocsLibrary
-): CompletionItem[] | null {
+): Promise<CompletionItem[] | null> {
   let preparedText = document.getText();
   const offset = document.offsetAt(position);
   // HACK: We need to insert a dummy character, so that the YAML parser can properly recognize the scope.
@@ -37,8 +37,11 @@ export function doCompletion(
 
       if (modulePath && mayBeModule(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        if (docsLibrary.isModule(moduleNode.value)) {
-          const options = docsLibrary.getModuleOptions(moduleNode.value);
+        if (await docsLibrary.isModule(moduleNode.value, document)) {
+          const options = await docsLibrary.getModuleOptions(
+            moduleNode.value,
+            document
+          );
 
           if (options) {
             const optionMap = (new AncestryBuilder(modulePath)
