@@ -79,7 +79,3 @@ function parsePythonStringArray(array: string) {
   const quoted_elements = array.split(',').map((e) => e.trim());
   return quoted_elements.map((e) => e.slice(1, e.length - 1));
 }
-
-async function fileExists(filePath: string): Promise<boolean> {
-  return !!(await fs.stat(filePath).catch(() => false));
-}

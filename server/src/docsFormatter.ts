@@ -1,6 +1,35 @@
 import { MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { IDescription, IOption } from './docsLibrary';
 
+export function formatModule() {}
+
+export function formatOption(
+  option: IOption,
+  with_details = false
+): MarkupContent {
+  const sections: string[] = [];
+  if (with_details) {
+    const details = getDetails(option);
+    if (details) {
+      sections.push(`*${details}*`);
+    }
+  }
+  if (option.description) {
+    sections.push(formatDescription(option.description, false).value);
+  }
+  if (option.default) {
+    sections.push(`*Default*: \`${option.default}\``);
+  }
+  if (option.choices) {
+    const formattedChoiceArray = option.choices.map((c) => `\`${c}\``);
+    sections.push(`*Choices*: [${formattedChoiceArray.toString()}]`);
+  }
+  return {
+    kind: MarkupKind.Markdown,
+    value: sections.join('\n\n'),
+  };
+}
+
 export function formatDescription(
   doc?: IDescription,
   asList = true
@@ -25,22 +54,19 @@ export function formatDescription(
   };
 }
 
-export function formatOption(option: IOption): MarkupContent {
-  const sections: string[] = [];
+export function getDetails(option: IOption): string | undefined {
+  const details = [];
   if (option.required) {
-    sections.push('**Required**\n');
+    details.push('(required)');
   }
-  if (option.description) {
-    sections.push(formatDescription(option.description, false).value);
+  if (option.type) {
+    if (option.type === 'list' && option.elements) {
+      details.push(`list(${option.elements})`);
+    } else {
+      details.push(option.type);
+    }
   }
-  if (option.choices) {
-    const formattedChoiceArray = option.choices.map((c) => `\`${c}\``);
-    sections.push(`*Choices*: [${formattedChoiceArray.toString()}]`);
-  }
-  return {
-    kind: MarkupKind.Markdown,
-    value: sections.join('\n'),
-  };
+  if (details) return details.join(' ');
 }
 
 // TODO: do something with links

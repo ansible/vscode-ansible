@@ -442,7 +442,7 @@
         "affectsGlobalScope": false
       },
       "./src/ansibleConfig.ts": {
-        "version": "abd05e7369fd44156b53bb8a5494df8cdbe0cc194eab0764f6d06e5e96418743",
+        "version": "9005f621fe61966539cda57f2af16e814c05bab3ecf7c68c3e3dcbc2f1593678",
         "signature": "c42f1825b97bf1b2b8debd53aeb3e0c59079f02bf097fd146d4f1cd5e9b0f579",
         "affectsGlobalScope": false
       },
@@ -470,51 +470,6 @@
         "version": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
         "signature": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
         "affectsGlobalScope": false
-      },
-      "./src/docsParser.ts": {
-        "version": "6d3ef36b7c0978123922b3347b8fe5d4d7f40977c4654456703bb87d2ec06e06",
-        "signature": "94928d6a3d4a37317dbd1a0e86e9f1e7899de8578b92b5e37cdf6d902e25c67e",
-        "affectsGlobalScope": false
-      },
-      "./src/documentMeta.ts": {
-        "version": "0762b71d84f64011f2d1e49129d8add6c1828fd6af782b19a1507586f4017db8",
-        "signature": "deab2fffbcebd2149aa3a6d98cf2bb25d4ff9bcadf94a5cfe49851a8c07fb964",
-        "affectsGlobalScope": false
-      },
-      "./src/context.ts": {
-        "version": "053e75936c7e88b1e36d7cda7f0585651e0dc649118eb80f9e395300ab5b89cd",
-        "signature": "d0c0218c22eeb33db1e46ab9f1a3be2d0baf14a50932b080c84d5e6ea79e0d35",
-        "affectsGlobalScope": false
-      },
-      "./src/utils.ts": {
-        "version": "d8056159b7ce757cf9065f4cc3874225d21f55dbaa16441ee6cfd992381f5858",
-        "signature": "6b4eac44812dc202931c75113a0c25a2227b069bdc14c501f58789b3ad47aaf2",
-        "affectsGlobalScope": false
-      },
-      "./src/docsLibrary.ts": {
-        "version": "dd170bedfc6d611fa112563ed0bc03232c7b72b76e04090eee12138023a5121e",
-        "signature": "1bcc495513b47e517bbda564cc73a808938c18d5eeb41b420cd53469250a03fc",
-        "affectsGlobalScope": false
-      },
-      "./src/docsFormatter.ts": {
-        "version": "a072e9918cbf6a113524a0d56fa34f7cd8584bf0b7f755ed28d14ba339b91e14",
-        "signature": "0f153c55e776e5922dca1841dbba76d39c9ce52675db81b189599c1eb2117c04",
-        "affectsGlobalScope": false
-      },
-      "./src/completionProvider.ts": {
-        "version": "758e605b5ac6cf4eb68aa7e24a22cb5760173b6c3fa1e9cc9dd356a58a6cb0fe",
-        "signature": "9a36570ce874b967550b3698bf4df92f071e9a0e174bf03f49a37cae6b26ef9d",
-        "affectsGlobalScope": false
-      },
-      "./src/hoverProvider.ts": {
-        "version": "f42ffa2e68476c1c4e37f9d35dbe8dc0193383e3b63601aacfa888ebd30f936d",
-        "signature": "a988a2624e664f9098da756cb24a8c496bb6d7ac89f9c31eef4ba00d10e6dd60",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/typings/thenable.d.ts": {
-        "version": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
-        "signature": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
-        "affectsGlobalScope": true
       },
       "../node_modules/@types/node/globals.d.ts": {
         "version": "e9a43c3ee6fb8376bb9a4d318a660412c6abcfe5161c106e801e5431b41b7476",
@@ -750,6 +705,156 @@
         "version": "9c4c395e927045b324877acdc4bfb95f128f36bc9f073266a2f0342495075a4f",
         "signature": "9c4c395e927045b324877acdc4bfb95f128f36bc9f073266a2f0342495075a4f",
         "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts": {
+        "version": "6cee571d9f8ea88d197d1614e5cf328391e96dff69ca61ab5299a630d0c65822",
+        "signature": "6cee571d9f8ea88d197d1614e5cf328391e96dff69ca61ab5299a630d0c65822",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts": {
+        "version": "ceebf93146ac7b3f85276a2501de57c5cf5bb19742944c958bd831f995b41409",
+        "signature": "ceebf93146ac7b3f85276a2501de57c5cf5bb19742944c958bd831f995b41409",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.stat/out/settings.d.ts": {
+        "version": "30c47bd1f03a220a10e8c11708a2c73c04135999ca1a35271605f9683d36b432",
+        "signature": "30c47bd1f03a220a10e8c11708a2c73c04135999ca1a35271605f9683d36b432",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.stat/out/types/index.d.ts": {
+        "version": "8b9fa6dfb2bec7abe9937fe049505d896550b2ad600cb7114b6fe2813b5cf180",
+        "signature": "8b9fa6dfb2bec7abe9937fe049505d896550b2ad600cb7114b6fe2813b5cf180",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.stat/out/providers/async.d.ts": {
+        "version": "c692034610ac35559227657172f6f76581ee7b16c319c7d5973e19b650f11b9f",
+        "signature": "c692034610ac35559227657172f6f76581ee7b16c319c7d5973e19b650f11b9f",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.stat/out/index.d.ts": {
+        "version": "079488cc4bf1eef64297994ef8719c078a86380610beea1d1a920c9436997967",
+        "signature": "079488cc4bf1eef64297994ef8719c078a86380610beea1d1a920c9436997967",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.scandir/out/settings.d.ts": {
+        "version": "354b18c096926d3f35b597b6309d9792b6517840bbf972c095930d067e28de83",
+        "signature": "354b18c096926d3f35b597b6309d9792b6517840bbf972c095930d067e28de83",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts": {
+        "version": "a86bb35bb7b946058e544aba4a7ac5359648d58904184701f1ca23b26b36ccd3",
+        "signature": "a86bb35bb7b946058e544aba4a7ac5359648d58904184701f1ca23b26b36ccd3",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.scandir/out/providers/async.d.ts": {
+        "version": "fa316e5f457f8a5ef600f305a60cb0031f0cf07c7c6991b520d353739f56c6ad",
+        "signature": "fa316e5f457f8a5ef600f305a60cb0031f0cf07c7c6991b520d353739f56c6ad",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.scandir/out/index.d.ts": {
+        "version": "105b0c9e3b159a1f32ca33bf1cb5ead919ea15bab7143bd99b298ceb687b0e84",
+        "signature": "105b0c9e3b159a1f32ca33bf1cb5ead919ea15bab7143bd99b298ceb687b0e84",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.walk/out/types/index.d.ts": {
+        "version": "e336f6c501a424c6e016b3244b094d5924d06b320cb659aaa0adb647ab5a9fd6",
+        "signature": "e336f6c501a424c6e016b3244b094d5924d06b320cb659aaa0adb647ab5a9fd6",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.walk/out/settings.d.ts": {
+        "version": "07924b2c69a8f7019f242fbb1d9363b98731456d8afc791fc0622c91f60598b7",
+        "signature": "07924b2c69a8f7019f242fbb1d9363b98731456d8afc791fc0622c91f60598b7",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.walk/out/readers/reader.d.ts": {
+        "version": "b8576d89cac43fe52489662c1218b463cba5197c3bec501e2832f5663327838d",
+        "signature": "b8576d89cac43fe52489662c1218b463cba5197c3bec501e2832f5663327838d",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.walk/out/readers/async.d.ts": {
+        "version": "e7a91ba8f4fa3f6d166235d9c94fc01d3b055fc4a16bc18dcf0c5c1e0491f22b",
+        "signature": "e7a91ba8f4fa3f6d166235d9c94fc01d3b055fc4a16bc18dcf0c5c1e0491f22b",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.walk/out/providers/async.d.ts": {
+        "version": "51d7fcd7672c0f53f01c84e5ea8ef5f3947e8a385807de7eecdc0b7464c2dd68",
+        "signature": "51d7fcd7672c0f53f01c84e5ea8ef5f3947e8a385807de7eecdc0b7464c2dd68",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@nodelib/fs.walk/out/index.d.ts": {
+        "version": "96892cc7ee950d2bbded6dc7f03ff50a719df54f6529aa938ce3854fef04ee2a",
+        "signature": "96892cc7ee950d2bbded6dc7f03ff50a719df54f6529aa938ce3854fef04ee2a",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/fast-glob/out/types/index.d.ts": {
+        "version": "4498108732bcb5b7000ff9cdc011058b4155e985271ac3f926468acfed0c79dd",
+        "signature": "4498108732bcb5b7000ff9cdc011058b4155e985271ac3f926468acfed0c79dd",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/fast-glob/out/settings.d.ts": {
+        "version": "36d7b72ed8f35f9e21cc223c06697eca0d4699178fc59cfd3a310e2983fd0fd6",
+        "signature": "36d7b72ed8f35f9e21cc223c06697eca0d4699178fc59cfd3a310e2983fd0fd6",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/fast-glob/out/managers/tasks.d.ts": {
+        "version": "8ef499f8b856beca668333ffd33b7a29a83641cbe18c9ad8f25d2748efdf4f0f",
+        "signature": "8ef499f8b856beca668333ffd33b7a29a83641cbe18c9ad8f25d2748efdf4f0f",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/fast-glob/out/index.d.ts": {
+        "version": "51bfe35171efe121cefb2501a6cd674c367d541c4c8b0ae639c126adcc84f37d",
+        "signature": "51bfe35171efe121cefb2501a6cd674c367d541c4c8b0ae639c126adcc84f37d",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/globby/index.d.ts": {
+        "version": "a93850a7116629f9ff482871d44c1b348aa708cbb3be3beece2bc1be2ac01b47",
+        "signature": "a93850a7116629f9ff482871d44c1b348aa708cbb3be3beece2bc1be2ac01b47",
+        "affectsGlobalScope": false
+      },
+      "./src/docsParser.ts": {
+        "version": "0f11c8421b7874953a6951c94730626dd799de3e1670edcd34b56c384d7149a8",
+        "signature": "3bce7d02bd1075975b1dcbc11d8393234aa374e7d5f92b7a52331f5c74842745",
+        "affectsGlobalScope": false
+      },
+      "./src/documentMeta.ts": {
+        "version": "0762b71d84f64011f2d1e49129d8add6c1828fd6af782b19a1507586f4017db8",
+        "signature": "deab2fffbcebd2149aa3a6d98cf2bb25d4ff9bcadf94a5cfe49851a8c07fb964",
+        "affectsGlobalScope": false
+      },
+      "./src/context.ts": {
+        "version": "053e75936c7e88b1e36d7cda7f0585651e0dc649118eb80f9e395300ab5b89cd",
+        "signature": "d0c0218c22eeb33db1e46ab9f1a3be2d0baf14a50932b080c84d5e6ea79e0d35",
+        "affectsGlobalScope": false
+      },
+      "./src/utils.ts": {
+        "version": "b35b74d5fe27ec1fd661db138008098ea41dd6ac97be5ccd43da15449f804b86",
+        "signature": "6b4eac44812dc202931c75113a0c25a2227b069bdc14c501f58789b3ad47aaf2",
+        "affectsGlobalScope": false
+      },
+      "./src/docsLibrary.ts": {
+        "version": "59a367e11a1c9eee4fdc379236d415efecc16b7b8887322642fd79e3bff0d45e",
+        "signature": "321705166cecc7dd14527e868e68027b0e98ffa4faf188f5b5ac3862313da4ef",
+        "affectsGlobalScope": false
+      },
+      "./src/docsFormatter.ts": {
+        "version": "71f8b7661b3074cbc2cb597b28ff6753238eb5458e595a2f371ad1502294df3b",
+        "signature": "1385f25443033b930f93bf3f2a3c0aabe8e8254b6d35ad75aad1dd9414bb50d2",
+        "affectsGlobalScope": false
+      },
+      "./src/completionProvider.ts": {
+        "version": "42d3456b02e7beac0d35b127dae867d768811745a7a95ffb81cc4b396737fe1f",
+        "signature": "9a36570ce874b967550b3698bf4df92f071e9a0e174bf03f49a37cae6b26ef9d",
+        "affectsGlobalScope": false
+      },
+      "./src/hoverProvider.ts": {
+        "version": "198de0921450ea616f9be8cb3b9396d0c8883f3eda9ce46ac7c63a885bead24e",
+        "signature": "a988a2624e664f9098da756cb24a8c496bb6d7ac89f9c31eef4ba00d10e6dd60",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/typings/thenable.d.ts": {
+        "version": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
+        "signature": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
+        "affectsGlobalScope": true
       },
       "./node_modules/vscode-languageserver/lib/node/files.d.ts": {
         "version": "a58402dc75738c188a741ccca86ccf898b0af98d305ad075c428171f193a6cd5",
@@ -1074,6 +1179,82 @@
         "../node_modules/@types/node/stream.d.ts",
         "../node_modules/@types/node/zlib.d.ts"
       ],
+      "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/index.d.ts": [
+        "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/providers/async.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/providers/async.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/settings.d.ts": [
+        "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/index.d.ts": [
+        "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/providers/async.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/providers/async.d.ts": [
+        "./node_modules/@nodelib/fs.stat/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/settings.d.ts": [
+        "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/types/index.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "../node_modules/@types/node/stream.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/providers/async.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/providers/async.d.ts": [
+        "./node_modules/@nodelib/fs.walk/out/readers/async.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/readers/async.d.ts": [
+        "../node_modules/@types/node/events.d.ts",
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/readers/reader.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/readers/reader.d.ts": [
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/settings.d.ts": [
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/types/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts"
+      ],
       "./node_modules/@types/lodash/common/array.d.ts": [
         "./node_modules/@types/lodash/common/collection.d.ts",
         "./node_modules/@types/lodash/common/common.d.ts",
@@ -1255,6 +1436,26 @@
         "./node_modules/@types/lodash/common/seq.d.ts",
         "./node_modules/@types/lodash/common/string.d.ts",
         "./node_modules/@types/lodash/common/util.d.ts"
+      ],
+      "./node_modules/fast-glob/out/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/fast-glob/out/managers/tasks.d.ts",
+        "./node_modules/fast-glob/out/settings.d.ts",
+        "./node_modules/fast-glob/out/types/index.d.ts"
+      ],
+      "./node_modules/fast-glob/out/managers/tasks.d.ts": [
+        "./node_modules/fast-glob/out/settings.d.ts",
+        "./node_modules/fast-glob/out/types/index.d.ts"
+      ],
+      "./node_modules/fast-glob/out/settings.d.ts": [
+        "./node_modules/fast-glob/out/types/index.d.ts"
+      ],
+      "./node_modules/fast-glob/out/types/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/index.d.ts"
+      ],
+      "./node_modules/globby/index.d.ts": [
+        "./node_modules/fast-glob/out/index.d.ts"
       ],
       "./node_modules/vscode-jsonrpc/lib/common/api.d.ts": [
         "./node_modules/vscode-jsonrpc/lib/common/cancellation.d.ts",
@@ -1551,6 +1752,7 @@
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/util.d.ts",
         "./src/context.ts",
         "./src/docsParser.ts",
         "./src/utils.ts"
@@ -1558,8 +1760,10 @@
       "./src/docsParser.ts": [
         "../node_modules/@types/node/fs.d.ts",
         "../node_modules/@types/node/path.d.ts",
+        "./node_modules/globby/index.d.ts",
         "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/util.d.ts"
+        "./node_modules/yaml/util.d.ts",
+        "./src/docsLibrary.ts"
       ],
       "./src/hoverProvider.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
@@ -1843,6 +2047,82 @@
         "../node_modules/@types/node/stream.d.ts",
         "../node_modules/@types/node/zlib.d.ts"
       ],
+      "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/index.d.ts": [
+        "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/providers/async.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/providers/async.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/settings.d.ts": [
+        "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/index.d.ts": [
+        "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/providers/async.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/providers/async.d.ts": [
+        "./node_modules/@nodelib/fs.stat/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.stat/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/settings.d.ts": [
+        "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.stat/out/types/index.d.ts": [
+        "../node_modules/@types/node/fs.d.ts",
+        "../node_modules/@types/node/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "../node_modules/@types/node/stream.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/providers/async.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/providers/async.d.ts": [
+        "./node_modules/@nodelib/fs.walk/out/readers/async.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/readers/async.d.ts": [
+        "../node_modules/@types/node/events.d.ts",
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/readers/reader.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/readers/reader.d.ts": [
+        "./node_modules/@nodelib/fs.walk/out/settings.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/settings.d.ts": [
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/types/index.d.ts"
+      ],
+      "./node_modules/@nodelib/fs.walk/out/types/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.scandir/out/index.d.ts"
+      ],
       "./node_modules/@types/lodash/common/array.d.ts": [
         "./node_modules/@types/lodash/common/collection.d.ts",
         "./node_modules/@types/lodash/common/common.d.ts",
@@ -2024,6 +2304,26 @@
         "./node_modules/@types/lodash/common/seq.d.ts",
         "./node_modules/@types/lodash/common/string.d.ts",
         "./node_modules/@types/lodash/common/util.d.ts"
+      ],
+      "./node_modules/fast-glob/out/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/fast-glob/out/managers/tasks.d.ts",
+        "./node_modules/fast-glob/out/settings.d.ts",
+        "./node_modules/fast-glob/out/types/index.d.ts"
+      ],
+      "./node_modules/fast-glob/out/managers/tasks.d.ts": [
+        "./node_modules/fast-glob/out/settings.d.ts",
+        "./node_modules/fast-glob/out/types/index.d.ts"
+      ],
+      "./node_modules/fast-glob/out/settings.d.ts": [
+        "./node_modules/fast-glob/out/types/index.d.ts"
+      ],
+      "./node_modules/fast-glob/out/types/index.d.ts": [
+        "../node_modules/@types/node/index.d.ts",
+        "./node_modules/@nodelib/fs.walk/out/index.d.ts"
+      ],
+      "./node_modules/globby/index.d.ts": [
+        "./node_modules/fast-glob/out/index.d.ts"
       ],
       "./node_modules/vscode-jsonrpc/lib/common/api.d.ts": [
         "./node_modules/vscode-jsonrpc/lib/common/cancellation.d.ts",
@@ -2308,10 +2608,12 @@
       "./src/docsLibrary.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/util.d.ts",
         "./src/context.ts"
       ],
       "./src/docsParser.ts": [
-        "./node_modules/yaml/util.d.ts"
+        "./node_modules/yaml/util.d.ts",
+        "./src/docsLibrary.ts"
       ],
       "./src/hoverProvider.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
@@ -2412,6 +2714,22 @@
       "../node_modules/typescript/lib/lib.es5.d.ts",
       "../node_modules/typescript/lib/lib.esnext.intl.d.ts",
       "./node_modules/@flatten-js/interval-tree/index.d.ts",
+      "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts",
+      "./node_modules/@nodelib/fs.scandir/out/index.d.ts",
+      "./node_modules/@nodelib/fs.scandir/out/providers/async.d.ts",
+      "./node_modules/@nodelib/fs.scandir/out/settings.d.ts",
+      "./node_modules/@nodelib/fs.scandir/out/types/index.d.ts",
+      "./node_modules/@nodelib/fs.stat/out/adapters/fs.d.ts",
+      "./node_modules/@nodelib/fs.stat/out/index.d.ts",
+      "./node_modules/@nodelib/fs.stat/out/providers/async.d.ts",
+      "./node_modules/@nodelib/fs.stat/out/settings.d.ts",
+      "./node_modules/@nodelib/fs.stat/out/types/index.d.ts",
+      "./node_modules/@nodelib/fs.walk/out/index.d.ts",
+      "./node_modules/@nodelib/fs.walk/out/providers/async.d.ts",
+      "./node_modules/@nodelib/fs.walk/out/readers/async.d.ts",
+      "./node_modules/@nodelib/fs.walk/out/readers/reader.d.ts",
+      "./node_modules/@nodelib/fs.walk/out/settings.d.ts",
+      "./node_modules/@nodelib/fs.walk/out/types/index.d.ts",
       "./node_modules/@types/chai/index.d.ts",
       "./node_modules/@types/ini/index.d.ts",
       "./node_modules/@types/lodash/common/array.d.ts",
@@ -2428,6 +2746,11 @@
       "./node_modules/@types/lodash/common/util.d.ts",
       "./node_modules/@types/lodash/index.d.ts",
       "./node_modules/@types/mocha/index.d.ts",
+      "./node_modules/fast-glob/out/index.d.ts",
+      "./node_modules/fast-glob/out/managers/tasks.d.ts",
+      "./node_modules/fast-glob/out/settings.d.ts",
+      "./node_modules/fast-glob/out/types/index.d.ts",
+      "./node_modules/globby/index.d.ts",
       "./node_modules/vscode-jsonrpc/lib/common/api.d.ts",
       "./node_modules/vscode-jsonrpc/lib/common/cancellation.d.ts",
       "./node_modules/vscode-jsonrpc/lib/common/connection.d.ts",

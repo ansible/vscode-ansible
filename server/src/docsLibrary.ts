@@ -1,64 +1,113 @@
-import {
-  collectionModuleFilter,
-  DocsParser,
-  IModuleDocumentation,
-} from './docsParser';
+import { collectionModuleFilter, DocsParser } from './docsParser';
 import * as _ from 'lodash';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode-languageserver';
 import { IContext } from './context';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { hasOwnProperty } from './utils';
+import { YAMLError } from 'yaml/util';
 export class DocsLibrary {
-  private _modules = new Map<string, IModuleDocumentation>();
-  private _context: IContext;
-  private _workspace: WorkspaceFolder | undefined;
+  private modules = new Map<string, IModuleMetadata>();
+  private docFragments = new Map<string, IModuleMetadata>();
+  private context: IContext;
+  private workspace: WorkspaceFolder | undefined;
 
   constructor(context: IContext, workspace?: WorkspaceFolder) {
-    this._context = context;
-    this._workspace = workspace;
+    this.context = context;
+    this.workspace = workspace;
   }
 
   public async initialize(): Promise<void> {
     // this._workspace.uri;
-    this._context.ansibleConfig.module_locations.forEach(
-      async (modulesPath) => {
-        const docs = await DocsParser.parseDirectory(modulesPath, 'builtin');
-        docs.forEach((doc) => {
-          this._modules.set(doc.fqcn, doc);
-        });
-      }
-    );
-    this._context.ansibleConfig.collections_paths.forEach(
-      async (collectionsPath) => {
-        const docs = await DocsParser.parseDirectory(
+    for (const modulesPath of this.context.ansibleConfig.module_locations) {
+      (await DocsParser.parseDirectory(modulesPath, 'builtin')).forEach(
+        (doc) => {
+          this.modules.set(doc.fqcn, doc);
+        }
+      );
+      (
+        await DocsParser.parseDirectory(modulesPath, 'builtin_doc_fragment')
+      ).forEach((doc) => {
+        this.docFragments.set(doc.fqcn, doc);
+      });
+    }
+    for (const collectionsPath of this.context.ansibleConfig
+      .collections_paths) {
+      (await DocsParser.parseDirectory(collectionsPath, 'collection')).forEach(
+        (doc) => {
+          this.modules.set(doc.fqcn, doc);
+        }
+      );
+      (
+        await DocsParser.parseDirectory(
           collectionsPath,
-          'collection'
-        );
-        docs.forEach((doc) => {
-          this._modules.set(doc.fqcn, doc);
-        });
-      }
-    );
+          'collection_doc_fragment'
+        )
+      ).forEach((doc) => {
+        this.docFragments.set(doc.fqcn, doc);
+      });
+    }
   }
 
   private async findModule(
     searchText: string,
     doc: TextDocument
-  ): Promise<IModuleDocumentation | undefined> {
+  ): Promise<IModuleMetadata | undefined> {
     const prefixOptions = [
       '', // try searching as-is (FQCN match)
       'ansible.builtin.', // try searching built-in
     ];
-    const metadata = await this._context.documentMetadata.get(doc.uri);
+    const metadata = await this.context.documentMetadata.get(doc.uri);
     if (metadata) {
       // try searching declared collections
       prefixOptions.push(...metadata.collections.map((s) => `${s}.`));
     }
     const prefix = prefixOptions.find((prefix) =>
-      this._modules.has(prefix + searchText)
+      this.modules.has(prefix + searchText)
     );
-    return this._modules.get(prefix + searchText);
+    const module = this.modules.get(prefix + searchText);
+    // Collect information from documentation fragments
+    if (module && !module.fragments) {
+      module.fragments = [];
+      if (
+        hasOwnProperty(module.contents, 'extends_documentation_fragment') &&
+        module.contents.extends_documentation_fragment instanceof Array
+      ) {
+        const resultContents = {};
+        for (const docFragmentName of module.contents
+          .extends_documentation_fragment) {
+          const docFragment = this.docFragments.get(docFragmentName);
+          if (docFragment) {
+            module.fragments.push(docFragment); // currently used only as indicator
+            _.mergeWith(
+              resultContents,
+              docFragment.contents,
+              this.docFragmentMergeCustomizer
+            );
+          }
+        }
+        _.mergeWith(
+          resultContents,
+          module.contents,
+          this.docFragmentMergeCustomizer
+        );
+        module.contents = resultContents;
+      }
+    }
+    return module;
+  }
+
+  private docFragmentMergeCustomizer(
+    objValue: unknown,
+    srcValue: unknown,
+    key: string
+  ): Record<PropertyKey, unknown>[] | undefined {
+    if (
+      ['notes', 'requirements', 'seealso'].includes(key) &&
+      _.isArray(objValue)
+    ) {
+      return objValue.concat(srcValue);
+    }
   }
 
   public async getModuleDescription(
@@ -82,13 +131,18 @@ export class DocsLibrary {
     const options = moduleDoc?.contents.options;
     if (options && typeof options === 'object') {
       return Object.entries(options).map(
+        // TODO: perform typechecking
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ([optionName, optionObj]: [string, any]) => {
           return {
             name: optionName,
             description: optionObj.description,
             required: !!optionObj.required,
+            default: optionObj.default,
             choices: optionObj.choices,
+            type: optionObj.type,
+            elements: optionObj.elements,
+            aliases: optionObj.aliases,
           };
         }
       );
@@ -136,6 +190,29 @@ function isIDescription(obj: unknown): obj is IDescription {
     obj instanceof Array || // won't check that all elements are string
     typeof obj === 'string'
   );
+}
+export interface IModuleDocumentation {
+  module: string;
+  shortDescription: IDescription;
+  description: IDescription;
+  versionAdded: string;
+  author: IDescription;
+  deprecated: Record<string, unknown>;
+  options: IOption[];
+  requirements: IDescription;
+  seealso: Record<string, unknown>;
+  notes: IDescription;
+}
+
+export interface IModuleMetadata {
+  source: string;
+  fqcn: string;
+  namespace: string;
+  collection: string;
+  name: string;
+  contents: Record<string, unknown>;
+  fragments?: IModuleMetadata[];
+  errors: YAMLError[];
 }
 
 export interface IOption {

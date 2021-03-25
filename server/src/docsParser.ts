@@ -1,39 +1,52 @@
 import * as fs from 'fs';
+import globby = require('globby');
 import * as path from 'path';
 import { parseDocument } from 'yaml';
 import { YAMLError } from 'yaml/util';
+import { IModuleMetadata } from './docsLibrary';
 
 export class DocsParser {
   public static docsRegex = /\s*DOCUMENTATION\s*=\s*r?('''|""")(?:\n---)?\n?(?<doc>.*?)\1/s;
 
   public static async parseDirectory(
     dir: string,
-    kind: 'builtin' | 'collection'
-  ): Promise<IModuleDocumentation[]> {
-    const files = await this._getFiles(dir);
-    let filter;
+    kind:
+      | 'builtin'
+      | 'collection'
+      | 'builtin_doc_fragment'
+      | 'collection_doc_fragment'
+  ): Promise<IModuleMetadata[]> {
+    let files;
     switch (kind) {
       case 'builtin':
-        filter = () => true;
+        files = await globby([`${dir}/**/*.py`, '!/**/_*.py']);
+        break;
+      case 'builtin_doc_fragment':
+        files = await globby([
+          `${path.resolve(dir, '../')}/plugins/doc_fragments/*.py`,
+          '!/**/_*.py',
+        ]);
         break;
       case 'collection':
-        filter = (f: string) => {
-          const pathArray = f.split(path.sep);
-          return pathArray[pathArray.length - 2] === 'modules';
-        };
+        files = await globby([`${dir}/**/modules/*.py`, '!/**/_*.py']);
+        break;
+      case 'collection_doc_fragment':
+        files = await globby([`${dir}/**/doc_fragments/*.py`, '!/**/_*.py']);
         break;
     }
     return Promise.all(
-      files.filter(filter).map(async (file) => {
+      files.map(async (file) => {
         const name = path.basename(file, '.py');
         let namespace;
         let collection;
         switch (kind) {
           case 'builtin':
+          case 'builtin_doc_fragment':
             namespace = 'ansible';
             collection = 'builtin';
             break;
           case 'collection':
+          case 'collection_doc_fragment':
             const pathArray = file.split(path.sep);
             namespace = pathArray[pathArray.length - 5];
             collection = pathArray[pathArray.length - 4];
@@ -48,33 +61,7 @@ export class DocsParser {
           name
         );
       })
-    ).then((results) => {
-      return results.filter(
-        (
-          i: IModuleDocumentation | null | undefined
-        ): i is IModuleDocumentation => !!i
-      );
-    });
-  }
-
-  private static async _getFiles(dir: string): Promise<Array<string>> {
-    const dirents = await fs.promises.readdir(dir, { withFileTypes: true });
-    const files = await Promise.all(
-      dirents
-        .filter((dirent) => {
-          return (
-            dirent.isDirectory() ||
-            (dirent.isFile() &&
-              dirent.name.endsWith('.py') &&
-              !dirent.name.startsWith('_')) // legacy files and __init__.py
-          );
-        })
-        .map((dirent) => {
-          const res = path.resolve(dir, dirent.name);
-          return dirent.isDirectory() ? this._getFiles(res) : [res];
-        })
     );
-    return files.flat();
   }
 }
 
@@ -87,17 +74,7 @@ export function collectionModuleFilter(
   };
 }
 
-export interface IModuleDocumentation {
-  source: string;
-  fqcn: string;
-  namespace: string;
-  collection: string;
-  name: string;
-  contents: Record<string, unknown>;
-  errors: YAMLError[];
-}
-
-export class LazyModuleDocumentation implements IModuleDocumentation {
+export class LazyModuleDocumentation implements IModuleMetadata {
   source: string;
   fqcn: string;
   namespace: string;
@@ -135,5 +112,9 @@ export class LazyModuleDocumentation implements IModuleDocumentation {
       this._contents = this._contents || {};
     }
     return this._contents;
+  }
+
+  public set contents(value: Record<string, unknown>) {
+    this._contents = value;
   }
 }

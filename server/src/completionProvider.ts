@@ -1,8 +1,8 @@
-import { CompletionItem } from 'vscode-languageserver';
+import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Pair, Scalar, YAMLMap } from 'yaml/types';
-import { formatDescription, formatOption } from './docsFormatter';
+import { formatDescription, formatOption, getDetails } from './docsFormatter';
 import { DocsLibrary } from './docsLibrary';
 import { mayBeModule } from './utils';
 import { AncestryBuilder, getPathAt } from './utils';
@@ -47,6 +47,8 @@ export async function doCompletion(
             const optionMap = (new AncestryBuilder(modulePath)
               .parent(Pair)
               .get() as Pair).value as YAMLMap;
+
+            // find options that have been already provided by the user
             const providedOptions = new Set(
               optionMap.items.map((pair) => {
                 if (pair.key && pair.key instanceof Scalar) {
@@ -54,19 +56,35 @@ export async function doCompletion(
                 }
               })
             );
+
+            // filter out the provided options from completion
             const filteredOptions = options?.filter(
               (o) => !providedOptions.has(o.name)
             );
-
-            return filteredOptions.map((option) => {
-              return {
-                label: option.name,
-                documentation: formatOption(option),
-                insertText: atEndOfLine(document, position)
-                  ? `${option.name}: `
-                  : undefined,
-              };
-            });
+            return filteredOptions
+              .sort((a, b) => {
+                // make required options appear on the top
+                if (a.required && !b.required) {
+                  return -1;
+                } else if (!a.required && b.required) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              })
+              .map((option) => {
+                // translate option documentation to CompletionItem
+                const details = getDetails(option);
+                return {
+                  label: option.name,
+                  detail: details,
+                  kind: CompletionItemKind.Property,
+                  documentation: formatOption(option),
+                  insertText: atEndOfLine(document, position)
+                    ? `${option.name}: `
+                    : undefined,
+                };
+              });
           }
         }
       }

@@ -60,8 +60,8 @@ export function getPathAtOffset(
       }
       pair = _.find(currentNode.items, (p) => {
         const inBetweenNode = new Node();
-        const start = (p.key as Node).range?.[1];
-        const end = (p.value as Node).range?.[0];
+        const start = (p.key as Node)?.range?.[1];
+        const end = (p.value as Node)?.range?.[0];
         if (start && end) {
           inBetweenNode.range = [start, end - 1];
           return contains(inBetweenNode, offset, inclusive);
@@ -117,13 +117,12 @@ export class AncestryBuilder {
   parentKey(key?: string | RegExp): AncestryBuilder {
     this._index--;
     const node = this.get();
-    if (typeof key == 'string') {
-      key = new RegExp(`^${key}$`);
-    }
     if (
       node instanceof Pair &&
       node.key instanceof Scalar &&
-      (!key || (key instanceof RegExp && key.test(node.key.value)))
+      (!key ||
+        (key instanceof RegExp && key.test(node.key.value)) ||
+        (typeof key == 'string' && key === node.key.value))
     ) {
       this._returnKey = true;
     } else {
@@ -171,6 +170,10 @@ export function mayBeModule(path: Node[]): boolean {
   return false;
 }
 
+async function fileExists(filePath: string): Promise<boolean> {
+  return !!(await fs.stat(filePath).catch(() => false));
+}
+
 export async function getAnsibleMetadata(
   uri: string
 ): Promise<DocumentMetadata> {
@@ -186,23 +189,27 @@ export async function getAnsibleMetadata(
   const metadata = {
     collections: new Array<string>(),
   };
-  if (metaPath) {
-    const metaContents = await fs.readFile(new URL(metaPath), {
-      encoding: 'utf8',
-    });
-    parseAllDocuments(metaContents).forEach((metaDoc) => {
-      const metaObject: unknown = metaDoc.toJSON();
-      if (
-        hasOwnProperty(metaObject, 'collections') &&
-        metaObject.collections instanceof Array
-      ) {
-        metaObject.collections.forEach((collection) => {
-          if (typeof collection === 'string') {
-            metadata.collections.push(collection);
-          }
-        });
-      }
-    });
+  if (metaPath && fileExists(metaPath)) {
+    try {
+      const metaContents = await fs.readFile(new URL(metaPath), {
+        encoding: 'utf8',
+      });
+      parseAllDocuments(metaContents).forEach((metaDoc) => {
+        const metaObject: unknown = metaDoc.toJSON();
+        if (
+          hasOwnProperty(metaObject, 'collections') &&
+          metaObject.collections instanceof Array
+        ) {
+          metaObject.collections.forEach((collection) => {
+            if (typeof collection === 'string') {
+              metadata.collections.push(collection);
+            }
+          });
+        }
+      });
+    } catch (error) {
+      //TODO: Log debug
+    }
   }
   return metadata;
 }

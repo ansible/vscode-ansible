@@ -47,7 +47,7 @@ export async function doHover(
           );
           if (option) {
             return {
-              contents: formatOption(option),
+              contents: formatOption(option, true),
             };
           }
         }
