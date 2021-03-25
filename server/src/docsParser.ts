@@ -65,15 +65,6 @@ export class DocsParser {
   }
 }
 
-export function collectionModuleFilter(
-  baseDir: string
-): (value: string) => boolean {
-  return (f: string) => {
-    const subPathArray = f.substr(baseDir.length).split(path.sep);
-    return subPathArray[subPathArray.length - 2] === 'modules';
-  };
-}
-
 export class LazyModuleDocumentation implements IModuleMetadata {
   source: string;
   fqcn: string;
@@ -98,7 +89,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     this.name = name;
   }
 
-  public get contents(): Record<string, unknown> {
+  public get rawDocumentation(): Record<string, unknown> {
     if (!this._contents) {
       const contents = fs.readFileSync(this.source, { encoding: 'utf8' });
       const m = DocsParser.docsRegex.exec(contents);
@@ -114,7 +105,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     return this._contents;
   }
 
-  public set contents(value: Record<string, unknown>) {
+  public set rawDocumentation(value: Record<string, unknown>) {
     this._contents = value;
   }
 }

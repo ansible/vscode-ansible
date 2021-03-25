@@ -217,10 +217,17 @@ export async function getAnsibleMetadata(
 export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
   obj: X,
   prop: Y
-): obj is X & Record<Y, unknown> {
-  return (
-    obj &&
-    typeof obj === 'object' &&
-    (obj as Record<PropertyKey, unknown>).hasOwnProperty(prop)
-  );
+): obj is X & Record<PropertyKey, unknown> & Record<Y, unknown> {
+  return isObject(obj) && obj.hasOwnProperty(prop);
+}
+
+/**
+ * Checks whether `obj` is a non-null object.
+ * @param obj
+ * @returns
+ */
+export function isObject<X extends unknown>(
+  obj: X
+): obj is X & Record<PropertyKey, unknown> {
+  return obj && typeof obj === 'object';
 }

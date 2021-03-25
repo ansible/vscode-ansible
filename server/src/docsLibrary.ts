@@ -1,10 +1,9 @@
-import { collectionModuleFilter, DocsParser } from './docsParser';
+import { DocsParser } from './docsParser';
 import * as _ from 'lodash';
-import * as path from 'path';
 import { WorkspaceFolder } from 'vscode-languageserver';
 import { IContext } from './context';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { hasOwnProperty } from './utils';
+import { hasOwnProperty, isObject } from './utils';
 import { YAMLError } from 'yaml/util';
 export class DocsLibrary {
   private modules = new Map<string, IModuleMetadata>();
@@ -70,28 +69,31 @@ export class DocsLibrary {
     if (module && !module.fragments) {
       module.fragments = [];
       if (
-        hasOwnProperty(module.contents, 'extends_documentation_fragment') &&
-        module.contents.extends_documentation_fragment instanceof Array
+        hasOwnProperty(
+          module.rawDocumentation,
+          'extends_documentation_fragment'
+        ) &&
+        module.rawDocumentation.extends_documentation_fragment instanceof Array
       ) {
         const resultContents = {};
-        for (const docFragmentName of module.contents
+        for (const docFragmentName of module.rawDocumentation
           .extends_documentation_fragment) {
           const docFragment = this.docFragments.get(docFragmentName);
           if (docFragment) {
             module.fragments.push(docFragment); // currently used only as indicator
             _.mergeWith(
               resultContents,
-              docFragment.contents,
+              docFragment.rawDocumentation,
               this.docFragmentMergeCustomizer
             );
           }
         }
         _.mergeWith(
           resultContents,
-          module.contents,
+          module.rawDocumentation,
           this.docFragmentMergeCustomizer
         );
-        module.contents = resultContents;
+        module.rawDocumentation = resultContents;
       }
     }
     return module;
@@ -101,7 +103,7 @@ export class DocsLibrary {
     objValue: unknown,
     srcValue: unknown,
     key: string
-  ): Record<PropertyKey, unknown>[] | undefined {
+  ): Record<string, unknown>[] | undefined {
     if (
       ['notes', 'requirements', 'seealso'].includes(key) &&
       _.isArray(objValue)
@@ -110,14 +112,74 @@ export class DocsLibrary {
     }
   }
 
+  private processRawDocumentation(
+    rawDoc: unknown
+  ): IModuleDocumentation | undefined {
+    if (isObject(rawDoc) && typeof rawDoc.module === 'string') {
+      const moduleDoc: IModuleDocumentation = {
+        module: rawDoc.module,
+        options: this.processRawOptions(rawDoc.options),
+        deprecated: !!rawDoc.deprecated,
+      };
+      if (isIDescription(rawDoc.short_description))
+        moduleDoc.shortDescription = rawDoc.short_description;
+      if (isIDescription(rawDoc.description))
+        moduleDoc.description = rawDoc.description;
+      if (typeof rawDoc.version_added === 'string')
+        moduleDoc.versionAdded = rawDoc.version_added;
+      if (isIDescription(rawDoc.author)) moduleDoc.author = rawDoc.author;
+      if (isIDescription(rawDoc.requirements))
+        moduleDoc.requirements = rawDoc.requirements;
+      if (typeof rawDoc.seealso === 'object')
+        moduleDoc.seealso = rawDoc.seealso as Record<string, unknown>;
+      if (isIDescription(rawDoc.notes)) moduleDoc.notes = rawDoc.notes;
+      return moduleDoc;
+    }
+  }
+
+  private processRawOptions(rawOptions: unknown): Map<string, IOption> {
+    const options = new Map<string, IOption>();
+    if (isObject(rawOptions)) {
+      for (const [optionName, rawOption] of Object.entries(rawOptions)) {
+        if (isObject(rawOption)) {
+          const optionDoc: IOption = {
+            name: optionName,
+            required: !!rawOption.required,
+            default: rawOption.default,
+            suboptions: rawOption.suboptions,
+          };
+          if (isIDescription(rawOption.description))
+            optionDoc.description = rawOption.description;
+          if (rawOption.choices instanceof Array)
+            optionDoc.choices = rawOption.choices;
+          if (typeof rawOption.type === 'string')
+            optionDoc.type = rawOption.type;
+          if (typeof rawOption.elements === 'string')
+            optionDoc.elements = rawOption.elements;
+          if (rawOption.aliases instanceof Array)
+            optionDoc.aliases = rawOption.aliases;
+          if (typeof rawOption.version_added === 'string')
+            optionDoc.versionAdded = rawOption.version_added;
+          options.set(optionName, optionDoc);
+          if (optionDoc.aliases) {
+            for (const alias of optionDoc.aliases) {
+              options.set(alias, optionDoc);
+            }
+          }
+        }
+      }
+    }
+    return options;
+  }
+
   public async getModuleDescription(
     module: string,
     doc: TextDocument
   ): Promise<IDescription | undefined> {
-    const contents = (await this.findModule(module, doc))?.contents;
+    const contents = (await this.findModule(module, doc))?.rawDocumentation;
     if (
       hasOwnProperty(contents, 'description') &&
-      (contents.description instanceof Array || // won't check that all elements are string
+      (contents.description instanceof Array || // won't check if all elements are string
         typeof contents.description === 'string')
     )
       return contents.description;
@@ -128,7 +190,7 @@ export class DocsLibrary {
     doc: TextDocument
   ): Promise<IOption[] | undefined> {
     const moduleDoc = await this.findModule(module, doc);
-    const options = moduleDoc?.contents.options;
+    const options = moduleDoc?.rawDocumentation.options;
     if (options && typeof options === 'object') {
       return Object.entries(options).map(
         // TODO: perform typechecking
@@ -154,7 +216,8 @@ export class DocsLibrary {
     doc: TextDocument,
     option: string
   ): Promise<IOption | undefined> {
-    const options = (await this.findModule(module, doc))?.contents.options;
+    const options = (await this.findModule(module, doc))?.rawDocumentation
+      .options;
     if (hasOwnProperty(options, option)) {
       const optionObj = options[option];
       const optionDoc: IOption = {
@@ -193,15 +256,15 @@ function isIDescription(obj: unknown): obj is IDescription {
 }
 export interface IModuleDocumentation {
   module: string;
-  shortDescription: IDescription;
-  description: IDescription;
-  versionAdded: string;
-  author: IDescription;
-  deprecated: Record<string, unknown>;
-  options: IOption[];
-  requirements: IDescription;
-  seealso: Record<string, unknown>;
-  notes: IDescription;
+  shortDescription?: IDescription;
+  description?: IDescription;
+  versionAdded?: string;
+  author?: IDescription;
+  deprecated: boolean;
+  options: Map<string, IOption>;
+  requirements?: IDescription;
+  seealso?: Record<string, unknown>;
+  notes?: IDescription;
 }
 
 export interface IModuleMetadata {
@@ -210,7 +273,8 @@ export interface IModuleMetadata {
   namespace: string;
   collection: string;
   name: string;
-  contents: Record<string, unknown>;
+  rawDocumentation: Record<string, unknown>;
+  documentation?: IModuleDocumentation;
   fragments?: IModuleMetadata[];
   errors: YAMLError[];
 }
@@ -224,7 +288,7 @@ export interface IOption {
   type?: string;
   elements?: string;
   aliases?: Array<string>;
-  version_added?: string;
+  versionAdded?: string;
   suboptions?: unknown;
 }
 

@@ -812,8 +812,8 @@
         "affectsGlobalScope": false
       },
       "./src/docsParser.ts": {
-        "version": "0f11c8421b7874953a6951c94730626dd799de3e1670edcd34b56c384d7149a8",
-        "signature": "3bce7d02bd1075975b1dcbc11d8393234aa374e7d5f92b7a52331f5c74842745",
+        "version": "512aa23c5b5cbaf0f3b76ee9a1bf86a765ae69b456848ce3d5c2666c6cf773ea",
+        "signature": "7bb1d35d1ba5d8499ebf0cbb8c6a5a1fbe53b00611bcf3ce9a1051b63e012f7a",
         "affectsGlobalScope": false
       },
       "./src/documentMeta.ts": {
@@ -827,13 +827,13 @@
         "affectsGlobalScope": false
       },
       "./src/utils.ts": {
-        "version": "b35b74d5fe27ec1fd661db138008098ea41dd6ac97be5ccd43da15449f804b86",
-        "signature": "6b4eac44812dc202931c75113a0c25a2227b069bdc14c501f58789b3ad47aaf2",
+        "version": "b2f3fa6d0f3375b84d3a056a41acb21fa825d0c0373435b2b1a77b4be452f5d3",
+        "signature": "9e62915cfb6dfbd8f61020a2bddcedb26ce6215b3a3258739e5c7f6f5fc4975d",
         "affectsGlobalScope": false
       },
       "./src/docsLibrary.ts": {
-        "version": "59a367e11a1c9eee4fdc379236d415efecc16b7b8887322642fd79e3bff0d45e",
-        "signature": "321705166cecc7dd14527e868e68027b0e98ffa4faf188f5b5ac3862313da4ef",
+        "version": "6bf08868a6cbfd293a6b3ba5d5aa3b7266fc17473fa96617ed54a00929fb52e9",
+        "signature": "0baef1a2b816e8859b0912121bf77b1d5ff3f3cb871492cdc113d276793355f3",
         "affectsGlobalScope": false
       },
       "./src/docsFormatter.ts": {
@@ -1748,7 +1748,6 @@
         "./src/docsLibrary.ts"
       ],
       "./src/docsLibrary.ts": [
-        "../node_modules/@types/node/path.d.ts",
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
