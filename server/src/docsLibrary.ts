@@ -48,7 +48,7 @@ export class DocsLibrary {
     }
   }
 
-  private async findModule(
+  public async findModule(
     searchText: string,
     doc: TextDocument
   ): Promise<IModuleMetadata | undefined> {
@@ -65,38 +65,50 @@ export class DocsLibrary {
       this.modules.has(prefix + searchText)
     );
     const module = this.modules.get(prefix + searchText);
-    // Collect information from documentation fragments
-    if (module && !module.fragments) {
-      module.fragments = [];
-      if (
-        hasOwnProperty(
-          module.rawDocumentation,
-          'extends_documentation_fragment'
-        ) &&
-        module.rawDocumentation.extends_documentation_fragment instanceof Array
-      ) {
-        const resultContents = {};
-        for (const docFragmentName of module.rawDocumentation
-          .extends_documentation_fragment) {
-          const docFragment = this.docFragments.get(docFragmentName);
-          if (docFragment) {
-            module.fragments.push(docFragment); // currently used only as indicator
-            _.mergeWith(
-              resultContents,
-              docFragment.rawDocumentation,
-              this.docFragmentMergeCustomizer
-            );
-          }
-        }
-        _.mergeWith(
-          resultContents,
-          module.rawDocumentation,
-          this.docFragmentMergeCustomizer
+    if (module) {
+      if (!module.fragments) {
+        // collect information from documentation fragments
+        this.processDocumentationFragments(module);
+      }
+      if (!module.documentation) {
+        // translate raw documentation into a typed structure
+        module.documentation = this.processRawDocumentation(
+          module.rawDocumentation
         );
-        module.rawDocumentation = resultContents;
       }
     }
     return module;
+  }
+
+  private processDocumentationFragments(module: IModuleMetadata) {
+    module.fragments = [];
+    if (
+      hasOwnProperty(
+        module.rawDocumentation,
+        'extends_documentation_fragment'
+      ) &&
+      module.rawDocumentation.extends_documentation_fragment instanceof Array
+    ) {
+      const resultContents = {};
+      for (const docFragmentName of module.rawDocumentation
+        .extends_documentation_fragment) {
+        const docFragment = this.docFragments.get(docFragmentName);
+        if (docFragment) {
+          module.fragments.push(docFragment); // currently used only as indicator
+          _.mergeWith(
+            resultContents,
+            docFragment.rawDocumentation,
+            this.docFragmentMergeCustomizer
+          );
+        }
+      }
+      _.mergeWith(
+        resultContents,
+        module.rawDocumentation,
+        this.docFragmentMergeCustomizer
+      );
+      module.rawDocumentation = resultContents;
+    }
   }
 
   private docFragmentMergeCustomizer(
@@ -184,66 +196,6 @@ export class DocsLibrary {
     )
       return contents.description;
   }
-
-  public async getModuleOptions(
-    module: string,
-    doc: TextDocument
-  ): Promise<IOption[] | undefined> {
-    const moduleDoc = await this.findModule(module, doc);
-    const options = moduleDoc?.rawDocumentation.options;
-    if (options && typeof options === 'object') {
-      return Object.entries(options).map(
-        // TODO: perform typechecking
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ([optionName, optionObj]: [string, any]) => {
-          return {
-            name: optionName,
-            description: optionObj.description,
-            required: !!optionObj.required,
-            default: optionObj.default,
-            choices: optionObj.choices,
-            type: optionObj.type,
-            elements: optionObj.elements,
-            aliases: optionObj.aliases,
-          };
-        }
-      );
-    }
-  }
-
-  public async getModuleOption(
-    module: string,
-    doc: TextDocument,
-    option: string
-  ): Promise<IOption | undefined> {
-    const options = (await this.findModule(module, doc))?.rawDocumentation
-      .options;
-    if (hasOwnProperty(options, option)) {
-      const optionObj = options[option];
-      const optionDoc: IOption = {
-        name: option,
-        required: !!(
-          hasOwnProperty(optionObj, 'required') && optionObj.required
-        ),
-      };
-      if (
-        hasOwnProperty(optionObj, 'description') &&
-        isIDescription(optionObj.description)
-      )
-        optionDoc.description = optionObj.description;
-      if (
-        hasOwnProperty(optionObj, 'choices') &&
-        optionObj.choices instanceof Array
-      )
-        optionDoc.choices = optionObj.choices;
-
-      return optionDoc;
-    }
-  }
-
-  public async isModule(module: string, doc: TextDocument): Promise<boolean> {
-    return !!(await this.findModule(module, doc));
-  }
 }
 
 export type IDescription = string | Array<string>;
@@ -269,6 +221,7 @@ export interface IModuleDocumentation {
 
 export interface IModuleMetadata {
   source: string;
+  sourceLineRange: [number, number];
   fqcn: string;
   namespace: string;
   collection: string;
@@ -291,8 +244,3 @@ export interface IOption {
   versionAdded?: string;
   suboptions?: unknown;
 }
-
-// const test = new DocsLibrary();
-// test.initialize().then(() => {
-//   console.log(test.builtInModules);
-// });

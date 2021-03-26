@@ -1,7 +1,32 @@
+import { format } from 'util';
 import { MarkupContent, MarkupKind } from 'vscode-languageserver';
-import { IDescription, IOption } from './docsLibrary';
+import { IDescription, IModuleDocumentation, IOption } from './docsLibrary';
 
-export function formatModule() {}
+export function formatModule(module: IModuleDocumentation): MarkupContent {
+  const sections: string[] = [];
+  if (module.deprecated) {
+    sections.push('**DEPRECATED**');
+  }
+  if (module.shortDescription) {
+    sections.push(`*${module.shortDescription}*`);
+  }
+  if (module.description) {
+    sections.push('**Description**');
+    sections.push(formatDescription(module.description));
+  }
+  if (module.requirements) {
+    sections.push('**Requirements**');
+    sections.push(formatDescription(module.requirements));
+  }
+  if (module.notes) {
+    sections.push('**Notes**');
+    sections.push(formatDescription(module.notes));
+  }
+  return {
+    kind: MarkupKind.Markdown,
+    value: sections.join('\n\n'),
+  };
+}
 
 export function formatOption(
   option: IOption,
@@ -11,18 +36,24 @@ export function formatOption(
   if (with_details) {
     const details = getDetails(option);
     if (details) {
-      sections.push(`*${details}*`);
+      sections.push(`\`${details}\``);
     }
   }
   if (option.description) {
-    sections.push(formatDescription(option.description, false).value);
+    sections.push(formatDescription(option.description, false));
   }
-  if (option.default) {
-    sections.push(`*Default*: \`${option.default}\``);
+  if (option.default !== undefined) {
+    sections.push(
+      `*Default*:\n \`\`\`javascript\n${format(option.default)}\n\`\`\``
+    );
   }
   if (option.choices) {
     const formattedChoiceArray = option.choices.map((c) => `\`${c}\``);
     sections.push(`*Choices*: [${formattedChoiceArray.toString()}]`);
+  }
+  if (option.aliases) {
+    const formattedChoiceArray = option.aliases.map((a) => `\`${a}\``);
+    sections.push(`*Aliases*: [${formattedChoiceArray.toString()}]`);
   }
   return {
     kind: MarkupKind.Markdown,
@@ -30,10 +61,7 @@ export function formatOption(
   };
 }
 
-export function formatDescription(
-  doc?: IDescription,
-  asList = true
-): MarkupContent {
+export function formatDescription(doc?: IDescription, asList = true): string {
   let result = '';
   if (doc instanceof Array) {
     const lines: string[] = [];
@@ -48,10 +76,7 @@ export function formatDescription(
   } else if (typeof doc === 'string') {
     result += replaceMacros(doc);
   }
-  return {
-    kind: MarkupKind.Markdown,
-    value: `${result}\n`,
-  };
+  return result;
 }
 
 export function getDetails(option: IOption): string | undefined {

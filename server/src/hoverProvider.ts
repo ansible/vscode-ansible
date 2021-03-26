@@ -1,11 +1,10 @@
 import { Hover } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { formatDescription, formatOption } from './docsFormatter';
+import { Scalar, YAMLMap } from 'yaml/types';
+import { formatModule, formatOption } from './docsFormatter';
 import { DocsLibrary } from './docsLibrary';
-import { mayBeModule } from './utils';
-import { AncestryBuilder, getPathAt } from './utils';
+import { AncestryBuilder, getPathAt, mayBeModule, toLspRange } from './utils';
 
 export async function doHover(
   document: TextDocument,
@@ -21,13 +20,11 @@ export async function doHover(
       new AncestryBuilder(path).parentKey(node.value).get() === node // ensure we look at a key, not value of a Pair
     ) {
       if (mayBeModule(path)) {
-        const description = await docsLibrary.getModuleDescription(
-          node.value,
-          document
-        );
-        if (description) {
+        const module = await docsLibrary.findModule(node.value, document);
+        if (module && module.documentation) {
           return {
-            contents: formatDescription(description),
+            contents: formatModule(module.documentation),
+            range: node.range ? toLspRange(node.range, document) : undefined,
           };
         }
       }
@@ -39,12 +36,9 @@ export async function doHover(
 
       if (modulePath && mayBeModule(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        if (await docsLibrary.isModule(moduleNode.value, document)) {
-          const option = await docsLibrary.getModuleOption(
-            moduleNode.value,
-            document,
-            node.value
-          );
+        const module = await docsLibrary.findModule(moduleNode.value, document);
+        if (module && module.documentation) {
+          const option = module.documentation.options.get(node.value);
           if (option) {
             return {
               contents: formatOption(option, true),

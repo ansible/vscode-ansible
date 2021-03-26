@@ -812,8 +812,8 @@
         "affectsGlobalScope": false
       },
       "./src/docsParser.ts": {
-        "version": "512aa23c5b5cbaf0f3b76ee9a1bf86a765ae69b456848ce3d5c2666c6cf773ea",
-        "signature": "7bb1d35d1ba5d8499ebf0cbb8c6a5a1fbe53b00611bcf3ce9a1051b63e012f7a",
+        "version": "92d8da99d2d08c61837310f4e88f6532bb5bb0479dc175dc5c43e442b434fc7c",
+        "signature": "79ec5df879e0f47c4c00d7084dab37a950f43747ac7548a41c448e77816d9c0a",
         "affectsGlobalScope": false
       },
       "./src/documentMeta.ts": {
@@ -827,27 +827,32 @@
         "affectsGlobalScope": false
       },
       "./src/utils.ts": {
-        "version": "b2f3fa6d0f3375b84d3a056a41acb21fa825d0c0373435b2b1a77b4be452f5d3",
-        "signature": "9e62915cfb6dfbd8f61020a2bddcedb26ce6215b3a3258739e5c7f6f5fc4975d",
+        "version": "6335a74ddd158e289da3a522a1bf5a7c96289f88a1ae638492de5b64aff60a87",
+        "signature": "08b40e57d0784881a1faecdd2a2c63bfa36b21f13d1ff1410f2f591b3a6bf153",
         "affectsGlobalScope": false
       },
       "./src/docsLibrary.ts": {
-        "version": "6bf08868a6cbfd293a6b3ba5d5aa3b7266fc17473fa96617ed54a00929fb52e9",
-        "signature": "0baef1a2b816e8859b0912121bf77b1d5ff3f3cb871492cdc113d276793355f3",
+        "version": "6045f0fd57a2e30643db99ffc787e8a74184a030e46a5c82ff39db71b0574cb8",
+        "signature": "541240e117c34af937c82f724d56ccd48dc61fa400f6ca21da3ef356278c8aed",
         "affectsGlobalScope": false
       },
       "./src/docsFormatter.ts": {
-        "version": "71f8b7661b3074cbc2cb597b28ff6753238eb5458e595a2f371ad1502294df3b",
-        "signature": "1385f25443033b930f93bf3f2a3c0aabe8e8254b6d35ad75aad1dd9414bb50d2",
+        "version": "6ee3e24700cc4890ab57bee2c148c75fd3231c4e82d1a63819bdcd13404b4d2d",
+        "signature": "e48a74c99ea25386a403faaa32831b96cc4ad663574974900cb7b51e039d12be",
         "affectsGlobalScope": false
       },
       "./src/completionProvider.ts": {
-        "version": "42d3456b02e7beac0d35b127dae867d768811745a7a95ffb81cc4b396737fe1f",
+        "version": "bd159cecda03443fdbba6274e7058dfe2da1b4fe0a82e841fa1b6ed9501a3415",
         "signature": "9a36570ce874b967550b3698bf4df92f071e9a0e174bf03f49a37cae6b26ef9d",
         "affectsGlobalScope": false
       },
+      "./src/definitionProvider.ts": {
+        "version": "2991723921466a63786bb3feef730c64a9bf9fe8636cc20fbd0ff920c99f61f0",
+        "signature": "fec2bb71409e9035906790291f3bb7e9a3f06a26496454c9768891e8d73811fb",
+        "affectsGlobalScope": false
+      },
       "./src/hoverProvider.ts": {
-        "version": "198de0921450ea616f9be8cb3b9396d0c8883f3eda9ce46ac7c63a885bead24e",
+        "version": "92dc32cf1b70f68dca438d438ac9b378ceabe86c6e8f033ca133322cb31b4e59",
         "signature": "a988a2624e664f9098da756cb24a8c496bb6d7ac89f9c31eef4ba00d10e6dd60",
         "affectsGlobalScope": false
       },
@@ -902,7 +907,7 @@
         "affectsGlobalScope": false
       },
       "./src/server.ts": {
-        "version": "500587bee959b3160a6e9eae089d8a99bc5d8ffd5adbde3958d37c0efd9b07f0",
+        "version": "67a891e53bf29aa07de58ad332a1010eaa7b6a326e5ade68420b67ad3ab6f815",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -1731,6 +1736,7 @@
         "./node_modules/vscode-languageserver/lib/common/api.d.ts"
       ],
       "./src/completionProvider.ts": [
+        "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./node_modules/yaml/index.d.ts",
@@ -1743,7 +1749,16 @@
         "./src/ansibleConfig.ts",
         "./src/documentMeta.ts"
       ],
+      "./src/definitionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts",
+        "./src/docsLibrary.ts",
+        "./src/utils.ts"
+      ],
       "./src/docsFormatter.ts": [
+        "../node_modules/@types/node/util.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./src/docsLibrary.ts"
       ],
@@ -1779,6 +1794,7 @@
         "./src/ansibleConfig.ts",
         "./src/completionProvider.ts",
         "./src/context.ts",
+        "./src/definitionProvider.ts",
         "./src/docsLibrary.ts",
         "./src/documentMeta.ts",
         "./src/hoverProvider.ts",
@@ -1802,6 +1818,7 @@
         "../node_modules/@types/node/url.d.ts",
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/types.d.ts",
         "./src/documentMeta.ts"
@@ -2600,6 +2617,11 @@
         "./src/ansibleConfig.ts",
         "./src/documentMeta.ts"
       ],
+      "./src/definitionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/docsLibrary.ts"
+      ],
       "./src/docsFormatter.ts": [
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./src/docsLibrary.ts"
@@ -2621,6 +2643,7 @@
       ],
       "./src/utils.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/types.d.ts",
         "./src/documentMeta.ts"
@@ -2808,6 +2831,7 @@
       "./src/ansibleConfig.ts",
       "./src/completionProvider.ts",
       "./src/context.ts",
+      "./src/definitionProvider.ts",
       "./src/docsFormatter.ts",
       "./src/docsLibrary.ts",
       "./src/docsParser.ts",

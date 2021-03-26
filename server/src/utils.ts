@@ -7,6 +7,7 @@ import * as path from 'path';
 import { type } from 'node:os';
 import { DocumentMetadata } from './documentMeta';
 import { URL } from 'url';
+import { Range } from 'vscode-languageserver-types';
 
 export function getPathAt(
   document: TextDocument,
@@ -212,6 +213,15 @@ export async function getAnsibleMetadata(
     }
   }
   return metadata;
+}
+
+export function toLspRange(
+  range: [number, number],
+  textDocument: TextDocument
+): Range {
+  const start = textDocument.positionAt(range[0]);
+  const end = textDocument.positionAt(range[1]);
+  return Range.create(start, end);
 }
 
 export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(

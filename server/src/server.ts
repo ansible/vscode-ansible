@@ -12,6 +12,7 @@ import {
 import { AnsibleConfig } from './ansibleConfig';
 import { doCompletion } from './completionProvider';
 import { IContext } from './context';
+import { getDefinition } from './definitionProvider';
 import { DocsLibrary } from './docsLibrary';
 import { DocumentMetadata } from './documentMeta';
 import { doHover } from './hoverProvider';
@@ -58,6 +59,7 @@ connection.onInitialize((params: InitializeParams) => {
       completionProvider: {
         resolveProvider: false,
       },
+      definitionProvider: true,
     },
   };
   if (hasWorkspaceFolderCapability) {
@@ -180,6 +182,13 @@ docsLibrary.initialize().then(() => {
     const document = documents.get(params.textDocument.uri);
     if (document) {
       return doCompletion(document, params.position, docsLibrary);
+    }
+    return null;
+  });
+  connection.onDefinition((params) => {
+    const document = documents.get(params.textDocument.uri);
+    if (document) {
+      return getDefinition(document, params.position, docsLibrary);
     }
     return null;
   });

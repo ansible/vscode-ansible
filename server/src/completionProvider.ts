@@ -1,11 +1,11 @@
+import _ = require('lodash');
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Pair, Scalar, YAMLMap } from 'yaml/types';
-import { formatDescription, formatOption, getDetails } from './docsFormatter';
-import { DocsLibrary } from './docsLibrary';
-import { mayBeModule } from './utils';
-import { AncestryBuilder, getPathAt } from './utils';
+import { formatOption, getDetails } from './docsFormatter';
+import { DocsLibrary, IOption } from './docsLibrary';
+import { AncestryBuilder, getPathAt, mayBeModule } from './utils';
 
 export async function doCompletion(
   document: TextDocument,
@@ -37,60 +37,78 @@ export async function doCompletion(
 
       if (modulePath && mayBeModule(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        if (await docsLibrary.isModule(moduleNode.value, document)) {
-          const options = await docsLibrary.getModuleOptions(
-            moduleNode.value,
-            document
+        const module = await docsLibrary.findModule(moduleNode.value, document);
+        if (module && module.documentation) {
+          const moduleOptions = module.documentation.options;
+
+          const optionMap = (new AncestryBuilder(modulePath)
+            .parent(Pair)
+            .get() as Pair).value as YAMLMap;
+
+          // find options that have been already provided by the user
+          const providedOptions = new Set(
+            optionMap.items.map((pair) => {
+              if (pair.key && pair.key instanceof Scalar) {
+                return pair.key.value;
+              }
+            })
           );
 
-          if (options) {
-            const optionMap = (new AncestryBuilder(modulePath)
-              .parent(Pair)
-              .get() as Pair).value as YAMLMap;
-
-            // find options that have been already provided by the user
-            const providedOptions = new Set(
-              optionMap.items.map((pair) => {
-                if (pair.key && pair.key instanceof Scalar) {
-                  return pair.key.value;
-                }
-              })
-            );
-
-            // filter out the provided options from completion
-            const filteredOptions = options?.filter(
-              (o) => !providedOptions.has(o.name)
-            );
-            return filteredOptions
-              .sort((a, b) => {
-                // make required options appear on the top
-                if (a.required && !b.required) {
-                  return -1;
-                } else if (!a.required && b.required) {
-                  return 1;
-                } else {
-                  return 0;
-                }
-              })
-              .map((option) => {
-                // translate option documentation to CompletionItem
-                const details = getDetails(option);
-                return {
-                  label: option.name,
-                  detail: details,
-                  kind: CompletionItemKind.Property,
-                  documentation: formatOption(option),
-                  insertText: atEndOfLine(document, position)
-                    ? `${option.name}: `
-                    : undefined,
-                };
-              });
-          }
+          const remainingOptions = [...moduleOptions.entries()].filter(
+            (o) => !providedOptions.has(o[1].name)
+          );
+          return remainingOptions
+            .map((entry) => {
+              return {
+                name: entry[0],
+                data: entry[1],
+              };
+            })
+            .sort((a, b) => {
+              // make required options appear on the top
+              if (a.data.required && !b.data.required) {
+                return -1;
+              } else if (!a.data.required && b.data.required) {
+                return 1;
+              } else {
+                return 0;
+              }
+            })
+            .sort((a, b) => {
+              // push all aliases to the bottom
+              if (isAlias(a) && !isAlias(b)) {
+                return 1;
+              } else if (!isAlias(a) && isAlias(b)) {
+                return -1;
+              } else {
+                return 0;
+              }
+            })
+            .map((option, index) => {
+              // translate option documentation to CompletionItem
+              const details = getDetails(option.data);
+              return {
+                label: option.name,
+                detail: details,
+                sortText: index.toString().padStart(3),
+                kind: isAlias(option)
+                  ? CompletionItemKind.Reference
+                  : CompletionItemKind.Property,
+                documentation: formatOption(option.data),
+                insertText: atEndOfLine(document, position)
+                  ? `${option.name}: `
+                  : undefined,
+              };
+            });
         }
       }
     }
   }
   return null;
+}
+
+function isAlias(option: { name: string; data: IOption }): boolean {
+  return option.name !== option.data.name;
 }
 
 function insert(str: string, index: number, val: string) {

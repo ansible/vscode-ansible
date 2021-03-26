@@ -6,7 +6,7 @@ import { YAMLError } from 'yaml/util';
 import { IModuleMetadata } from './docsLibrary';
 
 export class DocsParser {
-  public static docsRegex = /\s*DOCUMENTATION\s*=\s*r?('''|""")(?:\n---)?\n?(?<doc>.*?)\1/s;
+  public static docsRegex = /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;
 
   public static async parseDirectory(
     dir: string,
@@ -67,6 +67,7 @@ export class DocsParser {
 
 export class LazyModuleDocumentation implements IModuleMetadata {
   source: string;
+  sourceLineRange: [number, number] = [0, 0];
   fqcn: string;
   namespace: string;
   collection: string;
@@ -93,7 +94,13 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     if (!this._contents) {
       const contents = fs.readFileSync(this.source, { encoding: 'utf8' });
       const m = DocsParser.docsRegex.exec(contents);
-      if (m && m.groups && m.groups.doc) {
+      if (m && m.groups && m.groups.doc && m.groups.pre) {
+        // determine documentation start/end lines for definition provider
+        let startLine = contents.substr(0, m.index).match(/\n/g)?.length || 0;
+        startLine += m.groups.pre.match(/\n/g)?.length || 0;
+        const endLine = startLine + (m.groups.doc.match(/\n/g)?.length || 0);
+        this.sourceLineRange = [startLine, endLine];
+
         const document = parseDocument(m.groups.doc);
         // There's about 20 modules (out of ~3200) in Ansible 2.9 libs that contain YAML syntax errors
         // Still, document.toJSON() works on them
