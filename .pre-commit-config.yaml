@@ -28,3 +28,11 @@ repos:
   rev: v7.22.0
   hooks:
     - id: eslint
+      additional_dependencies:
+        - "@typescript-eslint/eslint-plugin"
+        - "@typescript-eslint/parser"
+        - eslint
+        - typescript
+        - typescript-eslint
+      files: \.[jt]sx?$  # *.js, *.jsx, *.ts and *.tsx
+      types: [file]
