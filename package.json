@@ -193,6 +193,7 @@
     "vscode": "^1.53.0"
   },
   "extensionDependencies": [
+    "ms-python.python",
     "redhat.vscode-yaml"
   ],
   "husky": {
