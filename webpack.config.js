@@ -9,7 +9,7 @@ const merge = require('merge-options');
 module.exports = function withDefaults(/**@type WebpackConfig*/ extConfig) {
   /** @type WebpackConfig */
   let defaultConfig = {
-    mode: 'none', // this leaves the source code as close as possible to the original (when packaging we set this to 'production')
+    mode: 'none',
     target: 'node', // vscode extensions run in a Node.js-context
     node: {
       __dirname: false, // leave the __dirname-behaviour intact
@@ -17,10 +17,11 @@ module.exports = function withDefaults(/**@type WebpackConfig*/ extConfig) {
     entry: './client/src/extension.ts',
     output: {
       filename: '[name].js',
-      path: path.resolve(extConfig.context, 'dist'),
+      path: path.resolve(extConfig.context, 'out'),
       libraryTarget: 'commonjs2',
       devtoolModuleFilenameTemplate: '../[resource-path]',
     },
+    // stats: 'verbose', // doesn't help with watcher
     devtool: 'source-map',
     externals: {
       vscode: 'commonjs vscode', // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed

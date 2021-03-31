@@ -12,6 +12,6 @@ vsc-extension-quickstart.md
 **/webpack.config.js
 
 client/**
-!client/dist/extension.js
+!client/out/extension.js
 server/**
-!server/dist/server.js
+!server/out/server.js

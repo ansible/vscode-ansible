@@ -711,10 +711,45 @@
         "signature": "28fd02b23f22a42df03edc496d91b458cbb5c0b39a9933a40f136e465bf6dc1f",
         "affectsGlobalScope": false
       },
+      "../node_modules/@types/chai/index.d.ts": {
+        "version": "267813ae499a9c070ea61bca2d235e31e785181d967e4461719cbcc78a35abfe",
+        "signature": "267813ae499a9c070ea61bca2d235e31e785181d967e4461719cbcc78a35abfe",
+        "affectsGlobalScope": true
+      },
+      "../node_modules/@types/eslint/helpers.d.ts": {
+        "version": "f345b0888d003fd69cb32bad3a0aa04c615ccafc572019e4bd86a52bd5e49e46",
+        "signature": "f345b0888d003fd69cb32bad3a0aa04c615ccafc572019e4bd86a52bd5e49e46",
+        "affectsGlobalScope": true
+      },
+      "../node_modules/@types/eslint/lib/rules/index.d.ts": {
+        "version": "0133ebdd17a823ae56861948870cde4dac18dd8818ab641039c85bbb720429e0",
+        "signature": "0133ebdd17a823ae56861948870cde4dac18dd8818ab641039c85bbb720429e0",
+        "affectsGlobalScope": false
+      },
       "../node_modules/@types/json-schema/index.d.ts": {
         "version": "3a1e165b22a1cb8df82c44c9a09502fd2b33f160cd277de2cd3a055d8e5c6b27",
         "signature": "3a1e165b22a1cb8df82c44c9a09502fd2b33f160cd277de2cd3a055d8e5c6b27",
         "affectsGlobalScope": false
+      },
+      "../node_modules/@types/estree/index.d.ts": {
+        "version": "745a853d60bf782583a58584f59e202cae5c7a898b0c92696442602a3ef17a87",
+        "signature": "745a853d60bf782583a58584f59e202cae5c7a898b0c92696442602a3ef17a87",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/eslint/index.d.ts": {
+        "version": "649fbcb16a4a7e1d9f32a49db7381150ef5b2e472a0c52a1543d4c35a2aefa3c",
+        "signature": "649fbcb16a4a7e1d9f32a49db7381150ef5b2e472a0c52a1543d4c35a2aefa3c",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/eslint-scope/index.d.ts": {
+        "version": "274bda283ef15f4205603ca9967313fc013aa77ae89f2cbeab5fbd51439e96ed",
+        "signature": "274bda283ef15f4205603ca9967313fc013aa77ae89f2cbeab5fbd51439e96ed",
+        "affectsGlobalScope": false
+      },
+      "../node_modules/@types/mocha/index.d.ts": {
+        "version": "d8cebc259915afa4b2c56b7efcb8056739ec65f4479c1b880ff668eb98654ae7",
+        "signature": "d8cebc259915afa4b2c56b7efcb8056739ec65f4479c1b880ff668eb98654ae7",
+        "affectsGlobalScope": true
       }
     },
     "options": {
@@ -1192,7 +1227,49 @@
         "./node_modules/vscode-languageclient/lib/common/client.d.ts",
         "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
       ],
+      "../node_modules/@types/chai/index.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint-scope/index.d.ts": [
+        "../node_modules/@types/eslint/index.d.ts",
+        "../node_modules/@types/estree/index.d.ts",
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint/helpers.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint/index.d.ts": [
+        "../node_modules/@types/eslint/helpers.d.ts",
+        "../node_modules/@types/eslint/lib/rules/index.d.ts",
+        "../node_modules/@types/estree/index.d.ts",
+        "../node_modules/@types/json-schema/index.d.ts",
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint/lib/rules/index.d.ts": [
+        "../node_modules/@types/eslint/index.d.ts",
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/estree/index.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
       "../node_modules/@types/json-schema/index.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/mocha/index.d.ts": [
         "./node_modules/@types/vscode/index.d.ts",
         "./node_modules/vscode-languageclient/lib/common/client.d.ts",
         "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
@@ -2214,7 +2291,49 @@
       "./src/semanticTokens.ts": [
         "./node_modules/@types/vscode/index.d.ts"
       ],
+      "../node_modules/@types/chai/index.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint-scope/index.d.ts": [
+        "../node_modules/@types/eslint/index.d.ts",
+        "../node_modules/@types/estree/index.d.ts",
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint/helpers.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint/index.d.ts": [
+        "../node_modules/@types/eslint/helpers.d.ts",
+        "../node_modules/@types/eslint/lib/rules/index.d.ts",
+        "../node_modules/@types/estree/index.d.ts",
+        "../node_modules/@types/json-schema/index.d.ts",
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/eslint/lib/rules/index.d.ts": [
+        "../node_modules/@types/eslint/index.d.ts",
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/estree/index.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
       "../node_modules/@types/json-schema/index.d.ts": [
+        "./node_modules/@types/vscode/index.d.ts",
+        "./node_modules/vscode-languageclient/lib/common/client.d.ts",
+        "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
+      ],
+      "../node_modules/@types/mocha/index.d.ts": [
         "./node_modules/@types/vscode/index.d.ts",
         "./node_modules/vscode-languageclient/lib/common/client.d.ts",
         "./node_modules/vscode-languageclient/typings/vscode-proposed.d.ts"
@@ -2846,7 +2965,14 @@
       "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts",
       "./src/extension.ts",
       "./src/semanticTokens.ts",
+      "../node_modules/@types/chai/index.d.ts",
+      "../node_modules/@types/eslint-scope/index.d.ts",
+      "../node_modules/@types/eslint/helpers.d.ts",
+      "../node_modules/@types/eslint/index.d.ts",
+      "../node_modules/@types/eslint/lib/rules/index.d.ts",
+      "../node_modules/@types/estree/index.d.ts",
       "../node_modules/@types/json-schema/index.d.ts",
+      "../node_modules/@types/mocha/index.d.ts",
       "../node_modules/@types/node/assert.d.ts",
       "../node_modules/@types/node/async_hooks.d.ts",
       "../node_modules/@types/node/base.d.ts",

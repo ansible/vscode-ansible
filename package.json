@@ -19,7 +19,7 @@
   "activationEvents": [
     "onLanguage:ansible"
   ],
-  "main": "./client/dist/extension",
+  "main": "./client/out/extension",
   "contributes": {
     "configuration": {
       "type": "object",
@@ -149,9 +149,10 @@
     "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js",
     "webpack:dev": "npm run clean && webpack --mode development --config ./client/webpack.config.js && webpack --mode development --config ./server/webpack.config.js",
     "compile": "tsc -b",
-    "watch:client": "webpack --mode none --config ./client/webpack.config.js --watch",
-    "watch:server": "webpack --mode none --config ./server/webpack.config.js --watch",
-    "clean": "rimraf client/dist && rimraf server/dist",
+    "watch": "tsc -b -w",
+    "webpack:watch:client": "webpack --mode none --config ./client/webpack.config.js --watch",
+    "webpack:watch:server": "webpack --mode none --config ./server/webpack.config.js --watch",
+    "clean": "rimraf client/out && rimraf server/out",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
     "test-compile": "tsc -p ./"
   },

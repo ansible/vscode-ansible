@@ -13,6 +13,6 @@ module.exports = withDefaults({
   },
   output: {
     filename: 'extension.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'out'),
   },
 });

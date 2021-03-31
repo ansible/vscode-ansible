@@ -6,12 +6,12 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Launch Program",
-      "type": "node",
+      "name": "Launch Extension (quick)", // does not use webpack
+      "type": "extensionHost",
       "request": "launch",
-      "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/server/src/docsLibrary.ts",
-      "outFiles": ["${workspaceFolder}/server/dist/**/*.js"],
+      "runtimeExecutable": "${execPath}",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
       "preLaunchTask": "npm: watch"
     },
     {
@@ -20,16 +20,17 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/client/dist/**/*.js"],
-      "preLaunchTask": "watch"
+      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
+      "preLaunchTask": "Webpack Watch"
     },
     {
       "name": "Attach to Server",
       "type": "node",
       "request": "attach",
+      "timeout": 30000,
       "port": 6009,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/server/dist/**/*.js"]
+      "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
     }
     // {
     //   "name": "Language Server E2E Test",
@@ -47,7 +48,8 @@
   "compounds": [
     {
       "name": "Client + Server",
-      "configurations": ["Launch Extension", "Attach to Server"]
+      "stopAll": true,
+      "configurations": ["Launch Extension (quick)", "Attach to Server"]
     }
   ]
 }
