@@ -215,6 +215,42 @@ export async function getAnsibleMetadata(
   return metadata;
 }
 
+export function getDeclaredCollections(modulePath: Node[]): string[] {
+  const declaredCollections: string[] = [];
+  let blockPath: Node[] | undefined = modulePath;
+  let path: Node[] | undefined = modulePath;
+  while (blockPath) {
+    // traverse the YAML up through the Ansible blocks
+    path = blockPath;
+    blockPath = new AncestryBuilder(modulePath)
+      .parent(YAMLMap)
+      .parent(YAMLSeq)
+      .parentKey('block')
+      .getPath();
+  }
+  // now we should be at the tasks/pre_tasks/post_tasks level
+  path = new AncestryBuilder(path)
+    .parent(YAMLMap)
+    .parent(YAMLSeq)
+    .parentKey('collections')
+    .parent(Pair)
+    .getPath();
+
+  if (path) {
+    // we've found the collections declaration
+    const collectionsNode = (path[path.length - 1] as Pair).value;
+    if (collectionsNode instanceof YAMLSeq) {
+      for (const collectionNode of collectionsNode.items) {
+        if (collectionNode instanceof Scalar) {
+          declaredCollections.push(collectionNode.value);
+        }
+      }
+    }
+  }
+
+  return declaredCollections;
+}
+
 export function toLspRange(
   range: [number, number],
   textDocument: TextDocument

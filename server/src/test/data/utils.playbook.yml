@@ -1,0 +1,14 @@
+- name: Play name
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - mynamespace.mycollection
+  tasks:
+    - name: Task name
+      mymodule:
+        option1: value1
+    - name: Block name
+      block:
+        - name: Task2 name
+          mymodule2:
+            option1: value1

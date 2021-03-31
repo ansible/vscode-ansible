@@ -14,9 +14,9 @@
       "problemMatcher": ["$tsc"]
     },
     {
+      "label": "Clean",
       "type": "npm",
-      "script": "watch",
-      "isBackground": true,
+      "script": "clean",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -24,8 +24,74 @@
       "presentation": {
         "panel": "dedicated",
         "reveal": "never"
+      }
+    },
+    {
+      "label": "Server Build",
+      "type": "npm",
+      "script": "watch:server",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
       },
-      "problemMatcher": ["$tsc-watch"]
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never",
+        "group": "Build"
+      },
+      "problemMatcher": [
+        {
+          "base": "$ts-checker-eslint-webpack",
+          "background": {
+            // "activeOnStart": true,
+            "beginsPattern": {
+              "regexp": "asset server.js.*?"
+            },
+            "endsPattern": {
+              "regexp": "[Cc]ompiled (.*?successfully|with .*?error)|[Cc]ompilation .*?finished"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "Client Build",
+      "type": "npm",
+      "script": "watch:client",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never",
+        "group": "Build"
+      },
+      "problemMatcher": [
+        {
+          "base": "$ts-checker-eslint-webpack",
+          "background": {
+            "activeOnStart": true,
+            "beginsPattern": {
+              "regexp": "asset extension.js.*?"
+            },
+            "endsPattern": {
+              "regexp": "[Cc]ompiled (.*?successfully|with .*?error)|[Cc]ompilation .*?finished"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "label": "watch",
+      "dependsOn": ["Client Build", "Server Build"]
+    },
+    {
+      "label": "clean & watch",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Clean", "watch"]
     }
   ]
 }

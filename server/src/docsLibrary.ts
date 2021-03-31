@@ -92,7 +92,9 @@ export class DocsLibrary {
       const resultContents = {};
       for (const docFragmentName of module.rawDocumentation
         .extends_documentation_fragment) {
-        const docFragment = this.docFragments.get(docFragmentName);
+        const docFragment =
+          this.docFragments.get(docFragmentName) ||
+          this.docFragments.get(`ansible.builtin.${docFragmentName}`);
         if (docFragment) {
           module.fragments.push(docFragment); // currently used only as indicator
           _.mergeWith(

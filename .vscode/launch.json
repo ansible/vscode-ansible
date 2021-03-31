@@ -11,7 +11,7 @@
       "request": "launch",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/server/src/docsLibrary.ts",
-      "outFiles": ["${workspaceFolder}/server/out/**/*.js"],
+      "outFiles": ["${workspaceFolder}/server/dist/**/*.js"],
       "preLaunchTask": "npm: watch"
     },
     {
@@ -20,8 +20,8 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
-      "preLaunchTask": "npm: watch"
+      "outFiles": ["${workspaceFolder}/client/dist/**/*.js"],
+      "preLaunchTask": "watch"
     },
     {
       "name": "Attach to Server",
@@ -29,7 +29,7 @@
       "request": "attach",
       "port": 6009,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+      "outFiles": ["${workspaceRoot}/server/dist/**/*.js"]
     }
     // {
     //   "name": "Language Server E2E Test",

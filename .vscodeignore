@@ -1,4 +1,17 @@
 .vscode/**
 .vscode-test/**
 .gitignore
+**/.ignore
 vsc-extension-quickstart.md
+**/node_modules
+**/out
+**/src
+**/*.ts
+**/*.map
+**/tsconfig.json
+**/webpack.config.js
+
+client/**
+!client/dist/extension.js
+server/**
+!server/dist/server.js

@@ -1,35 +1,36 @@
 // Imported from:
 // https://github.com/samuelcolvin/jinjahtml-vscode/blob/b8fe444cbd838afb4962bb2446e67c85e0443675/language-configuration.json
 {
-    "comments": {
-        // symbols used for start and end a block comment. Remove this entry if your language does not support block comments
-        "lineComment": "#"
-    },
-    // symbols used as brackets
-    "brackets": [
-        ["{", "}"],
-        ["[", "]"],
-        ["(", ")"]
-    ],
-    // symbols that are auto closed when typing
-    "autoClosingPairs": [
-        ["[", "]"],
-        ["{", "}"],
-        ["\"", "\""],
-        ["'", "'"],
-        ["{{ ", " "] // curly braces are already auto-closed, this adds space at the end if one is added at the beginning
-    ],
-    // added `'` and `"` -> in Ansible this pattern is extremely common:
-    // `"{{ jinja_expression }}"`
-    // with default config, `"` gets auto-closed and with cursor in the middle (`"|"`), brace auto-closing would not work
-    "autoCloseBefore": "'\";:.,=}])> \n\t",
-    // symbols that can be used to surround a selection
-    "surroundingPairs": [
-        ["{", "}"],
-        ["[", "]"],
-        ["(", ")"],
-        ["\"", "\""],
-        ["'", "'"],
-        [" ", " "] // for spacing Jinja (and other) expressions; this setting might be a bit controversial ;)
-    ]
+  "comments": {
+    // symbols used for start and end a block comment. Remove this entry if your language does not support block comments
+    "lineComment": "#"
+  },
+  // symbols used as brackets
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"]
+  ],
+  // symbols that are auto closed when typing
+  "autoClosingPairs": [
+    ["[", "]"],
+    ["{", "}"],
+    ["(", ")"],
+    ["\"", "\""],
+    ["'", "'"],
+    ["{{ ", " "] // curly braces are already auto-closed, this adds space at the end if one is added at the beginning
+  ],
+  // added `'` and `"` -> in Ansible this pattern is extremely common:
+  // `"{{ jinja_expression }}"`
+  // with default config, `"` gets auto-closed and with cursor in the middle (`"|"`), brace auto-closing would not work
+  "autoCloseBefore": "'\";:.,=}])> \n\t",
+  // symbols that can be used to surround a selection
+  "surroundingPairs": [
+    ["{", "}"],
+    ["[", "]"],
+    ["(", ")"],
+    ["\"", "\""],
+    ["'", "'"],
+    [" ", " "] // for spacing Jinja (and other) expressions; this setting might be a bit controversial ;)
+  ]
 }
