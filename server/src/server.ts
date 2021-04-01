@@ -9,15 +9,15 @@ import {
   TextDocumentSyncKind,
   WorkspaceFolder,
 } from 'vscode-languageserver/node';
-import { AnsibleConfig } from './ansibleConfig';
-import { doCompletion } from './completionProvider';
-import { IContext } from './context';
-import { getDefinition } from './definitionProvider';
-import { DocsLibrary } from './docsLibrary';
-import { DocumentMetadata } from './documentMeta';
-import { doHover } from './hoverProvider';
-import { getAnsibleMetadata } from './utils';
-import { doValidate } from './validationProvider';
+import { AnsibleConfig } from './services/ansibleConfig';
+import { doCompletion } from './providers/completionProvider';
+import { IContext } from './interfaces/context';
+import { getDefinition } from './providers/definitionProvider';
+import { DocsLibrary } from './services/docsLibrary';
+import { IDocumentMetadata } from './interfaces/documentMeta';
+import { doHover } from './providers/hoverProvider';
+import { getAnsibleMetadata } from './utils/misc';
+import { doValidate } from './providers/validationProvider';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -101,7 +101,7 @@ let globalSettings: ExampleSettings = defaultSettings;
 
 // Cache the settings of all open documents
 const documentSettings: Map<string, Thenable<ExampleSettings>> = new Map();
-const documentMetadata: Map<string, Thenable<DocumentMetadata>> = new Map();
+const documentMetadata: Map<string, Thenable<IDocumentMetadata>> = new Map();
 
 connection.onDidChangeConfiguration((change) => {
   if (hasConfigurationCapability) {
@@ -162,7 +162,7 @@ connection.onDidChangeWatchedFiles((_change) => {
 });
 
 const ansibleConfig = new AnsibleConfig(connection);
-ansibleConfig.initialize(rootFolder?.uri);
+ansibleConfig.initialize();
 
 const context: IContext = {
   ansibleConfig: ansibleConfig,

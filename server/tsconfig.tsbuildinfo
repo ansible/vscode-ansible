@@ -161,315 +161,15 @@
         "signature": "89bf2b7a601b73ea4311eda9c41f86a58994fec1bee3b87c4a14d68d9adcdcbd",
         "affectsGlobalScope": true
       },
-      "./node_modules/@types/ini/index.d.ts": {
-        "version": "3cc26d1f94c768ae2896d3900ffa268e0657a332b399e94c1fb52da1f9e07625",
-        "signature": "3cc26d1f94c768ae2896d3900ffa268e0657a332b399e94c1fb52da1f9e07625",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/common.d.ts": {
-        "version": "3594c022901a1c8993b0f78a3f534cfb81e7b619ed215348f7f6882f3db02abc",
-        "signature": "3594c022901a1c8993b0f78a3f534cfb81e7b619ed215348f7f6882f3db02abc",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/array.d.ts": {
-        "version": "438284c7c455a29b9c0e2d1e72abc62ee93d9a163029ffe918a34c5db3b92da2",
-        "signature": "438284c7c455a29b9c0e2d1e72abc62ee93d9a163029ffe918a34c5db3b92da2",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/collection.d.ts": {
-        "version": "0c75b204aed9cf6ff1c7b4bed87a3ece0d9d6fc857a6350c0c95ed0c38c814e8",
-        "signature": "0c75b204aed9cf6ff1c7b4bed87a3ece0d9d6fc857a6350c0c95ed0c38c814e8",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/date.d.ts": {
-        "version": "187119ff4f9553676a884e296089e131e8cc01691c546273b1d0089c3533ce42",
-        "signature": "187119ff4f9553676a884e296089e131e8cc01691c546273b1d0089c3533ce42",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/function.d.ts": {
-        "version": "c9f396e71966bd3a890d8a36a6a497dbf260e9b868158ea7824d4b5421210afe",
-        "signature": "c9f396e71966bd3a890d8a36a6a497dbf260e9b868158ea7824d4b5421210afe",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/lang.d.ts": {
-        "version": "509235563ea2b939e1bbe92aae17e71e6a82ceab8f568b45fb4fce7d72523a32",
-        "signature": "509235563ea2b939e1bbe92aae17e71e6a82ceab8f568b45fb4fce7d72523a32",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/math.d.ts": {
-        "version": "9364c7566b0be2f7b70ff5285eb34686f83ccb01bda529b82d23b2a844653bfb",
-        "signature": "9364c7566b0be2f7b70ff5285eb34686f83ccb01bda529b82d23b2a844653bfb",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/number.d.ts": {
-        "version": "00baffbe8a2f2e4875367479489b5d43b5fc1429ecb4a4cc98cfc3009095f52a",
-        "signature": "00baffbe8a2f2e4875367479489b5d43b5fc1429ecb4a4cc98cfc3009095f52a",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/object.d.ts": {
-        "version": "c311349ec71bb69399ffc4092853e7d8a86c1ca39ddb4cd129e775c19d985793",
-        "signature": "c311349ec71bb69399ffc4092853e7d8a86c1ca39ddb4cd129e775c19d985793",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/seq.d.ts": {
-        "version": "3c92b6dfd43cc1c2485d9eba5ff0b74a19bb8725b692773ef1d66dac48cda4bd",
-        "signature": "3c92b6dfd43cc1c2485d9eba5ff0b74a19bb8725b692773ef1d66dac48cda4bd",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/string.d.ts": {
-        "version": "4908e4c00832b26ce77a629de8501b0e23a903c094f9e79a7fec313a15da796a",
-        "signature": "4908e4c00832b26ce77a629de8501b0e23a903c094f9e79a7fec313a15da796a",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/common/util.d.ts": {
-        "version": "2630a7cbb597e85d713b7ef47f2946d4280d3d4c02733282770741d40672b1a5",
-        "signature": "2630a7cbb597e85d713b7ef47f2946d4280d3d4c02733282770741d40672b1a5",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/@types/lodash/index.d.ts": {
-        "version": "0714e2046df66c0e93c3330d30dbc0565b3e8cd3ee302cf99e4ede6220e5fec8",
-        "signature": "0714e2046df66c0e93c3330d30dbc0565b3e8cd3ee302cf99e4ede6220e5fec8",
-        "affectsGlobalScope": true
-      },
-      "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts": {
-        "version": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
-        "signature": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/typings/thenable.d.ts": {
-        "version": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
-        "signature": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
-        "affectsGlobalScope": true
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/messages.d.ts": {
-        "version": "58bdd5fd93f39bae19f34924ad304608ee37b6c6b357a57823ddfd2585a56d0f",
-        "signature": "58bdd5fd93f39bae19f34924ad304608ee37b6c6b357a57823ddfd2585a56d0f",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/disposable.d.ts": {
-        "version": "f0745ab78e18a2befaf1d9951481973318722c4e2f33e859239f55fa999ff2b1",
-        "signature": "f0745ab78e18a2befaf1d9951481973318722c4e2f33e859239f55fa999ff2b1",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/events.d.ts": {
-        "version": "b61ebe734dabd3ca10247807bfa4585ed51c889282e5decd152eea86daea7383",
-        "signature": "b61ebe734dabd3ca10247807bfa4585ed51c889282e5decd152eea86daea7383",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/cancellation.d.ts": {
-        "version": "41a35a21d3c9c0450229cf41be783285f3c01edd84039a41ffd162d42a93a576",
-        "signature": "41a35a21d3c9c0450229cf41be783285f3c01edd84039a41ffd162d42a93a576",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/encoding.d.ts": {
-        "version": "ec9d55888e353f9b5cdda761308dffc7eeb6aa0b7b25d328c64d3776a1cf2a7e",
-        "signature": "ec9d55888e353f9b5cdda761308dffc7eeb6aa0b7b25d328c64d3776a1cf2a7e",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/ral.d.ts": {
-        "version": "9686c9ade71de53d81ee3e41ff7450d08bd08fff4f545af39e37eeda228745d6",
-        "signature": "9686c9ade71de53d81ee3e41ff7450d08bd08fff4f545af39e37eeda228745d6",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/messageReader.d.ts": {
-        "version": "78fbf5d1265bdca3b2e54323d63678e3f73fecf70c05d988966a683da4cdf2f8",
-        "signature": "78fbf5d1265bdca3b2e54323d63678e3f73fecf70c05d988966a683da4cdf2f8",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/messageWriter.d.ts": {
-        "version": "37c0fd48eb043fdc395435716585587815f63afc66159588db8ed6c25a5f0636",
-        "signature": "37c0fd48eb043fdc395435716585587815f63afc66159588db8ed6c25a5f0636",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/connection.d.ts": {
-        "version": "7cd0faa5800c730d5e9387a5ad312732d95d0a3bd5a67e266721f36ae1068a91",
-        "signature": "7cd0faa5800c730d5e9387a5ad312732d95d0a3bd5a67e266721f36ae1068a91",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/common/api.d.ts": {
-        "version": "03a931e4fb1e8b851a171b246a8aeba575fcdecde60c914b23f472af5beb29b0",
-        "signature": "03a931e4fb1e8b851a171b246a8aeba575fcdecde60c914b23f472af5beb29b0",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/messages.d.ts": {
-        "version": "f22230ec7c2b08a8f8dc110bacd30c910701cb7347b3129b9cf12f6e28130656",
-        "signature": "f22230ec7c2b08a8f8dc110bacd30c910701cb7347b3129b9cf12f6e28130656",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.implementation.d.ts": {
-        "version": "73623979b2b6f47b9af0efea985d91197a3c3303466ed786163757f0aa6b45bc",
-        "signature": "73623979b2b6f47b9af0efea985d91197a3c3303466ed786163757f0aa6b45bc",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.typeDefinition.d.ts": {
-        "version": "ad91f5cc45805d17ac94b01428f82b182c6ff0ebe6343d72fd298945478d203d",
-        "signature": "ad91f5cc45805d17ac94b01428f82b182c6ff0ebe6343d72fd298945478d203d",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.workspaceFolders.d.ts": {
-        "version": "df4ba08679bfd850b787d662118aae3c4741dcaa661cf8689a768dab462cfd90",
-        "signature": "df4ba08679bfd850b787d662118aae3c4741dcaa661cf8689a768dab462cfd90",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.configuration.d.ts": {
-        "version": "4acc4bccbdec774c58992a87f3ac2731f9d38c821520d06b4d53911898d0e3ec",
-        "signature": "4acc4bccbdec774c58992a87f3ac2731f9d38c821520d06b4d53911898d0e3ec",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.colorProvider.d.ts": {
-        "version": "94d6422d3c3faf923fbdff1ce7457a25f9b0b55e8a2fe0fefa8bfa7a89cf6676",
-        "signature": "94d6422d3c3faf923fbdff1ce7457a25f9b0b55e8a2fe0fefa8bfa7a89cf6676",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.foldingRange.d.ts": {
-        "version": "1c775cb43c5edae0a7b4a5e543c07baab07f751e5cccc60a22c5bc3f6e38309c",
-        "signature": "1c775cb43c5edae0a7b4a5e543c07baab07f751e5cccc60a22c5bc3f6e38309c",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.declaration.d.ts": {
-        "version": "0eef4cf077011e3d1839dfb93ab894cd611cf552c26eb995c822e8d9b71d93a1",
-        "signature": "0eef4cf077011e3d1839dfb93ab894cd611cf552c26eb995c822e8d9b71d93a1",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.selectionRange.d.ts": {
-        "version": "f356e7999affebf5745d8ffdf0cb70426bc966da461166408099e4dac35e98c2",
-        "signature": "f356e7999affebf5745d8ffdf0cb70426bc966da461166408099e4dac35e98c2",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.progress.d.ts": {
-        "version": "254265a792bdf31050dc2524733465d3ace0b179779e1ff8a97b2752a9b56656",
-        "signature": "254265a792bdf31050dc2524733465d3ace0b179779e1ff8a97b2752a9b56656",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.callHierarchy.d.ts": {
-        "version": "1b85664bf562d2d216d71b940d8097600b4ed626f67528c868ced65dbe7288e6",
-        "signature": "1b85664bf562d2d216d71b940d8097600b4ed626f67528c868ced65dbe7288e6",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.semanticTokens.d.ts": {
-        "version": "7891c7290f213b63911a1391b3dfe08c9bfa54d401f28e167d0c57553eee80c0",
-        "signature": "7891c7290f213b63911a1391b3dfe08c9bfa54d401f28e167d0c57553eee80c0",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.showDocument.d.ts": {
-        "version": "707db20cf8a4ee166e63861c0a7d355b44595555e0248565479e745f6c1034d0",
-        "signature": "707db20cf8a4ee166e63861c0a7d355b44595555e0248565479e745f6c1034d0",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.linkedEditingRange.d.ts": {
-        "version": "2a9788e7789f4ab603d4d3982fe5a98ff51b699b8ec4653fceb3192e147337dc",
-        "signature": "2a9788e7789f4ab603d4d3982fe5a98ff51b699b8ec4653fceb3192e147337dc",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.fileOperations.d.ts": {
-        "version": "5bee6b675b1a0ece9d5082d438e923f112343685d4bc54b20a4dfbed09dbe323",
-        "signature": "5bee6b675b1a0ece9d5082d438e923f112343685d4bc54b20a4dfbed09dbe323",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.moniker.d.ts": {
-        "version": "ebd7209e5b648af7b6e3677280368b3c8ccef579a27c2386f7f5d376f1e14533",
-        "signature": "ebd7209e5b648af7b6e3677280368b3c8ccef579a27c2386f7f5d376f1e14533",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.d.ts": {
-        "version": "60f5fe888f5364424f9cdf43eef013cdcd6827cbec1d6d20fa191f5ebe827afd",
-        "signature": "60f5fe888f5364424f9cdf43eef013cdcd6827cbec1d6d20fa191f5ebe827afd",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/connection.d.ts": {
-        "version": "aca0e55a2961b519f8857517e2cdf6085f024bb10c6961e120c80b76569fc4d7",
-        "signature": "aca0e55a2961b519f8857517e2cdf6085f024bb10c6961e120c80b76569fc4d7",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/common/api.d.ts": {
-        "version": "26245b1b8452c300347a31b37a052c3244a36393dec03facfa4b31a8d8687184",
-        "signature": "26245b1b8452c300347a31b37a052c3244a36393dec03facfa4b31a8d8687184",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/progress.d.ts": {
-        "version": "f1f23acd4a8193453749f69d4432f5f122d6d572b793a8b630dd12fe80b0c3d3",
-        "signature": "f1f23acd4a8193453749f69d4432f5f122d6d572b793a8b630dd12fe80b0c3d3",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/configuration.d.ts": {
-        "version": "7662d6994d28c9ebbe61b88cc35c3d705804351eedbf363df30ea9fe8c4961dc",
-        "signature": "7662d6994d28c9ebbe61b88cc35c3d705804351eedbf363df30ea9fe8c4961dc",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/workspaceFolders.d.ts": {
-        "version": "1fb68106bddae35448e5279095461a4b54c4bbb42787cd629f70924b17e9a11e",
-        "signature": "1fb68106bddae35448e5279095461a4b54c4bbb42787cd629f70924b17e9a11e",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/callHierarchy.d.ts": {
-        "version": "9acd551d1b5fb8a4ea4bfd65e8fcc8beca89a4b98fc1a9321924308256383565",
-        "signature": "9acd551d1b5fb8a4ea4bfd65e8fcc8beca89a4b98fc1a9321924308256383565",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/semanticTokens.d.ts": {
-        "version": "a7024322dc86e43685c5564b438decad7557de62baae80b062fee78752c3b2f4",
-        "signature": "a7024322dc86e43685c5564b438decad7557de62baae80b062fee78752c3b2f4",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/showDocument.d.ts": {
-        "version": "351bbf43d585484825ee6c4b4805aac137ffc8e8a3b9812af99945a202db7c02",
-        "signature": "351bbf43d585484825ee6c4b4805aac137ffc8e8a3b9812af99945a202db7c02",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/fileOperations.d.ts": {
-        "version": "a0116a0ba37624acef486fba35bd5530c8c25415798c8908a35e5f72913d2365",
-        "signature": "a0116a0ba37624acef486fba35bd5530c8c25415798c8908a35e5f72913d2365",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/linkedEditingRange.d.ts": {
-        "version": "3bd2fc1b877ba4f9c91fca3231333471f3ff0edf85e146eaafdff2bc42c9a44c",
-        "signature": "3bd2fc1b877ba4f9c91fca3231333471f3ff0edf85e146eaafdff2bc42c9a44c",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/moniker.d.ts": {
-        "version": "387a6dc0d57a9f602d0d7f2f4ba88b65540c1c19d84088157610ca0176793a03",
-        "signature": "387a6dc0d57a9f602d0d7f2f4ba88b65540c1c19d84088157610ca0176793a03",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/server.d.ts": {
-        "version": "7078f6149d25fa110b2bd24dece6754520e5984a2dd014875bef7ebe91016617",
-        "signature": "7078f6149d25fa110b2bd24dece6754520e5984a2dd014875bef7ebe91016617",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/common/api.d.ts": {
-        "version": "3b4ba8322f73cc571cd57e55199b909e04b5da79d00d58a3a20fd71463f8c081",
-        "signature": "3b4ba8322f73cc571cd57e55199b909e04b5da79d00d58a3a20fd71463f8c081",
-        "affectsGlobalScope": false
-      },
-      "./src/ansibleConfig.ts": {
-        "version": "9005f621fe61966539cda57f2af16e814c05bab3ecf7c68c3e3dcbc2f1593678",
-        "signature": "c42f1825b97bf1b2b8debd53aeb3e0c59079f02bf097fd146d4f1cd5e9b0f579",
-        "affectsGlobalScope": false
-      },
       "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts": {
         "version": "21f9731fc2e8e009fdaef137a04546c27877314c748c6702fe9329518fb16538",
         "signature": "21f9731fc2e8e009fdaef137a04546c27877314c748c6702fe9329518fb16538",
         "affectsGlobalScope": false
       },
-      "./node_modules/yaml/types.d.ts": {
-        "version": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
-        "signature": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/yaml/util.d.ts": {
-        "version": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
-        "signature": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/yaml/parse-cst.d.ts": {
-        "version": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
-        "signature": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/yaml/index.d.ts": {
-        "version": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
-        "signature": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
-        "affectsGlobalScope": false
+      "./node_modules/vscode-languageserver/typings/thenable.d.ts": {
+        "version": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
+        "signature": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
+        "affectsGlobalScope": true
       },
       "../node_modules/@types/node/globals.d.ts": {
         "version": "e9a43c3ee6fb8376bb9a4d318a660412c6abcfe5161c106e801e5431b41b7476",
@@ -706,6 +406,361 @@
         "signature": "9c4c395e927045b324877acdc4bfb95f128f36bc9f073266a2f0342495075a4f",
         "affectsGlobalScope": false
       },
+      "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts": {
+        "version": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
+        "signature": "a337b9716b16c46e80a8810209cb162d32af16c6c93b331edcc01cdce5d82eba",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/typings/thenable.d.ts": {
+        "version": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
+        "signature": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
+        "affectsGlobalScope": true
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/messages.d.ts": {
+        "version": "58bdd5fd93f39bae19f34924ad304608ee37b6c6b357a57823ddfd2585a56d0f",
+        "signature": "58bdd5fd93f39bae19f34924ad304608ee37b6c6b357a57823ddfd2585a56d0f",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/disposable.d.ts": {
+        "version": "f0745ab78e18a2befaf1d9951481973318722c4e2f33e859239f55fa999ff2b1",
+        "signature": "f0745ab78e18a2befaf1d9951481973318722c4e2f33e859239f55fa999ff2b1",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/events.d.ts": {
+        "version": "b61ebe734dabd3ca10247807bfa4585ed51c889282e5decd152eea86daea7383",
+        "signature": "b61ebe734dabd3ca10247807bfa4585ed51c889282e5decd152eea86daea7383",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/cancellation.d.ts": {
+        "version": "41a35a21d3c9c0450229cf41be783285f3c01edd84039a41ffd162d42a93a576",
+        "signature": "41a35a21d3c9c0450229cf41be783285f3c01edd84039a41ffd162d42a93a576",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/encoding.d.ts": {
+        "version": "ec9d55888e353f9b5cdda761308dffc7eeb6aa0b7b25d328c64d3776a1cf2a7e",
+        "signature": "ec9d55888e353f9b5cdda761308dffc7eeb6aa0b7b25d328c64d3776a1cf2a7e",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/ral.d.ts": {
+        "version": "9686c9ade71de53d81ee3e41ff7450d08bd08fff4f545af39e37eeda228745d6",
+        "signature": "9686c9ade71de53d81ee3e41ff7450d08bd08fff4f545af39e37eeda228745d6",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/messageReader.d.ts": {
+        "version": "78fbf5d1265bdca3b2e54323d63678e3f73fecf70c05d988966a683da4cdf2f8",
+        "signature": "78fbf5d1265bdca3b2e54323d63678e3f73fecf70c05d988966a683da4cdf2f8",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/messageWriter.d.ts": {
+        "version": "37c0fd48eb043fdc395435716585587815f63afc66159588db8ed6c25a5f0636",
+        "signature": "37c0fd48eb043fdc395435716585587815f63afc66159588db8ed6c25a5f0636",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/connection.d.ts": {
+        "version": "7cd0faa5800c730d5e9387a5ad312732d95d0a3bd5a67e266721f36ae1068a91",
+        "signature": "7cd0faa5800c730d5e9387a5ad312732d95d0a3bd5a67e266721f36ae1068a91",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/common/api.d.ts": {
+        "version": "03a931e4fb1e8b851a171b246a8aeba575fcdecde60c914b23f472af5beb29b0",
+        "signature": "03a931e4fb1e8b851a171b246a8aeba575fcdecde60c914b23f472af5beb29b0",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/messages.d.ts": {
+        "version": "f22230ec7c2b08a8f8dc110bacd30c910701cb7347b3129b9cf12f6e28130656",
+        "signature": "f22230ec7c2b08a8f8dc110bacd30c910701cb7347b3129b9cf12f6e28130656",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.implementation.d.ts": {
+        "version": "73623979b2b6f47b9af0efea985d91197a3c3303466ed786163757f0aa6b45bc",
+        "signature": "73623979b2b6f47b9af0efea985d91197a3c3303466ed786163757f0aa6b45bc",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.typeDefinition.d.ts": {
+        "version": "ad91f5cc45805d17ac94b01428f82b182c6ff0ebe6343d72fd298945478d203d",
+        "signature": "ad91f5cc45805d17ac94b01428f82b182c6ff0ebe6343d72fd298945478d203d",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.workspaceFolders.d.ts": {
+        "version": "df4ba08679bfd850b787d662118aae3c4741dcaa661cf8689a768dab462cfd90",
+        "signature": "df4ba08679bfd850b787d662118aae3c4741dcaa661cf8689a768dab462cfd90",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.configuration.d.ts": {
+        "version": "4acc4bccbdec774c58992a87f3ac2731f9d38c821520d06b4d53911898d0e3ec",
+        "signature": "4acc4bccbdec774c58992a87f3ac2731f9d38c821520d06b4d53911898d0e3ec",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.colorProvider.d.ts": {
+        "version": "94d6422d3c3faf923fbdff1ce7457a25f9b0b55e8a2fe0fefa8bfa7a89cf6676",
+        "signature": "94d6422d3c3faf923fbdff1ce7457a25f9b0b55e8a2fe0fefa8bfa7a89cf6676",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.foldingRange.d.ts": {
+        "version": "1c775cb43c5edae0a7b4a5e543c07baab07f751e5cccc60a22c5bc3f6e38309c",
+        "signature": "1c775cb43c5edae0a7b4a5e543c07baab07f751e5cccc60a22c5bc3f6e38309c",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.declaration.d.ts": {
+        "version": "0eef4cf077011e3d1839dfb93ab894cd611cf552c26eb995c822e8d9b71d93a1",
+        "signature": "0eef4cf077011e3d1839dfb93ab894cd611cf552c26eb995c822e8d9b71d93a1",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.selectionRange.d.ts": {
+        "version": "f356e7999affebf5745d8ffdf0cb70426bc966da461166408099e4dac35e98c2",
+        "signature": "f356e7999affebf5745d8ffdf0cb70426bc966da461166408099e4dac35e98c2",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.progress.d.ts": {
+        "version": "254265a792bdf31050dc2524733465d3ace0b179779e1ff8a97b2752a9b56656",
+        "signature": "254265a792bdf31050dc2524733465d3ace0b179779e1ff8a97b2752a9b56656",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.callHierarchy.d.ts": {
+        "version": "1b85664bf562d2d216d71b940d8097600b4ed626f67528c868ced65dbe7288e6",
+        "signature": "1b85664bf562d2d216d71b940d8097600b4ed626f67528c868ced65dbe7288e6",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.semanticTokens.d.ts": {
+        "version": "7891c7290f213b63911a1391b3dfe08c9bfa54d401f28e167d0c57553eee80c0",
+        "signature": "7891c7290f213b63911a1391b3dfe08c9bfa54d401f28e167d0c57553eee80c0",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.showDocument.d.ts": {
+        "version": "707db20cf8a4ee166e63861c0a7d355b44595555e0248565479e745f6c1034d0",
+        "signature": "707db20cf8a4ee166e63861c0a7d355b44595555e0248565479e745f6c1034d0",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.linkedEditingRange.d.ts": {
+        "version": "2a9788e7789f4ab603d4d3982fe5a98ff51b699b8ec4653fceb3192e147337dc",
+        "signature": "2a9788e7789f4ab603d4d3982fe5a98ff51b699b8ec4653fceb3192e147337dc",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.fileOperations.d.ts": {
+        "version": "5bee6b675b1a0ece9d5082d438e923f112343685d4bc54b20a4dfbed09dbe323",
+        "signature": "5bee6b675b1a0ece9d5082d438e923f112343685d4bc54b20a4dfbed09dbe323",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.moniker.d.ts": {
+        "version": "ebd7209e5b648af7b6e3677280368b3c8ccef579a27c2386f7f5d376f1e14533",
+        "signature": "ebd7209e5b648af7b6e3677280368b3c8ccef579a27c2386f7f5d376f1e14533",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/protocol.d.ts": {
+        "version": "60f5fe888f5364424f9cdf43eef013cdcd6827cbec1d6d20fa191f5ebe827afd",
+        "signature": "60f5fe888f5364424f9cdf43eef013cdcd6827cbec1d6d20fa191f5ebe827afd",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/connection.d.ts": {
+        "version": "aca0e55a2961b519f8857517e2cdf6085f024bb10c6961e120c80b76569fc4d7",
+        "signature": "aca0e55a2961b519f8857517e2cdf6085f024bb10c6961e120c80b76569fc4d7",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/common/api.d.ts": {
+        "version": "26245b1b8452c300347a31b37a052c3244a36393dec03facfa4b31a8d8687184",
+        "signature": "26245b1b8452c300347a31b37a052c3244a36393dec03facfa4b31a8d8687184",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/progress.d.ts": {
+        "version": "f1f23acd4a8193453749f69d4432f5f122d6d572b793a8b630dd12fe80b0c3d3",
+        "signature": "f1f23acd4a8193453749f69d4432f5f122d6d572b793a8b630dd12fe80b0c3d3",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/configuration.d.ts": {
+        "version": "7662d6994d28c9ebbe61b88cc35c3d705804351eedbf363df30ea9fe8c4961dc",
+        "signature": "7662d6994d28c9ebbe61b88cc35c3d705804351eedbf363df30ea9fe8c4961dc",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/workspaceFolders.d.ts": {
+        "version": "1fb68106bddae35448e5279095461a4b54c4bbb42787cd629f70924b17e9a11e",
+        "signature": "1fb68106bddae35448e5279095461a4b54c4bbb42787cd629f70924b17e9a11e",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/callHierarchy.d.ts": {
+        "version": "9acd551d1b5fb8a4ea4bfd65e8fcc8beca89a4b98fc1a9321924308256383565",
+        "signature": "9acd551d1b5fb8a4ea4bfd65e8fcc8beca89a4b98fc1a9321924308256383565",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/semanticTokens.d.ts": {
+        "version": "a7024322dc86e43685c5564b438decad7557de62baae80b062fee78752c3b2f4",
+        "signature": "a7024322dc86e43685c5564b438decad7557de62baae80b062fee78752c3b2f4",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/showDocument.d.ts": {
+        "version": "351bbf43d585484825ee6c4b4805aac137ffc8e8a3b9812af99945a202db7c02",
+        "signature": "351bbf43d585484825ee6c4b4805aac137ffc8e8a3b9812af99945a202db7c02",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/fileOperations.d.ts": {
+        "version": "a0116a0ba37624acef486fba35bd5530c8c25415798c8908a35e5f72913d2365",
+        "signature": "a0116a0ba37624acef486fba35bd5530c8c25415798c8908a35e5f72913d2365",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/linkedEditingRange.d.ts": {
+        "version": "3bd2fc1b877ba4f9c91fca3231333471f3ff0edf85e146eaafdff2bc42c9a44c",
+        "signature": "3bd2fc1b877ba4f9c91fca3231333471f3ff0edf85e146eaafdff2bc42c9a44c",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/moniker.d.ts": {
+        "version": "387a6dc0d57a9f602d0d7f2f4ba88b65540c1c19d84088157610ca0176793a03",
+        "signature": "387a6dc0d57a9f602d0d7f2f4ba88b65540c1c19d84088157610ca0176793a03",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/server.d.ts": {
+        "version": "7078f6149d25fa110b2bd24dece6754520e5984a2dd014875bef7ebe91016617",
+        "signature": "7078f6149d25fa110b2bd24dece6754520e5984a2dd014875bef7ebe91016617",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/node/files.d.ts": {
+        "version": "a58402dc75738c188a741ccca86ccf898b0af98d305ad075c428171f193a6cd5",
+        "signature": "a58402dc75738c188a741ccca86ccf898b0af98d305ad075c428171f193a6cd5",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/lib/node/main.d.ts": {
+        "version": "ddccf0a48338cac642e93bfdb563494dad6e05b70ef0e6e3605a454db88ca57e",
+        "signature": "ddccf0a48338cac642e93bfdb563494dad6e05b70ef0e6e3605a454db88ca57e",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-jsonrpc/node.d.ts": {
+        "version": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+        "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/lib/node/main.d.ts": {
+        "version": "d789022bf705385490fe89811bc7850225c207f37dd706ada2509eb1d8f31f12",
+        "signature": "d789022bf705385490fe89811bc7850225c207f37dd706ada2509eb1d8f31f12",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver-protocol/node.d.ts": {
+        "version": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+        "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/common/api.d.ts": {
+        "version": "3b4ba8322f73cc571cd57e55199b909e04b5da79d00d58a3a20fd71463f8c081",
+        "signature": "3b4ba8322f73cc571cd57e55199b909e04b5da79d00d58a3a20fd71463f8c081",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/lib/node/main.d.ts": {
+        "version": "cf1532b11d5ec78f63dc4d0c985353b281b4a09e91d35f63fb9aba42e36674ab",
+        "signature": "cf1532b11d5ec78f63dc4d0c985353b281b4a09e91d35f63fb9aba42e36674ab",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/vscode-languageserver/node.d.ts": {
+        "version": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+        "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/ini/index.d.ts": {
+        "version": "3cc26d1f94c768ae2896d3900ffa268e0657a332b399e94c1fb52da1f9e07625",
+        "signature": "3cc26d1f94c768ae2896d3900ffa268e0657a332b399e94c1fb52da1f9e07625",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/common.d.ts": {
+        "version": "3594c022901a1c8993b0f78a3f534cfb81e7b619ed215348f7f6882f3db02abc",
+        "signature": "3594c022901a1c8993b0f78a3f534cfb81e7b619ed215348f7f6882f3db02abc",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/array.d.ts": {
+        "version": "438284c7c455a29b9c0e2d1e72abc62ee93d9a163029ffe918a34c5db3b92da2",
+        "signature": "438284c7c455a29b9c0e2d1e72abc62ee93d9a163029ffe918a34c5db3b92da2",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/collection.d.ts": {
+        "version": "0c75b204aed9cf6ff1c7b4bed87a3ece0d9d6fc857a6350c0c95ed0c38c814e8",
+        "signature": "0c75b204aed9cf6ff1c7b4bed87a3ece0d9d6fc857a6350c0c95ed0c38c814e8",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/date.d.ts": {
+        "version": "187119ff4f9553676a884e296089e131e8cc01691c546273b1d0089c3533ce42",
+        "signature": "187119ff4f9553676a884e296089e131e8cc01691c546273b1d0089c3533ce42",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/function.d.ts": {
+        "version": "c9f396e71966bd3a890d8a36a6a497dbf260e9b868158ea7824d4b5421210afe",
+        "signature": "c9f396e71966bd3a890d8a36a6a497dbf260e9b868158ea7824d4b5421210afe",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/lang.d.ts": {
+        "version": "509235563ea2b939e1bbe92aae17e71e6a82ceab8f568b45fb4fce7d72523a32",
+        "signature": "509235563ea2b939e1bbe92aae17e71e6a82ceab8f568b45fb4fce7d72523a32",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/math.d.ts": {
+        "version": "9364c7566b0be2f7b70ff5285eb34686f83ccb01bda529b82d23b2a844653bfb",
+        "signature": "9364c7566b0be2f7b70ff5285eb34686f83ccb01bda529b82d23b2a844653bfb",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/number.d.ts": {
+        "version": "00baffbe8a2f2e4875367479489b5d43b5fc1429ecb4a4cc98cfc3009095f52a",
+        "signature": "00baffbe8a2f2e4875367479489b5d43b5fc1429ecb4a4cc98cfc3009095f52a",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/object.d.ts": {
+        "version": "c311349ec71bb69399ffc4092853e7d8a86c1ca39ddb4cd129e775c19d985793",
+        "signature": "c311349ec71bb69399ffc4092853e7d8a86c1ca39ddb4cd129e775c19d985793",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/seq.d.ts": {
+        "version": "3c92b6dfd43cc1c2485d9eba5ff0b74a19bb8725b692773ef1d66dac48cda4bd",
+        "signature": "3c92b6dfd43cc1c2485d9eba5ff0b74a19bb8725b692773ef1d66dac48cda4bd",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/string.d.ts": {
+        "version": "4908e4c00832b26ce77a629de8501b0e23a903c094f9e79a7fec313a15da796a",
+        "signature": "4908e4c00832b26ce77a629de8501b0e23a903c094f9e79a7fec313a15da796a",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/common/util.d.ts": {
+        "version": "2630a7cbb597e85d713b7ef47f2946d4280d3d4c02733282770741d40672b1a5",
+        "signature": "2630a7cbb597e85d713b7ef47f2946d4280d3d4c02733282770741d40672b1a5",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/@types/lodash/index.d.ts": {
+        "version": "0714e2046df66c0e93c3330d30dbc0565b3e8cd3ee302cf99e4ede6220e5fec8",
+        "signature": "0714e2046df66c0e93c3330d30dbc0565b3e8cd3ee302cf99e4ede6220e5fec8",
+        "affectsGlobalScope": true
+      },
+      "./src/services/ansibleConfig.ts": {
+        "version": "97cbe91e6fa2739882a4851a56df173224e22dcb65f37ca636c7cab51d29e66f",
+        "signature": "37ebf09ca9068ea5f44c74277720e0d7e834a3a92aaa4d687ecc8a027ca17da9",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/types.d.ts": {
+        "version": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
+        "signature": "c3a8e97bce8330542633139409885c529c46ff9bcf8fda0dc28a7c8fdda41e24",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/util.d.ts": {
+        "version": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
+        "signature": "4d99772cffbb09646a934867ca42d77337dc3cfd591b648b78fc0b6e09e2d88d",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/parse-cst.d.ts": {
+        "version": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
+        "signature": "8f6d0753317a18771a5b8bd5f3d143110d224de5813ca19e04a87733885e73cd",
+        "affectsGlobalScope": false
+      },
+      "./node_modules/yaml/index.d.ts": {
+        "version": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
+        "signature": "2752e1ab9e145dd1132d1e45d29b9d14aff9c46959f502ef77ea83e6c3d54e49",
+        "affectsGlobalScope": false
+      },
+      "./src/interfaces/documentMeta.ts": {
+        "version": "65c83d46301e0ab9ed2c4b03620c5240c36a60241c2e1578ac1a4236e5726d7a",
+        "signature": "cd260003e2b3cc7539f419be3c2d3fbd17dfdca742490c9377703703b56bc199",
+        "affectsGlobalScope": false
+      },
+      "./src/interfaces/context.ts": {
+        "version": "da9be63575d4f645112c8773f1575992ec85bbff3ae1f35515256177d5bb1298",
+        "signature": "76bab451bfa703ca94be5f6daf7a97f44d9ea82bb1f164113b728554cb3fd71e",
+        "affectsGlobalScope": false
+      },
+      "./src/utils/misc.ts": {
+        "version": "1d8b6c5802b70a95aca8dd51dee80f3660ef81447a63f8288d126e26c306e625",
+        "signature": "f7f8d7896e37fb0e062ce20fac8bcfbaad1787b2125c0b3cf682c9d4ed360449",
+        "affectsGlobalScope": false
+      },
       "./node_modules/@nodelib/fs.scandir/out/adapters/fs.d.ts": {
         "version": "6cee571d9f8ea88d197d1614e5cf328391e96dff69ca61ab5299a630d0c65822",
         "signature": "6cee571d9f8ea88d197d1614e5cf328391e96dff69ca61ab5299a630d0c65822",
@@ -811,89 +866,39 @@
         "signature": "a93850a7116629f9ff482871d44c1b348aa708cbb3be3beece2bc1be2ac01b47",
         "affectsGlobalScope": false
       },
-      "./src/docsParser.ts": {
-        "version": "92d8da99d2d08c61837310f4e88f6532bb5bb0479dc175dc5c43e442b434fc7c",
+      "./src/services/docsParser.ts": {
+        "version": "c8af76d170c60bc109db2dfe6bfb89aa0b43a46d2fb8fa479d527c539004f7a7",
         "signature": "79ec5df879e0f47c4c00d7084dab37a950f43747ac7548a41c448e77816d9c0a",
         "affectsGlobalScope": false
       },
-      "./src/documentMeta.ts": {
-        "version": "0762b71d84f64011f2d1e49129d8add6c1828fd6af782b19a1507586f4017db8",
-        "signature": "deab2fffbcebd2149aa3a6d98cf2bb25d4ff9bcadf94a5cfe49851a8c07fb964",
+      "./src/services/docsLibrary.ts": {
+        "version": "ac54e886d54ca01673893efe18e2cc762295490c72a87d1c6a3abc9afd9ee889",
+        "signature": "a81374c51b5a9d9c71ac59627261aed94fecb22cc270e89d4be663fce5a56d98",
         "affectsGlobalScope": false
       },
-      "./src/context.ts": {
-        "version": "053e75936c7e88b1e36d7cda7f0585651e0dc649118eb80f9e395300ab5b89cd",
-        "signature": "d0c0218c22eeb33db1e46ab9f1a3be2d0baf14a50932b080c84d5e6ea79e0d35",
+      "./src/utils/docsFormatter.ts": {
+        "version": "b7c19dca9097453c1468dcf5b407792e1444ebe49be732821c0f0ec5d032ef08",
+        "signature": "bfaa86d7710e8c00f4de05c8e52eb4423fbdb7e0eee94b4566d6f303e1c56258",
         "affectsGlobalScope": false
       },
-      "./src/utils.ts": {
-        "version": "659aff0d1a39c82424b520e9092193e5855d4cfc2baee1e50f3261342dd6f02e",
-        "signature": "d70c68c6d98a041c0f8fab8d01dfac424a280aa5c52b25645c17a42e5ec23387",
+      "./src/utils/yaml.ts": {
+        "version": "e7229bad0d8fa268dc41db7678f17a962572e2b89ec3133d8ed54d9a7087be48",
+        "signature": "2fbbddee69fe9b287bdb5a20cf755bcda34c3cf8414ef341556120999a46a185",
         "affectsGlobalScope": false
       },
-      "./src/docsLibrary.ts": {
-        "version": "5acc6b6a2fec19dc4aa12ff54b0b4c8b6bf34b0a672fcfe6f9adc4395190da65",
-        "signature": "541240e117c34af937c82f724d56ccd48dc61fa400f6ca21da3ef356278c8aed",
+      "./src/providers/completionProvider.ts": {
+        "version": "e97cad1c96a6efef88279a477a64231c55406b13197e4822d976f495398247d4",
+        "signature": "4f1dd15211c12749867e92b42be33b473fce62af8e1d5785d2003d2475b405c9",
         "affectsGlobalScope": false
       },
-      "./src/docsFormatter.ts": {
-        "version": "6ee3e24700cc4890ab57bee2c148c75fd3231c4e82d1a63819bdcd13404b4d2d",
-        "signature": "e48a74c99ea25386a403faaa32831b96cc4ad663574974900cb7b51e039d12be",
+      "./src/providers/definitionProvider.ts": {
+        "version": "c5324bd7383f1700a3b0807aa01f52a99508629dbfd109eb61a8a392b314b69d",
+        "signature": "1565a5530090b634c238a8e11c0622dfaa1914892166b3380d66b6af2ea11b2a",
         "affectsGlobalScope": false
       },
-      "./src/completionProvider.ts": {
-        "version": "bd159cecda03443fdbba6274e7058dfe2da1b4fe0a82e841fa1b6ed9501a3415",
-        "signature": "9a36570ce874b967550b3698bf4df92f071e9a0e174bf03f49a37cae6b26ef9d",
-        "affectsGlobalScope": false
-      },
-      "./src/definitionProvider.ts": {
-        "version": "2991723921466a63786bb3feef730c64a9bf9fe8636cc20fbd0ff920c99f61f0",
-        "signature": "fec2bb71409e9035906790291f3bb7e9a3f06a26496454c9768891e8d73811fb",
-        "affectsGlobalScope": false
-      },
-      "./src/hoverProvider.ts": {
-        "version": "92dc32cf1b70f68dca438d438ac9b378ceabe86c6e8f033ca133322cb31b4e59",
-        "signature": "a988a2624e664f9098da756cb24a8c496bb6d7ac89f9c31eef4ba00d10e6dd60",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/typings/thenable.d.ts": {
-        "version": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
-        "signature": "65b9243c80068ec9696b1fbdd23c9acf80d51df02f97b2d7a0514312b0a9fe7d",
-        "affectsGlobalScope": true
-      },
-      "./node_modules/vscode-languageserver/lib/node/files.d.ts": {
-        "version": "a58402dc75738c188a741ccca86ccf898b0af98d305ad075c428171f193a6cd5",
-        "signature": "a58402dc75738c188a741ccca86ccf898b0af98d305ad075c428171f193a6cd5",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/lib/node/main.d.ts": {
-        "version": "ddccf0a48338cac642e93bfdb563494dad6e05b70ef0e6e3605a454db88ca57e",
-        "signature": "ddccf0a48338cac642e93bfdb563494dad6e05b70ef0e6e3605a454db88ca57e",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-jsonrpc/node.d.ts": {
-        "version": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
-        "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/lib/node/main.d.ts": {
-        "version": "d789022bf705385490fe89811bc7850225c207f37dd706ada2509eb1d8f31f12",
-        "signature": "d789022bf705385490fe89811bc7850225c207f37dd706ada2509eb1d8f31f12",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver-protocol/node.d.ts": {
-        "version": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
-        "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/lib/node/main.d.ts": {
-        "version": "cf1532b11d5ec78f63dc4d0c985353b281b4a09e91d35f63fb9aba42e36674ab",
-        "signature": "cf1532b11d5ec78f63dc4d0c985353b281b4a09e91d35f63fb9aba42e36674ab",
-        "affectsGlobalScope": false
-      },
-      "./node_modules/vscode-languageserver/node.d.ts": {
-        "version": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
-        "signature": "9c98df0145d99011af92c397fa787fc39d42cc04019614ab5581febe71fb32e1",
+      "./src/providers/hoverProvider.ts": {
+        "version": "e9020a7f8103b766976d8cdfb6a60847d3cf5a1bbc6bff97b185b60481eae770",
+        "signature": "25256b5067eaf84637e6dd0e282dd089c82a55eeee1bf060d2b14878ded5b86e",
         "affectsGlobalScope": false
       },
       "./node_modules/@flatten-js/interval-tree/index.d.ts": {
@@ -901,13 +906,13 @@
         "signature": "bf7c29e7a08abac0ce48ae320749c8122a095d5bf0206168040caad4b7508b59",
         "affectsGlobalScope": false
       },
-      "./src/validationProvider.ts": {
-        "version": "9dc725a7a92587836069827bf7d398499ad3ba9a68845f20ae69bb34f5c51bbc",
+      "./src/providers/validationProvider.ts": {
+        "version": "dc6fc5c1c8bd9a825666fb94a90782729be955a0357693a233684f9f33e90112",
         "signature": "f3360d2bdd3e9199b55bca984df20071810c51097a8a96fb0ee33b6a1abb0b63",
         "affectsGlobalScope": false
       },
       "./src/server.ts": {
-        "version": "67a891e53bf29aa07de58ad332a1010eaa7b6a326e5ade68420b67ad3ab6f815",
+        "version": "41577690d9664d2f2a3fd48d9f90489ca5f68eb258d2374b9dd4c3cd1cad5244",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -916,8 +921,8 @@
         "signature": "267813ae499a9c070ea61bca2d235e31e785181d967e4461719cbcc78a35abfe",
         "affectsGlobalScope": true
       },
-      "./src/test/utils.test.ts": {
-        "version": "42e6d94bc31f32203bae378b204c36e8b0915ffb524b6af1214e03eda31fdd94",
+      "./src/test/utils/yaml.test.ts": {
+        "version": "40badc2c4283c43ecfba4d3248db9618f6f1755eea77f52eca6f5a6125071a2d",
         "signature": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
         "affectsGlobalScope": false
       },
@@ -1764,109 +1769,110 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
-      "./src/ansibleConfig.ts": [
+      "./src/interfaces/context.ts": [
+        "./src/interfaces/documentMeta.ts",
+        "./src/services/ansibleConfig.ts"
+      ],
+      "./src/providers/completionProvider.ts": [
+        "./node_modules/@types/lodash/index.d.ts",
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts",
+        "./src/services/docsLibrary.ts",
+        "./src/utils/docsFormatter.ts",
+        "./src/utils/yaml.ts"
+      ],
+      "./src/providers/definitionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts",
+        "./src/services/docsLibrary.ts",
+        "./src/utils/misc.ts",
+        "./src/utils/yaml.ts"
+      ],
+      "./src/providers/hoverProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts",
+        "./src/services/docsLibrary.ts",
+        "./src/utils/docsFormatter.ts",
+        "./src/utils/misc.ts",
+        "./src/utils/yaml.ts"
+      ],
+      "./src/providers/validationProvider.ts": [
+        "./node_modules/@flatten-js/interval-tree/index.d.ts",
+        "./node_modules/@types/lodash/index.d.ts",
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./node_modules/yaml/index.d.ts"
+      ],
+      "./src/server.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/node.d.ts",
+        "./src/interfaces/context.ts",
+        "./src/interfaces/documentMeta.ts",
+        "./src/providers/completionProvider.ts",
+        "./src/providers/definitionProvider.ts",
+        "./src/providers/hoverProvider.ts",
+        "./src/providers/validationProvider.ts",
+        "./src/services/ansibleConfig.ts",
+        "./src/services/docsLibrary.ts",
+        "./src/utils/misc.ts"
+      ],
+      "./src/services/ansibleConfig.ts": [
         "../node_modules/@types/node/child_process.d.ts",
-        "../node_modules/@types/node/fs.d.ts",
         "../node_modules/@types/node/path.d.ts",
-        "../node_modules/@types/node/util.d.ts",
         "./node_modules/@types/ini/index.d.ts",
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts"
       ],
-      "./src/completionProvider.ts": [
-        "./node_modules/@types/lodash/index.d.ts",
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts",
-        "./src/docsFormatter.ts",
-        "./src/docsLibrary.ts",
-        "./src/utils.ts"
-      ],
-      "./src/context.ts": [
-        "./src/ansibleConfig.ts",
-        "./src/documentMeta.ts"
-      ],
-      "./src/definitionProvider.ts": [
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts",
-        "./src/docsLibrary.ts",
-        "./src/utils.ts"
-      ],
-      "./src/docsFormatter.ts": [
-        "../node_modules/@types/node/util.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./src/docsLibrary.ts"
-      ],
-      "./src/docsLibrary.ts": [
+      "./src/services/docsLibrary.ts": [
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./node_modules/yaml/util.d.ts",
-        "./src/context.ts",
-        "./src/docsParser.ts",
-        "./src/utils.ts"
+        "./src/interfaces/context.ts",
+        "./src/services/docsParser.ts",
+        "./src/utils/misc.ts"
       ],
-      "./src/docsParser.ts": [
+      "./src/services/docsParser.ts": [
         "../node_modules/@types/node/fs.d.ts",
         "../node_modules/@types/node/path.d.ts",
         "./node_modules/globby/index.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/util.d.ts",
-        "./src/docsLibrary.ts"
+        "./src/services/docsLibrary.ts"
       ],
-      "./src/hoverProvider.ts": [
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts",
-        "./src/docsFormatter.ts",
-        "./src/docsLibrary.ts",
-        "./src/utils.ts"
-      ],
-      "./src/server.ts": [
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/node.d.ts",
-        "./src/ansibleConfig.ts",
-        "./src/completionProvider.ts",
-        "./src/context.ts",
-        "./src/definitionProvider.ts",
-        "./src/docsLibrary.ts",
-        "./src/documentMeta.ts",
-        "./src/hoverProvider.ts",
-        "./src/utils.ts",
-        "./src/validationProvider.ts"
-      ],
-      "./src/test/utils.test.ts": [
-        "../node_modules/@types/node/assert.d.ts",
+      "./src/test/utils/yaml.test.ts": [
         "../node_modules/@types/node/fs.d.ts",
         "../node_modules/@types/node/path.d.ts",
         "./node_modules/@types/chai/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
         "./node_modules/yaml/types.d.ts",
-        "./src/utils.ts"
+        "./src/utils/yaml.ts"
       ],
-      "./src/utils.ts": [
+      "./src/utils/docsFormatter.ts": [
+        "../node_modules/@types/node/util.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/services/docsLibrary.ts"
+      ],
+      "./src/utils/misc.ts": [
         "../node_modules/@types/node/fs.d.ts",
-        "../node_modules/@types/node/os.d.ts",
-        "../node_modules/@types/node/path.d.ts",
         "../node_modules/@types/node/url.d.ts",
-        "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts",
         "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts",
-        "./src/documentMeta.ts"
+        "./src/interfaces/documentMeta.ts"
       ],
-      "./src/validationProvider.ts": [
-        "./node_modules/@flatten-js/interval-tree/index.d.ts",
+      "./src/utils/yaml.ts": [
         "./node_modules/@types/lodash/index.d.ts",
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./node_modules/yaml/index.d.ts"
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts"
       ]
     },
     "exportedModulesMap": {
@@ -2656,52 +2662,55 @@
         "./node_modules/yaml/parse-cst.d.ts",
         "./node_modules/yaml/types.d.ts"
       ],
-      "./src/ansibleConfig.ts": [
+      "./src/interfaces/context.ts": [
+        "./src/interfaces/documentMeta.ts",
+        "./src/services/ansibleConfig.ts"
+      ],
+      "./src/providers/completionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/services/docsLibrary.ts"
+      ],
+      "./src/providers/definitionProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/services/docsLibrary.ts"
+      ],
+      "./src/providers/hoverProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
+        "./src/services/docsLibrary.ts"
+      ],
+      "./src/providers/validationProvider.ts": [
+        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts"
       ],
-      "./src/completionProvider.ts": [
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./src/docsLibrary.ts"
+      "./src/services/ansibleConfig.ts": [
+        "./node_modules/vscode-languageserver/lib/common/api.d.ts"
       ],
-      "./src/context.ts": [
-        "./src/ansibleConfig.ts",
-        "./src/documentMeta.ts"
-      ],
-      "./src/definitionProvider.ts": [
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./src/docsLibrary.ts"
-      ],
-      "./src/docsFormatter.ts": [
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./src/docsLibrary.ts"
-      ],
-      "./src/docsLibrary.ts": [
+      "./src/services/docsLibrary.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
         "./node_modules/yaml/util.d.ts",
-        "./src/context.ts"
+        "./src/interfaces/context.ts"
       ],
-      "./src/docsParser.ts": [
+      "./src/services/docsParser.ts": [
         "./node_modules/yaml/util.d.ts",
-        "./src/docsLibrary.ts"
+        "./src/services/docsLibrary.ts"
       ],
-      "./src/hoverProvider.ts": [
-        "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
+      "./src/utils/docsFormatter.ts": [
         "./node_modules/vscode-languageserver/lib/common/api.d.ts",
-        "./src/docsLibrary.ts"
+        "./src/services/docsLibrary.ts"
       ],
-      "./src/utils.ts": [
+      "./src/utils/misc.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
         "./node_modules/vscode-languageserver-types/lib/umd/main.d.ts",
-        "./node_modules/yaml/index.d.ts",
-        "./node_modules/yaml/types.d.ts",
-        "./src/documentMeta.ts"
+        "./src/interfaces/documentMeta.ts"
       ],
-      "./src/validationProvider.ts": [
+      "./src/utils/yaml.ts": [
         "./node_modules/vscode-languageserver-textdocument/lib/umd/main.d.ts",
-        "./node_modules/vscode-languageserver/lib/common/api.d.ts"
+        "./node_modules/yaml/index.d.ts",
+        "./node_modules/yaml/types.d.ts"
       ]
     },
     "semanticDiagnosticsPerFile": [
@@ -2884,19 +2893,20 @@
       "./node_modules/yaml/parse-cst.d.ts",
       "./node_modules/yaml/types.d.ts",
       "./node_modules/yaml/util.d.ts",
-      "./src/ansibleConfig.ts",
-      "./src/completionProvider.ts",
-      "./src/context.ts",
-      "./src/definitionProvider.ts",
-      "./src/docsFormatter.ts",
-      "./src/docsLibrary.ts",
-      "./src/docsParser.ts",
-      "./src/documentMeta.ts",
-      "./src/hoverProvider.ts",
+      "./src/interfaces/context.ts",
+      "./src/interfaces/documentMeta.ts",
+      "./src/providers/completionProvider.ts",
+      "./src/providers/definitionProvider.ts",
+      "./src/providers/hoverProvider.ts",
+      "./src/providers/validationProvider.ts",
       "./src/server.ts",
-      "./src/test/utils.test.ts",
-      "./src/utils.ts",
-      "./src/validationProvider.ts"
+      "./src/services/ansibleConfig.ts",
+      "./src/services/docsLibrary.ts",
+      "./src/services/docsParser.ts",
+      "./src/test/utils/yaml.test.ts",
+      "./src/utils/docsFormatter.ts",
+      "./src/utils/misc.ts",
+      "./src/utils/yaml.ts"
     ]
   },
   "version": "4.1.5"

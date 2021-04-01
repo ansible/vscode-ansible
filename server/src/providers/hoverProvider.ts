@@ -2,9 +2,10 @@ import { Hover } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Scalar, YAMLMap } from 'yaml/types';
-import { formatModule, formatOption } from './docsFormatter';
-import { DocsLibrary } from './docsLibrary';
-import { AncestryBuilder, getPathAt, mayBeModule, toLspRange } from './utils';
+import { DocsLibrary } from '../services/docsLibrary';
+import { formatModule, formatOption } from '../utils/docsFormatter';
+import { toLspRange } from '../utils/misc';
+import { AncestryBuilder, getPathAt, mayBeModule } from '../utils/yaml';
 
 export async function doHover(
   document: TextDocument,

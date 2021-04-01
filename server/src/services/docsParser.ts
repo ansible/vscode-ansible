@@ -1,9 +1,9 @@
 import * as fs from 'fs';
-import globby = require('globby');
 import * as path from 'path';
 import { parseDocument } from 'yaml';
 import { YAMLError } from 'yaml/util';
 import { IModuleMetadata } from './docsLibrary';
+import globby = require('globby');
 
 export class DocsParser {
   public static docsRegex = /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;

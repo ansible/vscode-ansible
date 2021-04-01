@@ -1,6 +1,10 @@
 import { format } from 'util';
 import { MarkupContent, MarkupKind } from 'vscode-languageserver';
-import { IDescription, IModuleDocumentation, IOption } from './docsLibrary';
+import {
+  IDescription,
+  IModuleDocumentation,
+  IOption,
+} from '../services/docsLibrary';
 
 export function formatModule(module: IModuleDocumentation): MarkupContent {
   const sections: string[] = [];

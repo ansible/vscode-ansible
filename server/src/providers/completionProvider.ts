@@ -3,9 +3,9 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Pair, Scalar, YAMLMap } from 'yaml/types';
-import { formatOption, getDetails } from './docsFormatter';
-import { DocsLibrary, IOption } from './docsLibrary';
-import { AncestryBuilder, getPathAt, mayBeModule } from './utils';
+import { DocsLibrary, IOption } from '../services/docsLibrary';
+import { formatOption, getDetails } from '../utils/docsFormatter';
+import { AncestryBuilder, getPathAt, mayBeModule } from '../utils/yaml';
 
 export async function doCompletion(
   document: TextDocument,

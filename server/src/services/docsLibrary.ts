@@ -1,10 +1,10 @@
-import { DocsParser } from './docsParser';
 import * as _ from 'lodash';
 import { WorkspaceFolder } from 'vscode-languageserver';
-import { IContext } from './context';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { hasOwnProperty, isObject } from './utils';
 import { YAMLError } from 'yaml/util';
+import { IContext } from '../interfaces/context';
+import { hasOwnProperty, isObject } from '../utils/misc';
+import { DocsParser } from './docsParser';
 export class DocsLibrary {
   private modules = new Map<string, IModuleMetadata>();
   private docFragments = new Map<string, IModuleMetadata>();

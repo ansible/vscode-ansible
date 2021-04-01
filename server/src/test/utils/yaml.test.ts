@@ -1,11 +1,14 @@
-import * as assert from 'assert';
-import * as path from 'path';
+import { expect } from 'chai';
 import { promises as fs } from 'fs';
+import * as path from 'path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { AncestryBuilder, getPathAt } from '../utils';
-import { expect } from 'chai';
+import { Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
+import {
+  AncestryBuilder,
+  getDeclaredCollections,
+  getPathAt,
+} from '../../utils/yaml';
 
 async function getYamlDoc(yamlFile: string) {
   const yaml = await fs.readFile(
@@ -31,7 +34,7 @@ async function getPathInFile(
   );
 }
 
-describe('utils', () => {
+describe('yaml', () => {
   describe('AncestryBuilder', () => {
     it('canGetParent', async () => {
       const path = await getPathInFile('utils.block.yml', 4, 7);
@@ -148,6 +151,51 @@ describe('utils', () => {
       expect(node)
         .to.be.an.instanceOf(Scalar)
         .to.have.property('value', 'lineinfile');
+    });
+  });
+
+  describe('getDeclaredCollections', () => {
+    it('canGetCollections', async () => {
+      const path = await getPathInFile('utils.playbook.yml', 13, 7);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([
+        'mynamespace.mycollection',
+        'mynamespace2.mycollection2',
+      ]);
+    });
+    it('canGetCollectionsFromPreTasks', async () => {
+      const path = await getPathInFile('utils.playbook.yml', 9, 7);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([
+        'mynamespace.mycollection',
+        'mynamespace2.mycollection2',
+      ]);
+    });
+    it('canGetCollectionsFromBlock', async () => {
+      const path = await getPathInFile('utils.playbook.yml', 12, 11);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([
+        'mynamespace.mycollection',
+        'mynamespace2.mycollection2',
+      ]);
+    });
+    it('canGetCollectionsFromNestedBlock', async () => {
+      const path = await getPathInFile('utils.playbook.yml', 23, 15);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([
+        'mynamespace.mycollection',
+        'mynamespace2.mycollection2',
+      ]);
+    });
+    it('canWorkWithoutCollections', async () => {
+      const path = await getPathInFile('utils.playbook.yml', 30, 7);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([]);
+    });
+    it('canWorkWithEmptyCollections', async () => {
+      const path = await getPathInFile('utils.playbook.yml', 38, 7);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([]);
     });
   });
 });

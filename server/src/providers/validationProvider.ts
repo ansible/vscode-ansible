@@ -1,4 +1,5 @@
 import IntervalTree from '@flatten-js/interval-tree';
+import * as _ from 'lodash';
 import {
   Diagnostic,
   DiagnosticRelatedInformation,
@@ -8,7 +9,6 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import * as _ from 'lodash';
 
 export function doValidate(textDocument: TextDocument): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
