@@ -10,15 +10,14 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { IContext } from './interfaces/context';
-import { IDocumentMetadata } from './interfaces/documentMeta';
 import { ExtensionSettings } from './interfaces/extensionSettings';
 import { doCompletion } from './providers/completionProvider';
 import { getDefinition } from './providers/definitionProvider';
 import { doHover } from './providers/hoverProvider';
 import { doValidate } from './providers/validationProvider';
-import { getAnsibleMetadata } from './utils/misc';
 import { AnsibleConfig } from './services/ansibleConfig';
 import { DocsLibrary } from './services/docsLibrary';
+import { MetadataLibrary } from './services/metadataLibrary';
 
 export class AnsibleLanguageService {
   private connection: Connection;
@@ -34,6 +33,8 @@ export class AnsibleLanguageService {
 
   private docsLibrary: DocsLibrary;
   private context: IContext;
+  private metadataLibrary: MetadataLibrary;
+
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
     this.documents = documents;
@@ -43,6 +44,7 @@ export class AnsibleLanguageService {
       documentSettings: new Map(),
     };
     this.docsLibrary = new DocsLibrary(this.context);
+    this.metadataLibrary = new MetadataLibrary(this.context);
   }
 
   public initialize(): void {
@@ -109,7 +111,8 @@ export class AnsibleLanguageService {
           {
             watchers: [
               {
-                globPattern: '',
+                // watch for documentMetadata
+                globPattern: '**/meta/main.{yml,yaml}',
               },
             ],
           }
@@ -146,22 +149,23 @@ export class AnsibleLanguageService {
       });
     });
 
-    this.documents.onDidOpen((e) => {
-      this.context.documentMetadata.set(
-        e.document.uri,
-        getAnsibleMetadata(e.document.uri)
-      );
+    this.documents.onDidOpen(async (e) => {
+      this.metadataLibrary.handleDocumentOpened(e.document.uri);
     });
 
-    // Only keep settings for open documents
     this.documents.onDidClose((e) => {
       this.context.documentSettings.delete(e.document.uri);
-      this.context.documentMetadata.delete(e.document.uri);
+      this.metadataLibrary.handleDocumentClosed(e.document.uri);
+
+      // need to clear the diagnostics, otherwise they remain after changing language
+      this.connection.sendDiagnostics({
+        uri: e.document.uri,
+        diagnostics: [],
+      });
     });
 
     this.connection.onDidChangeWatchedFiles((_change) => {
-      // Monitored files have change in VSCode
-      this.connection.console.log('We received a file change event');
+      this.metadataLibrary.handleWatchedDocumentChange(_change);
     });
   }
 
