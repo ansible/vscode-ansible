@@ -20,7 +20,7 @@ export async function getDefinition(
       new AncestryBuilder(path).parentKey(node.value).get() === node // ensure we look at a key, not value of a Pair
     ) {
       if (mayBeModule(path)) {
-        const module = await docsLibrary.findModule(node.value, document);
+        const module = await docsLibrary.findModule(node.value, path, document);
         if (module) {
           return [
             {

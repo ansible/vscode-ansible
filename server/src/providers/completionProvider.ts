@@ -37,7 +37,11 @@ export async function doCompletion(
 
       if (modulePath && mayBeModule(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        const module = await docsLibrary.findModule(moduleNode.value, document);
+        const module = await docsLibrary.findModule(
+          moduleNode.value,
+          modulePath,
+          document
+        );
         if (module && module.documentation) {
           const moduleOptions = module.documentation.options;
 

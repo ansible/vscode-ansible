@@ -12,7 +12,7 @@ import {
 
 async function getYamlDoc(yamlFile: string) {
   const yaml = await fs.readFile(
-    path.resolve('server', 'src', 'test', 'data', yamlFile),
+    path.resolve('server', 'src', 'test', 'data', 'utils', 'yaml', yamlFile),
     {
       encoding: 'utf8',
     }
@@ -35,33 +35,33 @@ async function getPathInFile(
 }
 
 describe('yaml', () => {
-  describe('AncestryBuilder', () => {
+  describe('ancestryBuilder', () => {
     it('canGetParent', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parent().get();
       expect(node).to.be.an.instanceOf(YAMLMap);
     });
 
     it('canGetAssertedParent', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLMap).get();
       expect(node).to.be.an.instanceOf(YAMLMap);
     });
 
     it('canAssertParent', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parent().parent(YAMLMap).get();
-      expect(node).to.be.undefined;
+      expect(node).to.be.null;
     });
 
     it('canGetAncestor', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parent().parent().get();
       expect(node).to.be.an.instanceOf(YAMLSeq);
     });
 
     it('canGetKey', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parentKey().get();
       expect(node)
         .to.be.an.instanceOf(Scalar)
@@ -69,7 +69,7 @@ describe('yaml', () => {
     });
 
     it('canGetKeyPath', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const subPath = new AncestryBuilder(path).parentKey().getPath();
       expect(subPath)
         .to.be.an.instanceOf(Array)
@@ -81,7 +81,7 @@ describe('yaml', () => {
     });
 
     it('canGetAssertedKey', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parentKey('name').get();
       expect(node)
         .to.be.an.instanceOf(Scalar)
@@ -89,7 +89,7 @@ describe('yaml', () => {
     });
 
     it('canGetAssertedRegexKey', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parentKey(/^(name|other)$/).get();
       expect(node)
         .to.be.an.instanceOf(Scalar)
@@ -97,19 +97,19 @@ describe('yaml', () => {
     });
 
     it('canAssertKey', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path).parentKey('other').get();
-      expect(node).to.be.undefined;
+      expect(node).to.be.null;
     });
 
     it('canAssertKeyPath', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const subPath = new AncestryBuilder(path).parentKey('other').getPath();
-      expect(subPath).to.be.undefined;
+      expect(subPath).to.be.null;
     });
 
     it('canGetAssertedAncestorKey', async () => {
-      const path = await getPathInFile('utils.block.yml', 4, 7);
+      const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
       const node = new AncestryBuilder(path)
         .parent(YAMLMap)
         .parent(YAMLSeq)
@@ -121,7 +121,7 @@ describe('yaml', () => {
     });
 
     it('canGetIndentationParent', async () => {
-      const path = await getPathInFile('utils.block.yml', 7, 9);
+      const path = await getPathInFile('ancestryBuilder.yml', 7, 9);
       const node = new AncestryBuilder(path)
         .parent()
         .parentKey('lineinfile')
@@ -132,7 +132,7 @@ describe('yaml', () => {
     });
 
     it('canGetIndentationParentAtEndOfMap', async () => {
-      const path = await getPathInFile('utils.block.yml', 9, 9);
+      const path = await getPathInFile('ancestryBuilder.yml', 9, 9);
       const node = new AncestryBuilder(path)
         .parent()
         .parentKey('lineinfile')
@@ -143,7 +143,7 @@ describe('yaml', () => {
     });
 
     it('canGetIndentationParentAtEOF', async () => {
-      const path = await getPathInFile('utils.block.yml', 15, 9);
+      const path = await getPathInFile('ancestryBuilder.yml', 15, 9);
       const node = new AncestryBuilder(path)
         .parent()
         .parentKey('lineinfile')
@@ -156,7 +156,7 @@ describe('yaml', () => {
 
   describe('getDeclaredCollections', () => {
     it('canGetCollections', async () => {
-      const path = await getPathInFile('utils.playbook.yml', 13, 7);
+      const path = await getPathInFile('getDeclaredCollections.yml', 13, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
         'mynamespace.mycollection',
@@ -164,7 +164,7 @@ describe('yaml', () => {
       ]);
     });
     it('canGetCollectionsFromPreTasks', async () => {
-      const path = await getPathInFile('utils.playbook.yml', 9, 7);
+      const path = await getPathInFile('getDeclaredCollections.yml', 9, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
         'mynamespace.mycollection',
@@ -172,7 +172,7 @@ describe('yaml', () => {
       ]);
     });
     it('canGetCollectionsFromBlock', async () => {
-      const path = await getPathInFile('utils.playbook.yml', 12, 11);
+      const path = await getPathInFile('getDeclaredCollections.yml', 12, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
         'mynamespace.mycollection',
@@ -180,7 +180,23 @@ describe('yaml', () => {
       ]);
     });
     it('canGetCollectionsFromNestedBlock', async () => {
-      const path = await getPathInFile('utils.playbook.yml', 23, 15);
+      const path = await getPathInFile('getDeclaredCollections.yml', 23, 15);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([
+        'mynamespace.mycollection',
+        'mynamespace2.mycollection2',
+      ]);
+    });
+    it('canGetCollectionsFromRescue', async () => {
+      const path = await getPathInFile('getDeclaredCollections.yml', 27, 11);
+      const collections = getDeclaredCollections(path);
+      expect(collections).to.have.members([
+        'mynamespace.mycollection',
+        'mynamespace2.mycollection2',
+      ]);
+    });
+    it('canGetCollectionsFromAlways', async () => {
+      const path = await getPathInFile('getDeclaredCollections.yml', 31, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
         'mynamespace.mycollection',
@@ -188,12 +204,12 @@ describe('yaml', () => {
       ]);
     });
     it('canWorkWithoutCollections', async () => {
-      const path = await getPathInFile('utils.playbook.yml', 30, 7);
+      const path = await getPathInFile('getDeclaredCollections.yml', 38, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([]);
     });
     it('canWorkWithEmptyCollections', async () => {
-      const path = await getPathInFile('utils.playbook.yml', 38, 7);
+      const path = await getPathInFile('getDeclaredCollections.yml', 46, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([]);
     });

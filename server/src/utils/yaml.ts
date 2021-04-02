@@ -50,7 +50,7 @@ export class AncestryBuilder {
   }
 
   get(): Node | null {
-    const node = this._path[this._index];
+    const node = this._path[this._index] || null;
     if (this._returnKey && node instanceof Pair) {
       return node.key;
     }
@@ -175,7 +175,7 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
     blockPath = new AncestryBuilder(blockPath)
       .parent(YAMLMap)
       .parent(YAMLSeq)
-      .parentKey('block')
+      .parentKey(/^block|rescue|always$/)
       .getPath();
   }
   // now we should be at the tasks/pre_tasks/post_tasks level

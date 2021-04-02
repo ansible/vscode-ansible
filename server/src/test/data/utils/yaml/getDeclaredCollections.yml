@@ -22,6 +22,14 @@
             - name: Task3 name
               mymodule3:
                 option1: value1
+      rescue:
+        - name: Rescue task
+          mymodule2:
+            option1: value1
+      always:
+        - name: Always task
+          mymodule2:
+            option1: value1
 - name: Play name2
   hosts: localhost
   gather_facts: false

@@ -1,19 +1,19 @@
 import * as _ from 'lodash';
 import { WorkspaceFolder } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { Node } from 'yaml/types';
 import { YAMLError } from 'yaml/util';
 import { IContext } from '../interfaces/context';
 import { hasOwnProperty, isObject } from '../utils/misc';
+import { getDeclaredCollections } from '../utils/yaml';
 import { DocsParser } from './docsParser';
 export class DocsLibrary {
   private modules = new Map<string, IModuleMetadata>();
   private docFragments = new Map<string, IModuleMetadata>();
   private context: IContext;
-  private workspace: WorkspaceFolder | undefined;
 
-  constructor(context: IContext, workspace?: WorkspaceFolder) {
+  constructor(context: IContext) {
     this.context = context;
-    this.workspace = workspace;
   }
 
   public async initialize(): Promise<void> {
@@ -50,6 +50,7 @@ export class DocsLibrary {
 
   public async findModule(
     searchText: string,
+    contextPath: Node[],
     doc: TextDocument
   ): Promise<IModuleMetadata | undefined> {
     const prefixOptions = [
@@ -61,6 +62,9 @@ export class DocsLibrary {
       // try searching declared collections
       prefixOptions.push(...metadata.collections.map((s) => `${s}.`));
     }
+    prefixOptions.push(
+      ...getDeclaredCollections(contextPath).map((s) => `${s}.`)
+    );
     const prefix = prefixOptions.find((prefix) =>
       this.modules.has(prefix + searchText)
     );
@@ -184,19 +188,6 @@ export class DocsLibrary {
       }
     }
     return options;
-  }
-
-  public async getModuleDescription(
-    module: string,
-    doc: TextDocument
-  ): Promise<IDescription | undefined> {
-    const contents = (await this.findModule(module, doc))?.rawDocumentation;
-    if (
-      hasOwnProperty(contents, 'description') &&
-      (contents.description instanceof Array || // won't check if all elements are string
-        typeof contents.description === 'string')
-    )
-      return contents.description;
   }
 }
 
