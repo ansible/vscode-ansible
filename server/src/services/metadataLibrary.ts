@@ -62,6 +62,8 @@ export class MetadataLibrary {
   private getAnsibleMetadataUri(uri: string): string | undefined {
     let metaPath;
     const pathArray = uri.split('/');
+
+    // const path = /file:\/\/(.*)/.exec(uri)?.groups
     // Find first
     for (let index = pathArray.length - 1; index >= 0; index--) {
       if (pathArray[index] === 'tasks') {

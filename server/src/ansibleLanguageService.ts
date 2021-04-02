@@ -16,6 +16,7 @@ import { getDefinition } from './providers/definitionProvider';
 import { doHover } from './providers/hoverProvider';
 import { doValidate } from './providers/validationProvider';
 import { AnsibleConfig } from './services/ansibleConfig';
+import { AnsibleLint } from './services/ansibleLint';
 import { DocsLibrary } from './services/docsLibrary';
 import { MetadataLibrary } from './services/metadataLibrary';
 
@@ -34,6 +35,7 @@ export class AnsibleLanguageService {
   private docsLibrary: DocsLibrary;
   private context: IContext;
   private metadataLibrary: MetadataLibrary;
+  private ansibleLint: AnsibleLint;
 
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
@@ -45,6 +47,7 @@ export class AnsibleLanguageService {
     };
     this.docsLibrary = new DocsLibrary(this.context);
     this.metadataLibrary = new MetadataLibrary(this.context);
+    this.ansibleLint = new AnsibleLint(connection);
   }
 
   public initialize(): void {
@@ -170,6 +173,15 @@ export class AnsibleLanguageService {
   }
 
   private registerProviders() {
+    this.documents.onDidSave(async (change) => {
+      const diagnostics = await this.ansibleLint.doValidate(change.document);
+      diagnostics.forEach((fileDiagnostics, fileUri) => {
+        this.connection.sendDiagnostics({
+          uri: fileUri,
+          diagnostics: fileDiagnostics,
+        });
+      });
+    });
     this.documents.onDidChangeContent((change) => {
       this.connection.sendDiagnostics({
         uri: change.document.uri,
