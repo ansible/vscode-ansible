@@ -17,10 +17,10 @@ This extension also installs YAML extension in order to enable schema verificati
 
 ## Known Issues
 ### Depends on ansible-lint
-For the  moment you need to install `ansible-lint` yourself.  
+For the  moment you need to install `ansible-lint` yourself.
 If you don't want to mess up the system-wide python packages list, we have a hint for you.
 
-First, make your own Python virtual environment to install `ansible-lint`.  
+First, make your own Python virtual environment to install `ansible-lint`.
 For example, execute the following command to make a virtual environment called "system".
 
 ```sh
@@ -34,12 +34,12 @@ $ source ~/venv/system
 (system)$ pip install ansible-lint
 ```
 
-Open VS code, and select `File > Preferences > Settings`.  
-Search for "ansible.validate.executablePath" in the search bar on top.  
+Open VS code, and select `File > Preferences > Settings`.
+Search for "ansible.validate.executablePath" in the search bar on top.
 Click on "Edit in settings.json" to open `settings.json` for users.
 
-Then add the following line to register the `ansible-lint` execution path in VS Code (\*).  
-This setting is necessary because `ansible-lint` is not in regular PATH environment variable.  
+Then add the following line to register the `ansible-lint` execution path in VS Code (\*).
+This setting is necessary because `ansible-lint` is not in regular PATH environment variable.
 (\*) The path to `ansible-lint` must be changed depending on your environment.
 
 ```json
