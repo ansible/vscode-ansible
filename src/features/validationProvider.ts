@@ -99,11 +99,13 @@ export default class AnsibleValidationProvider {
 	private diagnosticCollection?: vscode.DiagnosticCollection;
 	private delayers?: { [key: string]: ThrottledDelayer<void> };
 
-	constructor(private workspaceStore: vscode.Memento) {
+	constructor(private workspaceStore: vscode.Memento, private output: vscode.OutputChannel) {
 		this.executable = undefined;
 		this.validationEnabled = true;
 		this.trigger = RunTrigger.onSave;
 		this.pauseValidation = false;
+		this.output = output;
+		this.output.appendLine("init!");
 	}
 
 	public activate(subscriptions: vscode.Disposable[]) {
@@ -180,9 +182,11 @@ export default class AnsibleValidationProvider {
 	}
 
 	private triggerValidate(textDocument: vscode.TextDocument): void {
+
 		if (textDocument.languageId !== 'yaml' || this.pauseValidation || !this.validationEnabled) {
 			return;
 		}
+		this.output.appendLine(`Validating ${textDocument.fileName}`);
 
 		interface MessageItem extends vscode.MessageItem {
 			id: string;
@@ -221,6 +225,7 @@ export default class AnsibleValidationProvider {
 						trigger();
 					}
 				});
+				this.output.appendLine("Skipping");
 				return;
 			}
 		}
@@ -234,6 +239,7 @@ export default class AnsibleValidationProvider {
 			let diagnostics: vscode.Diagnostic[] = [];
 			let processLine = (line: string) => {
 				let matches = line.match(AnsibleValidationProvider.matchExpression);
+				this.output.appendLine(`Found:\n${matches}`);
 				if (matches) {
 					let message = matches.groups?.message ?? "unknown";
 					let line = parseInt(matches.groups?.line ?? "1") - 1;
@@ -256,6 +262,7 @@ export default class AnsibleValidationProvider {
 			try {
 				let childProcess = cp.spawn(executable, args, options);
 				childProcess.on('error', (error: Error) => {
+					this.output.appendLine(`Child process got ${error}`);
 					if (this.pauseValidation) {
 						resolve();
 						return;
@@ -284,6 +291,7 @@ export default class AnsibleValidationProvider {
 					resolve();
 				}
 			} catch (error) {
+				this.output.appendLine(`Catch error ${error}`);
 				this.showError(error, executable);
 			}
 		});
