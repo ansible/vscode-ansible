@@ -5,6 +5,9 @@ on:
   create:
     tags:
       - "v*"
+  release:
+    types:
+      - published  # It seems that you can publish directly without creating
 
 jobs:
  build:
