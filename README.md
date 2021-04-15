@@ -18,6 +18,13 @@ This extension also installs YAML extension in order to enable schema verificati
 ## Known Issues
 
 * For the  moment you need to install `ansible-lint` yourself
+* You may want to add few additional tags entries to your `settings.json`:
+
+```json
+    "yaml.customTags": [
+        "!encrypted/pkcs1-oaep sequence"
+    ]
+```
 
 ## Release Notes
 
