@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let output = vscode.window.createOutputChannel("Ansible");
 
-	let validator = new AnsibleValidationProvider(context.workspaceState);
+	let validator = new AnsibleValidationProvider(context.workspaceState, output);
 	validator.activate(context.subscriptions);
 
 	output.appendLine('Ansible Language extension is now active');
