@@ -327,7 +327,7 @@ export default class AnsibleValidationProvider {
 				return vscode.DiagnosticSeverity.Error;
 		}
   }
-    
+
 	private determineMatchFile(matchFile: string|undefined, sourceDocument: vscode.TextDocument): vscode.Uri {
 		if (matchFile === undefined || vscode.workspace.workspaceFolders === undefined) {
 			return sourceDocument.uri;
