@@ -82,11 +82,11 @@ namespace RunTrigger {
 
 export default class AnsibleValidationProvider {
 
-	private static matchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):(?<column>:(\d):)? (?<id>[\w-]+) (?<message>.*)/;
+	private static matchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):(?<column>:(\d):)? \[(?<id>[\w-]+)\] \[(?<severity>[\w_]+)\] (?<message>.*)/;
 	///(?:(?:Parse|Fatal) error): (.*)(?: in )(.*?)(?: on line )(\d+)/;
-	private static bufferArgs: string[] = ['--nocolor', '-p', '-'];
+	private static bufferArgs: string[] = ['--nocolor', '--parseable-severity', '-'];
 	//['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off'];
-	private static fileArgs: string[] = ['--nocolor', '-p'];
+	private static fileArgs: string[] = ['--nocolor', '--parseable-severity'];
 	//['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off', '-f'];
 
 	private validationEnabled: boolean;
@@ -243,9 +243,11 @@ export default class AnsibleValidationProvider {
 				if (matches) {
 					let message = matches.groups?.message ?? "unknown";
 					let line = parseInt(matches.groups?.line ?? "1") - 1;
+					let severity = matches.groups?.severity;
 					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
 						new vscode.Range(line, 0, line, Number.MAX_VALUE),
-						message
+						message,
+            			this.ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity)
 					);
 					diagnostics.push(diagnostic);
 				}
@@ -295,6 +297,25 @@ export default class AnsibleValidationProvider {
 				this.showError(error, executable);
 			}
 		});
+	}
+
+	private ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity: string|undefined): vscode.DiagnosticSeverity {
+		if (severity === undefined) {
+			return vscode.DiagnosticSeverity.Error;
+		}
+
+		switch (severity.toUpperCase()) {
+			case "INFO":
+				return vscode.DiagnosticSeverity.Information;
+			case "VERY_LOW":
+				return vscode.DiagnosticSeverity.Warning;
+			case "LOW":
+				return vscode.DiagnosticSeverity.Warning;
+			case "MEDIUM":
+				return vscode.DiagnosticSeverity.Error;
+			default:
+				return vscode.DiagnosticSeverity.Error;
+		}
 	}
 
 	private async showError(error: any, executable: string): Promise<void> {
