@@ -1,13 +1,11 @@
 name: release
 
 on:
-  # push.tags is not triggered when creating a release using release page
-  create:
-    tags:
-      - "v*"
+  release:
+    types: [published, created, edited]
 
 jobs:
- build:
+ publish:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
