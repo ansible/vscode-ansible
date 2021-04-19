@@ -247,7 +247,7 @@ export default class AnsibleValidationProvider {
 				if (matches) {
 					let message = matches.groups?.message ?? "unknown";
 					let line = parseInt(matches.groups?.line ?? "1") - 1;
-					let file = this.determineMatchFile(matches.groups?.file, textDocument)
+					let file = this.determineMatchFile(matches.groups?.file, textDocument);
 					let severity = matches.groups?.severity;
 					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
 						new vscode.Range(line, 0, line, Number.MAX_VALUE),
@@ -255,7 +255,7 @@ export default class AnsibleValidationProvider {
             			this.ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity)
 					);
 					if (diagnostics[file.toString()] === undefined) {
-						diagnostics[file.toString()] = []
+						diagnostics[file.toString()] = [];
 					}
 					diagnostics[file.toString()].push(diagnostic);
 				}
@@ -327,7 +327,7 @@ export default class AnsibleValidationProvider {
 				return vscode.DiagnosticSeverity.Error;
 		}
   }
-    
+
 	private determineMatchFile(matchFile: string|undefined, sourceDocument: vscode.TextDocument): vscode.Uri {
 		if (matchFile === undefined || vscode.workspace.workspaceFolders === undefined) {
 			return sourceDocument.uri;
