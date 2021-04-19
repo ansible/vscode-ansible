@@ -17,7 +17,8 @@ This extension also installs YAML extension in order to enable schema verificati
 
 ## Known Issues
 
-* For the  moment you need to install `ansible-lint` yourself
+* For the moment you need to install `ansible-lint` yourself
+  * If you would not like to install `ansible-lint` system-wide, check out [How to integrate ansible-lint in venv with Ansible Language Extension](doc/topics/integrate_ansible-lint_in_venv/README.md).
 * You may want to add few additional tags entries to your `settings.json`:
 
 ```json
