@@ -80,6 +80,10 @@ namespace RunTrigger {
 	};
 }
 
+interface DiagnosticsDictionary {
+	[key: string]: vscode.Diagnostic[];
+}
+
 export default class AnsibleValidationProvider {
 
 	private static matchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):(?<column>:(\d):)? \[(?<id>[\w-]+)\] \[(?<severity>[\w_]+)\] (?<message>.*)/;
@@ -236,20 +240,24 @@ export default class AnsibleValidationProvider {
 		return new Promise<void>((resolve) => {
 			let executable = this.executable || 'ansible-lint';
 			let decoder = new LineDecoder();
-			let diagnostics: vscode.Diagnostic[] = [];
+			let diagnostics: DiagnosticsDictionary = {};
 			let processLine = (line: string) => {
 				let matches = line.match(AnsibleValidationProvider.matchExpression);
 				this.output.appendLine(`Found:\n${matches}`);
 				if (matches) {
 					let message = matches.groups?.message ?? "unknown";
 					let line = parseInt(matches.groups?.line ?? "1") - 1;
+					let file = this.determineMatchFile(matches.groups?.file, textDocument);
 					let severity = matches.groups?.severity;
 					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
 						new vscode.Range(line, 0, line, Number.MAX_VALUE),
 						message,
             			this.ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity)
 					);
-					diagnostics.push(diagnostic);
+					if (diagnostics[file.toString()] === undefined) {
+						diagnostics[file.toString()] = [];
+					}
+					diagnostics[file.toString()].push(diagnostic);
 				}
 			};
 
@@ -286,7 +294,9 @@ export default class AnsibleValidationProvider {
 						if (line) {
 							processLine(line);
 						}
-						this.diagnosticCollection!.set(textDocument.uri, diagnostics);
+						for (let key in diagnostics) {
+							this.diagnosticCollection!.set(vscode.Uri.parse(key), diagnostics[key]);
+						}
 						resolve();
 					});
 				} else {
@@ -299,7 +309,7 @@ export default class AnsibleValidationProvider {
 		});
 	}
 
-	private ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity: string|undefined): vscode.DiagnosticSeverity {
+  private ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity: string|undefined): vscode.DiagnosticSeverity {
 		if (severity === undefined) {
 			return vscode.DiagnosticSeverity.Error;
 		}
@@ -316,6 +326,14 @@ export default class AnsibleValidationProvider {
 			default:
 				return vscode.DiagnosticSeverity.Error;
 		}
+  }
+
+	private determineMatchFile(matchFile: string|undefined, sourceDocument: vscode.TextDocument): vscode.Uri {
+		if (matchFile === undefined || vscode.workspace.workspaceFolders === undefined) {
+			return sourceDocument.uri;
+		}
+
+		return vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri,matchFile);
 	}
 
 	private async showError(error: any, executable: string): Promise<void> {
