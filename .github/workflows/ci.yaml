@@ -12,7 +12,16 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  lint:
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node 12
+        uses: actions/setup-node@v2
+
+      - name: Run linting
+        run: npm run-script lint
+
   build:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
@@ -25,11 +34,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Set up Node
-      - name: Use Node 12
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12
+      - name: Use Node
+        uses: actions/setup-node@v2
 
       # Run install dependencies
       - name: Install dependencies
