@@ -9,11 +9,11 @@
   ],
   "root": true,
   "rules": {
-    "@typescript-eslint/naming-convention": "warn",
-    "@typescript-eslint/semi": "warn",
-    "curly": "warn",
-    "eqeqeq": "warn",
-    "no-throw-literal": "warn",
+    "@typescript-eslint/naming-convention": "error",
+    "@typescript-eslint/semi": "error",
+    "curly": "error",
+    "eqeqeq": "error",
+    "no-throw-literal": "error",
     "semi": "off"
   }
 }
