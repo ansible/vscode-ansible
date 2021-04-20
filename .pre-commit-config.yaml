@@ -16,6 +16,10 @@ repos:
   - id: check-merge-conflict
   - id: check-json
   - id: pretty-format-json
+    exclude: >
+      (?x)^(
+        package-lock.json
+      )$
     args: ['--autofix']
   - id: debug-statements
     language_version: python3
