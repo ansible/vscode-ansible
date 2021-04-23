@@ -1,6 +1,7 @@
 {
   "activationEvents": [
-    "onLanguage:yaml"
+    "onLanguage:yaml",
+    "onCommand:extension.ansible.vault"
   ],
   "badges": [
     {
@@ -20,6 +21,13 @@
     "Linters"
   ],
   "contributes": {
+    "commands": [
+      {
+        "category": "Ansible Vault",
+        "command": "extension.ansible.vault",
+        "title": "Encrypt/Decrypt"
+      }
+    ],
     "configuration": {
       "order": 20,
       "properties": {
@@ -49,11 +57,28 @@
             "onSave"
           ],
           "type": "string"
+        },
+        "ansible.vault.executablePath": {
+          "default": "ansible-vault",
+          "description": "%configuration.vault.executablePath%",
+          "scope": "machine-overridable",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       },
       "title": "%configuration.title%",
       "type": "object"
     },
+    "keybindings": [
+      {
+        "command": "extension.ansible.vault",
+        "key": "ctrl+alt+0",
+        "mac": "cmd+alt+0",
+        "when": "editorTextFocus"
+      }
+    ],
     "languages": [
       {
         "aliases": [
@@ -100,6 +125,14 @@
         "id": "shellscript"
       }
     ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "extension.ansible.vault",
+          "when": "editorTextFocus"
+        }
+      ]
+    },
     "yamlValidation": [
       {
         "fileMatch": [
@@ -170,6 +203,11 @@
   "dependencies": {
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
+    "@types/ini": "^1.3.30",
+    "@types/tmp": "^0.2.0",
+    "ini": "^2.0.0",
+    "tmp": "^0.2.1",
+    "untildify": "^4.0.0",
     "vscode-nls": "^5.0.0"
   },
   "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
@@ -205,6 +243,7 @@
   "icon": "icon/icon128.png",
   "keywords": [
     "ansible",
+    "ansible-vault",
     "yaml",
     "autocompletion",
     "validation"
