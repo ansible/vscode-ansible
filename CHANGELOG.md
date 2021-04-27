@@ -1,5 +1,9 @@
 # Change Log
 
+## UNRELEASED
+
+* Added vaults encryption and decryption support via `ansible-vault` command (#78) @FlorianLaunay
+
 ## 0.3.2
 
 * Use ansible-lint severity for VSCode diagnostics (#68) @FloSchwalm
