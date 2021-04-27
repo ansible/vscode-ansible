@@ -2,6 +2,10 @@
 
 ## UNRELEASED
 
+* ...
+
+## 0.4.0
+
 * Added vaults encryption and decryption support via `ansible-vault` command (#78) @FlorianLaunay
 
 ## 0.3.2
