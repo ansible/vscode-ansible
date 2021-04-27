@@ -1,0 +1,5 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+which pre-commit || python3 -m pip install --user pre-commit
+python3 -m pre_commit run -a
