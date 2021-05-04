@@ -4,6 +4,10 @@
 
 * ...
 
+## 0.4.1
+
+* Reduce minimal version of vscode that is required (#90) @ssbarnea
+
 ## 0.4.0
 
 * Added vaults encryption and decryption support via `ansible-vault` command (#78) @FlorianLaunay

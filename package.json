@@ -228,7 +228,7 @@
   },
   "displayName": "Ansible Language",
   "engines": {
-    "vscode": "^1.53.0",
+    "vscode": "^1.52.0",
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
   },
   "extensionDependencies": [
@@ -267,5 +267,5 @@
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.4.0"
+  "version": "0.4.1"
 }
