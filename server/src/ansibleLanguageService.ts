@@ -176,16 +176,33 @@ export class AnsibleLanguageService {
     this.documents.onDidSave(async (change) => {
       const diagnostics = await this.ansibleLint.doValidate(change.document);
       diagnostics.forEach((fileDiagnostics, fileUri) => {
+        if (change.document.uri === fileUri) {
+          // ensure that regular diagnostics are still present
+          fileDiagnostics.push(...doValidate(change.document));
+        }
         this.connection.sendDiagnostics({
           uri: fileUri,
           diagnostics: fileDiagnostics,
         });
       });
     });
+    this.connection.onDidChangeTextDocument((change) => {
+      this.ansibleLint.invalidateCacheItems(
+        change.textDocument.uri,
+        change.contentChanges
+      );
+    });
     this.documents.onDidChangeContent((change) => {
+      const diagnostics = doValidate(change.document);
+      const lintDiagnostics = this.ansibleLint.getValidationFromCache(
+        change.document.uri
+      );
+      if (lintDiagnostics) {
+        diagnostics.push(...lintDiagnostics);
+      }
       this.connection.sendDiagnostics({
         uri: change.document.uri,
-        diagnostics: doValidate(change.document),
+        diagnostics: diagnostics,
       });
     });
     this.connection.onHover((params) => {

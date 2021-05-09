@@ -1,3 +1,4 @@
+import IntervalTree from '@flatten-js/interval-tree';
 import * as child_process from 'child_process';
 import { ExecException } from 'node:child_process';
 import { URL } from 'url';
@@ -8,12 +9,14 @@ import {
   DiagnosticSeverity,
   Position,
   Range,
+  TextDocumentContentChangeEvent,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 const exec = promisify(child_process.exec);
 
 export class AnsibleLint {
   private connection: Connection;
+  private validationCache: Map<string, IntervalTree<Diagnostic>> = new Map();
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -47,9 +50,23 @@ export class AnsibleLint {
           textDocument
         );
       } else {
-        this.connection.console.error(error.message);
+        this.connection.window.showErrorMessage(error.message);
       }
     }
+    diagnostics.forEach((fileDiagnostics, fileUri) => {
+      if (!this.validationCache.has(fileUri)) {
+        this.validationCache.set(fileUri, new IntervalTree<Diagnostic>());
+      }
+      const diagnosticTree = this.validationCache.get(
+        fileUri
+      ) as IntervalTree<Diagnostic>;
+      for (const diagnostic of fileDiagnostics) {
+        diagnosticTree.insert(
+          [diagnostic.range.start.line, diagnostic.range.end.line],
+          diagnostic
+        );
+      }
+    });
 
     return diagnostics;
   }
@@ -101,6 +118,35 @@ export class AnsibleLint {
       }
     }
     return diagnostics;
+  }
+
+  public invalidateCacheItems(
+    fileUri: string,
+    changes: TextDocumentContentChangeEvent[]
+  ): void {
+    const diagnosticTree = this.validationCache.get(fileUri);
+    if (diagnosticTree) {
+      for (const change of changes) {
+        if ('range' in change) {
+          const influencedDiagnostics = diagnosticTree.search([
+            change.range.start.line,
+            change.range.end.line,
+          ]);
+          if (influencedDiagnostics) {
+            for (const diagnostic of influencedDiagnostics as Array<Diagnostic>) {
+              diagnosticTree.remove(
+                [diagnostic.range.start.line, diagnostic.range.end.line],
+                diagnostic
+              );
+            }
+          }
+        }
+      }
+    }
+  }
+
+  public getValidationFromCache(fileUri: string): Diagnostic[] | undefined {
+    return this.validationCache.get(fileUri)?.values;
   }
 }
 

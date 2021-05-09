@@ -152,7 +152,7 @@
     "watch": "tsc -b -w",
     "webpack:watch:client": "webpack --mode none --config ./client/webpack.config.js --watch",
     "webpack:watch:server": "webpack --mode none --config ./server/webpack.config.js --watch",
-    "clean": "rimraf client/out && rimraf server/out",
+    "clean": "rimraf client/out && rimraf server/out && rimraf **/tsconfig.tsbuildinfo",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
     "test-compile": "tsc -p ./"
   },
