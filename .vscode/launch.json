@@ -24,11 +24,20 @@
       "preLaunchTask": "Webpack Watch"
     },
     {
-      "name": "Attach to Server",
+      "name": "Attach to Server (default)",
       "type": "node",
       "request": "attach",
       "timeout": 30000,
       "port": 6009,
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+    },
+    {
+      "name": "Attach to Server (folder 1)",
+      "type": "node",
+      "request": "attach",
+      "timeout": 30000,
+      "port": 6010,
       "restart": true,
       "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
     }
@@ -49,7 +58,10 @@
     {
       "name": "Client + Server",
       "stopAll": true,
-      "configurations": ["Launch Extension (quick)", "Attach to Server"]
+      "configurations": [
+        "Launch Extension (quick)",
+        "Attach to Server (folder 1)"
+      ]
     }
   ]
 }
