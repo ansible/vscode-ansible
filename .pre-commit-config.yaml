@@ -40,11 +40,3 @@ repos:
         - typescript-eslint
       files: \.[jt]sx?$  # *.js, *.jsx, *.ts and *.tsx
       types: [file]
-- repo: local
-  hooks:
-    - id: package-lock.json
-      name: package-lock.json must be in sync with package.json
-      entry: npm ci
-      always_run: true
-      language: node
-      pass_filenames: false

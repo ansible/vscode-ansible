@@ -213,18 +213,18 @@
   "description": "Ansible YAML schema verification, auto-complete, highlight problems reported by ansible-lint, yamllint.",
   "devDependencies": {
     "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.0.4",
-    "@types/node": "^12.11.7",
-    "@types/vscode": "^1.53.0",
-    "@typescript-eslint/eslint-plugin": "^4.14.1",
-    "@typescript-eslint/parser": "^4.14.1",
-    "eslint": "^7.19.0",
-    "glob": "^7.1.6",
+    "@types/mocha": "^8.2.2",
+    "@types/node": "^15.0.2",
+    "@types/vscode": "^1.56.0",
+    "@typescript-eslint/eslint-plugin": "^4.23.0",
+    "@typescript-eslint/parser": "^4.23.0",
+    "eslint": "^7.26.0",
+    "glob": "^7.1.7",
     "husky": "^6.0.0",
-    "mocha": "^8.2.1",
-    "standard-version": "^9.1.1",
-    "typescript": "^4.1.3",
-    "vscode-test": "^1.5.0"
+    "mocha": "^8.4.0",
+    "standard-version": "^9.3.0",
+    "typescript": "^4.2.4",
+    "vscode-test": "^1.5.2"
   },
   "displayName": "Ansible Language",
   "engines": {
@@ -260,12 +260,12 @@
   },
   "scripts": {
     "compile": "tsc -p ./",
-    "lint": "pre-commit run -a",
+    "lint": "npm install --package-lock && npm ci && pre-commit run -a",
     "prepare": "husky install",
     "pretest": "npm run compile && npm run lint",
     "test": "node ./out/test/runTest.js",
     "vscode:prepublish": "npm run compile",
     "watch": "tsc -watch -p ./"
   },
-  "version": "0.4.1"
+  "version": "0.4.2"
 }
