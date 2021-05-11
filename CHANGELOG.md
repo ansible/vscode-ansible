@@ -4,7 +4,7 @@
 
 * ...
 
-## 0.4.1
+## 0.4.2
 
 * Reduce minimal version of vscode that is required (#90) @ssbarnea
 
