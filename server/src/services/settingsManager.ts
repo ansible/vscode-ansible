@@ -1,22 +1,12 @@
-import { promises as fs } from 'fs';
-import { URL } from 'url';
 import { Connection } from 'vscode-languageserver';
-import {
-  DidChangeConfigurationParams,
-  DidChangeWatchedFilesParams,
-} from 'vscode-languageserver-protocol';
-import { parseAllDocuments } from 'yaml';
-import { ValueSource } from '../interfaces/context';
-import { IDocumentMetadata } from '../interfaces/documentMeta';
+import { DidChangeConfigurationParams } from 'vscode-languageserver-protocol';
 import { ExtensionSettings } from '../interfaces/extensionSettings';
-import { fileExists, hasOwnProperty } from '../utils/misc';
 
-export class SettingsManager
-  implements ValueSource<string, Thenable<ExtensionSettings>>
-{
+export class SettingsManager {
   private connection: Connection;
   private hasConfigurationCapability;
 
+  // cache of document settings per workspace file
   private documentSettings: Map<string, Thenable<ExtensionSettings>> =
     new Map();
 
@@ -36,7 +26,7 @@ export class SettingsManager
     if (!result) {
       result = this.connection.workspace.getConfiguration({
         scopeUri: uri,
-        section: 'languageServerExample',
+        section: 'ansible',
       });
       this.documentSettings.set(uri, result);
     }

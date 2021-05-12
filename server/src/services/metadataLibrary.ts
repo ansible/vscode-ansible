@@ -1,54 +1,38 @@
 import { promises as fs } from 'fs';
 import { URL } from 'url';
+import { Connection } from 'vscode-languageserver';
 import { DidChangeWatchedFilesParams } from 'vscode-languageserver-protocol';
 import { parseAllDocuments } from 'yaml';
-import { IContext } from '../interfaces/context';
 import { IDocumentMetadata } from '../interfaces/documentMeta';
 import { fileExists, hasOwnProperty } from '../utils/misc';
 export class MetadataLibrary {
-  private context: IContext;
+  private connection: Connection;
 
-  // maps metadata files (also inexistent) to the documents that use it
-  private metadataUsage: Map<string, Set<string>> = new Map();
-
-  // maps metadata files to promises of parsed contents
+  // cache of metadata contents per metadata file
   private metadata: Map<string, Thenable<IDocumentMetadata>> = new Map();
 
-  constructor(context: IContext) {
-    this.context = context;
+  constructor(connection: Connection) {
+    this.connection = connection;
   }
 
-  public handleDocumentOpened(uri: string): void {
+  public get(uri: string): Thenable<IDocumentMetadata> | undefined {
     const metadataUri = this.getAnsibleMetadataUri(uri);
     if (metadataUri) {
-      const metadataPromise = this.getMetadata(metadataUri);
-      this.context.documentMetadata.set(uri, metadataPromise);
-      this.getMetadataUsage(metadataUri).add(uri);
+      let metadata = this.metadata.get(metadataUri);
+      if (!metadata) {
+        metadata = this.readAnsibleMetadata(metadataUri);
+        this.metadata.set(metadataUri, metadata);
+      }
+      return metadata;
     }
-  }
-
-  public handleDocumentClosed(uri: string): void {
-    const metadataUri = this.getAnsibleMetadataUri(uri);
-    if (metadataUri) {
-      this.getMetadataUsage(metadataUri).delete(uri);
-    }
-    this.context.documentMetadata.delete(uri);
   }
 
   public handleWatchedDocumentChange(
     change: DidChangeWatchedFilesParams
   ): void {
     for (const fileEvent of change.changes) {
-      if (this.metadata.has(fileEvent.uri)) {
-        // This is one of metadata files that is/has been used. We shall
-        // recreate the contents promise and make it accessible to all documents
-        // that use it.
-        this.metadata.delete(fileEvent.uri);
-        for (const documentUri of this.getMetadataUsage(fileEvent.uri)) {
-          const metadata = this.getMetadata(fileEvent.uri);
-          this.context.documentMetadata.set(documentUri, metadata);
-        }
-      }
+      // remove from cache on any change
+      this.metadata.delete(fileEvent.uri);
     }
   }
 
@@ -74,20 +58,6 @@ export class MetadataLibrary {
       }
     }
     return metaPath;
-  }
-
-  private getMetadata(metadataUri: string): Thenable<IDocumentMetadata> {
-    if (!this.metadata.has(metadataUri)) {
-      this.metadata.set(metadataUri, this.readAnsibleMetadata(metadataUri));
-    }
-    return this.metadata.get(metadataUri) as Thenable<IDocumentMetadata>;
-  }
-
-  private getMetadataUsage(key: string): Set<string> {
-    if (!this.metadataUsage.has(key)) {
-      this.metadataUsage.set(key, new Set());
-    }
-    return this.metadataUsage.get(key) as Set<string>;
   }
 
   private async readAnsibleMetadata(
@@ -116,7 +86,7 @@ export class MetadataLibrary {
           }
         });
       } catch (error) {
-        //TODO: Log debug
+        this.connection.window.showErrorMessage(error);
       }
     }
     return metadata;

@@ -6,61 +6,41 @@ import {
   InitializeResult,
   TextDocuments,
   TextDocumentSyncKind,
-  WorkspaceFolder,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { IContext } from './interfaces/context';
-import { ExtensionSettings } from './interfaces/extensionSettings';
 import { doCompletion } from './providers/completionProvider';
 import { getDefinition } from './providers/definitionProvider';
 import { doHover } from './providers/hoverProvider';
 import { doValidate } from './providers/validationProvider';
-import { AnsibleConfig } from './services/ansibleConfig';
-import { AnsibleLint } from './services/ansibleLint';
-import { DocsLibrary } from './services/docsLibrary';
-import { MetadataLibrary } from './services/metadataLibrary';
+import {
+  WorkspaceFolderContext,
+  WorkspaceManager,
+} from './services/workspaceManager';
 
 export class AnsibleLanguageService {
   private connection: Connection;
   private documents: TextDocuments<TextDocument>;
 
-  private rootFolderUri: string | null = null;
+  private workspaceManager: WorkspaceManager;
   private hasConfigurationCapability = false;
   private hasWorkspaceFolderCapability = false;
   private hasDiagnosticRelatedInformationCapability = false;
 
-  private defaultSettings: ExtensionSettings = { maxNumberOfProblems: 1000 };
-  private globalSettings: ExtensionSettings = this.defaultSettings;
-
-  private docsLibrary: DocsLibrary;
-  private context: IContext;
-  private metadataLibrary: MetadataLibrary;
-  private ansibleLint: AnsibleLint;
-
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
     this.documents = documents;
-    this.context = {
-      ansibleConfig: new AnsibleConfig(connection),
-      documentMetadata: new Map(),
-      documentSettings: new Map(),
-    };
-    this.docsLibrary = new DocsLibrary(this.context);
-    this.metadataLibrary = new MetadataLibrary(this.context);
-    this.ansibleLint = new AnsibleLint(connection);
+    this.workspaceManager = new WorkspaceManager(connection);
   }
 
   public initialize(): void {
     this.initializeConnection();
     this.registerLifecycleEventHandlers();
-    this.context.ansibleConfig.initialize();
-    this.docsLibrary.initialize();
-    this.registerProviders();
   }
 
   private initializeConnection() {
     this.connection.onInitialize((params: InitializeParams) => {
-      this.rootFolderUri = params.rootUri;
+      this.workspaceManager.setWorkspaceFolders(params.workspaceFolders || []);
+      this.workspaceManager.setCapabilities(params.capabilities);
       const capabilities = params.capabilities;
 
       // Does the client support the `workspace/configuration` request?
@@ -120,26 +100,18 @@ export class AnsibleLanguageService {
         );
       }
       if (this.hasWorkspaceFolderCapability) {
-        this.connection.workspace.onDidChangeWorkspaceFolders((_event) => {
-          this.connection.console.log(
-            'Workspace folder change event received.'
-          );
+        this.connection.workspace.onDidChangeWorkspaceFolders((event) => {
+          this.workspaceManager.handleWorkspaceChanged(event);
         });
       }
-      this.connection.client;
     });
   }
 
   private registerLifecycleEventHandlers() {
     this.connection.onDidChangeConfiguration((change) => {
-      if (this.hasConfigurationCapability) {
-        // Reset all cached document settings
-        this.context.documentSettings.clear();
-      } else {
-        this.globalSettings = <ExtensionSettings>(
-          (change.settings.languageServerExample || this.defaultSettings)
-        );
-      }
+      this.workspaceManager.forEachContext((context) => {
+        context.documentSettings.handleConfigurationChanged(change);
+      });
 
       // Revalidate all open text documents
       this.documents.all().forEach((doc) => {
@@ -151,12 +123,17 @@ export class AnsibleLanguageService {
     });
 
     this.documents.onDidOpen(async (e) => {
-      this.metadataLibrary.handleDocumentOpened(e.document.uri);
+      const context = this.workspaceManager.getContext(e.document.uri);
+      if (context) {
+        await this.doFullValidation(context, e.document);
+      }
     });
 
     this.documents.onDidClose((e) => {
-      this.context.documentSettings.delete(e.document.uri);
-      this.metadataLibrary.handleDocumentClosed(e.document.uri);
+      const context = this.workspaceManager.getContext(e.document.uri);
+      if (context) {
+        context.documentSettings.handleDocumentClosed(e.document.uri);
+      }
 
       // need to clear the diagnostics, otherwise they remain after changing language
       this.connection.sendDiagnostics({
@@ -165,64 +142,101 @@ export class AnsibleLanguageService {
       });
     });
 
-    this.connection.onDidChangeWatchedFiles((_change) => {
-      this.metadataLibrary.handleWatchedDocumentChange(_change);
-    });
-  }
-
-  private registerProviders() {
-    this.documents.onDidSave(async (change) => {
-      const diagnostics = await this.ansibleLint.doValidate(change.document);
-      diagnostics.forEach((fileDiagnostics, fileUri) => {
-        if (change.document.uri === fileUri) {
-          // ensure that regular diagnostics are still present
-          fileDiagnostics.push(...doValidate(change.document));
-        }
-        this.connection.sendDiagnostics({
-          uri: fileUri,
-          diagnostics: fileDiagnostics,
-        });
+    this.connection.onDidChangeWatchedFiles((change) => {
+      this.workspaceManager.forEachContext((context) => {
+        context.documentMetadata.handleWatchedDocumentChange(change);
       });
     });
-    this.connection.onDidChangeTextDocument((change) => {
-      this.ansibleLint.invalidateCacheItems(
-        change.textDocument.uri,
-        change.contentChanges
-      );
+
+    this.documents.onDidSave(async (change) => {
+      const context = this.workspaceManager.getContext(change.document.uri);
+      if (context) {
+        await this.doFullValidation(context, change.document);
+      }
     });
+
+    this.connection.onDidChangeTextDocument((change) => {
+      const context = this.workspaceManager.getContext(change.textDocument.uri);
+      if (context) {
+        context.ansibleLint.invalidateCacheItems(
+          change.textDocument.uri,
+          change.contentChanges
+        );
+      }
+    });
+
     this.documents.onDidChangeContent((change) => {
       const diagnostics = doValidate(change.document);
-      const lintDiagnostics = this.ansibleLint.getValidationFromCache(
-        change.document.uri
-      );
-      if (lintDiagnostics) {
-        diagnostics.push(...lintDiagnostics);
+
+      const context = this.workspaceManager.getContext(change.document.uri);
+      if (context) {
+        const lintDiagnostics = context.ansibleLint.getValidationFromCache(
+          change.document.uri
+        );
+        if (lintDiagnostics) {
+          diagnostics.push(...lintDiagnostics);
+        }
       }
       this.connection.sendDiagnostics({
         uri: change.document.uri,
         diagnostics: diagnostics,
       });
     });
+
     this.connection.onHover((params) => {
       const document = this.documents.get(params.textDocument.uri);
       if (document) {
-        return doHover(document, params.position, this.docsLibrary);
+        const context = this.workspaceManager.getContext(
+          params.textDocument.uri
+        );
+        if (context) {
+          return doHover(document, params.position, context.docsLibrary);
+        }
       }
       return null;
     });
+
     this.connection.onCompletion((params) => {
       const document = this.documents.get(params.textDocument.uri);
       if (document) {
-        return doCompletion(document, params.position, this.docsLibrary);
+        const context = this.workspaceManager.getContext(
+          params.textDocument.uri
+        );
+        if (context) {
+          return doCompletion(document, params.position, context.docsLibrary);
+        }
       }
       return null;
     });
+
     this.connection.onDefinition((params) => {
       const document = this.documents.get(params.textDocument.uri);
       if (document) {
-        return getDefinition(document, params.position, this.docsLibrary);
+        const context = this.workspaceManager.getContext(
+          params.textDocument.uri
+        );
+        if (context) {
+          return getDefinition(document, params.position, context.docsLibrary);
+        }
       }
       return null;
     });
+  }
+
+  private async doFullValidation(
+    context: WorkspaceFolderContext,
+    document: TextDocument
+  ) {
+    const diagnostics = await context.ansibleLint.doValidate(document);
+    for (const [fileUri, fileDiagnostics] of diagnostics) {
+      if (document.uri === fileUri) {
+        // ensure that regular diagnostics are still present
+        fileDiagnostics.push(...doValidate(document));
+      }
+      this.connection.sendDiagnostics({
+        uri: fileUri,
+        diagnostics: fileDiagnostics,
+      });
+    }
   }
 }

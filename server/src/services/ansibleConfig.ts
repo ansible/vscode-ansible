@@ -3,17 +3,21 @@ import * as ini from 'ini';
 import * as _ from 'lodash';
 import { SpawnSyncReturns } from 'node:child_process';
 import * as path from 'path';
-import { _Connection } from 'vscode-languageserver';
+import { URL } from 'url';
+import { Connection } from 'vscode-languageserver';
+import { WorkspaceFolderContext } from './workspaceManager';
 
 // const exec = promisify(child_process.exec);
 
 export class AnsibleConfig {
-  private connection: _Connection;
+  private connection: Connection;
+  private context: WorkspaceFolderContext;
   private _collection_paths: string[] = [];
   private _module_locations: string[] = [];
 
-  constructor(connection: _Connection) {
+  constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
+    this.context = context;
   }
 
   public async initialize(): Promise<void> {
@@ -22,6 +26,7 @@ export class AnsibleConfig {
         'ansible-config dump',
         {
           encoding: 'utf-8',
+          cwd: new URL(this.context.workspaceFolder.uri).pathname,
         }
       );
       let config = ini.parse(ansibleConfigResult);

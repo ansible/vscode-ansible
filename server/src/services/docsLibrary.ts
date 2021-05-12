@@ -1,23 +1,21 @@
 import * as _ from 'lodash';
-import { WorkspaceFolder } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Node } from 'yaml/types';
 import { YAMLError } from 'yaml/util';
-import { IContext } from '../interfaces/context';
 import { hasOwnProperty, isObject } from '../utils/misc';
 import { getDeclaredCollections } from '../utils/yaml';
 import { DocsParser } from './docsParser';
+import { WorkspaceFolderContext } from './workspaceManager';
 export class DocsLibrary {
   private modules = new Map<string, IModuleMetadata>();
   private docFragments = new Map<string, IModuleMetadata>();
-  private context: IContext;
+  private context: WorkspaceFolderContext;
 
-  constructor(context: IContext) {
+  constructor(context: WorkspaceFolderContext) {
     this.context = context;
   }
 
   public async initialize(): Promise<void> {
-    // this._workspace.uri;
     for (const modulesPath of this.context.ansibleConfig.module_locations) {
       (await DocsParser.parseDirectory(modulesPath, 'builtin')).forEach(
         (doc) => {

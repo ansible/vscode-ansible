@@ -12,14 +12,17 @@ import {
   TextDocumentContentChangeEvent,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { WorkspaceFolderContext } from './workspaceManager';
 const exec = promisify(child_process.exec);
 
 export class AnsibleLint {
   private connection: Connection;
+  private context: WorkspaceFolderContext;
   private validationCache: Map<string, IntervalTree<Diagnostic>> = new Map();
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
+    this.context = context;
   }
 
   public async doValidate(
@@ -32,9 +35,10 @@ export class AnsibleLint {
         `ansible-lint --offline --nocolor -f codeclimate ${docPath}`,
         {
           encoding: 'utf-8',
+          cwd: new URL(this.context.workspaceFolder.uri).pathname,
         }
       );
-      diagnostics = this.processReport(result, textDocument);
+      diagnostics = this.processReport(result);
 
       if (result.stderr) {
         this.connection.console.warn(result.stderr);
@@ -42,13 +46,10 @@ export class AnsibleLint {
     } catch (error) {
       const execError = error as ExecException & StdResult;
       if (execError.code === 2) {
-        diagnostics = this.processReport(
-          {
-            stdout: execError.stdout,
-            stderr: execError.stderr,
-          },
-          textDocument
-        );
+        diagnostics = this.processReport({
+          stdout: execError.stdout,
+          stderr: execError.stderr,
+        });
       } else {
         this.connection.window.showErrorMessage(error.message);
       }
@@ -71,10 +72,7 @@ export class AnsibleLint {
     return diagnostics;
   }
 
-  private processReport(
-    result: StdResult,
-    textDocument: TextDocument
-  ): Map<string, Diagnostic[]> {
+  private processReport(result: StdResult): Map<string, Diagnostic[]> {
     const diagnostics: Map<string, Diagnostic[]> = new Map();
     const report = JSON.parse(result.stdout);
     if (report instanceof Array) {
@@ -84,7 +82,8 @@ export class AnsibleLint {
           item.location &&
           typeof item.location.path === 'string' &&
           item.location.lines &&
-          item.location.lines.begin
+          (item.location.lines.begin ||
+            typeof item.location.lines.begin === 'number')
         ) {
           const begin_line =
             item.location.lines.begin || item.location.lines.begin.line || 1;
@@ -101,18 +100,17 @@ export class AnsibleLint {
             start: start,
             end: end,
           };
-          if (!diagnostics.has(textDocument.uri)) {
-            diagnostics.set(textDocument.uri, []);
+          const locationUri = `${this.context.workspaceFolder.uri}/${item.location.path}`;
+          if (!diagnostics.has(locationUri)) {
+            diagnostics.set(locationUri, []);
           }
-          const fileDiagnostics = diagnostics.get(
-            textDocument.uri
-          ) as Diagnostic[];
+          const fileDiagnostics = diagnostics.get(locationUri) as Diagnostic[];
 
           fileDiagnostics.push({
             message: item.check_name,
             range: range || Range.create(0, 0, 0, 0),
             severity: DiagnosticSeverity.Error,
-            source: 'Ansible [YAML]',
+            source: 'Ansible',
           });
         }
       }
