@@ -24,7 +24,7 @@ export class AnsibleLanguageService {
   private connection: Connection;
   private documents: TextDocuments<TextDocument>;
 
-  private rootFolder: WorkspaceFolder | undefined;
+  private rootFolderUri: string | null = null;
   private hasConfigurationCapability = false;
   private hasWorkspaceFolderCapability = false;
   private hasDiagnosticRelatedInformationCapability = false;
@@ -60,9 +60,7 @@ export class AnsibleLanguageService {
 
   private initializeConnection() {
     this.connection.onInitialize((params: InitializeParams) => {
-      if (params.workspaceFolders) {
-        this.rootFolder = params.workspaceFolders[0]; //TODO: support multiroot
-      }
+      this.rootFolderUri = params.rootUri;
       const capabilities = params.capabilities;
 
       // Does the client support the `workspace/configuration` request?
@@ -108,13 +106,13 @@ export class AnsibleLanguageService {
           DidChangeConfigurationNotification.type,
           undefined
         );
-
         this.connection.client.register(
           DidChangeWatchedFilesNotification.type,
           {
             watchers: [
               {
                 // watch for documentMetadata
+                // TODO: Narrow down this watcher once LSP support for multi-root gets better
                 globPattern: '**/meta/main.{yml,yaml}',
               },
             ],

@@ -7,3 +7,7 @@ export interface IContext {
   documentMetadata: Map<string, Thenable<IDocumentMetadata>>;
   documentSettings: Map<string, Thenable<ExtensionSettings>>;
 }
+
+export interface ValueSource<K, V> {
+  get(key: K): V;
+}

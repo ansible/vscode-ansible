@@ -10,7 +10,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
       "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
       "preLaunchTask": "npm: watch"
     },
@@ -19,7 +19,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "args": ["--extensionDevelopmentPath=${workspaceRoot}"],
       "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
       "preLaunchTask": "Webpack Watch"
     },
@@ -38,6 +38,15 @@
       "request": "attach",
       "timeout": 30000,
       "port": 6010,
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+    },
+    {
+      "name": "Attach to Server (folder 2)",
+      "type": "node",
+      "request": "attach",
+      "timeout": 30000,
+      "port": 6011,
       "restart": true,
       "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
     }
