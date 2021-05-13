@@ -152,17 +152,24 @@
       {
         "fileMatch": [
           "playbooks/vars/*.yml",
+          "playbooks/vars/*.yaml",
           "vars/*.yml",
+          "vars/*.yaml",
           "defaults/*.yml",
+          "defaults/*.yaml",
           "host_vars/*.yml",
-          "group_vars/*.yml"
+          "host_vars/*.yaml",
+          "group_vars/*.yml",
+          "group_vars/*.yaml"
         ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-vars.json"
       },
       {
         "fileMatch": [
           "tasks/*.yml",
-          "handlers/*.yml"
+          "tasks/*.yaml",
+          "handlers/*.yml",
+          "handlers/*.yaml"
         ],
         "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-tasks.json"
       },
