@@ -1,13 +1,10 @@
 import * as child_process from 'child_process';
 import * as ini from 'ini';
 import * as _ from 'lodash';
-import { SpawnSyncReturns } from 'node:child_process';
 import * as path from 'path';
 import { URL } from 'url';
 import { Connection } from 'vscode-languageserver';
 import { WorkspaceFolderContext } from './workspaceManager';
-
-// const exec = promisify(child_process.exec);
 
 export class AnsibleConfig {
   private connection: Connection;

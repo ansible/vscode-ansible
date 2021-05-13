@@ -96,9 +96,9 @@ export class WorkspaceFolderContext {
   public documentSettings: SettingsManager;
 
   // Lazy-loading anything that needs this context itself
-  private _docsLibrary: DocsLibrary | undefined;
-  private _ansibleConfig: AnsibleConfig | undefined;
-  public _ansibleLint: AnsibleLint | undefined;
+  private _docsLibrary: Thenable<DocsLibrary> | undefined;
+  private _ansibleConfig: Thenable<AnsibleConfig> | undefined;
+  private _ansibleLint: AnsibleLint | undefined;
 
   constructor(
     connection: Connection,
@@ -114,18 +114,20 @@ export class WorkspaceFolderContext {
     );
   }
 
-  public get docsLibrary(): DocsLibrary {
+  public get docsLibrary(): Thenable<DocsLibrary> {
     if (!this._docsLibrary) {
-      this._docsLibrary = new DocsLibrary(this);
-      this._docsLibrary.initialize();
+      const docsLibrary = new DocsLibrary(this);
+      this._docsLibrary = docsLibrary.initialize().then(() => docsLibrary);
     }
     return this._docsLibrary;
   }
 
-  public get ansibleConfig(): AnsibleConfig {
+  public get ansibleConfig(): Thenable<AnsibleConfig> {
     if (!this._ansibleConfig) {
-      this._ansibleConfig = new AnsibleConfig(this.connection, this);
-      this._ansibleConfig.initialize();
+      const ansibleConfig = new AnsibleConfig(this.connection, this);
+      this._ansibleConfig = ansibleConfig
+        .initialize()
+        .then(() => ansibleConfig);
     }
     return this._ansibleConfig;
   }

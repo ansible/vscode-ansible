@@ -16,7 +16,8 @@ export class DocsLibrary {
   }
 
   public async initialize(): Promise<void> {
-    for (const modulesPath of this.context.ansibleConfig.module_locations) {
+    const ansibleConfig = await this.context.ansibleConfig;
+    for (const modulesPath of ansibleConfig.module_locations) {
       (await DocsParser.parseDirectory(modulesPath, 'builtin')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);
@@ -28,8 +29,7 @@ export class DocsLibrary {
         this.docFragments.set(doc.fqcn, doc);
       });
     }
-    for (const collectionsPath of this.context.ansibleConfig
-      .collections_paths) {
+    for (const collectionsPath of ansibleConfig.collections_paths) {
       (await DocsParser.parseDirectory(collectionsPath, 'collection')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);

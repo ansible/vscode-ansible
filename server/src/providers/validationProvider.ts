@@ -9,8 +9,44 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
+import { AnsibleLint } from '../services/ansibleLint';
 
-export function doValidate(textDocument: TextDocument): Diagnostic[] {
+/**
+ * Validates the given document.
+ * @param textDocument - the document to validate
+ * @param linter - uses linter
+ * @param quick - only re-evaluates YAML validation and uses lint cache
+ * @returns Map of diagnostics per file.
+ */
+export async function doValidate(
+  textDocument: TextDocument,
+  linter?: AnsibleLint,
+  quick = false
+): Promise<Map<string, Diagnostic[]>> {
+  if (linter) {
+    if (quick) {
+      const diagnostics = getYamlValidation(textDocument);
+      const lintDiagnostics = linter.getValidationFromCache(textDocument.uri);
+      if (lintDiagnostics) {
+        diagnostics.push(...lintDiagnostics);
+      }
+      return new Map([[textDocument.uri, diagnostics]]);
+    } else {
+      const diagnostics = await linter.doValidate(textDocument);
+      for (const [fileUri, fileDiagnostics] of diagnostics) {
+        if (textDocument.uri === fileUri) {
+          // ensure that regular diagnostics are still present
+          fileDiagnostics.push(...getYamlValidation(textDocument));
+        }
+      }
+      return diagnostics;
+    }
+  } else {
+    return new Map([[textDocument.uri, getYamlValidation(textDocument)]]);
+  }
+}
+
+function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const yDocuments = parseAllDocuments(textDocument.getText(), {
     prettyErrors: false,

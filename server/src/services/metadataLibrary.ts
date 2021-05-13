@@ -28,9 +28,9 @@ export class MetadataLibrary {
   }
 
   public handleWatchedDocumentChange(
-    change: DidChangeWatchedFilesParams
+    params: DidChangeWatchedFilesParams
   ): void {
-    for (const fileEvent of change.changes) {
+    for (const fileEvent of params.changes) {
       // remove from cache on any change
       this.metadata.delete(fileEvent.uri);
     }
