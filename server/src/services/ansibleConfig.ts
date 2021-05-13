@@ -22,8 +22,14 @@ export class AnsibleConfig {
 
   public async initialize(): Promise<void> {
     try {
+      const ansibleExecutable = (
+        await this.context.documentSettings.get(
+          this.context.workspaceFolder.uri
+        )
+      ).ansible.path;
+
       const ansibleConfigResult = child_process.execSync(
-        'ansible-config dump',
+        `${ansibleExecutable}-config dump`,
         {
           encoding: 'utf-8',
           cwd: new URL(this.context.workspaceFolder.uri).pathname,
@@ -36,9 +42,12 @@ export class AnsibleConfig {
       );
       this._collection_paths = parsePythonStringArray(config.COLLECTIONS_PATHS);
 
-      const ansibleVersionResult = child_process.execSync('ansible --version', {
-        encoding: 'utf-8',
-      });
+      const ansibleVersionResult = child_process.execSync(
+        `${ansibleExecutable} --version`,
+        {
+          encoding: 'utf-8',
+        }
+      );
       const versionInfo = ini.parse(ansibleVersionResult);
       this._module_locations = parsePythonStringArray(
         versionInfo['configured module search path']
@@ -47,7 +56,13 @@ export class AnsibleConfig {
         path.resolve(versionInfo['ansible python module location'], 'modules')
       );
     } catch (error) {
-      this.connection.console.error((error as SpawnSyncReturns<string>).stderr);
+      if (error instanceof Error) {
+        this.connection.window.showErrorMessage(error.message);
+      } else {
+        this.connection.console.error(
+          `Exception in AnsibleConfig service: ${JSON.stringify(error)}`
+        );
+      }
     }
   }
 

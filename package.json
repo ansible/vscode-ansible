@@ -23,24 +23,25 @@
   "contributes": {
     "configuration": {
       "type": "object",
-      "title": "Example configuration",
+      "title": "Ansible",
       "properties": {
-        "ansible.maxNumberOfProblems": {
+        "ansible.ansible.path": {
           "scope": "resource",
-          "type": "number",
-          "default": 100,
-          "description": "Controls the maximum number of problems produced by the server."
-        },
-        "ansible.trace.server": {
-          "scope": "window",
           "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VS Code and the language server."
+          "default": "ansible",
+          "description": "Path to the ansible executable."
+        },
+        "ansible.ansibleLint.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable linting with ansible-lint on document open/save."
+        },
+        "ansible.ansibleLint.path": {
+          "scope": "resource",
+          "type": "string",
+          "default": "ansible-lint",
+          "description": "Path to the ansible-lint executable."
         }
       }
     },

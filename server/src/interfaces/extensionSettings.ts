@@ -1,3 +1,4 @@
 export interface ExtensionSettings {
-  maxNumberOfProblems: number;
+  ansible: { path: string };
+  ansibleLint: { enabled: boolean; path: string };
 }

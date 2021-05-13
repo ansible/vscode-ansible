@@ -10,7 +10,10 @@ export class SettingsManager {
   private documentSettings: Map<string, Thenable<ExtensionSettings>> =
     new Map();
 
-  private defaultSettings: ExtensionSettings = { maxNumberOfProblems: 1000 };
+  private defaultSettings: ExtensionSettings = {
+    ansible: { path: 'ansible' },
+    ansibleLint: { enabled: true, path: 'ansible-lint' },
+  };
   private globalSettings: ExtensionSettings = this.defaultSettings;
 
   constructor(connection: Connection, hasConfigurationCapability: boolean) {

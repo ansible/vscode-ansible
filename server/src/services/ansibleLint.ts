@@ -31,27 +31,40 @@ export class AnsibleLint {
     const docPath = new URL(textDocument.uri).pathname;
     let diagnostics: Map<string, Diagnostic[]> = new Map();
     try {
-      const result = await exec(
-        `ansible-lint --offline --nocolor -f codeclimate ${docPath}`,
-        {
-          encoding: 'utf-8',
-          cwd: new URL(this.context.workspaceFolder.uri).pathname,
-        }
+      const settings = await this.context.documentSettings.get(
+        textDocument.uri
       );
-      diagnostics = this.processReport(result);
 
-      if (result.stderr) {
-        this.connection.console.warn(result.stderr);
+      if (settings.ansibleLint.enabled) {
+        const result = await exec(
+          `${settings.ansibleLint.path} --offline --nocolor -f codeclimate ${docPath}`,
+          {
+            encoding: 'utf-8',
+            cwd: new URL(this.context.workspaceFolder.uri).pathname,
+          }
+        );
+        diagnostics = this.processReport(result.stdout);
+
+        if (result.stderr) {
+          this.connection.window.showErrorMessage(result.stderr);
+        }
       }
     } catch (error) {
-      const execError = error as ExecException & StdResult;
-      if (execError.code === 2) {
-        diagnostics = this.processReport({
-          stdout: execError.stdout,
-          stderr: execError.stderr,
-        });
+      if (error instanceof Error) {
+        const execError = error as ExecException & {
+          // according to the docs, these are always available
+          stdout: string;
+          stderr: string;
+        };
+        if (execError.code === 2) {
+          diagnostics = this.processReport(execError.stdout);
+        } else {
+          this.connection.window.showErrorMessage(execError.message);
+        }
       } else {
-        this.connection.window.showErrorMessage(error.message);
+        this.connection.console.error(
+          `Exception in AnsibleLint service: ${JSON.stringify(error)}`
+        );
       }
     }
     diagnostics.forEach((fileDiagnostics, fileUri) => {
@@ -72,9 +85,9 @@ export class AnsibleLint {
     return diagnostics;
   }
 
-  private processReport(result: StdResult): Map<string, Diagnostic[]> {
+  private processReport(result: string): Map<string, Diagnostic[]> {
     const diagnostics: Map<string, Diagnostic[]> = new Map();
-    const report = JSON.parse(result.stdout);
+    const report = JSON.parse(result);
     if (report instanceof Array) {
       for (const item of report) {
         if (
@@ -146,9 +159,4 @@ export class AnsibleLint {
   public getValidationFromCache(fileUri: string): Diagnostic[] | undefined {
     return this.validationCache.get(fileUri)?.values;
   }
-}
-
-interface StdResult {
-  stdout: string;
-  stderr: string;
 }
