@@ -4,6 +4,10 @@
 
 * ...
 
+## 0.4.3
+
+* Auto-add missing Ansible YAML tags like `!vault`
+
 ## 0.4.2
 
 * Reduce minimal version of vscode that is required (#90) @ssbarnea

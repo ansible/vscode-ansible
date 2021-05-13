@@ -3,12 +3,15 @@
 import * as vscode from 'vscode';
 import AnsibleValidationProvider from './features/validationProvider';
 import { toggleEncrypt } from './features/vault';
+import { configure } from './features/config';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 
 	let output = vscode.window.createOutputChannel("Ansible");
+
+	configure(output);
 
 	let validator = new AnsibleValidationProvider(context.workspaceState, output);
 	validator.activate(context.subscriptions);
