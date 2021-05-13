@@ -224,10 +224,14 @@
     "mocha": "^8.4.0",
     "standard-version": "^9.3.0",
     "typescript": "^4.2.4",
+    "vsce": "^1.88.0",
     "vscode-test": "^1.5.2"
   },
   "displayName": "Ansible Language",
+  "engineStrict": true,
   "engines": {
+    "node": ">=16.0",
+    "npm": "^7.12.1",
     "vscode": "^1.52.0",
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
   },
@@ -263,6 +267,7 @@
   "scripts": {
     "compile": "tsc -p ./",
     "lint": "npm install --package-lock && npm ci && pre-commit run -a",
+    "package": "npm install && vsce package",
     "prepare": "husky install",
     "pretest": "npm run compile && npm run lint",
     "test": "node ./out/test/runTest.js",
