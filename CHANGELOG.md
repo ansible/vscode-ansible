@@ -7,6 +7,7 @@
 ## 0.4.3
 
 * Auto-add missing Ansible YAML tags like `!vault`
+* Recognize Ansible files using `.yaml` extension in addition to `.yml`
 
 ## 0.4.2
 
