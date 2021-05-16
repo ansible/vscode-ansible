@@ -1,4 +1,3 @@
-import _ = require('lodash');
 import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
@@ -45,9 +44,9 @@ export async function doCompletion(
         if (module && module.documentation) {
           const moduleOptions = module.documentation.options;
 
-          const optionMap = (new AncestryBuilder(modulePath)
-            .parent(Pair)
-            .get() as Pair).value as YAMLMap;
+          const optionMap = (
+            new AncestryBuilder(modulePath).parent(Pair).get() as Pair
+          ).value as YAMLMap;
 
           // find options that have been already provided by the user
           const providedOptions = new Set(

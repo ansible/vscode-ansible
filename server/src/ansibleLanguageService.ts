@@ -15,14 +15,19 @@ import { doHover } from './providers/hoverProvider';
 import { doValidate } from './providers/validationProvider';
 import { WorkspaceManager } from './services/workspaceManager';
 
+/**
+ * Initializes the connection and registers all lifecycle event handlers.
+ *
+ * The event handlers interact with the `WorkspaceManager` to find the relevant
+ * context and service instance, and then perform the required actions.
+ *
+ * Providers are used here directly in the event handlers.
+ */
 export class AnsibleLanguageService {
   private connection: Connection;
   private documents: TextDocuments<TextDocument>;
 
   private workspaceManager: WorkspaceManager;
-  private hasConfigurationCapability = false;
-  private hasWorkspaceFolderCapability = false;
-  private hasDiagnosticRelatedInformationCapability = false;
 
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
@@ -39,27 +44,11 @@ export class AnsibleLanguageService {
     this.connection.onInitialize((params: InitializeParams) => {
       this.workspaceManager.setWorkspaceFolders(params.workspaceFolders || []);
       this.workspaceManager.setCapabilities(params.capabilities);
-      const capabilities = params.capabilities;
-
-      // Does the client support the `workspace/configuration` request?
-      // If not, we fall back using global settings.
-      this.hasConfigurationCapability = !!(
-        capabilities.workspace && !!capabilities.workspace.configuration
-      );
-      this.hasWorkspaceFolderCapability = !!(
-        capabilities.workspace && !!capabilities.workspace.workspaceFolders
-      );
-      this.hasDiagnosticRelatedInformationCapability = !!(
-        capabilities.textDocument &&
-        capabilities.textDocument.publishDiagnostics &&
-        capabilities.textDocument.publishDiagnostics.relatedInformation
-      );
 
       const result: InitializeResult = {
         capabilities: {
           textDocumentSync: TextDocumentSyncKind.Incremental,
           hoverProvider: true,
-          // Tell the client that this server supports code completion.
           completionProvider: {
             resolveProvider: false,
           },
@@ -67,10 +56,13 @@ export class AnsibleLanguageService {
           workspace: {},
         },
       };
-      if (this.hasWorkspaceFolderCapability) {
+      if (
+        this.workspaceManager.clientCapabilities.workspace?.workspaceFolders
+      ) {
         result.capabilities.workspace = {
           workspaceFolders: {
             supported: true,
+            changeNotifications: true,
           },
         };
       }
@@ -78,39 +70,40 @@ export class AnsibleLanguageService {
     });
 
     this.connection.onInitialized(() => {
-      if (this.hasConfigurationCapability) {
-        // Register for all configuration changes.
+      if (this.workspaceManager.clientCapabilities.workspace?.configuration) {
+        // register for all configuration changes
         this.connection.client.register(
           DidChangeConfigurationNotification.type,
-          undefined
-        );
-        this.connection.client.register(
-          DidChangeWatchedFilesNotification.type,
           {
-            watchers: [
-              {
-                // watch for documentMetadata
-                globPattern: '**/meta/main.{yml,yaml}',
-              },
-            ],
+            section: 'ansible',
           }
         );
       }
-      if (this.hasWorkspaceFolderCapability) {
+      if (
+        this.workspaceManager.clientCapabilities.workspace?.workspaceFolders
+      ) {
         this.connection.workspace.onDidChangeWorkspaceFolders((e) => {
           this.workspaceManager.handleWorkspaceChanged(e);
         });
       }
+      this.connection.client.register(DidChangeWatchedFilesNotification.type, {
+        watchers: [
+          {
+            // watch for documentMetadata
+            globPattern: '**/meta/main.{yml,yaml}',
+          },
+        ],
+      });
     });
   }
 
   private registerLifecycleEventHandlers() {
-    this.connection.onDidChangeConfiguration((params) => {
-      this.workspaceManager.forEachContext((context) => {
-        context.documentSettings.handleConfigurationChanged(params);
-      });
+    this.connection.onDidChangeConfiguration(async (params) => {
+      await this.workspaceManager.forEachContext((context) =>
+        context.documentSettings.handleConfigurationChanged(params)
+      );
 
-      // Revalidate all open text documents
+      // revalidate all open text documents
       this.documents.all().forEach(async (doc) => {
         this.sendDiagnostics(await doValidate(doc));
       });
@@ -137,9 +130,9 @@ export class AnsibleLanguageService {
     });
 
     this.connection.onDidChangeWatchedFiles((params) => {
-      this.workspaceManager.forEachContext((context) => {
-        context.documentMetadata.handleWatchedDocumentChange(params);
-      });
+      this.workspaceManager.forEachContext((context) =>
+        context.documentMetadata.handleWatchedDocumentChange(params)
+      );
     });
 
     this.documents.onDidSave(async (e) => {

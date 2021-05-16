@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 import {
   ClientCapabilities,
   Connection,
@@ -10,11 +11,14 @@ import { DocsLibrary } from './docsLibrary';
 import { MetadataLibrary } from './metadataLibrary';
 import { SettingsManager } from './settingsManager';
 
+/**
+ * Holds the overall context for the whole workspace.
+ */
 export class WorkspaceManager {
   private connection: Connection;
   private sortedWorkspaceFolders: WorkspaceFolder[] = [];
   private folderContexts: Map<string, WorkspaceFolderContext> = new Map();
-  private capabilities: ClientCapabilities = {};
+  public clientCapabilities: ClientCapabilities = {};
 
   constructor(connection: Connection) {
     this.connection = connection;
@@ -25,7 +29,7 @@ export class WorkspaceManager {
   }
 
   public setCapabilities(capabilities: ClientCapabilities): void {
-    this.capabilities = capabilities;
+    this.clientCapabilities = capabilities;
   }
 
   /**
@@ -39,7 +43,7 @@ export class WorkspaceManager {
         context = new WorkspaceFolderContext(
           this.connection,
           workspaceFolder,
-          this.capabilities
+          this
         );
         this.folderContexts.set(workspaceFolder.uri, context);
       }
@@ -47,12 +51,14 @@ export class WorkspaceManager {
     }
   }
 
-  public forEachContext(
-    callbackfn: (value: WorkspaceFolderContext) => void
-  ): void {
-    for (const folder of this.folderContexts.values()) {
-      callbackfn(folder);
-    }
+  public async forEachContext(
+    callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void
+  ): Promise<void> {
+    await Promise.all(
+      _.map(Array.from(this.folderContexts.values()), (folder) =>
+        callbackfn(folder)
+      )
+    );
   }
 
   /**
@@ -89,6 +95,10 @@ export class WorkspaceManager {
   }
 }
 
+/**
+ * Holds the context for particular workspace folder. This context is used by
+ * all services to interact with the client and with each other.
+ */
 export class WorkspaceFolderContext {
   private connection: Connection;
   public workspaceFolder: WorkspaceFolder;
@@ -103,14 +113,23 @@ export class WorkspaceFolderContext {
   constructor(
     connection: Connection,
     workspaceFolder: WorkspaceFolder,
-    capabilities: ClientCapabilities
+    workspaceManager: WorkspaceManager
   ) {
     this.connection = connection;
     this.workspaceFolder = workspaceFolder;
     this.documentMetadata = new MetadataLibrary(connection);
     this.documentSettings = new SettingsManager(
       connection,
-      !!(capabilities.workspace && !!capabilities.workspace.configuration)
+      !!workspaceManager.clientCapabilities.workspace?.configuration
+    );
+    this.documentSettings.onConfigurationChanged(
+      this.workspaceFolder.uri,
+      () => {
+        // in case the configuration changes for this folder, we should
+        // invalidate the services that rely on it in initialization
+        this._ansibleConfig = undefined;
+        this._docsLibrary = undefined;
+      }
     );
   }
 

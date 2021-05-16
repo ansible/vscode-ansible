@@ -13,7 +13,8 @@ import { AnsibleLanguageService } from './ansibleLanguageService';
 // Also include all preview / proposed LSP features.
 const connection: Connection = createConnection(ProposedFeatures.all);
 
-const docChangeHandlers: NotificationHandler<DidChangeTextDocumentParams>[] = [];
+const docChangeHandlers: NotificationHandler<DidChangeTextDocumentParams>[] =
+  [];
 connection.onDidChangeTextDocument((params) => {
   for (const handler of docChangeHandlers) {
     handler(params);
@@ -38,21 +39,6 @@ const connectionProxy = new Proxy(connection, {
 
 // Create a simple text document manager.
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
-
-// function getDocumentSettings(resource: string): Thenable<ExtensionSettings> {
-//   if (!hasConfigurationCapability) {
-//     return Promise.resolve(globalSettings);
-//   }
-//   let result = documentSettings.get(resource);
-//   if (!result) {
-//     result = connection.workspace.getConfiguration({
-//       scopeUri: resource,
-//       section: 'languageServerExample',
-//     });
-//     documentSettings.set(resource, result);
-//   }
-//   return result;
-// }
 
 const context = new AnsibleLanguageService(connectionProxy, documents);
 context.initialize();
