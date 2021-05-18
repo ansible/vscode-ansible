@@ -3,6 +3,10 @@ import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { Document } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 
+/**
+ * A helper class used for building YAML path assertions. The assertions are
+ * built up from the most nested (last in array) element.
+ */
 export class AncestryBuilder {
   private _path: Node[];
 

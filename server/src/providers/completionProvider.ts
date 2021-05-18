@@ -3,6 +3,7 @@ import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Pair, Scalar, YAMLMap } from 'yaml/types';
 import { DocsLibrary, IOption } from '../services/docsLibrary';
+import { isTaskKeyword } from '../utils/ansible';
 import { formatOption, getDetails } from '../utils/docsFormatter';
 import { AncestryBuilder, getPathAt, mayBeModule } from '../utils/yaml';
 
@@ -13,13 +14,13 @@ export async function doCompletion(
 ): Promise<CompletionItem[] | null> {
   let preparedText = document.getText();
   const offset = document.offsetAt(position);
-  // HACK: We need to insert a dummy character, so that the YAML parser can properly recognize the scope.
+  // HACK: We need to insert a dummy mapping, so that the YAML parser can properly recognize the scope.
   // This is particularly important when parser has nothing more than
   // indentation to determine the scope of the current line. `_:` is ok here,
   // since we expect to work on a Pair level
   preparedText = insert(preparedText, offset, '_:');
   // We need a newline at the EOF, so that the YAML parser can properly recognize the scope
-  // This is for future case when we might need to avoid the dummy character
+  // This is for future case when we might need to avoid the dummy mapping
   preparedText = `${preparedText}\n`;
   const yamlDocs = parseAllDocuments(preparedText);
 
@@ -29,7 +30,9 @@ export async function doCompletion(
   if (path) {
     const node = path[path.length - 1];
     if (node) {
-      const modulePath = new AncestryBuilder(path)
+      // First check if we're looking for module options
+      // In that case, the module name is a key of a map
+      let modulePath = new AncestryBuilder(path)
         .parent(YAMLMap)
         .parentKey()
         .getPath();
@@ -104,6 +107,46 @@ export async function doCompletion(
               };
             });
         }
+      }
+      modulePath = path;
+      if (modulePath && mayBeModule(modulePath)) {
+        const taskParameterMap = new AncestryBuilder(modulePath)
+          .parent(YAMLMap)
+          .get() as YAMLMap;
+
+        // find task parameters that have been already provided by the user
+        const providedParameters = new Set(
+          taskParameterMap.items.map((pair) => {
+            if (pair.key && pair.key instanceof Scalar) {
+              return pair.key.value;
+            }
+          })
+        );
+        // should usually be 0 or 1
+        const providedModuleNames = [...providedParameters].filter(
+          (x) => !x || !isTaskKeyword(x)
+        );
+
+        // check if the module has already been provided
+        let moduleAlreadyProvided = false;
+        for (const m of providedModuleNames) {
+          // incidentally, the hack mentioned above prevents finding a module in
+          // case the cursor is on it
+          if (await docsLibrary.findModule(m, path, document)) {
+            moduleAlreadyProvided = true;
+            break;
+          }
+        }
+        if (!moduleAlreadyProvided)
+          return Array.from(docsLibrary.moduleFqcns).map((moduleFqcn) => {
+            const [namespace, collection, name] = moduleFqcn.split('.');
+            return {
+              label: name,
+              kind: CompletionItemKind.Method,
+              detail: `${namespace}.${collection}`,
+              filterText: moduleFqcn,
+            };
+          });
       }
     }
   }

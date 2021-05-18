@@ -8,6 +8,7 @@ import { DocsParser } from './docsParser';
 import { WorkspaceFolderContext } from './workspaceManager';
 export class DocsLibrary {
   private modules = new Map<string, IModuleMetadata>();
+  private _moduleFqcns = new Set<string>();
   private docFragments = new Map<string, IModuleMetadata>();
   private context: WorkspaceFolderContext;
 
@@ -21,6 +22,7 @@ export class DocsLibrary {
       (await DocsParser.parseDirectory(modulesPath, 'builtin')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);
+          this.moduleFqcns.add(doc.fqcn);
         }
       );
       (
@@ -33,6 +35,7 @@ export class DocsLibrary {
       (await DocsParser.parseDirectory(collectionsPath, 'collection')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);
+          this.moduleFqcns.add(doc.fqcn);
         }
       );
       (
@@ -80,6 +83,10 @@ export class DocsLibrary {
       }
     }
     return module;
+  }
+
+  get moduleFqcns(): Set<string> {
+    return this._moduleFqcns;
   }
 
   private processDocumentationFragments(module: IModuleMetadata) {

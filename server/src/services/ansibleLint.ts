@@ -99,7 +99,7 @@ export class AnsibleLint {
             typeof item.location.lines.begin === 'number')
         ) {
           const begin_line =
-            item.location.lines.begin || item.location.lines.begin.line || 1;
+            item.location.lines.begin.line || item.location.lines.begin || 1;
           const begin_column = item.location.lines.begin.column || 1;
           const start: Position = {
             line: begin_line - 1,

@@ -6,7 +6,8 @@ import { IModuleMetadata } from './docsLibrary';
 import globby = require('globby');
 
 export class DocsParser {
-  public static docsRegex = /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;
+  public static docsRegex =
+    /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;
 
   public static async parseDirectory(
     dir: string,
@@ -28,10 +29,13 @@ export class DocsParser {
         ]);
         break;
       case 'collection':
-        files = await globby([`${dir}/**/modules/*.py`, '!/**/_*.py']);
+        files = await globby([`${dir}/**/modules/*.py`, `!${dir}/**/_*.py`]);
         break;
       case 'collection_doc_fragment':
-        files = await globby([`${dir}/**/doc_fragments/*.py`, '!/**/_*.py']);
+        files = await globby([
+          `${dir}/**/doc_fragments/*.py`,
+          `!${dir}/**/doc_fragments/_*.py`,
+        ]);
         break;
     }
     return Promise.all(
