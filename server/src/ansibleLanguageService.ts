@@ -9,7 +9,10 @@ import {
   TextDocumentSyncKind,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { doCompletion } from './providers/completionProvider';
+import {
+  doCompletion,
+  doCompletionResolve,
+} from './providers/completionProvider';
 import { getDefinition } from './providers/definitionProvider';
 import { doHover } from './providers/hoverProvider';
 import { doValidate } from './providers/validationProvider';
@@ -50,7 +53,7 @@ export class AnsibleLanguageService {
           textDocumentSync: TextDocumentSyncKind.Incremental,
           hoverProvider: true,
           completionProvider: {
-            resolveProvider: false,
+            resolveProvider: true,
           },
           definitionProvider: true,
           workspace: {},
@@ -99,114 +102,188 @@ export class AnsibleLanguageService {
 
   private registerLifecycleEventHandlers() {
     this.connection.onDidChangeConfiguration(async (params) => {
-      await this.workspaceManager.forEachContext((context) =>
-        context.documentSettings.handleConfigurationChanged(params)
-      );
+      try {
+        await this.workspaceManager.forEachContext((context) =>
+          context.documentSettings.handleConfigurationChanged(params)
+        );
 
-      // revalidate all open text documents
-      this.documents.all().forEach(async (doc) => {
-        this.sendDiagnostics(await doValidate(doc));
-      });
+        // revalidate all open text documents
+        this.documents.all().forEach(async (doc) => {
+          this.sendDiagnostics(await doValidate(doc));
+        });
+      } catch (error) {
+        this.handleError(error, 'onDidChangeConfiguration');
+      }
     });
 
     this.documents.onDidOpen(async (e) => {
-      const context = this.workspaceManager.getContext(e.document.uri);
-      if (context) {
-        this.sendDiagnostics(await doValidate(e.document, context.ansibleLint));
+      try {
+        const context = this.workspaceManager.getContext(e.document.uri);
+        if (context) {
+          this.sendDiagnostics(
+            await doValidate(e.document, context.ansibleLint)
+          );
+        }
+      } catch (error) {
+        this.handleError(error, 'onDidOpen');
       }
     });
 
     this.documents.onDidClose((e) => {
-      const context = this.workspaceManager.getContext(e.document.uri);
-      if (context) {
-        context.documentSettings.handleDocumentClosed(e.document.uri);
-      }
+      try {
+        const context = this.workspaceManager.getContext(e.document.uri);
+        if (context) {
+          context.documentSettings.handleDocumentClosed(e.document.uri);
+        }
 
-      // need to clear the diagnostics, otherwise they remain after changing language
-      this.connection.sendDiagnostics({
-        uri: e.document.uri,
-        diagnostics: [],
-      });
+        // need to clear the diagnostics, otherwise they remain after changing language
+        this.connection.sendDiagnostics({
+          uri: e.document.uri,
+          diagnostics: [],
+        });
+      } catch (error) {
+        this.handleError(error, 'onDidClose');
+      }
     });
 
     this.connection.onDidChangeWatchedFiles((params) => {
-      this.workspaceManager.forEachContext((context) =>
-        context.documentMetadata.handleWatchedDocumentChange(params)
-      );
+      try {
+        this.workspaceManager.forEachContext((context) =>
+          context.documentMetadata.handleWatchedDocumentChange(params)
+        );
+      } catch (error) {
+        this.handleError(error, 'onDidChangeWatchedFiles');
+      }
     });
 
     this.documents.onDidSave(async (e) => {
-      const context = this.workspaceManager.getContext(e.document.uri);
-      if (context) {
-        this.sendDiagnostics(await doValidate(e.document, context.ansibleLint));
+      try {
+        const context = this.workspaceManager.getContext(e.document.uri);
+        if (context) {
+          this.sendDiagnostics(
+            await doValidate(e.document, context.ansibleLint)
+          );
+        }
+      } catch (error) {
+        this.handleError(error, 'onDidSave');
       }
     });
 
     this.connection.onDidChangeTextDocument((e) => {
-      const context = this.workspaceManager.getContext(e.textDocument.uri);
-      if (context) {
-        context.ansibleLint.invalidateCacheItems(
-          e.textDocument.uri,
-          e.contentChanges
-        );
+      try {
+        const context = this.workspaceManager.getContext(e.textDocument.uri);
+        if (context) {
+          context.ansibleLint.invalidateCacheItems(
+            e.textDocument.uri,
+            e.contentChanges
+          );
+        }
+      } catch (error) {
+        this.handleError(error, 'onDidChangeTextDocument');
       }
     });
 
     this.documents.onDidChangeContent(async (e) => {
-      const context = this.workspaceManager.getContext(e.document.uri);
-      const diagnostics = await (context
-        ? doValidate(e.document, context.ansibleLint, true)
-        : doValidate(e.document));
+      try {
+        const context = this.workspaceManager.getContext(e.document.uri);
+        // depending on whether we have the context, we either validate with
+        // Ansible-lint or perform simple YAML validation
+        const diagnostics = await (context
+          ? doValidate(e.document, context.ansibleLint, true)
+          : doValidate(e.document));
 
-      this.sendDiagnostics(diagnostics);
+        this.sendDiagnostics(diagnostics);
+      } catch (error) {
+        this.handleError(error, 'onDidChangeContent');
+      }
     });
 
     this.connection.onHover(async (params) => {
-      const document = this.documents.get(params.textDocument.uri);
-      if (document) {
-        const context = this.workspaceManager.getContext(
-          params.textDocument.uri
-        );
-        if (context) {
-          return doHover(document, params.position, await context.docsLibrary);
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          const context = this.workspaceManager.getContext(
+            params.textDocument.uri
+          );
+          if (context) {
+            return await doHover(
+              document,
+              params.position,
+              await context.docsLibrary
+            );
+          }
         }
+      } catch (error) {
+        this.handleError(error, 'onHover');
       }
       return null;
     });
 
     this.connection.onCompletion(async (params) => {
-      const document = this.documents.get(params.textDocument.uri);
-      if (document) {
-        const context = this.workspaceManager.getContext(
-          params.textDocument.uri
-        );
-        if (context) {
-          return doCompletion(
-            document,
-            params.position,
-            await context.docsLibrary
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          const context = this.workspaceManager.getContext(
+            params.textDocument.uri
           );
+          if (context) {
+            return await doCompletion(document, params.position, context);
+          }
         }
+      } catch (error) {
+        this.handleError(error, 'onCompletion');
       }
       return null;
     });
 
-    this.connection.onDefinition(async (params) => {
-      const document = this.documents.get(params.textDocument.uri);
-      if (document) {
-        const context = this.workspaceManager.getContext(
-          params.textDocument.uri
-        );
-        if (context) {
-          return getDefinition(
-            document,
-            params.position,
-            await context.docsLibrary
+    this.connection.onCompletionResolve(async (completionItem) => {
+      try {
+        if (completionItem.data?.documentUri) {
+          const context = this.workspaceManager.getContext(
+            completionItem.data?.documentUri
           );
+          if (context) {
+            return await doCompletionResolve(completionItem, context);
+          }
         }
+      } catch (error) {
+        this.handleError(error, 'onCompletionResolve');
+      }
+      return completionItem;
+    });
+
+    this.connection.onDefinition(async (params) => {
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          const context = this.workspaceManager.getContext(
+            params.textDocument.uri
+          );
+          if (context) {
+            return await getDefinition(
+              document,
+              params.position,
+              await context.docsLibrary
+            );
+          }
+        }
+      } catch (error) {
+        this.handleError(error, 'onDefinition');
       }
       return null;
     });
+  }
+
+  private handleError(error: unknown, contextName: string) {
+    const leadMessage = `An error occurred in '${contextName}' handler: `;
+    if (error instanceof Error) {
+      const stack = error.stack ? `\n${error.stack}` : '';
+      this.connection.console.error(
+        `${leadMessage}[${error.name}] ${error.message}${stack}`
+      );
+    } else {
+      this.connection.console.error(leadMessage + JSON.stringify(error));
+    }
   }
 
   private sendDiagnostics(diagnostics: Map<string, Diagnostic[]>) {

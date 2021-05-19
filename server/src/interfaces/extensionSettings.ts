@@ -1,4 +1,4 @@
 export interface ExtensionSettings {
-  ansible: { path: string };
+  ansible: { path: string; useFullyQualifiedCollectionNames: boolean };
   ansibleLint: { enabled: boolean; path: string };
 }

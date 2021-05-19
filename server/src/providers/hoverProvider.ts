@@ -21,7 +21,11 @@ export async function doHover(
       new AncestryBuilder(path).parentKey(node.value).get() === node // ensure we look at a key, not value of a Pair
     ) {
       if (mayBeModule(path)) {
-        const module = await docsLibrary.findModule(node.value, path, document);
+        const module = await docsLibrary.findModule(
+          node.value,
+          path,
+          document.uri
+        );
         if (module && module.documentation) {
           return {
             contents: formatModule(module.documentation),
@@ -40,7 +44,7 @@ export async function doHover(
         const module = await docsLibrary.findModule(
           moduleNode.value,
           modulePath,
-          document
+          document.uri
         );
         if (module && module.documentation) {
           const option = module.documentation.options.get(node.value);

@@ -31,6 +31,12 @@
           "default": "ansible",
           "description": "Path to the ansible executable."
         },
+        "ansible.ansible.useFullyQualifiedCollectionNames": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary."
+        },
         "ansible.ansibleLint.enabled": {
           "scope": "resource",
           "type": "boolean",

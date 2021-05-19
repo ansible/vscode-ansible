@@ -49,23 +49,34 @@ export class DocsLibrary {
     }
   }
 
+  /**
+   * Tries to find an Ansible module for a given name or FQCN.
+   *
+   * Parameters `contextPath` and `documentUri` are used to obtain contextual
+   * information on declared collections. Hence these are not needed when
+   * searching with FQCN.
+   */
   public async findModule(
     searchText: string,
-    contextPath: Node[],
-    doc: TextDocument
+    contextPath?: Node[],
+    documentUri?: string
   ): Promise<IModuleMetadata | undefined> {
     const prefixOptions = [
       '', // try searching as-is (FQCN match)
       'ansible.builtin.', // try searching built-in
     ];
-    const metadata = await this.context.documentMetadata.get(doc.uri);
-    if (metadata) {
-      // try searching declared collections
-      prefixOptions.push(...metadata.collections.map((s) => `${s}.`));
+    if (documentUri) {
+      const metadata = await this.context.documentMetadata.get(documentUri);
+      if (metadata) {
+        // try searching declared collections
+        prefixOptions.push(...metadata.collections.map((s) => `${s}.`));
+      }
     }
-    prefixOptions.push(
-      ...getDeclaredCollections(contextPath).map((s) => `${s}.`)
-    );
+    if (contextPath) {
+      prefixOptions.push(
+        ...getDeclaredCollections(contextPath).map((s) => `${s}.`)
+      );
+    }
     const prefix = prefixOptions.find((prefix) =>
       this.modules.has(prefix + searchText)
     );
@@ -196,7 +207,7 @@ export class DocsLibrary {
   }
 }
 
-export type IDescription = string | Array<string>;
+export type IDescription = string | Array<unknown>;
 
 function isIDescription(obj: unknown): obj is IDescription {
   return (

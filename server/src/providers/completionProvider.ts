@@ -3,14 +3,20 @@ import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Pair, Scalar, YAMLMap } from 'yaml/types';
 import { DocsLibrary, IOption } from '../services/docsLibrary';
+import { WorkspaceFolderContext } from '../services/workspaceManager';
 import { isTaskKeyword } from '../utils/ansible';
-import { formatOption, getDetails } from '../utils/docsFormatter';
-import { AncestryBuilder, getPathAt, mayBeModule } from '../utils/yaml';
+import { formatModule, formatOption, getDetails } from '../utils/docsFormatter';
+import {
+  AncestryBuilder,
+  getDeclaredCollections,
+  getPathAt,
+  mayBeModule,
+} from '../utils/yaml';
 
 export async function doCompletion(
   document: TextDocument,
   position: Position,
-  docsLibrary: DocsLibrary
+  context: WorkspaceFolderContext
 ): Promise<CompletionItem[] | null> {
   let preparedText = document.getText();
   const offset = document.offsetAt(position);
@@ -30,6 +36,8 @@ export async function doCompletion(
   if (path) {
     const node = path[path.length - 1];
     if (node) {
+      const docsLibrary = await context.docsLibrary;
+      const config = await context.documentSettings.get(document.uri);
       // First check if we're looking for module options
       // In that case, the module name is a key of a map
       let modulePath = new AncestryBuilder(path)
@@ -42,7 +50,7 @@ export async function doCompletion(
         const module = await docsLibrary.findModule(
           moduleNode.value,
           modulePath,
-          document
+          document.uri
         );
         if (module && module.documentation) {
           const moduleOptions = module.documentation.options;
@@ -132,7 +140,7 @@ export async function doCompletion(
         for (const m of providedModuleNames) {
           // incidentally, the hack mentioned above prevents finding a module in
           // case the cursor is on it
-          if (await docsLibrary.findModule(m, path, document)) {
+          if (await docsLibrary.findModule(m, path, document.uri)) {
             moduleAlreadyProvided = true;
             break;
           }
@@ -142,15 +150,79 @@ export async function doCompletion(
             const [namespace, collection, name] = moduleFqcn.split('.');
             return {
               label: name,
-              kind: CompletionItemKind.Method,
+              kind: CompletionItemKind.Class,
               detail: `${namespace}.${collection}`,
               filterText: moduleFqcn,
+              data: {
+                documentUri: document.uri, // preserve document URI for completion request
+                moduleFqcn: moduleFqcn,
+                inlineCollections: getDeclaredCollections(modulePath),
+              },
+              insertText: atEndOfLine(document, position)
+                ? `${moduleFqcn}: `
+                : moduleFqcn,
             };
           });
       }
     }
   }
   return null;
+}
+
+export async function doCompletionResolve(
+  completionItem: CompletionItem,
+  context: WorkspaceFolderContext
+): Promise<CompletionItem> {
+  if (completionItem.kind === CompletionItemKind.Class) {
+    // resolve completion for a module
+
+    if (completionItem.data?.moduleFqcn && completionItem.data?.documentUri) {
+      const module = await (
+        await context.docsLibrary
+      ).findModule(completionItem.data.moduleFqcn);
+
+      if (module && module.documentation) {
+        const [namespace, collection, name] =
+          completionItem.data.moduleFqcn.split('.');
+
+        let useFqcn = (
+          await context.documentSettings.get(completionItem.data.documentUri)
+        ).ansible.useFullyQualifiedCollectionNames;
+
+        if (!useFqcn) {
+          // determine if the short name can really be used
+
+          const declaredCollections: Array<string> =
+            completionItem.data?.inlineCollections || [];
+          declaredCollections.push('ansible.builtin');
+
+          const metadata = await context.documentMetadata.get(
+            completionItem.data.documentUri
+          );
+          if (metadata) {
+            declaredCollections.push(...metadata.collections);
+          }
+
+          const canUseShortName = declaredCollections.some(
+            (c) => c === `${namespace}.${collection}`
+          );
+          if (!canUseShortName) {
+            // not an Ansible built-in module, and not part of the declared
+            // collections
+            useFqcn = true;
+          }
+        }
+
+        const insertName = useFqcn ? completionItem.data.moduleFqcn : name;
+        completionItem.insertText = completionItem.insertText?.endsWith(': ')
+          ? `${insertName}: `
+          : insertName;
+
+        completionItem.documentation = formatModule(module.documentation);
+      }
+    }
+  }
+  return completionItem;
 }
 
 function isAlias(option: { name: string; data: IOption }): boolean {

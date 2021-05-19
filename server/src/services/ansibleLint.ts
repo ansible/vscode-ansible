@@ -67,6 +67,7 @@ export class AnsibleLint {
         );
       }
     }
+    // FIXME: validationCache gets duplicate records on each save
     diagnostics.forEach((fileDiagnostics, fileUri) => {
       if (!this.validationCache.has(fileUri)) {
         this.validationCache.set(fileUri, new IntervalTree<Diagnostic>());

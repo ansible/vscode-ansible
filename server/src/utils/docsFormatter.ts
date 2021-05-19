@@ -109,8 +109,14 @@ const macroPatterns = {
   bold: /B\((.*?)\)/g,
   hr: /\bHORIZONTALLINE\b/,
 };
-function replaceMacros(text: string): string {
-  return text
+function replaceMacros(text: unknown): string {
+  let safeText;
+  if (typeof text === 'string') {
+    safeText = text;
+  } else {
+    safeText = JSON.stringify(text);
+  }
+  return safeText
     .replace(macroPatterns.link, '[$1]($2)')
     .replace(macroPatterns.url, '$1')
     .replace(macroPatterns.reference, '[$1]($2)')

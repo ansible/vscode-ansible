@@ -13,7 +13,7 @@ export class SettingsManager {
     new Map();
 
   private defaultSettings: ExtensionSettings = {
-    ansible: { path: 'ansible' },
+    ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
     ansibleLint: { enabled: true, path: 'ansible-lint' },
   };
   private globalSettings: ExtensionSettings = this.defaultSettings;
