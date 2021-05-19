@@ -243,14 +243,16 @@ export default class AnsibleValidationProvider {
 			let diagnostics: DiagnosticsDictionary = {};
 			let processLine = (line: string) => {
 				let matches = line.match(AnsibleValidationProvider.matchExpression);
-				this.output.appendLine(`Found:\n${matches}`);
+				this.output.appendLine(`Found: ${matches}\n`);
 				if (matches) {
 					let message = matches.groups?.message ?? "unknown";
-					let line = parseInt(matches.groups?.line ?? "1") - 1;
+					let line = parseInt(matches.groups?.line ?? "0");
 					let file = this.determineMatchFile(matches.groups?.file, textDocument);
 					let severity = matches.groups?.severity;
 					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
-						new vscode.Range(line, 0, line, Number.MAX_VALUE),
+						new vscode.Range(
+							new vscode.Position(line, 0),
+							new vscode.Position(line + 1, 0)),
 						message,
             			this.ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity)
 					);
