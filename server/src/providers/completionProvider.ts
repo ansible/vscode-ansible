@@ -2,15 +2,17 @@ import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Pair, Scalar, YAMLMap } from 'yaml/types';
-import { DocsLibrary, IOption } from '../services/docsLibrary';
+import { IOption } from '../services/docsLibrary';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
 import { isTaskKeyword } from '../utils/ansible';
 import { formatModule, formatOption, getDetails } from '../utils/docsFormatter';
+import { insert } from '../utils/misc';
 import {
   AncestryBuilder,
   getDeclaredCollections,
   getPathAt,
-  mayBeModule,
+  getYamlMapKeys,
+  isTaskParameter,
 } from '../utils/yaml';
 
 export async function doCompletion(
@@ -25,9 +27,6 @@ export async function doCompletion(
   // indentation to determine the scope of the current line. `_:` is ok here,
   // since we expect to work on a Pair level
   preparedText = insert(preparedText, offset, '_:');
-  // We need a newline at the EOF, so that the YAML parser can properly recognize the scope
-  // This is for future case when we might need to avoid the dummy mapping
-  preparedText = `${preparedText}\n`;
   const yamlDocs = parseAllDocuments(preparedText);
 
   // We need inclusive matching, since cursor position is the position of the character right after it
@@ -37,15 +36,14 @@ export async function doCompletion(
     const node = path[path.length - 1];
     if (node) {
       const docsLibrary = await context.docsLibrary;
-      const config = await context.documentSettings.get(document.uri);
       // First check if we're looking for module options
       // In that case, the module name is a key of a map
       let modulePath = new AncestryBuilder(path)
+        .parentOfKey()
         .parent(YAMLMap)
-        .parentKey()
-        .getPath();
+        .getKeyPath();
 
-      if (modulePath && mayBeModule(modulePath)) {
+      if (modulePath && isTaskParameter(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
         const module = await docsLibrary.findModule(
           moduleNode.value,
@@ -60,13 +58,7 @@ export async function doCompletion(
           ).value as YAMLMap;
 
           // find options that have been already provided by the user
-          const providedOptions = new Set(
-            optionMap.items.map((pair) => {
-              if (pair.key && pair.key instanceof Scalar) {
-                return pair.key.value;
-              }
-            })
-          );
+          const providedOptions = new Set(getYamlMapKeys(optionMap));
 
           const remainingOptions = [...moduleOptions.entries()].filter(
             (o) => !providedOptions.has(o[1].name)
@@ -117,19 +109,13 @@ export async function doCompletion(
         }
       }
       modulePath = path;
-      if (modulePath && mayBeModule(modulePath)) {
+      if (modulePath && isTaskParameter(modulePath)) {
         const taskParameterMap = new AncestryBuilder(modulePath)
           .parent(YAMLMap)
           .get() as YAMLMap;
 
         // find task parameters that have been already provided by the user
-        const providedParameters = new Set(
-          taskParameterMap.items.map((pair) => {
-            if (pair.key && pair.key instanceof Scalar) {
-              return pair.key.value;
-            }
-          })
-        );
+        const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
         // should usually be 0 or 1
         const providedModuleNames = [...providedParameters].filter(
           (x) => !x || !isTaskKeyword(x)
@@ -227,10 +213,6 @@ export async function doCompletionResolve(
 
 function isAlias(option: { name: string; data: IOption }): boolean {
   return option.name !== option.data.name;
-}
-
-function insert(str: string, index: number, val: string) {
-  return `${str.substring(0, index)}${val}${str.substring(index)}`;
 }
 
 function atEndOfLine(document: TextDocument, position: Position): boolean {

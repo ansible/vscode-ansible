@@ -32,3 +32,7 @@ export function isObject<X extends unknown>(
 ): obj is X & Record<PropertyKey, unknown> {
   return obj && typeof obj === 'object';
 }
+
+export function insert(str: string, index: number, val: string): string {
+  return `${str.substring(0, index)}${val}${str.substring(index)}`;
+}

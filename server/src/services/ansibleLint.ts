@@ -67,21 +67,19 @@ export class AnsibleLint {
         );
       }
     }
-    // FIXME: validationCache gets duplicate records on each save
-    diagnostics.forEach((fileDiagnostics, fileUri) => {
-      if (!this.validationCache.has(fileUri)) {
-        this.validationCache.set(fileUri, new IntervalTree<Diagnostic>());
-      }
-      const diagnosticTree = this.validationCache.get(
-        fileUri
-      ) as IntervalTree<Diagnostic>;
+
+    for (const [fileUri, fileDiagnostics] of diagnostics) {
+      // (re-)set validation cache for each impacted file
+      const diagnosticTree = new IntervalTree<Diagnostic>();
+      this.validationCache.set(fileUri, diagnosticTree);
+
       for (const diagnostic of fileDiagnostics) {
         diagnosticTree.insert(
           [diagnostic.range.start.line, diagnostic.range.end.line],
           diagnostic
         );
       }
-    });
+    }
 
     return diagnostics;
   }

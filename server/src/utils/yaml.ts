@@ -2,29 +2,36 @@ import * as _ from 'lodash';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { Document } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
+import { playExclusiveKeywords } from './ansible';
 
 /**
- * A helper class used for building YAML path assertions. The assertions are
- * built up from the most nested (last in array) element.
+ * A helper class used for building YAML path assertions and retrieving parent
+ * nodes. The assertions are built up from the most nested (last in array)
+ * element.
  */
-export class AncestryBuilder {
+export class AncestryBuilder<N extends Node | Pair = Node> {
   private _path: Node[];
 
   private _index: number;
 
-  private _returnKey: boolean;
-
   constructor(path: Node[] | null, index?: number) {
     this._path = path || [];
     this._index = index || this._path.length - 1;
-    this._returnKey = false;
   }
 
-  parent(type?: typeof Node | typeof Pair): AncestryBuilder {
+  /**
+   * Move up the path, optionally asserting the type of the parent.
+   *
+   * Unless Pair is explicitly asserted, it is ignored/skipped over when moving
+   * up.
+   */
+  parent<X extends Node | Pair>(
+    type?: new (...args: unknown[]) => X
+  ): AncestryBuilder<X> {
     this._index--;
     if (this.get() instanceof Pair) {
-      if (!(type === Pair)) {
-        this._index--; // unless Pair is explicitly requested, we ignore pair when just going up
+      if (!type || !(type === Pair.prototype.constructor)) {
+        this._index--;
       }
     }
     if (type) {
@@ -32,43 +39,90 @@ export class AncestryBuilder {
         this._index = Number.MIN_SAFE_INTEGER;
       }
     }
-    this._returnKey = false;
-    return this;
+    return this as unknown as AncestryBuilder<X>;
   }
 
-  parentKey(key?: string | RegExp): AncestryBuilder {
-    this._index--;
+  /**
+   * Move up the path, asserting that the current node was a key of a mapping
+   * pair. The builder skips over the Pair to the parent YAMLMap.
+   */
+  parentOfKey(): AncestryBuilder<YAMLMap> {
     const node = this.get();
-    if (
-      node instanceof Pair &&
-      node.key instanceof Scalar &&
-      (!key ||
-        (key instanceof RegExp && key.test(node.key.value)) ||
-        (typeof key == 'string' && key === node.key.value))
-    ) {
-      this._returnKey = true;
+    this.parent(Pair);
+    const pairNode = this.get();
+    if (pairNode instanceof Pair && pairNode.key === node) {
+      this.parent(YAMLMap);
     } else {
       this._index = Number.MIN_SAFE_INTEGER;
     }
-    return this;
+    return this as unknown as AncestryBuilder<YAMLMap>;
   }
 
-  get(): Node | null {
-    const node = this._path[this._index] || null;
-    if (this._returnKey && node instanceof Pair) {
-      return node.key;
+  /**
+   * Get node up to which the assertions have led.
+   */
+  get(): N | null {
+    return (this._path[this._index] as N) || null;
+  }
+
+  /**
+   * Get the key of the Pair one level down the path.
+   *
+   * The key is returned only if it indeed is a string Scalar.
+   */
+  // The `this` argument is for generics restriction of this method.
+  getStringKey(this: AncestryBuilder<YAMLMap>): string | null {
+    const node = this._path[this._index + 1];
+    if (
+      node instanceof Pair &&
+      node.key instanceof Scalar &&
+      typeof node.key.value === 'string'
+    ) {
+      return node.key.value;
     }
-    return node;
+    return null;
   }
 
+  /**
+   * Get the value of the Pair one level down the path.
+   */
+  // The `this` argument is for generics restriction of this method.
+  getValue(this: AncestryBuilder<YAMLMap>): Node | null {
+    const node = this._path[this._index + 1];
+    if (node instanceof Pair) {
+      return node.value;
+    }
+    return null;
+  }
+
+  /**
+   * Get the path to which the assertions have led.
+   *
+   * The path will be a subpath of the original path.
+   */
   getPath(): Node[] | null {
     if (this._index < 0) return null;
-    const node = this._path[this._index];
     const path = this._path.slice(0, this._index + 1);
-    if (this._returnKey && node instanceof Pair) {
-      path.push(node.key);
-    }
     return path;
+  }
+
+  /**
+   * Get the path to the key of the Pair one level down the path to which the
+   * assertions have led.
+   *
+   * The path will be a subpath of the original path.
+   */
+  // The `this` argument is for generics restriction of this method.
+  getKeyPath(this: AncestryBuilder<YAMLMap>): Node[] | null {
+    if (this._index < 0) return null;
+    const path = this._path.slice(0, this._index + 1);
+    const node = this._path[this._index + 1];
+    if (node instanceof Pair) {
+      path.push(node);
+      path.push(node.key);
+      return path;
+    }
+    return null;
   }
 }
 
@@ -150,9 +204,14 @@ export function getPathAtOffset(
 }
 
 export const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always)$/;
-export function mayBeModule(path: Node[]): boolean {
+
+/**
+ * Determines whether the path points at a parameter key of an Ansible task.
+ */
+export function isTaskParameter(path: Node[]): boolean {
+  if (isPlay(path)) return false;
   const taskListPath = new AncestryBuilder(path)
-    .parent(YAMLMap)
+    .parentOfKey()
     .parent(YAMLSeq)
     .getPath();
   if (taskListPath) {
@@ -161,7 +220,10 @@ export function mayBeModule(path: Node[]): boolean {
       // case when the task list is at the top level of the document
       return true;
     }
-    if (new AncestryBuilder(taskListPath).parentKey(tasksKey).get()) {
+    const taskListKey = new AncestryBuilder(taskListPath)
+      .parent(YAMLMap)
+      .getStringKey();
+    if (taskListKey && tasksKey.test(taskListKey)) {
       // case when a task list is defined explicitly by a keyword
       return true;
     }
@@ -169,25 +231,29 @@ export function mayBeModule(path: Node[]): boolean {
   return false;
 }
 
+/**
+ * Tries to find the list of collections declared at the Ansible play level.
+ */
 export function getDeclaredCollections(modulePath: Node[] | null): string[] {
   const declaredCollections: string[] = [];
-  let blockPath: Node[] | null = modulePath;
-  let path: Node[] | null = modulePath;
-  while (blockPath) {
+  let path: Node[] | null = new AncestryBuilder(modulePath)
+    .parent(YAMLMap)
+    .getPath();
+  while (true) {
     // traverse the YAML up through the Ansible blocks
-    path = blockPath;
-    blockPath = new AncestryBuilder(blockPath)
-      .parent(YAMLMap)
-      .parent(YAMLSeq)
-      .parentKey(/^block|rescue|always$/)
-      .getPath();
+    const builder = new AncestryBuilder(path).parent(YAMLSeq).parent(YAMLMap);
+    const key = builder.getStringKey();
+    if (key && /^block|rescue|always$/.test(key)) {
+      path = builder.getPath();
+    } else {
+      break;
+    }
   }
   // now we should be at the tasks/pre_tasks/post_tasks level
   const playNode = new AncestryBuilder(path)
-    .parent(YAMLMap)
     .parent(YAMLSeq)
     .parent(YAMLMap)
-    .get() as YAMLMap | null;
+    .get();
   const collectionsPair = _.find(
     playNode?.items,
     (pair) => pair.key instanceof Scalar && pair.key.value === 'collections'
@@ -206,4 +272,66 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
   }
 
   return declaredCollections;
+}
+
+/**
+ * Heuristically determines whether the path points at an Ansible play. The
+ * `fileUri` helps guessing in case the YAML tree doesn't give any clues.
+ *
+ * Returns `undefined` if highly uncertain.
+ */
+export function isPlay(path: Node[], fileUri?: string): boolean | undefined {
+  const isAtRoot =
+    new AncestryBuilder(path).parentOfKey().parent(YAMLSeq).getPath()
+      ?.length === 1;
+  if (isAtRoot) {
+    const mapNode = new AncestryBuilder(path).parentOfKey().get() as YAMLMap;
+    const providedKeys = getYamlMapKeys(mapNode);
+    const containsPlayKeyword = providedKeys.some((p) =>
+      playExclusiveKeywords.has(p)
+    );
+    if (containsPlayKeyword) {
+      return true;
+    }
+    if (fileUri) {
+      const isInRole = /\/roles\/[^/]+\/tasks\//.test(fileUri);
+      if (isInRole) {
+        return false;
+      }
+    }
+  } else {
+    return false;
+  }
+}
+
+/**
+ * Determines whether the path points at one of Ansible block parameter keys.
+ */
+export function isBlock(path: Node[]): boolean {
+  const mapNode = new AncestryBuilder(path).parentOfKey().get();
+  if (mapNode) {
+    const providedKeys = getYamlMapKeys(mapNode);
+    return providedKeys.includes('block');
+  }
+  return false;
+}
+
+/**
+ * Determines whether the path points at one of Ansible role parameter keys.
+ */
+export function isRole(path: Node[]): boolean {
+  const mapNode = new AncestryBuilder(path).parentOfKey().get();
+  if (mapNode) {
+    const providedKeys = getYamlMapKeys(mapNode);
+    return providedKeys.includes('role');
+  }
+  return false;
+}
+
+export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
+  return mapNode.items.map((pair) => {
+    if (pair.key && pair.key instanceof Scalar) {
+      return pair.key.value;
+    }
+  });
 }

@@ -5,7 +5,7 @@ import { Scalar, YAMLMap } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
 import { formatModule, formatOption } from '../utils/docsFormatter';
 import { toLspRange } from '../utils/misc';
-import { AncestryBuilder, getPathAt, mayBeModule } from '../utils/yaml';
+import { AncestryBuilder, getPathAt, isTaskParameter } from '../utils/yaml';
 
 export async function doHover(
   document: TextDocument,
@@ -18,9 +18,10 @@ export async function doHover(
     const node = path[path.length - 1];
     if (
       node instanceof Scalar &&
-      new AncestryBuilder(path).parentKey(node.value).get() === node // ensure we look at a key, not value of a Pair
+      new AncestryBuilder(path).parentOfKey().get() // ensure we look at a key, not value of a Pair
     ) {
-      if (mayBeModule(path)) {
+      // hovering over a module name
+      if (isTaskParameter(path)) {
         const module = await docsLibrary.findModule(
           node.value,
           path,
@@ -34,12 +35,13 @@ export async function doHover(
         }
       }
 
+      // hovering over a module parameter
       const modulePath = new AncestryBuilder(path)
+        .parentOfKey()
         .parent(YAMLMap)
-        .parentKey()
-        .getPath();
+        .getKeyPath();
 
-      if (modulePath && mayBeModule(modulePath)) {
+      if (modulePath && isTaskParameter(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
         const module = await docsLibrary.findModule(
           moduleNode.value,
