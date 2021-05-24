@@ -208,8 +208,8 @@ export const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always)$/;
 /**
  * Determines whether the path points at a parameter key of an Ansible task.
  */
-export function isTaskParameter(path: Node[]): boolean {
-  if (isPlay(path)) return false;
+export function isTaskParam(path: Node[]): boolean {
+  if (isPlayParam(path)) return false;
   const taskListPath = new AncestryBuilder(path)
     .parentOfKey()
     .parent(YAMLSeq)
@@ -280,7 +280,10 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
  *
  * Returns `undefined` if highly uncertain.
  */
-export function isPlay(path: Node[], fileUri?: string): boolean | undefined {
+export function isPlayParam(
+  path: Node[],
+  fileUri?: string
+): boolean | undefined {
   const isAtRoot =
     new AncestryBuilder(path).parentOfKey().parent(YAMLSeq).getPath()
       ?.length === 1;
@@ -307,7 +310,7 @@ export function isPlay(path: Node[], fileUri?: string): boolean | undefined {
 /**
  * Determines whether the path points at one of Ansible block parameter keys.
  */
-export function isBlock(path: Node[]): boolean {
+export function isBlockParam(path: Node[]): boolean {
   const mapNode = new AncestryBuilder(path).parentOfKey().get();
   if (mapNode) {
     const providedKeys = getYamlMapKeys(mapNode);
@@ -319,13 +322,13 @@ export function isBlock(path: Node[]): boolean {
 /**
  * Determines whether the path points at one of Ansible role parameter keys.
  */
-export function isRole(path: Node[]): boolean {
-  const mapNode = new AncestryBuilder(path).parentOfKey().get();
-  if (mapNode) {
-    const providedKeys = getYamlMapKeys(mapNode);
-    return providedKeys.includes('role');
-  }
-  return false;
+export function isRoleParam(path: Node[]): boolean {
+  const rolesKey = new AncestryBuilder(path)
+    .parentOfKey()
+    .parent(YAMLSeq)
+    .parent(YAMLMap)
+    .getStringKey();
+  return rolesKey === 'roles';
 }
 
 export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {

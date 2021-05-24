@@ -12,7 +12,7 @@ import {
   getDeclaredCollections,
   getPathAt,
   getYamlMapKeys,
-  isTaskParameter,
+  isTaskParam,
 } from '../utils/yaml';
 
 export async function doCompletion(
@@ -43,7 +43,7 @@ export async function doCompletion(
         .parent(YAMLMap)
         .getKeyPath();
 
-      if (modulePath && isTaskParameter(modulePath)) {
+      if (modulePath && isTaskParam(modulePath)) {
         const moduleNode = modulePath[modulePath.length - 1] as Scalar;
         const module = await docsLibrary.findModule(
           moduleNode.value,
@@ -109,7 +109,7 @@ export async function doCompletion(
         }
       }
       modulePath = path;
-      if (modulePath && isTaskParameter(modulePath)) {
+      if (modulePath && isTaskParam(modulePath)) {
         const taskParameterMap = new AncestryBuilder(modulePath)
           .parent(YAMLMap)
           .get() as YAMLMap;

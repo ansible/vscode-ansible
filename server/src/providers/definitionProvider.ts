@@ -4,7 +4,7 @@ import { parseAllDocuments } from 'yaml';
 import { Scalar } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
 import { toLspRange } from '../utils/misc';
-import { AncestryBuilder, getPathAt, isTaskParameter } from '../utils/yaml';
+import { AncestryBuilder, getPathAt, isTaskParam } from '../utils/yaml';
 
 export async function getDefinition(
   document: TextDocument,
@@ -19,7 +19,7 @@ export async function getDefinition(
       node instanceof Scalar &&
       new AncestryBuilder(path).parentOfKey().get() // ensure we look at a key, not value of a Pair
     ) {
-      if (isTaskParameter(path)) {
+      if (isTaskParam(path)) {
         const module = await docsLibrary.findModule(
           node.value,
           path,
