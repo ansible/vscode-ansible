@@ -1,7 +1,7 @@
 import IntervalTree from '@flatten-js/interval-tree';
 import * as child_process from 'child_process';
 import { promises as fs } from 'fs';
-import { ExecException } from 'node:child_process';
+import { ExecException } from 'child_process';
 import { URL } from 'url';
 import * as path from 'path';
 import { promisify } from 'util';
