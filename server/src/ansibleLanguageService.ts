@@ -15,6 +15,11 @@ import {
 } from './providers/completionProvider';
 import { getDefinition } from './providers/definitionProvider';
 import { doHover } from './providers/hoverProvider';
+import {
+  doSemanticTokens,
+  tokenModifiers,
+  tokenTypes,
+} from './providers/semanticTokenProvider';
 import { doValidate } from './providers/validationProvider';
 import { WorkspaceManager } from './services/workspaceManager';
 
@@ -51,6 +56,18 @@ export class AnsibleLanguageService {
       const result: InitializeResult = {
         capabilities: {
           textDocumentSync: TextDocumentSyncKind.Incremental,
+          semanticTokensProvider: {
+            documentSelector: [
+              {
+                language: 'ansible',
+              },
+            ],
+            full: true,
+            legend: {
+              tokenTypes: tokenTypes,
+              tokenModifiers: tokenModifiers,
+            },
+          },
           hoverProvider: true,
           completionProvider: {
             resolveProvider: true,
@@ -92,12 +109,16 @@ export class AnsibleLanguageService {
       this.connection.client.register(DidChangeWatchedFilesNotification.type, {
         watchers: [
           {
-            // watch for documentMetadata
-            globPattern: '**/meta/main.{yml,yaml}',
+            // watch ansible configuration
+            globPattern: '**/ansible.cfg',
           },
           {
-            // watch for documentMetadata
+            // watch ansible-lint configuration
             globPattern: '**/.ansible-lint',
+          },
+          {
+            // watch role meta-configuration
+            globPattern: '**/meta/main.{yml,yaml}',
           },
         ],
       });
@@ -200,6 +221,25 @@ export class AnsibleLanguageService {
       } catch (error) {
         this.handleError(error, 'onDidChangeContent');
       }
+    });
+
+    this.connection.languages.semanticTokens.on(async (params) => {
+      try {
+        const document = this.documents.get(params.textDocument.uri);
+        if (document) {
+          const context = this.workspaceManager.getContext(
+            params.textDocument.uri
+          );
+          if (context) {
+            return await doSemanticTokens(document, await context.docsLibrary);
+          }
+        }
+      } catch (error) {
+        this.handleError(error, 'onSemanticTokens');
+      }
+      return {
+        data: [],
+      };
     });
 
     this.connection.onHover(async (params) => {

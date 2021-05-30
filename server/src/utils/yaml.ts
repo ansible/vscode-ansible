@@ -2,7 +2,8 @@ import * as _ from 'lodash';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { Document } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { playExclusiveKeywords } from './ansible';
+import { DocsLibrary, IModuleMetadata } from '../services/docsLibrary';
+import { isTaskKeyword, playExclusiveKeywords } from './ansible';
 
 /**
  * A helper class used for building YAML path assertions and retrieving parent
@@ -342,6 +343,40 @@ export function isRoleParam(path: Node[]): boolean {
     .parent(YAMLMap)
     .getStringKey();
   return rolesKey === 'roles';
+}
+
+/**
+ * For a given Ansible task parameter path, find the module if it has been
+ * provided for the task.
+ */
+export async function findProvidedModule(
+  taskParamPath: Node[],
+  document: TextDocument,
+  docsLibrary: DocsLibrary
+): Promise<IModuleMetadata | undefined> {
+  const taskParameterMap = new AncestryBuilder(taskParamPath)
+    .parent(YAMLMap)
+    .get();
+  if (taskParameterMap) {
+    // find task parameters that have been provided by the user
+    const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
+    // should usually be 0 or 1
+    const providedModuleNames = [...providedParameters].filter(
+      (x) => !x || !isTaskKeyword(x)
+    );
+
+    // find the module if it has been provided
+    for (const m of providedModuleNames) {
+      const module = await docsLibrary.findModule(
+        m,
+        taskParamPath,
+        document.uri
+      );
+      if (module) {
+        return module;
+      }
+    }
+  }
 }
 
 export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {

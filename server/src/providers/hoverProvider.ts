@@ -1,10 +1,11 @@
 import { Hover, MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Node, Scalar, YAMLMap } from 'yaml/types';
+import { Scalar, YAMLMap } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
 import {
   blockKeywords,
+  isTaskKeyword,
   playKeywords,
   roleKeywords,
   taskKeywords,
@@ -13,6 +14,7 @@ import { formatModule, formatOption } from '../utils/docsFormatter';
 import { toLspRange } from '../utils/misc';
 import {
   AncestryBuilder,
+  findProvidedModule,
   getPathAt,
   isBlockParam,
   isPlayParam,
@@ -46,40 +48,54 @@ export async function doHover(
       }
 
       if (isTaskParam(path)) {
-        const module = await docsLibrary.findModule(
-          node.value,
-          path,
-          document.uri
-        );
-        if (module && module.documentation) {
-          return {
-            contents: formatModule(module.documentation),
-            range: node.range ? toLspRange(node.range, document) : undefined,
-          };
-        } else {
+        if (isTaskKeyword(node.value)) {
           return getKeywordHover(document, node, taskKeywords);
+        } else {
+          const module = await docsLibrary.findModule(
+            node.value,
+            path,
+            document.uri
+          );
+          if (module && module.documentation) {
+            return {
+              contents: formatModule(module.documentation),
+              range: node.range ? toLspRange(node.range, document) : undefined,
+            };
+          }
         }
       }
 
       // hovering over a module parameter
-      const modulePath = new AncestryBuilder(path)
+      // can either be directly under module or in 'args'
+      const parentKeyPath = new AncestryBuilder(path)
         .parentOfKey()
         .parent(YAMLMap)
         .getKeyPath();
 
-      if (modulePath && isTaskParam(modulePath)) {
-        const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        const module = await docsLibrary.findModule(
-          moduleNode.value,
-          modulePath,
-          document.uri
-        );
-        if (module && module.documentation) {
-          const option = module.documentation.options.get(node.value);
-          if (option) {
-            return {
-              contents: formatOption(option, true),
-            };
+      if (parentKeyPath && isTaskParam(parentKeyPath)) {
+        const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
+        if (parentKeyNode instanceof Scalar) {
+          let module;
+          if (parentKeyNode.value === 'args') {
+            module = await findProvidedModule(
+              parentKeyPath,
+              document,
+              docsLibrary
+            );
+          } else {
+            module = await docsLibrary.findModule(
+              parentKeyNode.value,
+              parentKeyPath,
+              document.uri
+            );
+          }
+          if (module && module.documentation) {
+            const option = module.documentation.options.get(node.value);
+            if (option) {
+              return {
+                contents: formatOption(option, true),
+              };
+            }
           }
         }
       }

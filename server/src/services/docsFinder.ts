@@ -5,11 +5,8 @@ import { YAMLError } from 'yaml/util';
 import { IModuleMetadata } from './docsLibrary';
 import globby = require('globby');
 
-export class DocsParser {
-  public static docsRegex =
-    /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;
-
-  public static async parseDirectory(
+export class DocsFinder {
+  public static async searchDirectory(
     dir: string,
     kind:
       | 'builtin'
@@ -70,6 +67,9 @@ export class DocsParser {
 }
 
 export class LazyModuleDocumentation implements IModuleMetadata {
+  public static docsRegex =
+    /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;
+
   source: string;
   sourceLineRange: [number, number] = [0, 0];
   fqcn: string;
@@ -97,7 +97,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
   public get rawDocumentation(): Record<string, unknown> {
     if (!this._contents) {
       const contents = fs.readFileSync(this.source, { encoding: 'utf8' });
-      const m = DocsParser.docsRegex.exec(contents);
+      const m = LazyModuleDocumentation.docsRegex.exec(contents);
       if (m && m.groups && m.groups.doc && m.groups.pre) {
         // determine documentation start/end lines for definition provider
         let startLine = contents.substr(0, m.index).match(/\n/g)?.length || 0;

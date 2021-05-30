@@ -10,7 +10,6 @@ import { IOption } from '../services/docsLibrary';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
 import {
   blockKeywords,
-  isTaskKeyword,
   playKeywords,
   roleKeywords,
   taskKeywords,
@@ -19,6 +18,7 @@ import { formatModule, formatOption, getDetails } from '../utils/docsFormatter';
 import { insert } from '../utils/misc';
 import {
   AncestryBuilder,
+  findProvidedModule,
   getDeclaredCollections,
   getPathAt,
   getYamlMapKeys,
@@ -71,28 +71,10 @@ export async function doCompletion(
           taskKeywords
         );
 
-        const taskParameterMap = new AncestryBuilder(path)
-          .parent(YAMLMap)
-          .get() as YAMLMap;
-
-        // find task parameters that have been already provided by the user
-        const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
-        // should usually be 0 or 1
-        const providedModuleNames = [...providedParameters].filter(
-          (x) => !x || !isTaskKeyword(x)
-        );
-
-        // check if the module has already been provided
-        let moduleAlreadyProvided = false;
-        for (const m of providedModuleNames) {
-          // incidentally, the hack mentioned above prevents finding a module in
-          // case the cursor is on it
-          if (await docsLibrary.findModule(m, path, document.uri)) {
-            moduleAlreadyProvided = true;
-            break;
-          }
-        }
-        if (!moduleAlreadyProvided) {
+        // incidentally, the hack mentioned above prevents finding a module in
+        // case the cursor is on it
+        const module = await findProvidedModule(path, document, docsLibrary);
+        if (!module) {
           const moduleCompletionItems = [...docsLibrary.moduleFqcns].map(
             (moduleFqcn) => {
               const [namespace, collection, name] = moduleFqcn.split('.');
@@ -119,74 +101,85 @@ export async function doCompletion(
 
       // Finally, check if we're looking for module options
       // In that case, the module name is a key of a map
-      const modulePath = new AncestryBuilder(path)
+      const parentKeyPath = new AncestryBuilder(path)
         .parentOfKey()
         .parent(YAMLMap)
         .getKeyPath();
 
-      if (modulePath && isTaskParam(modulePath)) {
-        const moduleNode = modulePath[modulePath.length - 1] as Scalar;
-        const module = await docsLibrary.findModule(
-          moduleNode.value,
-          modulePath,
-          document.uri
-        );
-        if (module && module.documentation) {
-          const moduleOptions = module.documentation.options;
+      if (parentKeyPath && isTaskParam(parentKeyPath)) {
+        const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
+        if (parentKeyNode instanceof Scalar) {
+          let module;
+          if (parentKeyNode.value === 'args') {
+            module = await findProvidedModule(
+              parentKeyPath,
+              document,
+              docsLibrary
+            );
+          } else {
+            module = await docsLibrary.findModule(
+              parentKeyNode.value,
+              parentKeyPath,
+              document.uri
+            );
+          }
+          if (module && module.documentation) {
+            const moduleOptions = module.documentation.options;
 
-          const optionMap = (
-            new AncestryBuilder(modulePath).parent(Pair).get() as Pair
-          ).value as YAMLMap;
+            const optionMap = (
+              new AncestryBuilder(parentKeyPath).parent(Pair).get() as Pair
+            ).value as YAMLMap;
 
-          // find options that have been already provided by the user
-          const providedOptions = new Set(getYamlMapKeys(optionMap));
+            // find options that have been already provided by the user
+            const providedOptions = new Set(getYamlMapKeys(optionMap));
 
-          const remainingOptions = [...moduleOptions.entries()].filter(
-            ([, specs]) => !providedOptions.has(specs.name)
-          );
-          return remainingOptions
-            .map(([option, specs]) => {
-              return {
-                name: option,
-                specs: specs,
-              };
-            })
-            .sort((a, b) => {
-              // make required options appear on the top
-              if (a.specs.required && !b.specs.required) {
-                return -1;
-              } else if (!a.specs.required && b.specs.required) {
-                return 1;
-              } else {
-                return 0;
-              }
-            })
-            .sort((a, b) => {
-              // push all aliases to the bottom
-              if (isAlias(a) && !isAlias(b)) {
-                return 1;
-              } else if (!isAlias(a) && isAlias(b)) {
-                return -1;
-              } else {
-                return 0;
-              }
-            })
-            .map((option, index) => {
-              // translate option documentation to CompletionItem
-              const details = getDetails(option.specs);
-              return {
-                label: option.name,
-                detail: details,
-                sortText: index.toString().padStart(3),
-                kind: isAlias(option)
-                  ? CompletionItemKind.Reference
-                  : CompletionItemKind.Property,
-                documentation: formatOption(option.specs),
-                insertText: atEndOfLine(document, position)
-                  ? `${option.name}:`
-                  : undefined,
-              };
-            });
+            const remainingOptions = [...moduleOptions.entries()].filter(
+              ([, specs]) => !providedOptions.has(specs.name)
+            );
+            return remainingOptions
+              .map(([option, specs]) => {
+                return {
+                  name: option,
+                  specs: specs,
+                };
+              })
+              .sort((a, b) => {
+                // make required options appear on the top
+                if (a.specs.required && !b.specs.required) {
+                  return -1;
+                } else if (!a.specs.required && b.specs.required) {
+                  return 1;
+                } else {
+                  return 0;
+                }
+              })
+              .sort((a, b) => {
+                // push all aliases to the bottom
+                if (isAlias(a) && !isAlias(b)) {
+                  return 1;
+                } else if (!isAlias(a) && isAlias(b)) {
+                  return -1;
+                } else {
+                  return 0;
+                }
+              })
+              .map((option, index) => {
+                // translate option documentation to CompletionItem
+                const details = getDetails(option.specs);
+                return {
+                  label: option.name,
+                  detail: details,
+                  sortText: index.toString().padStart(3),
+                  kind: isAlias(option)
+                    ? CompletionItemKind.Reference
+                    : CompletionItemKind.Property,
+                  documentation: formatOption(option.specs),
+                  insertText: atEndOfLine(document, position)
+                    ? `${option.name}:`
+                    : undefined,
+                };
+              });
+          }
         }
       }
     }

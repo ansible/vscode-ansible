@@ -1,10 +1,9 @@
 import * as _ from 'lodash';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Node } from 'yaml/types';
 import { YAMLError } from 'yaml/util';
 import { hasOwnProperty, isObject } from '../utils/misc';
 import { getDeclaredCollections } from '../utils/yaml';
-import { DocsParser } from './docsParser';
+import { DocsFinder } from './docsFinder';
 import { WorkspaceFolderContext } from './workspaceManager';
 export class DocsLibrary {
   private modules = new Map<string, IModuleMetadata>();
@@ -19,27 +18,27 @@ export class DocsLibrary {
   public async initialize(): Promise<void> {
     const ansibleConfig = await this.context.ansibleConfig;
     for (const modulesPath of ansibleConfig.module_locations) {
-      (await DocsParser.parseDirectory(modulesPath, 'builtin')).forEach(
+      (await DocsFinder.searchDirectory(modulesPath, 'builtin')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);
           this.moduleFqcns.add(doc.fqcn);
         }
       );
       (
-        await DocsParser.parseDirectory(modulesPath, 'builtin_doc_fragment')
+        await DocsFinder.searchDirectory(modulesPath, 'builtin_doc_fragment')
       ).forEach((doc) => {
         this.docFragments.set(doc.fqcn, doc);
       });
     }
     for (const collectionsPath of ansibleConfig.collections_paths) {
-      (await DocsParser.parseDirectory(collectionsPath, 'collection')).forEach(
+      (await DocsFinder.searchDirectory(collectionsPath, 'collection')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);
           this.moduleFqcns.add(doc.fqcn);
         }
       );
       (
-        await DocsParser.parseDirectory(
+        await DocsFinder.searchDirectory(
           collectionsPath,
           'collection_doc_fragment'
         )
