@@ -194,7 +194,7 @@ export class AnsibleLint {
             }
           }
 
-          const locationUri = `${workingDirectory}/${item.location.path}`;
+          const locationUri = `file://${workingDirectory}/${item.location.path}`;
 
           let fileDiagnostics = diagnostics.get(locationUri);
           if (!fileDiagnostics) {
