@@ -1,3 +1,5 @@
+test: parameter
+---
 - name: Test task
   become: yes
 ---
@@ -13,3 +15,7 @@
     - block:
         - name: Test task in block
           some_module:
+      become: yes
+  roles:
+    - name: test
+      when: false

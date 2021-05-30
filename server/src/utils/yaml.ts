@@ -209,13 +209,16 @@ export const tasksKey = /^(tasks|pre_tasks|post_tasks|block|rescue|always)$/;
  * Determines whether the path points at a parameter key of an Ansible task.
  */
 export function isTaskParam(path: Node[]): boolean {
-  if (isPlayParam(path)) return false;
   const taskListPath = new AncestryBuilder(path)
     .parentOfKey()
     .parent(YAMLSeq)
     .getPath();
   if (taskListPath) {
     // basic shape of the task list has been found
+
+    if (isPlayParam(path) || isBlockParam(path) || isRoleParam(path))
+      return false;
+
     if (taskListPath.length === 1) {
       // case when the task list is at the top level of the document
       return true;
@@ -232,10 +235,13 @@ export function isTaskParam(path: Node[]): boolean {
 }
 
 /**
- * Tries to find the list of collections declared at the Ansible play level.
+ * Tries to find the list of collections declared at the Ansible play/block/task level.
  */
 export function getDeclaredCollections(modulePath: Node[] | null): string[] {
   const declaredCollections: string[] = [];
+  const taskParamsNode = new AncestryBuilder(modulePath).parent(YAMLMap).get();
+  declaredCollections.push(...getDeclaredCollectionsForMap(taskParamsNode));
+
   let path: Node[] | null = new AncestryBuilder(modulePath)
     .parent(YAMLMap)
     .getPath();
@@ -244,16 +250,24 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
     const builder = new AncestryBuilder(path).parent(YAMLSeq).parent(YAMLMap);
     const key = builder.getStringKey();
     if (key && /^block|rescue|always$/.test(key)) {
+      declaredCollections.push(...getDeclaredCollectionsForMap(builder.get()));
       path = builder.getPath();
     } else {
       break;
     }
   }
   // now we should be at the tasks/pre_tasks/post_tasks level
-  const playNode = new AncestryBuilder(path)
+  const playParamsNode = new AncestryBuilder(path)
     .parent(YAMLSeq)
     .parent(YAMLMap)
     .get();
+  declaredCollections.push(...getDeclaredCollectionsForMap(playParamsNode));
+
+  return [...new Set(declaredCollections)]; // deduplicate
+}
+
+function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
+  const declaredCollections: string[] = [];
   const collectionsPair = _.find(
     playNode?.items,
     (pair) => pair.key instanceof Scalar && pair.key.value === 'collections'
@@ -270,7 +284,6 @@ export function getDeclaredCollections(modulePath: Node[] | null): string[] {
       }
     }
   }
-
   return declaredCollections;
 }
 

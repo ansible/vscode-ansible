@@ -206,37 +206,55 @@ describe('yaml', () => {
 
   describe('isTaskParam', () => {
     it('canCorrectlyConfirmTaskParam', async () => {
-      const path = (await getPathInFile('isTaskParam.yml', 1, 3)) as Node[];
+      const path = (await getPathInFile('isTaskParam.yml', 3, 3)) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it('canCorrectlyNegateTaskParam', async () => {
-      const path = (await getPathInFile('isTaskParam.yml', 4, 3)) as Node[];
+      const path = (await getPathInFile('isTaskParam.yml', 1, 1)) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it('canCorrectlyNegateTaskParamForValue', async () => {
-      const path = (await getPathInFile('isTaskParam.yml', 1, 9)) as Node[];
+      const path = (await getPathInFile('isTaskParam.yml', 2, 9)) as Node[];
+      const test = isTaskParam(path);
+      expect(test).to.be.eq(false);
+    });
+
+    it('canCorrectlyNegateTaskParamForPlay', async () => {
+      const path = (await getPathInFile('isTaskParam.yml', 7, 3)) as Node[];
+      const test = isTaskParam(path);
+      expect(test).to.be.eq(false);
+    });
+
+    it('canCorrectlyNegateTaskParamForBlock', async () => {
+      const path = (await getPathInFile('isTaskParam.yml', 18, 7)) as Node[];
+      const test = isTaskParam(path);
+      expect(test).to.be.eq(false);
+    });
+
+    it('canCorrectlyNegateTaskParamForRole', async () => {
+      const path = (await getPathInFile('isTaskParam.yml', 21, 7)) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it('canCorrectlyConfirmTaskParamInPreTasks', async () => {
-      const path = (await getPathInFile('isTaskParam.yml', 8, 7)) as Node[];
+      const path = (await getPathInFile('isTaskParam.yml', 10, 7)) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it('canCorrectlyConfirmTaskParamInTasks', async () => {
-      const path = (await getPathInFile('isTaskParam.yml', 11, 7)) as Node[];
+      const path = (await getPathInFile('isTaskParam.yml', 13, 7)) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it('canCorrectlyConfirmTaskParamInBlock', async () => {
-      const path = (await getPathInFile('isTaskParam.yml', 15, 11)) as Node[];
+      const path = (await getPathInFile('isTaskParam.yml', 17, 11)) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });

@@ -38,8 +38,6 @@ export class MetadataLibrary {
 
   /**
    * Finds a path where the metadata file for a given document should reside.
-   * @param uri The `URI` of the document for which a metadata file path should
-   * be found.
    * @returns The path or undefined in case the file cannot have any related
    * metadata file.
    */
@@ -47,7 +45,6 @@ export class MetadataLibrary {
     let metaPath;
     const pathArray = uri.split('/');
 
-    // const path = /file:\/\/(.*)/.exec(uri)?.groups
     // Find first
     for (let index = pathArray.length - 1; index >= 0; index--) {
       if (pathArray[index] === 'tasks') {
@@ -67,7 +64,7 @@ export class MetadataLibrary {
       source: metadataUri,
       collections: new Array<string>(),
     };
-    if (fileExists(metadataUri)) {
+    if (await fileExists(metadataUri)) {
       try {
         const metaContents = await fs.readFile(new URL(metadataUri), {
           encoding: 'utf8',

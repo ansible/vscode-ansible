@@ -1,11 +1,24 @@
-import { Hover } from 'vscode-languageserver';
+import { Hover, MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Scalar, YAMLMap } from 'yaml/types';
+import { Node, Scalar, YAMLMap } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
+import {
+  blockKeywords,
+  playKeywords,
+  roleKeywords,
+  taskKeywords,
+} from '../utils/ansible';
 import { formatModule, formatOption } from '../utils/docsFormatter';
 import { toLspRange } from '../utils/misc';
-import { AncestryBuilder, getPathAt, isTaskParam } from '../utils/yaml';
+import {
+  AncestryBuilder,
+  getPathAt,
+  isBlockParam,
+  isPlayParam,
+  isRoleParam,
+  isTaskParam,
+} from '../utils/yaml';
 
 export async function doHover(
   document: TextDocument,
@@ -20,7 +33,18 @@ export async function doHover(
       node instanceof Scalar &&
       new AncestryBuilder(path).parentOfKey().get() // ensure we look at a key, not value of a Pair
     ) {
-      // hovering over a module name
+      if (isPlayParam(path)) {
+        return getKeywordHover(document, node, playKeywords);
+      }
+
+      if (isBlockParam(path)) {
+        return getKeywordHover(document, node, blockKeywords);
+      }
+
+      if (isRoleParam(path)) {
+        return getKeywordHover(document, node, roleKeywords);
+      }
+
       if (isTaskParam(path)) {
         const module = await docsLibrary.findModule(
           node.value,
@@ -32,6 +56,8 @@ export async function doHover(
             contents: formatModule(module.documentation),
             range: node.range ? toLspRange(node.range, document) : undefined,
           };
+        } else {
+          return getKeywordHover(document, node, taskKeywords);
         }
       }
 
@@ -60,4 +86,25 @@ export async function doHover(
     }
   }
   return null;
+}
+
+function getKeywordHover(
+  document: TextDocument,
+  node: Scalar,
+  keywords: Map<string, string | MarkupContent>
+): Hover | null {
+  const keywordDocumentation = keywords.get(node.value);
+  const markupDoc =
+    typeof keywordDocumentation === 'string'
+      ? {
+          kind: MarkupKind.Markdown,
+          value: keywordDocumentation,
+        }
+      : keywordDocumentation;
+  if (markupDoc) {
+    return {
+      contents: markupDoc,
+      range: node.range ? toLspRange(node.range, document) : undefined,
+    };
+  } else return null;
 }

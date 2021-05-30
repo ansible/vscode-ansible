@@ -1,9 +1,10 @@
 import { promises as fs } from 'fs';
+import { URL } from 'url';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Range } from 'vscode-languageserver-types';
 
-export async function fileExists(filePath: string): Promise<boolean> {
-  return !!(await fs.stat(filePath).catch(() => false));
+export async function fileExists(fileUri: string): Promise<boolean> {
+  return !!(await fs.stat(new URL(fileUri)).catch(() => false));
 }
 
 export function toLspRange(

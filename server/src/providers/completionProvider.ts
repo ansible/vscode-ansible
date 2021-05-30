@@ -1,10 +1,20 @@
-import { CompletionItem, CompletionItemKind } from 'vscode-languageserver';
+import {
+  CompletionItem,
+  CompletionItemKind,
+  MarkupContent,
+} from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Pair, Scalar, YAMLMap } from 'yaml/types';
+import { Node, Pair, Scalar, YAMLMap } from 'yaml/types';
 import { IOption } from '../services/docsLibrary';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
-import { isTaskKeyword } from '../utils/ansible';
+import {
+  blockKeywords,
+  isTaskKeyword,
+  playKeywords,
+  roleKeywords,
+  taskKeywords,
+} from '../utils/ansible';
 import { formatModule, formatOption, getDetails } from '../utils/docsFormatter';
 import { insert } from '../utils/misc';
 import {
@@ -12,6 +22,9 @@ import {
   getDeclaredCollections,
   getPathAt,
   getYamlMapKeys,
+  isBlockParam,
+  isPlayParam,
+  isRoleParam,
   isTaskParam,
 } from '../utils/yaml';
 
@@ -36,9 +49,77 @@ export async function doCompletion(
     const node = path[path.length - 1];
     if (node) {
       const docsLibrary = await context.docsLibrary;
-      // First check if we're looking for module options
+
+      if (isPlayParam(path)) {
+        return getKeywordCompletion(document, position, path, playKeywords);
+      }
+
+      if (isBlockParam(path)) {
+        return getKeywordCompletion(document, position, path, blockKeywords);
+      }
+
+      if (isRoleParam(path)) {
+        return getKeywordCompletion(document, position, path, roleKeywords);
+      }
+
+      if (isTaskParam(path)) {
+        // provide basic keywords
+        const completionItems = getKeywordCompletion(
+          document,
+          position,
+          path,
+          taskKeywords
+        );
+
+        const taskParameterMap = new AncestryBuilder(path)
+          .parent(YAMLMap)
+          .get() as YAMLMap;
+
+        // find task parameters that have been already provided by the user
+        const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
+        // should usually be 0 or 1
+        const providedModuleNames = [...providedParameters].filter(
+          (x) => !x || !isTaskKeyword(x)
+        );
+
+        // check if the module has already been provided
+        let moduleAlreadyProvided = false;
+        for (const m of providedModuleNames) {
+          // incidentally, the hack mentioned above prevents finding a module in
+          // case the cursor is on it
+          if (await docsLibrary.findModule(m, path, document.uri)) {
+            moduleAlreadyProvided = true;
+            break;
+          }
+        }
+        if (!moduleAlreadyProvided) {
+          const moduleCompletionItems = [...docsLibrary.moduleFqcns].map(
+            (moduleFqcn) => {
+              const [namespace, collection, name] = moduleFqcn.split('.');
+              return {
+                label: name,
+                kind: CompletionItemKind.Class,
+                detail: `${namespace}.${collection}`,
+                filterText: moduleFqcn,
+                data: {
+                  documentUri: document.uri, // preserve document URI for completion request
+                  moduleFqcn: moduleFqcn,
+                  inlineCollections: getDeclaredCollections(path),
+                },
+                insertText: atEndOfLine(document, position)
+                  ? `${moduleFqcn}:`
+                  : moduleFqcn,
+              };
+            }
+          );
+          completionItems.push(...moduleCompletionItems);
+        }
+        return completionItems;
+      }
+
+      // Finally, check if we're looking for module options
       // In that case, the module name is a key of a map
-      let modulePath = new AncestryBuilder(path)
+      const modulePath = new AncestryBuilder(path)
         .parentOfKey()
         .parent(YAMLMap)
         .getKeyPath();
@@ -61,20 +142,20 @@ export async function doCompletion(
           const providedOptions = new Set(getYamlMapKeys(optionMap));
 
           const remainingOptions = [...moduleOptions.entries()].filter(
-            (o) => !providedOptions.has(o[1].name)
+            ([, specs]) => !providedOptions.has(specs.name)
           );
           return remainingOptions
-            .map((entry) => {
+            .map(([option, specs]) => {
               return {
-                name: entry[0],
-                data: entry[1],
+                name: option,
+                specs: specs,
               };
             })
             .sort((a, b) => {
               // make required options appear on the top
-              if (a.data.required && !b.data.required) {
+              if (a.specs.required && !b.specs.required) {
                 return -1;
-              } else if (!a.data.required && b.data.required) {
+              } else if (!a.specs.required && b.specs.required) {
                 return 1;
               } else {
                 return 0;
@@ -92,7 +173,7 @@ export async function doCompletion(
             })
             .map((option, index) => {
               // translate option documentation to CompletionItem
-              const details = getDetails(option.data);
+              const details = getDetails(option.specs);
               return {
                 label: option.name,
                 detail: details,
@@ -100,59 +181,42 @@ export async function doCompletion(
                 kind: isAlias(option)
                   ? CompletionItemKind.Reference
                   : CompletionItemKind.Property,
-                documentation: formatOption(option.data),
+                documentation: formatOption(option.specs),
                 insertText: atEndOfLine(document, position)
-                  ? `${option.name}: `
+                  ? `${option.name}:`
                   : undefined,
               };
             });
         }
       }
-      modulePath = path;
-      if (modulePath && isTaskParam(modulePath)) {
-        const taskParameterMap = new AncestryBuilder(modulePath)
-          .parent(YAMLMap)
-          .get() as YAMLMap;
-
-        // find task parameters that have been already provided by the user
-        const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
-        // should usually be 0 or 1
-        const providedModuleNames = [...providedParameters].filter(
-          (x) => !x || !isTaskKeyword(x)
-        );
-
-        // check if the module has already been provided
-        let moduleAlreadyProvided = false;
-        for (const m of providedModuleNames) {
-          // incidentally, the hack mentioned above prevents finding a module in
-          // case the cursor is on it
-          if (await docsLibrary.findModule(m, path, document.uri)) {
-            moduleAlreadyProvided = true;
-            break;
-          }
-        }
-        if (!moduleAlreadyProvided)
-          return Array.from(docsLibrary.moduleFqcns).map((moduleFqcn) => {
-            const [namespace, collection, name] = moduleFqcn.split('.');
-            return {
-              label: name,
-              kind: CompletionItemKind.Class,
-              detail: `${namespace}.${collection}`,
-              filterText: moduleFqcn,
-              data: {
-                documentUri: document.uri, // preserve document URI for completion request
-                moduleFqcn: moduleFqcn,
-                inlineCollections: getDeclaredCollections(modulePath),
-              },
-              insertText: atEndOfLine(document, position)
-                ? `${moduleFqcn}: `
-                : moduleFqcn,
-            };
-          });
-      }
     }
   }
   return null;
+}
+
+function getKeywordCompletion(
+  document: TextDocument,
+  position: Position,
+  path: Node[],
+  keywords: Map<string, string | MarkupContent>
+): CompletionItem[] {
+  const parameterMap = new AncestryBuilder(path)
+    .parent(YAMLMap)
+    .get() as YAMLMap;
+  // find options that have been already provided by the user
+  const providedParams = new Set(getYamlMapKeys(parameterMap));
+
+  const remainingParams = [...keywords.entries()].filter(
+    ([keyword]) => !providedParams.has(keyword)
+  );
+  return remainingParams.map(([keyword, description]) => {
+    return {
+      label: keyword,
+      kind: CompletionItemKind.Property,
+      documentation: description,
+      insertText: atEndOfLine(document, position) ? `${keyword}:` : undefined,
+    };
+  });
 }
 
 export async function doCompletionResolve(
@@ -200,8 +264,8 @@ export async function doCompletionResolve(
         }
 
         const insertName = useFqcn ? completionItem.data.moduleFqcn : name;
-        completionItem.insertText = completionItem.insertText?.endsWith(': ')
-          ? `${insertName}: `
+        completionItem.insertText = completionItem.insertText?.endsWith(':')
+          ? `${insertName}:`
           : insertName;
 
         completionItem.documentation = formatModule(module.documentation);
@@ -211,8 +275,8 @@ export async function doCompletionResolve(
   return completionItem;
 }
 
-function isAlias(option: { name: string; data: IOption }): boolean {
-  return option.name !== option.data.name;
+function isAlias(option: { name: string; specs: IOption }): boolean {
+  return option.name !== option.specs.name;
 }
 
 function atEndOfLine(document: TextDocument, position: Position): boolean {

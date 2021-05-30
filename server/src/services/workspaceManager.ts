@@ -2,6 +2,7 @@ import * as _ from 'lodash';
 import {
   ClientCapabilities,
   Connection,
+  DidChangeWatchedFilesParams,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
 } from 'vscode-languageserver';
@@ -101,6 +102,7 @@ export class WorkspaceManager {
  */
 export class WorkspaceFolderContext {
   private connection: Connection;
+  public clientCapabilities: ClientCapabilities;
   public workspaceFolder: WorkspaceFolder;
   public documentMetadata: MetadataLibrary;
   public documentSettings: SettingsManager;
@@ -116,11 +118,12 @@ export class WorkspaceFolderContext {
     workspaceManager: WorkspaceManager
   ) {
     this.connection = connection;
+    this.clientCapabilities = workspaceManager.clientCapabilities;
     this.workspaceFolder = workspaceFolder;
     this.documentMetadata = new MetadataLibrary(connection);
     this.documentSettings = new SettingsManager(
       connection,
-      !!workspaceManager.clientCapabilities.workspace?.configuration
+      !!this.clientCapabilities.workspace?.configuration
     );
     this.documentSettings.onConfigurationChanged(
       this.workspaceFolder.uri,
@@ -131,6 +134,21 @@ export class WorkspaceFolderContext {
         this._docsLibrary = undefined;
       }
     );
+  }
+
+  public handleWatchedDocumentChange(
+    params: DidChangeWatchedFilesParams
+  ): void {
+    this.documentMetadata.handleWatchedDocumentChange(params);
+    this.ansibleLint.handleWatchedDocumentChange(params);
+    for (const fileEvent of params.changes) {
+      if (fileEvent.uri.startsWith(this.workspaceFolder.uri)) {
+        // in case the configuration changes for this folder, we should
+        // invalidate the services that rely on it in initialization
+        this._ansibleConfig = undefined;
+        this._docsLibrary = undefined;
+      }
+    }
   }
 
   public get docsLibrary(): Thenable<DocsLibrary> {

@@ -95,6 +95,10 @@ export class AnsibleLanguageService {
             // watch for documentMetadata
             globPattern: '**/meta/main.{yml,yaml}',
           },
+          {
+            // watch for documentMetadata
+            globPattern: '**/.ansible-lint',
+          },
         ],
       });
     });
@@ -149,7 +153,7 @@ export class AnsibleLanguageService {
     this.connection.onDidChangeWatchedFiles((params) => {
       try {
         this.workspaceManager.forEachContext((context) =>
-          context.documentMetadata.handleWatchedDocumentChange(params)
+          context.handleWatchedDocumentChange(params)
         );
       } catch (error) {
         this.handleError(error, 'onDidChangeWatchedFiles');
