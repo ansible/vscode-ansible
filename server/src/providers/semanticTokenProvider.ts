@@ -25,7 +25,7 @@ import {
 export const tokenTypes = [
   SemanticTokenTypes.method,
   SemanticTokenTypes.class,
-  SemanticTokenTypes.property,
+  SemanticTokenTypes.keyword,
 ];
 
 const tokenTypesLegend = new Map(
@@ -165,13 +165,7 @@ function markKeyword(
   builder: SemanticTokensBuilder,
   document: TextDocument
 ) {
-  markNode(
-    node,
-    SemanticTokenTypes.method,
-    [SemanticTokenModifiers.defaultLibrary],
-    builder,
-    document
-  );
+  markNode(node, SemanticTokenTypes.keyword, [], builder, document);
 }
 
 function markNode(

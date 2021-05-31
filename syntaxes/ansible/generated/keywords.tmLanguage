@@ -18,7 +18,7 @@
         <array>
             <dict>
                 <key>include</key>
-                <string>#ansible_tag</string>
+                <string>#keyword</string>
             </dict>
         </array>
         <key>repository</key>
@@ -26,7 +26,7 @@
             <key>keyword</key>
             <dict>
                 <key>name</key>
-                <string>keyword.other.special-method.ansible</string>
+                <string>keyword.other.ansible</string>
                 <key>match</key>
                 <string>(?x)
                     \b(
@@ -41,13 +41,6 @@
                         | with_[a-z]+
                     )\b
                 </string>
-            </dict>
-            <key>ansible_tag</key>
-            <dict>
-                <key>name</key>
-                <string>keyword.other.ansible</string>
-                <key>match</key>
-                <string>[\w.]+</string>
             </dict>
         </dict>
     </dict>

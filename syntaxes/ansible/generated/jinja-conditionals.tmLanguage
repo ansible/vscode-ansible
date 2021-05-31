@@ -18,8 +18,8 @@
             <string>Flow style collections are not supported (yet)</string>
             <string>Without additional contextual injections (which VSCode fortunately suports and that has been used in this extenion)
             proper YAML comment highlighting will not work in nested Jinja expressions. For example:
-                when: condition1 # this works
-                    or condition2
+                when: # this works
+                    condition1 or condition2
                 
                 when: (condition1 # this will not work
                     or condition2)
@@ -36,7 +36,7 @@
                 <array>
                     <dict>
                         <key>name</key>
-                        <string>meta.flow.ansible.condition</string>
+                        <string>meta.flow-unquoted.ansible.condition</string>
                         <key>begin</key>
                         <string>(?x)
                             ^(\s*) # 1
@@ -48,7 +48,7 @@
                                 | check_mode
                             )\b
                             \s* (:) # 5
-                            (\s (?!\s*[|&gt;]|\s*$)) # not starting a block (scalar or other)
+                            (?=\s) (?!\s*[|&gt;'"]|\s*$|\s*\#.*$) # starting an unquoted flow
                         </string>
                         <key>beginCaptures</key>
                         <dict>
@@ -67,10 +67,55 @@
                                 <key>name</key>
                                 <string>punctuation.separator.key-value.mapping.ansible</string>
                             </dict>
-                            <key>6</key>
+                        </dict>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\3\3\s+) # if the indentation is too small; HACK: \3 is used twice to match at least 2 spaces if group 2 matches
+                        </string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>source.ansible#comment</string>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-unquoted-string</string>
+                            </dict>
+                        </array>
+                    </dict>
+                    <dict>
+                        <key>name</key>
+                        <string>meta.flow.ansible.condition</string>
+                        <key>begin</key>
+                        <string>(?x)
+                            ^(\s*) # 1
+                            (?:(-)(\s+))? # 2, 3; in case it is first key of a list item
+                            \b( # 4
+                                changed_when
+                                | failed_when
+                                | when
+                                | check_mode
+                            )\b
+                            \s* (:) # 5
+                            (?=\s) (?!\s*[|&gt;]|\s*$|\s*\#.*$) # not starting a block (scalar or other)
+                        </string>
+                        <key>beginCaptures</key>
+                        <dict>
+                            <key>2</key>
                             <dict>
                                 <key>name</key>
-                                <string>asdf</string>
+                                <string>punctuation.definition.block.sequence.item.ansible</string>
+                            </dict>
+                            <key>4</key>
+                            <dict>
+                                <key>name</key>
+                                <string>keyword.other.special-method.ansible</string>
+                            </dict>
+                            <key>5</key>
+                            <dict>
+                                <key>name</key>
+                                <string>punctuation.separator.key-value.mapping.ansible</string>
                             </dict>
                         </dict>
                         <key>end</key>
@@ -194,7 +239,7 @@
                                 | check_mode
                             )\b
                             \s* (:) # 5
-                            \s*$ # starting other block
+                            (.*$) # comment or illegal
                         </string>
                         <key>beginCaptures</key>
                         <dict>
@@ -212,6 +257,22 @@
                             <dict>
                                 <key>name</key>
                                 <string>punctuation.separator.key-value.mapping.ansible</string>
+                            </dict>
+                            <key>6</key>
+                            <dict>
+                                <key>patterns</key>
+                                <array>
+                                    <dict>
+                                        <key>include</key>
+                                        <string>source.ansible#comment</string>
+                                    </dict>
+                                    <dict>
+                                        <key>match</key>
+                                        <string>.+</string>
+                                        <key>name</key>
+                                        <string>invalid.illegal.expected-comment-or-newline.ansible</string>
+                                    </dict>
+                                </array>
                             </dict>
                         </dict>
                         <key>end</key>
@@ -265,6 +326,10 @@
                             <dict>
                                 <key>include</key>
                                 <string>#yaml-single-quoted-string</string>
+                            </dict>
+                            <dict>
+                                <key>include</key>
+                                <string>#yaml-unquoted-string-block</string>
                             </dict>
                             <dict>
                                 <key>include</key>
@@ -524,6 +589,34 @@
                         <string>(?=\S)</string>
                         <key>end</key>
                         <string>(?!\G)</string>
+                        <key>contentName</key>
+                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <key>patterns</key>
+                        <array>
+                            <dict>
+                                <key>include</key>
+                                <string>source.ansible-jinja#expression</string>
+                            </dict>
+                        </array>
+                    </dict>
+                </array>
+            </dict>
+            <key>yaml-unquoted-string-block</key>
+            <dict>
+                <key>patterns</key>
+                <array>
+                    <dict>
+                        <key>comment</key>
+                        <string>Capture any non-whitespace at the beginning of a block</string>
+                        <key>name</key>
+                        <string>string.unquoted-block.ansible</string>
+                        <key>begin</key>
+                        <string>(?x)
+                            ^(\s*) # 1
+                            (?=\S)</string>
+                        <key>end</key>
+                        <string>(?x)
+                            ^(?!\1\s*) # if the indentation is too small</string>
                         <key>contentName</key>
                         <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
                         <key>patterns</key>
