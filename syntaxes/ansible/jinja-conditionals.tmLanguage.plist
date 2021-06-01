@@ -5,18 +5,7 @@
         { include = '#ansible-condition'; }
     );
     comment = (
-        'Flow style collections are not supported (yet)',
-        'Without additional contextual injections (which VSCode fortunately suports and that has been used in this extenion)
-        proper YAML comment highlighting will not work in nested Jinja expressions. For example:
-            when: # this works
-                condition1 or condition2
-            
-            when: (condition1 # this will not work
-                or condition2)
-        It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
-        ',
-        'Same as above applies to escaping quotes, except that it cannot be achieved just with TM grammars
-        even by modifying the Jinja grammar'
+        'Flow style collections are not supported (yet)'
     );
     repository = {
         ansible-condition = {
@@ -256,7 +245,7 @@
                     end = '(?x)
                         ^(?!\1\s+) # if the indentation is too small
                     ';
-                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    contentName = 'keyword.operator.ansible meta.embedded.inline.jinja';
                     patterns = (
                         { include = '#yaml-unquoted-string'; },
                     );
@@ -285,7 +274,7 @@
                             name = 'invalid.illegal.expected-comment-or-newline.ansible';
                         };
                     };
-                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    contentName = 'keyword.operator.ansible meta.embedded.inline.jinja';
                     patterns = (
                         {
                             begin = "''";
@@ -332,7 +321,7 @@
                             name = 'invalid.illegal.expected-comment-or-newline.ansible';
                         };
                     };
-                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    contentName = 'keyword.operator.ansible meta.embedded.inline.jinja';
                     patterns = (
                         {
                             begin = '\\"';
@@ -364,7 +353,7 @@
                     name = 'string.unquoted.ansible';
                     begin = '(?=\S)';
                     end = '(?!\G)';
-                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    contentName = 'keyword.operator.ansible meta.embedded.inline.jinja';
                     patterns = (
                         { include = 'source.ansible-jinja#expression'; },
                     );
@@ -382,7 +371,7 @@
                         (?=\S)';
                     end = '(?x)
                         ^(?!\1\s*) # if the indentation is too small';
-                    contentName = 'variable.other.constant.ansible variable.language meta.embedded.inline.jinja';
+                    contentName = 'keyword.operator.ansible meta.embedded.inline.jinja';
                     patterns = (
                         { include = 'source.ansible-jinja#expression'; },
                     );

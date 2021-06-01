@@ -16,17 +16,6 @@
         <key>comment</key>
         <array>
             <string>Flow style collections are not supported (yet)</string>
-            <string>Without additional contextual injections (which VSCode fortunately suports and that has been used in this extenion)
-            proper YAML comment highlighting will not work in nested Jinja expressions. For example:
-                when: # this works
-                    condition1 or condition2
-                
-                when: (condition1 # this will not work
-                    or condition2)
-            It is impossible to implement that with TM grammars, without modifying the Jinja grammar itself.
-            </string>
-            <string>Same as above applies to escaping quotes, except that it cannot be achieved just with TM grammars
-            even by modifying the Jinja grammar</string>
         </array>
         <key>repository</key>
         <dict>
@@ -409,7 +398,7 @@
                             ^(?!\1\s+) # if the indentation is too small
                         </string>
                         <key>contentName</key>
-                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -456,7 +445,7 @@
                             </dict>
                         </dict>
                         <key>contentName</key>
-                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -534,7 +523,7 @@
                             </dict>
                         </dict>
                         <key>contentName</key>
-                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -590,7 +579,7 @@
                         <key>end</key>
                         <string>(?!\G)</string>
                         <key>contentName</key>
-                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>
@@ -618,7 +607,7 @@
                         <string>(?x)
                             ^(?!\1\s*) # if the indentation is too small</string>
                         <key>contentName</key>
-                        <string>variable.other.constant.ansible variable.language meta.embedded.inline.jinja</string>
+                        <string>keyword.operator.ansible meta.embedded.inline.jinja</string>
                         <key>patterns</key>
                         <array>
                             <dict>

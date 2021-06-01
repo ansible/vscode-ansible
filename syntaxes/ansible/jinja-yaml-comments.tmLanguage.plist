@@ -1,8 +1,0 @@
-{
-    scopeName = 'injection.ansible.jinja-comments';
-    injectionSelector = 'L:string.unquoted meta.embedded.inline.jinja';
-    name = 'Injection grammar for supproting YAML comments in Jinja2 expressions';
-    patterns = (
-        { include = 'source.ansible#comment'; }
-    );
-}

@@ -73,7 +73,7 @@
     "grammars": [
       {
         "comments": [
-          "YAML syntax as base for ansible",
+          "YAML syntax as base for Ansible",
           "scopeName changed so that we can use it as base for injections"
         ],
         "language": "ansible",
@@ -82,8 +82,8 @@
       },
       {
         "comments": [
-          "imported jinja syntax",
-          "this is so that we do not need to rely on Jinja extension being installed"
+          "Jinja syntax as injection into Ansible YAML",
+          "This is so that we do not need to rely on the Jinja extension being installed"
         ],
         "language": "ansible-jinja",
         "scopeName": "source.ansible-jinja",
@@ -91,10 +91,20 @@
       },
       {
         "comments": [
-          "changes highlighting of Ansible tags"
+          "Highlighting of Ansible keywords"
         ],
         "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
         "scopeName": "injection.ansible.keywords",
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "Additional Jinja grammars"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-extras.tmLanguage",
+        "scopeName": "injection.ansible.jinja-extras",
         "injectTo": [
           "source.ansible"
         ]
@@ -127,10 +137,7 @@
       },
       {
         "comments": [
-          "What follows are techniques that are basically abusing the injection system of VSCode.",
-          "These cannot be replicated in other IDEs with just TM grammars unless similar injection system is used.",
-          "The basic quote escapes (does not work inside brackets etc.) is implemented in the grammar anyway",
-          "if someone finds it useful.",
+          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
           "Support for single quote escapes in Jinja"
         ],
         "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
@@ -141,6 +148,7 @@
       },
       {
         "comments": [
+          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
           "Support for double quote escapes in Jinja"
         ],
         "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
