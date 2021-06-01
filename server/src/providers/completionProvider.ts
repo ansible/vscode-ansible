@@ -11,6 +11,7 @@ import { WorkspaceFolderContext } from '../services/workspaceManager';
 import {
   blockKeywords,
   playKeywords,
+  playWithoutTaskKeywords,
   roleKeywords,
   taskKeywords,
 } from '../utils/ansible';
@@ -27,6 +28,12 @@ import {
   isRoleParam,
   isTaskParam,
 } from '../utils/yaml';
+
+const priorityMap = {
+  nameKeyword: 1,
+  moduleName: 2,
+  keyword: 3,
+};
 
 export async function doCompletion(
   document: TextDocument,
@@ -50,7 +57,8 @@ export async function doCompletion(
     if (node) {
       const docsLibrary = await context.docsLibrary;
 
-      if (isPlayParam(path)) {
+      const isPlay = isPlayParam(path);
+      if (isPlay) {
         return getKeywordCompletion(document, position, path, playKeywords);
       }
 
@@ -63,18 +71,40 @@ export async function doCompletion(
       }
 
       if (isTaskParam(path)) {
-        // provide basic keywords
+        // offer basic task keywords
         const completionItems = getKeywordCompletion(
           document,
           position,
           path,
           taskKeywords
         );
+        if (isPlay === undefined) {
+          // this can still turn into a play, so we should offer those keywords too
+          completionItems.push(
+            ...getKeywordCompletion(
+              document,
+              position,
+              path,
+              playWithoutTaskKeywords
+            )
+          );
+        }
 
         // incidentally, the hack mentioned above prevents finding a module in
         // case the cursor is on it
         const module = await findProvidedModule(path, document, docsLibrary);
         if (!module) {
+          // offer the 'block' keyword (as it is not one of taskKeywords)
+          completionItems.push(
+            ...getKeywordCompletion(
+              document,
+              position,
+              path,
+              new Map([['block', blockKeywords.get('block') as string]])
+            )
+          );
+
+          // offer modules
           const moduleCompletionItems = [...docsLibrary.moduleFqcns].map(
             (moduleFqcn) => {
               const [namespace, collection, name] = moduleFqcn.split('.');
@@ -82,6 +112,7 @@ export async function doCompletion(
                 label: name,
                 kind: CompletionItemKind.Class,
                 detail: `${namespace}.${collection}`,
+                sortText: `${priorityMap.moduleName}_${name}`,
                 filterText: moduleFqcn,
                 data: {
                   documentUri: document.uri, // preserve document URI for completion request
@@ -203,9 +234,12 @@ function getKeywordCompletion(
     ([keyword]) => !providedParams.has(keyword)
   );
   return remainingParams.map(([keyword, description]) => {
+    const priority =
+      keyword === 'name' ? priorityMap.nameKeyword : priorityMap.keyword;
     return {
       label: keyword,
       kind: CompletionItemKind.Property,
+      sortText: `${priority}_${keyword}`,
       documentation: description,
       insertText: atEndOfLine(document, position) ? `${keyword}:` : undefined,
     };

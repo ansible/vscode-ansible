@@ -56,7 +56,8 @@ export function formatOption(
     sections.push(`*Choices*: [${formattedChoiceArray.toString()}]`);
   }
   if (option.aliases) {
-    const formattedChoiceArray = option.aliases.map((a) => `\`${a}\``);
+    const aliasesWithBaseName = [option.name].concat(option.aliases);
+    const formattedChoiceArray = aliasesWithBaseName.map((a) => `\`${a}\``);
     sections.push(`*Aliases*: [${formattedChoiceArray.toString()}]`);
   }
   return {

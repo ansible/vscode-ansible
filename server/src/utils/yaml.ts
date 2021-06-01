@@ -325,8 +325,11 @@ export function isPlayParam(
  * Determines whether the path points at one of Ansible block parameter keys.
  */
 export function isBlockParam(path: Node[]): boolean {
-  const mapNode = new AncestryBuilder(path).parentOfKey().get();
-  if (mapNode) {
+  const builder = new AncestryBuilder(path).parentOfKey();
+  const mapNode = builder.get();
+  // the block must have a list as parent
+  const isInYAMLSeq = !!builder.parent(YAMLSeq).get();
+  if (mapNode && isInYAMLSeq) {
     const providedKeys = getYamlMapKeys(mapNode);
     return providedKeys.includes('block');
   }

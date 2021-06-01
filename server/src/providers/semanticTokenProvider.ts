@@ -26,13 +26,14 @@ export const tokenTypes = [
   SemanticTokenTypes.method,
   SemanticTokenTypes.class,
   SemanticTokenTypes.keyword,
+  SemanticTokenTypes.property,
 ];
 
 const tokenTypesLegend = new Map(
   tokenTypes.map((value, index) => [value, index])
 );
 
-export const tokenModifiers = [SemanticTokenModifiers.defaultLibrary];
+export const tokenModifiers = [SemanticTokenModifiers.definition];
 
 const tokenModifiersLegend = new Map(
   tokenModifiers.map((value, index) => [value, index])
@@ -63,12 +64,18 @@ async function markSemanticTokens(
     for (const pair of node.items) {
       if (pair.key instanceof Scalar) {
         const keyPath = path.concat(pair, pair.key);
-        if (isPlayParam(keyPath) && playKeywords.has(pair.key.value)) {
-          markKeyword(pair.key, builder, document);
-        } else if (isBlockParam(keyPath) && blockKeywords.has(pair.key.value)) {
-          markKeyword(pair.key, builder, document);
-        } else if (isRoleParam(keyPath) && roleKeywords.has(pair.key.value)) {
-          markKeyword(pair.key, builder, document);
+        if (isPlayParam(keyPath)) {
+          if (playKeywords.has(pair.key.value))
+            markKeyword(pair.key, builder, document);
+          else markOrdinaryKey(pair.key, builder, document);
+        } else if (isBlockParam(keyPath)) {
+          if (blockKeywords.has(pair.key.value))
+            markKeyword(pair.key, builder, document);
+          else markOrdinaryKey(pair.key, builder, document);
+        } else if (isRoleParam(keyPath)) {
+          if (roleKeywords.has(pair.key.value))
+            markKeyword(pair.key, builder, document);
+          else markOrdinaryKey(pair.key, builder, document);
         } else if (isTaskParam(keyPath)) {
           if (isTaskKeyword(pair.key.value)) {
             markKeyword(pair.key, builder, document);
@@ -102,12 +109,16 @@ async function markSemanticTokens(
                 // highlight module parameters
                 markModuleParameters(pair.value, module, builder, document);
               }
+            } else {
+              markOrdinaryKey(pair.key, builder, document);
             }
           }
 
           // this pair has been completely processed
           // tasks don't have any deeper structure
           continue;
+        } else {
+          markOrdinaryKey(pair.key, builder, document);
         }
       }
 
@@ -155,6 +166,34 @@ function markModuleParameters(
           builder,
           document
         );
+      } else {
+        markOrdinaryKey(moduleParamPair.key, builder, document);
+      }
+    }
+    if (moduleParamPair.value instanceof Node) {
+      markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
+    }
+  }
+}
+
+function markAllNestedKeysAsOrdinary(
+  node: Node,
+  builder: SemanticTokensBuilder,
+  document: TextDocument
+) {
+  if (node instanceof YAMLMap) {
+    for (const pair of node.items) {
+      if (pair.key instanceof Scalar) {
+        markOrdinaryKey(pair.key, builder, document);
+      }
+      if (pair.value instanceof Node) {
+        markAllNestedKeysAsOrdinary(pair.value, builder, document);
+      }
+    }
+  } else if (node instanceof YAMLSeq) {
+    for (const item of node.items) {
+      if (item instanceof Node) {
+        markAllNestedKeysAsOrdinary(item, builder, document);
       }
     }
   }
@@ -166,6 +205,20 @@ function markKeyword(
   document: TextDocument
 ) {
   markNode(node, SemanticTokenTypes.keyword, [], builder, document);
+}
+
+function markOrdinaryKey(
+  node: Scalar,
+  builder: SemanticTokensBuilder,
+  document: TextDocument
+) {
+  markNode(
+    node,
+    SemanticTokenTypes.property,
+    [SemanticTokenModifiers.definition],
+    builder,
+    document
+  );
 }
 
 function markNode(
@@ -190,8 +243,8 @@ function markNode(
 
 function encodeTokenType(tokenType: SemanticTokenTypes) {
   const tokenTypeIndex = tokenTypesLegend.get(tokenType);
-  if (typeof tokenTypeIndex === 'undefined') {
-    throw new Error(`The ${tokenType} token type is not in legend`);
+  if (tokenTypeIndex === undefined) {
+    throw new Error(`The '${tokenType}' token type is not in legend`);
   }
   return tokenTypeIndex;
 }
@@ -202,8 +255,8 @@ function encodeTokenModifiers(
   let encodedModifiers = 0;
   for (const tokenModifier of tokenModifiers) {
     const tokenModifierIndex = tokenModifiersLegend.get(tokenModifier);
-    if (typeof tokenModifierIndex === 'undefined') {
-      throw new Error(`The ${tokenModifier} token modifier is not in legend`);
+    if (tokenModifierIndex === undefined) {
+      throw new Error(`The '${tokenModifier}' token modifier is not in legend`);
     }
     encodedModifiers |= (1 << tokenModifierIndex) >>> 0;
   }

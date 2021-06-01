@@ -698,10 +698,15 @@ taskKeywords.set(
   'Conditional expression, determines if an iteration of a task is run or not.'
 );
 
-export const playExclusiveKeywords = new Set(
-  [...playKeywords.keys()].filter(
-    (k) => !taskKeywords.has(k) && !roleKeywords.has(k) && !blockKeywords.has(k)
+export const playExclusiveKeywords = new Map(
+  [...playKeywords].filter(
+    ([k]) =>
+      !taskKeywords.has(k) && !roleKeywords.has(k) && !blockKeywords.has(k)
   )
+);
+
+export const playWithoutTaskKeywords = new Map(
+  [...playKeywords].filter(([k]) => !taskKeywords.has(k))
 );
 
 export function isTaskKeyword(value: string): boolean {
