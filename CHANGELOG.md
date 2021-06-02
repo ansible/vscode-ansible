@@ -4,6 +4,10 @@
 
 * ...
 
+## 0.4.4
+
+* Revalidate documents on save (#95) @ssbarnea
+
 ## 0.4.3
 
 * Auto-add missing Ansible YAML tags like `!vault`
