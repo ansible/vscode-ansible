@@ -48,6 +48,18 @@
           "type": "string",
           "default": "ansible-lint",
           "description": "Path to the ansible-lint executable."
+        },
+        "ansible.python.interpreterPath": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
+        },
+        "ansible.python.activationScript": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. If set, the Interpreter Path setting is ignored."
         }
       }
     },

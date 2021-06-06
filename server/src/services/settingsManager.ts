@@ -15,6 +15,7 @@ export class SettingsManager {
   private defaultSettings: ExtensionSettings = {
     ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
     ansibleLint: { enabled: true, path: 'ansible-lint' },
+    python: { interpreterPath: '', activationScript: '' },
   };
   private globalSettings: ExtensionSettings = this.defaultSettings;
 

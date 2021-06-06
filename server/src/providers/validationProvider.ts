@@ -20,19 +20,27 @@ import { AnsibleLint } from '../services/ansibleLint';
  */
 export async function doValidate(
   textDocument: TextDocument,
-  linter?: AnsibleLint,
-  quick = false
+  linterParams?: {
+    linter: AnsibleLint;
+    quick: boolean;
+    onOpen: boolean;
+  }
 ): Promise<Map<string, Diagnostic[]>> {
-  if (linter) {
-    if (quick) {
+  if (linterParams) {
+    if (linterParams.quick) {
       const diagnostics = getYamlValidation(textDocument);
-      const lintDiagnostics = linter.getValidationFromCache(textDocument.uri);
+      const lintDiagnostics = linterParams.linter.getValidationFromCache(
+        textDocument.uri
+      );
       if (lintDiagnostics) {
         diagnostics.push(...lintDiagnostics);
       }
       return new Map([[textDocument.uri, diagnostics]]);
     } else {
-      const diagnostics = await linter.doValidate(textDocument);
+      const diagnostics = await linterParams.linter.doValidate(
+        textDocument,
+        linterParams.onOpen
+      );
       for (const [fileUri, fileDiagnostics] of diagnostics) {
         if (textDocument.uri === fileUri) {
           // ensure that regular diagnostics are still present

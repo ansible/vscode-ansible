@@ -146,7 +146,11 @@ export class AnsibleLanguageService {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           this.sendDiagnostics(
-            await doValidate(e.document, context.ansibleLint)
+            await doValidate(e.document, {
+              linter: context.ansibleLint,
+              quick: false,
+              onOpen: true,
+            })
           );
         }
       } catch (error) {
@@ -159,13 +163,8 @@ export class AnsibleLanguageService {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           context.documentSettings.handleDocumentClosed(e.document.uri);
+          context.ansibleLint.handleDocumentClosed(e.document.uri);
         }
-
-        // need to clear the diagnostics, otherwise they remain after changing language
-        this.connection.sendDiagnostics({
-          uri: e.document.uri,
-          diagnostics: [],
-        });
       } catch (error) {
         this.handleError(error, 'onDidClose');
       }
@@ -186,7 +185,11 @@ export class AnsibleLanguageService {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           this.sendDiagnostics(
-            await doValidate(e.document, context.ansibleLint)
+            await doValidate(e.document, {
+              linter: context.ansibleLint,
+              quick: false,
+              onOpen: false,
+            })
           );
         }
       } catch (error) {
@@ -198,7 +201,7 @@ export class AnsibleLanguageService {
       try {
         const context = this.workspaceManager.getContext(e.textDocument.uri);
         if (context) {
-          context.ansibleLint.invalidateCacheItems(
+          context.ansibleLint.reconcileCacheItems(
             e.textDocument.uri,
             e.contentChanges
           );
@@ -214,7 +217,11 @@ export class AnsibleLanguageService {
         // depending on whether we have the context, we either validate with
         // Ansible-lint or perform simple YAML validation
         const diagnostics = await (context
-          ? doValidate(e.document, context.ansibleLint, true)
+          ? doValidate(e.document, {
+              linter: context.ansibleLint,
+              quick: true,
+              onOpen: false,
+            })
           : doValidate(e.document));
 
         this.sendDiagnostics(diagnostics);

@@ -4,6 +4,7 @@ import * as _ from 'lodash';
 import * as path from 'path';
 import { URL } from 'url';
 import { Connection } from 'vscode-languageserver';
+import { withInterpreter } from '../utils/misc';
 import { WorkspaceFolderContext } from './workspaceManager';
 
 export class AnsibleConfig {
@@ -19,19 +20,23 @@ export class AnsibleConfig {
 
   public async initialize(): Promise<void> {
     try {
-      const ansibleExecutable = (
-        await this.context.documentSettings.get(
-          this.context.workspaceFolder.uri
-        )
-      ).ansible.path;
-
-      const ansibleConfigResult = child_process.execSync(
-        `${ansibleExecutable}-config dump`,
-        {
-          encoding: 'utf-8',
-          cwd: new URL(this.context.workspaceFolder.uri).pathname,
-        }
+      const settings = await this.context.documentSettings.get(
+        this.context.workspaceFolder.uri
       );
+
+      const [ansibleConfigCommand, ansibleConfigEnv] = withInterpreter(
+        `${settings.ansible.path}-config`,
+        'dump',
+        settings.python.interpreterPath,
+        settings.python.activationScript
+      );
+
+      const ansibleConfigResult = child_process.execSync(ansibleConfigCommand, {
+        encoding: 'utf-8',
+        cwd: new URL(this.context.workspaceFolder.uri).pathname,
+        env: ansibleConfigEnv,
+      });
+
       let config = ini.parse(ansibleConfigResult);
       config = _.mapKeys(
         config,
@@ -39,12 +44,18 @@ export class AnsibleConfig {
       );
       this._collection_paths = parsePythonStringArray(config.COLLECTIONS_PATHS);
 
-      const ansibleVersionResult = child_process.execSync(
-        `${ansibleExecutable} --version`,
-        {
-          encoding: 'utf-8',
-        }
+      const [ansibleCommand, ansibleEnv] = withInterpreter(
+        `${settings.ansible.path}`,
+        '--version',
+        settings.python.interpreterPath,
+        settings.python.activationScript
       );
+
+      const ansibleVersionResult = child_process.execSync(ansibleCommand, {
+        encoding: 'utf-8',
+        env: ansibleEnv,
+      });
+
       const versionInfo = ini.parse(ansibleVersionResult);
       this._module_locations = parsePythonStringArray(
         versionInfo['configured module search path']
