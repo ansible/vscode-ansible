@@ -6,7 +6,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { Node, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
+import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import { DocsLibrary, IModuleMetadata } from '../services/docsLibrary';
 import {
   blockKeywords,
@@ -110,7 +110,7 @@ async function markSemanticTokens(
                 markModuleParameters(pair.value, module, builder, document);
               }
             } else {
-              markOrdinaryKey(pair.key, builder, document);
+              markAllNestedKeysAsOrdinary(pair, builder, document);
             }
           }
 
@@ -118,7 +118,9 @@ async function markSemanticTokens(
           // tasks don't have any deeper structure
           continue;
         } else {
-          markOrdinaryKey(pair.key, builder, document);
+          markAllNestedKeysAsOrdinary(pair, builder, document);
+          // this pair has been completely processed
+          continue;
         }
       }
 
@@ -181,14 +183,16 @@ function markAllNestedKeysAsOrdinary(
   builder: SemanticTokensBuilder,
   document: TextDocument
 ) {
-  if (node instanceof YAMLMap) {
+  if (node instanceof Pair) {
+    if (node.key instanceof Scalar) {
+      markOrdinaryKey(node.key, builder, document);
+    }
+    if (node.value instanceof Node) {
+      markAllNestedKeysAsOrdinary(node.value, builder, document);
+    }
+  } else if (node instanceof YAMLMap) {
     for (const pair of node.items) {
-      if (pair.key instanceof Scalar) {
-        markOrdinaryKey(pair.key, builder, document);
-      }
-      if (pair.value instanceof Node) {
-        markAllNestedKeysAsOrdinary(pair.value, builder, document);
-      }
+      markAllNestedKeysAsOrdinary(pair, builder, document);
     }
   } else if (node instanceof YAMLSeq) {
     for (const item of node.items) {
