@@ -1,6 +1,5 @@
 import {
   Connection,
-  Diagnostic,
   DidChangeConfigurationNotification,
   DidChangeWatchedFilesNotification,
   InitializeParams,
@@ -21,6 +20,7 @@ import {
   tokenTypes,
 } from './providers/semanticTokenProvider';
 import { doValidate } from './providers/validationProvider';
+import { ValidationManager } from './services/validationManager';
 import { WorkspaceManager } from './services/workspaceManager';
 
 /**
@@ -36,11 +36,13 @@ export class AnsibleLanguageService {
   private documents: TextDocuments<TextDocument>;
 
   private workspaceManager: WorkspaceManager;
+  private validationManager: ValidationManager;
 
   constructor(connection: Connection, documents: TextDocuments<TextDocument>) {
     this.connection = connection;
     this.documents = documents;
     this.workspaceManager = new WorkspaceManager(connection);
+    this.validationManager = new ValidationManager(connection, documents);
   }
 
   public initialize(): void {
@@ -131,11 +133,6 @@ export class AnsibleLanguageService {
         await this.workspaceManager.forEachContext((context) =>
           context.documentSettings.handleConfigurationChanged(params)
         );
-
-        // revalidate all open text documents
-        this.documents.all().forEach(async (doc) => {
-          this.sendDiagnostics(await doValidate(doc));
-        });
       } catch (error) {
         this.handleError(error, 'onDidChangeConfiguration');
       }
@@ -145,12 +142,13 @@ export class AnsibleLanguageService {
       try {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
-          this.sendDiagnostics(
-            await doValidate(e.document, {
-              linter: context.ansibleLint,
-              quick: false,
-              onOpen: true,
-            })
+          // perform full validation
+          await doValidate(
+            e.document,
+            this.validationManager,
+            true,
+            false,
+            context
           );
         }
       } catch (error) {
@@ -160,10 +158,10 @@ export class AnsibleLanguageService {
 
     this.documents.onDidClose((e) => {
       try {
+        this.validationManager.handleDocumentClosed(e.document.uri);
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           context.documentSettings.handleDocumentClosed(e.document.uri);
-          context.ansibleLint.handleDocumentClosed(e.document.uri);
         }
       } catch (error) {
         this.handleError(error, 'onDidClose');
@@ -184,12 +182,13 @@ export class AnsibleLanguageService {
       try {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
-          this.sendDiagnostics(
-            await doValidate(e.document, {
-              linter: context.ansibleLint,
-              quick: false,
-              onOpen: false,
-            })
+          // perform full validation
+          await doValidate(
+            e.document,
+            this.validationManager,
+            false,
+            false,
+            context
           );
         }
       } catch (error) {
@@ -199,13 +198,10 @@ export class AnsibleLanguageService {
 
     this.connection.onDidChangeTextDocument((e) => {
       try {
-        const context = this.workspaceManager.getContext(e.textDocument.uri);
-        if (context) {
-          context.ansibleLint.reconcileCacheItems(
-            e.textDocument.uri,
-            e.contentChanges
-          );
-        }
+        this.validationManager.reconcileCacheItems(
+          e.textDocument.uri,
+          e.contentChanges
+        );
       } catch (error) {
         this.handleError(error, 'onDidChangeTextDocument');
       }
@@ -213,18 +209,13 @@ export class AnsibleLanguageService {
 
     this.documents.onDidChangeContent(async (e) => {
       try {
-        const context = this.workspaceManager.getContext(e.document.uri);
-        // depending on whether we have the context, we either validate with
-        // Ansible-lint or perform simple YAML validation
-        const diagnostics = await (context
-          ? doValidate(e.document, {
-              linter: context.ansibleLint,
-              quick: true,
-              onOpen: false,
-            })
-          : doValidate(e.document));
-
-        this.sendDiagnostics(diagnostics);
+        await doValidate(
+          e.document,
+          this.validationManager,
+          false,
+          true,
+          this.workspaceManager.getContext(e.document.uri)
+        );
       } catch (error) {
         this.handleError(error, 'onDidChangeContent');
       }
@@ -334,15 +325,6 @@ export class AnsibleLanguageService {
       );
     } else {
       this.connection.console.error(leadMessage + JSON.stringify(error));
-    }
-  }
-
-  private sendDiagnostics(diagnostics: Map<string, Diagnostic[]>) {
-    for (const [fileUri, fileDiagnostics] of diagnostics) {
-      this.connection.sendDiagnostics({
-        uri: fileUri,
-        diagnostics: fileDiagnostics,
-      });
     }
   }
 }

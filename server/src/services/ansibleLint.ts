@@ -1,9 +1,8 @@
-import IntervalTree from '@flatten-js/interval-tree';
 import * as child_process from 'child_process';
-import { promises as fs } from 'fs';
 import { ExecException } from 'child_process';
-import { URL } from 'url';
+import { promises as fs } from 'fs';
 import * as path from 'path';
+import { URL } from 'url';
 import { promisify } from 'util';
 import {
   Connection,
@@ -12,12 +11,11 @@ import {
   DidChangeWatchedFilesParams,
   Position,
   Range,
-  TextDocumentContentChangeEvent,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { IAnsibleLintConfig } from '../interfaces/ansibleLintConfig';
-import { fileExists, withInterpreter, hasOwnProperty } from '../utils/misc';
+import { fileExists, hasOwnProperty, withInterpreter } from '../utils/misc';
 import { WorkspaceFolderContext } from './workspaceManager';
 const exec = promisify(child_process.exec);
 
@@ -33,18 +31,6 @@ export class AnsibleLint {
   private useProgressTracker = false;
 
   private configCache: Map<string, IAnsibleLintConfig> = new Map();
-
-  private validationCache: Map<string, IntervalTree<Diagnostic>> = new Map();
-
-  /**
-   * Mapping from file that generated diagnostics, to files included in those diagnostics.
-   */
-  private validatedFilesBySource: Map<string, Set<string>> = new Map();
-
-  /**
-   * Mapping from file to number of distinct files for which that file had diagnostics generated.
-   */
-  private validatedFileRefCounter: Map<string, number> = new Map();
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -63,8 +49,7 @@ export class AnsibleLint {
    * reported in other files.
    */
   public async doValidate(
-    textDocument: TextDocument,
-    onOpen: boolean
+    textDocument: TextDocument
   ): Promise<Map<string, Diagnostic[]>> {
     const docPath = new URL(textDocument.uri).pathname;
     let diagnostics: Map<string, Diagnostic[]> = new Map();
@@ -140,68 +125,6 @@ export class AnsibleLint {
           `Exception in AnsibleLint service: ${JSON.stringify(error)}`
         );
       }
-    }
-
-    let diagnosedFiles = this.validatedFilesBySource.get(textDocument.uri);
-    if (!diagnosedFiles) {
-      diagnosedFiles = new Set<string>();
-      this.validatedFilesBySource.set(textDocument.uri, diagnosedFiles);
-    }
-
-    const unreferencedFiles = [...diagnosedFiles].filter(
-      (f) => !diagnostics.has(f)
-    );
-
-    for (const fileUri of unreferencedFiles) {
-      diagnosedFiles.delete(fileUri);
-      // decrement files no longer referenced by this source
-      const counter = this.getRefCounter(fileUri) - 1;
-      if (counter <= 0) {
-        // clear diagnostics of files that are no longer referenced
-        this.validationCache.delete(fileUri);
-        this.connection.sendDiagnostics({
-          uri: fileUri,
-          diagnostics: [],
-        });
-        // remove file from reference counter
-        this.validatedFileRefCounter.delete(fileUri);
-      } else {
-        this.validatedFileRefCounter.set(fileUri, counter);
-      }
-    }
-
-    for (const [fileUri, fileDiagnostics] of diagnostics) {
-      // increment and save files referenced by this source
-      if (!diagnosedFiles.has(fileUri)) {
-        diagnosedFiles.add(fileUri);
-        this.validatedFileRefCounter.set(
-          fileUri,
-          this.getRefCounter(fileUri) + 1
-        );
-      }
-
-      // save validation cache for each impacted file
-      const diagnosticTree = new IntervalTree<Diagnostic>();
-      this.validationCache.set(fileUri, diagnosticTree);
-
-      for (const diagnostic of fileDiagnostics) {
-        diagnosticTree.insert(
-          [diagnostic.range.start.line, diagnostic.range.end.line],
-          diagnostic
-        );
-      }
-    }
-
-    if (!diagnostics.has(textDocument.uri)) {
-      // in case there are no diagnostics for the file that triggered the
-      // validation, cache & send an empty array in order to clear the validation
-      if (!onOpen) {
-        diagnostics.set(textDocument.uri, []);
-      }
-      this.validationCache.set(
-        textDocument.uri,
-        new IntervalTree<Diagnostic>()
-      );
     }
 
     if (progressTracker) {
@@ -280,61 +203,6 @@ export class AnsibleLint {
     return diagnostics;
   }
 
-  public reconcileCacheItems(
-    fileUri: string,
-    changes: TextDocumentContentChangeEvent[]
-  ): void {
-    const diagnosticTree = this.validationCache.get(fileUri);
-    if (diagnosticTree) {
-      for (const change of changes) {
-        if ('range' in change) {
-          const invalidatedDiagnostics = diagnosticTree.search([
-            change.range.start.line,
-            change.range.end.line,
-          ]);
-          if (invalidatedDiagnostics) {
-            for (const diagnostic of invalidatedDiagnostics as Array<Diagnostic>) {
-              diagnosticTree.remove(
-                [diagnostic.range.start.line, diagnostic.range.end.line],
-                diagnostic
-              );
-            }
-          }
-
-          // determine whether lines have been added or removed by subtracting
-          // change lines count from number of newline characters in the change
-          let displacement = 0;
-          displacement -= change.range.end.line - change.range.start.line;
-          displacement += change.text.match(/\n|\r\n|\r/g)?.length || 0;
-          if (displacement) {
-            const displacedDiagnostics = diagnosticTree.search([
-              change.range.start.line,
-              Number.MAX_SAFE_INTEGER,
-            ]);
-            if (displacedDiagnostics) {
-              for (const diagnostic of displacedDiagnostics as Array<Diagnostic>) {
-                diagnosticTree.remove(
-                  [diagnostic.range.start.line, diagnostic.range.end.line],
-                  diagnostic
-                );
-                diagnostic.range.start.line += displacement;
-                diagnostic.range.end.line += displacement;
-                diagnosticTree.insert(
-                  [diagnostic.range.start.line, diagnostic.range.end.line],
-                  diagnostic
-                );
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  public getValidationFromCache(fileUri: string): Diagnostic[] | undefined {
-    return this.validationCache.get(fileUri)?.values;
-  }
-
   public handleWatchedDocumentChange(
     params: DidChangeWatchedFilesParams
   ): void {
@@ -342,38 +210,6 @@ export class AnsibleLint {
       // remove from cache on any change
       this.configCache.delete(fileEvent.uri);
     }
-  }
-
-  public handleDocumentClosed(fileUri: string): void {
-    const referencedFiles = this.validatedFilesBySource.get(fileUri);
-    if (referencedFiles) {
-      for (const referencedFile of referencedFiles) {
-        const counter = this.getRefCounter(referencedFile) - 1;
-        if (counter <= 0) {
-          // clear diagnostics of files that are no longer referenced
-          this.validationCache.delete(referencedFile);
-          this.connection.sendDiagnostics({
-            uri: referencedFile,
-            diagnostics: [],
-          });
-          // remove file from reference counter
-          this.validatedFileRefCounter.delete(referencedFile);
-        } else {
-          this.validatedFileRefCounter.set(referencedFile, counter);
-        }
-      }
-      // removed the diagnostics source file from tracking
-      this.validatedFilesBySource.delete(fileUri);
-    }
-  }
-
-  private getRefCounter(fileUri: string) {
-    let counter = this.validatedFileRefCounter.get(fileUri);
-    if (counter === undefined) {
-      counter = 0;
-      this.validatedFileRefCounter.set(fileUri, counter);
-    }
-    return counter;
   }
 
   private async getAnsibleLintConfig(

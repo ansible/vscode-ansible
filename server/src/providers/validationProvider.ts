@@ -9,7 +9,8 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
-import { AnsibleLint } from '../services/ansibleLint';
+import { ValidationManager } from '../services/validationManager';
+import { WorkspaceFolderContext } from '../services/workspaceManager';
 
 /**
  * Validates the given document.
@@ -20,38 +21,44 @@ import { AnsibleLint } from '../services/ansibleLint';
  */
 export async function doValidate(
   textDocument: TextDocument,
-  linterParams?: {
-    linter: AnsibleLint;
-    quick: boolean;
-    onOpen: boolean;
-  }
+  validationManager: ValidationManager,
+  onOpen = false,
+  quick = true,
+  context?: WorkspaceFolderContext
 ): Promise<Map<string, Diagnostic[]>> {
-  if (linterParams) {
-    if (linterParams.quick) {
-      const diagnostics = getYamlValidation(textDocument);
-      const lintDiagnostics = linterParams.linter.getValidationFromCache(
-        textDocument.uri
-      );
-      if (lintDiagnostics) {
-        diagnostics.push(...lintDiagnostics);
-      }
-      return new Map([[textDocument.uri, diagnostics]]);
-    } else {
-      const diagnostics = await linterParams.linter.doValidate(
-        textDocument,
-        linterParams.onOpen
-      );
-      for (const [fileUri, fileDiagnostics] of diagnostics) {
-        if (textDocument.uri === fileUri) {
-          // ensure that regular diagnostics are still present
-          fileDiagnostics.push(...getYamlValidation(textDocument));
-        }
-      }
-      return diagnostics;
+  let diagnosticsByFile;
+  if (quick || !context) {
+    // get validation from cache
+    diagnosticsByFile =
+      validationManager.getValidationFromCache(textDocument.uri) ||
+      new Map<string, Diagnostic[]>();
+    if (!diagnosticsByFile.has(textDocument.uri)) {
+      // In case there are no diagnostics for the file that triggered the
+      // validation, set an empty array in order to clear the validation.
+      diagnosticsByFile.set(textDocument.uri, []);
     }
   } else {
-    return new Map([[textDocument.uri, getYamlValidation(textDocument)]]);
+    // full validation with ansible-lint
+    diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
+    if (!diagnosticsByFile.has(textDocument.uri) && !onOpen) {
+      // In case there are no diagnostics for the file that triggered the
+      // validation, set an empty array in order to clear the validation. If the
+      // validation happened on opening the document, this step is skipped. That
+      // way old diagnostics will persist until the file is changed/saved. This
+      // allows inspecting more complex errors reported in other files.
+      diagnosticsByFile.set(textDocument.uri, []);
+    }
+    validationManager.cacheDiagnostics(textDocument.uri, diagnosticsByFile);
   }
+
+  // attach quick validation for the inspected file
+  for (const [fileUri, fileDiagnostics] of diagnosticsByFile) {
+    if (textDocument.uri === fileUri) {
+      fileDiagnostics.push(...getYamlValidation(textDocument));
+    }
+  }
+  validationManager.processDiagnostics(textDocument.uri, diagnosticsByFile);
+  return diagnosticsByFile;
 }
 
 function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
