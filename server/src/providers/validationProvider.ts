@@ -22,7 +22,6 @@ import { WorkspaceFolderContext } from '../services/workspaceManager';
 export async function doValidate(
   textDocument: TextDocument,
   validationManager: ValidationManager,
-  onOpen = false,
   quick = true,
   context?: WorkspaceFolderContext
 ): Promise<Map<string, Diagnostic[]>> {
@@ -32,23 +31,16 @@ export async function doValidate(
     diagnosticsByFile =
       validationManager.getValidationFromCache(textDocument.uri) ||
       new Map<string, Diagnostic[]>();
-    if (!diagnosticsByFile.has(textDocument.uri)) {
-      // In case there are no diagnostics for the file that triggered the
-      // validation, set an empty array in order to clear the validation.
-      diagnosticsByFile.set(textDocument.uri, []);
-    }
   } else {
     // full validation with ansible-lint
     diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
-    if (!diagnosticsByFile.has(textDocument.uri) && !onOpen) {
-      // In case there are no diagnostics for the file that triggered the
-      // validation, set an empty array in order to clear the validation. If the
-      // validation happened on opening the document, this step is skipped. That
-      // way old diagnostics will persist until the file is changed/saved. This
-      // allows inspecting more complex errors reported in other files.
-      diagnosticsByFile.set(textDocument.uri, []);
-    }
     validationManager.cacheDiagnostics(textDocument.uri, diagnosticsByFile);
+  }
+
+  if (!diagnosticsByFile.has(textDocument.uri)) {
+    // In case there are no diagnostics for the file that triggered the
+    // validation, set an empty array in order to clear the validation.
+    diagnosticsByFile.set(textDocument.uri, []);
   }
 
   // attach quick validation for the inspected file
