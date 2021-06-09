@@ -292,6 +292,7 @@ export default class AnsibleValidationProvider {
 					childProcess.stdout.on('data', (data: Buffer) => {
 						decoder.write(data).forEach(processLine);
 					});
+					this.diagnosticCollection!.clear();
 					childProcess.stdout.on('end', () => {
 						let line = decoder.end();
 						if (line) {
@@ -303,6 +304,7 @@ export default class AnsibleValidationProvider {
 						resolve();
 					});
 				} else {
+					this.diagnosticCollection!.clear();
 					resolve();
 				}
 			} catch (error) {
