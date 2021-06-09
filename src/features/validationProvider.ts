@@ -86,7 +86,7 @@ interface DiagnosticsDictionary {
 
 export default class AnsibleValidationProvider {
 
-	private static matchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):(?<column>:(\d):)? \[(?<id>[\w-]+)\] \[(?<severity>[\w_]+)\] (?<message>.*)/;
+	private static matchExpression: RegExp = /^(?<file>[^:]+):(?<line>\d+):((?<column>\d+):)? \[(?<id>[\w-]+)\]( \[(?<severity>[\w_]+)\])? (?<message>.*)/;
 	///(?:(?:Parse|Fatal) error): (.*)(?: in )(.*?)(?: on line )(\d+)/;
 	private static bufferArgs: string[] = ['--nocolor', '--parseable-severity', '-'];
 	//['-l', '-n', '-d', 'display_errors=On', '-d', 'log_errors=Off'];
@@ -244,21 +244,23 @@ export default class AnsibleValidationProvider {
 			let diagnostics: DiagnosticsDictionary = {};
 			let processLine = (line: string) => {
 				let matches = line.match(AnsibleValidationProvider.matchExpression);
-				this.output.appendLine(`Found:\n${matches}`);
 				if (matches) {
+					this.output.appendLine(`Found:\n${matches}`);
 					let message = matches.groups?.message ?? "unknown";
 					let line = parseInt(matches.groups?.line ?? "1") - 1;
 					let file = this.determineMatchFile(matches.groups?.file, textDocument);
-					let severity = matches.groups?.severity;
+					let severity = matches.groups?.severity ?? "MEDIUM";
 					let diagnostic: vscode.Diagnostic = new vscode.Diagnostic(
 						new vscode.Range(line, 0, line, Number.MAX_VALUE),
 						message,
-            			this.ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity)
+						this.ansibleLintSeverityToVSCodeDiagnosticsSeverity(severity)
 					);
 					if (diagnostics[file.toString()] === undefined) {
 						diagnostics[file.toString()] = [];
 					}
 					diagnostics[file.toString()].push(diagnostic);
+				} else {
+					this.output.appendLine(`Failed to recognize linter output line: ${line}`);
 				}
 			};
 
