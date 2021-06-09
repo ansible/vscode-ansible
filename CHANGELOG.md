@@ -4,6 +4,10 @@
 
 * ...
 
+## 0.4.5
+
+* Clean old violations when running the linter again
+
 ## 0.4.4
 
 * Revalidate documents on save (#95) @ssbarnea
