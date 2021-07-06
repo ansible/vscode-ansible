@@ -14,7 +14,7 @@ export class SettingsManager {
 
   private defaultSettings: ExtensionSettings = {
     ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
-    ansibleLint: { enabled: true, path: 'ansible-lint' },
+    ansibleLint: { enabled: true, path: 'ansible-lint', arguments: '' },
     python: { interpreterPath: '', activationScript: '' },
   };
   private globalSettings: ExtensionSettings = this.defaultSettings;
@@ -59,8 +59,10 @@ export class SettingsManager {
     if (this.clientSupportsConfigRequests) {
       // find configuration change handlers to fire
 
-      const newDocumentSettings: Map<string, Thenable<ExtensionSettings>> =
-        new Map();
+      const newDocumentSettings: Map<
+        string,
+        Thenable<ExtensionSettings>
+      > = new Map();
       const handlersToFire: { (): void }[] = [];
 
       for (const [uri, handler] of this.configurationChangeHandlers) {

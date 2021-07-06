@@ -62,7 +62,7 @@ export class AnsibleLint {
       textDocument.uri
     );
 
-    const workingDirectory = path.dirname(new URL(textDocument.uri).pathname);
+    const workingDirectory = new URL(this.context.workspaceFolder.uri).pathname;
 
     try {
       const settings = await this.context.documentSettings.get(
@@ -80,7 +80,7 @@ export class AnsibleLint {
 
         const [command, env] = withInterpreter(
           settings.ansibleLint.path,
-          `--offline --nocolor -f codeclimate ${docPath}`,
+          `${settings.ansibleLint.arguments} --offline --nocolor -f codeclimate ${docPath}`,
           settings.python.interpreterPath,
           settings.python.activationScript
         );
@@ -108,11 +108,15 @@ export class AnsibleLint {
           stderr: string;
         };
         if (execError.code === 2) {
-          diagnostics = this.processReport(
-            execError.stdout,
-            await ansibleLintConfigPromise,
-            workingDirectory
-          );
+          try {
+            diagnostics = this.processReport(
+              execError.stdout,
+              await ansibleLintConfigPromise,
+              workingDirectory
+            );
+          } catch (error) {
+            this.connection.window.showErrorMessage(execError.message);
+          }
         } else {
           this.connection.window.showErrorMessage(execError.message);
         }
@@ -191,8 +195,12 @@ export class AnsibleLint {
             fileDiagnostics = [];
             diagnostics.set(locationUri, fileDiagnostics);
           }
+          let message: string = item.check_name;
+          if (item.description) {
+            message += `\nDescription: ${item.description}`;
+          }
           fileDiagnostics.push({
-            message: item.check_name,
+            message: message,
             range: range || Range.create(0, 0, 0, 0),
             severity: severity,
             source: 'Ansible',

@@ -5,7 +5,7 @@
   "description": "Ansible language support",
   "author": "Tomasz Maciążek",
   "license": "MIT",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "repository": {
     "type": "git",
     "url": "https://github.com/tomaciazek/vscode-ansible.git"
@@ -48,6 +48,12 @@
           "type": "string",
           "default": "ansible-lint",
           "description": "Path to the ansible-lint executable."
+        },
+        "ansible.ansibleLint.arguments": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "description": "Command line arguments to be passed to ansible-lint."
         },
         "ansible.python.interpreterPath": {
           "scope": "resource",
