@@ -10,6 +10,10 @@ export class DocsLibrary {
   private _moduleFqcns = new Set<string>();
   private docFragments = new Map<string, IModuleMetadata>();
   private context: WorkspaceFolderContext;
+  private pluginRouting: IPluginRoutingByCollection = new Map<
+    string,
+    IPluginRoutesByType
+  >();
 
   constructor(context: WorkspaceFolderContext) {
     this.context = context;
@@ -18,27 +22,27 @@ export class DocsLibrary {
   public async initialize(): Promise<void> {
     const ansibleConfig = await this.context.ansibleConfig;
     for (const modulesPath of ansibleConfig.module_locations) {
-      (await DocsFinder.searchDirectory(modulesPath, 'builtin')).forEach(
+      (await DocsFinder.findDocumentation(modulesPath, 'builtin')).forEach(
         (doc) => {
           this.modules.set(doc.fqcn, doc);
           this.moduleFqcns.add(doc.fqcn);
         }
       );
       (
-        await DocsFinder.searchDirectory(modulesPath, 'builtin_doc_fragment')
+        await DocsFinder.findDocumentation(modulesPath, 'builtin_doc_fragment')
       ).forEach((doc) => {
         this.docFragments.set(doc.fqcn, doc);
       });
     }
     for (const collectionsPath of ansibleConfig.collections_paths) {
-      (await DocsFinder.searchDirectory(collectionsPath, 'collection')).forEach(
-        (doc) => {
-          this.modules.set(doc.fqcn, doc);
-          this.moduleFqcns.add(doc.fqcn);
-        }
-      );
       (
-        await DocsFinder.searchDirectory(
+        await DocsFinder.findDocumentation(collectionsPath, 'collection')
+      ).forEach((doc) => {
+        this.modules.set(doc.fqcn, doc);
+        this.moduleFqcns.add(doc.fqcn);
+      });
+      (
+        await DocsFinder.findDocumentation(
           collectionsPath,
           'collection_doc_fragment'
         )
@@ -251,4 +255,25 @@ export interface IOption {
   aliases?: Array<string>;
   versionAdded?: string;
   suboptions?: unknown;
+}
+
+export type IPluginRoutingByCollection = Map<string, IPluginRoutesByType>;
+
+export type IPluginTypes = 'modules'; // currently only modules are supported
+
+export type IPluginRoutesByType = Map<IPluginTypes, IPluginRoutesByName>;
+
+export type IPluginRoutesByName = Map<string, IPluginRoute>;
+export interface IPluginRoute {
+  redirect?: string;
+  deprecation?: {
+    removalVersion?: string;
+    removalDate?: string;
+    warningText?: string;
+  };
+  tombstone?: {
+    removalVersion?: string;
+    removalDate?: string;
+    warningText?: string;
+  };
 }

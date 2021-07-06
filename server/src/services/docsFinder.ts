@@ -2,11 +2,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { parseDocument } from 'yaml';
 import { YAMLError } from 'yaml/util';
-import { IModuleMetadata } from './docsLibrary';
+import {
+  IModuleMetadata,
+  IPluginRoute,
+  IPluginRoutesByName,
+  IPluginRoutesByType,
+  IPluginRoutingByCollection,
+  IPluginTypes,
+} from './docsLibrary';
 import globby = require('globby');
+import { hasOwnProperty, isObject } from '../utils/misc';
 
 export class DocsFinder {
-  public static async searchDirectory(
+  public static async findDocumentation(
     dir: string,
     kind:
       | 'builtin'
@@ -26,43 +34,154 @@ export class DocsFinder {
         ]);
         break;
       case 'collection':
-        files = await globby([`${dir}/**/modules/*.py`, `!${dir}/**/_*.py`]);
+        files = await globby([
+          `${dir}/ansible_collections/*/*/plugins/modules/*.py`,
+          `!${dir}/ansible_collections/*/*/plugins/modules/_*.py`,
+        ]);
         break;
       case 'collection_doc_fragment':
         files = await globby([
-          `${dir}/**/doc_fragments/*.py`,
-          `!${dir}/**/doc_fragments/_*.py`,
+          `${dir}/ansible_collections/*/*/plugins/doc_fragments/*.py`,
+          `!${dir}/ansible_collections/*/*/plugins/doc_fragments/_*.py`,
         ]);
         break;
     }
-    return Promise.all(
-      files.map(async (file) => {
-        const name = path.basename(file, '.py');
-        let namespace;
-        let collection;
-        switch (kind) {
-          case 'builtin':
-          case 'builtin_doc_fragment':
-            namespace = 'ansible';
-            collection = 'builtin';
-            break;
-          case 'collection':
-          case 'collection_doc_fragment':
-            const pathArray = file.split(path.sep);
-            namespace = pathArray[pathArray.length - 5];
-            collection = pathArray[pathArray.length - 4];
-            break;
-        }
+    return files.map((file) => {
+      const name = path.basename(file, '.py');
+      let namespace;
+      let collection;
+      switch (kind) {
+        case 'builtin':
+        case 'builtin_doc_fragment':
+          namespace = 'ansible';
+          collection = 'builtin';
+          break;
+        case 'collection':
+        case 'collection_doc_fragment':
+          const pathArray = file.split(path.sep);
+          namespace = pathArray[pathArray.length - 5];
+          collection = pathArray[pathArray.length - 4];
+          break;
+      }
 
-        return new LazyModuleDocumentation(
-          file,
-          `${namespace}.${collection}.${name}`,
-          namespace,
-          collection,
-          name
-        );
-      })
-    );
+      return new LazyModuleDocumentation(
+        file,
+        `${namespace}.${collection}.${name}`,
+        namespace,
+        collection,
+        name
+      );
+    });
+  }
+
+  public static async findPluginRouting(
+    dir: string,
+    kind: 'builtin' | 'collection'
+  ): Promise<IPluginRoutingByCollection> {
+    const pluginRouting = new Map<string, IPluginRoutesByType>();
+    let files;
+    switch (kind) {
+      case 'builtin':
+        files = [`${dir}/config/ansible_builtin_runtime.yml`];
+        break;
+      case 'collection':
+        files = await globby([
+          `${dir}/ansible_collections/*/*/meta/runtime.yml`,
+        ]);
+        break;
+    }
+    for (const file of files) {
+      let collection;
+      switch (kind) {
+        case 'builtin':
+          collection = 'ansible.builtin';
+          break;
+        case 'collection':
+          const pathArray = file.split(path.sep);
+          collection = `${pathArray[pathArray.length - 4]}.${
+            pathArray[pathArray.length - 3]
+          }`;
+          break;
+      }
+      const runtimeContent = await fs.promises.readFile(file, {
+        encoding: 'utf8',
+      });
+      const document = parseDocument(runtimeContent).toJSON();
+    }
+
+    return pluginRouting;
+  }
+
+  private parseRawRouting(rawDoc: unknown) {
+    const routesByType = new Map<IPluginTypes, IPluginRoutesByName>();
+    if (
+      hasOwnProperty(rawDoc, 'plugin_routing') &&
+      isObject(rawDoc.plugin_routing)
+    ) {
+      for (const [pluginType, rawRoutesByName] of Object.entries(
+        rawDoc.plugin_routing
+      )) {
+        if (pluginType === 'modules' && isObject(rawRoutesByName)) {
+          routesByType.set(
+            pluginType,
+            this.parseRawRoutesByName(rawRoutesByName)
+          );
+        }
+      }
+    }
+  }
+
+  private parseRawRoutesByName(
+    rawRoutesByName: Record<PropertyKey, unknown>
+  ): IPluginRoutesByName {
+    const routesByName = new Map<string, IPluginRoute>();
+    for (const [moduleName, rawRoute] of Object.entries(rawRoutesByName)) {
+      if (isObject(rawRoute))
+        routesByName.set(moduleName, this.parseRawRoute(rawRoute));
+    }
+    return routesByName;
+  }
+
+  private parseRawRoute(rawRoute: Record<PropertyKey, unknown>): IPluginRoute {
+    const route: IPluginRoute = {};
+    if (isObject(rawRoute.deprecation)) {
+      route.deprecation = this.parseRawDepracationOrTombstone(
+        rawRoute.deprecation
+      );
+    }
+    if (isObject(rawRoute.tombstone)) {
+      route.tombstone = this.parseRawDepracationOrTombstone(rawRoute.tombstone);
+    }
+    if (typeof rawRoute.redirect === 'string') {
+      route.redirect = rawRoute.redirect;
+    }
+    return route;
+  }
+
+  private parseRawDepracationOrTombstone(
+    rawInfo: Record<PropertyKey, unknown>
+  ): {
+    removalVersion?: string;
+    removalDate?: string;
+    warningText?: string;
+  } {
+    let warningText;
+    let removalDate;
+    let removalVersion;
+    if (typeof rawInfo.warning_text === 'string') {
+      warningText = rawInfo.warning_text;
+    }
+    if (typeof rawInfo.removal_date === 'string') {
+      removalDate = rawInfo.removal_date;
+    }
+    if (typeof rawInfo.removal_version === 'string') {
+      removalVersion = rawInfo.removal_version;
+    }
+    return {
+      warningText: warningText,
+      removalDate: removalDate,
+      removalVersion: removalVersion,
+    };
   }
 }
 

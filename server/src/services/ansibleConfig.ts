@@ -12,6 +12,7 @@ export class AnsibleConfig {
   private context: WorkspaceFolderContext;
   private _collection_paths: string[] = [];
   private _module_locations: string[] = [];
+  private _ansible_location = '';
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -24,6 +25,7 @@ export class AnsibleConfig {
         this.context.workspaceFolder.uri
       );
 
+      // get Ansible configuration
       const [ansibleConfigCommand, ansibleConfigEnv] = withInterpreter(
         `${settings.ansible.path}-config`,
         'dump',
@@ -44,6 +46,7 @@ export class AnsibleConfig {
       );
       this._collection_paths = parsePythonStringArray(config.COLLECTIONS_PATHS);
 
+      // get Ansible basic information
       const [ansibleCommand, ansibleEnv] = withInterpreter(
         `${settings.ansible.path}`,
         '--version',
@@ -63,6 +66,30 @@ export class AnsibleConfig {
       this._module_locations.push(
         path.resolve(versionInfo['ansible python module location'], 'modules')
       );
+
+      this._ansible_location = versionInfo['ansible python module location'];
+
+      // get Python sys.path
+      const [pythonPathCommand, pythonPathEnv] = withInterpreter(
+        'python',
+        ' -c "import sys; print(sys.path, end=\\"\\")"',
+        settings.python.interpreterPath,
+        settings.python.activationScript
+      );
+
+      const pythonPathResult = child_process.execSync(pythonPathCommand, {
+        encoding: 'utf-8',
+        env: pythonPathEnv,
+      });
+      this._collection_paths.push(...parsePythonStringArray(pythonPathResult));
+
+      /** 
+       * TODO: Implement the 'ansible.builtin' artificial collection
+       *         if collection_name == 'ansible.builtin':
+            # ansible.builtin is a synthetic collection, get its routing config from the Ansible distro
+            ansible_pkg_path = os.path.dirname(import_module('ansible').__file__)
+            metadata_path = os.path.join(ansible_pkg_path, 'config/ansible_builtin_runtime.yml')
+       */
     } catch (error) {
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
@@ -80,6 +107,10 @@ export class AnsibleConfig {
 
   get module_locations(): string[] {
     return this._module_locations;
+  }
+
+  public get ansible_location(): string {
+    return this._ansible_location;
   }
 }
 

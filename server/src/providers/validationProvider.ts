@@ -34,13 +34,12 @@ export async function doValidate(
   } else {
     // full validation with ansible-lint
     diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
+    if (!diagnosticsByFile.has(textDocument.uri)) {
+      // In case there are no diagnostics for the file that triggered the
+      // validation, set an empty array in order to clear the validation.
+      diagnosticsByFile.set(textDocument.uri, []);
+    }
     validationManager.cacheDiagnostics(textDocument.uri, diagnosticsByFile);
-  }
-
-  if (!diagnosticsByFile.has(textDocument.uri)) {
-    // In case there are no diagnostics for the file that triggered the
-    // validation, set an empty array in order to clear the validation.
-    diagnosticsByFile.set(textDocument.uri, []);
   }
 
   // attach quick validation for the inspected file
