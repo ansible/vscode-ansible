@@ -4,12 +4,27 @@ import {
   IDescription,
   IModuleDocumentation,
   IOption,
+  IPluginRoute,
 } from '../services/docsLibrary';
 
-export function formatModule(module: IModuleDocumentation): MarkupContent {
+export function formatModule(
+  module: IModuleDocumentation,
+  route?: IPluginRoute
+): MarkupContent {
   const sections: string[] = [];
-  if (module.deprecated) {
+  if (module.deprecated || route?.deprecation) {
     sections.push('**DEPRECATED**');
+    if (route?.deprecation) {
+      if (route.deprecation.warningText) {
+        sections.push(`${route.deprecation.warningText}`);
+      }
+      sections.push(
+        `Removal date: ${route.deprecation.removalDate}, removal version: ${route.deprecation.removalVersion}`
+      );
+    }
+  }
+  if (route?.redirect) {
+    sections.push(`***Redirected to: ${route.redirect}***`);
   }
   if (module.shortDescription) {
     sections.push(`*${module.shortDescription}*`);
@@ -25,6 +40,26 @@ export function formatModule(module: IModuleDocumentation): MarkupContent {
   if (module.notes) {
     sections.push('**Notes**');
     sections.push(formatDescription(module.notes));
+  }
+  return {
+    kind: MarkupKind.Markdown,
+    value: sections.join('\n\n'),
+  };
+}
+
+export function formatTombstone(route: IPluginRoute): MarkupContent {
+  const sections: string[] = [];
+  if (route?.tombstone) {
+    sections.push('**REMOVED**');
+    if (route.tombstone.warningText) {
+      sections.push(`${route.tombstone.warningText}`);
+    }
+    sections.push(
+      `Removal date: ${route.tombstone.removalDate}, removal version: ${route.tombstone.removalVersion}`
+    );
+  }
+  if (route?.redirect) {
+    sections.push(`Use *${route.redirect}* instead.`);
   }
   return {
     kind: MarkupKind.Markdown,

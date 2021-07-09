@@ -91,7 +91,7 @@ async function markSemanticTokens(
               }
             }
           } else {
-            const module = await docsLibrary.findModule(
+            const [module] = await docsLibrary.findModule(
               pair.key.value,
               keyPath,
               document.uri

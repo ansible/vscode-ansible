@@ -10,7 +10,11 @@ import {
   roleKeywords,
   taskKeywords,
 } from '../utils/ansible';
-import { formatModule, formatOption } from '../utils/docsFormatter';
+import {
+  formatModule,
+  formatOption,
+  formatTombstone,
+} from '../utils/docsFormatter';
 import { toLspRange } from '../utils/misc';
 import {
   AncestryBuilder,
@@ -51,16 +55,30 @@ export async function doHover(
         if (isTaskKeyword(node.value)) {
           return getKeywordHover(document, node, taskKeywords);
         } else {
-          const module = await docsLibrary.findModule(
+          const [module, hitFqcn] = await docsLibrary.findModule(
             node.value,
             path,
             document.uri
           );
           if (module && module.documentation) {
             return {
-              contents: formatModule(module.documentation),
+              contents: formatModule(
+                module.documentation,
+                docsLibrary.getModuleRoute(hitFqcn || node.value)
+              ),
               range: node.range ? toLspRange(node.range, document) : undefined,
             };
+          } else if (hitFqcn) {
+            // check for tombstones
+            const route = docsLibrary.getModuleRoute(hitFqcn);
+            if (route) {
+              return {
+                contents: formatTombstone(route),
+                range: node.range
+                  ? toLspRange(node.range, document)
+                  : undefined,
+              };
+            }
           }
         }
       }
@@ -83,7 +101,7 @@ export async function doHover(
               docsLibrary
             );
           } else {
-            module = await docsLibrary.findModule(
+            [module] = await docsLibrary.findModule(
               parentKeyNode.value,
               parentKeyPath,
               document.uri

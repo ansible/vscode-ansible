@@ -370,7 +370,7 @@ export async function findProvidedModule(
 
     // find the module if it has been provided
     for (const m of providedModuleNames) {
-      const module = await docsLibrary.findModule(
+      const [module] = await docsLibrary.findModule(
         m,
         taskParamPath,
         document.uri

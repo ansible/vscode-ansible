@@ -24,15 +24,6 @@ export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
   return isObject(obj) && obj.hasOwnProperty(prop);
 }
 
-export function hasStringProperty<X extends unknown, Y extends PropertyKey>(
-  obj: X,
-  prop: Y
-): obj is X & Record<Y, string> {
-  return (
-    isObject(obj) && obj.hasOwnProperty(prop) && typeof obj[prop] === 'string'
-  );
-}
-
 /**
  * Checks whether `obj` is a non-null object.
  */

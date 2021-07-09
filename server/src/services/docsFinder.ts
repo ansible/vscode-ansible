@@ -107,12 +107,13 @@ export class DocsFinder {
         encoding: 'utf8',
       });
       const document = parseDocument(runtimeContent).toJSON();
+      pluginRouting.set(collection, this.parseRawRouting(document));
     }
 
     return pluginRouting;
   }
 
-  private parseRawRouting(rawDoc: unknown) {
+  private static parseRawRouting(rawDoc: unknown): IPluginRoutesByType {
     const routesByType = new Map<IPluginTypes, IPluginRoutesByName>();
     if (
       hasOwnProperty(rawDoc, 'plugin_routing') &&
@@ -129,9 +130,10 @@ export class DocsFinder {
         }
       }
     }
+    return routesByType;
   }
 
-  private parseRawRoutesByName(
+  private static parseRawRoutesByName(
     rawRoutesByName: Record<PropertyKey, unknown>
   ): IPluginRoutesByName {
     const routesByName = new Map<string, IPluginRoute>();
@@ -142,7 +144,9 @@ export class DocsFinder {
     return routesByName;
   }
 
-  private parseRawRoute(rawRoute: Record<PropertyKey, unknown>): IPluginRoute {
+  private static parseRawRoute(
+    rawRoute: Record<PropertyKey, unknown>
+  ): IPluginRoute {
     const route: IPluginRoute = {};
     if (isObject(rawRoute.deprecation)) {
       route.deprecation = this.parseRawDepracationOrTombstone(
@@ -158,7 +162,7 @@ export class DocsFinder {
     return route;
   }
 
-  private parseRawDepracationOrTombstone(
+  private static parseRawDepracationOrTombstone(
     rawInfo: Record<PropertyKey, unknown>
   ): {
     removalVersion?: string;

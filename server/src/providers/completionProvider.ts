@@ -2,6 +2,8 @@ import {
   CompletionItem,
   CompletionItemKind,
   MarkupContent,
+  Range,
+  TextEdit,
 } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
@@ -16,7 +18,7 @@ import {
   taskKeywords,
 } from '../utils/ansible';
 import { formatModule, formatOption, getDetails } from '../utils/docsFormatter';
-import { insert } from '../utils/misc';
+import { insert, toLspRange } from '../utils/misc';
 import {
   AncestryBuilder,
   findProvidedModule,
@@ -32,7 +34,12 @@ import {
 const priorityMap = {
   nameKeyword: 1,
   moduleName: 2,
-  keyword: 3,
+  redirectedModuleName: 3,
+  keyword: 4,
+  // options
+  requiredOption: 1,
+  option: 2,
+  aliasOption: 3,
 };
 
 export async function doCompletion(
@@ -104,24 +111,42 @@ export async function doCompletion(
             )
           );
 
+          const inlineCollections = getDeclaredCollections(path);
+          const cursorAtEndOfLine = atEndOfLine(document, position);
+          let textEdit: TextEdit | undefined;
+          const nodeRange = getNodeRange(node, document);
+          if (nodeRange) {
+            textEdit = {
+              range: nodeRange,
+              newText: '', // placeholder
+            };
+          }
+
           // offer modules
           const moduleCompletionItems = [...docsLibrary.moduleFqcns].map(
-            (moduleFqcn) => {
+            (moduleFqcn): CompletionItem => {
+              let priority, kind;
+              if (docsLibrary.getModuleRoute(moduleFqcn)?.redirect) {
+                priority = priorityMap.redirectedModuleName;
+                kind = CompletionItemKind.Reference;
+              } else {
+                priority = priorityMap.moduleName;
+                kind = CompletionItemKind.Class;
+              }
               const [namespace, collection, name] = moduleFqcn.split('.');
               return {
                 label: name,
-                kind: CompletionItemKind.Class,
+                kind: kind,
                 detail: `${namespace}.${collection}`,
-                sortText: `${priorityMap.moduleName}_${name}`,
-                filterText: moduleFqcn,
+                sortText: `${priority}_${name}`,
+                filterText: `${name} ${moduleFqcn}`, // name should have priority
                 data: {
                   documentUri: document.uri, // preserve document URI for completion request
                   moduleFqcn: moduleFqcn,
-                  inlineCollections: getDeclaredCollections(path),
+                  inlineCollections: inlineCollections,
+                  atEndOfLine: cursorAtEndOfLine,
                 },
-                insertText: atEndOfLine(document, position)
-                  ? `${moduleFqcn}:`
-                  : moduleFqcn,
+                textEdit: textEdit,
               };
             }
           );
@@ -148,7 +173,7 @@ export async function doCompletion(
               docsLibrary
             );
           } else {
-            module = await docsLibrary.findModule(
+            [module] = await docsLibrary.findModule(
               parentKeyNode.value,
               parentKeyPath,
               document.uri
@@ -167,6 +192,9 @@ export async function doCompletion(
             const remainingOptions = [...moduleOptions.entries()].filter(
               ([, specs]) => !providedOptions.has(specs.name)
             );
+
+            const nodeRange = getNodeRange(node, document);
+
             return remainingOptions
               .map(([option, specs]) => {
                 return {
@@ -174,33 +202,23 @@ export async function doCompletion(
                   specs: specs,
                 };
               })
-              .sort((a, b) => {
-                // make required options appear on the top
-                if (a.specs.required && !b.specs.required) {
-                  return -1;
-                } else if (!a.specs.required && b.specs.required) {
-                  return 1;
-                } else {
-                  return 0;
-                }
-              })
-              .sort((a, b) => {
-                // push all aliases to the bottom
-                if (isAlias(a) && !isAlias(b)) {
-                  return 1;
-                } else if (!isAlias(a) && isAlias(b)) {
-                  return -1;
-                } else {
-                  return 0;
-                }
-              })
               .map((option, index) => {
                 // translate option documentation to CompletionItem
                 const details = getDetails(option.specs);
-                return {
+                let priority;
+                if (isAlias(option)) {
+                  priority = priorityMap.aliasOption;
+                } else if (option.specs.required) {
+                  priority = priorityMap.requiredOption;
+                } else {
+                  priority = priorityMap.option;
+                }
+                const completionItem: CompletionItem = {
                   label: option.name,
                   detail: details,
-                  sortText: index.toString().padStart(3),
+                  // using index preserves order from the specification
+                  // except when overridden by the priority
+                  sortText: priority.toString() + index.toString().padStart(3),
                   kind: isAlias(option)
                     ? CompletionItemKind.Reference
                     : CompletionItemKind.Property,
@@ -209,6 +227,18 @@ export async function doCompletion(
                     ? `${option.name}:`
                     : undefined,
                 };
+                const insertText = atEndOfLine(document, position)
+                  ? `${option.name}:`
+                  : option.name;
+                if (nodeRange) {
+                  completionItem.textEdit = {
+                    range: nodeRange,
+                    newText: insertText,
+                  };
+                } else {
+                  completionItem.insertText = insertText;
+                }
+                return completionItem;
               });
           }
         }
@@ -233,70 +263,109 @@ function getKeywordCompletion(
   const remainingParams = [...keywords.entries()].filter(
     ([keyword]) => !providedParams.has(keyword)
   );
+  const nodeRange = getNodeRange(path[path.length - 1], document);
   return remainingParams.map(([keyword, description]) => {
     const priority =
       keyword === 'name' ? priorityMap.nameKeyword : priorityMap.keyword;
-    return {
+    const completionItem: CompletionItem = {
       label: keyword,
       kind: CompletionItemKind.Property,
       sortText: `${priority}_${keyword}`,
       documentation: description,
-      insertText: atEndOfLine(document, position) ? `${keyword}:` : undefined,
     };
+    const insertText = atEndOfLine(document, position)
+      ? `${keyword}:`
+      : keyword;
+    if (nodeRange) {
+      completionItem.textEdit = {
+        range: nodeRange,
+        newText: insertText,
+      };
+    } else {
+      completionItem.insertText = insertText;
+    }
+    return completionItem;
   });
+}
+
+/**
+ * Returns an LSP formatted range compensating for the `_:` hack, provided that
+ * the node has range information and is a string scalar.
+ */
+function getNodeRange(node: Node, document: TextDocument): Range | undefined {
+  if (node.range && node instanceof Scalar && typeof node.value === 'string') {
+    const start = node.range[0];
+    let end = node.range[1];
+    // compensate for `_:`
+    if (node.value.includes('_:')) {
+      end -= 2;
+    } else {
+      // colon, being at the end of the line, was excluded from the node
+      end -= 1;
+    }
+    return toLspRange([start, end], document);
+  }
 }
 
 export async function doCompletionResolve(
   completionItem: CompletionItem,
   context: WorkspaceFolderContext
 ): Promise<CompletionItem> {
-  if (completionItem.kind === CompletionItemKind.Class) {
+  if (completionItem.data?.moduleFqcn && completionItem.data?.documentUri) {
     // resolve completion for a module
 
-    if (completionItem.data?.moduleFqcn && completionItem.data?.documentUri) {
-      const module = await (
-        await context.docsLibrary
-      ).findModule(completionItem.data.moduleFqcn);
+    const docsLibrary = await context.docsLibrary;
+    const [module] = await docsLibrary.findModule(
+      completionItem.data.moduleFqcn
+    );
 
-      if (module && module.documentation) {
-        const [namespace, collection, name] =
-          completionItem.data.moduleFqcn.split('.');
+    if (module && module.documentation) {
+      const [namespace, collection, name] =
+        completionItem.data.moduleFqcn.split('.');
 
-        let useFqcn = (
-          await context.documentSettings.get(completionItem.data.documentUri)
-        ).ansible.useFullyQualifiedCollectionNames;
+      let useFqcn = (
+        await context.documentSettings.get(completionItem.data.documentUri)
+      ).ansible.useFullyQualifiedCollectionNames;
 
-        if (!useFqcn) {
-          // determine if the short name can really be used
+      if (!useFqcn) {
+        // determine if the short name can really be used
 
-          const declaredCollections: Array<string> =
-            completionItem.data?.inlineCollections || [];
-          declaredCollections.push('ansible.builtin');
+        const declaredCollections: Array<string> =
+          completionItem.data?.inlineCollections || [];
+        declaredCollections.push('ansible.builtin');
 
-          const metadata = await context.documentMetadata.get(
-            completionItem.data.documentUri
-          );
-          if (metadata) {
-            declaredCollections.push(...metadata.collections);
-          }
-
-          const canUseShortName = declaredCollections.some(
-            (c) => c === `${namespace}.${collection}`
-          );
-          if (!canUseShortName) {
-            // not an Ansible built-in module, and not part of the declared
-            // collections
-            useFqcn = true;
-          }
+        const metadata = await context.documentMetadata.get(
+          completionItem.data.documentUri
+        );
+        if (metadata) {
+          declaredCollections.push(...metadata.collections);
         }
 
-        const insertName = useFqcn ? completionItem.data.moduleFqcn : name;
-        completionItem.insertText = completionItem.insertText?.endsWith(':')
-          ? `${insertName}:`
-          : insertName;
-
-        completionItem.documentation = formatModule(module.documentation);
+        const canUseShortName = declaredCollections.some(
+          (c) => c === `${namespace}.${collection}`
+        );
+        if (!canUseShortName) {
+          // not an Ansible built-in module, and not part of the declared
+          // collections
+          useFqcn = true;
+        }
       }
+
+      const insertName = useFqcn ? completionItem.data.moduleFqcn : name;
+      const insertText = completionItem.data.atEndOfLine
+        ? `${insertName}:`
+        : insertName;
+
+      if (completionItem.textEdit) {
+        completionItem.textEdit.newText = insertText;
+      } else {
+        completionItem.insertText = insertText;
+      }
+
+      completionItem.documentation = formatModule(
+        module.documentation,
+        docsLibrary.getModuleRoute(completionItem.data.moduleFqcn)
+      );
     }
   }
   return completionItem;

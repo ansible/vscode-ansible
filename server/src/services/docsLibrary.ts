@@ -28,12 +28,21 @@ export class DocsLibrary {
           this.moduleFqcns.add(doc.fqcn);
         }
       );
+
       (
         await DocsFinder.findDocumentation(modulesPath, 'builtin_doc_fragment')
       ).forEach((doc) => {
         this.docFragments.set(doc.fqcn, doc);
       });
     }
+
+    (
+      await DocsFinder.findPluginRouting(
+        ansibleConfig.ansible_location,
+        'builtin'
+      )
+    ).forEach((r, collection) => this.pluginRouting.set(collection, r));
+
     for (const collectionsPath of ansibleConfig.collections_paths) {
       (
         await DocsFinder.findDocumentation(collectionsPath, 'collection')
@@ -41,6 +50,7 @@ export class DocsLibrary {
         this.modules.set(doc.fqcn, doc);
         this.moduleFqcns.add(doc.fqcn);
       });
+
       (
         await DocsFinder.findDocumentation(
           collectionsPath,
@@ -49,6 +59,19 @@ export class DocsLibrary {
       ).forEach((doc) => {
         this.docFragments.set(doc.fqcn, doc);
       });
+
+      (
+        await DocsFinder.findPluginRouting(collectionsPath, 'collection')
+      ).forEach((r, collection) => this.pluginRouting.set(collection, r));
+
+      // add all valid redirect routes as possible FQCNs
+      for (const [collection, routesByType] of this.pluginRouting) {
+        for (const [name, route] of routesByType.get('modules') || []) {
+          if (route.redirect && !route.tombstone) {
+            this.moduleFqcns.add(`${collection}.${name}`);
+          }
+        }
+      }
     }
   }
 
@@ -58,32 +81,48 @@ export class DocsLibrary {
    * Parameters `contextPath` and `documentUri` are used to obtain contextual
    * information on declared collections. Hence these are not needed when
    * searching with FQCN.
+   *
+   * Returns the module if found and an FQCN for which either a module or a
+   * route has been found.
    */
   public async findModule(
     searchText: string,
     contextPath?: Node[],
     documentUri?: string
-  ): Promise<IModuleMetadata | undefined> {
-    const prefixOptions = [
-      '', // try searching as-is (FQCN match)
-      'ansible.builtin.', // try searching built-in
-    ];
-    if (documentUri) {
-      const metadata = await this.context.documentMetadata.get(documentUri);
-      if (metadata) {
-        // try searching declared collections
-        prefixOptions.push(...metadata.collections.map((s) => `${s}.`));
+  ): Promise<[IModuleMetadata | undefined, string | undefined]> {
+    let hitFqcn;
+    const candidateFqcns = await this.getCandidateFqcns(
+      searchText,
+      documentUri,
+      contextPath
+    );
+
+    // check routing
+    let moduleRoute;
+    for (const fqcn of candidateFqcns) {
+      moduleRoute = this.getModuleRoute(fqcn);
+      if (moduleRoute) {
+        hitFqcn = fqcn;
+        break; // find first
       }
     }
-    if (contextPath) {
-      prefixOptions.push(
-        ...getDeclaredCollections(contextPath).map((s) => `${s}.`)
-      );
+
+    // find module
+    let module;
+    if (moduleRoute && moduleRoute.redirect) {
+      module = this.modules.get(moduleRoute.redirect);
+    } else {
+      for (const fqcn of candidateFqcns) {
+        module = this.modules.get(fqcn);
+        if (module) {
+          if (!hitFqcn) {
+            hitFqcn = fqcn;
+          }
+          break; // find first
+        }
+      }
     }
-    const prefix = prefixOptions.find((prefix) =>
-      this.modules.has(prefix + searchText)
-    );
-    const module = this.modules.get(prefix + searchText);
+
     if (module) {
       if (!module.fragments) {
         // collect information from documentation fragments
@@ -96,7 +135,50 @@ export class DocsLibrary {
         );
       }
     }
-    return module;
+    return [module, hitFqcn];
+  }
+
+  private async getCandidateFqcns(
+    searchText: string,
+    documentUri: string | undefined,
+    contextPath: Node[] | undefined
+  ) {
+    const candidateFqcns = [];
+    if (searchText.split('.').length === 3) {
+      candidateFqcns.push(searchText); // try searching as-is (FQCN match)
+    } else {
+      candidateFqcns.push(`ansible.builtin.${searchText}`); // try searching built-in
+
+      if (documentUri) {
+        const metadata = await this.context.documentMetadata.get(documentUri);
+        if (metadata) {
+          // try searching declared collections
+          candidateFqcns.push(
+            ...metadata.collections.map((c) => `${c}.${searchText}`)
+          );
+        }
+      }
+
+      if (contextPath) {
+        candidateFqcns.push(
+          ...getDeclaredCollections(contextPath).map(
+            (c) => `${c}.${searchText}`
+          )
+        );
+      }
+    }
+    return candidateFqcns;
+  }
+
+  public getModuleRoute(fqcn: string): IPluginRoute | undefined {
+    const fqcn_array = fqcn.split('.');
+    if (fqcn_array.length === 3) {
+      const [namespace, collection, name] = fqcn_array;
+      return this.pluginRouting
+        .get(`${namespace}.${collection}`)
+        ?.get('modules')
+        ?.get(name);
+    }
   }
 
   get moduleFqcns(): Set<string> {
@@ -242,6 +324,7 @@ export interface IModuleMetadata {
   documentation?: IModuleDocumentation;
   fragments?: IModuleMetadata[];
   errors: YAMLError[];
+  route?: IPluginRoute;
 }
 
 export interface IOption {

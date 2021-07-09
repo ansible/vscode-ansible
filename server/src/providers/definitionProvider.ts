@@ -20,7 +20,7 @@ export async function getDefinition(
       new AncestryBuilder(path).parentOfKey().get() // ensure we look at a key, not value of a Pair
     ) {
       if (isTaskParam(path)) {
-        const module = await docsLibrary.findModule(
+        const [module] = await docsLibrary.findModule(
           node.value,
           path,
           document.uri
