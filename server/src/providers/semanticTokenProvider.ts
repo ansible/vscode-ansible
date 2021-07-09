@@ -7,7 +7,8 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { DocsLibrary, IModuleMetadata } from '../services/docsLibrary';
+import { IModuleMetadata } from '../interfaces/module';
+import { DocsLibrary } from '../services/docsLibrary';
 import {
   blockKeywords,
   isTaskKeyword,

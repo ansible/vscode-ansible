@@ -2,7 +2,8 @@ import * as _ from 'lodash';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { Document } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { DocsLibrary, IModuleMetadata } from '../services/docsLibrary';
+import { IModuleMetadata } from '../interfaces/module';
+import { DocsLibrary } from '../services/docsLibrary';
 import { isTaskKeyword, playExclusiveKeywords } from './ansible';
 
 /**

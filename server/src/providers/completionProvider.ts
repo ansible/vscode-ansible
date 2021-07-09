@@ -8,7 +8,7 @@ import {
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap } from 'yaml/types';
-import { IOption } from '../services/docsLibrary';
+import { IOption } from '../interfaces/module';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
 import {
   blockKeywords,
