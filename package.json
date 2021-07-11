@@ -34,7 +34,7 @@
         "ansible.ansible.useFullyQualifiedCollectionNames": {
           "scope": "resource",
           "type": "boolean",
-          "default": true,
+          "default": false,
           "description": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary."
         },
         "ansible.ansibleLint.enabled": {
