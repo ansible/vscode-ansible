@@ -6,10 +6,11 @@ This extension adds language support for Ansible to VS Code.
 ### Syntax highlighting
 ![Syntax highlighting](images/syntax-highlighting.png)
 
-Recognizes and distinctly highlights, **Ansible keywords**, **module names** and
-**module options**, as well as standard YAML elements. Supports Jinja
-expressions, also those in Ansible conditionals (`when`, `failed_when`,
-`changed_when`, `check_mode`), which are not placed in double curly braces.
+**Ansible keywords**, **module names** and **module options**, as well as
+standard YAML elements are recognized and highlighted distinctly. Jinja
+expressions are supported too, also those in Ansible conditionals (`when`,
+`failed_when`, `changed_when`, `check_mode`), which are not placed in double
+curly braces.
 
 > The screenshots and animations presented in this README have been taken using
 > the One Dark Pro theme. The default VS Code theme will not show the syntax
@@ -96,3 +97,4 @@ any level (User, Remote, Workspace and/or Folder).
 
 ## Known limitations
 - The shorthand syntax for module options (key=value pairs) is not supported.
+- Nested module options are not supported yet.
