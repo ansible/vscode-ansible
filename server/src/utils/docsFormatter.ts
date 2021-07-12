@@ -27,7 +27,7 @@ export function formatModule(
     sections.push(`***Redirected to: ${route.redirect}***`);
   }
   if (module.shortDescription) {
-    sections.push(`*${module.shortDescription}*`);
+    sections.push(`*${formatDescription(module.shortDescription)}*`);
   }
   if (module.description) {
     sections.push('**Description**');
