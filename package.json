@@ -10,6 +10,7 @@
     "type": "git",
     "url": "https://github.com/tomaciazek/vscode-ansible.git"
   },
+  "icon": "icon.png",
   "engines": {
     "vscode": "^1.56.0"
   },

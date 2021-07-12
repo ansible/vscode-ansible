@@ -77,7 +77,7 @@ export async function findPluginRouting(
   let files;
   switch (kind) {
     case 'builtin':
-      files = [`${dir}/config/ansible_builtin_runtime.yml`];
+      files = await globby([`${dir}/config/ansible_builtin_runtime.yml`]);
       break;
     case 'collection':
       files = await globby([`${dir}/ansible_collections/*/*/meta/runtime.yml`]);
