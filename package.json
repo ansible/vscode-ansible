@@ -5,7 +5,7 @@
   "description": "Ansible language support",
   "author": "Tomasz Maciążek",
   "license": "MIT",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/tomaciazek/vscode-ansible.git"
@@ -188,7 +188,8 @@
     "webpack:watch:server": "webpack --mode none --config ./server/webpack.config.js --watch",
     "clean": "rimraf client/out && rimraf server/out && rimraf **/tsconfig.tsbuildinfo",
     "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-    "test-compile": "tsc -p ./"
+    "test": "mocha --require ts-node/register './server/src/test/**/*.ts'",
+    "deploy": "vsce publish"
   },
   "devDependencies": {
     "@types/chai": "^4.2.18",
@@ -206,6 +207,7 @@
     "ts-loader": "^8.3.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.3.2",
+    "vsce": "^1.95.1",
     "webpack": "^5.38.1",
     "webpack-cli": "^4.7.0"
   },
