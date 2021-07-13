@@ -1,4 +1,4 @@
-# Ansible for VS Code
+# Ansible VS Code Extension
 This extension adds language support for Ansible to VS Code.
 
 ## Features
@@ -14,8 +14,8 @@ curly braces.
 
 > The screenshots and animations presented in this README have been taken using
 > the One Dark Pro theme. The default VS Code theme will not show the syntax
-> elements as distinctly, unless customized. Virtually any non-default theme
-> will do better.
+> elements as distinctly, unless customized. Virtually any theme other than
+> default will do better.
 
 ### Validation
 ![YAML validation](images/yaml-validation.gif)
@@ -98,3 +98,7 @@ any level (User, Remote, Workspace and/or Folder).
 ## Known limitations
 - The shorthand syntax for module options (key=value pairs) is not supported.
 - Nested module options are not supported yet.
+- Only Jinja *expressions* inside Ansible YAML files are supported. In order to
+  have syntax highlighting of Jinja template files, you'll need to install other
+  extension.
+- Jinja *blocks* (inside Ansible YAML files) are not supported yet.
