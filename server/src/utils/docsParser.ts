@@ -22,12 +22,14 @@ export function processDocumentationFragments(
 ): void {
   module.fragments = [];
   if (
-    hasOwnProperty(module.rawDocumentation, 'extends_documentation_fragment') &&
-    module.rawDocumentation.extends_documentation_fragment instanceof Array
+    hasOwnProperty(module.rawDocumentation, 'extends_documentation_fragment')
   ) {
+    const docFragmentNames =
+      module.rawDocumentation.extends_documentation_fragment instanceof Array
+        ? module.rawDocumentation.extends_documentation_fragment
+        : [module.rawDocumentation.extends_documentation_fragment];
     const resultContents = {};
-    for (const docFragmentName of module.rawDocumentation
-      .extends_documentation_fragment) {
+    for (const docFragmentName of docFragmentNames) {
       const docFragment =
         docFragments.get(docFragmentName) ||
         docFragments.get(`ansible.builtin.${docFragmentName}`);
