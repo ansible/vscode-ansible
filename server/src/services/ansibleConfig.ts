@@ -70,8 +70,9 @@ export class AnsibleConfig {
       this._ansible_location = versionInfo['ansible python module location'];
 
       // get Python sys.path
+      // this is needed to get the pre-installed collections to work
       const [pythonPathCommand, pythonPathEnv] = withInterpreter(
-        'python',
+        'python3',
         ' -c "import sys; print(sys.path, end=\\"\\")"',
         settings.python.interpreterPath,
         settings.python.activationScript
@@ -82,14 +83,6 @@ export class AnsibleConfig {
         env: pythonPathEnv,
       });
       this._collection_paths.push(...parsePythonStringArray(pythonPathResult));
-
-      /** 
-       * TODO: Implement the 'ansible.builtin' artificial collection
-       *         if collection_name == 'ansible.builtin':
-            # ansible.builtin is a synthetic collection, get its routing config from the Ansible distro
-            ansible_pkg_path = os.path.dirname(import_module('ansible').__file__)
-            metadata_path = os.path.join(ansible_pkg_path, 'config/ansible_builtin_runtime.yml')
-       */
     } catch (error) {
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
