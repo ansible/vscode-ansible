@@ -1,7 +1,6 @@
 import * as child_process from 'child_process';
 import { ExecException } from 'child_process';
 import { promises as fs } from 'fs';
-import * as path from 'path';
 import { URL } from 'url';
 import { promisify } from 'util';
 import {
@@ -108,15 +107,11 @@ export class AnsibleLint {
           stderr: string;
         };
         if (execError.code === 2) {
-          try {
-            diagnostics = this.processReport(
-              execError.stdout,
-              await ansibleLintConfigPromise,
-              workingDirectory
-            );
-          } catch (error) {
-            this.connection.window.showErrorMessage(execError.message);
-          }
+          diagnostics = this.processReport(
+            execError.stdout,
+            await ansibleLintConfigPromise,
+            workingDirectory
+          );
         } else {
           this.connection.window.showErrorMessage(execError.message);
         }
@@ -143,70 +138,96 @@ export class AnsibleLint {
     workingDirectory: string
   ): Map<string, Diagnostic[]> {
     const diagnostics: Map<string, Diagnostic[]> = new Map();
-    const report = JSON.parse(result);
-    if (report instanceof Array) {
-      for (const item of report) {
-        if (
-          typeof item.check_name === 'string' &&
-          item.location &&
-          typeof item.location.path === 'string' &&
-          item.location.lines &&
-          (item.location.lines.begin ||
-            typeof item.location.lines.begin === 'number')
-        ) {
-          const begin_line =
-            item.location.lines.begin.line || item.location.lines.begin || 1;
-          const begin_column = item.location.lines.begin.column || 1;
-          const start: Position = {
-            line: begin_line - 1,
-            character: begin_column - 1,
-          };
-          const end: Position = {
-            line: begin_line - 1,
-            character: Number.MAX_SAFE_INTEGER,
-          };
-          const range: Range = {
-            start: start,
-            end: end,
-          };
+    if (!result) {
+      this.connection.console.warn(
+        'Standard output from ansible-lint is suspiciously empty.'
+      );
+      return diagnostics;
+    }
+    try {
+      const report = JSON.parse(result);
+      if (report instanceof Array) {
+        for (const item of report) {
+          if (
+            typeof item.check_name === 'string' &&
+            item.location &&
+            typeof item.location.path === 'string' &&
+            item.location.lines &&
+            (item.location.lines.begin ||
+              typeof item.location.lines.begin === 'number')
+          ) {
+            const begin_line =
+              item.location.lines.begin.line || item.location.lines.begin || 1;
+            const begin_column = item.location.lines.begin.column || 1;
+            const start: Position = {
+              line: begin_line - 1,
+              character: begin_column - 1,
+            };
+            const end: Position = {
+              line: begin_line - 1,
+              character: Number.MAX_SAFE_INTEGER,
+            };
+            const range: Range = {
+              start: start,
+              end: end,
+            };
 
-          let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
-          if (ansibleLintConfig) {
-            const lintRuleName = (item.check_name as string).match(
-              /\[(?<name>[a-z\-]+)\].*/
-            )?.groups?.name;
+            let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
+            if (ansibleLintConfig) {
+              const lintRuleName = (item.check_name as string).match(
+                /\[(?<name>[a-z\-]+)\].*/
+              )?.groups?.name;
 
-            if (lintRuleName && ansibleLintConfig.warnList.has(lintRuleName)) {
-              severity = DiagnosticSeverity.Warning;
-            }
-
-            const categories = item.categories;
-            if (categories instanceof Array) {
-              if (categories.some((c) => ansibleLintConfig.warnList.has(c))) {
+              if (
+                lintRuleName &&
+                ansibleLintConfig.warnList.has(lintRuleName)
+              ) {
                 severity = DiagnosticSeverity.Warning;
               }
+
+              const categories = item.categories;
+              if (categories instanceof Array) {
+                if (categories.some((c) => ansibleLintConfig.warnList.has(c))) {
+                  severity = DiagnosticSeverity.Warning;
+                }
+              }
             }
-          }
 
-          const locationUri = `file://${workingDirectory}/${item.location.path}`;
+            const locationUri = `file://${workingDirectory}/${item.location.path}`;
 
-          let fileDiagnostics = diagnostics.get(locationUri);
-          if (!fileDiagnostics) {
-            fileDiagnostics = [];
-            diagnostics.set(locationUri, fileDiagnostics);
+            let fileDiagnostics = diagnostics.get(locationUri);
+            if (!fileDiagnostics) {
+              fileDiagnostics = [];
+              diagnostics.set(locationUri, fileDiagnostics);
+            }
+            let message: string = item.check_name;
+            if (item.description) {
+              message += `\nDescription: ${item.description}`;
+            }
+            fileDiagnostics.push({
+              message: message,
+              range: range || Range.create(0, 0, 0, 0),
+              severity: severity,
+              source: 'Ansible',
+            });
           }
-          let message: string = item.check_name;
-          if (item.description) {
-            message += `\nDescription: ${item.description}`;
-          }
-          fileDiagnostics.push({
-            message: message,
-            range: range || Range.create(0, 0, 0, 0),
-            severity: severity,
-            source: 'Ansible',
-          });
         }
       }
+    } catch (error) {
+      this.connection.window.showErrorMessage(
+        'Could not parse ansible-lint output. Please check your ansible-lint installation & configuration.' +
+          ' More info in `Ansible Server` output.'
+      );
+      let message: string;
+      if (error instanceof Error) {
+        message = error.message;
+      } else {
+        message = JSON.stringify(error);
+      }
+      this.connection.console.error(
+        `Exception while parsing ansible-lint output: ${message}` +
+          `\nTried to parse the following:\n${result}`
+      );
     }
     return diagnostics;
   }
