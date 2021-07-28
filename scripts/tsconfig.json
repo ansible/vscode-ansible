@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2016"],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "outDir": "./out/server",
+    "sourceMap": true,
+    "target": "es6",
+  },
+  "exclude": ["node_modules", "out"]
+}

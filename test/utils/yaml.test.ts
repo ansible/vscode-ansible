@@ -12,7 +12,7 @@ import {
   isPlayParam,
   isRoleParam,
   isTaskParam,
-} from '../../utils/yaml';
+} from '../../src/utils/yaml';
 
 async function getYamlDoc(yamlFile: string) {
   const yaml = await fs.readFile(

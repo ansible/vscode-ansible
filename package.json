@@ -1,18 +1,35 @@
 {
-  "name": "ansible",
-  "publisher": "tomaciazek",
+  "name": "ansible-language-server",
+  "publisher": "RedHat Inc.",
   "displayName": "Ansible",
-  "description": "Ansible language support",
-  "author": "Tomasz Maciążek",
+  "description": "Ansible language server",
   "license": "MIT",
-  "version": "1.0.3",
+  "version": "0.1.0",
+  "contributors": [
+    {
+      "name": "Tomasz Maciążek",
+      "email": "tomaciazek@gmail.com"
+    },
+    {
+      "name": "RedHat Inc."
+    },
+    {
+      "name": "Ganesh B. Nalawade",
+      "email": "gnalawad@redhat.com"
+    }
+  ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/tomaciazek/vscode-ansible.git"
+    "url": "https://github.com/ansible/ansible-language-server.git"
   },
   "icon": "icon.png",
   "engines": {
-    "vscode": "^1.56.0"
+    "node": "*",
+    "npm": "\n\nERROR: Please use yarn, npm is not supported in this repository!!!\n\n",
+    "yarn": "^1.22.5"
+  },
+  "bin": {
+    "ansible-language-server": "./bin/ansible-language-server"
   },
   "categories": [
     "Programming Languages"
@@ -20,179 +37,40 @@
   "activationEvents": [
     "onLanguage:ansible"
   ],
-  "main": "./client/out/extension",
-  "contributes": {
-    "configuration": {
-      "type": "object",
-      "title": "Ansible",
-      "properties": {
-        "ansible.ansible.path": {
-          "scope": "resource",
-          "type": "string",
-          "default": "ansible",
-          "description": "Path to the ansible executable."
-        },
-        "ansible.ansible.useFullyQualifiedCollectionNames": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": false,
-          "description": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary."
-        },
-        "ansible.ansibleLint.enabled": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "description": "Enable linting with ansible-lint on document open/save."
-        },
-        "ansible.ansibleLint.path": {
-          "scope": "resource",
-          "type": "string",
-          "default": "ansible-lint",
-          "description": "Path to the ansible-lint executable."
-        },
-        "ansible.ansibleLint.arguments": {
-          "scope": "resource",
-          "type": "string",
-          "default": "",
-          "description": "Command line arguments to be passed to ansible-lint."
-        },
-        "ansible.python.interpreterPath": {
-          "scope": "resource",
-          "type": "string",
-          "default": "",
-          "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
-        },
-        "ansible.python.activationScript": {
-          "scope": "resource",
-          "type": "string",
-          "default": "",
-          "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. If set, the Interpreter Path setting is ignored."
-        }
-      }
-    },
-    "languages": [
-      {
-        "id": "ansible",
-        "aliases": [
-          "Ansible",
-          "ansible"
-        ],
-        "extensions": [
-          ".yml",
-          ".yaml"
-        ],
-        "configuration": "./ansible-language-configuration.json"
-      },
-      {
-        "comments": "unfortunately this dummy entry is necessary for embedding to work",
-        "id": "ansible-jinja",
-        "configuration": "./jinja-language-configuration.json"
-      }
-    ],
-    "grammars": [
-      {
-        "comments": [
-          "YAML syntax as base for Ansible",
-          "scopeName changed so that we can use it as base for injections"
-        ],
-        "language": "ansible",
-        "scopeName": "source.ansible",
-        "path": "./syntaxes/external/YAML.tmLanguage"
-      },
-      {
-        "comments": [
-          "Jinja syntax as injection into Ansible YAML",
-          "This is so that we do not need to rely on the Jinja extension being installed"
-        ],
-        "language": "ansible-jinja",
-        "scopeName": "source.ansible-jinja",
-        "path": "./syntaxes/external/jinja.tmLanguage.json"
-      },
-      {
-        "comments": [
-          "Highlighting of Ansible keywords"
-        ],
-        "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
-        "scopeName": "injection.ansible.keywords",
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "Additional Jinja grammars"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-extras.tmLanguage",
-        "scopeName": "injection.ansible.jinja-extras",
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "Support for Jinja in double curly braces"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
-        "scopeName": "injection.ansible.jinja-braces",
-        "embeddedLanguages": {
-          "meta.embedded.inline.jinja": "ansible-jinja"
-        },
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "Support for Jinja in conditionals"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
-        "scopeName": "injection.ansible.jinja-conditionals",
-        "embeddedLanguages": {
-          "meta.embedded.inline.jinja": "ansible-jinja"
-        },
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
-          "Support for single quote escapes in Jinja"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
-        "scopeName": "injection.ansible.jinja-single-quote-escape",
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
-          "Support for double quote escapes in Jinja"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
-        "scopeName": "injection.ansible.jinja-double-quote-escape",
-        "injectTo": [
-          "source.ansible"
-        ]
-      }
-    ]
-  },
+  "keywords": [
+    "ansible",
+    "LSP"
+  ],
   "scripts": {
-    "vscode:prepublish": "npm run webpack",
-    "webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js",
-    "webpack:dev": "npm run clean && webpack --mode development --config ./client/webpack.config.js && webpack --mode development --config ./server/webpack.config.js",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w",
-    "webpack:watch:client": "webpack --mode none --config ./client/webpack.config.js --watch",
-    "webpack:watch:server": "webpack --mode none --config ./server/webpack.config.js --watch",
-    "clean": "rimraf client/out && rimraf server/out && rimraf **/tsconfig.tsbuildinfo",
-    "postinstall": "cd client && npm install && cd ../server && npm install && cd ..",
-    "test": "mocha --require ts-node/register './server/src/test/**/*.ts'",
-    "deploy": "vsce publish"
+    "clean": "rimraf out/server && rimraf lib",
+    "compile": "tsc -p .",
+    "watch": "tsc --watch -p .",
+    "test": "mocha --require ts-node/register './test/**/*.ts'",
+    "build": "yarn clean && yarn compile",
+    "check-dependencies": "node ./scripts/check-dependencies.js"
+  },
+  "exclude": [
+    "**/*.d.ts",
+    "test/",
+    "out",
+    "lib",
+    "coverage/",
+    ".eslintrc.js"
+  ],
+  "all": true,
+  "dependencies": {
+    "@flatten-js/interval-tree": "^1.0.14",
+    "globby": "^11.0.4",
+    "ini": "^1.3.8",
+    "lodash": "^4.17.21",
+    "vscode-languageserver": "^7.0.0",
+    "vscode-languageserver-textdocument": "^1.0.1",
+    "yaml": "^1.10.2"
   },
   "devDependencies": {
     "@types/chai": "^4.2.21",
+    "@types/ini": "^1.3.30",
+    "@types/lodash": "^4.14.171",
     "@types/mocha": "^8.2.3",
     "@types/node": "^14.17.5",
     "@types/vscode": "^1.56.0",

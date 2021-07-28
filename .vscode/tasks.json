@@ -57,26 +57,10 @@
       "problemMatcher": "$ts-webpack-watch"
     },
     {
-      "label": "Client Watch",
-      "type": "npm",
-      "script": "webpack:watch:client",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "panel": "dedicated",
-        "reveal": "never",
-        "group": "Build"
-      },
-      "problemMatcher": "$ts-webpack-watch"
-    },
-    {
       // this requires manually closing terminal windows with watch processes
       // running, before the task can be launched again
       "label": "Webpack Watch",
-      "dependsOn": ["Client Watch", "Server Watch"]
+      "dependsOn": ["Server Watch"]
     },
     {
       "label": "Clean & Webpack Watch",

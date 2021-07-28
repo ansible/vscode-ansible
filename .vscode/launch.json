@@ -5,24 +5,7 @@
 {
   "version": "0.2.0",
   "configurations": [
-    {
-      "name": "Launch Extension (quick)", // does not use webpack
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
-      "preLaunchTask": "npm: watch"
-    },
-    {
-      "name": "Launch Extension",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
-      "outFiles": ["${workspaceFolder}/client/out/**/*.js"],
-      "preLaunchTask": "Webpack Watch"
-    },
+    // An attach configuration that attaches the debugger to a running server
     {
       "name": "Attach to Server",
       "type": "node",
@@ -30,7 +13,10 @@
       "timeout": 30000,
       "port": 6009,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/server/out/**/*.js"]
+      "sourceMaps": true,
+      "outFiles": ["${workspaceRoot}/out/**/*.js"],
+      "protocol": "inspector",
+      "trace": true
     }
     // {
     //   "name": "Language Server E2E Test",
@@ -45,11 +31,4 @@
     //   "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     // }
   ],
-  "compounds": [
-    {
-      "name": "Client + Server",
-      "stopAll": true,
-      "configurations": ["Launch Extension (quick)", "Attach to Server"]
-    }
-  ]
 }
