@@ -1,71 +1,28 @@
-// See https://go.microsoft.com/fwlink/?LinkId=733558
-// for the documentation about the tasks.json format
 {
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "npm",
-      "script": "compile",
-      "group": "build",
+      "label": "watch typescript",
+      "type": "shell",
+      "command": "yarn run watch",
       "presentation": {
-        "panel": "dedicated",
         "reveal": "never"
       },
-      "problemMatcher": ["$tsc"]
-    },
-    {
-      "type": "npm",
-      "script": "watch",
       "isBackground": true,
+      "problemMatcher": "$tsc-watch",
       "group": {
         "kind": "build",
         "isDefault": true
-      },
-      "presentation": {
-        "panel": "dedicated",
-        "reveal": "never"
-      },
-      "problemMatcher": ["$tsc-watch"]
-    },
-    {
-      "label": "Clean",
-      "type": "npm",
-      "script": "clean",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "panel": "dedicated",
-        "reveal": "never"
       }
     },
     {
-      "label": "Server Watch",
       "type": "npm",
-      "script": "webpack:watch:server",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "panel": "dedicated",
-        "reveal": "never",
-        "group": "Build"
-      },
-      "problemMatcher": "$ts-webpack-watch"
-    },
-    {
-      // this requires manually closing terminal windows with watch processes
-      // running, before the task can be launched again
-      "label": "Webpack Watch",
-      "dependsOn": ["Server Watch"]
-    },
-    {
-      "label": "Clean & Webpack Watch",
-      "dependsOrder": "sequence",
-      "dependsOn": ["Clean", "watch"]
+      "script": "lint",
+      "problemMatcher": ["$eslint-stylish"],
+      "label": "npm: lint",
+      "detail": "eslint -c .eslintrc.js --ext .ts src"
     }
   ]
 }

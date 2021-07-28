@@ -14,7 +14,7 @@
       "port": 6009,
       "restart": true,
       "sourceMaps": true,
-      "outFiles": ["${workspaceRoot}/out/**/*.js"],
+      "outFiles": ["${workspaceRoot}/out/server/**/*.ts"],
       "protocol": "inspector",
       "trace": true
     }

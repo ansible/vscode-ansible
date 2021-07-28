@@ -10,7 +10,5 @@
 **/tsconfig.json
 **/webpack.config.js
 
-client/**
-!client/out/extension.js
 server/**
-!server/out/server.js
+!out/server/src/server.js
