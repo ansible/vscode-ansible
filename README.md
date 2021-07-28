@@ -1,5 +1,5 @@
 # Ansible Language Server
-This langauge server adds support for Ansible.
+This language server adds support for Ansible.
 
 ### Getting started
 
