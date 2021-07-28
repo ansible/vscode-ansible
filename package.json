@@ -265,7 +265,7 @@
   "main": "./out/extension.js",
   "name": "vscode-ansible",
   "preview": true,
-  "publisher": "zbr",
+  "publisher": "redhat",
   "qna": false,
   "repository": {
     "type": "git",
