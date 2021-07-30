@@ -1,6 +1,5 @@
 {
   "command.untrustValidationExecutable": "Disallow ansible-lint validation executable (defined as workspace setting)",
-  "commands.categroy.ansible": "Ansible",
   "configuration.suggest.basic": "Controls whether the built-in Ansible language suggestions are enabled. The support suggests Ansible globals and variables.",
   "configuration.title": "Ansible",
   "configuration.validate.enable": "Enable/disable ansible-lint validation.",
