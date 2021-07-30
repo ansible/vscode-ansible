@@ -1,6 +1,8 @@
+/* "stdlib" */
 import * as path from 'path';
 import { ExtensionContext } from 'vscode';
 
+/* third-party */
 import {
   LanguageClient,
   LanguageClientOptions,
@@ -8,9 +10,15 @@ import {
   TransportKind,
 } from 'vscode-languageclient/node';
 
+/* local */
+import { AnsiblePlaybookRunProvider } from './features/runner';
+
+
 let client: LanguageClient;
 
 export function activate(context: ExtensionContext): void {
+  new AnsiblePlaybookRunProvider(context);
+
   const serverModule = context.asAbsolutePath(
     path.join('out', 'server', 'src', 'server.js')
   );
