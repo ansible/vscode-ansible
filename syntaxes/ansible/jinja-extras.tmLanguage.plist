@@ -1,0 +1,40 @@
+{
+    scopeName = 'injection.ansible.jinja-extras';
+    injectionSelector = 'L:meta.embedded.inline.jinja -string.quoted.double.jinja -string.quoted.single.jinja';
+    name = 'Grammar for Jinja2 syntax highlighting that is not provided out-of-the-box';
+    patterns = (
+        { include = '#literals'; }
+    );
+    repository = {
+        literals = {
+            match = '(?x)
+                (none|None)
+                | (true|True|false|False)
+                | (
+                      [-+]? 0b [0-1_]+ # (base 2)
+                    | [-+]? 0x [0-9a-fA-F_]+ # (base 16)
+                    | [-+]? 0  [0-7_]+ # (base 8)
+                    | [-+]? (?: 0|[1-9][0-9_]*) # (base 10)
+                    | [-+]? [1-9] [0-9_]* (?: :[0-5]?[0-9])+ # (base 60)
+                  )
+                | (
+                      [-+]? (?: [0-9] [0-9_]*)? \. [0-9.]* (?: [eE] [-+] [0-9]+)? # (base 10)
+                    | [-+]? [0-9] [0-9_]* (?: :[0-5]?[0-9])+ \. [0-9_]* # (base 60)
+                )';
+                captures = {
+                    1 = {
+                        name = 'constant.language.none.ansible';
+                    };
+                    2 = {
+                        name = 'constant.language.boolean.ansible';
+                    };
+                    3 = {
+                        name = 'constant.numeric.integer.ansible';
+                    };
+                    4 = {
+                        name = 'constant.numeric.float.ansible';
+                    };
+                };
+        };
+    };
+}

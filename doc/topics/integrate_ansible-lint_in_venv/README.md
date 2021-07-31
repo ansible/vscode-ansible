@@ -20,10 +20,4 @@ The outline is fairly simple.
 
 1. Create a venv.
 2. Install `ansible-lint` in the venv.
-3. Add path to `ansible-lint`, `ansible`, and `ansible-playbook` executables in the venv to PATH in order to allow Ansible Language Extension to execute.
-
-Check the following links for more detailed instructions.
-
-- [Windows](windows.md)
-- [Mac](mac.md)
-- [Linux](linux.md)
+3. Configure path to `ansible-lint` and `ansible` executables in the extension settings.

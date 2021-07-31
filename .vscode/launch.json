@@ -1,32 +1,54 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
-      ],
-      "name": "Run Extension",
-      "outFiles": [
-        "${workspaceFolder}/out/**/*.js"
-      ],
-      "preLaunchTask": "npm: watch",
+      "name": "Launch Extension",
+      "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "type": "extensionHost"
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
+      "preLaunchTask": "npm: watch"
     },
     {
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
-      ],
-      "name": "Extension Tests",
-      "outFiles": [
-        "${workspaceFolder}/out/test/**/*.js"
-      ],
-      "preLaunchTask": "npm: watch",
+      "name": "Launch Extension (webpacked)",
+      "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "type": "extensionHost"
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
+      "preLaunchTask": "Webpack Watch"
+    },
+    {
+      "name": "Attach to Server",
+      "type": "node",
+      "request": "attach",
+      "timeout": 30000,
+      "port": 6009,
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/out/server/**/*.js"]
+    },
+    {
+      "name": "Attach to Server (source)",
+      "type": "node",
+      "request": "attach",
+      "timeout": 30000,
+      "port": 6009,
+      "restart": true,
+      "outFiles": ["${workspaceRoot}/out/server/**/*.js"],
+      "preLaunchTask": "npm: watch:server"
     }
   ],
-  "version": "0.2.0"
+  "compounds": [
+    {
+      "name": "Client + Server",
+      "stopAll": true,
+      "configurations": ["Launch Extension", "Attach to Server"]
+    },
+    {
+      "name": "Client + Server (source)",
+      "stopAll": true,
+      "configurations": ["Launch Extension", "Attach to Server (source)"]
+    }
+  ]
 }

@@ -1,29 +1,107 @@
-# Ansible extension for vscode and vscodium
-
-Ansible extension aims to ease life of Ansible content creators by making
-easier to write Ansible playbooks, roles, collections, modules and plugins.
-
-![ansible-lint](https://github.com/ansible-community/vscode-ansible/raw/master/images/gh-social-preview.png)
+# Ansible VS Code Extension
+This extension adds language support for Ansible to VS Code.
 
 ## Features
 
-* Display violations identified by [ansible-lint](https://github.com/ansible-community/ansible-lint), ansible own syntax check and
-[yamllint](https://github.com/adrienverge/yamllint) inside problems tab.
-* Validate Ansible YAML files and provide auto-complete by using [Ansible schemas](https://github.com/ansible-community/schemas/tree/main/f). Report schema issue directly to the project producing them as they are not embedded inside this extension.
-* Support inline or full file vaults editing via `ansible-vault` command. Check out [How to edit vaults](doc/topics/vault_editing/README.md)
+### Syntax highlighting
+![Syntax highlighting](images/syntax-highlighting.png)
+
+**Ansible keywords**, **module names** and **module options**, as well as
+standard YAML elements are recognized and highlighted distinctly. Jinja
+expressions are supported too, also those in Ansible conditionals (`when`,
+`failed_when`, `changed_when`, `check_mode`), which are not placed in double
+curly braces.
+
+> The screenshots and animations presented in this README have been taken using
+> the One Dark Pro theme. The default VS Code theme will not show the syntax
+> elements as distinctly, unless customized. Virtually any theme other than
+> default will do better.
+
+### Validation
+![YAML validation](images/yaml-validation.gif)
+
+While you type, the syntax of your Ansible scripts is verified and any feedback is provided instantaneously.
+
+#### Integration with ansible-lint
+![Linter support](images/ansible-lint.gif)
+
+On opening and saving a document, `ansible-lint` is executed in the background
+and any findings are presented as errors. You might find it useful that
+rules/tags added to `warn_list`
+(see [Ansible Lint Documentation](https://ansible-lint.readthedocs.io/en/latest/configuring.html))
+are shown as warnings instead.
+
+### Smart autocompletion
+![Autocompletion](images/smart-completions.gif)
+
+The extension tries to detect whether the cursor is on a play, block or task
+etc. and provides suggestions accordingly. There are also a few other rules that
+improve user experience:
+- the `name` property is always suggested first
+- on module options, the required properties are shown first, and aliases are shown last, otherwise ordering from the documentation is preserved
+- FQCNs (fully qualified collection names) are inserted only when necessary;
+  collections configured with the
+  [`collections` keyword]([LINK](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword))
+  are honored. This behavior can be disabled in extension settings.
+
+#### Auto-closing Jinja expressions
+![Easier Jinja expression typing](images/jinja-expression.gif)
+
+When writing a Jinja expression, you only need to type `"{{ `, and it will be
+mirrored behind the cursor (including the space). You can also select the whole
+expression and press `space` to put spaces on both sides of the expression.
+
+### Documentation reference
+![Documentation on hover](images/hover-documentation-module.png)
+
+Documentation is available on hover for Ansible keywords, modules and module
+options. The extension works on the same principle as `ansible-doc`, providing
+the documentation straight from the Python implementation of the modules.
+
+#### Jump to module code
+![Go to code on Ctrl+click](images/go-to-definition.gif)
+
+You may also open the implementation of any module using the standard *Go to
+Definition* operation, for instance, by clicking on the module name while
+holding `ctrl`/`cmd`.
 
 ## Requirements
+- [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
+- [Ansible Lint](https://ansible-lint.readthedocs.io/en/latest/) (required,
+  unless you disable linter support; install without `yamllint`)
 
-This extension also installs YAML extension in order to enable schema verification and code-completion.
-You need to have Ansible installed locally to have vaults support feature fully working.
+For Windows users, this extension works perfectly well with extensions such as
+`Remote - WSL` and `Remote - Containers`.
 
-## Known Issues
+> If you have any other extension providing language support for Ansible, you might need to uninstall it first.
 
-* For the moment you need to install `ansible-lint` yourself
-  * If you would not like to install `ansible-lint` system-wide, check out [How to integrate ansible-lint in venv with Ansible Language Extension](doc/topics/integrate_ansible-lint_in_venv/README.md).
-* Validation schemas used are from the [schemas](https://github.com/ansible-community/schemas) project, so if the schema name is correct, please file bugs directly there.
-* Schema type assignation is done purely on the filepath, without looking at file content. This means that playbooks are identified only when they are inside a folder named playbooks. The same applies to vars and tasks. If you do not follow the [official Ansible code layout guidelines](https://docs.ansible.com/ansible/latest/dev_guide/developing_collections.html#collection-structure) you will not be able to benefit from all of the features. In some cases, unfortunate file or directory naming could confuse the tool to make it attempt to use a different schema. You can override the [default file patterns](https://github.com/ansible-community/vscode-ansible/blob/master/package.json#L136) used to determine which schema is used in your vscode [settings.json](https://github.com/redhat-developer/vscode-yaml#associating-a-schema-to-a-glob-pattern-via-yamlschemas).
+## Configuration
+This extension supports multi-root workspaces, and as such, can be configured on
+any level (User, Remote, Workspace and/or Folder).
 
-## Release Notes
+- `ansible.ansible.path`: Path to the `ansible` executable.
+- `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of
+  fully qualified collection names (FQCN) when inserting a module name.
+  Disabling it will only use FQCNs when necessary, that is when the collection
+  isn't configured for the task.
+- `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
+- `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
+- `ansible.ansibleLint.arguments`: Optional command line arguments to be
+  appended to `ansible-lint` invocation. See `ansible-lint` documentation.
+- `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
+  This setting may be used to make the extension work with `ansible` and
+  `ansible-lint` installations in a Python virtual environment.
+- `ansible.python.activationScript`: Path to a custom `activate` script, which
+  will be used instead of the setting above to run in a Python virtual
+  environment.
 
-Please check [changelog](https://marketplace.visualstudio.com/items/zbr.vscode-ansible/changelog) page for details regarding each new version.
+## Known limitations
+- The shorthand syntax for module options (key=value pairs) is not supported.
+- Nested module options are not supported yet.
+- Only Jinja *expressions* inside Ansible YAML files are supported. In order to
+  have syntax highlighting of Jinja template files, you'll need to install other
+  extension.
+- Jinja *blocks* (inside Ansible YAML files) are not supported yet.
+
+## Credit
+Based on the good work done by [Tomasz Maciążek](https://github.com/tomaciazek/vscode-ansible)

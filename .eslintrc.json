@@ -1,19 +1,20 @@
 {
+  "$schema": "https://json.schemastore.org/eslintrc",
+  "env": {
+    "commonjs": true,
+    "es2017": true,
+    "node": true
+  },
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 6,
+    "ecmaVersion": 2019,
     "sourceType": "module"
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
-  "root": true,
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/naming-convention": "error",
-    "@typescript-eslint/semi": "error",
-    "curly": "error",
-    "eqeqeq": "error",
-    "no-throw-literal": "error",
-    "semi": "off"
+    "eqeqeq": ["error", "smart"],
+    "prefer-template": "warn",
+    "quotes": ["warn", "single"]
   }
 }

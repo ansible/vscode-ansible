@@ -1,6 +1,4 @@
-out
-dist
+**/.ignore
 node_modules
-.vscode-test/
 *.vsix
-vscode-plugin.code-workspace
+out

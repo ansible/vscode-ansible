@@ -1,0 +1,818 @@
+{
+    comment = (
+        'Imported from:',
+        'https://github.com/textmate/yaml.tmbundle/blob/e54ceae3b719506dba7e481a77cea4a8b576ae46/Syntaxes/YAML.tmLanguage',
+        'Applied fix for entity.name.tag, which was split on the first letter',
+        'Replaced all `.yaml` scopes with `.ansible` to avoid replacing syntax for regular YAML files.',
+        'Injected `jinja-conditionals`'
+    );
+    fileTypes = (
+        yaml,
+        yml,
+        rviz,
+        reek,
+        clang-format,
+        yaml-tmlanguage,
+        syntax,
+        sublime-syntax
+    );
+    firstLineMatch = '^%YAML( ?1.\d+)?';
+    keyEquivalent = '^~Y';
+    name = YAML;
+    patterns = (
+        {
+            include = 'injection.ansible.jinja-conditionals';
+        },
+        {
+            include = '#comment';
+        },
+        {
+            include = '#property';
+        },
+        {
+            include = '#directive';
+        },
+        {
+            match = '^---';
+            name = 'entity.other.document.begin.ansible';
+        },
+        {
+            match = '^\.{3}';
+            name = 'entity.other.document.end.ansible';
+        },
+        {
+            include = '#node';
+        }
+    );
+    repository = {
+        block-collection = {
+            patterns = (
+                {
+                    include = '#block-sequence';
+                },
+                {
+                    include = '#block-mapping';
+                }
+            );
+        };
+        block-mapping = {
+            patterns = (
+                {
+                    include = '#block-pair';
+                }
+            );
+        };
+        block-node = {
+            patterns = (
+                {
+                    include = '#prototype';
+                },
+                {
+                    include = '#block-scalar';
+                },
+                {
+                    include = '#block-collection';
+                },
+                {
+                    include = '#flow-scalar-plain-out';
+                },
+                {
+                    include = '#flow-node';
+                }
+            );
+        };
+        block-pair = {
+            patterns = (
+                {
+                    begin = '\?';
+                    beginCaptures = {
+                        1 = {
+                            name = 'punctuation.definition.key-value.begin.ansible';
+                        };
+                    };
+                    end = '(?=\?)|^ *(:)|(:)';
+                    endCaptures = {
+                        1 = {
+                            name = 'punctuation.separator.key-value.mapping.ansible';
+                        };
+                        2 = {
+                            name = 'invalid.illegal.expected-newline.ansible';
+                        };
+                    };
+                    name = 'meta.block-mapping.ansible';
+                    patterns = (
+                        {
+                            include = '#block-node';
+                        }
+                    );
+                },
+                {
+                    begin = '(?x) (?=
+                        (?x:
+                              [^\s[-?:,\[\]{}#&*!|>''"%@`]]
+                            | [?:-] \S
+                        )
+                        (
+                              [^\s:]
+                            | : \S
+                            | \s+ (?![#\s])
+                        )*
+                        \s*
+                        :
+                        (\s|$)
+                    )
+                    ';
+                    end = '(?x) (?=
+                          \s* $
+                        | \s+ \#
+                        | \s* : (\s|$)
+                    )
+                    ';
+                    patterns = (
+                        {
+                            include = '#flow-scalar-plain-out-implicit-type';
+                        },
+                        {
+                            begin = '(?x) (?=
+                                  [^\s[-?:,\[\]{}#&*!|>''"%@`]]
+                                | [?:-] \S
+                            )
+                            ';
+                            contentName = 'entity.name.tag.ansible';
+                            end = '(?x) (?=
+                                  \s* $
+                                | \s+ \#
+                                | \s* : (\s|$)
+                            )
+                            ';
+                            name = 'string.unquoted.plain.out.ansible';
+                        }
+                    );
+                },
+                {
+                    match = ':(?=\s|$)';
+                    name = 'punctuation.separator.key-value.mapping.ansible';
+                }
+            );
+        };
+        block-scalar = {
+            begin = '(?:(\|)|(>))([1-9])?([-+])?(.*\n?)';
+            beginCaptures = {
+                1 = {
+                    name = 'keyword.control.flow.block-scalar.literal.ansible';
+                };
+                2 = {
+                    name = 'keyword.control.flow.block-scalar.folded.ansible';
+                };
+                3 = {
+                    name = 'constant.numeric.indentation-indicator.ansible';
+                };
+                4 = {
+                    name = 'storage.modifier.chomping-indicator.ansible';
+                };
+                5 = {
+                    patterns = (
+                        {
+                            include = '#comment';
+                        },
+                        {
+                            match = '.+';
+                            name = 'invalid.illegal.expected-comment-or-newline.ansible';
+                        }
+                    );
+                };
+            };
+            end = '^(?=\S)|(?!\G)';
+            patterns = (
+                {
+                    begin = '^([ ]+)(?! )';
+                    end = '^(?!\1|\s*$)';
+                    name = 'string.unquoted.block.ansible';
+                }
+            );
+        };
+        block-sequence = {
+            match = '(-)(?!\S)';
+            name = 'punctuation.definition.block.sequence.item.ansible';
+        };
+        comment = {
+            begin = '(?:(^[ \t]*)|[ \t]+)(?=#\p{Print}*$)';
+            beginCaptures = {
+                1 = {
+                    name = 'punctuation.whitespace.comment.leading.ansible';
+                };
+            };
+            end = '(?!\G)';
+            patterns = (
+                {
+                    begin = '#';
+                    beginCaptures = {
+                        0 = {
+                            name = 'punctuation.definition.comment.ansible';
+                        };
+                    };
+                    end = '\n';
+                    name = 'comment.line.number-sign.ansible';
+                }
+            );
+        };
+        directive = {
+            begin = '^%';
+            beginCaptures = {
+                0 = {
+                    name = 'punctuation.definition.directive.begin.ansible';
+                };
+            };
+            end = '(?=$|[ \t]+($|#))';
+            name = 'meta.directive.ansible';
+            patterns = (
+                {
+                    captures = {
+                        1 = {
+                            name = 'keyword.other.directive.yaml.ansible';
+                        };
+                        2 = {
+                            name = 'constant.numeric.yaml-version.ansible';
+                        };
+                    };
+                    match = '\G(YAML)[ \t]+(\d+\.\d+)';
+                },
+                {
+                    captures = {
+                        1 = {
+                            name = 'keyword.other.directive.tag.ansible';
+                        };
+                        2 = {
+                            name = 'storage.type.tag-handle.ansible';
+                        };
+                        3 = {
+                            name = 'support.type.tag-prefix.ansible';
+                        };
+                    };
+                    match = '(?x)
+                    \G
+                    (TAG)
+                    (?:[ \t]+
+                        ((?:!(?:[0-9A-Za-z\-]*!)?))
+                        (?:[ \t]+ (
+                              !              (?x: %[0-9A-Fa-f]{2} | [0-9A-Za-z\-#;/?:@&=+$,_.!~*''()\[\]] )*
+                            | (?![,!\[\]{}]) (?x: %[0-9A-Fa-f]{2} | [0-9A-Za-z\-#;/?:@&=+$,_.!~*''()\[\]] )+
+                            )
+                        )?
+                    )?
+                    ';
+                },
+                {
+                    captures = {
+                        1 = {
+                            name = 'support.other.directive.reserved.ansible';
+                        };
+                        2 = {
+                            name = 'string.unquoted.directive-name.ansible';
+                        };
+                        3 = {
+                            name = 'string.unquoted.directive-parameter.ansible';
+                        };
+                    };
+                    match = '(?x) \G (\w+) (?:[ \t]+ (\w+) (?:[ \t]+ (\w+))? )?';
+                },
+                {
+                    match = '\S+';
+                    name = 'invalid.illegal.unrecognized.ansible';
+                }
+            );
+        };
+        flow-alias = {
+            captures = {
+                1 = {
+                    name = 'keyword.control.flow.alias.ansible';
+                };
+                2 = {
+                    name = 'punctuation.definition.alias.ansible';
+                };
+                3 = {
+                    name = 'variable.other.alias.ansible';
+                };
+                4 = {
+                    name = 'invalid.illegal.character.anchor.ansible';
+                };
+            };
+            match = '((\*))([^\s\[\]/{/},]+)([^\s\]},]\S*)?';
+        };
+        flow-collection = {
+            patterns = (
+                {
+                    include = '#flow-sequence';
+                },
+                {
+                    include = '#flow-mapping';
+                }
+            );
+        };
+        flow-mapping = {
+            begin = '\{';
+            beginCaptures = {
+                0 = {
+                    name = 'punctuation.definition.mapping.begin.ansible';
+                };
+            };
+            end = '\}';
+            endCaptures = {
+                0 = {
+                    name = 'punctuation.definition.mapping.end.ansible';
+                };
+            };
+            name = 'meta.flow-mapping.ansible';
+            patterns = (
+                {
+                    include = '#prototype';
+                },
+                {
+                    match = ',';
+                    name = 'punctuation.separator.mapping.ansible';
+                },
+                {
+                    include = '#flow-pair';
+                }
+            );
+        };
+        flow-node = {
+            patterns = (
+                {
+                    include = '#prototype';
+                },
+                {
+                    include = '#flow-alias';
+                },
+                {
+                    include = '#flow-collection';
+                },
+                {
+                    include = '#flow-scalar';
+                }
+            );
+        };
+        flow-pair = {
+            patterns = (
+                {
+                    begin = '\?';
+                    beginCaptures = {
+                        0 = {
+                            name = 'punctuation.definition.key-value.begin.ansible';
+                        };
+                    };
+                    end = '(?=[},\]])';
+                    name = 'meta.flow-pair.explicit.ansible';
+                    patterns = (
+                        {
+                            include = '#prototype';
+                        },
+                        {
+                            include = '#flow-pair';
+                        },
+                        {
+                            include = '#flow-node';
+                        },
+                        {
+                            begin = ':(?=\s|$|[\[\]{},])';
+                            beginCaptures = {
+                                0 = {
+                                    name = 'punctuation.separator.key-value.mapping.ansible';
+                                };
+                            };
+                            end = '(?=[},\]])';
+                            patterns = (
+                                {
+                                    include = '#flow-value';
+                                }
+                            );
+                        }
+                    );
+                },
+                {
+                    begin = '(?x) (?=
+                        (?:
+                            [^\s[-?:,\[\]{}#&*!|>''"%@`]]
+                          | [?:-] [^\s[\[\]{},]]
+                        )
+                        (
+                              [^\s:[\[\]{},]]
+                            | : [^\s[\[\]{},]]
+                            | \s+ (?![#\s])
+                        )*
+                        \s*
+                        :
+                        (\s|$)
+                    )
+                    ';
+                    end = '(?x) (?=
+                          \s* $
+                        | \s+ \#
+                        | \s* : (\s|$)
+                        | \s* : [\[\]{},]
+                        | \s* [\[\]{},]
+                    )
+                    ';
+                    name = 'meta.flow-pair.key.ansible';
+                    patterns = (
+                        {
+                            include = '#flow-scalar-plain-in-implicit-type';
+                        },
+                        {
+                            begin = '(?x) (?=
+                                  [^\s[-?:,\[\]{}#&*!|>''"%@`]]
+                                | [?:-] [^\s[\[\]{},]]
+                            )
+                            ';
+                            contentName = 'entity.name.tag.ansible';
+                            end = '(?x) (?=
+                                  \s* $
+                                | \s+ \#
+                                | \s* : (\s|$)
+                                | \s* : [\[\]{},]
+                                | \s* [\[\]{},]
+                            )
+                            ';
+                            name = 'string.unquoted.plain.in.ansible';
+                        }
+                    );
+                },
+                {
+                    include = '#flow-node';
+                },
+                {
+                    begin = ':(?=\s|$|[\[\]{},])';
+                    captures = {
+                        0 = {
+                            name = 'punctuation.separator.key-value.mapping.ansible';
+                        };
+                    };
+                    end = '(?=[},\]])';
+                    name = 'meta.flow-pair.ansible';
+                    patterns = (
+                        {
+                            include = '#flow-value';
+                        }
+                    );
+                }
+            );
+        };
+        flow-scalar = {
+            patterns = (
+                {
+                    include = '#flow-scalar-double-quoted';
+                },
+                {
+                    include = '#flow-scalar-single-quoted';
+                },
+                {
+                    include = '#flow-scalar-plain-in';
+                }
+            );
+        };
+        flow-scalar-double-quoted = {
+            begin = '"';
+            beginCaptures = {
+                0 = {
+                    name = 'punctuation.definition.string.begin.ansible';
+                };
+            };
+            end = '"';
+            endCaptures = {
+                0 = {
+                    name = 'punctuation.definition.string.end.ansible';
+                };
+            };
+            name = 'string.quoted.double.ansible';
+            patterns = (
+                {
+                    match = '\\([0abtnvfre "/\\N_Lp]|x\d\d|u\d{4}|U\d{8})';
+                    name = 'constant.character.escape.ansible';
+                },
+                {
+                    match = '\\\n';
+                    name = 'constant.character.escape.double-quoted.newline.ansible';
+                }
+            );
+        };
+        flow-scalar-plain-in = {
+            patterns = (
+                {
+                    include = '#flow-scalar-plain-in-implicit-type';
+                },
+                {
+                    begin = '(?x)
+                      [^\s[-?:,\[\]{}#&*!|>''"%@`]]
+                    | [?:-] [^\s[\[\]{},]]
+                    ';
+                    end = '(?x) (?=
+                          \s* $
+                        | \s+ \#
+                        | \s* : (\s|$)
+                        | \s* : [\[\]{},]
+                        | \s* [\[\]{},]
+                    )
+                    ';
+                    name = 'string.unquoted.plain.in.ansible';
+                }
+            );
+        };
+        flow-scalar-plain-in-implicit-type = {
+            patterns = (
+                {
+                    captures = {
+                        1 = {
+                            name = 'constant.language.null.ansible';
+                        };
+                        2 = {
+                            name = 'constant.language.boolean.ansible';
+                        };
+                        3 = {
+                            name = 'constant.numeric.integer.ansible';
+                        };
+                        4 = {
+                            name = 'constant.numeric.float.ansible';
+                        };
+                        5 = {
+                            name = 'constant.other.timestamp.ansible';
+                        };
+                        6 = {
+                            name = 'constant.language.value.ansible';
+                        };
+                        7 = {
+                            name = 'constant.language.merge.ansible';
+                        };
+                    };
+                    match = '(?x)
+                    (?x:
+                          (null|Null|NULL|~)
+                        | (y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF)
+                        | (
+                            (?:
+                                  [-+]? 0b [0-1_]+ # (base 2)
+                                | [-+]? 0  [0-7_]+ # (base 8)
+                                | [-+]? (?: 0|[1-9][0-9_]*) # (base 10)
+                                | [-+]? 0x [0-9a-fA-F_]+ # (base 16)
+                                | [-+]? [1-9] [0-9_]* (?: :[0-5]?[0-9])+ # (base 60)
+                            )
+                          )
+                        | (
+                            (?x:
+                                  [-+]? (?: [0-9] [0-9_]*)? \. [0-9.]* (?: [eE] [-+] [0-9]+)? # (base 10)
+                                | [-+]? [0-9] [0-9_]* (?: :[0-5]?[0-9])+ \. [0-9_]* # (base 60)
+                                | [-+]? \. (?: inf|Inf|INF) # (infinity)
+                                |       \. (?: nan|NaN|NAN) # (not a number)
+                            )
+                          )
+                        | (
+                            (?x:
+                                \d{4} - \d{2} - \d{2}           # (y-m-d)
+                              | \d{4}                           # (year)
+                                - \d{1,2}                       # (month)
+                                - \d{1,2}                       # (day)
+                                (?: [Tt] | [ \t]+) \d{1,2}      # (hour)
+                                : \d{2}                         # (minute)
+                                : \d{2}                         # (second)
+                                (?: \.\d*)?                     # (fraction)
+                                (?:
+                                      (?:[ \t]*) Z
+                                    | [-+] \d{1,2} (?: :\d{1,2})?
+                                )?                              # (time zone)
+                            )
+                          )
+                        | (=)
+                        | (<<)
+                    )
+                    (?: (?=
+                              \s* $
+                            | \s+ \#
+                            | \s* : (\s|$)
+                            | \s* : [\[\]{},]
+                            | \s* [\[\]{},]
+                        )
+                    )
+                    ';
+                }
+            );
+        };
+        flow-scalar-plain-out = {
+            patterns = (
+                {
+                    include = '#flow-scalar-plain-out-implicit-type';
+                },
+                {
+                    begin = '(?x)
+                      [^\s[-?:,\[\]{}#&*!|>''"%@`]]
+                    | [?:-] \S
+                    ';
+                    end = '(?x) (?=
+                          \s* $
+                        | \s+ \#
+                        | \s* : (\s|$)
+                    )
+                    ';
+                    name = 'string.unquoted.plain.out.ansible';
+                }
+            );
+        };
+        flow-scalar-plain-out-implicit-type = {
+            patterns = (
+                {
+                    captures = {
+                        1 = {
+                            name = 'constant.language.null.ansible';
+                        };
+                        2 = {
+                            name = 'constant.language.boolean.ansible';
+                        };
+                        3 = {
+                            name = 'constant.numeric.integer.ansible';
+                        };
+                        4 = {
+                            name = 'constant.numeric.float.ansible';
+                        };
+                        5 = {
+                            name = 'constant.other.timestamp.ansible';
+                        };
+                        6 = {
+                            name = 'constant.language.value.ansible';
+                        };
+                        7 = {
+                            name = 'constant.language.merge.ansible';
+                        };
+                    };
+                    match = '(?x)
+                    (?x:
+                          (null|Null|NULL|~)
+                        | (y|Y|yes|Yes|YES|n|N|no|No|NO|true|True|TRUE|false|False|FALSE|on|On|ON|off|Off|OFF)
+                        | (
+                            (?:
+                                  [-+]? 0b [0-1_]+ # (base 2)
+                                | [-+]? 0  [0-7_]+ # (base 8)
+                                | [-+]? (?: 0|[1-9][0-9_]*) # (base 10)
+                                | [-+]? 0x [0-9a-fA-F_]+ # (base 16)
+                                | [-+]? [1-9] [0-9_]* (?: :[0-5]?[0-9])+ # (base 60)
+                            )
+                          )
+                        | (
+                            (?x:
+                                  [-+]? (?: [0-9] [0-9_]*)? \. [0-9.]* (?: [eE] [-+] [0-9]+)? # (base 10)
+                                | [-+]? [0-9] [0-9_]* (?: :[0-5]?[0-9])+ \. [0-9_]* # (base 60)
+                                | [-+]? \. (?: inf|Inf|INF) # (infinity)
+                                |       \. (?: nan|NaN|NAN) # (not a number)
+                            )
+                          )
+                        | (
+                            (?x:
+                                \d{4} - \d{2} - \d{2}           # (y-m-d)
+                              | \d{4}                           # (year)
+                                - \d{1,2}                       # (month)
+                                - \d{1,2}                       # (day)
+                                (?: [Tt] | [ \t]+) \d{1,2}      # (hour)
+                                : \d{2}                         # (minute)
+                                : \d{2}                         # (second)
+                                (?: \.\d*)?                     # (fraction)
+                                (?:
+                                      (?:[ \t]*) Z
+                                    | [-+] \d{1,2} (?: :\d{1,2})?
+                                )?                              # (time zone)
+                            )
+                          )
+                        | (=)
+                        | (<<)
+                    )
+                    (?x: (?=
+                              \s* $
+                            | \s+ \#
+                            | \s* : (\s|$)
+                        )
+                    )
+                    ';
+                }
+            );
+        };
+        flow-scalar-single-quoted = {
+            begin = '''';
+            beginCaptures = {
+                0 = {
+                    name = 'punctuation.definition.string.begin.ansible';
+                };
+            };
+            end = '''(?!'')';
+            endCaptures = {
+                0 = {
+                    name = 'punctuation.definition.string.end.ansible';
+                };
+            };
+            name = 'string.quoted.single.ansible';
+            patterns = (
+                {
+                    match = '''''';
+                    name = 'constant.character.escape.single-quoted.ansible';
+                }
+            );
+        };
+        flow-sequence = {
+            begin = '\[';
+            beginCaptures = {
+                0 = {
+                    name = 'punctuation.definition.sequence.begin.ansible';
+                };
+            };
+            end = '\]';
+            endCaptures = {
+                0 = {
+                    name = 'punctuation.definition.sequence.end.ansible';
+                };
+            };
+            name = 'meta.flow-sequence.ansible';
+            patterns = (
+                {
+                    include = '#prototype';
+                },
+                {
+                    match = ',';
+                    name = 'punctuation.separator.sequence.ansible';
+                },
+                {
+                    include = '#flow-pair';
+                },
+                {
+                    include = '#flow-node';
+                }
+            );
+        };
+        flow-value = {
+            patterns = (
+                {
+                    begin = '\G(?![},\]])';
+                    end = '(?=[},\]])';
+                    name = 'meta.flow-pair.value.ansible';
+                    patterns = (
+                        {
+                            include = '#flow-node';
+                        }
+                    );
+                }
+            );
+        };
+        node = {
+            patterns = (
+                {
+                    include = '#block-node';
+                }
+            );
+        };
+        property = {
+            begin = '(?=!|&)';
+            end = '(?!\G)';
+            name = 'meta.property.ansible';
+            patterns = (
+                {
+                    captures = {
+                        1 = {
+                            name = 'keyword.control.property.anchor.ansible';
+                        };
+                        2 = {
+                            name = 'punctuation.definition.anchor.ansible';
+                        };
+                        3 = {
+                            name = 'entity.name.type.anchor.ansible';
+                        };
+                        4 = {
+                            name = 'invalid.illegal.character.anchor.ansible';
+                        };
+                    };
+                    match = '\G((&))([^\s\[\]/{/},]+)(\S+)?';
+                },
+                {
+                    match = '(?x)
+                    \G
+                    (?:
+                        ! < (?: %[0-9A-Fa-f]{2} | [0-9A-Za-z\-#;/?:@&=+$,_.!~*''()\[\]] )+ >
+                      | (?:!(?:[0-9A-Za-z\-]*!)?) (?: %[0-9A-Fa-f]{2} | [0-9A-Za-z\-#;/?:@&=+$_.~*''()] )+
+                      | !
+                    ) (?=\ |\t|$)
+                    ';
+                    name = 'storage.type.tag-handle.ansible';
+                },
+                {
+                    match = '\S+';
+                    name = 'invalid.illegal.tag-handle.ansible';
+                }
+            );
+        };
+        prototype = {
+            patterns = (
+                {
+                    include = '#comment';
+                },
+                {
+                    include = '#property';
+                }
+            );
+        };
+    };
+    scopeName = 'source.ansible';
+    uuid = 686AD6AE-33F3-4493-9512-9E9FC1D5417F;
+}

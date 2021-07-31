@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>scopeName</key>
+        <string>injection.ansible.keywords</string>
+        <key>injectionSelector</key>
+        <string>L:entity.name.tag.ansible</string>
+        <key>name</key>
+        <string>Grammar for detecting Ansible keywords</string>
+        <key>comment</key>
+        <array>
+            <string>Extracted from:</string>
+            <string>https://docs.ansible.com/ansible/2.10/reference_appendices/playbooks_keywords.html</string>
+            <string>Added `label`, `pause`, `loop_var`, `extended` as Ansible keywords (occur in loop_control)</string>
+        </array>
+        <key>patterns</key>
+        <array>
+            <dict>
+                <key>include</key>
+                <string>#keyword</string>
+            </dict>
+        </array>
+        <key>repository</key>
+        <dict>
+            <key>keyword</key>
+            <dict>
+                <key>name</key>
+                <string>keyword.other.ansible</string>
+                <key>match</key>
+                <string>(?x)
+                    \b(
+                        action | always | any_errors_fatal | args | async | become | become_exe | become_flags
+                        | become_method | become_user | block | changed_when | check_mode | collections | connection
+                        | debugger | delay | delegate_facts | delegate_to | diff | environment | extended | fact_path | failed_when
+                        | force_handlers | gather_facts | gather_subset | gather_timeout | handlers | hosts
+                        | ignore_errors | ignore_unreachable | label | local_action | loop | loop_control
+                        | max_fail_percentage | module_defaults | name | no_log | notify | order | pause | poll | port
+                        | post_tasks | pre_tasks | register | remote_user | rescue | retries | roles | run_once | serial
+                        | strategy | tags | tasks | throttle | timeout | until | vars | vars_files | vars_prompt | when
+                        | with_[a-z]+
+                    )\b
+                </string>
+            </dict>
+        </dict>
+    </dict>
+</plist>

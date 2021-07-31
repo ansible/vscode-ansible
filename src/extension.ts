@@ -1,27 +1,51 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
-import AnsibleValidationProvider from './features/validationProvider';
-import { toggleEncrypt } from './features/vault';
-import { configure } from './features/config';
+import * as path from 'path';
+import { ExtensionContext } from 'vscode';
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+import {
+  LanguageClient,
+  LanguageClientOptions,
+  ServerOptions,
+  TransportKind,
+} from 'vscode-languageclient/node';
 
-	let output = vscode.window.createOutputChannel("Ansible");
+let client: LanguageClient;
 
-	configure(output);
+export function activate(context: ExtensionContext): void {
+  const serverModule = context.asAbsolutePath(
+    path.join('out', 'server', 'src', 'server.js')
+  );
 
-	let validator = new AnsibleValidationProvider(context.workspaceState, output);
-	validator.activate(context.subscriptions);
+  // server is run at port 6009 for debugging
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
-	output.appendLine('Ansible Language extension is now active');
-	// output.show();
+  const serverOptions: ServerOptions = {
+    run: { module: serverModule, transport: TransportKind.ipc },
+    debug: {
+      module: serverModule,
+      transport: TransportKind.ipc,
+      options: debugOptions,
+    },
+  };
 
-	let disposable = vscode.commands.registerCommand('extension.ansible.vault', toggleEncrypt);
-	context.subscriptions.push(disposable);
+  const clientOptions: LanguageClientOptions = {
+    // register the server for Ansible documents
+    documentSelector: [{ scheme: 'file', language: 'ansible' }],
+  };
+
+  client = new LanguageClient(
+    'ansibleServer',
+    'Ansible Server',
+    serverOptions,
+    clientOptions
+  );
+
+  // start the client and the server
+  client.start();
 }
 
-// this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate(): Thenable<void> | undefined {
+  if (!client) {
+    return undefined;
+  }
+  return client.stop();
+}

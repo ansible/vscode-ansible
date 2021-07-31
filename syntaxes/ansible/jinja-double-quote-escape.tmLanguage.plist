@@ -1,0 +1,33 @@
+{
+    scopeName = 'injection.ansible.jinja-double-quote-escape';
+    injectionSelector = 'L:string.quoted.double meta.embedded.inline.jinja';
+    name = 'Injection grammar for supproting double quote escapes in Jinja2 expressions';
+    patterns = (
+        {
+            name = 'string.quoted.double.jinja';
+            match = '(\\")(.*?)(\\")';
+            captures = {
+                1 = {
+                    name = 'constant.character.escape.double-quoted.ansible';
+                };
+                2 = {
+                    patterns = (
+                        { include = 'source.ansible-jinja#string'; }
+                    );
+                };
+                3 = {
+                    name = 'constant.character.escape.double-quoted.ansible';
+                };
+            };
+        },
+        {
+            name = 'invalid.illegal.expected-escaped-double-quote.ansible';
+            comment = (
+                'This technique will remind the user to use quote escaping'
+            );
+            match = '(?x)
+                "(?! \s+ (?=\#|$)) # we accept the quote only if the line ends or ends with a comment
+            ';
+        }
+    );
+}

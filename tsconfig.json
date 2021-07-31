@@ -1,21 +1,15 @@
 {
   "compilerOptions": {
-    "esModuleInterop": true,
-    "lib": [
-      "es6"
-    ],
-    "module": "commonjs",
-    "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true,
-    "noUnusedParameters": true,
-    "outDir": "out",
+    "composite": true,
+    "target": "ES2019",
+    "lib": ["ES2019"],
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": "out/client",
     "rootDir": "src",
     "sourceMap": true,
-    "strict": true,
-    "target": "es6"
+    "strict": true
   },
-  "exclude": [
-    "node_modules",
-    ".vscode-test"
-  ]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }
