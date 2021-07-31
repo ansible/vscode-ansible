@@ -40,9 +40,10 @@ repos:
     hooks:
       - id: eslint
         additional_dependencies:
-          - '@typescript-eslint/eslint-plugin'
-          - '@typescript-eslint/parser'
+          - "@typescript-eslint/eslint-plugin"
+          - "@typescript-eslint/parser"
           - eslint
+          - eslint-config-prettier
           - typescript
           - typescript-eslint
         files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
