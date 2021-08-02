@@ -36,7 +36,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v7.31.0
+    rev: v7.32.0
     hooks:
       - id: eslint
         additional_dependencies:
