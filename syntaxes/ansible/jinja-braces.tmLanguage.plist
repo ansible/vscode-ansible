@@ -1,0 +1,30 @@
+{
+    scopeName = 'injection.ansible.jinja-braces';
+    injectionSelector = 'L:string -meta.embedded.inline.jinja';
+    name = 'Grammar for Jinja2 expressions surrounded by double curly braces';
+    patterns = (
+        { include = '#jinja-expression'; }
+    );
+    repository = {
+        jinja-expression = {
+            comment = "The 'name' is used to undo highlighting as string";
+            name = 'keyword.operator.ansible';
+            begin = '\{\{';
+            end = '\}\}';
+            beginCaptures = {
+                0 = {
+                    name = 'constant.character.escape.ansible';
+                };
+            };
+            endCaptures = {
+                0 = {
+                    name = 'constant.character.escape.ansible';
+                };
+            };
+            contentName = 'meta.embedded.inline.jinja';
+            patterns = (
+                { include = 'source.ansible-jinja#expression'; }
+            );
+        };
+    };
+}

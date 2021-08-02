@@ -1,0 +1,31 @@
+{
+    scopeName = 'injection.ansible.keywords';
+    injectionSelector = 'L:entity.name.tag.ansible';
+    name = 'Grammar for detecting Ansible keywords';
+    comment = (
+        'Extracted from:',
+        'https://docs.ansible.com/ansible/2.10/reference_appendices/playbooks_keywords.html',
+        'Added `label`, `pause`, `loop_var`, `extended` as Ansible keywords (occur in loop_control)'
+    );
+    patterns = (
+        { include = '#keyword'; }
+    );
+    repository = {
+        keyword = {
+            name = 'keyword.other.ansible';
+            match = '(?x)
+                \b(
+                    action | always | any_errors_fatal | args | async | become | become_exe | become_flags
+                    | become_method | become_user | block | changed_when | check_mode | collections | connection
+                    | debugger | delay | delegate_facts | delegate_to | diff | environment | extended | fact_path | failed_when
+                    | force_handlers | gather_facts | gather_subset | gather_timeout | handlers | hosts
+                    | ignore_errors | ignore_unreachable | label | local_action | loop | loop_control
+                    | max_fail_percentage | module_defaults | name | no_log | notify | order | pause | poll | port
+                    | post_tasks | pre_tasks | register | remote_user | rescue | retries | roles | run_once | serial
+                    | strategy | tags | tasks | throttle | timeout | until | vars | vars_files | vars_prompt | when
+                    | with_[a-z]+
+                )\b
+            ';
+        };
+    };
+}

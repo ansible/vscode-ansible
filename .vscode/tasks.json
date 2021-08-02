@@ -1,18 +1,72 @@
 {
+  "version": "2.0.0",
   "tasks": [
     {
-      "group": {
-        "isDefault": true,
-        "kind": "build"
-      },
-      "isBackground": true,
+      "type": "npm",
+      "script": "compile",
+      "group": "build",
       "presentation": {
+        "panel": "dedicated",
         "reveal": "never"
       },
-      "problemMatcher": "$tsc-watch",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "type": "npm",
       "script": "watch",
-      "type": "npm"
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": ["$tsc-watch"]
+    },
+    {
+      "type": "npm",
+      "script": "watch:server",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": ["$tsc-watch"]
+    },
+    {
+      "label": "Clean",
+      "type": "npm",
+      "script": "clean",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      }
+    },
+    {
+      "label": "Webpack Watch",
+      "type": "npm",
+      "script": "webpack:watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never",
+        "group": "Build"
+      },
+      "problemMatcher": "$ts-webpack-watch"
     }
-  ],
-  "version": "2.0.0"
+  ]
 }
