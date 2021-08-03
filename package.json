@@ -5,8 +5,8 @@
   "badges": [
     {
       "description": "Ansible language support",
-      "href": "https://marketplace.visualstudio.com/items?itemName=zbr.vscode-ansible",
-      "url": "https://vsmarketplacebadge.apphb.com/version/zbr.vscode-ansible.svg"
+      "href": "https://marketplace.visualstudio.com/items?itemName=redhat.ansible",
+      "url": "https://vsmarketplacebadge.apphb.com/version/redhat.ansible.svg"
     },
     {
       "description": "CI/CD Pipeline",
@@ -241,7 +241,7 @@
   ],
   "license": "MIT",
   "main": "./out/client/extension",
-  "name": "vscode-ansible",
+  "name": "ansible",
   "preview": true,
   "publisher": "redhat",
   "qna": false,
