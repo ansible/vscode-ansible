@@ -232,7 +232,7 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
-  "icon": "icon.png",
+  "icon": "images/logo.png",
   "keywords": [
     "ansible",
     "yaml",
