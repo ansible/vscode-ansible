@@ -1,27 +1,54 @@
 # Format and labels used aim to match those used by Ansible project
+name-template: "$RESOLVED_VERSION"
+tag-template: "$RESOLVED_VERSION"
 categories:
-  - title: 'Major Changes'
+  - title: "Major Changes"
     labels:
-      - 'major'  # c6476b
-  - title: 'Minor Changes'
+      - "major" # c6476b
+  - title: "Minor Changes"
     labels:
-      - 'feature'  # 006b75
-      - 'enhancement'  # ededed
-      - 'performance'  # 555555
-  - title: 'Bugfixes'
+      - "feature" # 006b75
+      - "minor"
+  - title: "Bugfixes"
     labels:
-      - 'fix'
-      - 'bugfix'
-      - 'bug'  # fbca04
-      - 'docs'  # 4071a5
-      - 'packaging'  # 4071a5
-      - 'test'  # #0e8a16
-  - title: 'Deprecations'
-    labels:
-      - 'deprecated'  # fef2c0
+      - "bug" # fbca04
+      - "patch"
 exclude-labels:
-  - 'skip-changelog'
+  - "skip-changelog"
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+      - "feature"
+  patch:
+    labels:
+      - "patch"
+      - "bug"
+  default: patch
+autolabeler:
+  # converts commitlint/conventionalcommits format into labels that
+  # release-drafter can use to produce the release notes.
+  # https://github.com/conventional-changelog/commitlint#what-is-commitlint
+  # External contributors do not have the ability to change labels but by
+  # using conventional commits/pr titles the labels are automatially updated.
+  - label: "skip-changelog"
+    title:
+      - "/(chore|ci|build|style|test)/i"
+  - label: "bug"
+    title:
+      - "/(fix|revert|refactor|perf|docs)/i"
+  - label: "feature"
+    title:
+      - "/feat/i"
+  - label: "major"
+    title:
+      - "/!:/"
+    body:
+      - "/BREAKING CHANGE/"
 template: |
-  ## Changes
-
   $CHANGES
+
+  Kudos goes to: $CONTRIBUTORS
