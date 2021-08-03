@@ -1,11 +1,13 @@
-name: Lint Commit Messages
-on: [pull_request]
+name: commitlint
+on:
+  pull_request:
+    types: ["opened", "edited", "reopened", "synchronize"]
 
 jobs:
-  commitlint:
+  lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - uses: wagoid/commitlint-github-action@v3
+      - uses: actions/checkout@v1
+      - name: Install Dependencies
+        run: npm install @commitlint/config-conventional
+      - uses: JulienKode/pull-request-name-linter-action@v0.2.0

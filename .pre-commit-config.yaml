@@ -1,4 +1,12 @@
 ---
+ci:
+  # format compatible with commitlint
+  autoupdate_commit_msg: "chore: pre-commit autoupdate"
+  autoupdate_schedule: monthly
+  autofix_commit_msg: |
+    chore: auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v4.0.1
