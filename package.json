@@ -10,11 +10,11 @@
     },
     {
       "description": "CI/CD Pipeline",
-      "href": "https://github.com/ansible-community/vscode-ansible/actions/workflows/ci.yaml",
-      "url": "https://img.shields.io/github/workflow/status/ansible-community/vscode-ansible/ci.png"
+      "href": "https://github.com/ansible/vscode-ansible/actions/workflows/ci.yaml",
+      "url": "https://img.shields.io/github/workflow/status/ansible/vscode-ansible/ci.png"
     }
   ],
-  "bugs": "https://github.com/ansible-community/vscode-ansible/issues",
+  "bugs": "https://github.com/ansible/vscode-ansible/issues",
   "categories": [
     "Programming Languages",
     "Linters"
@@ -247,7 +247,7 @@
   "qna": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/ansible-community/vscode-ansible.git"
+    "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/ansible-language-server/out/server/**/*' out/server",

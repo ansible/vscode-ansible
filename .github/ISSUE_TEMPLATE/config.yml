@@ -1,12 +1,4 @@
 blank_issues_enabled: false
 contact_links:
-
   - name: Ask a question on Discussions area
-    url: https://github.com/ansible-community/vscode-ansible/discussions
-    about: Report issue with a specific schema
-
-  - name: Schema bug
-    url: https://github.com/ansible-community/schemas/issues
-    about: >
-      Use this if correct schema type was used but it failed to recognize
-      content that is valid.
+    url: https://github.com/ansible/vscode-ansible/discussions
