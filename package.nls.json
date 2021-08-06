@@ -1,5 +1,10 @@
 {
   "command.untrustValidationExecutable": "Disallow ansible-lint validation executable (defined as workspace setting)",
+  "commands.category.ansible-playbook": "Ansible Playbook",
+  "commands.title.ansible-navigator": "Run playbook via `ansible-navigator run`",
+  "commands.title.ansible-playbook": "Run playbook via `ansible-playbook`",
+  "configuration.navigate.executablePath": "Points to the ansible-navigator executable.",
+  "configuration.run.executablePath": "Points to the ansible-playbook executable.",
   "configuration.suggest.basic": "Controls whether the built-in Ansible language suggestions are enabled. The support suggests Ansible globals and variables.",
   "configuration.title": "Ansible",
   "configuration.validate.enable": "Enable/disable ansible-lint validation.",
@@ -7,5 +12,6 @@
   "configuration.validate.run": "Whether the linter is run on save or on type.",
   "configuration.vault.executablePath": "Points to the ansible-vault executable.",
   "description": "Provides rich language support for Ansible files.",
-  "displayName": "Ansible Language Features"
+  "displayName": "Ansible Language Features",
+  "submenus.ansible.run-via": "Run Ansible Playbook via..."
 }

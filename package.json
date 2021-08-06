@@ -1,5 +1,7 @@
 {
   "activationEvents": [
+    "onCommand:extension.ansible-navigator.run",
+    "onCommand:extension.ansible-playbook.run",
     "onLanguage:ansible"
   ],
   "badges": [
@@ -30,6 +32,18 @@
     }
   ],
   "contributes": {
+    "commands": [
+      {
+        "category": "%commands.category.ansible-playbook%",
+        "command": "extension.ansible-playbook.run",
+        "title": "%commands.title.ansible-playbook%"
+      },
+      {
+        "category": "%commands.category.ansible-playbook%",
+        "command": "extension.ansible-navigator.run",
+        "title": "%commands.title.ansible-navigator%"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Ansible",
@@ -75,6 +89,24 @@
           "type": "string",
           "default": "",
           "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. If set, the Interpreter Path setting is ignored."
+        },
+        "ansible.ansibleNavigator.path": {
+          "default": "ansible-navigator",
+          "description": "%configuration.navigate.executablePath%",
+          "scope": "machine-overridable",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ansible.ansiblePlaybook.path": {
+          "default": "ansible-playbook",
+          "description": "%configuration.run.executablePath%",
+          "scope": "machine-overridable",
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     },
@@ -95,6 +127,36 @@
         "comments": "unfortunately this dummy entry is necessary for embedding to work",
         "id": "ansible-jinja",
         "configuration": "./jinja-language-configuration.json"
+      }
+    ],
+    "menus": {
+      "ansible.playbook.run": [
+        {
+          "command": "extension.ansible-navigator.run"
+        },
+        {
+          "command": "extension.ansible-playbook.run"
+        }
+      ],
+      "editor/context": [
+        {
+          "group": "2_main@1",
+          "submenu": "ansible.playbook.run",
+          "when": "isFileSystemResource && editorLangId == ansible"
+        }
+      ],
+      "explorer/context": [
+        {
+          "group": "2_main@1",
+          "submenu": "ansible.playbook.run",
+          "when": "isFileSystemResource && resourceLangId == ansible"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "ansible.playbook.run",
+        "label": "%submenus.ansible.run-via%"
       }
     ],
     "grammars": [
