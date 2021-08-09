@@ -4,6 +4,7 @@ def installBuildRequirements(){
   // disabled as on test jenkins instance we got: No tool named nodejs-12.20.0 found
   // def nodeHome = tool 'nodejs-12.20.0'
   // env.PATH="${env.PATH}:${nodeHome}/bin"
+
   sh "dnf install @nodejs"
   sh "npm install --global vsce"
 }
