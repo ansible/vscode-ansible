@@ -5,7 +5,7 @@ def installBuildRequirements(){
   // def nodeHome = tool 'nodejs-12.20.0'
   // env.PATH="${env.PATH}:${nodeHome}/bin"
 
-  sh "dnf install @nodejs"
+  sh "dnf install -y @nodejs"
   sh "npm install --global vsce"
 }
 
