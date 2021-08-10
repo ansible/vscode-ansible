@@ -1,11 +1,9 @@
 #!/usr/bin/env groovy
 
 def installBuildRequirements(){
-  // disabled as on test jenkins instance we got: No tool named nodejs-12.20.0 found
-  // def nodeHome = tool 'nodejs-12.20.0'
-  // env.PATH="${env.PATH}:${nodeHome}/bin"
+  def nodeHome = tool 'nodejs-12.20.0'
+  env.PATH="${env.PATH}:${nodeHome}/bin"
 
-  sh "dnf install -y @nodejs"
   sh "npm install --global vsce"
 }
 
@@ -14,7 +12,7 @@ def buildVscodeExtension(){
   sh "npm run vscode:prepublish"
 }
 
-node("jenkins-jnlp-agent-el8"){
+node("rhel8"){
 
   stage 'Checkout code'
   deleteDir()
@@ -43,10 +41,11 @@ node("jenkins-jnlp-agent-el8"){
   stash name:'vsix', includes:vsix[0].path
 }
 
-node("jenkins-jnlp-agent-el8"){
+node("rhel8"){
   if(publishToMarketPlace.equals('true')){
     timeout(time:5, unit:'DAYS') {
-      input message:'Approve deployment?', submitter: 'ssbarnea,ganeshrn,webknjaz'
+      // these are LDAP accounts
+      input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad'
     }
 
     stage "Publish to Marketplaces"
