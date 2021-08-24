@@ -3,6 +3,7 @@
 ## 0.5.0 (UNRELEASED)
 
 * Update default setting value to always use FQCN (#196)
+* Detect incompatible extensions and prompt to remove them.
 
 ## 0.4.5
 
