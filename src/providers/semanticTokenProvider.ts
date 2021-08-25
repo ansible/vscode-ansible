@@ -5,7 +5,6 @@ import {
   SemanticTokenTypes,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parseAllDocuments } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import { IModuleMetadata } from '../interfaces/module';
 import { DocsLibrary } from '../services/docsLibrary';
@@ -17,10 +16,12 @@ import {
 } from '../utils/ansible';
 import {
   findProvidedModule,
+  getOrigRange,
   isBlockParam,
   isPlayParam,
   isRoleParam,
   isTaskParam,
+  parseAllDocuments,
 } from '../utils/yaml';
 
 export const tokenTypes = [
@@ -233,9 +234,10 @@ function markNode(
   builder: SemanticTokensBuilder,
   document: TextDocument
 ) {
-  if (node.range) {
-    const startPosition = document.positionAt(node.range[0]);
-    const length = node.range[1] - node.range[0];
+  const range = getOrigRange(node);
+  if (range) {
+    const startPosition = document.positionAt(range[0]);
+    const length = range[1] - range[0];
     builder.push(
       startPosition.line,
       startPosition.character,

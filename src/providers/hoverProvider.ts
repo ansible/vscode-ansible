@@ -1,6 +1,5 @@
 import { Hover, MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { parseAllDocuments } from 'yaml';
 import { Scalar, YAMLMap } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
 import {
@@ -19,11 +18,13 @@ import { toLspRange } from '../utils/misc';
 import {
   AncestryBuilder,
   findProvidedModule,
+  getOrigRange,
   getPathAt,
   isBlockParam,
   isPlayParam,
   isRoleParam,
   isTaskParam,
+  parseAllDocuments,
 } from '../utils/yaml';
 
 export async function doHover(
@@ -60,13 +61,14 @@ export async function doHover(
             path,
             document.uri
           );
+          const range = getOrigRange(node);
           if (module && module.documentation) {
             return {
               contents: formatModule(
                 module.documentation,
                 docsLibrary.getModuleRoute(hitFqcn || node.value)
               ),
-              range: node.range ? toLspRange(node.range, document) : undefined,
+              range: range ? toLspRange(range, document) : undefined,
             };
           } else if (hitFqcn) {
             // check for tombstones
@@ -74,9 +76,7 @@ export async function doHover(
             if (route) {
               return {
                 contents: formatTombstone(route),
-                range: node.range
-                  ? toLspRange(node.range, document)
-                  : undefined,
+                range: range ? toLspRange(range, document) : undefined,
               };
             }
           }
@@ -136,9 +136,10 @@ function getKeywordHover(
         }
       : keywordDocumentation;
   if (markupDoc) {
+    const range = getOrigRange(node);
     return {
       contents: markupDoc,
-      range: node.range ? toLspRange(node.range, document) : undefined,
+      range: range ? toLspRange(range, document) : undefined,
     };
   } else return null;
 }

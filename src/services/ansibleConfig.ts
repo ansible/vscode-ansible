@@ -35,7 +35,7 @@ export class AnsibleConfig {
 
       const ansibleConfigResult = child_process.execSync(ansibleConfigCommand, {
         encoding: 'utf-8',
-        cwd: new URL(this.context.workspaceFolder.uri).pathname,
+        cwd: decodeURI(new URL(this.context.workspaceFolder.uri).pathname),
         env: ansibleConfigEnv,
       });
 

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { Document } from 'yaml';
+import { Document, Options, parseCST } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import { IModuleMetadata } from '../interfaces/module';
 import { DocsLibrary } from '../services/docsLibrary';
@@ -131,7 +131,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
 export function getPathAt(
   document: TextDocument,
   position: Position,
-  docs: Document.Parsed[],
+  docs: Document[],
   inclusive = false
 ): Node[] | null {
   const offset = document.offsetAt(position);
@@ -147,10 +147,11 @@ export function contains(
   offset: number,
   inclusive: boolean
 ): boolean {
+  const range = getOrigRange(node);
   return !!(
-    node?.range &&
-    node.range[0] <= offset &&
-    (node.range[1] > offset || (inclusive && node.range[1] >= offset))
+    range &&
+    range[0] <= offset &&
+    (range[1] > offset || (inclusive && range[1] >= offset))
   );
 }
 
@@ -180,8 +181,8 @@ export function getPathAtOffset(
       }
       pair = _.find(currentNode.items, (p) => {
         const inBetweenNode = new Node();
-        const start = (p.key as Node)?.range?.[1];
-        const end = (p.value as Node)?.range?.[0];
+        const start = getOrigRange(p.key as Node)?.[1];
+        const end = getOrigRange(p.value as Node)?.[0];
         if (start && end) {
           inBetweenNode.range = [start, end - 1];
           return contains(inBetweenNode, offset, inclusive);
@@ -389,4 +390,34 @@ export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
       return pair.key.value;
     }
   });
+}
+
+export function getOrigRange(
+  node: Node | null | undefined
+): [number, number] | null | undefined {
+  if (node?.cstNode?.range) {
+    const range = node.cstNode.range;
+    return [
+      range.origStart !== undefined ? range.origStart : range.start,
+      range.origEnd !== undefined ? range.origEnd : range.end,
+    ];
+  } else {
+    return node?.range;
+  }
+}
+
+/** Parsing with the YAML library tailored to the needs of this extension */
+export function parseAllDocuments(str: string, options?: Options): Document[] {
+  const cst = parseCST(str);
+  cst.setOrigRanges();
+
+  const parsedDocuments: Document[] = [];
+  for (const cstDoc of cst) {
+    const parsedDocument = new Document(
+      Object.assign({ keepCstNodes: true }, options)
+    );
+    parsedDocument.parse(cstDoc);
+    parsedDocuments.push(parsedDocument);
+  }
+  return parsedDocuments;
 }

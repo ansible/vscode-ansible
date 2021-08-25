@@ -8,9 +8,9 @@ import {
   Range,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parseAllDocuments } from 'yaml';
 import { ValidationManager } from '../services/validationManager';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
+import { parseAllDocuments } from '../utils/yaml';
 
 /**
  * Validates the given document.
@@ -63,8 +63,14 @@ function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
       const errorRange = error.range || error.source?.range;
       let range;
       if (errorRange) {
-        const start = textDocument.positionAt(errorRange.start);
-        const end = textDocument.positionAt(errorRange.end);
+        const start = textDocument.positionAt(
+          errorRange.origStart !== undefined
+            ? errorRange.origStart
+            : errorRange.start
+        );
+        const end = textDocument.positionAt(
+          errorRange.origEnd !== undefined ? errorRange.origEnd : errorRange.end
+        );
         range = Range.create(start, end);
 
         let severity;

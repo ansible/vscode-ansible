@@ -1,6 +1,7 @@
 import * as child_process from 'child_process';
 import { ExecException } from 'child_process';
 import { promises as fs } from 'fs';
+import * as path from 'path';
 import { URL } from 'url';
 import { promisify } from 'util';
 import {
@@ -50,25 +51,47 @@ export class AnsibleLint {
   public async doValidate(
     textDocument: TextDocument
   ): Promise<Map<string, Diagnostic[]>> {
-    const docPath = new URL(textDocument.uri).pathname;
     let diagnostics: Map<string, Diagnostic[]> = new Map();
-    let progressTracker;
-    if (this.useProgressTracker) {
-      progressTracker = await this.connection.window.createWorkDoneProgress();
-    }
 
-    const ansibleLintConfigPromise = this.getAnsibleLintConfig(
-      textDocument.uri
+    const workingDirectory = decodeURI(
+      new URL(this.context.workspaceFolder.uri).pathname
     );
 
-    const workingDirectory = new URL(this.context.workspaceFolder.uri).pathname;
+    const settings = await this.context.documentSettings.get(textDocument.uri);
 
-    try {
-      const settings = await this.context.documentSettings.get(
-        textDocument.uri
+    if (settings.ansibleLint.enabled) {
+      let linterArguments = settings.ansibleLint.arguments;
+
+      // Determine linter config file
+      let ansibleLintConfigPath = linterArguments.match(
+        /(?:^|\s)-c\s*(?<sep>[\s'"])(?<conf>.+?)(?:\k<sep>|$)/
+      )?.groups?.conf;
+      if (!ansibleLintConfigPath) {
+        // Config file not provided in arguments -> search for one mimicking the
+        // way ansible-lint looks for it, going up the directory structure
+        const ansibleLintConfigFile = await this.findAnsibleLintConfigFile(
+          textDocument.uri
+        );
+        if (ansibleLintConfigFile) {
+          ansibleLintConfigPath = decodeURI(
+            new URL(ansibleLintConfigFile).pathname
+          );
+          linterArguments = `${linterArguments} -c "${ansibleLintConfigPath}"`;
+        }
+      }
+      linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
+
+      const docPath = decodeURI(new URL(textDocument.uri).pathname);
+      let progressTracker;
+      if (this.useProgressTracker) {
+        progressTracker = await this.connection.window.createWorkDoneProgress();
+      }
+      const ansibleLintConfigPromise = this.getAnsibleLintConfig(
+        workingDirectory,
+        ansibleLintConfigPath
       );
 
-      if (settings.ansibleLint.enabled) {
+      try {
         if (progressTracker) {
           progressTracker.begin(
             'ansible-lint',
@@ -79,7 +102,7 @@ export class AnsibleLint {
 
         const [command, env] = withInterpreter(
           settings.ansibleLint.path,
-          `${settings.ansibleLint.arguments} --offline --nocolor -f codeclimate ${docPath}`,
+          `${linterArguments} --offline --nocolor -f codeclimate "${docPath}"`,
           settings.python.interpreterPath,
           settings.python.activationScript
         );
@@ -98,36 +121,36 @@ export class AnsibleLint {
         if (result.stderr) {
           this.connection.console.info(`[ansible-lint] ${result.stderr}`);
         }
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        const execError = error as ExecException & {
-          // according to the docs, these are always available
-          stdout: string;
-          stderr: string;
-        };
-        if (execError.code === 2) {
-          diagnostics = this.processReport(
-            execError.stdout,
-            await ansibleLintConfigPromise,
-            workingDirectory
-          );
+      } catch (error) {
+        if (error instanceof Error) {
+          const execError = error as ExecException & {
+            // according to the docs, these are always available
+            stdout: string;
+            stderr: string;
+          };
+          if (execError.code === 2) {
+            diagnostics = this.processReport(
+              execError.stdout,
+              await ansibleLintConfigPromise,
+              workingDirectory
+            );
+          } else {
+            this.connection.window.showErrorMessage(execError.message);
+          }
+
+          if (execError.stderr) {
+            this.connection.console.info(`[ansible-lint] ${execError.stderr}`);
+          }
         } else {
-          this.connection.window.showErrorMessage(execError.message);
+          this.connection.console.error(
+            `Exception in AnsibleLint service: ${JSON.stringify(error)}`
+          );
         }
-
-        if (execError.stderr) {
-          this.connection.console.info(`[ansible-lint] ${execError.stderr}`);
-        }
-      } else {
-        this.connection.console.error(
-          `Exception in AnsibleLint service: ${JSON.stringify(error)}`
-        );
       }
-    }
 
-    if (progressTracker) {
-      progressTracker.done();
+      if (progressTracker) {
+        progressTracker.done();
+      }
     }
     return diagnostics;
   }
@@ -192,8 +215,8 @@ export class AnsibleLint {
                 }
               }
             }
-
-            const locationUri = `file://${workingDirectory}/${item.location.path}`;
+            const path = `${workingDirectory}/${item.location.path}`;
+            const locationUri = `file://${encodeURI(path)}`;
 
             let fileDiagnostics = diagnostics.get(locationUri);
             if (!fileDiagnostics) {
@@ -242,14 +265,15 @@ export class AnsibleLint {
   }
 
   private async getAnsibleLintConfig(
-    uri: string
+    workingDirectory: string,
+    configPath: string | undefined
   ): Promise<IAnsibleLintConfig | undefined> {
-    const configPath = await this.getAnsibleLintConfigPath(uri);
     if (configPath) {
-      let config = this.configCache.get(configPath);
+      const absConfigPath = path.resolve(workingDirectory, configPath);
+      let config = this.configCache.get(absConfigPath);
       if (!config) {
-        config = await this.readAnsibleLintConfig(configPath);
-        this.configCache.set(configPath, config);
+        config = await this.readAnsibleLintConfig(absConfigPath);
+        this.configCache.set(absConfigPath, config);
       }
       return config;
     }
@@ -262,7 +286,7 @@ export class AnsibleLint {
       warnList: new Set<string>(),
     };
     try {
-      const configContents = await fs.readFile(new URL(configPath), {
+      const configContents = await fs.readFile(configPath, {
         encoding: 'utf8',
       });
       parseAllDocuments(configContents).forEach((configDoc) => {
@@ -284,7 +308,7 @@ export class AnsibleLint {
     return config;
   }
 
-  private async getAnsibleLintConfigPath(
+  private async findAnsibleLintConfigFile(
     uri: string
   ): Promise<string | undefined> {
     // find configuration path

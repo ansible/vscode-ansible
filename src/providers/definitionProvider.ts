@@ -1,10 +1,15 @@
 import { DefinitionLink, Range } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { parseAllDocuments } from 'yaml';
 import { Scalar } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
 import { toLspRange } from '../utils/misc';
-import { AncestryBuilder, getPathAt, isTaskParam } from '../utils/yaml';
+import {
+  AncestryBuilder,
+  getOrigRange,
+  getPathAt,
+  isTaskParam,
+  parseAllDocuments,
+} from '../utils/yaml';
 
 export async function getDefinition(
   document: TextDocument,
@@ -26,11 +31,12 @@ export async function getDefinition(
           document.uri
         );
         if (module) {
+          const range = getOrigRange(node);
           return [
             {
               targetUri: module.source,
-              originSelectionRange: node.range
-                ? toLspRange(node.range, document)
+              originSelectionRange: range
+                ? toLspRange(range, document)
                 : undefined,
               targetRange: Range.create(
                 module.sourceLineRange[0],

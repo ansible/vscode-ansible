@@ -55,6 +55,10 @@ rules/tags added to `warn_list`
 (see [Ansible Lint Documentation](https://ansible-lint.readthedocs.io/en/latest/configuring.html))
 are shown as warnings instead.
 
+> If you also install `yamllint`, `ansible-lint` will detect it and incorporate
+> into the linting process. Any findings reported by `yamllint` will be exposed
+> in VSCode as errors/warnings.
+
 ### Smart autocompletion
 ![Autocompletion](images/smart-completions.gif)
 
@@ -92,7 +96,8 @@ holding `ctrl`/`cmd`.
 ## Requirements
 - [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
 - [Ansible Lint](https://ansible-lint.readthedocs.io/en/latest/) (required,
-  unless you disable linter support; install without `yamllint`)
+  unless you disable linter support)
+- [yamllint](https://yamllint.readthedocs.io/en/stable/) (optional)
 
 For Windows users, this extension works perfectly well with extensions such as
 `Remote - WSL` and `Remote - Containers`.

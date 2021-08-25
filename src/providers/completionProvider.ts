@@ -6,7 +6,6 @@ import {
   TextEdit,
 } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { parseAllDocuments } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap } from 'yaml/types';
 import { IOption } from '../interfaces/module';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
@@ -24,11 +23,13 @@ import {
   findProvidedModule,
   getDeclaredCollections,
   getPathAt,
+  getOrigRange,
   getYamlMapKeys,
   isBlockParam,
   isPlayParam,
   isRoleParam,
   isTaskParam,
+  parseAllDocuments,
 } from '../utils/yaml';
 
 const priorityMap = {
@@ -293,9 +294,10 @@ function getKeywordCompletion(
  * the node has range information and is a string scalar.
  */
 function getNodeRange(node: Node, document: TextDocument): Range | undefined {
-  if (node.range && node instanceof Scalar && typeof node.value === 'string') {
-    const start = node.range[0];
-    let end = node.range[1];
+  const range = getOrigRange(node);
+  if (range && node instanceof Scalar && typeof node.value === 'string') {
+    const start = range[0];
+    let end = range[1];
     // compensate for `_:`
     if (node.value.includes('_:')) {
       end -= 2;
