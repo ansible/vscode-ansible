@@ -1,5 +1,5 @@
-# Ansible Language Support by Red Hat
-This extension adds language support for Ansible to [Visual Studio Code](https://code.visualstudio.com/), via the [ansible-language-server](https://github.com/ansible/ansible-language-server)
+# Ansible VS Code Extension by Red Hat
+This extension adds language support for Ansible to [Visual Studio Code](https://code.visualstudio.com/), via the [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
 ## Features
 
