@@ -1,6 +1,8 @@
 /* "stdlib" */
 import * as path from 'path';
 import { ExtensionContext, extensions } from 'vscode';
+import * as vscode from 'vscode';
+import { toggleEncrypt } from './features/vault';
 
 /* third-party */
 import {
@@ -60,6 +62,11 @@ export function activate(context: ExtensionContext): void {
       notifyAboutConflicts();
     });
   });
+  const disposable = vscode.commands.registerCommand(
+    'extension.ansible.vault',
+    toggleEncrypt
+  );
+  context.subscriptions.push(disposable);
 }
 
 export function deactivate(): Thenable<void> | undefined {
