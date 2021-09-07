@@ -2,7 +2,7 @@ import * as child_process from 'child_process';
 import { ExecException } from 'child_process';
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { URL } from 'url';
+import { URI } from 'vscode-uri';
 import { promisify } from 'util';
 import {
   Connection,
@@ -53,9 +53,7 @@ export class AnsibleLint {
   ): Promise<Map<string, Diagnostic[]>> {
     let diagnostics: Map<string, Diagnostic[]> = new Map();
 
-    const workingDirectory = decodeURI(
-      new URL(this.context.workspaceFolder.uri).pathname
-    );
+    const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
 
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
@@ -73,15 +71,13 @@ export class AnsibleLint {
           textDocument.uri
         );
         if (ansibleLintConfigFile) {
-          ansibleLintConfigPath = decodeURI(
-            new URL(ansibleLintConfigFile).pathname
-          );
+          ansibleLintConfigPath = URI.parse(ansibleLintConfigFile).path;
           linterArguments = `${linterArguments} -c "${ansibleLintConfigPath}"`;
         }
       }
       linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
 
-      const docPath = decodeURI(new URL(textDocument.uri).pathname);
+      const docPath = URI.parse(textDocument.uri).path;
       let progressTracker;
       if (this.useProgressTracker) {
         progressTracker = await this.connection.window.createWorkDoneProgress();
@@ -102,7 +98,7 @@ export class AnsibleLint {
 
         const [command, env] = withInterpreter(
           settings.ansibleLint.path,
-          `${linterArguments} --offline --nocolor -f codeclimate "${docPath}"`,
+          `${linterArguments} "${docPath}"`,
           settings.python.interpreterPath,
           settings.python.activationScript
         );
@@ -216,7 +212,7 @@ export class AnsibleLint {
               }
             }
             const path = `${workingDirectory}/${item.location.path}`;
-            const locationUri = `file://${encodeURI(path)}`;
+            const locationUri = URI.file(path).toString();
 
             let fileDiagnostics = diagnostics.get(locationUri);
             if (!fileDiagnostics) {

@@ -2,7 +2,7 @@ import * as child_process from 'child_process';
 import * as ini from 'ini';
 import * as _ from 'lodash';
 import * as path from 'path';
-import { URL } from 'url';
+import { URI } from 'vscode-uri';
 import { Connection } from 'vscode-languageserver';
 import { withInterpreter } from '../utils/misc';
 import { WorkspaceFolderContext } from './workspaceManager';
@@ -35,7 +35,7 @@ export class AnsibleConfig {
 
       const ansibleConfigResult = child_process.execSync(ansibleConfigCommand, {
         encoding: 'utf-8',
-        cwd: decodeURI(new URL(this.context.workspaceFolder.uri).pathname),
+        cwd: URI.parse(this.context.workspaceFolder.uri).path,
         env: ansibleConfigEnv,
       });
 
