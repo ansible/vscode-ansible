@@ -31,6 +31,57 @@
       "name": "Sorin Sbarnea"
     }
   ],
+  "yamlValidation": [
+    {
+      "fileMatch": "requirements.yml",
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-requirements.json"
+    },
+    {
+      "fileMatch": "meta/main.yml",
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"
+    },
+    {
+      "fileMatch": [
+        "playbooks/vars/*.yml",
+        "playbooks/vars/*.yaml",
+        "vars/*.yml",
+        "vars/*.yaml",
+        "defaults/*.yml",
+        "defaults/*.yaml",
+        "host_vars/*.yml",
+        "host_vars/*.yaml",
+        "group_vars/*.yml",
+        "group_vars/*.yaml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-vars.json"
+    },
+    {
+      "fileMatch": [
+        "zuul.d/*.yaml",
+        "zuul-tests.d/*.yaml",
+        ".zuul.yaml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/zuul.json"
+    },
+    {
+      "fileMatch": [
+        ".ansible-lint"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-lint.json"
+    },
+    {
+      "fileMatch": [
+        "molecule/*/molecule.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/molecule.json"
+    },
+    {
+      "fileMatch": [
+        "galaxy.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-galaxy.json"
+    }
+  ],
   "contributes": {
     "commands": [
       {
@@ -287,7 +338,8 @@
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
   },
   "extensionDependencies": [
-    "ms-python.python"
+    "ms-python.python",
+    "redhat.vscode-yaml"
   ],
   "husky": {
     "hooks": {
