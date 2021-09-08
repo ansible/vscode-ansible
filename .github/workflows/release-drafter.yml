@@ -2,7 +2,7 @@ name: release-drafter
 
 on:
   push:
-    # branches to consider in the event; optional, defaults to all
+    # branches to consider in the event; optional, defaults to all 2222
     branches:
       - main
       - "releases/**"
