@@ -27,12 +27,22 @@ async function askForVaultId(ansibleCfg: string) {
       identityList = [];
     }
   }
-  await vscode.window.showQuickPick(identityList).then((chosen) => {
-    if (chosen) {
-      vaultId = chosen;
-    }
-  });
-  return vaultId;
+  if (identityList.length !== 0) {
+    await vscode.window.showQuickPick(identityList).then((chosen) => {
+      if (chosen) {
+        vaultId = chosen;
+      }
+    });
+    return vaultId;
+  } else {
+    return undefined;
+  }
+}
+
+function displayMissingIdentityError(): void {
+  vscode.window.showErrorMessage(
+    'no ansible vault identity defined, cannot de-/encrypt'
+  );
 }
 
 export const toggleEncrypt = async (): Promise<void> => {
@@ -78,22 +88,26 @@ export const toggleEncrypt = async (): Promise<void> => {
 
     if (type === 'plaintext') {
       console.log('Encrypt selected text');
-      const vaultId: string = await askForVaultId(keyInCfg);
-      const encryptedText = `!vault |\n${encryptInline(
-        text,
-        rootPath,
-        vaultId,
-        config
-      )}`;
-      editor.edit((editBuilder) => {
-        editBuilder.replace(
-          selection,
-          encryptedText.replace(
-            /\n/g,
-            `\n${' '.repeat(selection.start.character)}`
-          )
-        );
-      });
+      const vaultId: string | undefined = await askForVaultId(keyInCfg);
+      if (vaultId !== undefined) {
+        const encryptedText = `!vault |\n${encryptInline(
+          text,
+          rootPath,
+          vaultId,
+          config
+        )}`;
+        editor.edit((editBuilder) => {
+          editBuilder.replace(
+            selection,
+            encryptedText.replace(
+              /\n/g,
+              `\n${' '.repeat(selection.start.character)}`
+            )
+          );
+        });
+      } else {
+        displayMissingIdentityError();
+      }
     } else if (type === 'encrypted') {
       console.log('Decrypt selected text');
 
@@ -111,9 +125,15 @@ export const toggleEncrypt = async (): Promise<void> => {
 
     if (type === 'plaintext') {
       console.log('Encrypt entire file');
-      const vaultId: string = await askForVaultId(keyInCfg);
-      encryptFile(doc.fileName, rootPath, vaultId, config);
-      vscode.window.showInformationMessage(`File encrypted: '${doc.fileName}'`);
+      const vaultId: string | undefined = await askForVaultId(keyInCfg);
+      if (vaultId !== undefined) {
+        encryptFile(doc.fileName, rootPath, vaultId, config);
+        vscode.window.showInformationMessage(
+          `File encrypted: '${doc.fileName}'`
+        );
+      } else {
+        displayMissingIdentityError();
+      }
     } else if (type === 'encrypted') {
       console.log('Decrypt entire file');
 
