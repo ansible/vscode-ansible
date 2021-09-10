@@ -8,21 +8,14 @@ export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
   let rootPath: string | undefined = undefined;
 
   if (!!vscode.workspace.workspaceFolders) {
-    rootPath = vscode.workspace.workspaceFolders.length
-      ? vscode.workspace.workspaceFolders[0].name
-      : undefined;
+    rootPath = vscode.workspace.workspaceFolders?.[0]?.name;
   }
 
-  if (!!vscode.workspace.getWorkspaceFolder) {
+  if (typeof vscode.workspace.getWorkspaceFolder === 'function') {
     const workspaceFolder =
       vscode.workspace.getWorkspaceFolder(editorDocumentUri);
 
-    if (!!workspaceFolder) {
-      rootPath = workspaceFolder.uri.path;
-    } else {
-      // not under any workspace
-      rootPath = undefined;
-    }
+    rootPath = workspaceFolder?.uri?.path;
   }
 
   return rootPath;
@@ -54,37 +47,34 @@ export function scanAnsibleCfg(
     cfgFiles.unshift(process.env.ANSIBLE_CONFIG);
   }
 
-  for (let i = 0; i < cfgFiles.length; i++) {
-    const cfgFile = cfgFiles[i];
+  for (const cfgFile of cfgFiles) {
     const cfgPath = untildify(cfgFile);
 
     const cfg = getValueByCfg(cfgPath);
-    if (!!cfg && !!cfg.defaults && !!cfg.defaults.vault_identity_list) {
+    if (!!cfg?.defaults?.vault_identity_list) {
       console.log(`Found 'defaults.vault_identity_list' within '${cfgPath}'`);
       return cfgPath;
     }
   }
 
-  console.log("Found no 'defaults.vault_identity_list' within config files");
+  console.log('Found no \'defaults.vault_identity_list\' within config files');
   return '';
 }
 
 export function getValueByCfg(path: string): AnsibleVaultConfig | undefined {
   console.log(`Reading '${path}'...`);
 
-  if (fs.existsSync(path)) {
-    const parsed = ini.parse(fs.readFileSync(path, 'utf-8'));
-    if (
-      !!parsed &&
-      !!parsed.defaults &&
-      !!parsed.defaults.vault_identity_list
-    ) {
-      const cfg: AnsibleVaultConfig = {
-        defaults: { vault_identity_list: parsed.defaults.vault_identity_list },
-      };
-      return cfg;
-    }
+  if (!fs.existsSync(path)) {
+    return undefined;
   }
 
-  return undefined;
+  const vault_identity_list =
+    ini.parse(fs.readFileSync(path, 'utf-8'))?.defaults?.vault_identity_list;
+  if (!vault_identity_list) {
+    return undefined;
+  }
+
+  return {
+    defaults: { vault_identity_list },
+  } as AnsibleVaultConfig;
 }

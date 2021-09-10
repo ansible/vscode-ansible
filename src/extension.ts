@@ -28,6 +28,12 @@ export function activate(context: ExtensionContext): void {
     path.join('out', 'server', 'src', 'server.js')
   );
 
+  const disposable = vscode.commands.registerCommand(
+    'extension.ansible.vault',
+    toggleEncrypt
+  );
+  context.subscriptions.push(disposable);
+
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6010'] };
 
@@ -62,11 +68,6 @@ export function activate(context: ExtensionContext): void {
       notifyAboutConflicts();
     });
   });
-  const disposable = vscode.commands.registerCommand(
-    'extension.ansible.vault',
-    toggleEncrypt
-  );
-  context.subscriptions.push(disposable);
 }
 
 export function deactivate(): Thenable<void> | undefined {

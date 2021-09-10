@@ -5,38 +5,31 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 
 async function askForVaultId(ansibleCfg: string) {
-  let vaultId = 'default';
+  const vaultId = 'default';
   let identityList: string[] | undefined;
   if (ansibleCfg === 'ANSIBLE_VAULT_IDENTITY_LIST') {
     const envVar: string | undefined = process.env.ANSIBLE_VAULT_IDENTITY_LIST;
-    if (envVar !== undefined) {
-      identityList = envVar
+    identityList = typeof envVar === 'undefined'
+      ? []
+      : envVar
         .split(',')
         .map((id: string) => id.split('@', 2)[0].trim());
-    } else {
-      identityList = [];
-    }
   } else {
     const cfg: utilAnsibleCfg.AnsibleVaultConfig | undefined =
       utilAnsibleCfg.getValueByCfg(ansibleCfg);
-    if (cfg !== undefined) {
-      identityList = cfg.defaults.vault_identity_list
+    identityList = typeof cfg === 'undefined'
+      ? []
+      : cfg.defaults.vault_identity_list
         .split(',')
         .map((id: string) => id.split('@', 2)[0].trim());
-    } else {
-      identityList = [];
-    }
   }
-  if (identityList.length !== 0) {
-    await vscode.window.showQuickPick(identityList).then((chosen) => {
-      if (chosen) {
-        vaultId = chosen;
-      }
-    });
-    return vaultId;
-  } else {
+
+  if (!identityList.length) {
     return undefined;
   }
+
+  const chosenVault = await vscode.window.showQuickPick(identityList);
+  return chosenVault || vaultId;
 }
 
 function displayMissingIdentityError(): void {
@@ -63,12 +56,9 @@ export const toggleEncrypt = async (): Promise<void> => {
   const rootPath: string | undefined = utilAnsibleCfg.getRootPath(
     editor.document.uri
   );
-  let keyInCfg: string;
-  if (!!process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
-    keyInCfg = 'ANSIBLE_VAULT_IDENTITY_LIST';
-  } else {
-    keyInCfg = utilAnsibleCfg.scanAnsibleCfg(rootPath);
-  }
+  const keyInCfg: string = !!process.env.ANSIBLE_VAULT_IDENTITY_LIST
+    ? 'ANSIBLE_VAULT_IDENTITY_LIST'
+    : utilAnsibleCfg.scanAnsibleCfg(rootPath);
 
   // Extract `ansible-vault` password
   if (!!keyInCfg) {
