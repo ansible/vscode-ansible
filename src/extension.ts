@@ -24,15 +24,16 @@ let client: LanguageClient;
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'extension.ansible.vault',
+      toggleEncrypt
+    )
+  );
+
   const serverModule = context.asAbsolutePath(
     path.join('out', 'server', 'src', 'server.js')
   );
-
-  const disposable = vscode.commands.registerCommand(
-    'extension.ansible.vault',
-    toggleEncrypt
-  );
-  context.subscriptions.push(disposable);
 
   // server is run at port 6009 for debugging
   const debugOptions = { execArgv: ['--nolazy', '--inspect=6010'] };
