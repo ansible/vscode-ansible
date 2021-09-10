@@ -1,29 +1,32 @@
 import * as vscode from 'vscode';
 import * as utilAnsibleCfg from './utils/ansibleCfg';
-import * as tmp from 'tmp';
+import * as tmp from 'tmp-promise';
 import * as cp from 'child_process';
 import * as fs from 'fs';
+import * as util from 'util';
+
+const execAsync = util.promisify(cp.exec);
 
 async function askForVaultId(ansibleCfg: string) {
   const vaultId = 'default';
-  let identityList: string[] | undefined;
+  let identitySource: string | undefined;
+
   if (ansibleCfg === 'ANSIBLE_VAULT_IDENTITY_LIST') {
-    const envVar: string | undefined = process.env.ANSIBLE_VAULT_IDENTITY_LIST;
-    identityList = typeof envVar === 'undefined'
-      ? []
-      : envVar
-        .split(',')
-        .map((id: string) => id.split('@', 2)[0].trim());
+    identitySource = process.env.ANSIBLE_VAULT_IDENTITY_LIST;
   } else {
     const cfg: utilAnsibleCfg.AnsibleVaultConfig | undefined =
-      utilAnsibleCfg.getValueByCfg(ansibleCfg);
-    identityList = typeof cfg === 'undefined'
-      ? []
-      : cfg.defaults.vault_identity_list
-        .split(',')
-        .map((id: string) => id.split('@', 2)[0].trim());
+      await utilAnsibleCfg.getValueByCfg(ansibleCfg);
+    identitySource =
+      typeof cfg === 'undefined' ? undefined : cfg.defaults.vault_identity_list;
   }
 
+  if (!identitySource) {
+    return undefined;
+  }
+
+  const identityList = identitySource
+    .split(',')
+    .map((id: string) => id.split('@', 2)[0].trim());
   if (!identityList.length) {
     return undefined;
   }
@@ -56,19 +59,21 @@ export const toggleEncrypt = async (): Promise<void> => {
   const rootPath: string | undefined = utilAnsibleCfg.getRootPath(
     editor.document.uri
   );
-  const keyInCfg: string = !!process.env.ANSIBLE_VAULT_IDENTITY_LIST
+  const keyInCfg: string | undefined = !!process.env.ANSIBLE_VAULT_IDENTITY_LIST
     ? 'ANSIBLE_VAULT_IDENTITY_LIST'
-    : utilAnsibleCfg.scanAnsibleCfg(rootPath);
+    : await utilAnsibleCfg.scanAnsibleCfg(rootPath);
+
+  if (!keyInCfg) {
+    displayMissingIdentityError();
+    return;
+  }
 
   // Extract `ansible-vault` password
-  if (!!keyInCfg) {
-    console.log(`Getting vault keyfile from ${keyInCfg}`);
-    vscode.window.showInformationMessage(
-      `Getting vault keyfile from ${keyInCfg}`
-    );
-  } else {
-    console.log('Found nothing from config files');
-  }
+
+  console.log(`Getting vault keyfile from ${keyInCfg}`);
+  vscode.window.showInformationMessage(
+    `Getting vault keyfile from ${keyInCfg}`
+  );
 
   const text = editor.document.getText(selection);
 
@@ -79,29 +84,30 @@ export const toggleEncrypt = async (): Promise<void> => {
     if (type === 'plaintext') {
       console.log('Encrypt selected text');
       const vaultId: string | undefined = await askForVaultId(keyInCfg);
-      if (vaultId !== undefined) {
-        const encryptedText = `!vault |\n${encryptInline(
-          text,
-          rootPath,
-          vaultId,
-          config
-        )}`;
-        editor.edit((editBuilder) => {
-          editBuilder.replace(
-            selection,
-            encryptedText.replace(
-              /\n/g,
-              `\n${' '.repeat(selection.start.character)}`
-            )
-          );
-        });
-      } else {
+      if (!vaultId) {
         displayMissingIdentityError();
+        return;
       }
+
+      const encryptedText = `!vault |\n${encryptInline(
+        text,
+        rootPath,
+        vaultId,
+        config
+      )}`;
+      editor.edit((editBuilder) => {
+        editBuilder.replace(
+          selection,
+          encryptedText.replace(
+            /\n/g,
+            `\n${' '.repeat(selection.start.character)}`
+          )
+        );
+      });
     } else if (type === 'encrypted') {
       console.log('Decrypt selected text');
 
-      const decryptedText = decryptInline(text, rootPath, config);
+      const decryptedText = await decryptInline(text, rootPath, config);
       editor.edit((editBuilder) => {
         editBuilder.replace(selection, decryptedText);
       });
@@ -116,18 +122,16 @@ export const toggleEncrypt = async (): Promise<void> => {
     if (type === 'plaintext') {
       console.log('Encrypt entire file');
       const vaultId: string | undefined = await askForVaultId(keyInCfg);
-      if (vaultId !== undefined) {
-        encryptFile(doc.fileName, rootPath, vaultId, config);
-        vscode.window.showInformationMessage(
-          `File encrypted: '${doc.fileName}'`
-        );
-      } else {
+      if (!vaultId) {
         displayMissingIdentityError();
+        return;
       }
+      encryptFile(doc.fileName, rootPath, vaultId, config);
+      vscode.window.showInformationMessage(`File encrypted: '${doc.fileName}'`);
     } else if (type === 'encrypted') {
       console.log('Decrypt entire file');
 
-      decryptFile(doc.fileName, rootPath, config);
+      await decryptFile(doc.fileName, rootPath, config);
       vscode.window.showInformationMessage(`File decrypted: '${doc.fileName}'`);
     }
     vscode.commands.executeCommand('workbench.action.files.revert');
@@ -148,29 +152,29 @@ const getTextType = (text: string) => {
   return text.indexOf('$ANSIBLE_VAULT;') === 0 ? 'encrypted' : 'plaintext';
 };
 
-const encryptInline = (
+const encryptInline = async (
   text: string,
   rootPath: string | undefined,
   vaultId: string,
   config: vscode.WorkspaceConfiguration
 ) => {
-  const tmpFilename = tmp.tmpNameSync();
-  fs.writeFileSync(tmpFilename, Buffer.from(text, 'utf8'));
+  const tmpFilename = await tmp.tmpName();
+  await fs.promises.writeFile(tmpFilename, Buffer.from(text, 'utf8'));
   console.log(`Wrote encrypted string to temporary file '${tmpFilename}'`);
 
   encryptFile(tmpFilename, rootPath, vaultId, config);
-  const encryptedText = fs.readFileSync(tmpFilename, 'utf8');
+  const encryptedText = await fs.promises.readFile(tmpFilename, 'utf8');
   console.log(`encryptedText == '${encryptedText}'`);
 
   if (!!tmpFilename) {
-    fs.unlinkSync(tmpFilename);
+    await fs.promises.unlink(tmpFilename);
     console.log(`Removed temporary file: '${tmpFilename}'`);
   }
 
   return encryptedText.trim();
 };
 
-const decryptInline = (
+const decryptInline = async (
   text: string,
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
@@ -181,16 +185,16 @@ const decryptInline = (
     .trim()
     .replace(/[^\S\r\n]+/gm, '');
 
-  const tmpFilename = tmp.tmpNameSync();
-  fs.writeFileSync(tmpFilename, Buffer.from(text, 'utf8'));
+  const tmpFilename = await tmp.tmpName();
+  await fs.promises.writeFile(tmpFilename, Buffer.from(text, 'utf8'));
   console.log(`Wrote encrypted string to temporary file '${tmpFilename}'`);
 
-  decryptFile(tmpFilename, rootPath, config);
-  const decryptedText = fs.readFileSync(tmpFilename, 'utf8');
+  await decryptFile(tmpFilename, rootPath, config);
+  const decryptedText = await fs.promises.readFile(tmpFilename, 'utf8');
   console.log(`decryptedText == '${decryptedText}'`);
 
   if (!!tmpFilename) {
-    fs.unlinkSync(tmpFilename);
+    await fs.promises.unlink(tmpFilename);
     console.log(`Removed temporary file: '${tmpFilename}'`);
   }
 
@@ -215,7 +219,7 @@ const encryptFile = (
   }
 };
 
-const decryptFile = (
+const decryptFile = async (
   f: string,
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
@@ -225,13 +229,13 @@ const decryptFile = (
   const cmd = `${config.executablePath} decrypt "${f}"`;
 
   if (!!rootPath) {
-    exec(cmd, { cwd: rootPath });
+    await exec(cmd, { cwd: rootPath });
   } else {
-    exec(cmd);
+    await exec(cmd);
   }
 };
 
-const exec = (cmd: string, opt = {}) => {
+const exec = async (cmd: string, opt = {}) => {
   console.log(`> ${cmd}`);
-  return cp.execSync(cmd, opt);
+  return await execAsync(cmd, opt);
 };

@@ -27,9 +27,9 @@ export type AnsibleVaultConfig = {
   };
 };
 
-export function scanAnsibleCfg(
+export async function scanAnsibleCfg(
   rootPath: string | undefined = undefined
-): string {
+): Promise<string | undefined> {
   /*
    * Reading order:
    * 1) ANSIBLE_CONFIG
@@ -50,7 +50,7 @@ export function scanAnsibleCfg(
   for (const cfgFile of cfgFiles) {
     const cfgPath = untildify(cfgFile);
 
-    const cfg = getValueByCfg(cfgPath);
+    const cfg = await getValueByCfg(cfgPath);
     if (!!cfg?.defaults?.vault_identity_list) {
       console.log(`Found 'defaults.vault_identity_list' within '${cfgPath}'`);
       return cfgPath;
@@ -58,18 +58,20 @@ export function scanAnsibleCfg(
   }
 
   console.log('Found no \'defaults.vault_identity_list\' within config files');
-  return '';
+  return undefined;
 }
 
-export function getValueByCfg(path: string): AnsibleVaultConfig | undefined {
+export async function getValueByCfg(
+  path: string
+): Promise<AnsibleVaultConfig | undefined> {
   console.log(`Reading '${path}'...`);
 
   if (!fs.existsSync(path)) {
     return undefined;
   }
 
-  const vault_identity_list =
-    ini.parse(fs.readFileSync(path, 'utf-8'))?.defaults?.vault_identity_list;
+  const vault_identity_list = ini.parse(await fs.promises.readFile(path, 'utf-8'))
+    ?.defaults?.vault_identity_list;
   if (!vault_identity_list) {
     return undefined;
   }
