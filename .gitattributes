@@ -1,3 +1,9 @@
 # Set default behavior to automatically normalize line endings.
-* text=auto
+*                 text=auto
 
+CHANGELOG.md      merge=union
+
+*.lock            text -diff
+package.json      text eol=lf
+package-lock.json text -diff
+yarn.lock         text -diff
