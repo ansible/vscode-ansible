@@ -66,7 +66,7 @@ export async function getValueByCfg(
 ): Promise<AnsibleVaultConfig | undefined> {
   console.log(`Reading '${path}'...`);
 
-  if (!fs.existsSync(path)) {
+  if (!fs.promises.access(path, fs.constants.R_OK)) {
     return undefined;
   }
 
