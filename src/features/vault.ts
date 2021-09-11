@@ -1,8 +1,6 @@
 import * as vscode from 'vscode';
 import * as utilAnsibleCfg from './utils/ansibleCfg';
-import * as tmp from 'tmp-promise';
 import * as cp from 'child_process';
-import * as fs from 'fs';
 import * as util from 'util';
 
 const execAsync = util.promisify(cp.exec);
@@ -88,7 +86,7 @@ export const toggleEncrypt = async (): Promise<void> => {
         return;
       }
 
-      const encryptedText = `!vault |\n${encryptInline(
+      const encryptedText = `${await encryptInline(
         text,
         rootPath,
         vaultId,
@@ -107,9 +105,11 @@ export const toggleEncrypt = async (): Promise<void> => {
       console.log('Decrypt selected text');
 
       const decryptedText = await decryptInline(text, rootPath, config);
-      editor.edit((editBuilder) => {
-        editBuilder.replace(selection, decryptedText);
-      });
+      if (!!decryptedText) {
+        editor.edit((editBuilder) => {
+          editBuilder.replace(selection, decryptedText);
+        });
+      }
     }
   } else {
     let content = '';
@@ -157,20 +157,10 @@ const encryptInline = async (
   vaultId: string,
   config: vscode.WorkspaceConfiguration
 ) => {
-  const tmpFilename = await tmp.tmpName();
-  await fs.promises.writeFile(tmpFilename, Buffer.from(text, 'utf8'));
-  console.log(`Wrote encrypted string to temporary file '${tmpFilename}'`);
-
-  encryptFile(tmpFilename, rootPath, vaultId, config);
-  const encryptedText = await fs.promises.readFile(tmpFilename, 'utf8');
+  const encryptedText = await encryptText(text, rootPath, vaultId, config);
   console.log(`encryptedText == '${encryptedText}'`);
 
-  if (!!tmpFilename) {
-    await fs.promises.unlink(tmpFilename);
-    console.log(`Removed temporary file: '${tmpFilename}'`);
-  }
-
-  return encryptedText.trim();
+  return encryptedText?.trim();
 };
 
 const decryptInline = async (
@@ -184,20 +174,57 @@ const decryptInline = async (
     .trim()
     .replace(/[^\S\r\n]+/gm, '');
 
-  const tmpFilename = await tmp.tmpName();
-  await fs.promises.writeFile(tmpFilename, Buffer.from(text, 'utf8'));
-  console.log(`Wrote encrypted string to temporary file '${tmpFilename}'`);
-
-  await decryptFile(tmpFilename, rootPath, config);
-  const decryptedText = await fs.promises.readFile(tmpFilename, 'utf8');
-  console.log(`decryptedText == '${decryptedText}'`);
-
-  if (!!tmpFilename) {
-    await fs.promises.unlink(tmpFilename);
-    console.log(`Removed temporary file: '${tmpFilename}'`);
-  }
-
+  const decryptedText = await decryptText(text, rootPath, config);
   return decryptedText;
+};
+
+const pipeTextThrougCmd = async (
+  text: string,
+  rootPath: string | undefined,
+  cmd: string
+): Promise<string | undefined> => {
+  return new Promise<string | undefined>((resolve, reject) => {
+    const child = !!rootPath ? cp.exec(cmd, { cwd: rootPath }) : cp.exec(cmd);
+    child.stdout?.setEncoding('utf8');
+    let outputText = '';
+    let errorText = '';
+    if (!child?.stdin || !child?.stdout || !child?.stderr) {
+      return undefined;
+    }
+
+    child.stdout.on('data', (data) => (outputText += data));
+    child.stderr.on('data', (data) => (errorText += data));
+
+    child.on('close', (code) => {
+      if (code !== 0) {
+        console.log(`error when running ansible-vault: ${errorText}`);
+        reject();
+      } else {
+        resolve(outputText);
+      }
+    });
+    child.stdin?.write(text);
+    child.stdin?.end();
+  });
+};
+
+const encryptText = async (
+  text: string,
+  rootPath: string | undefined,
+  vaultId: string,
+  config: vscode.WorkspaceConfiguration
+): Promise<string | undefined> => {
+  const cmd = `${config.executablePath} encrypt_string --encrypt-vault-id="${vaultId}"`;
+  return pipeTextThrougCmd(text, rootPath, cmd);
+};
+
+const decryptText = async (
+  text: string,
+  rootPath: string | undefined,
+  config: vscode.WorkspaceConfiguration
+): Promise<string | undefined> => {
+  const cmd = `${config.executablePath} decrypt`;
+  return pipeTextThrougCmd(text, rootPath, cmd);
 };
 
 const encryptFile = (
