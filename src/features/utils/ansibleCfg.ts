@@ -13,6 +13,7 @@ export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
 }
 
 export type AnsibleVaultConfig = {
+  path: string,
   defaults: {
     vault_identity_list: string;
   };
@@ -39,14 +40,15 @@ export async function scanAnsibleCfg(
   }
 
   const cfgPath = cfgFiles
-  	.map(cf => untildify(cf))
-  	.map(async cp => await getValueByCfg(cp))
-  	.find(cfg => !!cfg?.defaults?.vault_identity_list)
+    .map((cf) => untildify(cf))
+    .map(async (cp) => await getValueByCfg(cp))
+    .find(cfg => cfg.then((x) => !!x?.defaults?.vault_identity_list))
+    ?.then((x) => x?.path);
 
   console.log(
     typeof cfgPath != 'undefined'
-    : `Found 'defaults.vault_identity_list' within '${cfgPath}'`
-    ? "Found no 'defaults.vault_identity_list' within config files"
+    ? `Found 'defaults.vault_identity_list' within '${cfgPath}'`
+    : "Found no 'defaults.vault_identity_list' within config files"
   );
 
   return cfgPath;
@@ -68,6 +70,7 @@ export async function getValueByCfg(
   }
 
   return {
+    path: path ,
     defaults: { vault_identity_list },
   } as AnsibleVaultConfig;
 }
