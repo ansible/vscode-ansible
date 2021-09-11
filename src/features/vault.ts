@@ -158,7 +158,7 @@ const encryptInline = async (
   config: vscode.WorkspaceConfiguration
 ) => {
   const encryptedText = await encryptText(text, rootPath, vaultId, config);
-  console.log(`encryptedText == '${encryptedText}'`);
+  console.debug(`encryptedText == '${encryptedText}'`);
 
   return encryptedText?.trim();
 };
