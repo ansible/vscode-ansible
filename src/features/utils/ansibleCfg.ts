@@ -5,20 +5,11 @@ import * as ini from 'ini';
 
 // Get rootPath based on multi-workspace API
 export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
-  let rootPath: string | undefined = undefined;
-
-  if (!!vscode.workspace.workspaceFolders) {
-    rootPath = vscode.workspace.workspaceFolders?.[0]?.name;
+  if (typeof vscode.workspace.getWorkspaceFolder !== 'function') {
+      return vscode.workspace.workspaceFolders?.[0]?.name;
   }
 
-  if (typeof vscode.workspace.getWorkspaceFolder === 'function') {
-    const workspaceFolder =
-      vscode.workspace.getWorkspaceFolder(editorDocumentUri);
-
-    rootPath = workspaceFolder?.uri?.path;
-  }
-
-  return rootPath;
+  return vscode.workspace.getWorkspaceFolder(editorDocumentUri)?.uri?.path;
 }
 
 export type AnsibleVaultConfig = {
@@ -47,18 +38,18 @@ export async function scanAnsibleCfg(
     cfgFiles.unshift(process.env.ANSIBLE_CONFIG);
   }
 
-  for (const cfgFile of cfgFiles) {
-    const cfgPath = untildify(cfgFile);
+  const cfgPath = cfgFiles
+  	.map(cf => untildify(cf))
+  	.map(async cp => await getValueByCfg(cp))
+  	.find(cfg => !!cfg?.defaults?.vault_identity_list)
 
-    const cfg = await getValueByCfg(cfgPath);
-    if (!!cfg?.defaults?.vault_identity_list) {
-      console.log(`Found 'defaults.vault_identity_list' within '${cfgPath}'`);
-      return cfgPath;
-    }
-  }
+  console.log(
+    typeof cfgPath != 'undefined'
+    : `Found 'defaults.vault_identity_list' within '${cfgPath}'`
+    ? "Found no 'defaults.vault_identity_list' within config files"
+  );
 
-  console.log('Found no \'defaults.vault_identity_list\' within config files');
-  return undefined;
+  return cfgPath;
 }
 
 export async function getValueByCfg(

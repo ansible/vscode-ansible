@@ -16,8 +16,7 @@ async function askForVaultId(ansibleCfg: string) {
   } else {
     const cfg: utilAnsibleCfg.AnsibleVaultConfig | undefined =
       await utilAnsibleCfg.getValueByCfg(ansibleCfg);
-    identitySource =
-      typeof cfg === 'undefined' ? undefined : cfg.defaults.vault_identity_list;
+    identitySource = cfg?.defaults?.vault_identity_list;
   }
 
   if (!identitySource) {
