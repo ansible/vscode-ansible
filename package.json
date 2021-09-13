@@ -1,5 +1,5 @@
 {
-  "name": "ansible-language-server",
+  "name": "@ansible/ansible-language-server",
   "publisher": "RedHat Inc.",
   "displayName": "Ansible",
   "description": "Ansible language server",
