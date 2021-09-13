@@ -366,8 +366,8 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server",
-    "lint": "npm install --package-lock && npm ci && pre-commit run -a",
-    "package": "npm install && vsce package",
+    "lint": "npm ci && pre-commit run -a",
+    "package": "npm ci && vsce package",
     "prepare": "husky install",
     "pretest": "npm run compile && npm run lint",
     "vscode:prepublish": "npm run webpack",

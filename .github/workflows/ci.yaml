@@ -34,7 +34,7 @@ jobs:
         run: |
           pipx install pre-commit
           npm config set fund false
-          npm install
+          npm ci
 
       - name: Run lint
         run: npm run-script lint
@@ -51,3 +51,7 @@ jobs:
 
       - name: Run package
         run: npm run package
+
+      # extra safety measure that ensures code was not modified during build
+      - name: Ensure git does not report dirty
+        run: git diff --exit-code
