@@ -8,6 +8,20 @@ ci:
 
     for more information, see https://pre-commit.ci
 repos:
+  - repo: local
+    hooks:
+      - id: npm-ci
+        name: Run 'npm ci' to ensure deps are correct
+        entry: npm ci --ignore-scripts
+        language: node
+        files: "(package|package-lock).json$"
+        pass_filenames: false
+      - id: git-dirty
+        name: Check if git reports dirty
+        entry: git diff --exit-code
+        language: system
+        pass_filenames: false
+        always_run: true
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v4.0.1
     hooks:
