@@ -42,7 +42,10 @@ export async function scanAnsibleCfg(
   const cfgPath = cfgFiles
     .map((cf) => untildify(cf))
     .map(async (cp) => await getValueByCfg(cp))
-    .find((cfg) => cfg.then((x) => !!x?.defaults?.vault_identity_list))
+    .find(async (cfg) => {
+      const x = await cfg;
+      !!x?.defaults?.vault_identity_list;
+    })
     ?.then((x) => x?.path)
     .catch((err) => {
       console.log(err);
