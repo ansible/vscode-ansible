@@ -11,8 +11,11 @@ repos:
   - repo: local
     hooks:
       - id: npm-ci
-        name: Run 'npm ci' to ensure deps are correct
-        entry: npm ci --ignore-scripts
+        name: Run 'npm ci' to ensure deps and versions are correct
+        entry: >-
+          bash -c 'npm ci --ignore-scripts &&
+          npm version --allow-same-version --no-commit-hooks
+          --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
         language: node
         files: "(package|package-lock).json$"
         pass_filenames: false
