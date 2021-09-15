@@ -61,6 +61,9 @@ repos:
     rev: v7.31.0
     hooks:
       - id: eslint
+        args:
+          - --max-warnings
+          - "0"
         additional_dependencies:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
