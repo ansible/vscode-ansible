@@ -39,18 +39,15 @@ export async function scanAnsibleCfg(
     cfgFiles.unshift(process.env.ANSIBLE_CONFIG);
   }
 
-  const cfgPath = cfgFiles
-    .map((cf) => untildify(cf))
-    .map(async (cp) => await getValueByCfg(cp))
-    .find(async (cfg) => {
-      const x = await cfg;
-      !!x?.defaults?.vault_identity_list;
-    })
-    ?.then((x) => x?.path)
-    .catch((err) => {
-      console.log(err);
-      return undefined;
-    });
+  const cfgPath = (
+    await cfgFiles
+      .map((cf) => untildify(cf))
+      .map(async (cp) => await getValueByCfg(cp))
+      .find(async (cfg) => {
+        !!(await cfg)?.defaults?.vault_identity_list;
+      })
+      ?.catch(() => undefined)
+  )?.path;
 
   console.log(
     typeof cfgPath != 'undefined'
