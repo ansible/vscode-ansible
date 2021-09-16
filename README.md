@@ -1,5 +1,9 @@
 # Ansible Language Server
-This language server adds support for Ansible.
+This language server adds support for Ansible and is currently used by the
+following projects:
+
+* [Ansible extension for vscode/codium](https://github.com/ansible/vscode-ansible)
+* [Ansible extension for coc.nvim](https://github.com/yaegassy/coc-ansible)
 
 ### Getting started
 
