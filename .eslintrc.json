@@ -6,6 +6,7 @@
     "node": true
   },
   "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
+  "ignorePatterns": ["out"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": 2019,
@@ -15,6 +16,7 @@
   "rules": {
     "eqeqeq": ["error", "smart"],
     "prefer-template": "warn",
-    "quotes": ["warn", "single"]
+    "quotes": ["error", "single"],
+    "indent": ["error", 2]
   }
 }

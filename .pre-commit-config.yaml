@@ -65,6 +65,7 @@ repos:
     hooks:
       - id: eslint
         args:
+          - --fix
           - --max-warnings
           - "0"
         additional_dependencies:
