@@ -12,12 +12,12 @@ This language server adds support for Ansible.
 3. Install the dependencies
    ```bash
    cd ansible-language-server
-   $ yarn install
+   $ npm ci
    ```
 
 4. Build the language server
    ```bash
-   $ yarn run build
+   $ npm run compile
    ```
 
 5. The new built server is now located in ./out/server/src/server.js.

@@ -71,7 +71,6 @@
     "compile": "tsc -p .",
     "watch": "tsc --watch -p .",
     "test": "mocha --require ts-node/register './test/**/*.ts'",
-    "build": "yarn clean && yarn compile",
     "check-dependencies": "node ./scripts/check-dependencies.js"
   },
   "all": true

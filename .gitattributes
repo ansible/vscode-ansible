@@ -6,4 +6,3 @@ CHANGELOG.md      merge=union
 *.lock            text -diff
 package.json      text eol=lf
 package-lock.json text -diff
-yarn.lock         text -diff
