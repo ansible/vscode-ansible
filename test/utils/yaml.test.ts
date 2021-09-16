@@ -16,7 +16,7 @@ import {
 
 async function getYamlDoc(yamlFile: string) {
   const yaml = await fs.readFile(
-    path.resolve('server', 'src', 'test', 'data', 'utils', 'yaml', yamlFile),
+    path.resolve('test', 'data', 'utils', 'yaml', yamlFile),
     {
       encoding: 'utf8',
     }
