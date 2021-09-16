@@ -1,0 +1,138 @@
+---
+name: CI
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    name: Build
+
+    runs-on: Ubuntu-latest
+
+    steps:
+    - name: Fetch the src
+      uses: actions/checkout@v2
+    - name: >-
+        Set up NodeJS ${{ matrix.node-version }}
+        with the global NPM registry
+      uses: actions/setup-node@v2
+
+    - name: Build a package tarball artifact
+      run: npm pack
+
+    - name: Save the package tarball as a GHA artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: npm-package-tarball
+        path: >-
+          ansible-ansible-language-server-*.tgz
+
+  test:
+    needs:
+    - build
+
+    runs-on: ${{ matrix.os }}-latest
+
+    strategy:
+      matrix:
+        experimental:
+        - false
+        node-version:
+        - 16.x
+        - 14.x
+        - 12.x
+        os:
+        - Ubuntu
+        - macOS
+        include:
+        - experimental: true
+          node-version: 16
+          os: Windows
+        - experimental: true
+          node-version: 12
+          os: Windows
+
+    continue-on-error: ${{ matrix.experimental }}
+
+    steps:
+    - name: Fetch the GHA artifact with the package tarball
+      uses: actions/download-artifact@v2
+      with:
+        name: npm-package-tarball
+    - name: >-
+        Set up NodeJS ${{ matrix.node-version }}
+        with the global NPM registry
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: https://registry.npmjs.org
+    - name: Install the package
+      run: npm install -g ansible-ansible-language-server-*.tgz
+      shell: bash
+    - name: Uninstall the package
+      run: npm uninstall -g @ansible/ansible-language-server
+      shell: bash
+
+    - name: Clean up the checkout
+      run: rm -rfv *
+      shell: bash
+
+    - name: Fetch the src snapshot
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+
+    - name: Populate the test dependencies
+      run: npm ci
+    - name: Run testing against the Git checkout
+      run: npm test
+
+  publish:
+    environment: release
+    needs:
+    - test
+
+    runs-on: Ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version:
+        - 16.x
+
+    steps:
+    - name: Fetch the GHA artifact with the package tarball
+      uses: actions/upload-artifact@v2
+      with:
+        name: npm-package-tarball
+        path: .
+
+    - name: >-
+        Set up NodeJS ${{ matrix.node-version }}
+        with the global NPM registry
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: https://registry.npmjs.org
+    - name: >-
+        Publish the prebuilt and tested package
+        to public NPM Registry
+      run: npm publish ansible-ansible-language-server-*.tgz
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    - name: >-
+        Set up NodeJS ${{ matrix.node-version }}
+        with the GitHub Packages NPM registry
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: https://npm.pkg.github.com
+    - name: >-
+        Publish the prebuilt and tested package
+        to GitHub Packages NPM Registry
+      run: npm publish ansible-ansible-language-server-*.tgz
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+...
