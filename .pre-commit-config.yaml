@@ -1,0 +1,41 @@
+---
+ci:
+  # format compatible with commitlint
+  autoupdate_commit_msg: "chore: pre-commit autoupdate"
+  autoupdate_schedule: monthly
+  autofix_commit_msg: |
+    chore: auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+repos:
+  - repo: local
+    hooks:
+      - id: npm-ci
+        name: Run 'npm ci' to ensure deps and versions are correct
+        entry: >-
+          bash -c 'npm ci --ignore-scripts &&
+          npm version --allow-same-version --no-commit-hooks
+          --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
+        language: node
+        files: "(package|package-lock).json$"
+        pass_filenames: false
+      - id: git-dirty
+        name: Check if git reports dirty
+        entry: git diff --exit-code
+        language: system
+        pass_filenames: false
+        always_run: true
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
+    rev: v4.0.1
+    hooks:
+      - id: end-of-file-fixer
+        exclude: >
+          (?x)^(
+            syntaxes/.*
+          )$
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-byte-order-marker
+      - id: check-merge-conflict
+      - id: debug-statements
+        language_version: python3

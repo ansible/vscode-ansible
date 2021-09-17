@@ -70,6 +70,7 @@
   "scripts": {
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
+    "lint": "npm ci && pre-commit run -a",
     "watch": "tsc --watch -p .",
     "test": "mocha --require ts-node/register './test/**/*.ts'",
     "check-dependencies": "node ./scripts/check-dependencies.js"

@@ -63,7 +63,7 @@ body:
       render: shell
       placeholder: |
         $ ansible --version
-        ansible [core 2.11.1] 
+        ansible [core 2.11.1]
           config file = ~/.ansible.cfg
           configured module search path = ['~/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
           ansible python module location = ~/venv/ansible4/lib/python3.6/site-packages/ansible
