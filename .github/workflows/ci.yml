@@ -16,8 +16,8 @@ jobs:
       uses: actions/setup-node@v2
     - name: Install dependencies
       run: |
-          pipx install pre-commit
-          npm ci
+        pip3 install -r test-requirements.txt
+        npm ci
     - name: npm run lint
       run: npm run lint
 

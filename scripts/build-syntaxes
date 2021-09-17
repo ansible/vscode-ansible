@@ -1,0 +1,9 @@
+#!/bin/bash
+set -euo pipefail
+
+for SRC in syntaxes/ansible/*.plist; do
+
+    DST=$(basename "$(basename "$SRC" .plist)")
+    python3 syntaxes/plist2xml.py "$SRC" "syntaxes/ansible/generated/$DST"
+
+done
