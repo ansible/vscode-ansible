@@ -14,7 +14,9 @@ for (const dep in dependencies) {
   if (Object.prototype.hasOwnProperty.call(dependencies, dep)) {
     const version = dependencies[dep];
     if (version === 'next') {
-      console.error(`Dependency ${dep} has "${version}" version, please change it to fixed version`);
+      console.error(
+        `Dependency ${dep} has "${version}" version, please change it to fixed version`
+      );
       exit(1);
     }
   }
