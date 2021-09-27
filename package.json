@@ -134,15 +134,6 @@
           "default": "quay.io/ansible/ansible-navigator-demo-ee:0.6.0",
           "description": "Specify the name of the execution environment image."
         },
-        "ansible.executionEnvironment.environmentVariables.pass": {
-          "scope": "resource",
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "Specify an exiting environment variable to be passed through to and set within the execution environment."
-        },
         "ansible.executionEnvironment.pullPolicy": {
           "scope": "resource",
           "type": "array",
@@ -152,28 +143,8 @@
             "never",
             "tag"
           ],
-          "default": "tag",
+          "default": "missing",
           "description": "Specify the image pull policy.\nalways: Always pull the image when extension is activated or reloaded\nmissing: Pull if not locally available\nnever: Never pull the image\ntag: If the image tag is 'latest', always pull the image, otherwise pull if not locally available"
-        },
-        "ansible.executionEnvironment.environmentVariables.set": {
-          "scope": "resource",
-          "type": "array",
-          "items": {
-            "type": "object",
-            "title": "Specify name of environment variables and it's value",
-            "properties": {
-              "name": {
-                "type": "string",
-                "description": "Name of the environment variable."
-              },
-              "value": {
-                "type": "string",
-                "description": "Value to be set for the environment variable."
-              }
-            }
-          },
-          "default": [],
-          "description": "Specify an environment variable and a value to be set within the execution environment."
         },
         "ansible.ansibleLint.enabled": {
           "scope": "resource",
@@ -365,10 +336,7 @@
   },
   "dependencies": {
     "ansible-language-server": "^0.1.1-0",
-    "clean": "^4.0.2",
-    "uuid": "^8.3.2",
-    "vscode-languageclient": "^7.0.0",
-    "vscode-uri": "^3.0.2"
+    "vscode-languageclient": "^7.0.0"
   },
   "description": "Ansible language support",
   "devDependencies": {
