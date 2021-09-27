@@ -7,6 +7,9 @@ ci:
     chore: auto fixes from pre-commit.com hooks
 
     for more information, see https://pre-commit.ci
+  skip:
+    # https://github.com/pre-commit-ci/issues/issues/55
+    - npm-ci
 repos:
   - repo: local
     hooks:
