@@ -43,11 +43,11 @@ jobs:
       - name: Run build
         run: npm run compile
 
-      # # Run tests
-      # - name: Run test
-      #   uses: GabrielBB/xvfb-action@v1.0
-      #   with:
-      #     run: npm test
+      # Run tests
+      - name: Run test
+        uses: GabrielBB/xvfb-action@v1.0
+        with:
+          run: npm test
 
       - name: Run package
         run: npm run package
