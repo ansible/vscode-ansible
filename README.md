@@ -1,5 +1,5 @@
 # Ansible VS Code Extension by Red Hat
-This extension adds language support for Ansible to [Visual Studio Code](https://github.com/ansible/vscode-ansible#:~:text=marketplace.visualstudio.com/items%3Fitemname%3Dredhat.ansible) and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
+This extension adds language support for Ansible to [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible) and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
 ## Features
 
