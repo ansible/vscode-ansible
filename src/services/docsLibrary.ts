@@ -129,7 +129,9 @@ export class DocsLibrary {
       }
       if (!module.documentation) {
         // translate raw documentation into a typed structure
-        module.documentation = processRawDocumentation(module.rawDocumentation);
+        module.documentation = processRawDocumentation(
+          module.rawDocumentationFragments
+        );
       }
     }
     return [module, hitFqcn];

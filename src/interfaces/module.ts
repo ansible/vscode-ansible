@@ -22,7 +22,7 @@ export interface IModuleMetadata {
   namespace: string;
   collection: string;
   name: string;
-  rawDocumentation: Record<string, unknown>;
+  rawDocumentationFragments: Map<string, Record<string, unknown>>;
   documentation?: IModuleDocumentation;
   fragments?: IModuleMetadata[];
   errors: YAMLError[];

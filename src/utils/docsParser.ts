@@ -16,38 +16,54 @@ import {
   IPluginTypes,
 } from '../interfaces/pluginRouting';
 
+const DOCUMENTATION = 'DOCUMENTATION';
+
 export function processDocumentationFragments(
   module: IModuleMetadata,
   docFragments: Map<string, IModuleMetadata>
 ): void {
   module.fragments = [];
+  const mainDocumentationFragment =
+    module.rawDocumentationFragments.get(DOCUMENTATION);
   if (
-    hasOwnProperty(module.rawDocumentation, 'extends_documentation_fragment')
+    mainDocumentationFragment &&
+    hasOwnProperty(mainDocumentationFragment, 'extends_documentation_fragment')
   ) {
-    const docFragmentNames =
-      module.rawDocumentation.extends_documentation_fragment instanceof Array
-        ? module.rawDocumentation.extends_documentation_fragment
-        : [module.rawDocumentation.extends_documentation_fragment];
+    const docFragmentNames: string[] =
+      mainDocumentationFragment.extends_documentation_fragment instanceof Array
+        ? mainDocumentationFragment.extends_documentation_fragment
+        : [mainDocumentationFragment.extends_documentation_fragment];
     const resultContents = {};
     for (const docFragmentName of docFragmentNames) {
+      const fragmentNameArray = docFragmentName.split('.');
+      let fragmentPartName: string;
+      if (fragmentNameArray.length === 2 || fragmentNameArray.length === 4) {
+        fragmentPartName = fragmentNameArray.pop()?.toUpperCase() as string;
+      } else {
+        fragmentPartName = DOCUMENTATION;
+      }
+      const docFragmentCatalogueName = fragmentNameArray.join('.');
       const docFragment =
-        docFragments.get(docFragmentName) ||
-        docFragments.get(`ansible.builtin.${docFragmentName}`);
-      if (docFragment) {
+        docFragments.get(docFragmentCatalogueName) ||
+        docFragments.get(`ansible.builtin.${docFragmentCatalogueName}`);
+      if (
+        docFragment &&
+        docFragment.rawDocumentationFragments.has(fragmentPartName)
+      ) {
         module.fragments.push(docFragment); // currently used only as indicator
         _.mergeWith(
           resultContents,
-          docFragment.rawDocumentation,
+          docFragment.rawDocumentationFragments.get(fragmentPartName),
           docFragmentMergeCustomizer
         );
       }
     }
     _.mergeWith(
       resultContents,
-      module.rawDocumentation,
+      mainDocumentationFragment,
       docFragmentMergeCustomizer
     );
-    module.rawDocumentation = resultContents;
+    module.rawDocumentationFragments.set(DOCUMENTATION, resultContents);
   }
 }
 
@@ -65,9 +81,11 @@ function docFragmentMergeCustomizer(
 }
 
 export function processRawDocumentation(
-  rawDoc: unknown
+  moduleDocParts: Map<string, Record<string, unknown>>
 ): IModuleDocumentation | undefined {
-  if (isObject(rawDoc) && typeof rawDoc.module === 'string') {
+  // currently processing only the main documentation
+  const rawDoc = moduleDocParts.get(DOCUMENTATION);
+  if (rawDoc && typeof rawDoc.module === 'string') {
     const moduleDoc: IModuleDocumentation = {
       module: rawDoc.module,
       options: processRawOptions(rawDoc.options),
@@ -200,7 +218,7 @@ function parseRawDepracationOrTombstone(
 
 export class LazyModuleDocumentation implements IModuleMetadata {
   public static docsRegex =
-    /(?<pre>[ \t]*DOCUMENTATION\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/s;
+    /(?<pre>[ \t]*(?<name>[A-Z0-9_]+)\s*=\s*r?(?<quotes>'''|""")(?:\n---)?\n?)(?<doc>.*?)\k<quotes>/gs;
 
   source: string;
   sourceLineRange: [number, number] = [0, 0];
@@ -210,7 +228,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
   name: string;
   errors: YAMLError[] = [];
 
-  private _contents: Record<string, unknown> | undefined;
+  private _contents: Map<string, Record<string, unknown>> | undefined;
 
   constructor(
     source: string,
@@ -226,29 +244,37 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     this.name = name;
   }
 
-  public get rawDocumentation(): Record<string, unknown> {
+  public get rawDocumentationFragments(): Map<string, Record<string, unknown>> {
     if (!this._contents) {
+      this._contents = new Map<string, Record<string, unknown>>();
       const contents = fs.readFileSync(this.source, { encoding: 'utf8' });
-      const m = LazyModuleDocumentation.docsRegex.exec(contents);
-      if (m && m.groups && m.groups.doc && m.groups.pre) {
-        // determine documentation start/end lines for definition provider
-        let startLine = contents.substr(0, m.index).match(/\n/g)?.length || 0;
-        startLine += m.groups.pre.match(/\n/g)?.length || 0;
-        const endLine = startLine + (m.groups.doc.match(/\n/g)?.length || 0);
-        this.sourceLineRange = [startLine, endLine];
+      let m;
+      while ((m = LazyModuleDocumentation.docsRegex.exec(contents)) !== null) {
+        if (m && m.groups && m.groups.name && m.groups.doc && m.groups.pre) {
+          if (m.groups.name === DOCUMENTATION) {
+            // determine documentation start/end lines for definition provider
+            let startLine =
+              contents.substr(0, m.index).match(/\n/g)?.length || 0;
+            startLine += m.groups.pre.match(/\n/g)?.length || 0;
+            const endLine =
+              startLine + (m.groups.doc.match(/\n/g)?.length || 0);
+            this.sourceLineRange = [startLine, endLine];
+          }
 
-        const document = parseDocument(m.groups.doc);
-        // There's about 20 modules (out of ~3200) in Ansible 2.9 libs that contain YAML syntax errors
-        // Still, document.toJSON() works on them
-        this._contents = document.toJSON();
-        this.errors = document.errors;
+          const document = parseDocument(m.groups.doc);
+          // There's about 20 modules (out of ~3200) in Ansible 2.9 libs that contain YAML syntax errors
+          // Still, document.toJSON() works on them
+          this._contents.set(m.groups.name, document.toJSON());
+          this.errors = document.errors;
+        }
       }
-      this._contents = this._contents || {};
     }
     return this._contents;
   }
 
-  public set rawDocumentation(value: Record<string, unknown>) {
+  public set rawDocumentationFragments(
+    value: Map<string, Record<string, unknown>>
+  ) {
     this._contents = value;
   }
 }
