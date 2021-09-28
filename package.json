@@ -111,41 +111,6 @@
           "default": true,
           "description": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary."
         },
-        "ansible.executionEnvironment.containerEngine": {
-          "scope": "resource",
-          "type": "string",
-          "enum": [
-            "auto",
-            "podman",
-            "docker"
-          ],
-          "default": "auto",
-          "description": "Specify the container engine (auto=podman then docker)."
-        },
-        "ansible.executionEnvironment.enabled": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": false,
-          "description": "Enable or disable the use of an execution environment."
-        },
-        "ansible.executionEnvironment.image": {
-          "scope": "resource",
-          "type": "string",
-          "default": "quay.io/ansible/ansible-navigator-demo-ee:0.6.0",
-          "description": "Specify the name of the execution environment image."
-        },
-        "ansible.executionEnvironment.pullPolicy": {
-          "scope": "resource",
-          "type": "array",
-          "enum": [
-            "always",
-            "missing",
-            "never",
-            "tag"
-          ],
-          "default": "missing",
-          "description": "Specify the image pull policy.\nalways: Always pull the image when extension is activated or reloaded\nmissing: Pull if not locally available\nnever: Never pull the image\ntag: If the image tag is 'latest', always pull the image, otherwise pull if not locally available"
-        },
         "ansible.ansibleLint.enabled": {
           "scope": "resource",
           "type": "boolean",
@@ -181,6 +146,41 @@
             "string",
             "null"
           ]
+        },
+        "ansible.executionEnvironment.containerEngine": {
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "auto",
+            "podman",
+            "docker"
+          ],
+          "default": "auto",
+          "description": "Specify the container engine (auto=podman then docker)."
+        },
+        "ansible.executionEnvironment.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable the use of an execution environment."
+        },
+        "ansible.executionEnvironment.image": {
+          "scope": "resource",
+          "type": "string",
+          "default": "quay.io/ansible/ansible-navigator-demo-ee:0.6.0",
+          "description": "Specify the name of the execution environment image."
+        },
+        "ansible.executionEnvironment.pullPolicy": {
+          "scope": "resource",
+          "type": "array",
+          "enum": [
+            "always",
+            "missing",
+            "never",
+            "tag"
+          ],
+          "default": "missing",
+          "description": "Specify the image pull policy.\nalways: Always pull the image when extension is activated or reloaded\nmissing: Pull if not locally available\nnever: Never pull the image\ntag: If the image tag is 'latest', always pull the image, otherwise pull if not locally available"
         },
         "ansible.python.interpreterPath": {
           "scope": "resource",
