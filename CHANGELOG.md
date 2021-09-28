@@ -2,7 +2,7 @@
 
 ## 0.5.0 (UNRELEASED)
 
-* ...
+* Update default setting value to always use FQCN (#196)
 
 ## 0.4.5
 
