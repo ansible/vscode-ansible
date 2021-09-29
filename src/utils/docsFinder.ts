@@ -17,6 +17,9 @@ export async function findDocumentation(
     | 'builtin_doc_fragment'
     | 'collection_doc_fragment'
 ): Promise<IModuleMetadata[]> {
+  if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
+    return [];
+  }
   let files;
   switch (kind) {
     case 'builtin':
@@ -74,6 +77,9 @@ export async function findPluginRouting(
   kind: 'builtin' | 'collection'
 ): Promise<IPluginRoutingByCollection> {
   const pluginRouting = new Map<string, IPluginRoutesByType>();
+  if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
+    return pluginRouting;
+  }
   let files;
   switch (kind) {
     case 'builtin':
