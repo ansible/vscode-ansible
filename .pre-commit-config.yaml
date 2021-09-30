@@ -13,6 +13,16 @@ ci:
 repos:
   - repo: local
     hooks:
+      - id: build-syntaxes
+        name: Check the syntax files are in sync
+        entry: python scripts/build-syntaxes
+        language: python
+        pass_filenames: false
+        always_run: true
+        additional_dependencies:
+          - click
+          - lxml
+          - pyparsing
       - id: npm-ci
         name: Run 'npm ci' to ensure deps and versions are correct
         entry: >-

@@ -1,9 +1,14 @@
-#!/bin/bash
-set -euo pipefail
+#!/usr/bin/env python
+import glob
+import os
+import sys
+import subprocess
 
-for SRC in syntaxes/ansible/*.plist; do
-
-    DST=$(basename "$(basename "$SRC" .plist)")
-    python3 syntaxes/plist2xml.py "$SRC" "syntaxes/ansible/generated/$DST"
-
-done
+for src in glob.glob("syntaxes/ansible/*.plist"):
+    dst = os.path.splitext(os.path.basename(src))[0]
+    cmd = [sys.executable, "syntaxes/plist2xml.py", src, f"syntaxes/ansible/generated/{dst}"]
+    print(f"Running: {' '.join(cmd)}")
+    subprocess.run(
+        cmd,
+        check=True
+        )
