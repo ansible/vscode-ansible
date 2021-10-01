@@ -4,7 +4,6 @@ import {
   SideBarView,
   ViewControl,
   ExtensionsViewSection,
-  InputBox,
 } from 'vscode-extension-tester';
 
 /**
@@ -14,7 +13,6 @@ export function extensionUIAssetsTest(): void {
   describe('Verify base assets are available after installation', () => {
     let view: ViewControl;
     let sideBar: SideBarView;
-    let quickBox: InputBox;
 
     before(async function () {
       this.timeout(4000);
@@ -48,9 +46,6 @@ export function extensionUIAssetsTest(): void {
         if (await actionButton.isEnabled()) {
           await actionButton.click();
         }
-      }
-      if (quickBox && (await quickBox.isDisplayed())) {
-        await quickBox.cancel();
       }
     });
   });

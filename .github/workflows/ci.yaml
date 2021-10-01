@@ -49,12 +49,6 @@ jobs:
         with:
           run: npm test
 
-      # Run UI tests
-      - name: Run test
-        uses: GabrielBB/xvfb-action@v1.0
-        with:
-          run: npm run ui-test
-
       - name: Run package
         run: npm run package
 
