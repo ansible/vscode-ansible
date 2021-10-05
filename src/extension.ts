@@ -12,8 +12,10 @@ import {
 
 /* local */
 import { AnsiblePlaybookRunProvider } from './features/runner';
-import { getConflictingExtensions, showUninstallConflictsNotification } from './extensionConflicts';
-
+import {
+  getConflictingExtensions,
+  showUninstallConflictsNotification,
+} from './extensionConflicts';
 
 let client: LanguageClient;
 
@@ -25,7 +27,7 @@ export function activate(context: ExtensionContext): void {
   );
 
   // server is run at port 6009 for debugging
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
+  const debugOptions = { execArgv: ['--nolazy', '--inspect=6010'] };
 
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
