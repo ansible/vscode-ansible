@@ -21,7 +21,6 @@ jobs:
         - test
         - ui-test
         os: [macos-latest, windows-latest, ubuntu-latest]
-        
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
