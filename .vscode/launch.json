@@ -24,18 +24,18 @@
       "type": "node",
       "request": "attach",
       "timeout": 30000,
-      "port": 6009,
+      "port": 6010,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/out/server/**/*.js"]
+      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"]
     },
     {
       "name": "Attach to Server (source)",
       "type": "node",
       "request": "attach",
       "timeout": 30000,
-      "port": 6009,
+      "port": 6010,
       "restart": true,
-      "outFiles": ["${workspaceRoot}/out/server/**/*.js"],
+      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
       "preLaunchTask": "npm: watch:server"
     }
   ],
