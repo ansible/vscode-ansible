@@ -1,11 +1,9 @@
-import * as child_process from 'child_process';
 import * as ini from 'ini';
 import * as _ from 'lodash';
 import * as path from 'path';
-import { URI } from 'vscode-uri';
 import { Connection } from 'vscode-languageserver';
-import { withInterpreter } from '../utils/misc';
 import { WorkspaceFolderContext } from './workspaceManager';
+import { CommandRunner } from '../utils/commandRunner';
 
 export class AnsibleConfig {
   private connection: Connection;
@@ -25,21 +23,19 @@ export class AnsibleConfig {
         this.context.workspaceFolder.uri
       );
 
-      // get Ansible configuration
-      const [ansibleConfigCommand, ansibleConfigEnv] = withInterpreter(
-        `${settings.ansible.path}-config`,
-        'dump',
-        settings.python.interpreterPath,
-        settings.python.activationScript
+      const commandRunner = new CommandRunner(
+        this.connection,
+        this.context,
+        settings
       );
 
-      const ansibleConfigResult = child_process.execSync(ansibleConfigCommand, {
-        encoding: 'utf-8',
-        cwd: URI.parse(this.context.workspaceFolder.uri).path,
-        env: ansibleConfigEnv,
-      });
+      // get Ansible configuration
+      const ansibleConfigResult = await commandRunner.runCommand(
+        'ansible-config',
+        'dump'
+      );
 
-      let config = ini.parse(ansibleConfigResult);
+      let config = ini.parse(ansibleConfigResult.stdout);
       config = _.mapKeys(
         config,
         (_, key) => key.substring(0, key.indexOf('(')) // remove config source in parenthesis
@@ -47,19 +43,12 @@ export class AnsibleConfig {
       this._collection_paths = parsePythonStringArray(config.COLLECTIONS_PATHS);
 
       // get Ansible basic information
-      const [ansibleCommand, ansibleEnv] = withInterpreter(
-        `${settings.ansible.path}`,
-        '--version',
-        settings.python.interpreterPath,
-        settings.python.activationScript
+      const ansibleVersionResult = await commandRunner.runCommand(
+        'ansible',
+        '--version'
       );
 
-      const ansibleVersionResult = child_process.execSync(ansibleCommand, {
-        encoding: 'utf-8',
-        env: ansibleEnv,
-      });
-
-      const versionInfo = ini.parse(ansibleVersionResult);
+      const versionInfo = ini.parse(ansibleVersionResult.stdout);
       this._module_locations = parsePythonStringArray(
         versionInfo['configured module search path']
       );
@@ -71,18 +60,13 @@ export class AnsibleConfig {
 
       // get Python sys.path
       // this is needed to get the pre-installed collections to work
-      const [pythonPathCommand, pythonPathEnv] = withInterpreter(
+      const pythonPathResult = await commandRunner.runCommand(
         'python3',
-        ' -c "import sys; print(sys.path, end=\\"\\")"',
-        settings.python.interpreterPath,
-        settings.python.activationScript
+        ' -c "import sys; print(sys.path, end=\\"\\")"'
       );
-
-      const pythonPathResult = child_process.execSync(pythonPathCommand, {
-        encoding: 'utf-8',
-        env: pythonPathEnv,
-      });
-      this._collection_paths.push(...parsePythonStringArray(pythonPathResult));
+      this._collection_paths.push(
+        ...parsePythonStringArray(pythonPathResult.stdout)
+      );
     } catch (error) {
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
@@ -94,8 +78,16 @@ export class AnsibleConfig {
     }
   }
 
+  set collections_paths(updatedCollectionPath: string[]) {
+    this._collection_paths = updatedCollectionPath;
+  }
+
   get collections_paths(): string[] {
     return this._collection_paths;
+  }
+
+  set module_locations(updatedModulesPath: string[]) {
+    this._module_locations = updatedModulesPath;
   }
 
   get module_locations(): string[] {

@@ -1,3 +1,4 @@
+import { Connection } from 'vscode-languageserver';
 import { Node } from 'yaml/types';
 import { getDeclaredCollections } from '../utils/yaml';
 import { findDocumentation, findPluginRouting } from '../utils/docsFinder';
@@ -13,6 +14,7 @@ import {
 } from '../utils/docsParser';
 import { IModuleMetadata } from '../interfaces/module';
 export class DocsLibrary {
+  private connection: Connection;
   private modules = new Map<string, IModuleMetadata>();
   private _moduleFqcns = new Set<string>();
   private docFragments = new Map<string, IModuleMetadata>();
@@ -22,54 +24,72 @@ export class DocsLibrary {
     IPluginRoutesByType
   >();
 
-  constructor(context: WorkspaceFolderContext) {
+  constructor(connection: Connection, context: WorkspaceFolderContext) {
+    this.connection = connection;
     this.context = context;
   }
 
   public async initialize(): Promise<void> {
-    const ansibleConfig = await this.context.ansibleConfig;
-    for (const modulesPath of ansibleConfig.module_locations) {
-      (await findDocumentation(modulesPath, 'builtin')).forEach((doc) => {
-        this.modules.set(doc.fqcn, doc);
-        this.moduleFqcns.add(doc.fqcn);
-      });
-
-      (await findDocumentation(modulesPath, 'builtin_doc_fragment')).forEach(
-        (doc) => {
-          this.docFragments.set(doc.fqcn, doc);
-        }
+    try {
+      const settings = await this.context.documentSettings.get(
+        this.context.workspaceFolder.uri
       );
-    }
-
-    (
-      await findPluginRouting(ansibleConfig.ansible_location, 'builtin')
-    ).forEach((r, collection) => this.pluginRouting.set(collection, r));
-
-    for (const collectionsPath of ansibleConfig.collections_paths) {
-      (await findDocumentation(collectionsPath, 'collection')).forEach(
-        (doc) => {
+      const ansibleConfig = await this.context.ansibleConfig;
+      if (settings.executionEnvironment.enabled) {
+        // ensure plugin/module cache is established
+        await this.context.executionEnvironment;
+      }
+      for (const modulesPath of ansibleConfig.module_locations) {
+        (await findDocumentation(modulesPath, 'builtin')).forEach((doc) => {
           this.modules.set(doc.fqcn, doc);
           this.moduleFqcns.add(doc.fqcn);
-        }
-      );
+        });
+
+        (await findDocumentation(modulesPath, 'builtin_doc_fragment')).forEach(
+          (doc) => {
+            this.docFragments.set(doc.fqcn, doc);
+          }
+        );
+      }
 
       (
-        await findDocumentation(collectionsPath, 'collection_doc_fragment')
-      ).forEach((doc) => {
-        this.docFragments.set(doc.fqcn, doc);
-      });
+        await findPluginRouting(ansibleConfig.ansible_location, 'builtin')
+      ).forEach((r, collection) => this.pluginRouting.set(collection, r));
 
-      (await findPluginRouting(collectionsPath, 'collection')).forEach(
-        (r, collection) => this.pluginRouting.set(collection, r)
-      );
+      for (const collectionsPath of ansibleConfig.collections_paths) {
+        (await findDocumentation(collectionsPath, 'collection')).forEach(
+          (doc) => {
+            this.modules.set(doc.fqcn, doc);
+            this.moduleFqcns.add(doc.fqcn);
+          }
+        );
 
-      // add all valid redirect routes as possible FQCNs
-      for (const [collection, routesByType] of this.pluginRouting) {
-        for (const [name, route] of routesByType.get('modules') || []) {
-          if (route.redirect && !route.tombstone) {
-            this.moduleFqcns.add(`${collection}.${name}`);
+        (
+          await findDocumentation(collectionsPath, 'collection_doc_fragment')
+        ).forEach((doc) => {
+          this.docFragments.set(doc.fqcn, doc);
+        });
+
+        (await findPluginRouting(collectionsPath, 'collection')).forEach(
+          (r, collection) => this.pluginRouting.set(collection, r)
+        );
+
+        // add all valid redirect routes as possible FQCNs
+        for (const [collection, routesByType] of this.pluginRouting) {
+          for (const [name, route] of routesByType.get('modules') || []) {
+            if (route.redirect && !route.tombstone) {
+              this.moduleFqcns.add(`${collection}.${name}`);
+            }
           }
         }
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        this.connection.window.showErrorMessage(error.message);
+      } else {
+        this.connection.console.error(
+          `Exception in DocsLibrary service: ${JSON.stringify(error)}`
+        );
       }
     }
   }

@@ -16,6 +16,12 @@ export class SettingsManager {
     ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
     ansibleLint: { enabled: true, path: 'ansible-lint', arguments: '' },
     python: { interpreterPath: '', activationScript: '' },
+    executionEnvironment: {
+      containerEngine: 'auto',
+      enabled: false,
+      image: 'quay.io/ansible/ansible-navigator-demo-ee:0.6.0',
+      pullPolicy: 'missing'
+    }
   };
   private globalSettings: ExtensionSettings = this.defaultSettings;
 
