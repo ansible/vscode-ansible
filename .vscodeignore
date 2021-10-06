@@ -6,6 +6,7 @@ node_modules
 src
 tsconfig.json
 webpack.config.js
+test-resources
 
 out/**
 !out/client/extension.js

@@ -17,6 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        npm-target:
+        - test
+        - ui-test
         os: [macos-latest, windows-latest, ubuntu-latest]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -47,7 +50,10 @@ jobs:
       - name: Run test
         uses: GabrielBB/xvfb-action@v1.0
         with:
-          run: npm test
+          run: >-
+            npm
+            ${{ matrix.npm-target != 'test' && 'run' || '' }}
+            ${{ matrix.npm-target }}
 
       - name: Run package
         run: npm run package
