@@ -21,6 +21,10 @@
     "Programming Languages",
     "Linters"
   ],
+  "config": {
+    "code_version": "latest",
+    "storage": "test-resources"
+  },
   "contributors": [
     {
       "name": "Tomasz Maciążek",
@@ -407,8 +411,9 @@
     "package": "npm ci && vsce package",
     "prepare": "husky install",
     "pretest": "npm run compile && npm run lint",
-    "test": "extest get-vscode && extest install-vsix",
-    "ui-test": "extest setup-and-run -i out/client/ui-test/allTestsSuite.js",
+    "test": "extest get-vscode && extest install-vsix -c $npm_config_code_version -s $npm_config_storage",
+    "ui-test": "npm run test -- --code_version=$npm_config_code_version --storage=$npm_config_storage && extest setup-and-run -c $npm_config_code_version -s $npm_config_storage -i out/client/ui-test/allTestsSuite.js",
+    "ui-test-oldest": "npm run ui-test -- --code_version=1.26.1 --storage=test-resources-oldest",
     "vscode:prepublish": "npm run webpack",
     "watch": "tsc -b -w",
     "watch:server": "tsc -p ../ansible-language-server --outDir out/server -w",
