@@ -29,6 +29,9 @@ export class ExecutionEnvironment {
       const settings = await this.context.documentSettings.get(
         this.context.workspaceFolder.uri
       );
+      if (!settings.executionEnvironment.enabled) {
+        return;
+      }
       this._container_image = settings.executionEnvironment.image;
       this._container_engine = settings.executionEnvironment.containerEngine;
       if (this._container_engine === 'auto') {
