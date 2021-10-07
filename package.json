@@ -29,6 +29,9 @@
     {
       "email": "ssbarnea@redhat.com",
       "name": "Sorin Sbarnea"
+    },
+    {
+      "name": "Ansible Devtools"
     }
   ],
   "yamlValidation": [
