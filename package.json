@@ -403,10 +403,10 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
-    "lint": "npm ci && pre-commit run -a",
+    "lint": "pre-commit run -a",
     "package": "npm ci && vsce package",
     "prepare": "husky install",
-    "pretest": "npm run compile && npm run lint",
+    "pretest": "npm run compile",
     "test": "extest get-vscode && extest install-vsix",
     "ui-test": "extest setup-and-run -i out/client/ui-test/allTestsSuite.js",
     "vscode:prepublish": "npm run webpack",
