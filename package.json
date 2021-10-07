@@ -31,7 +31,9 @@
       "name": "Sorin Sbarnea"
     },
     {
-      "name": "Ansible Devtools"
+      "email": "info@ansible.com",
+      "name": "Ansible DevTools Team and Community Contributors",
+      "url": "https://github.com/ansible/vscode-ansible/graphs/contributors",
     }
   ],
   "yamlValidation": [
