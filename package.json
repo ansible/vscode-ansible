@@ -33,7 +33,7 @@
     {
       "email": "info@ansible.com",
       "name": "Ansible DevTools Team and Community Contributors",
-      "url": "https://github.com/ansible/vscode-ansible/graphs/contributors",
+      "url": "https://github.com/ansible/vscode-ansible/graphs/contributors"
     }
   ],
   "yamlValidation": [
