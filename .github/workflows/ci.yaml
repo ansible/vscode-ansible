@@ -22,6 +22,9 @@ jobs:
         - test
         - ui-test
         os: [macos-latest, windows-latest, ubuntu-latest]
+        include:
+          - npm-target: lint
+            os: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -40,15 +43,12 @@ jobs:
           npm config set fund false
           npm ci
 
-      - name: Run lint
-        run: npm run-script lint
-
       # Build extension
       - name: Run build
         run: npm run compile
 
       # Run tests
-      - name: Run test
+      - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.0
         with:
           run: >-
