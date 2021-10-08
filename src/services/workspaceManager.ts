@@ -8,6 +8,7 @@ import {
 } from 'vscode-languageserver';
 import { AnsibleConfig } from './ansibleConfig';
 import { AnsibleLint } from './ansibleLint';
+import { AnsiblePlaybook } from './ansiblePlaybook';
 import { DocsLibrary } from './docsLibrary';
 import { ExecutionEnvironment } from './executionEnvironment';
 import { MetadataLibrary } from './metadataLibrary';
@@ -113,6 +114,7 @@ export class WorkspaceFolderContext {
   private _docsLibrary: Thenable<DocsLibrary> | undefined;
   private _ansibleConfig: Thenable<AnsibleConfig> | undefined;
   private _ansibleLint: AnsibleLint | undefined;
+  private _ansiblePlaybook: AnsiblePlaybook | undefined;
 
   constructor(
     connection: Connection,
@@ -178,6 +180,13 @@ export class WorkspaceFolderContext {
       this._ansibleLint = new AnsibleLint(this.connection, this);
     }
     return this._ansibleLint;
+  }
+
+  public get ansiblePlaybook(): AnsiblePlaybook {
+    if (!this._ansiblePlaybook) {
+      this._ansiblePlaybook = new AnsiblePlaybook(this.connection, this);
+    }
+    return this._ansiblePlaybook;
   }
 
   public get executionEnvironment(): Thenable<ExecutionEnvironment> {

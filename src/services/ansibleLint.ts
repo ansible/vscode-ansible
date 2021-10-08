@@ -50,14 +50,19 @@ export class AnsibleLint {
    */
   public async doValidate(
     textDocument: TextDocument
-  ): Promise<Map<string, Diagnostic[]>> {
+  ): Promise<Map<string, Diagnostic[]> | -1> {
     let diagnostics: Map<string, Diagnostic[]> = new Map();
 
     const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
 
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
-    if (settings.ansibleLint.enabled) {
+    if (!settings.ansibleLint.enabled) {
+      console.debug(
+        'Ansible-lint is disabled. Falling back to ansible syntax-check'
+      );
+      return;
+    } else {
       let linterArguments = settings.ansibleLint.arguments;
 
       // Determine linter config file
@@ -132,6 +137,7 @@ export class AnsibleLint {
             );
           } else {
             this.connection.window.showErrorMessage(execError.message);
+            return -1;
           }
 
           if (execError.stderr) {

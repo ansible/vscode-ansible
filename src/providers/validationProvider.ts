@@ -1,6 +1,7 @@
 import IntervalTree from '@flatten-js/interval-tree';
 import * as _ from 'lodash';
 import {
+  Connection,
   Diagnostic,
   DiagnosticRelatedInformation,
   DiagnosticSeverity,
@@ -11,6 +12,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ValidationManager } from '../services/validationManager';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
 import { parseAllDocuments } from '../utils/yaml';
+import { getExecutablePath } from '../utils/misc';
 
 /**
  * Validates the given document.
@@ -23,7 +25,8 @@ export async function doValidate(
   textDocument: TextDocument,
   validationManager: ValidationManager,
   quick = true,
-  context?: WorkspaceFolderContext
+  context?: WorkspaceFolderContext,
+  connection?: Connection
 ): Promise<Map<string, Diagnostic[]>> {
   let diagnosticsByFile;
   if (quick || !context) {
@@ -32,8 +35,34 @@ export async function doValidate(
       validationManager.getValidationFromCache(textDocument.uri) ||
       new Map<string, Diagnostic[]>();
   } else {
-    // full validation with ansible-lint
-    diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
+    // full validation with ansible-lint or ansible syntax-check (if ansible-lint is not installed or disabled)
+
+    const settings = await context.documentSettings.get(textDocument.uri);
+
+    const lintAvailability = await getExecutablePath(settings.ansibleLint.path);
+    console.debug('Path for lint: ', lintAvailability);
+
+    if (lintAvailability) {
+      console.debug('Validating using ansible-lint');
+      diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
+    }
+
+    if (!diagnosticsByFile || !lintAvailability || diagnosticsByFile === -1) {
+      // Notifying the user about the failed ansible-lint command and falling back to ansible syntax-check in this scenario
+      if (diagnosticsByFile === -1) {
+        console.debug(
+          'Ansible-lint command execution failed. Falling back to ansible syntax-check'
+        );
+        connection.window.showInformationMessage(
+          'Falling back to ansible syntax-check.'
+        );
+      }
+      console.debug('Validating using ansible syntax-check');
+      diagnosticsByFile = await context.ansiblePlaybook.doValidate(
+        textDocument
+      );
+    }
+
     if (!diagnosticsByFile.has(textDocument.uri)) {
       // In case there are no diagnostics for the file that triggered the
       // validation, set an empty array in order to clear the validation.

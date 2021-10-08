@@ -81,3 +81,23 @@ export function withInterpreter(
     return [command, undefined];
   }
 }
+
+/**
+ * A method to return the path to the provided executable
+ * @param executable String representing the name of the executable
+ * @returns Complete path of the executable (string) or undefined depending updon the presence of the executable
+ */
+export async function getExecutablePath(
+  executable: string
+): Promise<string> | undefined {
+  const exec = promisify(child_process.exec);
+
+  try {
+    const executablePath = await exec(`which ${executable}`, {
+      encoding: 'utf-8',
+    });
+    return executablePath.stdout;
+  } catch (error) {
+    return;
+  }
+}

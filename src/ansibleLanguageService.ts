@@ -143,7 +143,13 @@ export class AnsibleLanguageService {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           // perform full validation
-          await doValidate(e.document, this.validationManager, false, context);
+          await doValidate(
+            e.document,
+            this.validationManager,
+            false,
+            context,
+            this.connection
+          );
         }
       } catch (error) {
         this.handleError(error, 'onDidOpen');
@@ -177,7 +183,13 @@ export class AnsibleLanguageService {
         const context = this.workspaceManager.getContext(e.document.uri);
         if (context) {
           // perform full validation
-          await doValidate(e.document, this.validationManager, false, context);
+          await doValidate(
+            e.document,
+            this.validationManager,
+            false,
+            context,
+            this.connection
+          );
         }
       } catch (error) {
         this.handleError(error, 'onDidSave');
@@ -201,7 +213,8 @@ export class AnsibleLanguageService {
           e.document,
           this.validationManager,
           true,
-          this.workspaceManager.getContext(e.document.uri)
+          this.workspaceManager.getContext(e.document.uri),
+          this.connection
         );
       } catch (error) {
         this.handleError(error, 'onDidChangeContent');
