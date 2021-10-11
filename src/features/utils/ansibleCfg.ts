@@ -52,7 +52,7 @@ export async function scanAnsibleCfg(
   console.log(
     typeof cfgPath != 'undefined'
       ? `Found 'defaults.vault_identity_list' within '${cfgPath}'`
-      : "Found no 'defaults.vault_identity_list' within config files"
+      : 'Found no \'defaults.vault_identity_list\' within config files'
   );
 
   return cfgPath;
