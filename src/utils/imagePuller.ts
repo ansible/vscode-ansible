@@ -45,9 +45,9 @@ export class ImagePuller {
         const pullCommand = `${this._containerEngine} pull ${this._containerImage}`;
         if (progressTracker) {
           progressTracker.begin(
-            'image-puller',
+            'execution-environment',
             undefined,
-            `Pulling image '${this._containerImage}'`
+            'Pulling Ansible execution environment image...'
           );
         }
         child_process.execSync(pullCommand, {
