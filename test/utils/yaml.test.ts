@@ -38,7 +38,39 @@ async function getPathInFile(
   );
 }
 
+function isWindows() {
+  // win32 applies to x64 arch too, is the platform name
+  return process.platform === 'win32';
+}
+
 describe('yaml', () => {
+
+  beforeEach(function () {
+    const brokenTests = new Map([
+      ['canGetCollections', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canGetCollectionsFromPreTasks', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canGetCollectionsFromRescue', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canGetCollectionsFromAlways', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canCorrectlyNegateTaskParamForValue', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canCorrectlyConfirmTaskParamInPreTasks', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canCorrectlyConfirmTaskParamInTasks', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canCorrectlyConfirmTaskParamInBlock', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['isUndecisiveWithoutPlayKeywords', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['isUndecisiveWithoutPlayKeywordsWithoutPath', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      ['canCorrectlyConfirmRoleParam', 'https://github.com/ansible/ansible-language-server/issues/26'],
+    ])
+    const reason = brokenTests.get(this.currentTest.title);
+    if (isWindows() && reason) {
+      const msg = `Marked ${this.currentTest.title} as pending due to ${reason}`;
+      if (process.env.GITHUB_ACTIONS) {
+        console.log(`::warning file=${this.currentTest.file}:: ${msg}`);
+      } else {
+        console.log(`🚩 ${msg}`);
+      }
+      this.currentTest.pending = true;
+    }
+  });
+
   describe('ancestryBuilder', () => {
     it('canGetParent', async () => {
       const path = await getPathInFile('ancestryBuilder.yml', 4, 7);
