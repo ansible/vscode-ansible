@@ -57,6 +57,9 @@ export async function doCompletion(
   preparedText = insert(preparedText, offset, '_:');
   const yamlDocs = parseAllDocuments(preparedText);
 
+  const useFqcn = (await context.documentSettings.get(document.uri)).ansible
+    .useFullyQualifiedCollectionNames;
+
   // We need inclusive matching, since cursor position is the position of the character right after it
   // NOTE: Might no longer be required due to the hack above
   const path = getPathAt(document, position, yamlDocs, true);
@@ -136,11 +139,15 @@ export async function doCompletion(
               }
               const [namespace, collection, name] = moduleFqcn.split('.');
               return {
-                label: name,
+                label: useFqcn ? moduleFqcn : name,
                 kind: kind,
                 detail: `${namespace}.${collection}`,
-                sortText: `${priority}_${name}`,
-                filterText: `${name} ${moduleFqcn}`, // name should have priority
+                sortText: useFqcn
+                  ? `${priority}_${moduleFqcn}`
+                  : `${priority}_${name}`,
+                filterText: useFqcn
+                  ? `${name} ${moduleFqcn} ${collection} ${namespace}` // name should have highest priority (in case of FQCN)
+                  : `${name} ${moduleFqcn}`, // name should have priority (in case of no FQCN)
                 data: {
                   documentUri: document.uri, // preserve document URI for completion request
                   moduleFqcn: moduleFqcn,
