@@ -1,9 +1,7 @@
-import * as child_process from 'child_process';
 import { ExecException } from 'child_process';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { URI } from 'vscode-uri';
-import { promisify } from 'util';
 import {
   Connection,
   Diagnostic,
@@ -15,9 +13,9 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { parseAllDocuments } from 'yaml';
 import { IAnsibleLintConfig } from '../interfaces/ansibleLintConfig';
-import { fileExists, hasOwnProperty, withInterpreter } from '../utils/misc';
+import { fileExists, hasOwnProperty } from '../utils/misc';
 import { WorkspaceFolderContext } from './workspaceManager';
-const exec = promisify(child_process.exec);
+import { CommandRunner } from '../utils/commandRunner';
 
 /**
  * Acts as and interface to ansible-lint and a cache of its output.
@@ -54,7 +52,7 @@ export class AnsibleLint {
     let diagnostics: Map<string, Diagnostic[]> = new Map();
 
     const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
-
+    const mountPaths = new Set([workingDirectory]);
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
     if (!settings.ansibleLint.enabled) {
@@ -78,11 +76,13 @@ export class AnsibleLint {
         if (ansibleLintConfigFile) {
           ansibleLintConfigPath = URI.parse(ansibleLintConfigFile).path;
           linterArguments = `${linterArguments} -c "${ansibleLintConfigPath}"`;
+          mountPaths.add(path.dirname(ansibleLintConfigPath));
         }
       }
       linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
 
       const docPath = URI.parse(textDocument.uri).path;
+      mountPaths.add(path.dirname(docPath));
       let progressTracker;
       if (this.useProgressTracker) {
         progressTracker = await this.connection.window.createWorkDoneProgress();
@@ -90,6 +90,12 @@ export class AnsibleLint {
       const ansibleLintConfigPromise = this.getAnsibleLintConfig(
         workingDirectory,
         ansibleLintConfigPath
+      );
+
+      const commandRunner = new CommandRunner(
+        this.connection,
+        this.context,
+        settings
       );
 
       try {
@@ -101,18 +107,14 @@ export class AnsibleLint {
           );
         }
 
-        const [command, env] = withInterpreter(
-          settings.ansibleLint.path,
+        // get Ansible configuration
+        const result = await commandRunner.runCommand(
+          'ansible-lint',
           `${linterArguments} "${docPath}"`,
-          settings.python.interpreterPath,
-          settings.python.activationScript
+          workingDirectory,
+          mountPaths
         );
 
-        const result = await exec(command, {
-          encoding: 'utf-8',
-          cwd: workingDirectory,
-          env: env,
-        });
         diagnostics = this.processReport(
           result.stdout,
           await ansibleLintConfigPromise,

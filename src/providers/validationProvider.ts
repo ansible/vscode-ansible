@@ -12,7 +12,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ValidationManager } from '../services/validationManager';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
 import { parseAllDocuments } from '../utils/yaml';
-import { getExecutablePath } from '../utils/misc';
+import { CommandRunner } from '../utils/commandRunner';
 
 /**
  * Validates the given document.
@@ -38,8 +38,13 @@ export async function doValidate(
     // full validation with ansible-lint or ansible syntax-check (if ansible-lint is not installed or disabled)
 
     const settings = await context.documentSettings.get(textDocument.uri);
-
-    const lintAvailability = await getExecutablePath(settings.ansibleLint.path);
+    const commandRunner = new CommandRunner(connection, context, settings);
+    const lintExecutable = settings.executionEnvironment.enabled
+      ? 'ansible-lint'
+      : settings.ansibleLint.path;
+    const lintAvailability = await commandRunner.getExecutablePath(
+      lintExecutable
+    );
     console.debug('Path for lint: ', lintAvailability);
 
     if (lintAvailability) {

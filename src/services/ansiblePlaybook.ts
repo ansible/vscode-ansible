@@ -1,6 +1,6 @@
 import * as child_process from 'child_process';
+import * as path from 'path';
 import { URI } from 'vscode-uri';
-import { promisify } from 'util';
 import {
   Connection,
   Diagnostic,
@@ -9,10 +9,8 @@ import {
   Range,
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { withInterpreter } from '../utils/misc';
 import { WorkspaceFolderContext } from './workspaceManager';
-
-const exec = promisify(child_process.exec);
+import { CommandRunner } from '../utils/commandRunner';
 
 /**
  * Acts as an interface to ansible-playbook command.
@@ -54,7 +52,7 @@ export class AnsiblePlaybook {
         };
 
     const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
-
+    const mountPaths = new Set([workingDirectory, path.dirname(docPath)]);
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
     progressTracker.begin(
@@ -63,19 +61,19 @@ export class AnsiblePlaybook {
       'Processing files...'
     );
 
-    const [command, env] = withInterpreter(
-      `${settings.ansible.path}-playbook`,
-      `${docPath} --syntax-check`,
-      settings.python.interpreterPath,
-      settings.python.activationScript
+    const commandRunner = new CommandRunner(
+      this.connection,
+      this.context,
+      settings
     );
-
     try {
-      await exec(command, {
-        encoding: 'utf-8',
-        cwd: workingDirectory,
-        env: env,
-      });
+      // run ansible playbook syntax-check
+      await commandRunner.runCommand(
+        'ansible-playbook',
+        `${docPath} --syntax-check`,
+        workingDirectory,
+        mountPaths
+      );
     } catch (error) {
       if (error instanceof Error) {
         const execError = error as child_process.ExecException & {
@@ -84,11 +82,13 @@ export class AnsiblePlaybook {
           stderr: string;
         };
 
-        // This is the regex to extract the filename, line and column number from the strerr produced by syntax-check command
+        // This is the regex to extract the filename, line and column number from the stderr produced by syntax-check command
         const ansibleSyntaxCheckRegex =
           /The error appears to be in '(?<filename>.*)': line (?<line>\d+), column (?<column>\d+)/;
 
-        const filteredErrorMessage = ansibleSyntaxCheckRegex.exec(execError.stderr);
+        const filteredErrorMessage = ansibleSyntaxCheckRegex.exec(
+          execError.stderr
+        );
 
         diagnostics = filteredErrorMessage
           ? this.processReport(
