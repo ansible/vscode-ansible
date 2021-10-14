@@ -4,8 +4,144 @@ name: CI
 on:
   pull_request:
   push:
+  workflow_dispatch:
+    inputs:
+      release-version:
+        # github.event_name == 'workflow_dispatch'
+        # && github.event.inputs.release-version
+        description: >-
+          Target Semver-compliant version to release.
+          Please, don't prepend `v`.
+        required: true
+      release-commitish:
+        # github.event_name == 'workflow_dispatch'
+        # && github.event.inputs.release-commitish
+        default: ''
+        description: >-
+          The commit to be released to Npmjs and tagged
+          in Git as `release-version`. Normally, you
+          should keep this empty.
+      YOLO:
+        default: false
+        description: >-
+          Flag whether test results should block the
+          release (true/false). Only use this under
+          extraordinary circumstances to ignore the
+          test failures and cut the release regardless.
 
 jobs:
+
+  pre-setup:
+    name: Pre-set global build settings
+    runs-on: Ubuntu-latest
+    defaults:
+      run:
+        shell: python
+    outputs:
+      dist-version: >-
+        ${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-version
+        }}
+      dist-public-version: >-
+        ${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-public-version
+        }}
+      is-untagged-devel: >-
+        ${{ steps.untagged-check.outputs.is-untagged-devel || false }}
+      release-requested: >-
+        ${{
+            steps.request-check.outputs.release-requested || false
+        }}
+      git-tag: ${{ steps.git-tag.outputs.tag }}
+      tarball-artifact-name: ${{ steps.artifact-name.outputs.filename }}
+      version-patch-name: ${{ steps.patch-name.outputs.filename }}
+    steps:
+    - name: Switch to using Python 3.10 by default
+      uses: actions/setup-python@v2.2.2
+      with:
+        python-version: '3.10'
+    - name: >-
+        Mark the build as untagged '${{
+            github.event.repository.default_branch
+        }}' branch build
+      id: untagged-check
+      if: >-
+        github.event_name == 'push' &&
+        github.ref == format(
+          'refs/heads/{0}', github.event.repository.default_branch
+        )
+      run: >-
+        print('::set-output name=is-untagged-devel::true')
+    - name: Mark the build as "release request"
+      id: request-check
+      if: github.event_name == 'workflow_dispatch'
+      run: >-
+        print('::set-output name=release-requested::true')
+    - name: Check out src from Git
+      if: >-
+        steps.request-check.outputs.release-requested != 'true'
+      uses: actions/checkout@v2.3.4
+      with:
+        fetch-depth: 0  # To have all the tags
+        ref: ${{ github.event.inputs.release-commitish }}
+    - name: Drop Git tags from HEAD for non-tag-create events
+      if: >-
+        steps.request-check.outputs.release-requested != 'true'
+      run: >-
+        git tag --points-at HEAD
+        |
+        xargs git tag --delete
+      shell: bash
+    - name: Set up versioning prerequisites
+      if: >-
+        steps.request-check.outputs.release-requested != 'true'
+      run: >-
+        python -m
+        pip install
+        --user
+        dunamai
+      shell: bash
+    - name: Set the current dist version
+      if: steps.request-check.outputs.release-requested != 'true'
+      id: scm-version
+      run: |
+        import dunamai
+        scm_ver = dunamai.Version.from_git()
+        ver = scm_ver.serialize(style=dunamai.Style.SemVer)
+        ver_no_local = scm_ver.serialize(
+            metadata=False,
+            style=dunamai.Style.SemVer,
+        )
+        print(f'::set-output name=dist-version::{ver}')
+        print(f'::set-output name=dist-public-version::{ver_no_local}')
+    - name: Set the target Git tag
+      id: git-tag
+      run: >-
+        print('::set-output name=tag::v${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-version
+        }}')
+    - name: Set the expected tarball artifact name
+      id: artifact-name
+      run: |
+        print('::set-output name=filename::ansible-ansible-language-server-${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-public-version
+        }}.tgz')
+    - name: Set the expected version patch filename
+      id: patch-name
+      run: |
+        print('::set-output name=filename::0001-Release-${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-public-version
+        }}-from-GitHub-Actions-CI-CD.patch')
 
   lint:
     runs-on: Ubuntu-latest
@@ -23,16 +159,43 @@ jobs:
 
   build:
     name: Build
+    needs:
+    - pre-setup  # transitive, for accessing settings
 
     runs-on: Ubuntu-latest
 
     steps:
     - name: Fetch the src
       uses: actions/checkout@v2
+    - name: Setup git user as [bot]
+      run: >
+        git config --local user.email
+        'github-actions[bot]@users.noreply.github.com'
+
+        git config --local user.name 'github-actions[bot]'
     - name: >-
         Set up NodeJS ${{ matrix.node-version }}
         with the global NPM registry
       uses: actions/setup-node@v2
+
+    - name: >-
+        Bump the package version to ${{
+          needs.pre-setup.outputs.dist-version
+        }}
+      run: >-
+        npm version '${{ needs.pre-setup.outputs.dist-version }}'
+        -m 'Release %s from GitHub Actions CI/CD'
+    - name: Log how the metadata has unchanged
+      run: git show --color=always
+    - name: Create a version bump patch from the last Git commit
+      run: git format-patch -1 HEAD
+    - name: Verify that expected patch got created
+      run: ls -1 ${{ needs.pre-setup.outputs.version-patch-name }}
+    - name: Save the package bump patch as a GHA artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: npm-package-bump-patch
+        path: ${{ needs.pre-setup.outputs.version-patch-name }}
 
     - name: Build a package tarball artifact
       run: npm pack
@@ -41,12 +204,12 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: npm-package-tarball
-        path: >-
-          ansible-ansible-language-server-*.tgz
+        path: ${{ needs.pre-setup.outputs.tarball-artifact-name }}
 
   test:
     needs:
     - build
+    - pre-setup  # transitive, for accessing settings
 
     runs-on: ${{ matrix.os }}-latest
 
@@ -69,7 +232,16 @@ jobs:
           node-version: 12
           os: Windows
 
-    continue-on-error: ${{ matrix.experimental }}
+    continue-on-error: >-
+      ${{
+          (
+            (
+              needs.pre-setup.outputs.release-requested == 'true' &&
+              !toJSON(github.event.inputs.YOLO)
+            ) ||
+            matrix.experimental
+          ) && true || false
+      }}
 
     steps:
     - name: Fetch the GHA artifact with the package tarball
@@ -83,10 +255,13 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         registry-url: https://registry.npmjs.org
-    - name: Install the package
-      run: npm install -g ansible-ansible-language-server-*.tgz
+    - name: >-
+        Install the `${{
+          needs.pre-setup.outputs.tarball-artifact-name
+        }}` package
+      run: npm install -g ${{ needs.pre-setup.outputs.tarball-artifact-name }}
       shell: bash
-    - name: Uninstall the package
+    - name: Uninstall the `@ansible/ansible-language-server` package
       run: npm uninstall -g @ansible/ansible-language-server
       shell: bash
 
@@ -98,56 +273,142 @@ jobs:
       uses: actions/checkout@v2
       with:
         fetch-depth: 1
+        ref: ${{ github.event.inputs.release-commitish }}
+    - name: Setup git user as [bot]
+      run: >
+        git config --local user.email
+        'github-actions[bot]@users.noreply.github.com'
+
+        git config --local user.name 'github-actions[bot]'
+    - name: Fetch the GHA artifact with the version patch
+      uses: actions/download-artifact@v2
+      with:
+        name: npm-package-bump-patch
+
+    - name: Apply the version patch
+      run: git am ${{ needs.pre-setup.outputs.version-patch-name }}
+    - name: Drop the version patch file
+      run: rm -fv ${{ needs.pre-setup.outputs.version-patch-name }}
+      shell: bash
 
     - name: Populate the test dependencies
       run: npm ci
     - name: Run testing against the Git checkout
       run: npm test
 
-  publish:
-    environment: release
+  publish-npmjs:
+    name: Publish to Npmjs
+    if: fromJSON(needs.pre-setup.outputs.release-requested)
+    environment:
+      name: release
+      url: >-
+        https://www.npmjs.com/package/@ansible/ansible-language-server/v/${{
+          needs.pre-setup.outputs.dist-public-version
+        }}
     needs:
+    - pre-setup  # transitive, for accessing settings
     - test
 
     runs-on: Ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version:
-        - 16.x
-
     steps:
     - name: Fetch the GHA artifact with the package tarball
-      uses: actions/upload-artifact@v2
+      uses: actions/download-artifact@v2
       with:
         name: npm-package-tarball
-        path: .
 
     - name: >-
         Set up NodeJS ${{ matrix.node-version }}
         with the global NPM registry
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ matrix.node-version }}
         registry-url: https://registry.npmjs.org
+
     - name: >-
         Publish the prebuilt and tested package
+        `${{ needs.pre-setup.outputs.tarball-artifact-name }}`
         to public NPM Registry
-      run: npm publish ansible-ansible-language-server-*.tgz
+      run: >-
+        npm publish
+        --public
+        ${{ needs.pre-setup.outputs.tarball-artifact-name }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-    - name: >-
-        Set up NodeJS ${{ matrix.node-version }}
-        with the GitHub Packages NPM registry
+  publish-ghpnr:
+    name: Publish to GHPNR
+    if: >-
+      fromJSON(needs.pre-setup.outputs.is-untagged-devel) ||
+      fromJSON(needs.pre-setup.outputs.release-requested)
+    needs:
+    - pre-setup  # transitive, for accessing settings
+    - test
+    permissions:
+      contents: read
+      packages: write
+
+    runs-on: Ubuntu-latest
+
+    steps:
+    - name: Fetch the GHA artifact with the package tarball
+      uses: actions/download-artifact@v2
+      with:
+        name: npm-package-tarball
+
+    - name: Set up NodeJS with the GitHub Packages NPM registry
       uses: actions/setup-node@v2
       with:
-        node-version: ${{ matrix.node-version }}
         registry-url: https://npm.pkg.github.com
+
     - name: >-
         Publish the prebuilt and tested package
+        `${{ needs.pre-setup.outputs.tarball-artifact-name }}`
         to GitHub Packages NPM Registry
-      run: npm publish ansible-ansible-language-server-*.tgz
+      run: >-
+        npm publish
+        --public
+        ${{ needs.pre-setup.outputs.tarball-artifact-name }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  post-release-repo-update:
+    name: Publish post-release meta
+    needs:
+    - pre-setup  # transitive, for accessing settings
+    - publish-npmjs
+
+    runs-on: Ubuntu-latest
+
+    steps:
+    - name: Fetch the src snapshot
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        ref: ${{ github.event.inputs.release-commitish }}
+    - name: Setup git user as [bot]
+      run: >
+        git config --local user.email
+        'github-actions[bot]@users.noreply.github.com'
+
+        git config --local user.name 'github-actions[bot]'
+    - name: Fetch the GHA artifact with the version patch
+      uses: actions/download-artifact@v2
+      with:
+        name: npm-package-bump-patch
+
+    - name: Apply the version patch
+      run: git am ${{ needs.pre-setup.outputs.version-patch-name }}
+    - name: Drop the version patch file
+      run: rm -fv ${{ needs.pre-setup.outputs.version-patch-name }}
+
+    - name: >-
+        Tag the release in the local Git repo
+        as ${{ needs.pre-setup.outputs.git-tag }}
+      run: git tag ${{ needs.pre-setup.outputs.version-patch-name }} HEAD
+    - name: >-
+        Push ${{ needs.pre-setup.outputs.git-tag }} tag corresponding
+        to the just published release back to GitHub
+      if: fromJSON(needs.pre-setup.outputs.release-requested)
+      run: >-
+        git push --atomic origin '${{ needs.pre-setup.outputs.git-tag }}'
 ...
