@@ -4,6 +4,7 @@
 
 * Update default setting value to always use FQCN (#196)
 * Detect incompatible extensions and prompt to remove them.
+* Lower minimal vscode version to 1.48.0
 
 ## 0.4.5
 
