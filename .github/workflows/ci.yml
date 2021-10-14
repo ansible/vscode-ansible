@@ -99,11 +99,10 @@ jobs:
     - name: Set up versioning prerequisites
       if: >-
         steps.request-check.outputs.release-requested != 'true'
-      run: >-
-        python -m
-        pip install
-        --user
-        dunamai
+      run: |
+        python -m pip config set global.disable-pip-version-check true
+        python -m pip install --user --upgrade pip
+        python -m pip install --user dunamai
       shell: bash
     - name: Set the current dist version
       if: steps.request-check.outputs.release-requested != 'true'
@@ -152,7 +151,9 @@ jobs:
       uses: actions/setup-node@v2
     - name: Install dependencies
       run: |
-        pip3 install -r test-requirements.txt
+        python -m pip config set global.disable-pip-version-check true
+        python -m pip install --user --upgrade pip
+        python -m pip install -r test-requirements.txt
         npm ci
     - name: npm run lint
       run: npm run lint
