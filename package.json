@@ -379,7 +379,7 @@
   "engineStrict": true,
   "engines": {
     "node": ">=16.0",
-    "npm": "^7.12.1",
+    "npm": ">=7.12.1",
     "vscode": "^1.48.0",
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
   },
