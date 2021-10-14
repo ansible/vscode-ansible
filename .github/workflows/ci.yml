@@ -216,8 +216,6 @@ jobs:
 
     strategy:
       matrix:
-        experimental:
-        - false
         node-version:
         - 16.x
         - 14.x
@@ -226,11 +224,9 @@ jobs:
         - Ubuntu
         - macOS
         include:
-        - experimental: true
-          node-version: 16
+        - node-version: 16
           os: Windows
-        - experimental: true
-          node-version: 12
+        - node-version: 12
           os: Windows
 
     continue-on-error: >-
