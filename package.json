@@ -21,6 +21,10 @@
     "Programming Languages",
     "Linters"
   ],
+  "config": {
+    "//": "Oldest version known to work. Be careful updating as it is mentioned in multiple places.",
+    "min_vscode": "1.48.0"
+  },
   "contributors": [
     {
       "name": "Tomasz Maciążek",
@@ -351,7 +355,7 @@
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.2.3",
     "@types/node": "^14.17.5",
-    "@types/vscode": "^1.56.0",
+    "@types/vscode": "^1.48.0",
     "@typescript-eslint/eslint-plugin": "^4.28.3",
     "@typescript-eslint/parser": "^4.28.3",
     "chai": "^4.3.4",
@@ -376,7 +380,7 @@
   "engines": {
     "node": ">=16.0",
     "npm": ">=7.12.1",
-    "vscode": "^1.56.0",
+    "vscode": "^1.48.0",
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
   },
   "extensionDependencies": [
@@ -414,6 +418,7 @@
     "pretest": "npm run compile",
     "test": "extest get-vscode && extest install-vsix",
     "ui-test": "extest setup-and-run -i out/client/ui-test/allTestsSuite.js",
+    "ui-test-oldest": "extest setup-and-run -c 1.48.0 -s test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",
     "vscode:prepublish": "npm run webpack",
     "watch": "tsc -b -w",
     "watch:server": "tsc -p ../ansible-language-server --outDir out/server -w",
