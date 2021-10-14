@@ -47,14 +47,10 @@ jobs:
       - name: Run build
         run: npm run compile
 
-      # Run tests
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.0
         with:
-          run: >-
-            npm
-            ${{ matrix.npm-target != 'test' && 'run' || '' }}
-            ${{ matrix.npm-target }}
+          run: npm run ${{ matrix.npm-target }}
 
       - name: Run package
         run: npm run package
