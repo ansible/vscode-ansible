@@ -64,7 +64,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v7.31.0
+    rev: v7.32.0
     hooks:
       - id: eslint
         args:
@@ -74,8 +74,10 @@ repos:
         additional_dependencies:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
-          - eslint
+          - eslint@v7.32.0
+          - eslint-plugin-prettier
           - eslint-config-prettier
+          - prettier
           - typescript
           - typescript-eslint
         files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
