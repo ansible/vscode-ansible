@@ -13,19 +13,37 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    name: "${{ matrix.npm-target }} @${{ matrix.os }}"
+    name: "${{ matrix.name }}"
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        npm-target:
-        - ui-test
-        - ui-test-oldest
-        os: [macos-11, windows-latest, ubuntu-latest]
         include:
-          - npm-target: lint
+          # linux:
+          - name: lint
+            npm-target: lint
             os: ubuntu-latest
             upload-artifact: true
+          - name: ui-test
+            os: ubuntu-latest
+            npm-target: ui-test
+          - name: ui-test-oldest
+            os: ubuntu-latest
+            npm-target: ui-test-oldest
+          # macos:
+          - name: ui-test (macos)
+            os: macos-11
+            npm-target: ui-test
+          - name: ui-test-oldest (macos)
+            os: macos-11
+            npm-target: ui-test-oldest
+          # windows:
+          - name: ui-test (windows)
+            os: windows-latest
+            npm-target: ui-test
+          - name: ui-test-oldest (windows)
+            os: windows-latest
+            npm-target: ui-test-oldest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
