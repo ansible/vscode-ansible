@@ -1,5 +1,6 @@
 .ignore/
 node_modules
 *.vsix
+*.tgz
 out/server
 tsconfig.tsbuildinfo
