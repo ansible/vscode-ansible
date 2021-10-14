@@ -26,6 +26,7 @@ jobs:
         include:
           - npm-target: lint
             os: ubuntu-latest
+            upload-artifact: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -55,6 +56,14 @@ jobs:
 
       - name: Run package
         run: npm run package
+
+      - name: Publish vsix artifact
+        if: ${{ github.event.number && matrix.upload-artifact }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ansible-extension-from-pr-${{ github.event.number }}.vsix
+          path: ansible-*.vsix
+          retention-days: 15
 
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
