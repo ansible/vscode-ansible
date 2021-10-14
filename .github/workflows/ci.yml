@@ -404,11 +404,10 @@ jobs:
     - name: >-
         Tag the release in the local Git repo
         as ${{ needs.pre-setup.outputs.git-tag }}
-      run: git tag ${{ needs.pre-setup.outputs.version-patch-name }} HEAD
+      run: git tag ${{ needs.pre-setup.outputs.git-tag }} HEAD
     - name: >-
         Push ${{ needs.pre-setup.outputs.git-tag }} tag corresponding
         to the just published release back to GitHub
-      if: fromJSON(needs.pre-setup.outputs.release-requested)
       run: >-
         git push --atomic origin '${{ needs.pre-setup.outputs.git-tag }}'
 ...
