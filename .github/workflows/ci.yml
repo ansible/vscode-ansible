@@ -330,7 +330,7 @@ jobs:
         to public NPM Registry
       run: >-
         npm publish
-        --public
+        --access public
         ${{ needs.pre-setup.outputs.tarball-artifact-name }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -366,7 +366,7 @@ jobs:
         to GitHub Packages NPM Registry
       run: >-
         npm publish
-        --public
+        --access public
         ${{ needs.pre-setup.outputs.tarball-artifact-name }}
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
