@@ -212,22 +212,39 @@ jobs:
     - build
     - pre-setup  # transitive, for accessing settings
 
-    runs-on: ${{ matrix.os }}-latest
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        node-version:
-        - 16.x
-        - 14.x
-        - 12.x
-        os:
-        - Ubuntu
-        - macOS
         include:
-        - node-version: 16
-          os: Windows
-        - node-version: 12
-          os: Windows
+        # linux
+        - name: test-node12-linux
+          node-version: 12
+          os: ubuntu-latest
+        - name: test-node14-linux
+          node-version: 14
+          os: ubuntu-latest
+        - name: test-node16-linux
+          node-version: 16
+          os: ubuntu-latest
+        # macos
+        - name: test-node12-macos
+          node-version: 12
+          os: macos-11
+        - name: test-node14-macos
+          node-version: 14
+          os: macos-11
+        - name: test-node16-macos
+          node-version: 16
+          os: macos-11
+        # windows
+        - name: test-node12-windows
+          node-version: 12
+          os: windows-latest
+        - name: test-node16-windows
+          node-version: 16
+          os: windows-latest
 
     continue-on-error: >-
       ${{
