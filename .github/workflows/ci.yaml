@@ -21,7 +21,7 @@ jobs:
         npm-target:
         - ui-test
         - ui-test-oldest
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        os: [macos-11, windows-latest, ubuntu-latest]
         include:
           - npm-target: lint
             os: ubuntu-latest
