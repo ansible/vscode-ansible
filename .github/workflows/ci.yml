@@ -37,6 +37,8 @@ jobs:
     defaults:
       run:
         shell: python
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     outputs:
       dist-version: >-
         ${{
@@ -100,7 +102,6 @@ jobs:
       if: >-
         steps.request-check.outputs.release-requested != 'true'
       run: |
-        python -m pip config set global.disable-pip-version-check true
         python -m pip install --user --upgrade pip
         python -m pip install --user dunamai
       shell: bash
@@ -143,6 +144,8 @@ jobs:
         }}-from-GitHub-Actions-CI-CD.patch')
 
   lint:
+    env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
     runs-on: Ubuntu-latest
     steps:
     - name: Fetch the src
@@ -151,7 +154,6 @@ jobs:
       uses: actions/setup-node@v2
     - name: Install dependencies
       run: |
-        python -m pip config set global.disable-pip-version-check true
         python -m pip install --user --upgrade pip
         python -m pip install -r test-requirements.txt
         npm ci
