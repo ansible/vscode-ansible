@@ -1,13 +1,20 @@
+**/.ignore
 .*
 .*/**
-**/.ignore
+CHANGELOG.md
+Jenkinsfile
+commitlint.config.js
 doc
 node_modules
 src
+syntaxes/README.md
+test-resources
+test-resources-oldest
 tsconfig.json
 webpack.config.js
-test-resources
 
+images/**
+!images/logo.png
 out/**
 !out/client/extension.js
 server/**
