@@ -59,9 +59,11 @@ jobs:
       # Run install dependencies
       - name: Install dependencies
         run: |
+          set -ex
           pipx install pre-commit
           npm config set fund false
           npm ci
+        shell: bash
 
       # Build extension
       - name: Run build
