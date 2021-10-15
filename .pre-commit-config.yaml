@@ -9,14 +9,17 @@ ci:
     for more information, see https://pre-commit.ci
   skip:
     # https://github.com/pre-commit-ci/issues/issues/55
-    - npm-ci
+    - npm-sanity
 repos:
   - repo: local
     hooks:
-      - id: npm-ci
-        name: Run 'npm ci' to ensure deps and versions are correct
+      - id: npm-sanity
+        name: Ensure package.json and package-lock.json are valid and in sync
+        # `npm ci` does install deps but fails to update locked engines, thus
+        # running `npm install --production` produces a better result, as it
+        # will update engines if needed.
         entry: >-
-          bash -c 'npm ci --ignore-scripts &&
+          bash -c 'npm install --production --ignore-scripts &&
           npm version --allow-same-version --no-commit-hooks
           --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
         language: node
