@@ -344,7 +344,7 @@
     ]
   },
   "dependencies": {
-    "ansible-language-server": "^0.1.1-0",
+    "@ansible/ansible-language-server": "^0.2.1-beta",
     "vscode-languageclient": "^7.0.0"
   },
   "description": "Ansible language support",
@@ -410,7 +410,7 @@
     "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
-    "compile": "tsc -b && copyfiles -u 4 'node_modules/ansible-language-server/out/server/**/*' out/server",
+    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "lint": "pre-commit run -a",
     "package": "npm ci && vsce package",

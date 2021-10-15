@@ -14,7 +14,7 @@ const config = {
   },
   entry: {
     client: './src/extension.ts',
-    server: './node_modules/ansible-language-server/out/server/src/server.js',
+    server: './node_modules/@ansible/ansible-language-server/out/server/src/server.js',
   },
   output: {
     filename: (pathData) => {
