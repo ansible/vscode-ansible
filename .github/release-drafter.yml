@@ -1,6 +1,6 @@
 # Format and labels used aim to match those used by Ansible project
-name-template: "$RESOLVED_VERSION"
-tag-template: "$RESOLVED_VERSION"
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
 categories:
   - title: "Major Changes"
     labels:
