@@ -410,10 +410,11 @@
     "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
+    "code": "code --install-extension *.vsix",
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "lint": "pre-commit run -a",
-    "package": "npm ci && vsce package",
+    "package": "npm ci && vsce package && vsce ls",
     "prepare": "husky install",
     "pretest": "npm run compile",
     "ui-test": "extest setup-and-run -i out/client/ui-test/allTestsSuite.js",
