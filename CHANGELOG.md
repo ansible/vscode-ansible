@@ -2,9 +2,28 @@
 
 ## 0.5.0 (UNRELEASED)
 
-* Update default setting value to always use FQCN (#196)
-* Detect incompatible extensions and prompt to remove them.
-* Lower minimal vscode version to 1.48.0
+* feat: update ansible-language-server version (#228) @ganeshrn
+* feat: lower minimal vscode version to 1.48.0 (July 2020) (#206) @ssbarnea
+* feat: introduce ui tests based on vscode-extension-tester (#208) @odockal
+* feat: add setting options for execution environment (#200) @ganeshrn
+* feat: prompt to uninstall incompatible extensions (#170) @ssbarnea
+* feat: update default setting value for using FQCN (#196) @priyamsahoo
+* feat: add context menus and commands for running playbooks (#137) @webknjaz
+* feat: rename extension to redhat.ansible (#159) @ssbarnea
+* feat: adopt the new language server (#142) @tomaciazek
+* fix: remove unused files from vsix artifact (#239) @ssbarnea
+* fix: upgrade language server to 0.2.2-beta (#238) @ssbarnea
+* fix: ensure path related settings are not synced (#235) @ssbarnea
+* fix: update npm dependencies (#220) @ssbarnea
+* fix: bump nth-check dependency to 2.0.1 (#219) @ssbarnea
+* fix: switch debug listening port to fix unbound breakpoints (#212) @tomaciazek
+* fix: update dependencies (#192) @ssbarnea
+* fix: restore schema verification for some files (#169) @ssbarnea
+* docs: update readme with language server link (#173) @ganeshrn
+* chore: updated urls after org move (#161) @ssbarnea
+* fix: restore redhat branded extension icon (#157) @ssbarnea
+* fix: switch publisher from zbr to redhat (#136) @ssbarnea
+* Remove an unused i18n string "categroy" (#138) @webknjaz
 
 ## 0.4.5
 
