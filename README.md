@@ -1,9 +1,11 @@
 # Ansible VS Code Extension by Red Hat
+
 This extension adds language support for Ansible to [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible) and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
 ## Features
 
 ### Syntax highlighting
+
 ![Syntax highlighting](images/syntax-highlighting.png)
 
 **Ansible keywords**, **module names** and **module options**, as well as
@@ -18,11 +20,13 @@ curly braces.
 > default will do better.
 
 ### Validation
+
 ![YAML validation](images/yaml-validation.gif)
 
 While you type, the syntax of your Ansible scripts is verified and any feedback is provided instantaneously.
 
 #### Integration with ansible-lint
+
 ![Linter support](images/ansible-lint.gif)
 
 On opening and saving a document, `ansible-lint` is executed in the background
@@ -32,11 +36,13 @@ rules/tags added to `warn_list`
 are shown as warnings instead.
 
 ### Smart autocompletion
+
 ![Autocompletion](images/smart-completions.gif)
 
 The extension tries to detect whether the cursor is on a play, block or task
 etc. and provides suggestions accordingly. There are also a few other rules that
 improve user experience:
+
 - the `name` property is always suggested first
 - on module options, the required properties are shown first, and aliases are shown last, otherwise ordering from the documentation is preserved
 - FQCNs (fully qualified collection names) are inserted only when necessary;
@@ -45,6 +51,7 @@ improve user experience:
   are honored. This behavior can be disabled in extension settings.
 
 #### Auto-closing Jinja expressions
+
 ![Easier Jinja expression typing](images/jinja-expression.gif)
 
 When writing a Jinja expression, you only need to type `"{{ `, and it will be
@@ -52,6 +59,7 @@ mirrored behind the cursor (including the space). You can also select the whole
 expression and press `space` to put spaces on both sides of the expression.
 
 ### Documentation reference
+
 ![Documentation on hover](images/hover-documentation-module.png)
 
 Documentation is available on hover for Ansible keywords, modules and module
@@ -59,6 +67,7 @@ options. The extension works on the same principle as `ansible-doc`, providing
 the documentation straight from the Python implementation of the modules.
 
 #### Jump to module code
+
 ![Go to code on Ctrl+click](images/go-to-definition.gif)
 
 You may also open the implementation of any module using the standard *Go to
@@ -66,6 +75,7 @@ Definition* operation, for instance, by clicking on the module name while
 holding `ctrl`/`cmd`.
 
 ## Requirements
+
 - [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
 - [Ansible Lint](https://ansible-lint.readthedocs.io/en/latest/) (required,
   unless you disable linter support; install without `yamllint`)
@@ -76,6 +86,7 @@ For Windows users, this extension works perfectly well with extensions such as
 > If you have any other extension providing language support for Ansible, you might need to uninstall it first.
 
 ## Configuration
+
 This extension supports multi-root workspaces, and as such, can be configured on
 any level (User, Remote, Workspace and/or Folder).
 
@@ -84,10 +95,22 @@ any level (User, Remote, Workspace and/or Folder).
   fully qualified collection names (FQCN) when inserting a module name.
   Disabling it will only use FQCNs when necessary, that is when the collection
   isn't configured for the task.
-- `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
-- `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleLint.arguments`: Optional command line arguments to be
   appended to `ansible-lint` invocation. See `ansible-lint` documentation.
+- `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
+- `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
+- `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
+- `ansible.ansiblePlaybook.path`: Path to the `ansible-playbook` executable.
+- `ansible.executionEnvironment.containerEngine`: The container engine to be used
+  while running with execution environment. Valid values are `auto`, `podman` and
+  `docker`. For `auto` it will look for `podman` then `docker`.
+- `ansible.executionEnvironment.enabled`: Enable or disable the use of an
+   execution environment.
+- `ansible.executionEnvironment.image`: Specify the name of the execution environment image.
+- `ansible.executionEnvironment.pullPolicy`: Specify the image pull policy. Valid values are `always`,
+  `missing`, `never` and `tag`. Setting `always` will always pull the image when extension is activated or reloaded.
+  Setting `missing` will pull if not locally available. Setting `never` will never pull the image and setting
+  tag will always pull if the image tag is 'latest', otherwise pull if not locally available.
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.
@@ -96,6 +119,7 @@ any level (User, Remote, Workspace and/or Folder).
   environment.
 
 ## Known limitations
+
 - The shorthand syntax for module options (key=value pairs) is not supported.
 - Nested module options are not supported yet.
 - Only Jinja *expressions* inside Ansible YAML files are supported. In order to
@@ -104,4 +128,5 @@ any level (User, Remote, Workspace and/or Folder).
 - Jinja *blocks* (inside Ansible YAML files) are not supported yet.
 
 ## Credit
+
 Based on the good work done by [Tomasz Maciążek](https://github.com/tomaciazek/vscode-ansible)
