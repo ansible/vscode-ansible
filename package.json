@@ -114,7 +114,7 @@
       "title": "Ansible",
       "properties": {
         "ansible.ansible.path": {
-          "scope": "resource",
+          "scope": "machine-overridable",
           "type": "string",
           "default": "ansible",
           "description": "Path to the ansible executable."
@@ -138,7 +138,7 @@
           "description": "Enable linting with ansible-lint on document open/save."
         },
         "ansible.ansibleLint.path": {
-          "scope": "resource",
+          "scope": "machine-overridable",
           "type": "string",
           "default": "ansible-lint",
           "description": "Path to the ansible-lint executable."
@@ -197,7 +197,7 @@
           "description": "Specify the image pull policy.\nalways: Always pull the image when extension is activated or reloaded\nmissing: Pull if not locally available\nnever: Never pull the image\ntag: If the image tag is 'latest', always pull the image, otherwise pull if not locally available"
         },
         "ansible.python.activationScript": {
-          "scope": "resource",
+          "scope": "machine-overridable",
           "type": "string",
           "default": "",
           "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. If set, the Interpreter Path setting is ignored."
@@ -212,7 +212,7 @@
           ]
         },
         "ansible.python.interpreterPath": {
-          "scope": "resource",
+          "scope": "machine-overridable",
           "type": "string",
           "default": "",
           "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
@@ -358,7 +358,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.2.1-beta",
+    "@ansible/ansible-language-server": "^0.2.2-beta",
     "vscode-languageclient": "^7.0.0"
   },
   "description": "Ansible language support",
@@ -377,8 +377,6 @@
     "copyfiles": "^2.4.1",
     "eslint": "^7.30.0",
     "eslint-config-prettier": "^8.3.0",
-    "husky": "^6.0.0",
-    "ini": "^2.0.0",
     "mocha": "^8.4.0",
     "rimraf": "^3.0.2",
     "standard-version": "^9.3.0",
@@ -427,12 +425,15 @@
     "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
+    "code": "code --install-extension *.vsix",
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "lint": "pre-commit run -a",
-    "package": "npm ci && vsce package",
-    "prepare": "husky install",
+    "package": "npm ci && vsce package && vsce ls",
+    "prepare": "git config --unset core.hooksPath || true && rimraf .husky",
     "pretest": "npm run compile",
+    "//": "setup is used to configure development environment, like installing git hooks.",
+    "setup": "pre-commit install-hooks",
     "ui-test": "extest setup-and-run -i out/client/ui-test/allTestsSuite.js",
     "ui-test-oldest": "extest setup-and-run -c 1.48.0 -s test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",
     "vscode:prepublish": "npm run webpack",
