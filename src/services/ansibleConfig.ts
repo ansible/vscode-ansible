@@ -40,7 +40,11 @@ export class AnsibleConfig {
         config,
         (_, key) => key.substring(0, key.indexOf('(')) // remove config source in parenthesis
       );
-      this._collection_paths = parsePythonStringArray(config.COLLECTIONS_PATHS);
+      if (typeof config.COLLECTIONS_PATHS === 'string') {
+        parsePythonStringArray(config.COLLECTIONS_PATHS);
+      } else {
+        this._collection_paths = [];
+      }
 
       // get Ansible basic information
       const ansibleVersionResult = await commandRunner.runCommand(
@@ -99,8 +103,8 @@ export class AnsibleConfig {
   }
 }
 
-function parsePythonStringArray(array: string) {
-  array = array.slice(1, array.length - 1); // remove []
-  const quoted_elements = array.split(',').map((e) => e.trim());
+function parsePythonStringArray(string_list: string): string[] {
+  const cleaned_str = string_list.slice(1, string_list.length - 1); // remove []
+  const quoted_elements = cleaned_str.split(',').map((e) => e.trim());
   return quoted_elements.map((e) => e.slice(1, e.length - 1));
 }
