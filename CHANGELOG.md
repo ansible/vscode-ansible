@@ -4,33 +4,21 @@
 
 ### Changes
 
-* update ansible-language-server version (#228) @ganeshrn
-* lower minimal vscode version to 1.48.0 (July 2020) (#206) @ssbarnea
-* introduce ui tests based on vscode-extension-tester (#208) @odockal
-* add setting options for execution environment (#200) @ganeshrn
-* prompt to uninstall incompatible extensions (#170) @ssbarnea
-* update default setting value for using FQCN (#196) @priyamsahoo
-* add context menus and commands for running playbooks (#137) @webknjaz
-* rename extension to redhat.ansible (#159) @ssbarnea
-* adopt the new language server (#142) @tomaciazek
+* Upgrade ansible-language-server (#228 #238 #247 #142) @ganeshrn @ssbarnea @tomaciazek
+* Lower minimal vscode version to 1.48.0 (July 2020) (#206) @ssbarnea
+* Add setting options for execution environment (#200) @ganeshrn
+* Prompt to uninstall incompatible extensions (#170) @ssbarnea
+* Update default setting value for using FQCN (#196) @priyamsahoo
+* Add context menus and commands for running playbooks (#137) @webknjaz
 
 ### Bugfixes
 
-* upgrade ansible-language-server to 0.2.3-beta (#247) @ssbarnea
-* update configuration section (#242) @ganeshrn
-* remove unused files from vsix artifact (#239) @ssbarnea
-* upgrade language server to 0.2.2-beta (#238) @ssbarnea
-* ensure path related settings are not synced (#235) @ssbarnea
-* update npm dependencies (#220) @ssbarnea
-* bump nth-check dependency to 2.0.1 (#219) @ssbarnea
-* switch debug listening port to fix unbound breakpoints (#212) @tomaciazek
-* update dependencies (#192) @ssbarnea
-* change version to 0.5.0 (#190) @ssbarnea
-* restore schema verification for some files (#169) @ssbarnea
-* docs: update readme with language server link (#173) @ganeshrn
-* restore redhat branded extension icon (#157) @ssbarnea
-* switch publisher from zbr to redhat (#136) @ssbarnea
-* Remove an unused i18n string "categroy" (#138) @webknjaz
+* Remove unused files from vsix artifact (#239) @ssbarnea
+* Update configuration section (#242) @ganeshrn
+* Ensure path related settings are not synced (#235) @ssbarnea
+* Switch debug listening port to fix unbound breakpoints (#212) @tomaciazek
+* Restore schema verification for some files (#169) @ssbarnea
+* Update readme with language server link (#173) @ganeshrn
 
 ## 0.4.5
 
