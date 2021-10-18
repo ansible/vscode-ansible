@@ -20,6 +20,7 @@ repos:
         # will update engines if needed.
         entry: >-
           bash -c 'npm install --production --ignore-scripts &&
+          npm install "@ansible/ansible-language-server@latest" --save &&
           npm version --allow-same-version --no-commit-hooks
           --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
         language: node
