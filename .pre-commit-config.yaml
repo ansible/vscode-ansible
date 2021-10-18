@@ -61,6 +61,10 @@ repos:
         #   args: ['--autofix']
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.29.0
+    hooks:
+    - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v5.0.0
     hooks:
