@@ -104,9 +104,9 @@
         "title": "%commands.title.ansible-navigator%"
       },
       {
-        "category": "Ansible Vault",
+        "category": "%commands.category.ansible-vault%",
         "command": "extension.ansible.vault",
-        "title": "Encrypt/Decrypt"
+        "title": "%commands.title.ansible-vault%"
       }
     ],
     "configuration": {
