@@ -54,7 +54,7 @@ improve user experience:
 
 ![Easier Jinja expression typing](images/jinja-expression.gif)
 
-When writing a Jinja expression, you only need to type `"{{ `, and it will be
+When writing a Jinja expression, you only need to type `"{{`, and it will be
 mirrored behind the cursor (including the space). You can also select the whole
 expression and press `space` to put spaces on both sides of the expression.
 
