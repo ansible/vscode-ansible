@@ -27,7 +27,7 @@ following projects:
    npm run compile
    ```
 
-5. The new built server is now located in ./out/server/src/server.js.
+5. The newly built server is now located in ./out/server/src/server.js.
 
    ```bash
    node <Ansible Language Server Location>/out/server/src/server.js --stdio
@@ -47,7 +47,7 @@ curly braces.
 
 > The screenshots and animations presented in this README have been taken using
 > the One Dark Pro theme. The default VS Code theme will not show the syntax
-> elements as distinctly, unless customized. Virtually any theme other than
+> elements as distinctly unless customized. Virtually any theme other than
 > default will do better.
 
 ### Validation
