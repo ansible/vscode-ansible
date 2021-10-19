@@ -161,7 +161,7 @@ jobs:
       run: npm run lint
 
   build:
-    name: Build
+    name: Build ${{ needs.pre-setup.outputs.git-tag }}
     needs:
     - pre-setup  # transitive, for accessing settings
 
@@ -313,7 +313,7 @@ jobs:
       run: npm test
 
   publish-npmjs:
-    name: Publish to Npmjs
+    name: Publish ${{ needs.pre-setup.outputs.git-tag }} to Npmjs
     if: fromJSON(needs.pre-setup.outputs.release-requested)
     environment:
       name: release
@@ -352,7 +352,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-ghpnr:
-    name: Publish to GHPNR
+    name: Publish ${{ needs.pre-setup.outputs.git-tag }} to GHPNR
     if: >-
       fromJSON(needs.pre-setup.outputs.is-untagged-devel) ||
       fromJSON(needs.pre-setup.outputs.release-requested)
@@ -388,7 +388,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   post-release-repo-update:
-    name: Publish post-release meta
+    name: Publish post-release meta for ${{ needs.pre-setup.outputs.git-tag }}
     needs:
     - pre-setup  # transitive, for accessing settings
     - publish-npmjs
