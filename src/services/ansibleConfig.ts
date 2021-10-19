@@ -41,7 +41,7 @@ export class AnsibleConfig {
         (_, key) => key.substring(0, key.indexOf('(')) // remove config source in parenthesis
       );
       if (typeof config.COLLECTIONS_PATHS === 'string') {
-        parsePythonStringArray(config.COLLECTIONS_PATHS);
+        this._collection_paths = parsePythonStringArray(config.COLLECTIONS_PATHS);
       } else {
         this._collection_paths = [];
       }
