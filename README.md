@@ -6,33 +6,6 @@ following projects:
 * [Ansible extension for vscode/codium](https://github.com/ansible/vscode-ansible)
 * [Ansible extension for coc.nvim](https://github.com/yaegassy/coc-ansible)
 
-## Getting started
-
-1. Install prerequisites:
-   * latest [Visual Studio Code](https://code.visualstudio.com/)
-   * [Node.js](https://nodejs.org/) v12.0.0 or higher
-
-2. Fork and clone this repository
-
-3. Install the dependencies
-
-   ```bash
-   cd ansible-language-server
-   npm ci
-   ```
-
-4. Build the language server
-
-   ```bash
-   npm run compile
-   ```
-
-5. The newly built server is now located in ./out/server/src/server.js.
-
-   ```bash
-   node <Ansible Language Server Location>/out/server/src/server.js --stdio
-   ```
-
 ## Features
 
 ### Syntax highlighting
@@ -152,6 +125,10 @@ The following settings are supported.
 * `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
+
+## Developer support
+
+For details on setting up development environment and debugging [refer](https://github.com/ansible/ansible-language-server/blob/main/docs¸/development.md)
 
 ## Requirements
 
