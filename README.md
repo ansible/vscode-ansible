@@ -10,7 +10,7 @@ following projects:
 
 ### Syntax highlighting
 
-![Syntax highlighting](images/syntax-highlighting.png)
+![Syntax highlighting](https://github.com/ansible/ansible-language-server/blob/main/images/syntax-highlighting.png?raw=true)
 
 **Ansible keywords**, **module names** and **module options**, as well as
 standard YAML elements are recognized and highlighted distinctly. Jinja
@@ -25,14 +25,14 @@ curly braces.
 
 ### Validation
 
-![YAML validation](images/yaml-validation.gif)
+![YAML validation](https://github.com/ansible/ansible-language-server/blob/main/images/yaml-validation.gif?raw=true)
 
 While you type, the syntax of your Ansible scripts is verified and any feedback
 is provided instantaneously.
 
 #### Integration with ansible-lint
 
-![Linter support](images/ansible-lint.gif)
+![Linter support](https://github.com/ansible/ansible-language-server/blob/main/images/ansible-lint.gif?raw=true)
 
 On opening and saving a document, `ansible-lint` is executed in the background
 and any findings are presented as errors. You might find it useful that
@@ -51,7 +51,7 @@ error it will fallback to `ansible --syntax-check` for validation.
 
 ### Smart autocompletion
 
-![Autocompletion](images/smart-completions.gif)
+![Autocompletion](https://github.com/ansible/ansible-language-server/blob/main/images/smart-completions.gif?raw=true)
 
 The extension tries to detect whether the cursor is on a play, block or task
 etc. and provides suggestions accordingly. There are also a few other rules that
@@ -67,7 +67,7 @@ improve user experience:
 
 #### Auto-closing Jinja expressions
 
-![Easier Jinja expression typing](images/jinja-expression.gif)
+![Easier Jinja expression typing](https://github.com/ansible/ansible-language-server/blob/main/images/jinja-expression.gif?raw=true)
 
 When writing a Jinja expression, you only need to type `"{{<space>`, and it
 will be mirrored behind the cursor (including the space). You can also select
@@ -76,7 +76,7 @@ expression.
 
 ### Documentation reference
 
-![Documentation on hover](images/hover-documentation-module.png)
+![Documentation on hover](https://github.com/ansible/ansible-language-server/blob/main/images/hover-documentation-module.png?raw=true)
 
 Documentation is available on hover for Ansible keywords, modules and module
 options. The extension works on the same principle as `ansible-doc`, providing
@@ -84,7 +84,7 @@ the documentation straight from the Python implementation of the modules.
 
 #### Jump to module code
 
-![Go to code on Ctrl+click](images/go-to-definition.gif)
+![Go to code on Ctrl+click](https://github.com/ansible/ansible-language-server/blob/main/images/go-to-definition.gif?raw=true)
 
 You may also open the implementation of any module using the standard *Go to
 Definition* operation, for instance, by clicking on the module name while
