@@ -71,8 +71,6 @@ repos:
     hooks:
       - id: commitlint
         stages: [commit-msg]
-        additional_dependencies:
-          - "@commitlint/config-conventional"
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v7.32.0
     hooks:
