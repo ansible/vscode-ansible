@@ -15,11 +15,15 @@
 
 ### Changes
 
-* Lower minimal vscode version to 1.48.0 (July 2020) (#206) @ssbarnea
-* Add setting options for execution environment (#200) @ganeshrn
-* Prompt to uninstall incompatible extensions (#170) @ssbarnea
-* Update default setting value for using FQCN (#196) @priyamsahoo
-* Add context menus and commands for running playbooks (#137) @webknjaz
+* Decreased the minimal required version of VS Code to v1.48.0 (July
+  2020) (#206) @ssbarnea
+* Added setting options for working with execution environments (#200)
+  @ganeshrn
+* Added a prompt to uninstall incompatible extensions (#170) @ssbarnea
+* Updated the default setting value to use FQCN in autocompletion (#196)
+  @priyamsahoo
+* Added context menus and commands for running playbooks via
+  `ansible-playbook` and `ansible-navigator run` (#137) @webknjaz
 
 ### Bugfixes
 
