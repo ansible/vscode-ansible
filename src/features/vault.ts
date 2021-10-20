@@ -125,11 +125,12 @@ export const toggleEncrypt = async (): Promise<void> => {
         displayMissingIdentityError();
         return;
       }
+      vscode.window.activeTextEditor?.document.save();
       encryptFile(doc.fileName, rootPath, vaultId, config);
       vscode.window.showInformationMessage(`File encrypted: '${doc.fileName}'`);
     } else if (type === 'encrypted') {
       console.log('Decrypt entire file');
-
+      vscode.window.activeTextEditor?.document.save();
       await decryptFile(doc.fileName, rootPath, config);
       vscode.window.showInformationMessage(`File decrypted: '${doc.fileName}'`);
     }
