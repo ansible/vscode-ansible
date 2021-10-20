@@ -10,7 +10,7 @@ following projects:
 
 ### Syntax highlighting
 
-![Syntax highlighting](https://github.com/ansible/ansible-language-server/blob/main/images/syntax-highlighting.png?raw=true)
+![Syntax highlighting](https://github.com/ansible/ansible-language-server/raw/main/images/syntax-highlighting.png)
 
 **Ansible keywords**, **module names** and **module options**, as well as
 standard YAML elements are recognized and highlighted distinctly. Jinja
