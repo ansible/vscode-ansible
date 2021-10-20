@@ -138,6 +138,9 @@ export class AnsibleLint {
               workingDirectory
             );
           } else {
+            if (progressTracker) {
+              progressTracker.done();
+            }
             this.connection.window.showErrorMessage(execError.message);
             return -1;
           }
