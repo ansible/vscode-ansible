@@ -344,7 +344,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.2.3-beta",
+    "@ansible/ansible-language-server": "^0.2.4",
     "vscode-languageclient": "^7.0.0"
   },
   "description": "Ansible language support",
