@@ -2,9 +2,19 @@
 
 ## 0.5.0
 
+### Major changes
+
+* Migrated to using `@ansible/ansible-language-server` v0.2.4:
+  * Added the brand new Ansible Language Server (#142) @tomaciazek
+  * Removed the support for working with the valuted content (#142)
+    @tomaciazek
+  * Integrated a series of upgrades by the DevTools team that the new
+    ALS added (#228 #238 #247 #249) @ganeshrn @ssbarnea
+* The Ansible Language Server changelog is available at
+  <https://github.com/ansible/ansible-language-server/blob/main/CHANGELOG.md>
+
 ### Changes
 
-* Upgrade ansible-language-server (#228 #238 #247 #142) @ganeshrn @ssbarnea @tomaciazek
 * Lower minimal vscode version to 1.48.0 (July 2020) (#206) @ssbarnea
 * Add setting options for execution environment (#200) @ganeshrn
 * Prompt to uninstall incompatible extensions (#170) @ssbarnea
