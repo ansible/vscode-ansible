@@ -4,7 +4,7 @@ def installBuildRequirements(){
   def nodeHome = tool 'nodejs-12.20.0'
   env.PATH="${env.PATH}:${nodeHome}/bin"
 
-  sh "npm install --global vsce"
+  sh "npm install --global vsce@latest npm@latest"
 }
 
 def buildVscodeExtension(){

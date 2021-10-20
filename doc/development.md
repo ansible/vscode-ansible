@@ -53,7 +53,7 @@ The current link to edit the extension presence on the marketplace is
 vsce package
 ```
 
-## Publish extension
+## Publish extension (obsolete)
 
 Obviously that you need to be able to publish, likely you will
 need to run `vsce login redhat` first (needs publisher name).
@@ -72,3 +72,7 @@ When creating a PAT, the Scopes needed are Marketplace Acquire + Publish.
 The funny bit is you need to give access to "All organizations" because
 the only organization listed there was "myuser", which produced a token
 that gave 401 (access denied).
+
+## Release and publication of extension
+
+Any push made to the `main` branch will trigger an [jenkins job](https://studio-jenkins-csb-codeready.apps.ocp4.prod.psi.redhat.com/job/ansible/) that produces an artifact. The new version will be uploaded to [marketplace.visualstudio.com](https://marketplace.visualstudio.com/) and [open-vsx.org](https://open-vsx.org/) stores only when the pipeline is approved by a core developer from Jenkins interface.
