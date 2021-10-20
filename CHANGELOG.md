@@ -25,14 +25,23 @@
 * Added context menus and commands for running playbooks via
   `ansible-playbook` and `ansible-navigator run` (#137) @webknjaz
 
-### Bugfixes
+### Misc
 
-* Remove unused files from vsix artifact (#239) @ssbarnea
-* Update configuration section (#242) @ganeshrn
-* Ensure path related settings are not synced (#235) @ssbarnea
-* Switch debug listening port to fix unbound breakpoints (#212) @tomaciazek
-* Restore schema verification for some files (#169) @ssbarnea
-* Update readme with language server link (#173) @ganeshrn
+* Made sure that the path-related settings are not being synchronized
+  (#235) @ssbarnea
+* Reintroduced the schema verification for the part of the known file
+  paths that's been lost with the initial introduction of ALS in
+  extension (#169) @ssbarnea
+* Stopped including the unused files to vsix artifacts (#239) @ssbarnea
+* Switched the debug listening port for ALS in the development mode to
+  `6010` effectively fixing the support for unbound breakpoints when
+  coding two connected projects (#212) @tomaciazek
+
+### Docs
+
+* Added a link to the language server repository into README (#173) @ganeshrn
+* Added descriptions for the configuration settings section in README
+  (#242) @ganeshrn
 
 ## 0.4.5
 
