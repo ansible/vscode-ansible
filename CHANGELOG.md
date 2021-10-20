@@ -1,10 +1,45 @@
 # Change Log
 
-## 0.5.0 (UNRELEASED)
+## 0.5.0
 
-* Update default setting value to always use FQCN (#196)
-* Detect incompatible extensions and prompt to remove them.
-* Lower minimal vscode version to 1.48.0
+### Major changes
+
+The most notable change that happened was the migration to using
+`@ansible/ansible-language-server` v0.2.4 via PR #142 by @tomaciazek.
+In particular, this:
+
+* Added the brand new Ansible Language Server
+* Removed the support for working with the valuted content
+
+### Changes
+
+* Decreased the minimal required version of VS Code to v1.48.0 (July
+  2020) (#206) @ssbarnea
+* Added setting options for working with execution environments (#200)
+  @ganeshrn
+* Added a prompt to uninstall incompatible extensions (#170) @ssbarnea
+* Updated the default setting value to use FQCN in autocompletion (#196)
+  @priyamsahoo
+* Added context menus and commands for running playbooks via
+  `ansible-playbook` and `ansible-navigator run` (#137) @webknjaz
+
+### Misc
+
+* Made sure that the path-related settings are not being synchronized
+  (#235) @ssbarnea
+* Reintroduced the schema verification for the part of the known file
+  paths that's been lost with the initial introduction of ALS in
+  extension (#169) @ssbarnea
+* Stopped including the unused files to vsix artifacts (#239) @ssbarnea
+* Switched the debug listening port for ALS in the development mode to
+  `6010` effectively fixing the support for unbound breakpoints when
+  coding two connected projects (#212) @tomaciazek
+
+### Docs
+
+* Added a link to the language server repository into README (#173) @ganeshrn
+* Added descriptions for the configuration settings section in README
+  (#242) @ganeshrn
 
 ## 0.4.5
 
