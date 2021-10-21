@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
 def installBuildRequirements(){
-  def nodeHome = tool 'nodejs-16.12.0'
+  def nodeHome = tool 'nodejs-16.11.0'
   env.PATH="${env.PATH}:${nodeHome}/bin"
 
   sh "npm install --global vsce@latest npm@latest"
