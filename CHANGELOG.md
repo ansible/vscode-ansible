@@ -25,6 +25,7 @@ In particular, this:
 
 ### Misc
 
+* Explicitly declared support for NodeJS 12 in metadata (#255) @webknjaz
 * Made sure that the path-related settings are not being synchronized
   (#235) @ssbarnea
 * Reintroduced the schema verification for the part of the known file

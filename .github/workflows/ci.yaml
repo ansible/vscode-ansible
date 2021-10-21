@@ -13,48 +13,52 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    name: "${{ matrix.name }}"
+    name: >-
+      ${{
+        matrix.name
+        && matrix.name
+        || format(
+          '{0} ({1}) @ node-{2}',
+          matrix.npm-target,
+          matrix.os,
+          matrix.nodejs-version
+        )
+      }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        os:
+        - ubuntu-latest
+        - macos-11
+        - windows-latest
+        npm-target:
+        - ui-test
+        - ui-test-oldest
+        nodejs-version:
+        - 12
+        - 16
+        upload-artifact:
+        - false
+        name:
+        - false
         include:
-          # linux:
-          - name: lint
-            npm-target: lint
-            os: ubuntu-latest
-            upload-artifact: true
-          - name: ui-test
-            os: ubuntu-latest
-            npm-target: ui-test
-          - name: ui-test-oldest
-            os: ubuntu-latest
-            npm-target: ui-test-oldest
-          # macos:
-          - name: ui-test (macos)
-            os: macos-11
-            npm-target: ui-test
-          - name: ui-test-oldest (macos)
-            os: macos-11
-            npm-target: ui-test-oldest
-          # windows:
-          - name: ui-test (windows)
-            os: windows-latest
-            npm-target: ui-test
-          - name: ui-test-oldest (windows)
-            os: windows-latest
-            npm-target: ui-test-oldest
+        - name: lint
+          npm-target: lint
+          os: ubuntu-latest
+          nodejs-version: 16
+          upload-artifact: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Use Node
+      - name: Use NodeJS v${{ matrix.nodejs-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: "16"
+          node-version: ${{ matrix.nodejs-version }}
 
       # Run install dependencies
       - name: Install dependencies
