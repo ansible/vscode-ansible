@@ -366,7 +366,6 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@commitlint/cli": "^13.1.0",
-    "@commitlint/config-conventional": "^13.1.0",
     "@types/chai": "^4.2.21",
     "@types/glob": "^7.1.3",
     "@types/mocha": "^8.2.3",
@@ -394,7 +393,7 @@
   "displayName": "Ansible",
   "engineStrict": true,
   "engines": {
-    "node": ">=16.0",
+    "node": ">=12.0",
     "npm": ">=7.12.1",
     "vscode": "^1.48.0",
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
