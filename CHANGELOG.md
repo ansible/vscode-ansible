@@ -2,11 +2,14 @@
 
 ## 0.5.1
 
-### Changes
+### Hotfixes
 
-* Updated the `@ansible/ansible-language-server` version to 0.2.5
-  which added fix to check if file is playbook or not before running
-  syntax-check for providing diagnostics information (#259) @ganeshrn
+* Increased the minimum required `@ansible/ansible-language-server`
+  version to 0.2.5. It has added a guard for linting only playbook
+  files with the Ansible's built-in syntax-check when `ansible-lint`
+  is unavailable. This is used for providing the diagnostics
+  information to the client (VS Code editor instance) (#259)
+  @ganeshrn
 
 ## 0.5.0
 
