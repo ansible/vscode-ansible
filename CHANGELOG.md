@@ -1,3 +1,4 @@
+<!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
 
 All notable changes to the Ansible VS Code extension will be documented in this file.
