@@ -6,7 +6,7 @@
 
 * Updated the `@ansible/ansible-language-server` version to 0.2.5
   which added fix to check if file is playbook or not before running
-  syntax-check for providing diagnostics information
+  syntax-check for providing diagnostics information (#259) @ganeshrn
 
 ## 0.5.0
 
