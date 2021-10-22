@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.5.1
+
+### Changes
+
+* Updated the `@ansible/ansible-language-server` version to 0.2.5
+  which added fix to check if file is playbook or not before running
+  syntax-check for providing diagnostics information
+
 ## 0.5.0
 
 ### Major changes
