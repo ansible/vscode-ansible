@@ -5,6 +5,7 @@ import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import { IModuleMetadata } from '../interfaces/module';
 import { DocsLibrary } from '../services/docsLibrary';
 import { isTaskKeyword, playExclusiveKeywords } from './ansible';
+import { playKeywords, taskKeywords } from '../utils/ansible';
 
 /**
  * A helper class used for building YAML path assertions and retrieving parent
@@ -420,4 +421,55 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
     parsedDocuments.push(parsedDocument);
   }
   return parsedDocuments;
+}
+
+/**
+ * For a given yaml file that is recognised as Ansible file, the function
+ * checks whether the file is a playbook or not
+ * @param textDocument the text document to check
+ */
+export function isPlaybook(textDocument: TextDocument): boolean {
+  // Check for empty file
+  if (textDocument.getText().trim().length === 0) {
+    return false;
+  }
+
+  const yamlDocs = parseAllDocuments(textDocument.getText());
+  const path = getPathAt(textDocument, { line: 1, character: 1 }, yamlDocs);
+
+  //   Check if keys are present or not
+  if (!path) {
+    return false;
+  }
+
+  //   A playbook is always YAML sequence
+  if (!(path[0] instanceof YAMLSeq)) {
+    return false;
+  }
+
+  const playbookKeysSet = new Set();
+  const playbookJSON = path[0].toJSON();
+
+  Object.keys(playbookJSON).forEach(function (key) {
+    Object.keys(playbookJSON[key]).forEach((item) => playbookKeysSet.add(item));
+  });
+
+  const playbookKeys = [...playbookKeysSet];
+
+  const playKeywordsList = [...playKeywords.keys()];
+  const taskKeywordsList = [...taskKeywords.keys()];
+
+  //   Filters out all play keywords that are task keywords
+  const filteredList = playKeywordsList.filter(
+    (value) => !taskKeywordsList.includes(value)
+  );
+
+  //   Check if any top-level key of the ansible file is a part of filtered list
+  //    If it is: The file is a playbook
+  //    Else: The file is not a playbook
+  const isPlaybookValue = playbookKeys.some((r: string) =>
+    filteredList.includes(r)
+  );
+
+  return isPlaybookValue;
 }

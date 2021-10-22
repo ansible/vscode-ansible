@@ -11,7 +11,7 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ValidationManager } from '../services/validationManager';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
-import { parseAllDocuments } from '../utils/yaml';
+import { isPlaybook, parseAllDocuments } from '../utils/yaml';
 import { CommandRunner } from '../utils/commandRunner';
 
 /**
@@ -63,9 +63,16 @@ export async function doValidate(
         );
       }
       console.debug('Validating using ansible syntax-check');
-      diagnosticsByFile = await context.ansiblePlaybook.doValidate(
-        textDocument
-      );
+
+      if (isPlaybook(textDocument)) {
+        console.log('is playbook...');
+        diagnosticsByFile = await context.ansiblePlaybook.doValidate(
+          textDocument
+        );
+      } else {
+        console.log('not a playbook...');
+        diagnosticsByFile = new Map();
+      }
     }
 
     if (!diagnosticsByFile.has(textDocument.uri)) {
