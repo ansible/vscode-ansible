@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.5.1
+
+### Hotfixes
+
+* Increased the minimum required `@ansible/ansible-language-server`
+  version to 0.2.5. It has added a guard for linting only playbook
+  files with the Ansible's built-in syntax-check when `ansible-lint`
+  is unavailable. This is used for providing the diagnostics
+  information to the client (VS Code editor instance) (#259)
+  @ganeshrn
+
 ## 0.5.0
 
 ### Major changes
