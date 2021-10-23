@@ -117,6 +117,7 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
+- `ansibleServer.trace.server`: Traces the communication between VSCode and the ansible language server.
 
 ## Known limitations
 
