@@ -427,5 +427,5 @@
     "webpack:watch": "webpack --mode development --config ./webpack.config.js --watch",
     "clean": "rimraf out"
   },
-  "version": "0.5.0"
+  "version": "0.5.1"
 }
