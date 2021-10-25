@@ -289,19 +289,18 @@ export class ExecutionEnvironment {
     searchKind: string
   ): Promise<string[]> {
     const updatedHostDocPath: string[] = [];
-    if (fs.existsSync(hostPluginDocCacheBasePath)) {
-      containerPluginPaths.forEach((srcPath) => {
-        updatedHostDocPath.push(path.join(hostPluginDocCacheBasePath, srcPath));
-      });
-    } else {
-      containerPluginPaths.forEach((srcPath) => {
+
+    containerPluginPaths.forEach((srcPath) => {
+      const destPath = path.join(hostPluginDocCacheBasePath, srcPath);
+      if (fs.existsSync(destPath)) {
+        updatedHostDocPath.push(destPath);
+      } else {
         if (
           srcPath === '' ||
           !this.isPluginInPath(containerName, srcPath, searchKind)
         ) {
           return;
         }
-        const destPath = path.join(hostPluginDocCacheBasePath, srcPath);
         const destPathFolder = destPath
           .split(path.sep)
           .slice(0, -1)
@@ -314,11 +313,9 @@ export class ExecutionEnvironment {
         asyncExec(copyCommand, {
           encoding: 'utf-8',
         });
-
         updatedHostDocPath.push(destPath);
-      });
-    }
-
+      }
+    });
     return updatedHostDocPath;
   }
 
