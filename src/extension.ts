@@ -24,7 +24,7 @@ export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand(
+    commands.registerCommand(
       'extension.ansible.vault',
       toggleEncrypt
     )
