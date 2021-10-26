@@ -1,7 +1,12 @@
-import * as vscode from 'vscode';
-import * as utilAnsibleCfg from './utils/ansibleCfg';
+/* node "stdlib" */
 import * as cp from 'child_process';
 import * as util from 'util';
+
+/* vscode"stdlib" */
+import * as vscode from 'vscode';
+
+/* local */
+import * as utilAnsibleCfg from './utils/ansibleCfg';
 
 const execAsync = util.promisify(cp.exec);
 
