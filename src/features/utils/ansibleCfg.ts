@@ -1,5 +1,10 @@
-import * as vscode from 'vscode';
+/* node "stdlib" */
 import * as fs from 'fs';
+
+/* vscode"stdlib" */
+import * as vscode from 'vscode';
+
+/* third-party */
 import untildify from 'untildify';
 import * as ini from 'ini';
 
