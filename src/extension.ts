@@ -1,7 +1,6 @@
 /* "stdlib" */
 import * as path from 'path';
-import { ExtensionContext, extensions } from 'vscode';
-import * as vscode from 'vscode';
+import { commands, ExtensionContext, extensions } from 'vscode';
 import { toggleEncrypt } from './features/vault';
 
 /* third-party */
