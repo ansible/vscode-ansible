@@ -43,8 +43,8 @@ export async function scanAnsibleCfg(
     cfgFiles
       .map((cf) => untildify(cf))
       .map(async (cp) => await getValueByCfg(cp))
-  )?.catch(() => {});
-  const cfgPath = cfg.find(c => !!c?.defaults?.vault_identity_list)?.path;
+  )?.catch(() => undefined);
+  const cfgPath = cfg?.find((c) => !!c?.defaults?.vault_identity_list)?.path;
 
   console.log(
     typeof cfgPath != 'undefined'
@@ -60,7 +60,9 @@ export async function getValueByCfg(
 ): Promise<AnsibleVaultConfig | undefined> {
   console.log(`Reading '${path}'...`);
 
-  if (!fs.promises.access(path, fs.constants.R_OK)) {
+  try {
+    await fs.promises.access(path, fs.constants.R_OK);
+  } catch {
     return undefined;
   }
 
