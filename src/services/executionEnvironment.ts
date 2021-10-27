@@ -313,9 +313,11 @@ export class ExecutionEnvironment {
         asyncExec(copyCommand, {
           encoding: 'utf-8',
         });
+
         updatedHostDocPath.push(destPath);
       }
     });
+
     return updatedHostDocPath;
   }
 
