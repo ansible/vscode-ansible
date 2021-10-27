@@ -212,7 +212,7 @@ const pipeTextThrougCmd = (
     child.on('close', (code) => {
       if (code !== 0) {
         console.log(`error when running ansible-vault: ${errorText}`);
-        reject();
+        reject(errorText);
       } else {
         resolve(outputText);
       }
