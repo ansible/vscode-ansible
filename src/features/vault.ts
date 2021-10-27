@@ -240,11 +240,7 @@ const encryptFile = (
   let cmd = `${config.executablePath} encrypt "${f}"`;
   cmd += ` --encrypt-vault-id="${vaultId}"`;
 
-  if (!!rootPath) {
-    return exec(cmd, { cwd: rootPath });
-  } else {
-    return exec(cmd);
-  }
+  return execCwd(cmd, rootPath);
 };
 
 const decryptFile = (
@@ -256,14 +252,17 @@ const decryptFile = (
 
   const cmd = `${config.executablePath} decrypt "${f}"`;
 
-  if (!!rootPath) {
-    return exec(cmd, { cwd: rootPath });
-  } else {
-    return exec(cmd);
-  }
+  return execCwd(cmd, rootPath);
 };
 
 const exec = (cmd: string, opt = {}) => {
   console.log(`> ${cmd}`);
   return execAsync(cmd, opt);
+};
+
+const execCwd = (cmd: string, cwd: string | undefined) => {
+  if (!cwd) {
+    return exec(cmd);
+  }
+  return exec(cmd, { cwd: cwd });
 };
