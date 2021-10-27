@@ -166,7 +166,7 @@ const encryptInline = async (
   return encryptedText?.trim();
 };
 
-const decryptInline = async (
+const decryptInline = (
   text: string,
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
@@ -177,11 +177,10 @@ const decryptInline = async (
     .trim()
     .replace(/[^\S\r\n]+/gm, '');
 
-  const decryptedText = await decryptText(text, rootPath, config);
-  return decryptedText;
+  return decryptText(text, rootPath, config);
 };
 
-const pipeTextThrougCmd = async (
+const pipeTextThrougCmd = (
   text: string,
   rootPath: string | undefined,
   cmd: string
