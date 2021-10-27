@@ -241,13 +241,13 @@ const encryptFile = (
   cmd += ` --encrypt-vault-id="${vaultId}"`;
 
   if (!!rootPath) {
-    exec(cmd, { cwd: rootPath });
+    return exec(cmd, { cwd: rootPath });
   } else {
-    exec(cmd);
+    return exec(cmd);
   }
 };
 
-const decryptFile = async (
+const decryptFile = (
   f: string,
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
@@ -257,13 +257,13 @@ const decryptFile = async (
   const cmd = `${config.executablePath} decrypt "${f}"`;
 
   if (!!rootPath) {
-    await exec(cmd, { cwd: rootPath });
+    return exec(cmd, { cwd: rootPath });
   } else {
-    await exec(cmd);
+    return exec(cmd);
   }
 };
 
-const exec = async (cmd: string, opt = {}) => {
+const exec = (cmd: string, opt = {}) => {
   console.log(`> ${cmd}`);
-  return await execAsync(cmd, opt);
+  return execAsync(cmd, opt);
 };
