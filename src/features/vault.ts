@@ -10,26 +10,13 @@ import * as utilAnsibleCfg from './utils/ansibleCfg';
 
 const execAsync = util.promisify(cp.exec);
 
-async function askForVaultId(ansibleCfg: string) {
+async function askForVaultId(ansibleCfg: utilAnsibleCfg.AnsibleVaultConfig) {
   const vaultId = 'default';
-  let identitySource: string | undefined;
 
-  if (ansibleCfg === 'ANSIBLE_VAULT_IDENTITY_LIST') {
-    identitySource = process.env.ANSIBLE_VAULT_IDENTITY_LIST;
-  } else {
-    const cfg: utilAnsibleCfg.AnsibleVaultConfig | undefined =
-      await utilAnsibleCfg.getValueByCfg(ansibleCfg);
-    identitySource = cfg?.defaults?.vault_identity_list;
-  }
-
-  if (!identitySource) {
-    return undefined;
-  }
-
-  const identityList = identitySource
-    .split(',')
+  const identityList = ansibleCfg.defaults?.vault_identity_list
+    ?.split(',')
     .map((id: string) => id.split('@', 2)[0].trim());
-  if (!identityList.length) {
+  if (!identityList) {
     return undefined;
   }
 
@@ -37,9 +24,9 @@ async function askForVaultId(ansibleCfg: string) {
   return chosenVault || vaultId;
 }
 
-function displayMissingIdentityError(): void {
+function displayInvalidConfigError(): void {
   vscode.window.showErrorMessage(
-    'no ansible vault identity defined, cannot de-/encrypt'
+    'no valid ansible vault config found, cannot de/-encrypt'
   );
 }
 
@@ -61,23 +48,23 @@ export const toggleEncrypt = async (): Promise<void> => {
   const rootPath: string | undefined = utilAnsibleCfg.getRootPath(
     editor.document.uri
   );
-  const keyInCfg: string | undefined = !!process.env.ANSIBLE_VAULT_IDENTITY_LIST
-    ? 'ANSIBLE_VAULT_IDENTITY_LIST'
-    : await utilAnsibleCfg.scanAnsibleCfg(rootPath);
+  const ansibleConfig = await utilAnsibleCfg.getAnsibleCfg(rootPath);
 
-  if (!keyInCfg) {
-    displayMissingIdentityError();
+  if (!ansibleConfig) {
+    displayInvalidConfigError();
     return;
   }
 
   // Extract `ansible-vault` password
 
-  console.log(`Getting vault keyfile from ${keyInCfg}`);
+  console.log(`Getting vault keyfile from ${ansibleConfig.path}`);
   vscode.window.showInformationMessage(
-    `Getting vault keyfile from ${keyInCfg}`
+    `Getting vault keyfile from ${ansibleConfig.path}`
   );
 
   const text = editor.document.getText(selection);
+
+  const useVaultIDs = !!ansibleConfig.defaults.vault_identity_list;
 
   // Go encrypt / decrypt
   if (!!text) {
@@ -85,9 +72,12 @@ export const toggleEncrypt = async (): Promise<void> => {
 
     if (type === 'plaintext') {
       console.log('Encrypt selected text');
-      const vaultId: string | undefined = await askForVaultId(keyInCfg);
-      if (!vaultId) {
-        displayMissingIdentityError();
+
+      const vaultId: string | undefined = useVaultIDs
+        ? await askForVaultId(ansibleConfig)
+        : undefined;
+      if (useVaultIDs && !vaultId) {
+        displayInvalidConfigError();
         return;
       }
 
@@ -108,8 +98,7 @@ export const toggleEncrypt = async (): Promise<void> => {
           );
         });
       } catch (e) {
-        vscode.window.showErrorMessage('Inline encryption failed!');
-        console.log(`Inline encryption error: ${e}`);
+        vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
       }
     } else if (type === 'encrypted') {
       console.log('Decrypt selected text');
@@ -122,8 +111,7 @@ export const toggleEncrypt = async (): Promise<void> => {
           });
         }
       } catch (e) {
-        vscode.window.showErrorMessage('Inline decryption failed!');
-        console.log(`Inline decryption error: ${e}`);
+        vscode.window.showErrorMessage(`Inline decryption failed: ${e}`);
       }
     }
   } else {
@@ -132,9 +120,11 @@ export const toggleEncrypt = async (): Promise<void> => {
 
     if (type === 'plaintext') {
       console.log('Encrypt entire file');
-      const vaultId: string | undefined = await askForVaultId(keyInCfg);
-      if (!vaultId) {
-        displayMissingIdentityError();
+      const vaultId: string | undefined = useVaultIDs
+        ? await askForVaultId(ansibleConfig)
+        : undefined;
+      if (useVaultIDs && !vaultId) {
+        displayInvalidConfigError();
         return;
       }
       vscode.window.activeTextEditor?.document.save();
@@ -144,8 +134,9 @@ export const toggleEncrypt = async (): Promise<void> => {
           `File encrypted: '${doc.fileName}'`
         );
       } catch (e) {
-        console.log(`Encryption error: ${e}`);
-        vscode.window.showErrorMessage(`Encryption of ${doc.fileName} failed!`);
+        vscode.window.showErrorMessage(
+          `Encryption of ${doc.fileName} failed: ${e}`
+        );
       }
     } else if (type === 'encrypted') {
       console.log('Decrypt entire file');
@@ -156,8 +147,9 @@ export const toggleEncrypt = async (): Promise<void> => {
           `File decrypted: '${doc.fileName}'`
         );
       } catch (e) {
-        console.log(`Decryption error: ${e}`);
-        vscode.window.showErrorMessage(`Decryption of ${doc.fileName} failed!`);
+        vscode.window.showErrorMessage(
+          `Decryption of ${doc.fileName} failed: ${e}`
+        );
       }
     }
     vscode.commands.executeCommand('workbench.action.files.revert');
@@ -181,7 +173,7 @@ const getTextType = (text: string) => {
 const encryptInline = async (
   text: string,
   rootPath: string | undefined,
-  vaultId: string,
+  vaultId: string | undefined,
   config: vscode.WorkspaceConfiguration
 ) => {
   const encryptedText = await encryptText(text, rootPath, vaultId, config);
@@ -237,10 +229,12 @@ const pipeTextThrougCmd = (
 const encryptText = (
   text: string,
   rootPath: string | undefined,
-  vaultId: string,
+  vaultId: string | undefined,
   config: vscode.WorkspaceConfiguration
 ): Promise<string> => {
-  const cmd = `${config.executablePath} encrypt_string --encrypt-vault-id="${vaultId}"`;
+  const cmd = !!vaultId
+    ? `${config.executablePath} encrypt_string --encrypt-vault-id="${vaultId}"`
+    : `${config.executablePath} encrypt_string`;
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
 
@@ -256,13 +250,14 @@ const decryptText = (
 const encryptFile = (
   f: string,
   rootPath: string | undefined,
-  vaultId: string,
+  vaultId: string | undefined,
   config: vscode.WorkspaceConfiguration
 ) => {
   console.log(`Encrypt file: ${f}`);
 
-  let cmd = `${config.executablePath} encrypt "${f}"`;
-  cmd += ` --encrypt-vault-id="${vaultId}"`;
+  const cmd = !!vaultId
+    ? `${config.executablePath} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
+    : `${config.executablePath} encrypt "${f}"`;
 
   return execCwd(cmd, rootPath);
 };

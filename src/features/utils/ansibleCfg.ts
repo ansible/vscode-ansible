@@ -20,13 +20,14 @@ export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
 export type AnsibleVaultConfig = {
   path: string;
   defaults: {
-    vault_identity_list: string;
+    vault_identity_list: string | undefined;
+    vault_password_file: string | undefined;
   };
 };
 
 export async function scanAnsibleCfg(
   rootPath: string | undefined = undefined
-): Promise<string | undefined> {
+): Promise<AnsibleVaultConfig | undefined> {
   /*
    * Reading order:
    * 1) ANSIBLE_CONFIG
@@ -44,20 +45,22 @@ export async function scanAnsibleCfg(
     cfgFiles.unshift(process.env.ANSIBLE_CONFIG);
   }
 
-  const cfg = await Promise.all(
+  const cfgs = await Promise.all(
     cfgFiles
       .map((cf) => untildify(cf))
       .map(async (cp) => await getValueByCfg(cp))
   )?.catch(() => undefined);
-  const cfgPath = cfg?.find((c) => !!c?.defaults?.vault_identity_list)?.path;
-
+  const cfg = cfgs?.find(
+    (c) =>
+      !!c?.defaults?.vault_identity_list || !!c?.defaults?.vault_password_file
+  );
   console.log(
-    typeof cfgPath != 'undefined'
-      ? `Found 'defaults.vault_identity_list' within '${cfgPath}'`
+    typeof cfg != 'undefined'
+      ? `Found 'defaults.vault_identity_list' within '${cfg.path}'`
       : 'Found no \'defaults.vault_identity_list\' within config files'
   );
 
-  return cfgPath;
+  return cfg;
 }
 
 export async function getValueByCfg(
@@ -71,15 +74,31 @@ export async function getValueByCfg(
     return undefined;
   }
 
-  const vault_identity_list = ini.parse(
-    await fs.promises.readFile(path, 'utf-8')
-  )?.defaults?.vault_identity_list;
-  if (!vault_identity_list) {
+  const parsedConfig = ini.parse(await fs.promises.readFile(path, 'utf-8'));
+  const vault_identity_list = parsedConfig?.defaults?.vault_identity_list;
+  const vault_password_file = parsedConfig?.defaults?.vault_password_file;
+
+  if (!vault_identity_list && !vault_password_file) {
     return undefined;
   }
 
   return {
     path: path,
-    defaults: { vault_identity_list },
+    defaults: { vault_identity_list, vault_password_file },
   } as AnsibleVaultConfig;
+}
+
+export async function getAnsibleCfg(
+  path: string | undefined
+): Promise<AnsibleVaultConfig | undefined> {
+  if (!!process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
+    return {
+      path: 'ANSIBLE_VAULT_IDENTITY_LIST',
+      defaults: {
+        vault_identity_list: process.env.ANSIBLE_VAULT_IDENTITY_LIST,
+        vault_password_file: undefined,
+      },
+    };
+  }
+  return scanAnsibleCfg(path);
 }
