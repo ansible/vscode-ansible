@@ -117,11 +117,8 @@ export const toggleEncrypt = async (): Promise<void> => {
       }
     }
   } else {
-    let content = '';
-    await vscode.workspace.openTextDocument(doc.fileName).then((document) => {
-      content = document.getText();
-    });
-    const type = getTextType(content);
+    const document = await vscode.workspace.openTextDocument(doc.fileName);
+    const type = getTextType(document.getText());
 
     if (type === 'plaintext') {
       console.log('Encrypt entire file');
