@@ -91,29 +91,39 @@ export const toggleEncrypt = async (): Promise<void> => {
         return;
       }
 
-      const encryptedText = `${await encryptInline(
-        text,
-        rootPath,
-        vaultId,
-        config
-      )}`;
-      editor.edit((editBuilder) => {
-        editBuilder.replace(
-          selection,
-          encryptedText.replace(
-            /\n/g,
-            `\n${' '.repeat(selection.start.character)}`
-          )
+      try {
+        const encryptedText = await encryptInline(
+          text,
+          rootPath,
+          vaultId,
+          config
         );
-      });
+        editor.edit((editBuilder) => {
+          editBuilder.replace(
+            selection,
+            encryptedText.replace(
+              /\n/g,
+              `\n${' '.repeat(selection.start.character)}`
+            )
+          );
+        });
+      } catch (e) {
+        vscode.window.showErrorMessage('Inline encryption failed!');
+        console.log(`Inline encryption error: ${e}`);
+      }
     } else if (type === 'encrypted') {
       console.log('Decrypt selected text');
 
-      const decryptedText = await decryptInline(text, rootPath, config);
-      if (!!decryptedText) {
-        editor.edit((editBuilder) => {
-          editBuilder.replace(selection, decryptedText);
-        });
+      try {
+        const decryptedText = await decryptInline(text, rootPath, config);
+        if (!!decryptedText) {
+          editor.edit((editBuilder) => {
+            editBuilder.replace(selection, decryptedText);
+          });
+        }
+      } catch (e) {
+        vscode.window.showErrorMessage('Inline decryption failed!');
+        console.log(`Inline decryption error: ${e}`);
       }
     }
   } else {
@@ -128,13 +138,27 @@ export const toggleEncrypt = async (): Promise<void> => {
         return;
       }
       vscode.window.activeTextEditor?.document.save();
-      await encryptFile(doc.fileName, rootPath, vaultId, config);
-      vscode.window.showInformationMessage(`File encrypted: '${doc.fileName}'`);
+      try {
+        await encryptFile(doc.fileName, rootPath, vaultId, config);
+        vscode.window.showInformationMessage(
+          `File encrypted: '${doc.fileName}'`
+        );
+      } catch (e) {
+        console.log(`Encryption error: ${e}`);
+        vscode.window.showErrorMessage(`Encryption of ${doc.fileName} failed!`);
+      }
     } else if (type === 'encrypted') {
       console.log('Decrypt entire file');
       vscode.window.activeTextEditor?.document.save();
-      await decryptFile(doc.fileName, rootPath, config);
-      vscode.window.showInformationMessage(`File decrypted: '${doc.fileName}'`);
+      try {
+        await decryptFile(doc.fileName, rootPath, config);
+        vscode.window.showInformationMessage(
+          `File decrypted: '${doc.fileName}'`
+        );
+      } catch (e) {
+        console.log(`Decryption error: ${e}`);
+        vscode.window.showErrorMessage(`Decryption of ${doc.fileName} failed!`);
+      }
     }
     vscode.commands.executeCommand('workbench.action.files.revert');
   }
@@ -184,8 +208,8 @@ const pipeTextThrougCmd = (
   text: string,
   rootPath: string | undefined,
   cmd: string
-): Promise<string | undefined> => {
-  return new Promise<string | undefined>((resolve, reject) => {
+): Promise<string> => {
+  return new Promise<string>((resolve, reject) => {
     const child = !!rootPath ? cp.exec(cmd, { cwd: rootPath }) : cp.exec(cmd);
     child.stdout?.setEncoding('utf8');
     let outputText = '';
@@ -215,7 +239,7 @@ const encryptText = (
   rootPath: string | undefined,
   vaultId: string,
   config: vscode.WorkspaceConfiguration
-): Promise<string | undefined> => {
+): Promise<string> => {
   const cmd = `${config.executablePath} encrypt_string --encrypt-vault-id="${vaultId}"`;
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
