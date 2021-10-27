@@ -202,6 +202,16 @@
           "type": "string",
           "default": "",
           "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
+        },
+        "ansibleServer.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the ansible language server."
         }
       }
     },
