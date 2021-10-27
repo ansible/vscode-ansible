@@ -128,7 +128,7 @@ export const toggleEncrypt = async (): Promise<void> => {
         return;
       }
       vscode.window.activeTextEditor?.document.save();
-      encryptFile(doc.fileName, rootPath, vaultId, config);
+      await encryptFile(doc.fileName, rootPath, vaultId, config);
       vscode.window.showInformationMessage(`File encrypted: '${doc.fileName}'`);
     } else if (type === 'encrypted') {
       console.log('Decrypt entire file');
