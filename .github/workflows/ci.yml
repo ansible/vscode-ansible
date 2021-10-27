@@ -312,6 +312,19 @@ jobs:
     - name: Run testing against the Git checkout
       run: npm test
 
+  check:  # This job does nothing and is only used for the branch protection
+    needs:
+    - lint
+    - test
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Report success of the test matrix
+        run: >-
+          print("All's good")
+        shell: python
+
   publish-npmjs:
     name: Publish ${{ needs.pre-setup.outputs.git-tag }} to Npmjs
     if: fromJSON(needs.pre-setup.outputs.release-requested)
@@ -322,8 +335,8 @@ jobs:
           needs.pre-setup.outputs.dist-public-version
         }}
     needs:
+    - check
     - pre-setup  # transitive, for accessing settings
-    - test
 
     runs-on: Ubuntu-latest
 
@@ -357,8 +370,8 @@ jobs:
       fromJSON(needs.pre-setup.outputs.is-untagged-devel) ||
       fromJSON(needs.pre-setup.outputs.release-requested)
     needs:
+    - check
     - pre-setup  # transitive, for accessing settings
-    - test
     permissions:
       contents: read
       packages: write
