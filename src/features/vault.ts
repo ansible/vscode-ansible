@@ -210,7 +210,7 @@ const pipeTextThrougCmd = (
   });
 };
 
-const encryptText = async (
+const encryptText = (
   text: string,
   rootPath: string | undefined,
   vaultId: string,
@@ -220,7 +220,7 @@ const encryptText = async (
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
 
-const decryptText = async (
+const decryptText = (
   text: string,
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
