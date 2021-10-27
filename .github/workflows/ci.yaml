@@ -92,3 +92,15 @@ jobs:
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
         run: git diff --exit-code
+
+  check:  # This job does nothing and is only used for the branch protection
+    needs:
+    - build
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Report success of the test matrix
+        run: >-
+          print("All's good")
+        shell: python
