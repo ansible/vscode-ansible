@@ -81,38 +81,34 @@ export const toggleEncrypt = async (): Promise<void> => {
         return;
       }
 
+      let encryptedText: string;
       try {
-        const encryptedText = await encryptInline(
-          text,
-          rootPath,
-          vaultId,
-          config
-        );
-        editor.edit((editBuilder) => {
-          editBuilder.replace(
-            selection,
-            encryptedText.replace(
-              /\n/g,
-              `\n${' '.repeat(selection.start.character)}`
-            )
-          );
-        });
+        encryptedText = await encryptInline(text, rootPath, vaultId, config);
       } catch (e) {
         vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
+        return;
       }
+      editor.edit((editBuilder) => {
+        editBuilder.replace(
+          selection,
+          encryptedText.replace(
+            /\n/g,
+            `\n${' '.repeat(selection.start.character)}`
+          )
+        );
+      });
     } else if (type === 'encrypted') {
       console.log('Decrypt selected text');
-
+      let decryptedText: string;
       try {
-        const decryptedText = await decryptInline(text, rootPath, config);
-        if (!!decryptedText) {
-          editor.edit((editBuilder) => {
-            editBuilder.replace(selection, decryptedText);
-          });
-        }
+        decryptedText = await decryptInline(text, rootPath, config);
       } catch (e) {
         vscode.window.showErrorMessage(`Inline decryption failed: ${e}`);
+        return;
       }
+      editor.edit((editBuilder) => {
+        editBuilder.replace(selection, decryptedText);
+      });
     }
   } else {
     const document = await vscode.workspace.openTextDocument(doc.fileName);
@@ -242,7 +238,7 @@ const decryptText = (
   text: string,
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
-): Promise<string | undefined> => {
+): Promise<string> => {
   const cmd = `${config.executablePath} decrypt`;
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
