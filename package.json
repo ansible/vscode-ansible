@@ -435,11 +435,11 @@
     "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
-    "code": "code --install-extension *.vsix",
+    "code": "npm run package && code --force --install-extension *.vsix",
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "lint": "pre-commit run -a",
-    "package": "npm ci && vsce package && vsce ls",
+    "package": "npm ci && rimraf *.vsix && vsce package && vsce ls",
     "prepare": "git config --unset core.hooksPath || true && rimraf .husky",
     "pretest": "npm run compile",
     "//": "setup is used to configure development environment, like installing git hooks.",
