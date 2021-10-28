@@ -54,6 +54,16 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
+      # ~400mb, caching them should speedup ui-test execution
+      - name: Enable test-resources caching
+        uses: actions/cache@v2
+        if: ${{ contains(matrix.npm-target, 'ui-test') }}
+        with:
+          path: |
+            out/test-resources
+            out/test-resources-oldest
+          key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}
+
       - name: Use NodeJS v${{ matrix.nodejs-version }}
         uses: actions/setup-node@v2
         with:
