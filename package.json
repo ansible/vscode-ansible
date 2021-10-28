@@ -181,7 +181,7 @@
         },
         "ansible.executionEnvironment.pullPolicy": {
           "scope": "resource",
-          "type": "array",
+          "type": "string",
           "enum": [
             "always",
             "missing",
