@@ -32,7 +32,7 @@ on:
 jobs:
 
   pre-setup:
-    name: Pre-set global build settings
+    name: Set up build mode
     runs-on: Ubuntu-latest
     defaults:
       run:
