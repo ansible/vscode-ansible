@@ -37,7 +37,6 @@ jobs:
         - ui-test
         - ui-test-oldest
         nodejs-version:
-        - 12
         - 16
         upload-artifact:
         - false
