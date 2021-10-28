@@ -398,6 +398,7 @@
   "displayName": "Ansible",
   "engineStrict": true,
   "engines": {
+    "//": "node version affects only development, it does not affect vscode runtime",
     "node": ">=16.0",
     "npm": ">=7.12.1",
     "vscode": "^1.48.0",
