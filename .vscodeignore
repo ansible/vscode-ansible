@@ -8,8 +8,6 @@ doc
 node_modules
 src
 syntaxes/README.md
-test-resources
-test-resources-oldest
 tsconfig.json
 webpack.config.js
 

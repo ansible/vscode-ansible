@@ -186,7 +186,7 @@
         },
         "ansible.executionEnvironment.pullPolicy": {
           "scope": "resource",
-          "type": "array",
+          "type": "string",
           "enum": [
             "always",
             "missing",
@@ -226,6 +226,18 @@
           ],
           "default": "off",
           "description": "Traces the communication between VSCode and the ansible language server."
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[ansible]": {
+        "editor.detectIndentation": true,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.quickSuggestions": {
+          "comments": true,
+          "other": true,
+          "strings": true
         }
       }
     },
@@ -403,7 +415,8 @@
   "displayName": "Ansible",
   "engineStrict": true,
   "engines": {
-    "node": ">=12.0",
+    "//": "node version affects only development, it does not affect vscode runtime",
+    "node": ">=16.0",
     "npm": ">=7.12.1",
     "vscode": "^1.48.0",
     "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
@@ -444,15 +457,15 @@
     "pretest": "npm run compile",
     "//": "setup is used to configure development environment, like installing git hooks.",
     "setup": "pre-commit install-hooks",
-    "ui-test": "extest setup-and-run -i out/client/ui-test/allTestsSuite.js",
-    "ui-test-oldest": "extest setup-and-run -c 1.48.0 -s test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",
+    "ui-test": "extest setup-and-run -i -s out/test-resources out/client/ui-test/allTestsSuite.js",
+    "ui-test-oldest": "extest setup-and-run -c 1.48.0 -s out/test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",
     "vscode:prepublish": "npm run webpack",
     "watch": "tsc -b -w",
     "watch:server": "tsc -p ../ansible-language-server --outDir out/server -w",
     "webpack": "npm run clean && npm run compile && webpack --mode production --config ./webpack.config.js",
     "webpack:dev": "npm run clean && webpack --mode development --config ./webpack.config.js",
     "webpack:watch": "webpack --mode development --config ./webpack.config.js --watch",
-    "clean": "rimraf out"
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo"
   },
   "version": "0.5.1"
 }
