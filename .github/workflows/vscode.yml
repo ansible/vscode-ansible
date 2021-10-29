@@ -1,0 +1,39 @@
+# This workflow tests if current language-server change breaks vscode-ansible
+# extension by running extension tests with it.
+name: vscode
+
+on:
+  pull_request:
+  workflow_call:
+
+jobs:
+  ui-test:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout ansible-language-server
+        uses: actions/checkout@v2
+
+      - name: Checkout vscode-ansible
+        uses: actions/checkout@v2
+        with:
+          repository: ansible/vscode-ansible
+          path: vscode-ansible
+
+      - name: Configure node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - name: Compile language server
+        run: npm ci && npm run compile
+
+      - name: Link language server to extension
+        run: npm link ..
+        working-directory: vscode-ansible
+
+      - name: Run ui-test with vscode-ansible
+        uses: GabrielBB/xvfb-action@v1
+        with:
+          run: npm run ui-test
+          working-directory: vscode-ansible

@@ -4,3 +4,4 @@ node_modules
 *.tgz
 out/server
 tsconfig.tsbuildinfo
+vscode-ansible

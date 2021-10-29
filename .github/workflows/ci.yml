@@ -209,6 +209,9 @@ jobs:
         name: npm-package-tarball
         path: ${{ needs.pre-setup.outputs.tarball-artifact-name }}
 
+  # vscode:
+  #   uses: .github/workflows/vscode.yml@main
+
   test:
     needs:
     - build
@@ -316,6 +319,7 @@ jobs:
     needs:
     - lint
     - test
+    # - vscode
 
     runs-on: ubuntu-latest
 
