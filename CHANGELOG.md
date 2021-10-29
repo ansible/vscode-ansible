@@ -1,5 +1,19 @@
 # Change Log
 
+## 0.6.0
+
+### Minor Changes
+
+* **Feature**: Restored client-side support for working with ansible vaults (#177) @jeinwag
+* Exposed the `ansibleServer.trace.server` option for tracing ALS activity (#263) @yaegassy
+* Upgraded language server to 0.2.6 (#284) @ssbarnea
+
+### Bugfixes
+
+* Fixed autocompletion of the built-in modules with EE (ansible/ansible-language-server#94) @ganeshrn
+* Corrected `pullPolicy` setting type to string (#279) @ganeshrn
+* Enabled editor suggestions for `ansible` files by default (#274) @ssbarnea
+
 ## 0.5.1
 
 ### Hotfixes
