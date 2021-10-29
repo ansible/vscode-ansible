@@ -18,10 +18,9 @@ jobs:
         matrix.name
         && matrix.name
         || format(
-          '{0} ({1}) @ node-{2}',
+          '{0} ({1})',
           matrix.npm-target,
-          matrix.os,
-          matrix.nodejs-version
+          matrix.os
         )
       }}
     # The type of runner that the job will run on
@@ -36,8 +35,6 @@ jobs:
         npm-target:
         - ui-test
         - ui-test-oldest
-        nodejs-version:
-        - 16
         upload-artifact:
         - false
         name:
@@ -46,7 +43,6 @@ jobs:
         - name: lint
           npm-target: lint
           os: ubuntu-latest
-          nodejs-version: 16
           upload-artifact: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -64,10 +60,10 @@ jobs:
             out/test-resources-oldest
           key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}
 
-      - name: Use NodeJS v${{ matrix.nodejs-version }}
+      - name: Use NodeJS v16
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.nodejs-version }}
+          node-version: 16
 
       # Run install dependencies
       - name: Install dependencies

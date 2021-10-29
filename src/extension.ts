@@ -1,6 +1,7 @@
 /* "stdlib" */
 import * as path from 'path';
-import { ExtensionContext, extensions } from 'vscode';
+import { commands, ExtensionContext, extensions } from 'vscode';
+import { toggleEncrypt } from './features/vault';
 
 /* third-party */
 import {
@@ -21,6 +22,13 @@ let client: LanguageClient;
 
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      'extension.ansible.vault',
+      toggleEncrypt
+    )
+  );
 
   const serverModule = context.asAbsolutePath(
     path.join('out', 'server', 'src', 'server.js')
