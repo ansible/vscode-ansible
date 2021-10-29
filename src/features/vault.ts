@@ -92,8 +92,11 @@ export const toggleEncrypt = async (): Promise<void> => {
         editBuilder.replace(
           selection,
           encryptedText.replace(
-            /\n/g,
-            `\n${' '.repeat(selection.start.character)}`
+            /\n\s*/g,
+            `\n${' '.repeat(
+              (getIndentationLevel(editor, selection) + 1) *
+                Number(editor.options.tabSize)
+            )}`
           )
         );
       });
@@ -280,4 +283,20 @@ const execCwd = (cmd: string, cwd: string | undefined) => {
     return exec(cmd);
   }
   return exec(cmd, { cwd: cwd });
+};
+
+const getIndentationLevel = (
+  editor: vscode.TextEditor,
+  selection: vscode.Selection
+): number => {
+  if (!editor.options.tabSize) {
+    // according to VS code docs, tabSize is always defined when getting options of an editor
+    throw 'tabSize undefined, this should never happen';
+  }
+  const startLine = editor.document.lineAt(selection.start.line).text;
+  const indentationMatches = startLine.match(/^\s*/);
+  const leadingWhitespaces = !!indentationMatches
+    ? indentationMatches[0].length
+    : 0;
+  return leadingWhitespaces / Number(editor.options.tabSize);
 };
