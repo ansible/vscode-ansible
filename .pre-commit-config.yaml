@@ -82,7 +82,7 @@ repos:
         additional_dependencies:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
-          - eslint@v7.32.0
+          - eslint@v8.1.0
           - eslint-plugin-prettier
           - eslint-config-prettier
           - prettier
