@@ -88,15 +88,13 @@ export const toggleEncrypt = async (): Promise<void> => {
         vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
         return;
       }
+      const leadingWhitespaces = ' '.repeat(getIndentationLevel(editor, selection) + 1 * Number(editor.options.tabSize));
       editor.edit((editBuilder) => {
         editBuilder.replace(
           selection,
           encryptedText.replace(
             /\n\s*/g,
-            `\n${' '.repeat(
-              (getIndentationLevel(editor, selection) + 1) *
-                Number(editor.options.tabSize)
-            )}`
+            `\n${leadingWhitespaces}`
           )
         );
       });
@@ -295,6 +293,6 @@ const getIndentationLevel = (
   }
   const startLine = editor.document.lineAt(selection.start.line).text;
   const indentationMatches = startLine.match(/^\s*/);
-  const leadingWhitespaces = indentationMatches?[0].?length || 0;
+  const leadingWhitespaces = indentationMatches?.[0]?.length || 0;
   return leadingWhitespaces / Number(editor.options.tabSize);
 };
