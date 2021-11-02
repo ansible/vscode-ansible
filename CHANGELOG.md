@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bugfixes
 
-* Fix autocompletion of the builtin modules with EE (#94) @ganeshrn
+* Fixed autocompletion to account for the builtin modules when used
+  with EE (#94) @ganeshrn
 
 ## [0.2.5] - 2021-10-23
 
