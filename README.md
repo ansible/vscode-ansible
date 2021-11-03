@@ -1,6 +1,9 @@
 # Ansible VS Code Extension by Red Hat
 
-This extension adds language support for Ansible to [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible) and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
+This extension adds language support for Ansible to
+[Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible)
+and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
+by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
 ## Features
 
@@ -23,7 +26,8 @@ curly braces.
 
 ![YAML validation](images/yaml-validation.gif)
 
-While you type, the syntax of your Ansible scripts is verified and any feedback is provided instantaneously.
+While you type, the syntax of your Ansible scripts is verified and any feedback
+is provided instantaneously.
 
 #### Integration with ansible-lint
 
@@ -44,7 +48,8 @@ etc. and provides suggestions accordingly. There are also a few other rules that
 improve user experience:
 
 - the `name` property is always suggested first
-- on module options, the required properties are shown first, and aliases are shown last, otherwise ordering from the documentation is preserved
+- on module options, the required properties are shown first, and aliases are
+  shown last, otherwise ordering from the documentation is preserved
 - FQCNs (fully qualified collection names) are inserted only when necessary;
   collections configured with the
   [`collections` keyword]([LINK](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword))
@@ -83,12 +88,13 @@ holding `ctrl`/`cmd`.
 For Windows users, this extension works perfectly well with extensions such as
 `Remote - WSL` and `Remote - Containers`.
 
-> If you have any other extension providing language support for Ansible, you might need to uninstall it first.
+> If you have any other extension providing language support for Ansible, you
+> might need to uninstall it first.
 
 ## Configuration
 
-This extension supports multi-root workspaces, and as such, can be configured on
-any level (User, Remote, Workspace and/or Folder).
+This extension supports multi-root workspaces, and as such, can be configured
+on any level (User, Remote, Workspace and/or Folder).
 
 - `ansible.ansible.path`: Path to the `ansible` executable.
 - `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of
@@ -101,16 +107,19 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
 - `ansible.ansiblePlaybook.path`: Path to the `ansible-playbook` executable.
-- `ansible.executionEnvironment.containerEngine`: The container engine to be used
-  while running with execution environment. Valid values are `auto`, `podman` and
-  `docker`. For `auto` it will look for `podman` then `docker`.
+- `ansible.executionEnvironment.containerEngine`: The container engine to be
+  used while running with execution environment. Valid values are `auto`,
+  `podman` and `docker`. For `auto` it will look for `podman` then `docker`.
 - `ansible.executionEnvironment.enabled`: Enable or disable the use of an
    execution environment.
-- `ansible.executionEnvironment.image`: Specify the name of the execution environment image.
-- `ansible.executionEnvironment.pullPolicy`: Specify the image pull policy. Valid values are `always`,
-  `missing`, `never` and `tag`. Setting `always` will always pull the image when extension is activated or reloaded.
-  Setting `missing` will pull if not locally available. Setting `never` will never pull the image and setting
-  tag will always pull if the image tag is 'latest', otherwise pull if not locally available.
+- `ansible.executionEnvironment.image`: Specify the name of the execution
+  environment image.
+- `ansible.executionEnvironment.pullPolicy`: Specify the image pull policy.
+  Valid values are `always`, `missing`, `never` and `tag`. Setting `always`
+  will always pull the image when extension is activated or reloaded. Setting
+  `missing` will pull if not locally available. Setting `never` will never pull
+  the image and setting tag will always pull if the image tag is 'latest',
+  otherwise pull if not locally available.
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.
@@ -118,7 +127,8 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
-- `ansibleServer.trace.server`: Traces the communication between VSCode and the ansible language server.
+- `ansibleServer.trace.server`: Traces the communication between VSCode and the
+  ansible language server.
 
 ## Known limitations
 
