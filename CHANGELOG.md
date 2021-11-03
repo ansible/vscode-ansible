@@ -1,3 +1,4 @@
+<!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
 
 ## 0.6.1
