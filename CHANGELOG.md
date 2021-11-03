@@ -1,4 +1,11 @@
+<!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
+
+## 0.6.1
+
+### Bugfixes
+
+* Fix indentation when using inline vault encrypt (#288) @jeinwag
 
 ## 0.6.0
 
