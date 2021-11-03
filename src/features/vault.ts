@@ -20,6 +20,10 @@ async function askForVaultId(ansibleCfg: utilAnsibleCfg.AnsibleVaultConfig) {
     return undefined;
   }
 
+  if (identityList.length === 1) {
+    return identityList[0];
+  }
+
   const chosenVault = await vscode.window.showQuickPick(identityList);
   return chosenVault || vaultId;
 }
