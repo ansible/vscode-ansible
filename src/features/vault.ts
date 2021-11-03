@@ -88,14 +88,14 @@ export const toggleEncrypt = async (): Promise<void> => {
         vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
         return;
       }
-      const leadingWhitespaces = ' '.repeat(getIndentationLevel(editor, selection) + 1 * Number(editor.options.tabSize));
+      const leadingWhitespaces = ' '.repeat(
+        (getIndentationLevel(editor, selection) + 1) *
+          Number(editor.options.tabSize)
+      );
       editor.edit((editBuilder) => {
         editBuilder.replace(
           selection,
-          encryptedText.replace(
-            /\n\s*/g,
-            `\n${leadingWhitespaces}`
-          )
+          encryptedText.replace(/\n\s*/g, `\n${leadingWhitespaces}`)
         );
       });
     } else if (type === 'encrypted') {
@@ -289,7 +289,9 @@ const getIndentationLevel = (
 ): number => {
   if (!editor.options.tabSize) {
     // according to VS code docs, tabSize is always defined when getting options of an editor
-    throw new Error('The `tabSize` option is not defined, this should never happen.');
+    throw new Error(
+      'The `tabSize` option is not defined, this should never happen.'
+    );
   }
   const startLine = editor.document.lineAt(selection.start.line).text;
   const indentationMatches = startLine.match(/^\s*/);
