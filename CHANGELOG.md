@@ -4,15 +4,19 @@
 
 ### Minor Changes
 
-* **Feature**: Restored client-side support for working with ansible vaults (#177) @jeinwag
-* Exposed the `ansibleServer.trace.server` option for tracing ALS activity (#263) @yaegassy
+* **Feature**: Restored client-side support for working with ansible
+  vaults (#177) @jeinwag
+* Exposed the `ansibleServer.trace.server` option for tracing ALS
+  activity (#263) @yaegassy
 * Upgraded language server to 0.2.6 (#284) @ssbarnea
 
 ### Bugfixes
 
-* Fixed autocompletion of the built-in modules with EE (ansible/ansible-language-server#94) @ganeshrn
+* Fixed autocompletion of the built-in modules with EE
+  (ansible/ansible-language-server#94) @ganeshrn
 * Corrected `pullPolicy` setting type to string (#279) @ganeshrn
-* Enabled editor suggestions for `ansible` files by default (#274) @ssbarnea
+* Enabled editor suggestions for `ansible` files by default
+  (#274) @ssbarnea
 
 ## 0.5.1
 
@@ -62,7 +66,8 @@ In particular, this:
 
 ### Docs
 
-* Added a link to the language server repository into README (#173) @ganeshrn
+* Added a link to the language server repository into README
+  (#173) @ganeshrn
 * Added descriptions for the configuration settings section in README
   (#242) @ganeshrn
 
@@ -85,13 +90,15 @@ In particular, this:
 
 ## 0.4.0
 
-* Added vaults encryption and decryption support via `ansible-vault` command (#78) @FlorianLaunay
+* Added vaults encryption and decryption support via `ansible-vault`
+  command (#78) @FlorianLaunay
 
 ## 0.3.2
 
 * Use ansible-lint severity for VSCode diagnostics (#68) @FloSchwalm
 * Match found problems to source files (#70) @FloSchwalm
-* docs: added instructions on how to integrate `ansible-lint` in venv w… (#67) @stopendy
+* docs: added instructions on how to integrate `ansible-lint` in venv
+  w… (#67) @stopendy
 
 ## 0.3.1
 
@@ -106,7 +113,8 @@ In particular, this:
 
 ## 0.3.0
 
-* Added file associations for common files found on Ansible and Python repos
+* Added file associations for common files found on Ansible
+  and Python repos
 * Added schema verification for galaxy.yml files
 
 ## 0.2.0
