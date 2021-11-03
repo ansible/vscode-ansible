@@ -75,4 +75,9 @@ that gave 401 (access denied).
 
 ## Release and publication of extension
 
-Any push made to the `main` branch will trigger an [jenkins job](https://studio-jenkins-csb-codeready.apps.ocp4.prod.psi.redhat.com/job/ansible/) that produces an artifact. The new version will be uploaded to [marketplace.visualstudio.com](https://marketplace.visualstudio.com/) and [open-vsx.org](https://open-vsx.org/) stores only when the pipeline is approved by a core developer from Jenkins interface.
+Any push made to the `main` branch will trigger an
+[jenkins job](https://studio-jenkins-csb-codeready.apps.ocp4.prod.psi.redhat.com/job/ansible/)
+that produces an artifact. The new version will be uploaded to
+[marketplace.visualstudio.com](https://marketplace.visualstudio.com/) and
+[open-vsx.org](https://open-vsx.org/) stores only when the pipeline is
+approved by a core developer from Jenkins interface.
