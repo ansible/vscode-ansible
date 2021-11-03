@@ -2,6 +2,7 @@
   "activationEvents": [
     "onCommand:extension.ansible-navigator.run",
     "onCommand:extension.ansible-playbook.run",
+    "onCommand:extension.ansible.vault",
     "onLanguage:ansible"
   ],
   "badges": [
