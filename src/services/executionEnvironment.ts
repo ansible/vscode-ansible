@@ -306,7 +306,7 @@ export class ExecutionEnvironment {
           .slice(0, -1)
           .join(path.sep);
         fs.mkdirSync(destPath, { recursive: true });
-        const copyCommand = `docker cp ${containerName}:${srcPath} ${destPathFolder}`;
+        const copyCommand = `${this._container_engine} cp ${containerName}:${srcPath} ${destPathFolder}`;
         this.connection.console.log(
           `Copying plugins from container to local cache path ${copyCommand}`
         );
