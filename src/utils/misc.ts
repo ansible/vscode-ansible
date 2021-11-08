@@ -21,7 +21,7 @@ export function toLspRange(
   return Range.create(start, end);
 }
 
-export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
+export function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
   prop: Y
 ): obj is X & Record<Y, unknown> {
@@ -31,7 +31,7 @@ export function hasOwnProperty<X extends unknown, Y extends PropertyKey>(
 /**
  * Checks whether `obj` is a non-null object.
  */
-export function isObject<X extends unknown>(
+export function isObject<X>(
   obj: X
 ): obj is X & Record<PropertyKey, unknown> {
   return obj && typeof obj === 'object';

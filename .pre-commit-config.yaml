@@ -71,7 +71,7 @@ repos:
     hooks:
     - id: markdownlint
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v7.32.0
+    rev: v8.2.0
     hooks:
       - id: eslint
         args:
@@ -81,7 +81,7 @@ repos:
         additional_dependencies:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
-          - eslint@v7.32.0
+          - eslint@v8.2.0
           - eslint-plugin-prettier
           - eslint-config-prettier
           - prettier
