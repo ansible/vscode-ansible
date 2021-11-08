@@ -233,18 +233,36 @@ export class ExecutionEnvironment {
   }
 
   public cleanUpContainer(containerName: string): void {
-    [
+    const cleanUpCommands =  [
       `${this._container_engine} stop ${containerName}`,
       `${this._container_engine} rm ${containerName}`,
-    ].forEach((command) => {
+    ]
+
+    if (!this.doesContainerNameExist(containerName)) {
+      console.log(`clean up container not required as container with name ${containerName} does not exist`);
+      return
+    }
+    for (const command of cleanUpCommands ){
       try {
         child_process.execSync(command, {
           cwd: URI.parse(this.context.workspaceFolder.uri).path,
         });
       } catch (error) {
         // container already stopped and/or removed
+        break
       }
-    });
+    }
+  }
+
+  public doesContainerNameExist(containerName: string): boolean {
+    let containerNameExist = false
+    try {
+      child_process.execSync(`${this._container_engine} inspect ${containerName}`);
+      containerNameExist = true
+    } catch (error) {
+      containerNameExist = false
+    }
+    return containerNameExist
   }
 
   private isPluginInPath(
