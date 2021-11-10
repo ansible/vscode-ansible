@@ -43,7 +43,7 @@ function makeGetRequest() {
 async function releasedInOpenVSX(currentVersion: string): Promise<boolean> {
   const responseVersion = await makeGetRequest();
 
-  return true ? responseVersion === currentVersion : false;
+  return responseVersion === currentVersion;
 }
 
 /**
@@ -60,7 +60,7 @@ function releasedInVSCMarketplace(currentVersion: string): boolean {
 
   const VSCMarketplaceVersion = JSON.parse(result).versions[0].version;
 
-  return true ? VSCMarketplaceVersion === currentVersion : false;
+  return VSCMarketplaceVersion === currentVersion;
 }
 
 /**
