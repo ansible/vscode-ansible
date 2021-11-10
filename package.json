@@ -467,7 +467,8 @@
     "webpack": "npm run clean && npm run compile && webpack --mode production --config ./webpack.config.js",
     "webpack:dev": "npm run clean && webpack --mode development --config ./webpack.config.js",
     "webpack:watch": "webpack --mode development --config ./webpack.config.js --watch",
-    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo"
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
+    "sanity": "ts-node src/tools/check_version.ts"
   },
   "version": "0.6.1"
 }
