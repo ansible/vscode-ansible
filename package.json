@@ -182,7 +182,7 @@
         "ansible.executionEnvironment.image": {
           "scope": "resource",
           "type": "string",
-          "default": "quay.io/ansible/ansible-navigator-demo-ee:0.6.0",
+          "default": "quay.io/ansible/ansible-devtools-demo-ee:v0.1.0",
           "description": "Specify the name of the execution environment image."
         },
         "ansible.executionEnvironment.pullPolicy": {
