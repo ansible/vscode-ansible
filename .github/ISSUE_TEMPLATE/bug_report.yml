@@ -23,6 +23,78 @@ body:
 
         [discussions]: ../discussions
 
+  - type: checkboxes
+    id: it-is-really-this-extension
+    attributes:
+      label: Sanity check
+      description: >
+        _Hold on, wait a second, **🛑 STOP!**_
+
+
+        🙏 We need you to confirm something first before proceeding with
+        filling out this form.
+
+        💡 Long story short, it is important to verify that you actually
+        use `redhat.ansible` extention for a given file.
+
+        <details>
+          <summary>
+            📖 Long story long.
+          </summary>
+
+          <p>
+            We noticed, that some people miss out on what extension is
+            being used to handle certain files. In some cases, VS Code's
+            auto-detection selects a different extension for a file you
+            are looking at. In case, it doesn't choose the
+            <code>Ansible</code> language for such a file,
+            <code>redhat.ansible</code> will even not get
+            initialized and you'll actually be getting errors from other
+            extensions. <i>This may be confusing and misleading</i>.
+          </p>
+
+          <p>
+            When VS Code auto-detects a file language, it saves it for
+            future reference and it won't re-assign a different
+            extension to it automatically. Only the extension that
+            processes that language will be in control of working with
+            that file. It is technically impossible within the VS Code
+            ecossytem for <code>redhat.ansible</code> to "steal" that
+            control from any other extension. Most often this happens
+            with pre-existing extensions that provide support for YAML.
+          </p>
+
+          <p>
+            But you can select it manually by clicking on the current
+            language in your editor's status bar and choosing
+            <code>Ansible</code> from the selection. With this, VS Code
+            will remember the language for that specific file. You may
+            need to repeat this for other files that got mislanguaged.
+          </p>
+        </details>
+
+
+        🙏 Look at your VS Code status bar and verify that it has
+        the `Ansible` language selected for the files that are part of
+        your Ansible project.
+
+
+        <details>
+          <summary>
+            ❗ This is what the status bar should look like.
+          </summary>
+
+
+          ![❗ VS Code Ansible language selected
+          ](https://user-images.githubusercontent.com/578543/141507613-ef7ec8eb-f75b-4f6e-8580-750678768b90.png)
+        </details>
+      options:
+      - label: >-
+          I certify that the `redhat.ansible` extension is in use and
+          the language of the document in this bug report shows
+          up as `Ansible`
+        required: true
+
   - type: textarea
     id: summary
     attributes:
