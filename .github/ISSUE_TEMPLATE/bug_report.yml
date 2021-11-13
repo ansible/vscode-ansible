@@ -35,7 +35,7 @@ body:
         filling out this form.
 
         💡 Long story short, it is important to verify that you actually
-        use `redhat.ansible` extention for a given file.
+        use the `redhat.ansible` extension for a given file.
 
         <details>
           <summary>
