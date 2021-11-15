@@ -118,7 +118,7 @@
           "scope": "machine-overridable",
           "type": "string",
           "default": "ansible",
-          "description": "Path to the ansible executable."
+          "description": "Path to the ansible executable. All subcommands are expected to have adjacent locations."
         },
         "ansible.ansible.useFullyQualifiedCollectionNames": {
           "scope": "resource",
@@ -147,12 +147,6 @@
         "ansible.ansibleNavigator.path": {
           "default": "ansible-navigator",
           "description": "%configuration.navigate.executablePath%",
-          "scope": "machine-overridable",
-          "type": "string"
-        },
-        "ansible.ansiblePlaybook.path": {
-          "default": "ansible-playbook",
-          "description": "%configuration.run.executablePath%",
           "scope": "machine-overridable",
           "type": "string"
         },
