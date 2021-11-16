@@ -82,8 +82,8 @@ export class AnsiblePlaybookRunProvider {
      * A property representing the `ansible-playbook` executable.
      */
   private get ansiblePlaybookExecutablePath(): string {
-    return vscode.workspace
-      .getConfiguration('ansible.ansiblePlaybook').path;
+    return `${vscode.workspace
+      .getConfiguration('ansible.ansible.path').path || 'ansible'  }-playbook`;
   }
 
   /**

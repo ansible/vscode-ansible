@@ -106,7 +106,6 @@ on any level (User, Remote, Workspace and/or Folder).
 - `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
-- `ansible.ansiblePlaybook.path`: Path to the `ansible-playbook` executable.
 - `ansible.executionEnvironment.containerEngine`: The container engine to be
   used while running with execution environment. Valid values are `auto`,
   `podman` and `docker`. For `auto` it will look for `podman` then `docker`.
