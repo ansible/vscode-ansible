@@ -6,7 +6,7 @@ import {
   TextEdit,
 } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { Node, Pair, Scalar, YAMLMap } from 'yaml/types';
+import { Node, Scalar, YAMLMap } from 'yaml/types';
 import { IOption } from '../interfaces/module';
 import { WorkspaceFolderContext } from '../services/workspaceManager';
 import {
@@ -30,6 +30,7 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
+  getPossibleOptionsForPath,
 } from '../utils/yaml';
 
 const priorityMap = {
@@ -163,93 +164,72 @@ export async function doCompletion(
         return completionItems;
       }
 
-      // Finally, check if we're looking for module options
-      // In that case, the module name is a key of a map
-      const parentKeyPath = new AncestryBuilder(path)
-        .parentOfKey()
-        .parent(YAMLMap)
-        .getKeyPath();
+      // Finally, check if we're looking for module options or sub-options
+      const options = await getPossibleOptionsForPath(
+        path,
+        document,
+        docsLibrary
+      );
 
-      if (parentKeyPath && isTaskParam(parentKeyPath)) {
-        const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
-        if (parentKeyNode instanceof Scalar) {
-          let module;
-          if (parentKeyNode.value === 'args') {
-            module = await findProvidedModule(
-              parentKeyPath,
-              document,
-              docsLibrary
-            );
-          } else {
-            [module] = await docsLibrary.findModule(
-              parentKeyNode.value,
-              parentKeyPath,
-              document.uri
-            );
-          }
-          if (module && module.documentation) {
-            const moduleOptions = module.documentation.options;
+      if (options) {
+        const optionMap = new AncestryBuilder(path)
+          .parentOfKey()
+          .get() as YAMLMap;
 
-            const optionMap = (
-              new AncestryBuilder(parentKeyPath).parent(Pair).get() as Pair
-            ).value as YAMLMap;
+        // find options that have been already provided by the user
+        const providedOptions = new Set(getYamlMapKeys(optionMap));
 
-            // find options that have been already provided by the user
-            const providedOptions = new Set(getYamlMapKeys(optionMap));
+        const remainingOptions = [...options.entries()].filter(
+          ([, specs]) => !providedOptions.has(specs.name)
+        );
 
-            const remainingOptions = [...moduleOptions.entries()].filter(
-              ([, specs]) => !providedOptions.has(specs.name)
-            );
+        const nodeRange = getNodeRange(node, document);
 
-            const nodeRange = getNodeRange(node, document);
-
-            return remainingOptions
-              .map(([option, specs]) => {
-                return {
-                  name: option,
-                  specs: specs,
-                };
-              })
-              .map((option, index) => {
-                // translate option documentation to CompletionItem
-                const details = getDetails(option.specs);
-                let priority;
-                if (isAlias(option)) {
-                  priority = priorityMap.aliasOption;
-                } else if (option.specs.required) {
-                  priority = priorityMap.requiredOption;
-                } else {
-                  priority = priorityMap.option;
-                }
-                const completionItem: CompletionItem = {
-                  label: option.name,
-                  detail: details,
-                  // using index preserves order from the specification
-                  // except when overridden by the priority
-                  sortText: priority.toString() + index.toString().padStart(3),
-                  kind: isAlias(option)
-                    ? CompletionItemKind.Reference
-                    : CompletionItemKind.Property,
-                  documentation: formatOption(option.specs),
-                  insertText: atEndOfLine(document, position)
-                    ? `${option.name}:`
-                    : undefined,
-                };
-                const insertText = atEndOfLine(document, position)
-                  ? `${option.name}:`
-                  : option.name;
-                if (nodeRange) {
-                  completionItem.textEdit = {
-                    range: nodeRange,
-                    newText: insertText,
-                  };
-                } else {
-                  completionItem.insertText = insertText;
-                }
-                return completionItem;
-              });
-          }
-        }
+        return remainingOptions
+          .map(([option, specs]) => {
+            return {
+              name: option,
+              specs: specs,
+            };
+          })
+          .map((option, index) => {
+            // translate option documentation to CompletionItem
+            const details = getDetails(option.specs);
+            let priority;
+            if (isAlias(option)) {
+              priority = priorityMap.aliasOption;
+            } else if (option.specs.required) {
+              priority = priorityMap.requiredOption;
+            } else {
+              priority = priorityMap.option;
+            }
+            const completionItem: CompletionItem = {
+              label: option.name,
+              detail: details,
+              // using index preserves order from the specification
+              // except when overridden by the priority
+              sortText: priority.toString() + index.toString().padStart(3),
+              kind: isAlias(option)
+                ? CompletionItemKind.Reference
+                : CompletionItemKind.Property,
+              documentation: formatOption(option.specs),
+              insertText: atEndOfLine(document, position)
+                ? `${option.name}:`
+                : undefined,
+            };
+            const insertText = atEndOfLine(document, position)
+              ? `${option.name}:`
+              : option.name;
+            if (nodeRange) {
+              completionItem.textEdit = {
+                range: nodeRange,
+                newText: insertText,
+              };
+            } else {
+              completionItem.insertText = insertText;
+            }
+            return completionItem;
+          });
       }
     }
   }

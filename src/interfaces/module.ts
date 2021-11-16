@@ -38,5 +38,5 @@ export interface IOption {
   elements?: string;
   aliases?: Array<string>;
   versionAdded?: string;
-  suboptions?: unknown;
+  suboptions?: Map<string, IOption>;
 }

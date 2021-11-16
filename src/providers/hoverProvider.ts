@@ -1,6 +1,6 @@
 import { Hover, MarkupContent, MarkupKind } from 'vscode-languageserver';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { Scalar, YAMLMap } from 'yaml/types';
+import { Scalar } from 'yaml/types';
 import { DocsLibrary } from '../services/docsLibrary';
 import {
   blockKeywords,
@@ -17,9 +17,9 @@ import {
 import { toLspRange } from '../utils/misc';
 import {
   AncestryBuilder,
-  findProvidedModule,
   getOrigRange,
   getPathAt,
+  getPossibleOptionsForPath,
   isBlockParam,
   isPlayParam,
   isRoleParam,
@@ -83,38 +83,19 @@ export async function doHover(
         }
       }
 
-      // hovering over a module parameter
-      // can either be directly under module or in 'args'
-      const parentKeyPath = new AncestryBuilder(path)
-        .parentOfKey()
-        .parent(YAMLMap)
-        .getKeyPath();
+      // hovering over a module option or sub-option
+      const options = await getPossibleOptionsForPath(
+        path,
+        document,
+        docsLibrary
+      );
 
-      if (parentKeyPath && isTaskParam(parentKeyPath)) {
-        const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
-        if (parentKeyNode instanceof Scalar) {
-          let module;
-          if (parentKeyNode.value === 'args') {
-            module = await findProvidedModule(
-              parentKeyPath,
-              document,
-              docsLibrary
-            );
-          } else {
-            [module] = await docsLibrary.findModule(
-              parentKeyNode.value,
-              parentKeyPath,
-              document.uri
-            );
-          }
-          if (module && module.documentation) {
-            const option = module.documentation.options.get(node.value);
-            if (option) {
-              return {
-                contents: formatOption(option, true),
-              };
-            }
-          }
+      if (options) {
+        const option = options.get(node.value);
+        if (option) {
+          return {
+            contents: formatOption(option, true),
+          };
         }
       }
     }

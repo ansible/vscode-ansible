@@ -116,7 +116,7 @@ export function processRawOptions(rawOptions: unknown): Map<string, IOption> {
           name: optionName,
           required: !!rawOption.required,
           default: rawOption.default,
-          suboptions: rawOption.suboptions,
+          suboptions: processRawOptions(rawOption.suboptions),
         };
         if (isIDescription(rawOption.description))
           optionDoc.description = rawOption.description;

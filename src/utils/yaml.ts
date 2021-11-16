@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { Position, TextDocument } from 'vscode-languageserver-textdocument';
 import { Document, Options, parseCST } from 'yaml';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { IModuleMetadata } from '../interfaces/module';
+import { IModuleMetadata, IOption } from '../interfaces/module';
 import { DocsLibrary } from '../services/docsLibrary';
 import { isTaskKeyword, playExclusiveKeywords } from './ansible';
 import { playKeywords, taskKeywords } from '../utils/ansible';
@@ -349,6 +349,104 @@ export function isRoleParam(path: Node[]): boolean {
     .parent(YAMLMap)
     .getStringKey();
   return rolesKey === 'roles';
+}
+
+/**
+ * If the path points at a parameter or sub-parameter provided for a module, it
+ * will return the list of all possible options or sub-options at that
+ * level/indentation.
+ */
+export async function getPossibleOptionsForPath(
+  path: Node[],
+  document: TextDocument,
+  docsLibrary: DocsLibrary
+): Promise<Map<string, IOption> | null> {
+  const [taskParamPath, suboptionTrace] = getTaskParamPathWithTrace(path);
+  if (!taskParamPath) return null;
+
+  const optionTraceElement = suboptionTrace.pop();
+  if (!optionTraceElement || optionTraceElement[1] !== 'dict') {
+    // that element must always be a `dict`
+    // (unlike for sub-options, which can also be a 'list')
+    return null;
+  }
+
+  // The module name is a key of the task parameters map
+  const taskParamNode = taskParamPath[taskParamPath.length - 1];
+  if (!(taskParamNode instanceof Scalar)) return null;
+
+  let module;
+  // Module options can either be directly under module or in 'args'
+  if (taskParamNode.value === 'args') {
+    module = await findProvidedModule(taskParamPath, document, docsLibrary);
+  } else {
+    [module] = await docsLibrary.findModule(
+      taskParamNode.value,
+      taskParamPath,
+      document.uri
+    );
+  }
+  if (!module || !module.documentation) return null;
+
+  let options = module.documentation.options;
+  suboptionTrace.reverse(); // now going down the path
+  for (const [optionName, optionType] of suboptionTrace) {
+    const option = options.get(optionName);
+    if (optionName && option?.type === optionType && option.suboptions) {
+      options = option.suboptions;
+    } else {
+      return null; // suboption structure mismatch
+    }
+  }
+
+  return options;
+}
+
+/**
+ * For a given path, it searches up that path until a path to the task parameter
+ * (typically a module name) is found. The trace of keys with indication whether
+ * the values hold a 'list' or a 'dict' is preserved along the way and returned
+ * alongside.
+ */
+export function getTaskParamPathWithTrace(
+  path: Node[]
+): [Node[], [string, 'list' | 'dict'][]] {
+  const trace: [string, 'list' | 'dict'][] = [];
+  while (!isTaskParam(path)) {
+    let parentKeyPath = new AncestryBuilder(path)
+      .parentOfKey()
+      .parent(YAMLMap)
+      .getKeyPath();
+    if (parentKeyPath) {
+      const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
+      if (
+        parentKeyNode instanceof Scalar &&
+        typeof parentKeyNode.value === 'string'
+      ) {
+        trace.push([parentKeyNode.value, 'dict']);
+        path = parentKeyPath;
+        continue;
+      }
+    }
+    parentKeyPath = new AncestryBuilder(path)
+      .parentOfKey()
+      .parent(YAMLSeq)
+      .parent(YAMLMap)
+      .getKeyPath();
+    if (parentKeyPath) {
+      const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
+      if (
+        parentKeyNode instanceof Scalar &&
+        typeof parentKeyNode.value === 'string'
+      ) {
+        trace.push([parentKeyNode.value, 'list']);
+        path = parentKeyPath;
+        continue;
+      }
+    }
+    return [[], []]; // return empty if no structural match found
+  }
+  return [path, trace];
 }
 
 /**

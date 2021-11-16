@@ -150,7 +150,6 @@ For Windows users, this extension works perfectly well with extensions such as
 ## Known limitations
 
 * The shorthand syntax for module options (key=value pairs) is not supported.
-* Nested module options are not supported yet.
 * Only Jinja *expressions* inside Ansible YAML files are supported. In order to
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.

@@ -6,7 +6,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { IModuleMetadata } from '../interfaces/module';
+import { IOption } from '../interfaces/module';
 import { DocsLibrary } from '../services/docsLibrary';
 import {
   blockKeywords,
@@ -89,7 +89,12 @@ async function markSemanticTokens(
               );
               if (module && pair.value instanceof YAMLMap) {
                 // highlight module parameters
-                markModuleParameters(pair.value, module, builder, document);
+                markModuleParameters(
+                  pair.value,
+                  module.documentation?.options,
+                  builder,
+                  document
+                );
               }
             }
           } else {
@@ -109,7 +114,12 @@ async function markSemanticTokens(
               );
               if (pair.value instanceof YAMLMap) {
                 // highlight module parameters
-                markModuleParameters(pair.value, module, builder, document);
+                markModuleParameters(
+                  pair.value,
+                  module.documentation?.options,
+                  builder,
+                  document
+                );
               }
             } else {
               markAllNestedKeysAsOrdinary(pair, builder, document);
@@ -153,15 +163,13 @@ async function markSemanticTokens(
 
 function markModuleParameters(
   moduleParamMap: YAMLMap,
-  module: IModuleMetadata,
+  options: Map<string, IOption> | undefined,
   builder: SemanticTokensBuilder,
   document: TextDocument
 ) {
   for (const moduleParamPair of moduleParamMap.items) {
     if (moduleParamPair.key instanceof Scalar) {
-      const option = module.documentation?.options.get(
-        moduleParamPair.key.value
-      );
+      const option = options?.get(moduleParamPair.key.value);
       if (option) {
         markNode(
           moduleParamPair.key,
@@ -170,11 +178,36 @@ function markModuleParameters(
           builder,
           document
         );
+        if (
+          option.type === 'dict' &&
+          moduleParamPair.value instanceof YAMLMap
+        ) {
+          // highlight sub-parameters
+          markModuleParameters(
+            moduleParamPair.value,
+            option.suboptions,
+            builder,
+            document
+          );
+        } else if (
+          option.type === 'list' &&
+          moduleParamPair.value instanceof YAMLSeq
+        ) {
+          // highlight list of sub-parameters
+          for (const item of moduleParamPair.value.items) {
+            if (item instanceof YAMLMap) {
+              markModuleParameters(item, option.suboptions, builder, document);
+            } else {
+              markAllNestedKeysAsOrdinary(item, builder, document);
+            }
+          }
+        } else {
+          markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
+        }
       } else {
-        markOrdinaryKey(moduleParamPair.key, builder, document);
+        markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
       }
-    }
-    if (moduleParamPair.value instanceof Node) {
+    } else if (moduleParamPair.value instanceof Node) {
       markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
     }
   }
