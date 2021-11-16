@@ -29,6 +29,15 @@ on:
           extraordinary circumstances to ignore the
           test failures and cut the release regardless.
 
+concurrency:
+  group: >-
+    ${{
+        github.workflow
+    }}-${{
+        github.event.pull_request.number || github.sha
+    }}
+  cancel-in-progress: true
+
 jobs:
 
   pre-setup:
