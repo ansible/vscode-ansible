@@ -127,7 +127,6 @@ on any level (User, Remote, Workspace and/or Folder).
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.
-- `ansible.vault.executablePath`: Path to the `ansible-vault` executable.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.

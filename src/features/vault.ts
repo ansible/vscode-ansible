@@ -34,6 +34,10 @@ function displayInvalidConfigError(): void {
   );
 }
 
+function ansibleVaultPath(config: vscode.WorkspaceConfiguration): string {
+  return `${config.ansible.path || 'ansible'  }-vault`
+}
+
 export const toggleEncrypt = async (): Promise<void> => {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
@@ -45,7 +49,7 @@ export const toggleEncrypt = async (): Promise<void> => {
     return;
   }
 
-  const config = vscode.workspace.getConfiguration('ansible.vault');
+  const config = vscode.workspace.getConfiguration('ansible');
   const doc = editor.document;
 
   // Read `ansible.cfg` or environment variable
@@ -234,8 +238,8 @@ const encryptText = (
   config: vscode.WorkspaceConfiguration
 ): Promise<string> => {
   const cmd = !!vaultId
-    ? `${config.executablePath} encrypt_string --encrypt-vault-id="${vaultId}"`
-    : `${config.executablePath} encrypt_string`;
+    ? `${ansibleVaultPath(config)} encrypt_string --encrypt-vault-id="${vaultId}"`
+    : `${ansibleVaultPath(config)} encrypt_string`;
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
 
@@ -244,7 +248,7 @@ const decryptText = (
   rootPath: string | undefined,
   config: vscode.WorkspaceConfiguration
 ): Promise<string> => {
-  const cmd = `${config.executablePath} decrypt`;
+  const cmd = `${ansibleVaultPath(config)} decrypt`;
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
 
@@ -257,8 +261,8 @@ const encryptFile = (
   console.log(`Encrypt file: ${f}`);
 
   const cmd = !!vaultId
-    ? `${config.executablePath} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
-    : `${config.executablePath} encrypt "${f}"`;
+    ? `${ansibleVaultPath(config)} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
+    : `${ansibleVaultPath(config)} encrypt "${f}"`;
 
   return execCwd(cmd, rootPath);
 };
@@ -270,7 +274,7 @@ const decryptFile = (
 ) => {
   console.log(`Decrypt file: ${f}`);
 
-  const cmd = `${config.executablePath} decrypt "${f}"`;
+  const cmd = `${ansibleVaultPath(config)} decrypt "${f}"`;
 
   return execCwd(cmd, rootPath);
 };
