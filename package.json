@@ -191,12 +191,6 @@
           "default": "",
           "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored."
         },
-        "ansible.vault.executablePath": {
-          "default": "ansible-vault",
-          "description": "%configuration.vault.executablePath%",
-          "scope": "machine-overridable",
-          "type": "string"
-        },
         "ansible.python.interpreterPath": {
           "scope": "machine-overridable",
           "type": "string",
