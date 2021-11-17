@@ -19,6 +19,8 @@ jobs:
         with:
           repository: ansible/vscode-ansible
           path: vscode-ansible
+          # We will later move this folder to ../ due to below bug:
+          # https://github.com/actions/checkout/issues/197
 
       - name: Configure node
         uses: actions/setup-node@v2
@@ -28,12 +30,17 @@ jobs:
       - name: Compile language server
         run: npm ci && npm run compile
 
-      - name: Link language server to extension
-        run: npm link ..
-        working-directory: vscode-ansible
+      - name: Link ansible-language-server into vscode-ansible
+        run: |
+          set -ex
+          mv vscode-ansible ..
+          pushd ../vscode-ansible
+          npm link ../ansible-language-server
+          npm ls --depth=0 --link=true
+          popd
 
       - name: Run ui-test with vscode-ansible
         uses: GabrielBB/xvfb-action@v1
         with:
           run: npm run ui-test
-          working-directory: vscode-ansible
+          working-directory: ../vscode-ansible
