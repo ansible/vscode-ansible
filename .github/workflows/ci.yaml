@@ -61,7 +61,9 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: ansible/ansible-language-server
-          path: out/ansible-language-server
+          path: ansible-language-server
+          # We will later move this folder to ../ due to below bug:
+          # https://github.com/actions/checkout/issues/197
 
       # ~400mb, caching them should speedup ui-test execution
       - name: Enable test-resources caching
@@ -90,13 +92,18 @@ jobs:
       - name: Link development version of ansible-language-server
         if: ${{ matrix.devel }}
         run: |
-          npm link ./out/ansible-language-server
+          mv ansible-language-server ..
+          npm link ../ansible-language-server
+          pushd ../ansible-language-server
+          npm ci
+          npm run compile
+          popd
           npm ls --depth=0 --link=true
         shell: bash
 
       # Build extension
-      - name: Run build
-        run: npm run compile
+      - name: Run package
+        run: npm run package
 
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.0
