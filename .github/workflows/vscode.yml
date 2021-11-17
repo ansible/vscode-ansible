@@ -35,7 +35,7 @@ jobs:
           set -ex
           mv vscode-ansible ..
           pushd ../vscode-ansible
-          npm link ../ansible-language-server
+          npm link --save ../ansible-language-server
           npm ls --depth=0 --link=true
           popd
 
