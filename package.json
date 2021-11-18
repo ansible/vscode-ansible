@@ -75,6 +75,7 @@
     "compile": "tsc -p .",
     "lint": "npm ci && pre-commit run -a",
     "prepack": "npm ci && npm run compile",
+    "preversion": "bin/version-bump-allowed",
     "watch": "tsc --watch -p .",
     "test": "mocha --require ts-node/register './test/**/*.ts'",
     "check-dependencies": "node ./scripts/check-dependencies.js"
