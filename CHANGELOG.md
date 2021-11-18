@@ -6,6 +6,20 @@ All notable changes to the Ansible VS Code extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2021-11-18
+
+### Minor Changes
+
+* Added support for nested module options (suboptions) (#116) @tomaciazek
+* Adopted use of `creator-ee` execution environment (#132) @ssbarnea
+* Updated container cleanup logic for execution environment (#111) @ganeshrn
+
+### Bugfixes
+
+* Updated plugin doc cache validate logic for execution environment (#109)
+  @ganeshrn
+* Fixed issue with container copy command (#110) @ganeshrn
+
 ## [0.2.6] - 2021-10-29
 
 ### Bugfixes
