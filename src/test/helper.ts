@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import assert from 'assert';
+import { assert } from 'chai';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -65,9 +65,12 @@ export async function testDiagnostics(
   if (actualDiagnostics.length !== 0 && expectedDiagnostics.length !== 0) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
-      assert.equal(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
+      assert.include(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
       assert.deepEqual(actualDiagnostic.range, expectedDiagnostic.range);
-      assert.equal(actualDiagnostic.severity, expectedDiagnostic.severity);
+      assert.strictEqual(
+        actualDiagnostic.severity,
+        expectedDiagnostic.severity
+      );
     });
   }
 }
