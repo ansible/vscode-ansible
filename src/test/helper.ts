@@ -4,8 +4,6 @@ import { assert } from 'chai';
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
-export let documentEol: string;
-export let platformEol: string;
 
 /**
  * Activates the redhat.ansible extension
