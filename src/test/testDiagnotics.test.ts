@@ -27,9 +27,7 @@ describe('TEST FOR DIAGNOSTICS (local)', () => {
       await testDiagnostics(docUri1, [
         {
           severity: 0,
-          message:
-            '[unnamed-task] All tasks should be named\n' +
-            'Description: All tasks should have a distinct name for readability and for ``--start-at-task`` to work',
+          message: 'All tasks should be named',
           range: new vscode.Range(
             new vscode.Position(3, 0),
             new vscode.Position(3, Number.MAX_SAFE_INTEGER)
@@ -50,17 +48,7 @@ describe('TEST FOR DIAGNOSTICS (local)', () => {
       await testDiagnostics(docUri2, [
         {
           severity: 0,
-          message:
-            '[syntax-check] Ansible syntax check failed\n' +
-            'Description: Running ``ansible-playbook --syntax-check ...`` failed.\n' +
-            '\n' +
-            'This error **cannot be disabled** due to being a prerequisite for other steps.\n' +
-            'You can either exclude these files from linting or better assure they can be\n' +
-            'loaded by Ansible. This is often achieved by editing inventory file and/or\n' +
-            '``ansible.cfg`` so ansible can load required variables.\n' +
-            '\n' +
-            'If undefined variables are the failure reason you could use jinja default()\n' +
-            'filter in order to provide fallback values.\n',
+          message: 'Ansible syntax check failed',
           range: new vscode.Range(
             new vscode.Position(0, 0),
             new vscode.Position(0, Number.MAX_SAFE_INTEGER)
@@ -95,14 +83,8 @@ describe('TEST FOR DIAGNOSTICS (local)', () => {
     await testDiagnostics(docUri2, [
       {
         severity: 0,
-        message:
-          'Command failed: ansible-playbook /home/prsahoo/Desktop/Ansible_Language_Server/dev/vscode-ansible/src/test/testFixtures/diagnostics/2.yml --syntax-check\n' +
-          '[WARNING]: No inventory was parsed, only implicit localhost is available\n' +
-          '[WARNING]: provided hosts list is empty, only localhost is available. Note that\n' +
-          // eslint-disable-next-line quotes
-          "the implicit localhost does not match 'all'\n" +
-          // eslint-disable-next-line quotes
-          "ERROR! the field 'hosts' is required but was not set\n",
+        // eslint-disable-next-line quotes
+        message: "the field 'hosts' is required but was not set",
         range: new vscode.Range(
           new vscode.Position(0, 0),
           new vscode.Position(0, Number.MAX_SAFE_INTEGER)
