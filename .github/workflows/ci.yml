@@ -195,7 +195,7 @@ jobs:
           needs.pre-setup.outputs.dist-version
         }}
       run: >-
-        npm version --allow-same-version '${{ needs.pre-setup.outputs.dist-version }}'
+        npm version '${{ needs.pre-setup.outputs.dist-version }}'
         -m 'Release %s from GitHub Actions CI/CD'
     - name: Log how the metadata has unchanged
       run: git show --color=always
