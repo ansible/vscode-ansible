@@ -12,7 +12,6 @@
   "configuration.validate.enable": "Enable/disable ansible-lint validation.",
   "configuration.validate.executablePath": "Points to the ansible-lint executable.",
   "configuration.validate.run": "Whether the linter is run on save or on type.",
-  "configuration.vault.executablePath": "Points to the ansible-vault executable.",
   "description": "Provides rich language support for Ansible files.",
   "displayName": "Ansible Language Features",
   "submenus.ansible.run-via": "Run Ansible Playbook via..."

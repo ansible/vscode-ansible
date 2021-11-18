@@ -44,11 +44,26 @@ jobs:
           npm-target: lint
           os: ubuntu-latest
           upload-artifact: true
+        - name: devel
+          # this job will install latest version of ansible-language-server
+          # instead of the one mentioned in package[-lock].json
+          npm-target: ui-test
+          os: ubuntu-latest
+          devel: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Clone development branch of ansible-language-server
+        if: ${{ matrix.devel }}
+        uses: actions/checkout@v2
+        with:
+          repository: ansible/ansible-language-server
+          path: ansible-language-server
+          # We will later move this folder to ../ due to below bug:
+          # https://github.com/actions/checkout/issues/197
 
       # ~400mb, caching them should speedup ui-test execution
       - name: Enable test-resources caching
@@ -72,6 +87,19 @@ jobs:
           pipx install pre-commit
           npm config set fund false
           npm ci
+        shell: bash
+
+      - name: Link development version of ansible-language-server
+        if: ${{ matrix.devel }}
+        run: |
+          set -ex
+          mv ansible-language-server ..
+          npm link ../ansible-language-server
+          pushd ../ansible-language-server
+          npm ci
+          npm run compile
+          popd
+          npm ls --depth=0 --link=true
         shell: bash
 
       # Build extension

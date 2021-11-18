@@ -118,7 +118,7 @@
           "scope": "machine-overridable",
           "type": "string",
           "default": "ansible",
-          "description": "Path to the ansible executable."
+          "description": "Path to the ansible executable. All subcommands are expected to have adjacent locations."
         },
         "ansible.ansible.useFullyQualifiedCollectionNames": {
           "scope": "resource",
@@ -148,19 +148,7 @@
           "default": "ansible-navigator",
           "description": "%configuration.navigate.executablePath%",
           "scope": "machine-overridable",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "ansible.ansiblePlaybook.path": {
-          "default": "ansible-playbook",
-          "description": "%configuration.run.executablePath%",
-          "scope": "machine-overridable",
-          "type": [
-            "string",
-            "null"
-          ]
+          "type": "string"
         },
         "ansible.executionEnvironment.containerEngine": {
           "scope": "resource",
@@ -201,21 +189,12 @@
           "scope": "machine-overridable",
           "type": "string",
           "default": "",
-          "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. If set, the Interpreter Path setting is ignored."
-        },
-        "ansible.vault.executablePath": {
-          "default": "ansible-vault",
-          "description": "%configuration.vault.executablePath%",
-          "scope": "machine-overridable",
-          "type": [
-            "string",
-            "null"
-          ]
+          "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored."
         },
         "ansible.python.interpreterPath": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "",
+          "default": "python3",
           "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
         },
         "ansibleServer.trace.server": {
@@ -382,36 +361,36 @@
   },
   "dependencies": {
     "@ansible/ansible-language-server": "^0.2.6",
-    "@types/ini": "^1.3.30",
-    "ini": "^1.3.0",
+    "@types/ini": "^1.3.31",
+    "ini": "^2.0.0",
     "untildify": "^4.0.0",
     "vscode-languageclient": "^7.0.0"
   },
   "description": "Ansible language support",
   "devDependencies": {
-    "@commitlint/cli": "^13.1.0",
-    "@types/chai": "^4.2.21",
-    "@types/glob": "^7.1.3",
-    "@types/mocha": "^8.2.3",
-    "@types/node": "^14.17.5",
+    "@types/chai": "^4.2.22",
+    "@types/glob": "^7.2.0",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.11.7",
     "@types/vscode": "^1.48.0",
-    "@typescript-eslint/eslint-plugin": "^4.28.3",
-    "@typescript-eslint/parser": "^4.28.3",
+    "@typescript-eslint/eslint-plugin": "^5.3.1",
+    "@typescript-eslint/parser": "^5.3.1",
     "chai": "^4.3.4",
     "copyfiles": "^2.4.1",
-    "eslint": "^7.30.0",
+    "eslint": "^8.2.0",
     "eslint-config-prettier": "^8.3.0",
     "mocha": "^9.1.3",
+    "npm-check-updates": "^12.0.2",
     "rimraf": "^3.0.2",
-    "standard-version": "^9.3.0",
-    "ts-loader": "^8.3.0",
-    "ts-node": "^9.1.1",
-    "typescript": "^4.3.5",
-    "vsce": "^1.95.1",
-    "vscode-extension-tester": "^4.2.0",
-    "vscode-test": "^1.5.2",
-    "webpack": "^5.44.0",
-    "webpack-cli": "^4.7.2"
+    "standard-version": "^9.3.2",
+    "ts-loader": "^9.2.6",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.4.4",
+    "vsce": "^2.3.0",
+    "vscode-extension-tester": "^4.2.3",
+    "vscode-test": "^1.6.1",
+    "webpack": "^5.64.0",
+    "webpack-cli": "^4.9.1"
   },
   "displayName": "Ansible",
   "engineStrict": true,
@@ -452,11 +431,13 @@
     "code": "npm run package && code --force --install-extension *.vsix",
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out/server",
     "compile:withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
+    "//deps": "Update all dependencies",
+    "deps": "ncu -u && npm install",
     "lint": "pre-commit run -a",
     "package": "npm ci && rimraf *.vsix && vsce package && vsce ls",
     "prepare": "git config --unset core.hooksPath || true && rimraf .husky",
     "pretest": "npm run compile",
-    "//": "setup is used to configure development environment, like installing git hooks.",
+    "//setup": "setup is used to configure development environment, like installing git hooks.",
     "setup": "pre-commit install-hooks",
     "ui-test": "extest setup-and-run -i -s out/test-resources out/client/ui-test/allTestsSuite.js",
     "ui-test-oldest": "extest setup-and-run -c 1.48.0 -s out/test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",

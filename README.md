@@ -5,6 +5,11 @@ This extension adds language support for Ansible to
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
+Keep it mind that due to [ALS#117](https://github.com/ansible/ansible-language-server/issues/117)
+this extension works only when a workspace is present. If you open a standalone
+file outside a vscode workspace, you will not be able to use most of the
+features of this extension.
+
 ## Features
 
 ### Syntax highlighting
@@ -106,7 +111,6 @@ on any level (User, Remote, Workspace and/or Folder).
 - `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
-- `ansible.ansiblePlaybook.path`: Path to the `ansible-playbook` executable.
 - `ansible.executionEnvironment.containerEngine`: The container engine to be
   used while running with execution environment. Valid values are `auto`,
   `podman` and `docker`. For `auto` it will look for `podman` then `docker`.
@@ -123,7 +127,6 @@ on any level (User, Remote, Workspace and/or Folder).
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.
-- `ansible.vault.executablePath`: Path to the `ansible-vault` executable.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
