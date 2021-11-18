@@ -94,7 +94,7 @@ jobs:
         run: |
           set -ex
           mv ansible-language-server ..
-          npm link ../ansible-language-server
+          npm link --save ../ansible-language-server
           pushd ../ansible-language-server
           npm ci
           npm run compile
@@ -124,6 +124,8 @@ jobs:
 
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
+        # on devel we use `npm link --save ..` which will alter tracked files
+        if: ${{ !matrix.devel }}
         run: git diff --exit-code
 
   check:  # This job does nothing and is only used for the branch protection
