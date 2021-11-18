@@ -2,7 +2,6 @@ import { expect } from 'chai';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { parseAllDocuments } from 'yaml';
 import { Node, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import {
   AncestryBuilder,
@@ -12,6 +11,7 @@ import {
   isPlayParam,
   isRoleParam,
   isTaskParam,
+  parseAllDocuments,
 } from '../../src/utils/yaml';
 
 async function getYamlDoc(yamlFile: string) {
@@ -47,17 +47,7 @@ describe('yaml', () => {
 
   beforeEach(function () {
     const brokenTests = new Map([
-      ['canGetCollections', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canGetCollectionsFromPreTasks', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canGetCollectionsFromRescue', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canGetCollectionsFromAlways', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canCorrectlyNegateTaskParamForValue', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canCorrectlyConfirmTaskParamInPreTasks', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canCorrectlyConfirmTaskParamInTasks', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canCorrectlyConfirmTaskParamInBlock', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['isUndecisiveWithoutPlayKeywords', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['isUndecisiveWithoutPlayKeywordsWithoutPath', 'https://github.com/ansible/ansible-language-server/issues/26'],
-      ['canCorrectlyConfirmRoleParam', 'https://github.com/ansible/ansible-language-server/issues/26'],
+      // ['<testName>', '<url-of-tracking-issue>'],
     ])
     const reason = brokenTests.get(this.currentTest.title);
     if (isWindows() && reason) {
