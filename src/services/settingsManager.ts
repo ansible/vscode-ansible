@@ -19,7 +19,7 @@ export class SettingsManager {
     executionEnvironment: {
       containerEngine: 'auto',
       enabled: false,
-      image: 'quay.io/ansible/ansible-devtools-demo-ee:v0.1.0',
+      image: 'quay.io/ansible/creator-ee:latest',
       pullPolicy: 'missing'
     }
   };
