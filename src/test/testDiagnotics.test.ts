@@ -7,7 +7,7 @@ import {
   updateSettings,
 } from './helper';
 
-describe('TEST FOR DIAGNOSTICS (local)', () => {
+describe('TEST FOR DIAGNOSTICS IN LOCAL ENVIRONMENT (without ee)', () => {
   const docUri1 = getDocUri('diagnostics/1.yml');
   const docUri2 = getDocUri('diagnostics/2.yml');
 
