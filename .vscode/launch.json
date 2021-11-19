@@ -4,7 +4,7 @@
     {
       "name": "Both",
       "stopAll": true,
-      "configurations": ["Launch Extension", "Attach to Server"]
+      "configurations": ["Launch Extension", "Attach to Server"],
       "presentation": {
         "order": 2,
         "hidden": true
@@ -15,7 +15,7 @@
       "stopAll": true,
       "configurations": ["Launch Extension", "Attach to Server (source)"],
       "presentation": {
-        "order": 1,
+        "order": 1
       }
     }
   ],
@@ -57,5 +57,5 @@
       "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
       "preLaunchTask": "npm: watch:server"
     }
-  ],
+  ]
 }
