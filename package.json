@@ -449,5 +449,5 @@
     "webpack:watch": "webpack --mode development --config ./webpack.config.js --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo"
   },
-  "version": "0.6.1"
+  "version": "0.7.0"
 }
