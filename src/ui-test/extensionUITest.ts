@@ -15,7 +15,7 @@ export function extensionUIAssetsTest(): void {
     let sideBar: SideBarView;
 
     before(async function () {
-      this.timeout(4000);
+      this.timeout(5000);
       view = (await new ActivityBar().getViewControl(
         'Extensions'
       )) as ViewControl;
