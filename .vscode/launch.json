@@ -1,5 +1,24 @@
 {
   "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "Both",
+      "stopAll": true,
+      "configurations": ["Launch Extension", "Attach to Server"]
+      "presentation": {
+        "order": 2,
+        "hidden": true
+      }
+    },
+    {
+      "name": "Both (src)",
+      "stopAll": true,
+      "configurations": ["Launch Extension", "Attach to Server (source)"],
+      "presentation": {
+        "order": 1,
+      }
+    }
+  ],
   "configurations": [
     {
       "name": "Launch Extension",
@@ -29,7 +48,7 @@
       "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"]
     },
     {
-      "name": "Attach to Server (source)",
+      "name": "Attach to Server (src)",
       "type": "node",
       "request": "attach",
       "timeout": 30000,
@@ -39,16 +58,4 @@
       "preLaunchTask": "npm: watch:server"
     }
   ],
-  "compounds": [
-    {
-      "name": "Client + Server",
-      "stopAll": true,
-      "configurations": ["Launch Extension", "Attach to Server"]
-    },
-    {
-      "name": "Client + Server (source)",
-      "stopAll": true,
-      "configurations": ["Launch Extension", "Attach to Server (source)"]
-    }
-  ]
 }
