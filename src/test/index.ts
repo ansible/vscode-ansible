@@ -1,6 +1,7 @@
 import * as path from 'path';
 import Mocha from 'mocha';
 import glob from 'glob';
+import { resetDefaultSettings } from './helper';
 
 export function run(): Promise<void> {
   // Create the mocha test
@@ -10,6 +11,9 @@ export function run(): Promise<void> {
   });
 
   const testsRoot = path.resolve(__dirname, '..');
+
+  //   create default settings
+  resetDefaultSettings();
 
   return new Promise((c, e) => {
     glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
