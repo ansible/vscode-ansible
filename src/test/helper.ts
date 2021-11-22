@@ -69,6 +69,13 @@ export async function updateSettings(
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration('ansible');
   return ansibleConfiguration.update(setting, value, true);
+
+export async function resetDefaultSettings(): Promise<void> {
+  const ansibleConfiguration = vscode.workspace.getConfiguration('ansible');
+  Object.entries(defaultAnsibleConfigurations).forEach((config) => {
+    ansibleConfiguration.update(config[0], config[1], false);
+  });
+  await sleep(1000);
 }
 
 export async function testDiagnostics(
