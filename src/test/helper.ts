@@ -5,6 +5,25 @@ import { assert } from 'chai';
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
+// Default ansible configurations
+export const defaultAnsibleConfigurations = {
+  'ansible.useFullyQualifiedCollectionNames': true,
+  'ansibleLint.arguments': '',
+  'ansibleLint.enabled': true,
+  'ansibleLint.path': 'ansible-lint',
+  'ansibleNavigator.path': 'ansible-navigator',
+  'executionEnvironment.containerEngine': 'auto',
+  'executionEnvironment.enabled': false,
+
+  'executionEnvironment.image':
+    'quay.io/ansible/ansible-devtools-demo-ee:v0.1.0',
+
+  'executionEnvironment.pullPolicy': 'missing',
+  'python.activationScript': '',
+  'python.interpreterPath': 'python3',
+  'ansible.path': 'ansible',
+};
+
 /**
  * Activates the redhat.ansible extension
  */
