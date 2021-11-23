@@ -99,3 +99,25 @@ export async function testDiagnostics(
     });
   }
 }
+
+export async function testHover(
+  docUri: vscode.Uri,
+  position: vscode.Position,
+  expectedHover: vscode.Hover[]
+): Promise<void> {
+  const actualHoverResults = (await vscode.commands.executeCommand(
+    'vscode.executeHoverProvider',
+    docUri,
+    position
+  )) as vscode.Hover[];
+
+  assert.equal(actualHoverResults.length, expectedHover.length);
+
+  expectedHover.forEach((expectedItem, i) => {
+    const actualItem = actualHoverResults[i];
+    assert.include(
+      (actualItem.contents[i] as vscode.MarkdownString).value,
+      expectedItem.contents[i].toString()
+    );
+  });
+}
