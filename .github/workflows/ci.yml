@@ -180,11 +180,10 @@ jobs:
     - name: Fetch the src
       uses: actions/checkout@v2
     - name: Setup git user as [bot]
-      run: >
-        git config --local user.email
-        'github-actions[bot]@users.noreply.github.com'
-
-        git config --local user.name 'github-actions[bot]'
+      # Refs:
+      # * https://github.community/t/github-actions-bot-email-address/17204/6
+      # * https://github.com/actions/checkout/issues/13#issuecomment-724415212
+      uses: fregante/setup-git-user@v1.0.1
     - name: >-
         Set up NodeJS ${{ matrix.node-version }}
         with the global NPM registry
@@ -303,11 +302,10 @@ jobs:
         fetch-depth: 1
         ref: ${{ github.event.inputs.release-commitish }}
     - name: Setup git user as [bot]
-      run: >
-        git config --local user.email
-        'github-actions[bot]@users.noreply.github.com'
-
-        git config --local user.name 'github-actions[bot]'
+      # Refs:
+      # * https://github.community/t/github-actions-bot-email-address/17204/6
+      # * https://github.com/actions/checkout/issues/13#issuecomment-724415212
+      uses: fregante/setup-git-user@v1.0.1
     - name: Fetch the GHA artifact with the version patch
       uses: actions/download-artifact@v2
       with:
@@ -428,11 +426,10 @@ jobs:
         fetch-depth: 1
         ref: ${{ github.event.inputs.release-commitish }}
     - name: Setup git user as [bot]
-      run: >
-        git config --local user.email
-        'github-actions[bot]@users.noreply.github.com'
-
-        git config --local user.name 'github-actions[bot]'
+      # Refs:
+      # * https://github.community/t/github-actions-bot-email-address/17204/6
+      # * https://github.com/actions/checkout/issues/13#issuecomment-724415212
+      uses: fregante/setup-git-user@v1.0.1
     - name: Fetch the GHA artifact with the version patch
       uses: actions/download-artifact@v2
       with:
