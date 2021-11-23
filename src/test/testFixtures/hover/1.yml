@@ -1,0 +1,16 @@
+- name: Test playbook
+  gather_facts: False
+  hosts: localhost
+  tasks:
+    - vyos.vyos.vyos_prefix_lists:
+        config:
+          - afi:
+            prefix_lists:
+
+          - afi:
+            prefix_lists:
+              - name:
+                description:
+                entries:
+                  - description:
+      register: debug
