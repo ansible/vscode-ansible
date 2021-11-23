@@ -13,6 +13,7 @@ describe('TEST FOR DIAGNOSTICS IN LOCAL ENVIRONMENT (without ee)', () => {
   const docUri2 = getDocUri('diagnostics/ansible/2.yml');
 
   beforeEach(async () => {
+    await resetDefaultSettings();
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
   });
 
