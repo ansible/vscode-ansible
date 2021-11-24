@@ -322,6 +322,19 @@ jobs:
     - name: Run testing against the Git checkout
       run: npm test
 
+    - name: Produce coverage report
+      run: npm run coverage
+    - name: Upload coverage data
+      uses: codecov/codecov-action@v2
+      with:
+        name: ${{ matrix.name }}
+        files: out/coverage.lcov
+        flags: >-
+          GHA,
+          ${{ runner.os }},
+          ${{ matrix.os }},
+          ${{ matrix.node-version }}
+
   check:  # This job does nothing and is only used for the branch protection
     needs:
     - lint
