@@ -61,7 +61,7 @@ export class AnsibleLint {
       );
       return;
     } else {
-      let linterArguments = settings.ansibleLint.arguments;
+      let linterArguments = settings.ansibleLint.arguments ?? '';
 
       // Determine linter config file
       let ansibleLintConfigPath = linterArguments.match(
