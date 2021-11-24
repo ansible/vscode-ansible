@@ -10,6 +10,16 @@ import * as utilAnsibleCfg from './utils/ansibleCfg';
 
 const execAsync = util.promisify(cp.exec);
 
+enum MultilineStyle {
+  Literal = '|',
+  Folding = '>',
+}
+
+enum ChompingStyle {
+  Strip = '-',
+  Keep = '+',
+}
+
 async function askForVaultId(ansibleCfg: utilAnsibleCfg.AnsibleVaultConfig) {
   const vaultId = 'default';
 
@@ -77,7 +87,8 @@ export const toggleEncrypt = async (): Promise<void> => {
   // Go encrypt / decrypt
   if (!!text) {
     const type = getInlineTextType(text);
-
+    const indentationLevel = getIndentationLevel(editor, selection);
+    const tabSize = Number(editor.options.tabSize);
     if (type === 'plaintext') {
       console.log('Encrypt selected text');
 
@@ -91,26 +102,36 @@ export const toggleEncrypt = async (): Promise<void> => {
 
       let encryptedText: string;
       try {
-        encryptedText = await encryptInline(text, rootPath, vaultId, config);
+        encryptedText = await encryptInline(
+          text,
+          rootPath,
+          vaultId,
+          indentationLevel,
+          tabSize,
+          config
+        );
       } catch (e) {
         vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
         return;
       }
-      const leadingWhitespaces = ' '.repeat(
-        (getIndentationLevel(editor, selection) + 1) *
-          Number(editor.options.tabSize)
-      );
+      const leadingSpaces = ' '.repeat((indentationLevel + 1) * tabSize);
       editor.edit((editBuilder) => {
         editBuilder.replace(
           selection,
-          encryptedText.replace(/\n\s*/g, `\n${leadingWhitespaces}`)
+          encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`)
         );
       });
     } else if (type === 'encrypted') {
       console.log('Decrypt selected text');
       let decryptedText: string;
       try {
-        decryptedText = await decryptInline(text, rootPath, config);
+        decryptedText = await decryptInline(
+          text,
+          rootPath,
+          indentationLevel,
+          tabSize, // tabSize is always defined
+          config
+        );
       } catch (e) {
         vscode.window.showErrorMessage(`Inline decryption failed: ${e}`);
         return;
@@ -179,17 +200,26 @@ const encryptInline = async (
   text: string,
   rootPath: string | undefined,
   vaultId: string | undefined,
+  indentationLevel: number,
+  tabSize = 0,
   config: vscode.WorkspaceConfiguration
 ) => {
-  const encryptedText = await encryptText(text, rootPath, vaultId, config);
+  const encryptedText = await encryptText(
+    handleMultiline(text, indentationLevel, tabSize),
+    rootPath,
+    vaultId,
+    config
+  );
   console.debug(`encryptedText == '${encryptedText}'`);
 
   return encryptedText?.trim();
 };
 
-const decryptInline = (
+const decryptInline = async (
   text: string,
   rootPath: string | undefined,
+  indentationLevel: number,
+  tabSize = 0,
   config: vscode.WorkspaceConfiguration
 ) => {
   // Delete inline vault prefix, then trim spaces and newline from the entire string and, at last, trim the spaces in the multiline string.
@@ -198,7 +228,12 @@ const decryptInline = (
     .trim()
     .replace(/[^\S\r\n]+/gm, '');
 
-  return decryptText(text, rootPath, config);
+  const decryptedText = reindentText(
+    await decryptText(text, rootPath, config),
+    indentationLevel,
+    tabSize
+  );
+  return decryptedText;
 };
 
 const pipeTextThrougCmd = (
@@ -306,3 +341,116 @@ const getIndentationLevel = (
   const leadingWhitespaces = indentationMatches?.[0]?.length || 0;
   return leadingWhitespaces / Number(editor.options.tabSize);
 };
+
+const foldedMultilineReducer = (
+  accumulator: string,
+  currentValue: string,
+  currentIndex: number,
+  array: string[]
+): string => {
+  if (
+    currentValue === '' ||
+    currentValue.match(/^\s/) ||
+    array[currentIndex - 1].match(/^\s/)
+  ) {
+    return `${accumulator}\n${currentValue}`;
+  }
+  if (accumulator.charAt(accumulator.length - 1) !== '\n') {
+    return `${accumulator} ${currentValue}`;
+  }
+  return `${accumulator}${currentValue}`;
+};
+
+const handleLiteralMultiline = (
+  lines: string[],
+  leadingSpacesCount: number
+) => {
+  const text = prepareMultiline(lines, leadingSpacesCount).join('\n');
+  const chompingStyle = getChompingStyle(lines);
+  if (chompingStyle === ChompingStyle.Strip) {
+    return text.replace(/\n*$/, '');
+  } else if (chompingStyle === ChompingStyle.Keep) {
+    return `${text}\n`;
+  } else {
+    return text.replace(/\n*$/, '\n');
+  }
+};
+
+const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
+  const text = prepareMultiline(lines, leadingSpacesCount).reduce(
+    foldedMultilineReducer
+  );
+  const chompingStyle = getChompingStyle(lines);
+  if (chompingStyle === ChompingStyle.Strip) {
+    return text.replace(/\n*$/g, '');
+  } else if (chompingStyle === ChompingStyle.Keep) {
+    return `${text}\n`;
+  } else {
+    return `${text.replace(/\n$/gm, '')}\n`;
+  }
+};
+
+const handleMultiline = (
+  text: string,
+  indentationLevel: number,
+  tabSize: number
+) => {
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  if (lines.length > 1) {
+    const leadingSpacesCount = (indentationLevel + 1) * tabSize;
+    const multilineStyle = getMultilineStyle(lines);
+    if (multilineStyle === MultilineStyle.Literal) {
+      return handleLiteralMultiline(lines, leadingSpacesCount);
+    } else if (multilineStyle === MultilineStyle.Folding) {
+      return handleFoldedMultiline(lines, leadingSpacesCount);
+    } else {
+      throw new Error('this type of multiline text is not suppored');
+    }
+  }
+  return text;
+};
+
+const reindentText = (
+  text: string,
+  indentationLevel: number,
+  tabSize: number
+) => {
+  const leadingSpacesCount = (indentationLevel + 1) * tabSize;
+  const lines = text.split('\n');
+  let trailingNewlines = 0;
+  for (const line of lines.reverse()) {
+    if (line === '') {
+      trailingNewlines++;
+    } else {
+      break;
+    }
+  }
+  lines.reverse();
+  if (lines.length > 1) {
+    const leadingWhitespaces = ' '.repeat(leadingSpacesCount);
+    const rejoinedLines = lines
+      .map((line) => `${leadingWhitespaces}${line}`)
+      .join('\n');
+    rejoinedLines.replace(/\n$/, '');
+    if (trailingNewlines > 1) {
+      return `${MultilineStyle.Literal}${ChompingStyle.Keep}\n${rejoinedLines}`;
+    } else if (trailingNewlines === 0) {
+      return `${MultilineStyle.Literal}${ChompingStyle.Strip}\n${rejoinedLines}`;
+    }
+    return `${MultilineStyle.Literal}\n${rejoinedLines}`;
+  }
+  return text;
+};
+
+const prepareMultiline = (lines: string[], leadingSpacesCount: number) => {
+  const re = new RegExp(`^\\s{${leadingSpacesCount}}`, '');
+  return lines.slice(1, lines.length).map((line) => line.replace(re, ''));
+};
+
+function getMultilineStyle(lines: string[]) {
+  return lines[0].charAt(0);
+}
+
+function getChompingStyle(lines: string[]) {
+  return lines[0].charAt(1);
+}
