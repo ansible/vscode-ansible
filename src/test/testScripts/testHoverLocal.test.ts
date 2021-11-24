@@ -5,11 +5,9 @@ import {
   activate,
   testHover,
   sleep,
-  updateSettings,
   resetDefaultSettings,
 } from '../helper';
 
-//
 describe('TEST FOR HOVER IN LOCAL ENVIRONMENT (without ee)', () => {
   const docUri1 = getDocUri('hover/1.yml');
 
