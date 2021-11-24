@@ -354,7 +354,8 @@ const foldedMultilineReducer = (
     array[currentIndex - 1].match(/^\s/)
   ) {
     return `${accumulator}\n${currentValue}`;
-  } else if (accumulator.charAt(accumulator.length - 1) !== '\n') {
+  }
+  if (accumulator.charAt(accumulator.length - 1) !== '\n') {
     return `${accumulator} ${currentValue}`;
   }
   return `${accumulator}${currentValue}`;
