@@ -1,0 +1,11 @@
+codecov:
+  notify:
+    after_n_builds: 8  # the number of individual jobs in the test matrix
+    wait_for_ci: yes
+  require_ci_to_pass: true
+comment: false
+coverage:
+  status:
+    patch: false
+    project:
+      threshold: 0.5%
