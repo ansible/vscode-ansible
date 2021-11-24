@@ -1,4 +1,4 @@
 - name: play name
   hosts: localhost
   tasks:
-    - ping:
+    - debug:
