@@ -463,7 +463,7 @@ jobs:
       run: |
         sh -x
 
-        git checkout --branch 'release/${{
+        git checkout -b 'release/${{
           needs.pre-setup.outputs.dist-version
         }}'
 
@@ -473,9 +473,9 @@ jobs:
           needs.pre-setup.outputs.dist-version
         }}'
 
-        git checkout --branch 'release/${{
+        git checkout -B 'release/${{
           needs.pre-setup.outputs.dist-version
-        }}' --force
+        }}'
 
     - name: >-
         Tag the release in the local Git repo
