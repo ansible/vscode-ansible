@@ -442,6 +442,7 @@ jobs:
     - name: Fetch the src
       uses: actions/checkout@v2
       with:
+        fetch-depth: 0  # To reach the common commit w/ the repo default branch
         ref: ${{ github.event.inputs.release-commitish }}
     - name: Setup git user as [bot]
       # Refs:
