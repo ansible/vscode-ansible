@@ -552,14 +552,26 @@ jobs:
     - name: >-
         Publish a GitHub Release for
         ${{ needs.pre-setup.outputs.git-tag }}
-      uses: softprops/action-gh-release@v1
+      uses: ncipollo/release-action@v1.8.10
       with:
-        # body/body_path:  # FIXME: Use once Towncrier is integrated.
-        discussion_category_name: Announcements
-        fail_on_unmatched_files: true
-        files: |
+        allowUpdates: false
+        artifactErrorsFailBuild: false
+        artifacts: |
           ${{ needs.pre-setup.outputs.tarball-artifact-name }}
+        artifactContentType: application/gzip  # .tgz / RFC 6713
+        # body/bodyFile:  # FIXME: Use once Towncrier is integrated.
+        commit: release/${{ needs.pre-setup.outputs.dist-version }}
+        discussionCategory: Announcements
+        draft: false
         name: ${{ needs.pre-setup.outputs.git-tag }}
-        tag_name: ${{ needs.pre-setup.outputs.git-tag }}
-        target_commitish: ${{ needs.pre-setup.outputs.git-tag }}
+        # omitBody: false
+        omitBodyDuringUpdate: true
+        omitName: false
+        omitNameDuringUpdate: true
+        omitPrereleaseDuringUpdate: true
+        prerelease: false
+        removeArtifacts: false
+        replacesArtifacts: false
+        tag: ${{ needs.pre-setup.outputs.git-tag }}
+        token: ${{ secrets.GITHUB_TOKEN }}
 ...
