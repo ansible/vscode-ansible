@@ -467,13 +467,11 @@ jobs:
           needs.pre-setup.outputs.dist-version
         }}'
 
-        git config --add remote.origin.fetch '+refs/heads/${{
+        git fetch origin '+refs/heads/${{
             github.event.repository.default_branch
         }}:refs/remotes/origin/${{
             github.event.repository.default_branch
         }}'
-
-        git fetch origin '${{ github.event.repository.default_branch }}'
 
         git checkout '${{ github.event.repository.default_branch }}'
 
