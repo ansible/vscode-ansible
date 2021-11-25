@@ -511,24 +511,25 @@ jobs:
       pull-requests: write
 
     steps:
-    - name: Create a release pull request
+    - name: pull-request-action
       id: pr
-      uses: repo-sync/pull-request@v2
-      with:
-        destination_branch: ${{ github.event.repository.default_branch }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        pr_body: >-
+      uses: vsoch/pull-request-action@1.0.18
+      env:
+        BRANCH_PREFIX: ''
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PULL_REQUEST_BODY: >-
           Automated metadata update with the just released version
           ${{ needs.pre-setup.outputs.dist-version }}
-        pr_label: skip-changelog
-        pr_title: Bump version to ${{ needs.pre-setup.outputs.git-tag }}
-        source_branch: release/${{ needs.pre-setup.outputs.dist-version }}
+        PULL_REQUEST_BRANCH: ${{ github.event.repository.default_branch }}
+        PULL_REQUEST_FROM_BRANCH: >-
+          release/${{ needs.pre-setup.outputs.dist-version }}
+        PULL_REQUEST_TITLE: >-
+          Bump version to ${{ needs.pre-setup.outputs.git-tag }}
     - name: Log the pull request details
       run: >-
         echo
-        "PR number: ${{ steps.pr.outputs.pr_number }}"
-        "\nPR URL: ${{ steps.pr.outputs.pr_url }}"
-        "\nPR changed files: ${{ steps.pr.outputs.has_changed_files }}"
+        "PR number: ${{ steps.pr.outputs.pull_request_number }}"
+        "\nPR URL: ${{ steps.pr.outputs.pull_request_url }}"
 
   publish-github-release:
     name: >-
