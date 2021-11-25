@@ -546,6 +546,7 @@ jobs:
 
     permissions:
       contents: write
+      discussions: write
 
     steps:
     - name: Fetch the GHA artifact with the package tarball
