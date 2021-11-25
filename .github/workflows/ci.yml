@@ -475,7 +475,11 @@ jobs:
 
         git checkout '${{ github.event.repository.default_branch }}'
 
-        git merge --no-ff 'release/${{
+        git merge --no-ff -m "Merge branch 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}' into ${{
+          github.event.repository.default_branch
+        }}" 'release/${{
           needs.pre-setup.outputs.dist-version
         }}'
 
