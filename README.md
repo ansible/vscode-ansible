@@ -5,6 +5,10 @@ This extension adds language support for Ansible to
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
+## Installing and activating Red Hat Ansible extension
+
+![Linter support](https://github.com/ansible/ansible-language-server/raw/main/images/ansible-extension-install-activate.gif)
+
 ## Features
 
 ### Syntax highlighting
