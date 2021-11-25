@@ -157,8 +157,11 @@ jobs:
       PIP_DISABLE_PIP_VERSION_CHECK: "1"
     runs-on: Ubuntu-latest
     steps:
-    - name: Fetch the src
+    - name: Fetch the src snapshot
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        ref: ${{ github.event.inputs.release-commitish }}
     - name: Setup node
       uses: actions/setup-node@v2
     - name: Install dependencies
@@ -177,8 +180,11 @@ jobs:
     runs-on: Ubuntu-latest
 
     steps:
-    - name: Fetch the src
+    - name: Fetch the src snapshot
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 1
+        ref: ${{ github.event.inputs.release-commitish }}
     - name: Setup git user as [bot]
       # Refs:
       # * https://github.community/t/github-actions-bot-email-address/17204/6
