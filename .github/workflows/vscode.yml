@@ -8,6 +8,8 @@ on:
 
 jobs:
   ui-test:
+    name: >-
+      test:ui
     runs-on: ubuntu-latest
     steps:
 
@@ -39,8 +41,10 @@ jobs:
           npm ls --depth=0 --link=true
           popd
 
-      - name: Run ui-test with vscode-ansible
+      - name: >-
+          Run test:ui with vscode-ansible
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: npm run ui-test
+          run: >-
+            npm run test:ui
           working-directory: ../vscode-ansible
