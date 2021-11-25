@@ -5,11 +5,6 @@ This extension adds language support for Ansible to
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
-Keep it mind that due to [ALS#117](https://github.com/ansible/ansible-language-server/issues/117)
-this extension works only when a workspace is present. If you open a standalone
-file outside a vscode workspace, you will not be able to use most of the
-features of this extension.
-
 ## Features
 
 ### Syntax highlighting
