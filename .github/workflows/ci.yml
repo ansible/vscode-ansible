@@ -453,15 +453,69 @@ jobs:
     - name: Drop the version patch file
       run: rm -fv ${{ needs.pre-setup.outputs.version-patch-name }}
 
+    - name: Create a merge commit with the release branch
+      run: |
+        sh -x
+
+        git checkout --branch 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}'
+
+        git checkout '${{ github.event.repository.default_branch }}'
+
+        git merge --no-ff 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}'
+
+        git checkout --branch 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}' --force
+
     - name: >-
         Tag the release in the local Git repo
         as ${{ needs.pre-setup.outputs.git-tag }}
       run: git tag ${{ needs.pre-setup.outputs.git-tag }} HEAD
     - name: >-
-        Push ${{ needs.pre-setup.outputs.git-tag }} tag corresponding
-        to the just published release back to GitHub
+        Push the `${{ needs.pre-setup.outputs.git-tag }}` tag and
+        the `release/${{
+            needs.pre-setup.outputs.dist-version
+        }}` release branch corresponding to the just published
+        release back to GitHub
       run: >-
-        git push --atomic origin '${{ needs.pre-setup.outputs.git-tag }}'
+        git push --atomic origin
+        '${{ needs.pre-setup.outputs.git-tag }}'
+        'release/${{ needs.pre-setup.outputs.dist-version }}'
+
+  github-release-pull-request:
+    name: >-
+      Publish a GitHub Release for
+      ${{ needs.pre-setup.outputs.git-tag }}
+    needs:
+    - post-release-repo-update
+    - pre-setup  # transitive, for accessing settings
+    runs-on: Ubuntu-latest
+
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Create a release pull request
+      id: pr
+      uses: repo-sync/pull-request@v2
+      with:
+        destination_branch: ${{ github.event.repository.default_branch }}
+        pr_body: >-
+          Automated metadata update with the just released version
+          ${{ needs.pre-setup.outputs.dist-version }}
+        pr_label: skip-changelog
+        pr_title: Bump version to ${{ needs.pre-setup.outputs.git-tag }}
+        source_branch: release/${{ needs.pre-setup.outputs.dist-version }}
+    - name: Log the pull request details
+      run: >-
+        echo
+        "PR number: ${{ steps.pr.outputs.pr_number }}"
+        "\nPR URL: ${{ steps.pr.outputs.pr_url }}"
+        "\nPR changed files: ${{ steps.pr.outputs.has_changed_files }}"
 
   publish-github-release:
     name: >-
