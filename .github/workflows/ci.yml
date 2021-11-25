@@ -560,5 +560,5 @@ jobs:
           ${{ needs.pre-setup.outputs.tarball-artifact-name }}
         name: ${{ needs.pre-setup.outputs.git-tag }}
         tag_name: ${{ needs.pre-setup.outputs.git-tag }}
-        target_commitish: ${{ github.event.inputs.release-commitish }}
+        target_commitish: ${{ needs.pre-setup.outputs.git-tag }}
 ...
