@@ -500,7 +500,7 @@ jobs:
 
   github-release-pull-request:
     name: >-
-      Publish a GitHub Release for
+      Open a GitHub Pull Request for
       ${{ needs.pre-setup.outputs.git-tag }}
     needs:
     - post-release-repo-update
