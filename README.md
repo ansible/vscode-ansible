@@ -7,7 +7,7 @@ by leveraging [ansible-language-server](https://github.com/ansible/ansible-langu
 
 ## Installing and activating Red Hat Ansible extension
 
-![Linter support](https://github.com/ansible/ansible-language-server/raw/main/images/ansible-extension-install-activate.gif)
+![Linter support](https://github.com/ansible/ansible-language-server/raw/main/images/ansible-extension-activation.gif)
 
 ## Features
 
