@@ -439,10 +439,9 @@ jobs:
     runs-on: Ubuntu-latest
 
     steps:
-    - name: Fetch the src snapshot
+    - name: Fetch the src
       uses: actions/checkout@v2
       with:
-        fetch-depth: 1
         ref: ${{ github.event.inputs.release-commitish }}
     - name: Setup git user as [bot]
       # Refs:
