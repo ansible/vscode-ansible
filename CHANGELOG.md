@@ -8,10 +8,10 @@
 * Fixed inline encryption of multiline strings (#337) @jeinwag
 * Prevented throwing an unhandled exception caused by the undefined linter
   arguments settings
-  ([#142](https://github.com/ansible/ansible-language-server/pull/142)) @ssbarnea
+  ([ansible/ansible-language-server#142](https://github.com/ansible/ansible-language-server/pull/142)) @ssbarnea
 * Implemented opening standalone Ansible files that have no workspace
   associated
-  ([#140](https://github.com/ansible/ansible-language-server/pull/140)) @ganeshrn
+  ([ansible/ansible-language-server#140](https://github.com/ansible/ansible-language-server/pull/140)) @ganeshrn
 
 ## 0.7.0
 
