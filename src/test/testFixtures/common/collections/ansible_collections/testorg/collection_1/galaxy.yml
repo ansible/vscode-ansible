@@ -1,0 +1,9 @@
+---
+authors:
+  - Ansible team (ansible-navigator)
+license_file: LICENSE
+name: coll_1
+namespace: testorg
+readme: README.md
+description: "Test collection"
+version: 1.0.0
