@@ -8,7 +8,7 @@ import {
   resetDefaultSettings,
 } from '../../helper';
 
-export function testDiagnosticsAnsibleLocal() {
+export function testDiagnosticsAnsibleLocal(): void {
   describe('TEST FOR ANSIBLE DIAGNOSTICS', () => {
     const docUri1 = getDocUri('diagnostics/ansible/1.yml');
     const docUri2 = getDocUri('diagnostics/ansible/2.yml');
