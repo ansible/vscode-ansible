@@ -26,6 +26,15 @@ async function main(): Promise<void> {
       console.log(installLog.toString());
     }
 
+    // Set collections_path in env
+    const FIXTURES_COLLECTION_DIR = path.join(
+      __dirname,
+      'testFixtures',
+      'common',
+      'collections'
+    );
+    cp.execSync(`export ANSIBLE_COLLECTIONS_PATH=${FIXTURES_COLLECTION_DIR}`);
+
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
