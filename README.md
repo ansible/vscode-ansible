@@ -5,9 +5,18 @@ This extension adds language support for Ansible to
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
-## Installing and activating Red Hat Ansible extension
+## Activating Red Hat Ansible extension
+
+It is recommended to open folder containing Ansible files with VSCode workspace.
 
 ![Linter support](https://github.com/ansible/ansible-language-server/raw/main/images/ansible-extension-activation.gif)
+
+Note:
+
+* For Ansible files open in IDE window ensure the language mode is
+  set to ``Ansible`` (bottom right of VSCode window).
+* The runtime status of extension should be in activate state. It can
+  be verified in the ``Extension`` window ``Runtime Status`` tab for ``Ansible`` extension.
 
 ## Features
 
