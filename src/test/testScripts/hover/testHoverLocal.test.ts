@@ -8,7 +8,7 @@ import {
   resetDefaultSettings,
 } from '../../helper';
 
-export function testHoverLocal() {
+export function testHoverLocal(): void {
   describe('TEST FOR HOVER', () => {
     const docUri1 = getDocUri('hover/1.yml');
 

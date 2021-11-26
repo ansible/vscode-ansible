@@ -10,7 +10,7 @@ import {
   updateSettings,
 } from '../../helper';
 
-export function testDiagnosticsYAMLLocal() {
+export function testDiagnosticsYAMLLocal(): void {
   describe('TEST FOR YAML DIAGNOSTICS', () => {
     const docUri1 = getDocUri('diagnostics/yaml/1.yml');
 
