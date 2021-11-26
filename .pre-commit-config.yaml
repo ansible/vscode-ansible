@@ -18,11 +18,7 @@ repos:
         # `npm ci` does install deps but fails to update locked engines, thus
         # running `npm install --production` produces a better result, as it
         # will update engines if needed.
-        entry: >-
-          bash -c 'npm install --production --ignore-scripts &&
-          npm install "@ansible/ansible-language-server@latest" --save &&
-          npm version --allow-same-version --no-commit-hooks
-          --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
+        entry: npm run sanity
         language: node
         files: "(package|package-lock).json$"
         pass_filenames: false
