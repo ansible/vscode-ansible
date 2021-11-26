@@ -454,5 +454,5 @@
     "test-compile": "npm run clean && tsc -p ./",
     "e2e-test": "npm run test-compile && node ./out/client/test/testRunner"
   },
-  "version": "0.7.0"
+  "version": "0.7.1"
 }

@@ -1,6 +1,20 @@
 <!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
 
+## 0.7.1
+
+### Bugfixes
+
+* Fixed inline encryption of multiline strings (#337) @jeinwag
+* Prevented throwing an unhandled exception caused by the undefined linter
+  arguments settings
+  ([ansible/ansible-language-server#142](https://github.com/ansible/ansible-language-server/pull/142))
+  @ssbarnea
+* Implemented opening standalone Ansible files that have no workspace
+  associated
+  ([ansible/ansible-language-server#140](https://github.com/ansible/ansible-language-server/pull/140))
+  @ganeshrn
+
 ## 0.7.0
 
 ### Removals
