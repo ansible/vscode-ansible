@@ -70,6 +70,10 @@ repos:
     rev: v0.29.0
     hooks:
     - id: markdownlint
+      exclude: >
+        (?x)^
+          docs/changelog-fragments\.d/\d+\.\w+\.md
+        $
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.2.0
     hooks:
