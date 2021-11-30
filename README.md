@@ -61,9 +61,11 @@ improve user experience:
 * on module options, the required properties are shown first, and aliases are
   shown last, otherwise ordering from the documentation is preserved
 * FQCNs (fully qualified collection names) are inserted only when necessary;
-  collections configured with the
-  [`collections` keyword]([LINK](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword))
-  are honored. This behavior can be disabled in extension settings.
+  collections configured with the [`collections` keyword] are honored. This
+  behavior can be disabled in extension settings.
+
+[`collections` keyword]:
+https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword
 
 #### Auto-closing Jinja expressions
 
