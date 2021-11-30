@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 import {
   getDocUri,
   activate,
-  testHover,
   sleep,
   resetDefaultSettings,
   testDiagnostics,
