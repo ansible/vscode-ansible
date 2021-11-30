@@ -3,8 +3,20 @@
 
 All notable changes to the Ansible VS Code extension will be documented in this file.
 
+[//]: # (DO-NOT-REMOVE-versioning-promise-START)
+
+```{note}
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+```
+
+<!--
+Do *NOT* manually add changelog entries here!
+This changelog is managed by Towncrier and is built at release time.
+See https://als.rtfd.io/en/latest/contributing.html#adding-change-notes-with-your-prs
+for details. Or read
+https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-fragments.d#adding-change-notes-with-your-prs
+-->
 
 <!-- towncrier release notes start -->
 
@@ -36,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bugfixes
 
-* Fixed autocompletion to account for the builtin modules when used
+* Fixed auto-completion to account for the builtin modules when used
   with EE (#94) @ganeshrn
 
 ## [0.2.5] - 2021-10-23
@@ -69,7 +81,7 @@ The most notable changes that happened were:
 * Set the minimum runtime prerequisites to `npm > 7.11.2` and
   `node >= 12` (#23) @ssbarnea
 * Updated the default settings value to use fully qualified collection
-  name (FQCN) during autocompletion (#37) @priyamsahoo
+  name (FQCN) during auto-completion (#37) @priyamsahoo
 * Added auto-completion support for Ansible Execution Environments
   (#42 #54 #55) @ganeshrn
 * Added diagnostics support for Ansible Execution Environments (#53)

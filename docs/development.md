@@ -15,7 +15,7 @@ git fetch --all
 git checkout -b <name_of_branch> upstream/main
 ```
 
-## Running & debugging the language-server with vscode
+## Running & debugging the language-server with VS Code
 
 * Install dependent packages within ansible-language-server root directory
 
@@ -26,7 +26,7 @@ ansible-language-server$ npm install .
 This will install the dependent modules under `node_modules` folder within
 the current directory.
 
-* Clone the repository containing the vscode extension code into the
+* Clone the repository containing the VS Code extension code into the
   `vscode-ansible` directory *next to* the root directory of this repository.
 
 ```bash
@@ -35,11 +35,11 @@ git clone git@github.com:ansible/vscode-ansible.git
 cd vscode-ansible
 ```
 
-* Open a new vscode window and add folder to workspace
+* Open a new VS Code window and add folder to workspace
   `File -> Add folder to workspace` and add `vscode-ansible` and
   `ansible-language-server` folders to the workspace
 
-* Once the language server and vscode-ansible directory is prepared,
+* Once the language server and `vscode-ansible/` directory is prepared,
   compile both client and server using command
 
 ```bash
@@ -47,7 +47,7 @@ npm run compile:withserver
 ```
 
 * In the Run and debug window select **Client + Server (source)** configuration
-  and start debugging `Run -> Start Debugging`. This will open up a new vscode window
+  and start debugging `Run -> Start Debugging`. This will open up a new VS Code window
   which is the `Extension development Host` window.
 
 * In the `Extension development Host` window add a new folder that has ansible files.
@@ -91,7 +91,7 @@ modes.
    npm run compile
    ```
 
-5. The newly built server is now located in ./out/server/src/server.js.
+5. The newly built server is now located in `./out/server/src/server.js`.
 
    ```bash
    node ./out/server/src/server.js --stdio
