@@ -1,6 +1,45 @@
 <!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
 
+## 0.7.1
+
+### Bugfixes
+
+* Fixed inline encryption of multiline strings (#337) @jeinwag
+* Prevented throwing an unhandled exception caused by the undefined linter
+  arguments settings
+  ([ansible/ansible-language-server#142](https://github.com/ansible/ansible-language-server/pull/142))
+  @ssbarnea
+* Implemented opening standalone Ansible files that have no workspace
+  associated
+  ([ansible/ansible-language-server#140](https://github.com/ansible/ansible-language-server/pull/140))
+  @ganeshrn
+
+## 0.7.0
+
+### Removals
+
+* Dropped the option to configure ansible-vault path (#318) @ssbarnea
+* Dropped the option to configure ansible-playbook location (#317) @ssbarnea
+
+### Minor Changes
+
+* Upgraded the `@ansible/ansible-language-server` dependency to 0.3.0 (#333) @ssbarnea
+  * Added support for nested module options (suboptions) @tomaciazek
+  * Updated container cleanup logic for execution environment @ganeshrn
+* Switched the default execution environment to `ansible/creator-ee:latest`
+  (#331) @ganeshrn @ssbarnea
+* Enabled auto-selecttion of the only vault-id (#298) @jeinwag
+
+### Bugfixes
+
+* Corrected some unspecified configurable settings (#307) @ssbarnea
+* Started invoking inactive extension when running ansible-vault (#296) @jeinwag
+
+### Documentation
+
+* Documented the need to have an open workspace for the extension to work @ssbarnea
+
 ## 0.6.1
 
 ### Bugfixes
