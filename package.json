@@ -452,7 +452,7 @@
     "webpack:watch": "webpack --mode development --config ./webpack.config.js --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
     "test-compile": "npm run clean && tsc -p ./",
-    "e2e-test": "npm run test-compile && node ./out/client/test/testRunner"
+    "test:e2e": "npm run test-compile && node ./out/client/test/testRunner"
   },
   "version": "0.7.1"
 }
