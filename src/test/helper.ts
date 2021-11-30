@@ -14,10 +14,7 @@ export const defaultAnsibleConfigurations = {
   'ansibleNavigator.path': 'ansible-navigator',
   'executionEnvironment.containerEngine': 'auto',
   'executionEnvironment.enabled': false,
-
-  'executionEnvironment.image':
-    'quay.io/ansible/ansible-devtools-demo-ee:v0.1.0',
-
+  'executionEnvironment.image': 'quay.io/ansible/creator-ee:latest',
   'executionEnvironment.pullPolicy': 'missing',
   'python.activationScript': '',
   'python.interpreterPath': 'python3',
