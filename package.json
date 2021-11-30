@@ -380,6 +380,8 @@
     "eslint": "^8.2.0",
     "eslint-config-prettier": "^8.3.0",
     "mocha": "^9.1.3",
+    "mochawesome": "^7.0.1",
+    "mochawesome-report-generator": "^6.0.1",
     "npm-check-updates": "^12.0.2",
     "rimraf": "^3.0.2",
     "standard-version": "^9.3.2",
