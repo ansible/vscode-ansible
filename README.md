@@ -1,5 +1,7 @@
 # Ansible Language Server
 
+[//]: # (DO-NOT-REMOVE-README-TITLE)
+
 This language server adds support for Ansible and is currently used by the
 following projects:
 
@@ -49,7 +51,7 @@ are shown as warnings instead.
 If `ansible-lint` is not installed/found or running `ansible-lint` results in
 error it will fallback to `ansible --syntax-check` for validation.
 
-### Smart autocompletion
+### Smart auto-completion
 
 ![Autocompletion](https://github.com/ansible/ansible-language-server/raw/main/images/smart-completions.gif)
 
@@ -61,9 +63,11 @@ improve user experience:
 * on module options, the required properties are shown first, and aliases are
   shown last, otherwise ordering from the documentation is preserved
 * FQCNs (fully qualified collection names) are inserted only when necessary;
-  collections configured with the
-  [`collections` keyword]([LINK](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword))
-  are honored. This behavior can be disabled in extension settings.
+  collections configured with the [`collections` keyword] are honored. This
+  behavior can be disabled in extension settings.
+
+[`collections` keyword]:
+https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword
 
 #### Auto-closing Jinja expressions
 
@@ -98,7 +102,7 @@ The following settings are supported.
 * `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of
   fully qualified collection names (FQCN) when inserting a module name.
   Disabling it will only use FQCNs when necessary, that is when the collection
-  isn't configured for the task.
+  is not configured for the task.
 * `ansible.ansibleLint.arguments`: Optional command line arguments to be
   appended to `ansible-lint` invocation. See `ansible-lint` documentation.
 * `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.

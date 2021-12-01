@@ -9,3 +9,5 @@ vscode-ansible
 *.lcov
 .env
 .tox
+.python-version
+__pycache__
