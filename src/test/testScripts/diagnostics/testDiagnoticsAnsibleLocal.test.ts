@@ -1,3 +1,4 @@
+/* eslint-disable quotes */
 import * as vscode from 'vscode';
 import {
   getDocUri,
@@ -80,8 +81,7 @@ export function testDiagnosticsAnsibleLocal(): void {
         await testDiagnostics(docUri1, []);
       });
 
-      // eslint-disable-next-line quotes
-      it("should complain about missing 'hosts' key", async function () {
+      it('should complain about missing `hosts` key', async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand('workbench.action.files.save');
 
@@ -90,7 +90,6 @@ export function testDiagnosticsAnsibleLocal(): void {
         await testDiagnostics(docUri2, [
           {
             severity: 0,
-            // eslint-disable-next-line quotes
             message: "the field 'hosts' is required but was not set",
             range: new vscode.Range(
               new vscode.Position(0, 0),
