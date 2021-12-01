@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import * as vscode from 'vscode';
 import {
   getDocUri,
@@ -26,7 +25,7 @@ export function testHoverLocal(): void {
         await sleep(1000);
       });
 
-      it("should hover over 'name' keyword", async () => {
+      it('should hover over `name` keyword', async () => {
         await testHover(docUri1, new vscode.Position(0, 4), [
           {
             contents: [
@@ -36,7 +35,7 @@ export function testHoverLocal(): void {
         ]);
       });
 
-      it("should hover over 'hosts' keyword", async () => {
+      it('should hover over `hosts` keyword', async () => {
         await testHover(docUri1, new vscode.Position(2, 4), [
           {
             contents: [
@@ -46,7 +45,7 @@ export function testHoverLocal(): void {
         ]);
       });
 
-      it("should hover over 'tasks' keyword", async () => {
+      it('should hover over `tasks` keyword', async () => {
         await testHover(docUri1, new vscode.Position(3, 4), [
           {
             contents: [
