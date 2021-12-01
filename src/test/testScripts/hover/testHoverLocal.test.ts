@@ -14,7 +14,6 @@ export function testHoverLocal(): void {
 
     beforeEach(async () => {
       await resetDefaultSettings();
-      // await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     });
 
     afterEach(async () => {
