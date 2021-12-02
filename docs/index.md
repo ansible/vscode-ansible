@@ -20,5 +20,6 @@ changelog
 :caption: Contributing
 
 Code Of Conduct <contributing/code_of_conduct>
+contributing/security
 development
 ```
