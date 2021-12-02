@@ -18,11 +18,6 @@ export function testDiagnosticsYAMLLocal(): void {
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     });
 
-    after(async () => {
-      await resetDefaultSettings();
-      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-    });
-
     it('should provide diagnostics with YAML validation (with ansible-lint)', async () => {
       await activate(docUri1);
       await sleep(2000); // Wait for the diagnostics to compute on this file
