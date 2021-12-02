@@ -207,6 +207,7 @@ root_doc = master_doc = 'index'  # Sphinx 4+ / 3-  # noqa: WPS429
 
 intersphinx_mapping = {
     'ansible-runner': ('https://ansible-runner.rtfd.io/en/latest', None),
+    'myst': ('https://myst-parser.rtfd.io/en/latest', None),
     'python': ('https://docs.python.org/3', None),
     'python2': ('https://docs.python.org/2', None),
 }
