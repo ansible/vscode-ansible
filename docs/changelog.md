@@ -5,18 +5,11 @@
 Ansible
 Bugfixes
 Changelog
-ganeshrn
 globbing
-kimbernator
 linter
 Npmjs
-priyamsahoo
-ssbarnea
 suboptions
-tomaciazek
 unhandled
-webknjaz
-yaegassy
 ```
 
 ```{include} ../CHANGELOG.md
