@@ -19,5 +19,6 @@ changelog
 ```{toctree}
 :caption: Contributing
 
+Code Of Conduct <contributing/code_of_conduct>
 development
 ```
