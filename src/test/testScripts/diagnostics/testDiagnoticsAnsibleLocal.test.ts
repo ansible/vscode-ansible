@@ -14,20 +14,12 @@ export function testDiagnosticsAnsibleLocal(): void {
     const docUri1 = getDocUri('diagnostics/ansible/1.yml');
     const docUri2 = getDocUri('diagnostics/ansible/2.yml');
 
-    beforeEach(async () => {
+    before(async () => {
       await resetDefaultSettings();
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     });
 
-    afterEach(async () => {
-      await resetDefaultSettings();
-    });
-
     describe('Diagnostic test with ansible-lint', () => {
-      beforeEach(async () => {
-        await updateSettings('ansibleLint.enabled', true);
-      });
-
       it('should complain about no task names', async () => {
         await activate(docUri1);
         await vscode.commands.executeCommand('workbench.action.files.save');
@@ -68,8 +60,11 @@ export function testDiagnosticsAnsibleLocal(): void {
     });
 
     describe('Diagnostic test with ansyble-syntax-check', () => {
-      beforeEach(async () => {
+      before(async () => {
         await updateSettings('ansibleLint.enabled', false);
+        await vscode.commands.executeCommand(
+          'workbench.action.closeAllEditors'
+        );
       });
 
       it('should return no diagnostics', async function () {

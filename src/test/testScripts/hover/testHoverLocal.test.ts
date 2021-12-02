@@ -11,12 +11,9 @@ export function testHoverLocal(): void {
   describe('TEST FOR HOVER', () => {
     const docUri1 = getDocUri('hover/1.yml');
 
-    beforeEach(async () => {
+    before(async () => {
       await resetDefaultSettings();
-    });
-
-    afterEach(async () => {
-      await resetDefaultSettings();
+      await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     });
 
     describe('Hover for play keyworks', () => {
