@@ -4,4 +4,3 @@
   tasks:
     - debug: msg="foo: bar"
 become: true
-
