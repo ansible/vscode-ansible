@@ -6,8 +6,9 @@ All notable changes to the Ansible VS Code extension will be documented in this 
 [//]: # (DO-NOT-REMOVE-versioning-promise-START)
 
 ```{note}
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The change notes follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+except for the title formatting, and this project adheres to [Semantic
+Versioning](https://semver.org/spec/v2.0.0.html).
 ```
 
 <!--
@@ -21,7 +22,7 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 <!-- towncrier release notes start -->
 
 
-## [0.4.0] - 2021-11-25
+## v0.4.0 (2021-11-25)
 
 ### Bugfixes
 
@@ -30,7 +31,7 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 * Implemented opening standalone Ansible files that have no workspace
   associated (#140) @ganeshrn
 
-## [0.3.0] - 2021-11-18
+## v0.3.0 (2021-11-18)
 
 ### Minor Changes
 
@@ -44,14 +45,14 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
   @ganeshrn
 * Fixed issue with container copy command (#110) @ganeshrn
 
-## [0.2.6] - 2021-10-29
+## v0.2.6 (2021-10-29)
 
 ### Bugfixes
 
 * Fixed auto-completion to account for the builtin modules when used
   with EE (#94) @ganeshrn
 
-## [0.2.5] - 2021-10-23
+## v0.2.5 (2021-10-23)
 
 ### Bugfixes
 
@@ -59,7 +60,7 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
   built-in syntax-check when ansible-lint is unavailable. This is used for
   providing the diagnostics information (#89) @priyamsahoo
 
-## [0.2.4] - 2021-10-19
+## v0.2.4 (2021-10-19)
 
 ### Major changes
 
@@ -105,11 +106,11 @@ The most notable changes that happened were:
   @tomaciazek
 * Implemented the release CD via `workflow_dispatch` (#65) @webknjaz
 
-## [0.1.0-1] - 2021-07-28
+## v0.1.0-1 (2021-07-28)
 
 * Updated the npm package to include the `out/` folder
 
-## [0.1.0] - 2021-07-28
+## v0.1.0 (2021-07-28)
 
 * Initial ansible language server release. Based on the `vscode-ansible` plugin
   developed by [Tomasz Maciążek](https://github.com/tomaciazek)

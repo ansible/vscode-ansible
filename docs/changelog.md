@@ -25,7 +25,8 @@ yaegassy
 
 ```
 
-## [{{ release_l }}] - as of {sub-ref}`today` _{subscript}`/UNRELEASED DRAFT/`_
+<!-- markdownlint-disable-next-line no-space-in-emphasis -->
+## {{ release_l }}, as of {sub-ref}`today` _{subscript}`/UNRELEASED DRAFT/`_
 
 ```{important} This version is not yet released and is under active development
 ```

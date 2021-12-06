@@ -64,7 +64,7 @@ release = get_scm_version()
 
 rst_epilog = f"""
 .. |project| replace:: {project}
-.. |release_l| replace:: ``{release}``
+.. |release_l| replace:: ``v{release}``
 """
 
 
@@ -267,7 +267,7 @@ myst_enable_extensions = [
 myst_substitutions = {
   'project': project,
   'release': release,
-  'release_l': f'`{release}`',
+  'release_l': f'`v{release}`',
   'version': version,
 }
 
