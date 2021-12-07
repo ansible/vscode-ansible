@@ -6,4 +6,3 @@ out
 test-resources
 test-resources-oldest
 .vscode-test
-e2eTestReport/
