@@ -84,7 +84,7 @@ export async function testDiagnostics(
 
   assert.strictEqual(actualDiagnostics.length, expectedDiagnostics.length);
 
-  if (actualDiagnostics.length !== 0 && expectedDiagnostics.length !== 0) {
+  if (actualDiagnostics.length && expectedDiagnostics.length) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
       assert.include(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
@@ -102,19 +102,21 @@ export async function testHover(
   position: vscode.Position,
   expectedHover: vscode.Hover[]
 ): Promise<void> {
-  const actualHoverResults = (await vscode.commands.executeCommand(
+  const actualHover = (await vscode.commands.executeCommand(
     'vscode.executeHoverProvider',
     docUri,
     position
   )) as vscode.Hover[];
 
-  assert.equal(actualHoverResults.length, expectedHover.length);
+  assert.strictEqual(actualHover.length, expectedHover.length);
 
-  expectedHover.forEach((expectedItem, i) => {
-    const actualItem = actualHoverResults[i];
-    assert.include(
-      (actualItem.contents[i] as vscode.MarkdownString).value,
-      expectedItem.contents[i].toString()
-    );
-  });
+  if (actualHover.length && expectedHover.length) {
+    expectedHover.forEach((expectedItem, i) => {
+      const actualItem = actualHover[i];
+      assert.include(
+        (actualItem.contents[i] as vscode.MarkdownString).value,
+        expectedItem.contents[i].toString()
+      );
+    });
+  }
 }
