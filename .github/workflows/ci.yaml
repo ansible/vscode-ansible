@@ -44,6 +44,10 @@ jobs:
           npm-target: lint
           os: ubuntu-latest
           upload-artifact: true
+        - name: test:e2e
+          npm-target: test:e2e
+          os: ubuntu-latest
+          upload-artifact: true
         - name: devel
           # this job will install latest version of ansible-language-server
           # instead of the one mentioned in package[-lock].json
