@@ -11,7 +11,7 @@ export function run(): Promise<void> {
     reporter: 'mochawesome',
     reporterOptions: {
       reportFilename: 'e2e_test_report',
-      reportDir: 'e2eTestReport',
+      reportDir: 'out/e2eTestReport',
       reportTitle: 'vscode-ansible e2e test',
       reportPageTitle: 'vscode-ansible e2e test report',
       charts: true,
