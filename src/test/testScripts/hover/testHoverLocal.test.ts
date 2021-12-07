@@ -3,7 +3,6 @@ import {
   getDocUri,
   activate,
   testHover,
-  sleep,
   resetDefaultSettings,
 } from '../../helper';
 
@@ -14,14 +13,10 @@ export function testHoverLocal(): void {
     before(async () => {
       await resetDefaultSettings();
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+      await activate(docUri1);
     });
 
     describe('Hover for play keyworks', () => {
-      before(async () => {
-        activate(docUri1);
-        await sleep(1000);
-      });
-
       it('should hover over `name` keyword', async () => {
         await testHover(docUri1, new vscode.Position(0, 4), [
           {
@@ -54,11 +49,6 @@ export function testHoverLocal(): void {
     });
 
     describe('Hover for task keyworks', () => {
-      before(async () => {
-        activate(docUri1);
-        await sleep(1000);
-      });
-
       it('should hover over builtin module name', async () => {
         await testHover(docUri1, new vscode.Position(5, 7), [
           {
@@ -87,11 +77,6 @@ export function testHoverLocal(): void {
     });
 
     describe('Hover for module options and sub-options', () => {
-      before(async () => {
-        activate(docUri1);
-        await sleep(1000);
-      });
-
       it('should hover over buitin module option', async () => {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
