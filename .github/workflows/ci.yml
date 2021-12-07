@@ -430,19 +430,21 @@ jobs:
           ${{ matrix.node-version }}
 
   check:  # This job does nothing and is only used for the branch protection
+    if: always()
+
     needs:
     - docs
     - lint
     - test
     # - vscode
 
-    runs-on: ubuntu-latest
+    runs-on: Ubuntu-latest
 
     steps:
-      - name: Report success of the test matrix
-        run: >-
-          print("All's good")
-        shell: python
+    - name: Decide whether the needed jobs succeeded or failed
+      uses: re-actors/alls-green@release/v1
+      with:
+        jobs: ${{ toJSON(needs) }}
 
   publish-npmjs:
     name: Publish ${{ needs.pre-setup.outputs.git-tag }} to Npmjs
