@@ -47,7 +47,7 @@ export function testDiagnosticsYAMLLocal(): void {
             'Document contains trailing content not separated by a ... or --- line',
           range: new vscode.Range(
             new vscode.Position(5, 0),
-            new vscode.Position(7, 0)
+            new vscode.Position(6, 0)
           ),
           source: 'Ansible [YAML]',
         },
@@ -88,7 +88,7 @@ export function testDiagnosticsYAMLLocal(): void {
             'Document contains trailing content not separated by a ... or --- line',
           range: new vscode.Range(
             new vscode.Position(5, 0),
-            new vscode.Position(7, 0)
+            new vscode.Position(6, 0)
           ),
           source: 'Ansible [YAML]',
         },
