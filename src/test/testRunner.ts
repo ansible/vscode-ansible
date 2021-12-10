@@ -55,6 +55,14 @@ async function main(): Promise<void> {
       extensionTestsPath,
       launchArgs: [
         '--disable-extension=ritwickdey.liveserver',
+        '--disable-extension=redhat.fabric8-analytics',
+        '--disable-extension=lextudio.restructuredtext',
+        '--disable-extension=ms-vsliveshare.vsliveshare',
+        '--disable-extension=GitHub.vscode-pull-request-github',
+        '--disable-extension=eamodio.gitlens',
+        '--disable-extension=streetsidesoftware.code-spell-checker',
+        '--disable-extension=alefragnani.project-manager',
+        '--disable-extension=GitHub.copilot',
         './src/test/testFixtures/',
       ],
     });
