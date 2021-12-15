@@ -380,6 +380,8 @@
     "eslint": "^8.2.0",
     "eslint-config-prettier": "^8.3.0",
     "mocha": "^9.1.3",
+    "mochawesome": "^7.0.1",
+    "mochawesome-report-generator": "^6.0.1",
     "npm-check-updates": "^12.0.2",
     "rimraf": "^3.0.2",
     "standard-version": "^9.3.2",
@@ -448,7 +450,9 @@
     "webpack": "npm run clean && npm run compile && webpack --mode production --config ./webpack.config.js",
     "webpack:dev": "npm run clean && webpack --mode development --config ./webpack.config.js",
     "webpack:watch": "webpack --mode development --config ./webpack.config.js --watch",
-    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo"
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
+    "test:compile": "npm run clean && tsc -p ./",
+    "test:e2e": "npm run test:compile && node ./out/client/test/testRunner"
   },
   "version": "0.7.1"
 }
