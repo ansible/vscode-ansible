@@ -54,6 +54,9 @@ async function main(): Promise<void> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [
+        '--verbose',
+        '--no-xshm',
+        '--disable-gpu',
         '--disable-extension=ritwickdey.liveserver',
         '--disable-extension=redhat.fabric8-analytics',
         '--disable-extension=lextudio.restructuredtext',
@@ -63,6 +66,7 @@ async function main(): Promise<void> {
         '--disable-extension=streetsidesoftware.code-spell-checker',
         '--disable-extension=alefragnani.project-manager',
         '--disable-extension=GitHub.copilot',
+        '--sync=off',
         './src/test/testFixtures/',
       ],
     });
