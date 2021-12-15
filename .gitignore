@@ -5,3 +5,4 @@ out
 .python-version
 test-resources
 test-resources-oldest
+.vscode-test
