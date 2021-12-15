@@ -75,7 +75,7 @@ export class AnsiblePlaybookRunProvider {
      */
   private get ansibleNavigatorExecutablePath(): string {
     return vscode.workspace
-      .getConfiguration('ansible.ansibleNavigator').path;
+      .getConfiguration('ansible').ansibleNavigator.path;
   }
 
   /**
@@ -83,7 +83,7 @@ export class AnsiblePlaybookRunProvider {
      */
   private get ansiblePlaybookExecutablePath(): string {
     return `${vscode.workspace
-      .getConfiguration('ansible.ansible.path').path || 'ansible'  }-playbook`;
+      .getConfiguration('ansible').ansible.path || 'ansible'  }-playbook`;
   }
 
   /**
