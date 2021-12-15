@@ -67,7 +67,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.29.0
+    rev: v0.30.0
     hooks:
     - id: markdownlint
       exclude: >
@@ -75,7 +75,7 @@ repos:
           docs/changelog-fragments\.d/\d+\.\w+\.md
         $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.2.0
+    rev: v8.4.0
     hooks:
       - id: eslint
         args:
