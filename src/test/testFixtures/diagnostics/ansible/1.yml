@@ -1,0 +1,4 @@
+- name: play name
+  hosts: localhost
+  tasks:
+    - debug:
