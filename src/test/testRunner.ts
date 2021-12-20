@@ -26,6 +26,24 @@ async function main(): Promise<void> {
       console.log(installLog.toString());
     }
 
+    // Grab installed extensions
+    const extensionList = cp
+      .execSync(`"${cliPath}" --list-extensions`)
+      .toString()
+      .trim()
+      .split('\n');
+    const requiredExtensionList = ['redhat.ansible', ...dependencies];
+
+    const unwantedExtensionList = extensionList.filter(
+      (item) => !requiredExtensionList.includes(item)
+    );
+
+    // Form command to disable all the extensions other than redhat.ansible and its dependencies
+    const unwantedExtensionDisableCommands = unwantedExtensionList.map((item) =>
+      '--disable-extension='.concat(item)
+    );
+    console.log(unwantedExtensionDisableCommands);
+
     // Set collections_path in env
     const FIXTURES_COLLECTION_DIR = path.join(
       __dirname,
@@ -54,15 +72,7 @@ async function main(): Promise<void> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [
-        '--disable-extension=ritwickdey.liveserver',
-        '--disable-extension=redhat.fabric8-analytics',
-        '--disable-extension=lextudio.restructuredtext',
-        '--disable-extension=ms-vsliveshare.vsliveshare',
-        '--disable-extension=GitHub.vscode-pull-request-github',
-        '--disable-extension=eamodio.gitlens',
-        '--disable-extension=streetsidesoftware.code-spell-checker',
-        '--disable-extension=alefragnani.project-manager',
-        '--disable-extension=GitHub.copilot',
+        ...unwantedExtensionDisableCommands,
         './src/test/testFixtures/',
       ],
     });
