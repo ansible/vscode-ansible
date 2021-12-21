@@ -5,22 +5,6 @@ import { assert } from 'chai';
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
-// Default ansible configurations
-export const defaultAnsibleConfigurations = {
-  'ansible.useFullyQualifiedCollectionNames': true,
-  'ansibleLint.arguments': '',
-  'ansibleLint.enabled': true,
-  'ansibleLint.path': 'ansible-lint',
-  'ansibleNavigator.path': 'ansible-navigator',
-  'executionEnvironment.containerEngine': 'auto',
-  'executionEnvironment.enabled': false,
-  'executionEnvironment.image': 'quay.io/ansible/creator-ee:latest',
-  'executionEnvironment.pullPolicy': 'missing',
-  'python.activationScript': '',
-  'python.interpreterPath': 'python3',
-  'ansible.path': 'ansible',
-};
-
 /**
  * Activates the redhat.ansible extension
  */
@@ -66,14 +50,6 @@ export async function updateSettings(
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration('ansible');
   return ansibleConfiguration.update(setting, value, false);
-}
-
-export async function resetDefaultSettings(): Promise<void> {
-  const ansibleConfiguration = vscode.workspace.getConfiguration('ansible');
-  Object.entries(defaultAnsibleConfigurations).forEach((config) => {
-    ansibleConfiguration.update(config[0], config[1], false);
-  });
-  await sleep(1000);
 }
 
 export async function testDiagnostics(
