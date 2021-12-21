@@ -73,7 +73,7 @@ async function main(): Promise<void> {
       ],
     });
   } catch (err) {
-    console.error('Failed to run tests');
+    console.error('Failed to run tests due to exception!\n%s', err);
     process.exit(1);
   }
 }
