@@ -11,6 +11,16 @@ async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
     const cliPath = resolveCliPathFromVSCodeExecutablePath(executable);
+    // ./out/userdata/User/settings.json
+    const userDataPath = path.resolve(__dirname, '../../userdata');
+    const extPath = path.resolve(__dirname, '../../ext');
+    // We want to avoid using developer data dir as this is likely to break
+    // testing and make its outcome very hard to reproduce across machines.
+    // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
+    const cliArgs = [
+      `--user-data-dir=${userDataPath}`,
+      `--extensions-dir=${extPath}`
+    ];
 
     // Copy default user settings.json
     const settings_src = path.join(
@@ -38,7 +48,7 @@ async function main(): Promise<void> {
 
     // Install the latest released redhat.ansible extension
     const installLog = cp.execSync(
-      `"${cliPath}" --install-extension redhat.ansible --force`
+      `"${cliPath}" ${cliArgs.join(' ')} --install-extension redhat.ansible --force`
     );
     console.log(installLog.toString());
 
@@ -46,10 +56,15 @@ async function main(): Promise<void> {
     const dependencies = ['ms-python.python', 'redhat.vscode-yaml'];
     for (const dep of dependencies) {
       const installLog = cp.execSync(
-        `"${cliPath}" --install-extension ${dep} --force`
+        `"${cliPath}" ${cliArgs.join(' ')} --install-extension ${dep} --force`
       );
       console.log(installLog.toString());
     }
+
+    // Display active extensions
+    const cmd = `"${cliPath}" ${cliArgs.join(' ')} --list-extensions --show-versions`
+    const extLog = cp.execSync(cmd);
+    console.warn('%s\n%s', cmd, extLog.toString());
 
     // Set collections_path in env
     const FIXTURES_COLLECTION_DIR = path.join(
@@ -68,8 +83,6 @@ async function main(): Promise<void> {
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
-    // ./out/userdata/User/settings.json
-    const userDataPath = path.resolve(__dirname, '../../userdata');
 
     // The path to test runner
     // Passed to --extensionTestsPath
@@ -80,11 +93,7 @@ async function main(): Promise<void> {
       vscodeExecutablePath: executable,
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: [
-        // We want to avoid using developer data dir as this is likely to break
-        // testing and make its outcome very hard to reproduce across machines.
-        // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
-        `--user-data-dir=${userDataPath}`,
+      launchArgs: cliArgs.concat([
         '--disable-extension=ritwickdey.liveserver',
         '--disable-extension=redhat.fabric8-analytics',
         '--disable-extension=lextudio.restructuredtext',
@@ -95,7 +104,7 @@ async function main(): Promise<void> {
         '--disable-extension=alefragnani.project-manager',
         '--disable-extension=GitHub.copilot',
         './src/test/testFixtures/',
-      ],
+      ]),
     });
   } catch (err) {
     console.error('Failed to run tests due to exception!\n%s', err);
