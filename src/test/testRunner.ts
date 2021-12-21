@@ -5,11 +5,36 @@ import {
   downloadAndUnzipVSCode,
   resolveCliPathFromVSCodeExecutablePath,
 } from 'vscode-test';
+import fs from 'fs';
 
 async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
     const cliPath = resolveCliPathFromVSCodeExecutablePath(executable);
+
+    // Copy default user settings.json
+    const settings_src = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'src',
+      'test',
+      'testFixtures',
+      'settings.json',
+    );
+    const settings_dst = path.join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'out',
+      'userdata',
+      'User',
+      'settings.json',
+    );
+    fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
+    fs.copyFileSync(settings_src, settings_dst);
 
     // Install the latest released redhat.ansible extension
     const installLog = cp.execSync(
