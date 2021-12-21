@@ -191,7 +191,7 @@ const getInlineTextType = (text: string) => {
   return text.trim().startsWith('$ANSIBLE_VAULT;') ? 'encrypted' : 'plaintext';
 };
 
-// Returns wheter the file is encrypted or in plain text.
+// Returns whether the file is encrypted or in plain text.
 const getTextType = (text: string) => {
   return text.indexOf('$ANSIBLE_VAULT;') === 0 ? 'encrypted' : 'plaintext';
 };

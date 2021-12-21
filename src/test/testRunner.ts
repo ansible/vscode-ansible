@@ -17,7 +17,7 @@ async function main(): Promise<void> {
     );
     console.log(installLog.toString());
 
-    // Install the dependant extensions
+    // Install the dependent extensions
     const dependencies = ['ms-python.python', 'redhat.vscode-yaml'];
     for (const dep of dependencies) {
       const installLog = cp.execSync(
@@ -57,7 +57,7 @@ async function main(): Promise<void> {
       extensionTestsPath,
       launchArgs: [
         // We want to avoid using developer data dir as this is likely to break
-        // testing and make its outcome very hard to reproduce acroos machines.
+        // testing and make its outcome very hard to reproduce across machines.
         // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
         `--user-data-dir=${userDataPath}`,
         '--disable-extension=ritwickdey.liveserver',
