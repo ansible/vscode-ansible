@@ -1,7 +1,7 @@
 {
     scopeName = 'injection.ansible.jinja-single-quote-escape';
     injectionSelector = 'L:string.quoted.single meta.embedded.inline.jinja';
-    name = 'Injection grammar for supproting single quote escapes in Jinja2 expressions';
+    name = 'Injection grammar for supporting single quote escapes in Jinja2 expressions';
     patterns = (
         {
             name = 'string.quoted.single.jinja';
