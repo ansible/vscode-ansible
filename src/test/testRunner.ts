@@ -43,6 +43,8 @@ async function main(): Promise<void> {
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+    // ./out/userdata/User/settings.json
+    const userDataPath = path.resolve(__dirname, '../../userdata');
 
     // The path to test runner
     // Passed to --extensionTestsPath
@@ -54,6 +56,10 @@ async function main(): Promise<void> {
       extensionDevelopmentPath,
       extensionTestsPath,
       launchArgs: [
+        // We want to avoid using developer data dir as this is likely to break
+        // testing and make its outcome very hard to reproduce acroos machines.
+        // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
+        `--user-data-dir=${userDataPath}`,
         '--disable-extension=ritwickdey.liveserver',
         '--disable-extension=redhat.fabric8-analytics',
         '--disable-extension=lextudio.restructuredtext',
