@@ -1,14 +1,19 @@
 {
-    "ansible.ansible.path": "ansible",
-    "ansible.ansible.useFullyQualifiedCollectionNames": true,
-    "ansible.ansibleLint.arguments": "",
-    "ansible.ansibleLint.enabled": true,
-    "ansible.ansibleLint.path": "ansible-lint",
-    "ansible.ansibleNavigator.path": "ansible-navigator",
-    "ansible.executionEnvironment.containerEngine": "auto",
-    "ansible.executionEnvironment.enabled": false,
-    "ansible.executionEnvironment.image": "quay.io/ansible/creator-ee:latest",
-    "ansible.executionEnvironment.pullPolicy": "missing",
-    "ansible.python.activationScript": "",
-    "ansible.python.interpreterPath": "python3"
+  // ansible settings
+  "ansible.ansible.path": "ansible",
+  "ansible.ansible.useFullyQualifiedCollectionNames": true,
+  "ansible.ansibleLint.arguments": "",
+  "ansible.ansibleLint.enabled": true,
+  "ansible.ansibleLint.path": "ansible-lint",
+  "ansible.ansibleNavigator.path": "ansible-navigator",
+  "ansible.executionEnvironment.containerEngine": "auto",
+  "ansible.executionEnvironment.enabled": false,
+  "ansible.executionEnvironment.image": "quay.io/ansible/creator-ee:latest",
+  "ansible.executionEnvironment.pullPolicy": "missing",
+  "ansible.python.activationScript": "",
+  "ansible.python.interpreterPath": "python3",
+
+  // security settings
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.startupPrompt": "never"
 }
