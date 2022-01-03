@@ -29,7 +29,7 @@ repos:
         pass_filenames: false
         always_run: true
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -76,7 +76,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.4.0
+    rev: v8.6.0
     hooks:
       - id: eslint
         args:
