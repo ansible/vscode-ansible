@@ -41,7 +41,25 @@
       "url": "https://github.com/ansible/vscode-ansible/graphs/contributors"
     }
   ],
+  "jsonValidation": [
+    {
+      "fileMatch": [
+        ".ansible-navigator.json",
+        "ansible-navigator.json"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-navigator.json"
+    }
+  ],
   "yamlValidation": [
+    {
+      "fileMatch": [
+        ".ansible-navigator.yaml",
+        ".ansible-navigator.yml",
+        "ansible-navigator.yaml",
+        "ansible-navigator.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-navigator.json"
+    },
     {
       "fileMatch": "requirements.yml",
       "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-requirements.json"
