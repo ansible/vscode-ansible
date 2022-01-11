@@ -14,12 +14,13 @@ async function main(): Promise<void> {
     // ./out/userdata/User/settings.json
     const userDataPath = path.resolve(__dirname, '../../userdata');
     const extPath = path.resolve(__dirname, '../../ext');
+
     // We want to avoid using developer data dir as this is likely to break
     // testing and make its outcome very hard to reproduce across machines.
     // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
     const cliArgs = [
       `--user-data-dir=${userDataPath}`,
-      `--extensions-dir=${extPath}`
+      `--extensions-dir=${extPath}`,
     ];
 
     // Copy default user settings.json
@@ -31,7 +32,7 @@ async function main(): Promise<void> {
       'src',
       'test',
       'testFixtures',
-      'settings.json',
+      'settings.json'
     );
     const settings_dst = path.join(
       __dirname,
@@ -41,14 +42,16 @@ async function main(): Promise<void> {
       'out',
       'userdata',
       'User',
-      'settings.json',
+      'settings.json'
     );
     fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
     fs.copyFileSync(settings_src, settings_dst);
 
     // Install the latest released redhat.ansible extension
     const installLog = cp.execSync(
-      `"${cliPath}" ${cliArgs.join(' ')} --install-extension redhat.ansible --force`
+      `"${cliPath}" ${cliArgs.join(
+        ' '
+      )} --install-extension redhat.ansible --force`
     );
     console.log(installLog.toString());
 
@@ -62,7 +65,9 @@ async function main(): Promise<void> {
     }
 
     // Display active extensions
-    const cmd = `"${cliPath}" ${cliArgs.join(' ')} --list-extensions --show-versions`
+    const cmd = `"${cliPath}" ${cliArgs.join(
+      ' '
+    )} --list-extensions --show-versions`;
     const extLog = cp.execSync(cmd);
     console.warn('%s\n%s', cmd, extLog.toString());
 
@@ -93,18 +98,7 @@ async function main(): Promise<void> {
       vscodeExecutablePath: executable,
       extensionDevelopmentPath,
       extensionTestsPath,
-      launchArgs: cliArgs.concat([
-        '--disable-extension=ritwickdey.liveserver',
-        '--disable-extension=redhat.fabric8-analytics',
-        '--disable-extension=lextudio.restructuredtext',
-        '--disable-extension=ms-vsliveshare.vsliveshare',
-        '--disable-extension=GitHub.vscode-pull-request-github',
-        '--disable-extension=eamodio.gitlens',
-        '--disable-extension=streetsidesoftware.code-spell-checker',
-        '--disable-extension=alefragnani.project-manager',
-        '--disable-extension=GitHub.copilot',
-        './src/test/testFixtures/',
-      ]),
+      launchArgs: cliArgs.concat(['./src/test/testFixtures/']),
     });
   } catch (err) {
     console.error('Failed to run tests due to exception!\n%s', err);
