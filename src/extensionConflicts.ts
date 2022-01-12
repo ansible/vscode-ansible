@@ -7,6 +7,7 @@ import { commands, Extension, extensions, window } from 'vscode';
 // A set of VSCode extension ID's that conflict with our extension
 const conflictingIDs = [
   'haaaad.ansible',
+  'lextudio.restructuredtext', // https://github.com/vscode-restructuredtext/vscode-restructuredtext/issues/286
   'sysninja.vscode-ansible-mod',
   'tomaciazek.ansible',
   'vscoss.vscode-ansible',
