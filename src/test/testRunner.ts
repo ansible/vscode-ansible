@@ -11,7 +11,6 @@ async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
     const cliPath = resolveCliPathFromVSCodeExecutablePath(executable);
-    // ./out/userdata/User/settings.json
     const userDataPath = path.resolve(__dirname, '../../userdata');
     const extPath = path.resolve(__dirname, '../../ext');
 
