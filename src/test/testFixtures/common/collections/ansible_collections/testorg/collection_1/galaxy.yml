@@ -1,6 +1,6 @@
 ---
 authors:
-  - Ansible team (ansible-navigator)
+  - Ansible Devtools team
 license_file: LICENSE
 name: coll_1
 namespace: testorg
