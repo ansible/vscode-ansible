@@ -71,7 +71,7 @@ export function testHoverLocal(): void {
     });
 
     describe('Hover for module options and sub-options', () => {
-      it('should hover over buitin module option', async () => {
+      it('should hover over builtin module option', async () => {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
             contents: [
