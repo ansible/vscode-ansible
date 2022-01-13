@@ -84,6 +84,10 @@ async function main(): Promise<void> {
     );
     process.env['ANSIBLE_COLLECTIONS_PATH'] = FIXTURES_COLLECTION_DIR;
 
+    // This is necessary to prevent failures.
+    // For more details regarding the cause, check https://github.com/ansible/vscode-ansible/issues/373
+    process.env['ANSIBLE_FORCE_COLOR'] = '0';
+
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, '../../');
