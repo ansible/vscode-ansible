@@ -32,7 +32,7 @@ DOCUMENTATION = """
 EXAMPLES = """
     - name: Retrieve a value deep inside a using a path
       ansible.builtin.set_fact:
-        value: "{{ lookup('testorg.coll_1.lookup_1', var1, var2) }}"
+        value: "{{ lookup('testorg.collection_1.lookup_1', var1, var2) }}"
     """
 
 RETURN = """

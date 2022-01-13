@@ -2,7 +2,7 @@
 authors:
   - Ansible Devtools team
 license_file: LICENSE
-name: coll_1
+name: collection_1
 namespace: testorg
 readme: README.md
 description: "Test collection"
