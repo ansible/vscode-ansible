@@ -11,7 +11,6 @@ async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
     const cliPath = resolveCliPathFromVSCodeExecutablePath(executable);
-    // ./out/userdata/User/settings.json
     const userDataPath = path.resolve(__dirname, '../../userdata');
     const extPath = path.resolve(__dirname, '../../ext');
     // We want to avoid using developer data dir as this is likely to break
@@ -79,6 +78,10 @@ async function main(): Promise<void> {
       'collections'
     );
     process.env['ANSIBLE_COLLECTIONS_PATH'] = FIXTURES_COLLECTION_DIR;
+
+    // This is necessary to prevent failures.
+    // For more details regarding the cause, check https://github.com/ansible/vscode-ansible/issues/373
+    process.env['ANSIBLE_FORCE_COLOR'] = '0';
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
