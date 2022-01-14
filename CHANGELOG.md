@@ -1,6 +1,17 @@
 <!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
 
+## 0.8.0
+
+### Minor Changes
+
+* Added support for meta/runtime.yml and execution-environment.yml (#379) @ssbarnea
+* Added schema for ansible-navigator configuration (#365) @ssbarnea
+
+### Bugfixes
+
+* Declared lextudio.restructuredtext ext as conflicting (#366) @ssbarnea
+
 ## 0.7.1
 
 ### Bugfixes
