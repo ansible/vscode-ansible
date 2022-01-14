@@ -6,7 +6,7 @@
 ### Minor Changes
 
 * Added support for meta/runtime.yml and execution-environment.yml (#379) @ssbarnea
-* Added schema for ansible-navigator configuration (#365) @ssbarnea
+* Added a schema for ansible-navigator configuration (#365) @ssbarnea
 
 ### Bugfixes
 
