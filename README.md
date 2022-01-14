@@ -9,14 +9,14 @@ by leveraging [ansible-language-server](https://github.com/ansible/ansible-langu
 
 It is recommended to open folder containing Ansible files with VSCode workspace.
 
-![Linter support](https://github.com/ansible/ansible-language-server/raw/main/images/ansible-extension-activation.gif)
+![Linter support](https://user-images.githubusercontent.com/578543/143657900-66789b17-ccda-4588-8945-1c936a849532.gif)
 
 Note:
 
-* For Ansible files open in IDE window ensure the language mode is
-  set to ``Ansible`` (bottom right of VSCode window).
+* For Ansible files open in an editor window ensure the language mode is
+  set to `Ansible` (bottom right of VS Code window).
 * The runtime status of extension should be in activate state. It can
-  be verified in the ``Extension`` window ``Runtime Status`` tab for ``Ansible`` extension.
+  be verified in the `Extension` window `Runtime Status` tab for `Ansible` extension.
 
 ## Features
 
