@@ -7,7 +7,7 @@ by leveraging [ansible-language-server](https://github.com/ansible/ansible-langu
 
 ## Activating Red Hat Ansible extension
 
-It is recommended to open folder containing Ansible files with VSCode workspace.
+It is recommended to open a folder containing Ansible files with a VS Code workspace.
 
 ![Linter support](https://user-images.githubusercontent.com/578543/143657900-66789b17-ccda-4588-8945-1c936a849532.gif)
 
