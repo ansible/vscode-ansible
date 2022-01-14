@@ -10,7 +10,7 @@
 
 ### Bugfixes
 
-* Declared lextudio.restructuredtext ext as conflicting (#366) @ssbarnea
+* Declared `lextudio.restructuredtext` extension as conflicting (#366) @ssbarnea
 
 ## 0.7.1
 
