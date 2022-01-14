@@ -53,6 +53,18 @@
   "yamlValidation": [
     {
       "fileMatch": [
+        "execution-environment.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-ee.json"
+    },
+    {
+      "fileMatch": [
+        "meta/runtime.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta-runtime.json"
+    },
+    {
+      "fileMatch": [
         ".ansible-navigator.yaml",
         ".ansible-navigator.yml",
         "ansible-navigator.yaml",
