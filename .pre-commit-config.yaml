@@ -18,11 +18,7 @@ repos:
         # `npm ci` does install deps but fails to update locked engines, thus
         # running `npm install --production` produces a better result, as it
         # will update engines if needed.
-        entry: >-
-          bash -c 'npm install --production --ignore-scripts &&
-          npm install "@ansible/ansible-language-server@latest" --save &&
-          npm version --allow-same-version --no-commit-hooks
-          --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
+        entry: npm run sanity
         language: node
         files: "(package|package-lock).json$"
         pass_filenames: false
@@ -33,7 +29,7 @@ repos:
         pass_filenames: false
         always_run: true
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.0.1
+    rev: v4.1.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -62,17 +58,25 @@ repos:
         #   args: ['--autofix']
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+        exclude: >
+          (?x)^(
+            package-lock.json
+          )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.29.0
+    rev: v0.30.0
     hooks:
     - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.2.0
+    rev: v8.6.0
     hooks:
       - id: eslint
         args:

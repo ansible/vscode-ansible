@@ -7,7 +7,7 @@
         <key>injectionSelector</key>
         <string>L:string.quoted.single meta.embedded.inline.jinja</string>
         <key>name</key>
-        <string>Injection grammar for supproting single quote escapes in Jinja2 expressions</string>
+        <string>Injection grammar for supporting single quote escapes in Jinja2 expressions</string>
         <key>patterns</key>
         <array>
             <dict>

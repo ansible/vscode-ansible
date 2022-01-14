@@ -1,6 +1,20 @@
 <!-- markdownlint-disable no-duplicate-heading -->
 # Change Log
 
+## 0.7.1
+
+### Bugfixes
+
+* Fixed inline encryption of multiline strings (#337) @jeinwag
+* Prevented throwing an unhandled exception caused by the undefined linter
+  arguments settings
+  ([ansible/ansible-language-server#142](https://github.com/ansible/ansible-language-server/pull/142))
+  @ssbarnea
+* Implemented opening standalone Ansible files that have no workspace
+  associated
+  ([ansible/ansible-language-server#140](https://github.com/ansible/ansible-language-server/pull/140))
+  @ganeshrn
+
 ## 0.7.0
 
 ### Removals
@@ -38,8 +52,8 @@
 
 * **Feature**: Restored client-side support for working with ansible
   vaults (#177) @jeinwag
-* Exposed the `ansibleServer.trace.server` option for tracing ALS
-  activity (#263) @yaegassy
+* Exposed the `ansibleServer.trace.server` option for tracing language
+  server activity (#263) @yaegassy
 * Upgraded language server to 0.2.6 (#284) @ssbarnea
 
 ### Bugfixes
@@ -89,12 +103,12 @@ In particular, this:
 * Made sure that the path-related settings are not being synchronized
   (#235) @ssbarnea
 * Reintroduced the schema verification for the part of the known file
-  paths that's been lost with the initial introduction of ALS in
-  extension (#169) @ssbarnea
+  paths that's been lost with the initial introduction of ansible language
+  server in extension (#169) @ssbarnea
 * Stopped including the unused files to vsix artifacts (#239) @ssbarnea
-* Switched the debug listening port for ALS in the development mode to
-  `6010` effectively fixing the support for unbound breakpoints when
-  coding two connected projects (#212) @tomaciazek
+* Switched the debug listening port for ansible language server in the
+  development mode to `6010` effectively fixing the support for unbound
+  breakpoints when coding two connected projects (#212) @tomaciazek
 
 ### Docs
 

@@ -1,0 +1,26 @@
+- name: Test playbook
+  gather_facts: False
+  hosts: localhost
+  tasks:
+    - name: Builtin module
+      ansible.builtin.debug:
+        msg:
+
+    - name: Collection module
+      testorg.collection_1.module_1:
+        opt_1:
+          - sub_opt_1:
+            sub_opt_2:
+
+          - sub_opt_1:
+            sub_opt_2:
+              - sub_sub_opt_1:
+                sub_sub_opt_2:
+                sub_sub_opt_3:
+                  - sub_sub_sub_opt_1:
+                    sub_sub_sub_opt_2:
+
+                  - sub_sub_sub_opt_1:
+                    sub_sub_sub_opt_2:
+        opt_2:
+      register: debug
