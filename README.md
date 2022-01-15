@@ -9,7 +9,7 @@ by leveraging [ansible-language-server](https://github.com/ansible/ansible-langu
 
 It is recommended to open a folder containing Ansible files with a VS Code workspace.
 
-![Linter support](https://user-images.githubusercontent.com/578543/143657900-66789b17-ccda-4588-8945-1c936a849532.gif)
+![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
 
 Note:
 
