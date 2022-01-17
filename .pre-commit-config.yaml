@@ -58,6 +58,13 @@ repos:
         #   args: ['--autofix']
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.26.3
+    hooks:
+      - id: yamllint
+        files: \.(yaml|yml)$
+        types: [file, yaml]
+        entry: yamllint --strict
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:

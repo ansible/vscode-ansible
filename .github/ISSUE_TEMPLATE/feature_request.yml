@@ -2,8 +2,8 @@
 name: 💡 Feature request
 description: Suggest an idea for this project
 labels:
-- feature
-- new
+  - feature
+  - new
 
 body:
   - type: markdown
