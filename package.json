@@ -53,6 +53,18 @@
   "yamlValidation": [
     {
       "fileMatch": [
+        "execution-environment.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-ee.json"
+    },
+    {
+      "fileMatch": [
+        "meta/runtime.yml"
+      ],
+      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta-runtime.json"
+    },
+    {
+      "fileMatch": [
         ".ansible-navigator.yaml",
         ".ansible-navigator.yml",
         "ansible-navigator.yaml",
@@ -460,8 +472,8 @@
     "sanity": "npm ci && npm install --ignore-scripts && ncu upgrade '@ansible/ansible-language-server@latest' && npm version --allow-same-version --no-commit-hooks --no-git-tag-version $npm_package_version",
     "//setup": "setup is used to configure development environment, like installing git hooks.",
     "setup": "pre-commit install-hooks",
-    "test:ui": "extest setup-and-run -i -s out/test-resources out/client/ui-test/allTestsSuite.js",
-    "test:ui-oldest": "extest setup-and-run -c 1.48.0 -s out/test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",
+    "test:ui": "extest setup-and-run -e out/ext -i -s out/test-resources out/client/ui-test/allTestsSuite.js",
+    "test:ui-oldest": "extest setup-and-run -e out/ext -c 1.48.0 -s out/test-resources-oldest -i -u out/client/ui-test/allTestsSuite.js",
     "vscode:prepublish": "npm run webpack",
     "watch": "tsc -b -w",
     "watch:server": "tsc -p ../ansible-language-server --outDir out/server -w",
