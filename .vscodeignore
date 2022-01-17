@@ -17,3 +17,4 @@ out/**
 !out/client/extension.js
 server/**
 !out/server/src/server.js
+.pytest_cache
