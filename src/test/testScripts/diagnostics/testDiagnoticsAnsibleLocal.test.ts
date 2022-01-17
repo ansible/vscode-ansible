@@ -6,7 +6,6 @@ import {
   testDiagnostics,
   sleep,
   updateSettings,
-  resetDefaultSettings,
 } from '../../helper';
 
 export function testDiagnosticsAnsibleLocal(): void {
@@ -15,7 +14,6 @@ export function testDiagnosticsAnsibleLocal(): void {
     const docUri2 = getDocUri('diagnostics/ansible/2.yml');
 
     before(async () => {
-      await resetDefaultSettings();
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     });
 
@@ -65,6 +63,10 @@ export function testDiagnosticsAnsibleLocal(): void {
         await vscode.commands.executeCommand(
           'workbench.action.closeAllEditors'
         );
+      });
+
+      after(async () => {
+        await updateSettings('ansibleLint.enabled', true); // Revert back the setting to default
       });
 
       it('should return no diagnostics', async function () {
