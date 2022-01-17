@@ -59,7 +59,7 @@ export function testDiagnosticsAnsibleLocal(): void {
       });
     });
 
-    describe('Diagnostic test with ansyble-syntax-check', () => {
+    describe('Diagnostic test with ansible-syntax-check', () => {
       before(async () => {
         await updateSettings('ansibleLint.enabled', false);
         await vscode.commands.executeCommand(
