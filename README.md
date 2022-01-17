@@ -5,6 +5,19 @@ This extension adds language support for Ansible to
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
+## Activating Red Hat Ansible extension
+
+It is recommended to open a folder containing Ansible files with a VS Code workspace.
+
+![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
+
+Note:
+
+* For Ansible files open in an editor window ensure the language mode is
+  set to `Ansible` (bottom right of VS Code window).
+* The runtime status of extension should be in activate state. It can
+  be verified in the `Extension` window `Runtime Status` tab for `Ansible` extension.
+
 ## Features
 
 ### Syntax highlighting
@@ -47,10 +60,10 @@ The extension tries to detect whether the cursor is on a play, block or task
 etc. and provides suggestions accordingly. There are also a few other rules that
 improve user experience:
 
-- the `name` property is always suggested first
-- on module options, the required properties are shown first, and aliases are
+* the `name` property is always suggested first
+* on module options, the required properties are shown first, and aliases are
   shown last, otherwise ordering from the documentation is preserved
-- FQCNs (fully qualified collection names) are inserted only when necessary;
+* FQCNs (fully qualified collection names) are inserted only when necessary;
   collections configured with the
   [`collections` keyword]([LINK](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword))
   are honored. This behavior can be disabled in extension settings.
@@ -81,8 +94,8 @@ holding `ctrl`/`cmd`.
 
 ## Requirements
 
-- [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
-- [Ansible Lint](https://ansible-lint.readthedocs.io/en/latest/) (required,
+* [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
+* [Ansible Lint](https://ansible-lint.readthedocs.io/en/latest/) (required,
   unless you disable linter support; install without `yamllint`)
 
 For Windows users, this extension works perfectly well with extensions such as
@@ -96,46 +109,46 @@ For Windows users, this extension works perfectly well with extensions such as
 This extension supports multi-root workspaces, and as such, can be configured
 on any level (User, Remote, Workspace and/or Folder).
 
-- `ansible.ansible.path`: Path to the `ansible` executable.
-- `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of
+* `ansible.ansible.path`: Path to the `ansible` executable.
+* `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of
   fully qualified collection names (FQCN) when inserting a module name.
   Disabling it will only use FQCNs when necessary, that is when the collection
   isn't configured for the task.
-- `ansible.ansibleLint.arguments`: Optional command line arguments to be
+* `ansible.ansibleLint.arguments`: Optional command line arguments to be
   appended to `ansible-lint` invocation. See `ansible-lint` documentation.
-- `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
-- `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
-- `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
-- `ansible.executionEnvironment.containerEngine`: The container engine to be
+* `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
+* `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
+* `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
+* `ansible.executionEnvironment.containerEngine`: The container engine to be
   used while running with execution environment. Valid values are `auto`,
   `podman` and `docker`. For `auto` it will look for `podman` then `docker`.
-- `ansible.executionEnvironment.enabled`: Enable or disable the use of an
+* `ansible.executionEnvironment.enabled`: Enable or disable the use of an
    execution environment.
-- `ansible.executionEnvironment.image`: Specify the name of the execution
+* `ansible.executionEnvironment.image`: Specify the name of the execution
   environment image.
-- `ansible.executionEnvironment.pullPolicy`: Specify the image pull policy.
+* `ansible.executionEnvironment.pullPolicy`: Specify the image pull policy.
   Valid values are `always`, `missing`, `never` and `tag`. Setting `always`
   will always pull the image when extension is activated or reloaded. Setting
   `missing` will pull if not locally available. Setting `never` will never pull
   the image and setting tag will always pull if the image tag is 'latest',
   otherwise pull if not locally available.
-- `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
+* `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.
-- `ansible.python.activationScript`: Path to a custom `activate` script, which
+* `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
-- `ansibleServer.trace.server`: Traces the communication between VSCode and the
+* `ansibleServer.trace.server`: Traces the communication between VSCode and the
   ansible language server.
 
 ## Known limitations
 
-- The shorthand syntax for module options (key=value pairs) is not supported.
-- Nested module options are not supported yet.
-- Only Jinja *expressions* inside Ansible YAML files are supported. In order to
+* The shorthand syntax for module options (key=value pairs) is not supported.
+* Nested module options are not supported yet.
+* Only Jinja *expressions* inside Ansible YAML files are supported. In order to
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.
-- Jinja *blocks* (inside Ansible YAML files) are not supported yet.
+* Jinja *blocks* (inside Ansible YAML files) are not supported yet.
 
 ## Credit
 
