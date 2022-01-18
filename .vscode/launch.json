@@ -25,7 +25,10 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}/examples"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/examples"
+      ],
       "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
       "preLaunchTask": "npm: watch"
     },
@@ -34,7 +37,10 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}", "${workspaceFolder}/examples"],
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/examples"
+      ],
       "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
       "preLaunchTask": "Webpack Watch"
     },
