@@ -18,7 +18,7 @@ async function main(): Promise<void> {
     // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
     const cliArgs = [
       `--user-data-dir=${userDataPath}`,
-      `--extensions-dir=${extPath}`
+      `--extensions-dir=${extPath}`,
     ];
 
     // Copy default user settings.json
@@ -29,7 +29,7 @@ async function main(): Promise<void> {
       '..',
       'test',
       'testFixtures',
-      'settings.json',
+      'settings.json'
     );
     const settings_dst = path.join(
       __dirname,
@@ -39,14 +39,16 @@ async function main(): Promise<void> {
       'out',
       'userdata',
       'User',
-      'settings.json',
+      'settings.json'
     );
     fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
     fs.copyFileSync(settings_src, settings_dst);
 
     // Install the latest released redhat.ansible extension
     const installLog = cp.execSync(
-      `"${cliPath}" ${cliArgs.join(' ')} --install-extension redhat.ansible --force`
+      `"${cliPath}" ${cliArgs.join(
+        ' '
+      )} --install-extension redhat.ansible --force`
     );
     console.log(installLog.toString());
 
@@ -60,7 +62,9 @@ async function main(): Promise<void> {
     }
 
     // Display active extensions
-    const cmd = `"${cliPath}" ${cliArgs.join(' ')} --list-extensions --show-versions`
+    const cmd = `"${cliPath}" ${cliArgs.join(
+      ' '
+    )} --list-extensions --show-versions`;
     const extLog = cp.execSync(cmd);
     console.warn('%s\n%s', cmd, extLog.toString());
 

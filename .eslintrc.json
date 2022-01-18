@@ -15,8 +15,6 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "eqeqeq": ["error", "smart"],
-    "prefer-template": "warn",
-    "quotes": ["error", "single"],
-    "indent": ["error", 2]
+    "prefer-template": "warn"
   }
 }

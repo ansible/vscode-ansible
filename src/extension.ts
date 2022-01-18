@@ -24,10 +24,7 @@ export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
 
   context.subscriptions.push(
-    commands.registerCommand(
-      'extension.ansible.vault',
-      toggleEncrypt
-    )
+    commands.registerCommand('extension.ansible.vault', toggleEncrypt)
   );
 
   const serverModule = context.asAbsolutePath(

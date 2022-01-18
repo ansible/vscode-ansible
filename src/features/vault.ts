@@ -45,7 +45,7 @@ function displayInvalidConfigError(): void {
 }
 
 function ansibleVaultPath(config: vscode.WorkspaceConfiguration): string {
-  return `${config.ansible.path || 'ansible'  }-vault`
+  return `${config.ansible.path || 'ansible'}-vault`;
 }
 
 export const toggleEncrypt = async (): Promise<void> => {
@@ -273,7 +273,9 @@ const encryptText = (
   config: vscode.WorkspaceConfiguration
 ): Promise<string> => {
   const cmd = !!vaultId
-    ? `${ansibleVaultPath(config)} encrypt_string --encrypt-vault-id="${vaultId}"`
+    ? `${ansibleVaultPath(
+        config
+      )} encrypt_string --encrypt-vault-id="${vaultId}"`
     : `${ansibleVaultPath(config)} encrypt_string`;
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
@@ -296,7 +298,9 @@ const encryptFile = (
   console.log(`Encrypt file: ${f}`);
 
   const cmd = !!vaultId
-    ? `${ansibleVaultPath(config)} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
+    ? `${ansibleVaultPath(
+        config
+      )} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
     : `${ansibleVaultPath(config)} encrypt "${f}"`;
 
   return execCwd(cmd, rootPath);

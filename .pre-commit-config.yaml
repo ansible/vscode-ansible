@@ -80,7 +80,7 @@ repos:
     rev: "v2.5.1"
     hooks:
       - id: prettier
-        types_or: ["markdown", "json"]
+        types_or: ["markdown", "json", "ts"]
         exclude: >
           (?x)^(
             jinja-language-configuration.json|
