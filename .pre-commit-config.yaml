@@ -46,6 +46,7 @@ repos:
         # does not support JSON with comments
         exclude: >
           (?x)^(
+            .vscode/settings.json|
             jinja-language-configuration.json|
             ansible-language-configuration.json
           )$
