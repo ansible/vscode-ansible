@@ -46,6 +46,7 @@ repos:
         # does not support JSON with comments
         exclude: >
           (?x)^(
+            .vscode/settings.json|
             jinja-language-configuration.json|
             ansible-language-configuration.json
           )$
@@ -66,10 +67,16 @@ repos:
           (?x)^(
             package-lock.json
           )$
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    # keep it before markdownlint and eslint
+    rev: "v2.5.1"
+    hooks:
+      - id: prettier
+        types: ["markdown"]
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.30.0
     hooks:
-    - id: markdownlint
+      - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v6.0.0
     hooks:
