@@ -6,12 +6,13 @@
 
 ### Minor Changes
 
-* Added support for `meta/runtime.yml` and `execution-environment.yml` (#379) @ssbarnea
-* Added a schema for ansible-navigator configuration (#365) @ssbarnea
+- Added support for `meta/runtime.yml` and `execution-environment.yml` (#379)
+  @ssbarnea
+- Added a schema for ansible-navigator configuration (#365) @ssbarnea
 
 ### Bugfixes
 
-* Declared `lextudio.restructuredtext` extension as conflicting (#366) @ssbarnea
+- Declared `lextudio.restructuredtext` extension as conflicting (#366) @ssbarnea
 
 ## 0.7.1
 
