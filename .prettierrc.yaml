@@ -2,9 +2,14 @@ tabWidth: 2
 useTabs: false
 overrides:
   - files:
-      - '*.yaml'
-      - '*.yml'
+      - "*.yaml"
+      - "*.yml"
     options:
       singleQuote: false
+  - files:
+      - "*.md"
+    options:
+      proseWrap: always
+      printWidth: 80
 semi: true
 singleQuote: true
