@@ -10,6 +10,7 @@ ci:
   skip:
     # https://github.com/pre-commit-ci/issues/issues/55
     - npm-sanity
+minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: local
     hooks:
@@ -72,7 +73,12 @@ repos:
     rev: "v2.5.1"
     hooks:
       - id: prettier
-        types: ["markdown"]
+        types_or: ["markdown", "json"]
+        exclude: >
+          (?x)^(
+            jinja-language-configuration.json|
+            syntaxes/external/jinja.tmLanguage.json
+          )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.30.0
     hooks:
