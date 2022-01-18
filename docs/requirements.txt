@@ -164,6 +164,12 @@ pbr==5.8.0 \
     --hash=sha256:176e8560eaf61e127817ef93d8a844803abb27a4d4637f0ff3bb783129be2e0a \
     --hash=sha256:672d8ebee84921862110f23fcec2acea191ef58543d34dfe9ef3d9f13c31cddf
     # via sphinxcontrib-apidoc
+pyenchant==3.2.2 \
+    --hash=sha256:1cf830c6614362a78aab78d50eaf7c6c93831369c52e1bb64ffae1df0341e637 \
+    --hash=sha256:5a636832987eaf26efe971968f4d1b78e81f62bca2bde0a9da210c7de43c3bce \
+    --hash=sha256:5facc821ece957208a81423af7d6ec7810dad29697cb0d77aae81e4e11c8e5a6 \
+    --hash=sha256:6153f521852e23a5add923dbacfbf4bebbb8d70c4e4bad609a8e0f9faeb915d1
+    # via sphinxcontrib-spelling
 pygments==2.10.0 \
     --hash=sha256:b8e67fe6af78f492b3c4b3e2970c0624cbf08beb1e493b2c99b9fa1b67a20380 \
     --hash=sha256:f398865f7eb6874156579fdf36bc840a03cab64d1cde9e93d68f46a425ec52c6
@@ -240,6 +246,7 @@ sphinx==4.3.1 \
     #   sphinx-js
     #   sphinx-rtd-theme
     #   sphinxcontrib-apidoc
+    #   sphinxcontrib-spelling
     #   sphinxcontrib-towncrier
 sphinx-ansible-theme==0.8.0 \
     --hash=sha256:998adeec8cef058308c545b16ff87e63098b89412ebefb7b36c1e400398c5a4a \
@@ -289,6 +296,10 @@ sphinxcontrib-serializinghtml==1.1.5 \
     --hash=sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd \
     --hash=sha256:aa5f6de5dfdf809ef505c4895e51ef5c9eac17d0f287933eb49ec495280b6952
     # via sphinx
+sphinxcontrib-spelling==7.3.2 \
+    --hash=sha256:1b99cdb1a30271c7080ec5b968dfc243c2540a960afdc4c052cd59dfe8d94c54 \
+    --hash=sha256:9d66dc4990749c5ac52e7eaf17e82f4dc6b4aff6515d26bbf48821829d41bd02
+    # via -r docs/requirements.in
 sphinxcontrib-towncrier==0.2.0a0 \
     --hash=sha256:31eed078e0a8b4c38dc30978dac8c53e2dfa7342ad8597d11816d1ea9ab0eabb \
     --hash=sha256:3cd4295c0198e753d964e2c06ee4ecd91a73a8d103385d08af9b05487ae68dd0
