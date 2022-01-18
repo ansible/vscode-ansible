@@ -49,7 +49,8 @@ export async function updateSettings(
   value: unknown
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration('ansible');
-  return ansibleConfiguration.update(setting, value, true);
+  const useGlobalSettings = true;
+  return ansibleConfiguration.update(setting, value, useGlobalSettings);
 }
 
 export async function testDiagnostics(
