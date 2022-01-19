@@ -1,0 +1,4 @@
+# Exclude files from elsewhere and avoid random error like
+# https://github.com/istanbuljs/nyc/issues/847
+include:
+  - "src/**/*.ts"
