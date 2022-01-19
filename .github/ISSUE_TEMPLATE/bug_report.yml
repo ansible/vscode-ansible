@@ -2,8 +2,8 @@
 name: 🐛 Bug report
 description: Create a report to help us improve
 labels:
-- bug
-- new
+  - bug
+  - new
 
 body:
   - type: markdown
@@ -89,11 +89,11 @@ body:
           ](https://user-images.githubusercontent.com/578543/141507613-ef7ec8eb-f75b-4f6e-8580-750678768b90.png)
         </details>
       options:
-      - label: >-
-          I certify that the `redhat.ansible` extension is in use and
-          the language of the document in this bug report shows
-          up as `Ansible`
-        required: true
+        - label: >-
+            I certify that the `redhat.ansible` extension is in use and
+            the language of the document in this bug report shows
+            up as `Ansible`
+          required: true
 
   - type: textarea
     id: summary

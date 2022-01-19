@@ -29,31 +29,31 @@ jobs:
       fail-fast: false
       matrix:
         os:
-        - ubuntu-latest
-        - macos-11
-        - windows-latest
+          - ubuntu-latest
+          - macos-11
+          - windows-latest
         npm-target:
-        - test:ui
-        - test:ui-oldest
+          - test:ui
+          - test:ui-oldest
         upload-artifact:
-        - false
+          - false
         name:
-        - false
+          - false
         include:
-        - name: lint
-          npm-target: lint
-          os: ubuntu-latest
-          upload-artifact: true
-        - name: devel
-          # this job will install latest version of ansible-language-server
-          # instead of the one mentioned in package[-lock].json
-          npm-target: test:ui
-          os: ubuntu-latest
-          devel: true
-        - name: test:e2e
-          npm-target: test:e2e
-          os: ubuntu-latest
-          experimental: true
+          - name: lint
+            npm-target: lint
+            os: ubuntu-latest
+            upload-artifact: true
+          - name: devel
+            # this job will install latest version of ansible-language-server
+            # instead of the one mentioned in package[-lock].json
+            npm-target: test:ui
+            os: ubuntu-latest
+            devel: true
+          - name: test:e2e
+            npm-target: test:e2e
+            os: ubuntu-latest
+            experimental: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -143,16 +143,16 @@ jobs:
         if: ${{ !matrix.devel }}
         run: git diff --exit-code
 
-  check:  # This job does nothing and is only used for the branch protection
+  check: # This job does nothing and is only used for the branch protection
     if: always()
 
     needs:
-    - build
+      - build
 
     runs-on: ubuntu-latest
 
     steps:
-    - name: Decide whether the needed jobs succeeded or failed
-      uses: re-actors/alls-green@release/v1
-      with:
-        jobs: ${{ toJSON(needs) }}
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
