@@ -1,6 +1,6 @@
 <!-- markdownlint-disable first-line-heading -->
 
-(_ansible_language_server_adding_changelog_fragments)=
+(ansible_language_server_adding_changelog_fragments)=
 
 ## Adding change notes with your PRs
 

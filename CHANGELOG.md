@@ -3,7 +3,7 @@
 
 All notable changes to the Ansible VS Code extension will be documented in this file.
 
-[//]: # (DO-NOT-REMOVE-versioning-promise-START)
+[//]: # DO-NOT-REMOVE-versioning-promise-START
 
 ```{note}
 The change notes follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

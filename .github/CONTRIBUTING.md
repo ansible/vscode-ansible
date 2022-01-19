@@ -5,7 +5,7 @@ In order to contribute, you'll need to:
 1. Fork the repository.
 
 2. Create a branch, push your changes there. Don't forget to
-   {ref}`include news files for the changelog <_ansible_language_server_adding_changelog_fragments>`.
+   {ref}`include news files for the changelog <ansible_language_server_adding_changelog_fragments>`.
 
 3. Send it to us as a PR.
 

@@ -1,15 +1,16 @@
 <!-- markdownlint-disable first-line-heading -->
+
 ```{spelling}
 
 linter
 ```
 
-(_ansible_language_server_index)=
+(\_ansible_language_server_index)=
 
 # {{ project }} Documentation
 
 ```{include} ../README.md
-:start-after: (DO-NOT-REMOVE-README-TITLE)
+:start-after: DO-NOT-REMOVE-README-TITLE
 ```
 
 ```{toctree}
