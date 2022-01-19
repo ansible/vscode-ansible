@@ -23,7 +23,7 @@ export function extensionUIAssetsTest(): void {
     });
 
     it('VSCode Ansible extension is installed', async function () {
-      this.timeout(15000);
+      this.timeout(20000); // even 18s failed
       const section = (await sideBar
         .getContent()
         .getSection('Installed')) as ExtensionsViewSection;
