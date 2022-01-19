@@ -9,8 +9,6 @@
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "mochaExplorer.files": "server/src/test/**/*.ts",
-  "mochaExplorer.require": "ts-node/register",
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,

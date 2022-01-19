@@ -79,7 +79,7 @@
     "prepack": "npm ci && npm run compile",
     "preversion": "bin/version-bump-allowed",
     "watch": "tsc --watch -p .",
-    "test": "nyc -s -a mocha --require ts-node/register './test/**/*.ts' && nyc report",
+    "test": "nyc -s -a mocha && nyc report",
     "check-dependencies": "node ./scripts/check-dependencies.js"
   },
   "all": true
