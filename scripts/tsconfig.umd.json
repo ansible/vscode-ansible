@@ -5,10 +5,5 @@
     "module": "umd",
     "outDir": "./lib/umd",
   },
-  "exclude": [
-    "node_modules",
-    "out",
-    "lib",
-    "test"
-  ]
+  "exclude": ["node_modules", "out", "lib", "test"],
 }

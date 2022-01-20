@@ -66,6 +66,18 @@ repos:
 
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    # keep it before markdownlint and eslint
+    rev: "v2.5.1"
+    hooks:
+      - id: prettier
+        types: ["json"]
+        exclude: >
+          (?x)^(
+            ansible-language-configuration.json|
+            jinja-language-configuration.json|
+            syntaxes/external/jinja.tmLanguage.json
+          )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.30.0
     hooks:

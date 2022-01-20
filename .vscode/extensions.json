@@ -3,6 +3,6 @@
   // for the documentation about the extensions.json format
   "recommendations": [
     "dbaeumer.vscode-eslint",
-    "hbenl.vscode-mocha-test-adapter"
-  ]
+    "hbenl.vscode-mocha-test-adapter",
+  ],
 }
