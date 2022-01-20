@@ -1,7 +1,4 @@
 import { expect } from 'chai';
-import { promises as fs } from 'fs';
-import * as path from 'path';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Node, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
 import {
   AncestryBuilder,
@@ -13,23 +10,14 @@ import {
   isTaskParam,
   parseAllDocuments,
 } from '../../src/utils/yaml';
-
-async function getYamlDoc(yamlFile: string) {
-  const yaml = await fs.readFile(
-    path.resolve('test', 'data', 'utils', 'yaml', yamlFile),
-    {
-      encoding: 'utf8',
-    }
-  );
-  return TextDocument.create('uri', 'ansible', 1, yaml);
-}
+import { getDoc } from './helper';
 
 async function getPathInFile(
   yamlFile: string,
   line: number,
   character: number
 ) {
-  const textDoc = await getYamlDoc(yamlFile);
+  const textDoc = await getDoc(`yaml/${yamlFile}`);
   const parsedDocs = parseAllDocuments(textDoc.getText());
   return getPathAt(
     textDoc,
