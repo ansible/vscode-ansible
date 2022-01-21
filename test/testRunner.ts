@@ -27,7 +27,6 @@ async function main(): Promise<void> {
       '..',
       '..',
       '..',
-      'src',
       'test',
       'testFixtures',
       'settings.json',
@@ -71,7 +70,6 @@ async function main(): Promise<void> {
       '..',
       '..',
       '..',
-      'src',
       'test',
       'testFixtures',
       'common',
@@ -106,7 +104,7 @@ async function main(): Promise<void> {
         '--disable-extension=streetsidesoftware.code-spell-checker',
         '--disable-extension=alefragnani.project-manager',
         '--disable-extension=GitHub.copilot',
-        './src/test/testFixtures/',
+        './test/testFixtures/',
       ]),
     });
   } catch (err) {
