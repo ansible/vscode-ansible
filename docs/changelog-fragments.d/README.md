@@ -7,7 +7,8 @@
 It is very important to maintain a log for news of how
 updating to the new version of the software will affect
 end-users. This is why we enforce collection of the change
-fragment files in pull requests as per [Towncrier philosophy].
+fragment files in pull requests as per
+[Towncrier philosophy][towncrier-philosophy].
 
 The idea is that when somebody makes a change, they must record
 the bits that would affect end-users only including information
@@ -32,7 +33,7 @@ for the users to understand what it means.
 combined with others, it will be a part of the "news digest"
 telling the readers **what changed** in a specific version of
 the library *since the previous version*. You should also use
-[MyST Markdown] syntax for highlighting code (inline or block),
+[MyST Markdown][myst-md] syntax for highlighting code (inline or block),
 linking parts of the docs or external sites.
 At the end, sign your change note by adding ```-- by
 {user}`github-username``` (replace `github-username` with
@@ -73,7 +74,7 @@ See `pyproject.toml` for all available categories
 (`tool.towncrier.type`).
 ```
 
-[MyST Markdown]:
+[myst-md]:
 https://myst-parser.rtfd.io/en/latest/syntax/syntax.html
-[Towncrier philosophy]:
+[towncrier-philosophy]:
 https://towncrier.rtfd.io/en/actual-freaking-docs/#philosophy
