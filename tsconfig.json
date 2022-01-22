@@ -6,11 +6,10 @@
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "out/client",
-    "rootDir": "src",
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true
   },
-  "include": ["src"],
+  "include": ["src", "test"],
   "exclude": ["node_modules", "test-resources"]
 }
