@@ -23,12 +23,13 @@ export function extensionUIAssetsTest(): void {
     });
 
     it('VSCode Ansible extension is installed', async function () {
+      this.retries(3);
       this.timeout(20000); // even 18s failed
       const section = (await sideBar
         .getContent()
         .getSection('Installed')) as ExtensionsViewSection;
       const item = await section.findItem('@installed Ansible');
-      expect(item).not.undefined;
+      expect(item, 'Failed to find Ansible extension').not.undefined;
       expect(await item?.getText()).to.contain('Red Hat');
     });
 
