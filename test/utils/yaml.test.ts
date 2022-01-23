@@ -10,7 +10,7 @@ import {
   isTaskParam,
   parseAllDocuments,
 } from '../../src/utils/yaml';
-import { getDoc } from './helper';
+import { getDoc, isWindows } from './helper';
 
 async function getPathInFile(
   yamlFile: string,
@@ -24,11 +24,6 @@ async function getPathInFile(
     { line: line - 1, character: character - 1 },
     parsedDocs
   );
-}
-
-function isWindows() {
-  // win32 applies to x64 arch too, is the platform name
-  return process.platform === 'win32';
 }
 
 describe('yaml', () => {

@@ -12,3 +12,8 @@ export async function getDoc(filename: string): Promise<TextDocument> {
   );
   return TextDocument.create('uri', 'ansible', 1, file);
 }
+
+export function isWindows(): boolean {
+  // win32 applies to x64 arch too, is the platform name
+  return process.platform === 'win32';
+}
