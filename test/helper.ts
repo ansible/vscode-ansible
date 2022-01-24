@@ -36,7 +36,7 @@ export async function sleep(ms: number): Promise<void> {
 export const getDocPath = (p: string): string => {
   return path.resolve(
     __dirname,
-    path.join('..', '..', '..', 'src', 'test', 'testFixtures', p)
+    path.join('..', '..', '..', 'test', 'testFixtures', p)
   );
 };
 
