@@ -67,6 +67,10 @@ repos:
         files: \.(yaml|yml)$
         types: [file, yaml]
         entry: yamllint --strict
+        exclude: >
+          (?x)^(
+            test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+          )$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.1.0
     hooks:
