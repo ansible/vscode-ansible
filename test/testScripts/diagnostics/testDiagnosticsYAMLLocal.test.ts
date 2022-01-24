@@ -10,7 +10,7 @@ import {
 
 export function testDiagnosticsYAMLLocal(): void {
   describe('TEST FOR YAML DIAGNOSTICS', () => {
-    const docUri1 = getDocUri('diagnostics/yaml/1.yml');
+    const docUri1 = getDocUri('diagnostics/yaml/invalid_yaml.yml');
 
     before(async () => {
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');
@@ -35,8 +35,8 @@ export function testDiagnosticsYAMLLocal(): void {
             severity: 0,
             message: 'Nested mappings are not allowed in compact mappings',
             range: new vscode.Range(
-              new vscode.Position(4, 13),
-              new vscode.Position(4, 13)
+              new vscode.Position(6, 13),
+              new vscode.Position(6, 13)
             ),
             source: 'Ansible [YAML]',
           },
@@ -45,8 +45,8 @@ export function testDiagnosticsYAMLLocal(): void {
             message:
               'Document contains trailing content not separated by a ... or --- line',
             range: new vscode.Range(
-              new vscode.Position(5, 0),
-              new vscode.Position(6, 0)
+              new vscode.Position(7, 0),
+              new vscode.Position(8, 0)
             ),
             source: 'Ansible [YAML]',
           },
@@ -79,8 +79,8 @@ export function testDiagnosticsYAMLLocal(): void {
               'Syntax Error while loading YAML.\n' +
               '  mapping values are not allowed in this context\n',
             range: new vscode.Range(
-              new vscode.Position(4, 21),
-              new vscode.Position(4, Number.MAX_SAFE_INTEGER)
+              new vscode.Position(6, 21),
+              new vscode.Position(6, Number.MAX_SAFE_INTEGER)
             ),
             source: 'Ansible',
           },
@@ -88,8 +88,8 @@ export function testDiagnosticsYAMLLocal(): void {
             severity: 0,
             message: 'Nested mappings are not allowed in compact mappings',
             range: new vscode.Range(
-              new vscode.Position(4, 13),
-              new vscode.Position(4, 13)
+              new vscode.Position(6, 13),
+              new vscode.Position(6, 13)
             ),
             source: 'Ansible [YAML]',
           },
@@ -98,8 +98,8 @@ export function testDiagnosticsYAMLLocal(): void {
             message:
               'Document contains trailing content not separated by a ... or --- line',
             range: new vscode.Range(
-              new vscode.Position(5, 0),
-              new vscode.Position(6, 0)
+              new vscode.Position(7, 0),
+              new vscode.Position(8, 0)
             ),
             source: 'Ansible [YAML]',
           },
