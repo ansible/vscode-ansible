@@ -423,10 +423,11 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         # https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#adding-a-system-path
         npm ci
+    - name: Log ansible-lint version
+      if: runner.os != 'Windows'
+      run: ansible-lint --version
     - name: Run testing against the Git checkout
-      run: |
-        ansible-lint --version
-        npm test
+      run: npm test
 
     - name: Produce coverage report
       run: npm run coverage
