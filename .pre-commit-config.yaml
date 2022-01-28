@@ -82,7 +82,7 @@ repos:
     rev: "v2.5.1"
     hooks:
       - id: prettier
-        types: ["json"]
+        types_or: ["json", "ts"]
         exclude: >
           (?x)^(
             ansible-language-configuration.json|
@@ -92,11 +92,11 @@ repos:
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.30.0
     hooks:
-    - id: markdownlint
-      exclude: >
-        (?x)^
-          docs/changelog-fragments\.d/\d+\.\w+\.md
-        $
+      - id: markdownlint
+        exclude: >
+          (?x)^
+            docs/changelog-fragments\.d/\d+\.\w+\.md
+          $
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v8.6.0
     hooks:

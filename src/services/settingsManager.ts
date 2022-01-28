@@ -20,8 +20,8 @@ export class SettingsManager {
       containerEngine: 'auto',
       enabled: false,
       image: 'quay.io/ansible/creator-ee:latest',
-      pullPolicy: 'missing'
-    }
+      pullPolicy: 'missing',
+    },
   };
   private globalSettings: ExtensionSettings = this.defaultSettings;
 

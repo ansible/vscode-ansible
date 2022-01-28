@@ -31,9 +31,7 @@ export function hasOwnProperty<X, Y extends PropertyKey>(
 /**
  * Checks whether `obj` is a non-null object.
  */
-export function isObject<X>(
-  obj: X
-): obj is X & Record<PropertyKey, unknown> {
+export function isObject<X>(obj: X): obj is X & Record<PropertyKey, unknown> {
   return obj && typeof obj === 'object';
 }
 

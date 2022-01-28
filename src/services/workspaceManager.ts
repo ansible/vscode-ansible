@@ -76,19 +76,23 @@ export class WorkspaceManager {
       }
     }
     /* *
-    * If control reaches at this point it indicates an individual file is
-    * opened in client without any workspace.
-    * Set the workspace to directory of the file pointed by uri.
-    */
-    const documentFolderPathParts = uri.split(path.sep)
-    documentFolderPathParts.pop()
+     * If control reaches at this point it indicates an individual file is
+     * opened in client without any workspace.
+     * Set the workspace to directory of the file pointed by uri.
+     */
+    const documentFolderPathParts = uri.split(path.sep);
+    documentFolderPathParts.pop();
     const workspaceFolder: WorkspaceFolder = {
-      'uri': documentFolderPathParts.join(path.sep),
-      'name': documentFolderPathParts[documentFolderPathParts.length - 1]
-    }
+      uri: documentFolderPathParts.join(path.sep),
+      name: documentFolderPathParts[documentFolderPathParts.length - 1],
+    };
 
-    this.connection.console.log(`workspace folder explicitly set to ${URI.parse(workspaceFolder.uri).path}`);
-    return workspaceFolder
+    this.connection.console.log(
+      `workspace folder explicitly set to ${
+        URI.parse(workspaceFolder.uri).path
+      }`
+    );
+    return workspaceFolder;
   }
 
   public handleWorkspaceChanged(event: WorkspaceFoldersChangeEvent): void {
