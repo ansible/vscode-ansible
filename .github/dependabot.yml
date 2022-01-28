@@ -1,11 +1,14 @@
 version: 2
 updates:
+  # update only production dependencies (~5): npm list -depth 0 -prod true
   - package-ecosystem: npm
+    allow:
+      - dependency-type: production
     directory: /
     schedule:
       interval: daily
     labels:
       - dependabot-deps-updates
       - skip-changelog
-    versioning-strategy: lockfile-only
+    versioning-strategy: increase
     open-pull-requests-limit: 2
