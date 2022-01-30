@@ -60,6 +60,10 @@ repos:
         #   args: ['--autofix']
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/openstack/bashate
+    rev: 2.1.0
+    hooks:
+      - id: bashate
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.26.3
     hooks:
