@@ -91,7 +91,7 @@ jobs:
           which docker
           which podman || true
           docker pull -q quay.io/ansible/creator-ee:latest
-          docker run -it quay.io/ansible/creator-ee:latest ansible --version
+          docker run -t quay.io/ansible/creator-ee:latest ansible --version
         shell: bash
 
       - name: Link development version of ansible-language-server
