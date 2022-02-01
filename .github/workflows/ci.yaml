@@ -36,8 +36,8 @@ jobs:
           - macos-11
           - windows-latest
         npm-target:
-          - test:ui
-          - test:ui-oldest
+          - test-ui
+          - test-ui-oldest
         upload-artifact:
           - false
         name:
@@ -50,11 +50,11 @@ jobs:
           - name: devel
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
-            npm-target: test:ui
+            npm-target: test-ui
             os: ubuntu-latest
             devel: true
-          - name: test:e2e
-            npm-target: test:e2e
+          - name: test-e2e
+            npm-target: test-e2e
             os: ubuntu-latest
             experimental: true
 
@@ -72,10 +72,10 @@ jobs:
           # We will later move this folder to ../ due to below bug:
           # https://github.com/actions/checkout/issues/197
 
-      # ~400mb, caching them should speedup test:ui execution
+      # ~400mb, caching them should speedup test-ui execution
       - name: Enable test-resources caching
         uses: actions/cache@v2
-        if: ${{ contains(matrix.npm-target, 'test:ui') }}
+        if: ${{ contains(matrix.npm-target, 'test-ui') }}
         with:
           path: |
             out/test-resources
