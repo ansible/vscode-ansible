@@ -5,7 +5,7 @@
   "ansible.ansibleLint.enabled": true,
   "ansible.ansibleLint.path": "ansible-lint",
   "ansible.ansibleNavigator.path": "ansible-navigator",
-  "ansible.executionEnvironment.containerEngine": "auto",
+  "ansible.executionEnvironment.containerEngine": "podman",
   "ansible.executionEnvironment.enabled": false,
   "ansible.executionEnvironment.image": "quay.io/ansible/creator-ee:latest",
   "ansible.executionEnvironment.pullPolicy": "missing",

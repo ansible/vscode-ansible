@@ -6,10 +6,14 @@ import {
   resolveCliPathFromVSCodeExecutablePath,
 } from 'vscode-test';
 import fs from 'fs';
+import { resolve } from 'path';
 
 async function main(): Promise<void> {
   try {
-    const executable = await downloadAndUnzipVSCode();
+    const executable = await downloadAndUnzipVSCode(
+      'stable',
+      'win32-x64-archive'
+    );
     const cliPath = resolveCliPathFromVSCodeExecutablePath(executable);
     const userDataPath = path.resolve(__dirname, '../../userdata');
     const extPath = path.resolve(__dirname, '../../ext');
@@ -18,7 +22,7 @@ async function main(): Promise<void> {
     // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
     const cliArgs = [
       `--user-data-dir=${userDataPath}`,
-      `--extensions-dir=${extPath}`
+      `--extensions-dir=${extPath}`,
     ];
 
     // Copy default user settings.json
@@ -29,7 +33,7 @@ async function main(): Promise<void> {
       '..',
       'test',
       'testFixtures',
-      'settings.json',
+      'settings.json'
     );
     const settings_dst = path.join(
       __dirname,
@@ -39,19 +43,25 @@ async function main(): Promise<void> {
       'out',
       'userdata',
       'User',
-      'settings.json',
+      'settings.json'
     );
     fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
     fs.copyFileSync(settings_src, settings_dst);
 
     // Install the latest released redhat.ansible extension
     const installLog = cp.execSync(
-      `"${cliPath}" ${cliArgs.join(' ')} --install-extension redhat.ansible --force`
+      `"${cliPath}" ${cliArgs.join(
+        ' '
+      )} --install-extension redhat.ansible --force`
     );
     console.log(installLog.toString());
 
     // Install the dependent extensions
-    const dependencies = ['ms-python.python', 'redhat.vscode-yaml'];
+    const dependencies = [
+      'ms-python.python',
+      'redhat.vscode-yaml',
+      'ms-vscode-remote.remote-wsl',
+    ];
     for (const dep of dependencies) {
       const installLog = cp.execSync(
         `"${cliPath}" ${cliArgs.join(' ')} --install-extension ${dep} --force`
@@ -60,7 +70,9 @@ async function main(): Promise<void> {
     }
 
     // Display active extensions
-    const cmd = `"${cliPath}" ${cliArgs.join(' ')} --list-extensions --show-versions`
+    const cmd = `"${cliPath}" ${cliArgs.join(
+      ' '
+    )} --list-extensions --show-versions`;
     const extLog = cp.execSync(cmd);
     console.warn('%s\n%s', cmd, extLog.toString());
 
@@ -90,6 +102,14 @@ async function main(): Promise<void> {
     const extensionTestsPath = path.resolve(__dirname, './index');
 
     // Download VS Code, unzip it and run the integration test
+    function toWSLPosixPath(windowsPath: string) {
+      let result = resolve(windowsPath);
+      // wsl drive letter is always lowercase
+      result = result.charAt(0).toLowerCase() + result.slice(1);
+      // replace backslashes with forward slashes and remove drive colon
+      return result.replace(/^(\w):|\\+/g, '/$1').replace(/^\//g, '/mnt/');
+    }
+    const workspace_path = toWSLPosixPath('./test/testFixtures/');
     await runTests({
       vscodeExecutablePath: executable,
       extensionDevelopmentPath,
@@ -104,7 +124,10 @@ async function main(): Promise<void> {
         '--disable-extension=streetsidesoftware.code-spell-checker',
         '--disable-extension=alefragnani.project-manager',
         '--disable-extension=GitHub.copilot',
-        './test/testFixtures/',
+        // https://code.visualstudio.com/docs/remote/wsl
+        '--remote',
+        'wsl+Ubuntu',
+        workspace_path,
       ]),
     });
   } catch (err) {

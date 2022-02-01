@@ -28,40 +28,44 @@ jobs:
       }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell || 'bash'}}
     strategy:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
-          - macos-11
+          # - ubuntu-latest
+          # - macos-11
           - windows-latest
         npm-target:
           - test-ui
-          - test-ui-oldest
         upload-artifact:
           - false
         name:
           - false
         include:
-          - name: lint
-            npm-target: lint
-            os: ubuntu-latest
-            upload-artifact: true
-          - name: devel
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in package[-lock].json
-            npm-target: test-ui
-            os: ubuntu-latest
-            devel: true
-          - name: test-e2e
+          - name: test:e2e (wsl)
             npm-target: test-e2e
-            os: ubuntu-latest
-            experimental: true
+            os: windows-latest
+            shell: "wsl-bash {0}"
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Disable autocrlf
+        if: "contains(matrix.os, 'windows-latest')"
+        run: |-
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        shell: bash  # <-- keep it here to avoid using default shell
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      # https://github.com/marketplace/actions/setup-wsl
+      - name: Activate WSL
+        if: "contains(matrix.shell, 'wsl')"
+        uses: Vampire/setup-wsl@v1
 
       - name: Clone development branch of ansible-language-server
         if: ${{ matrix.devel }}
@@ -83,15 +87,17 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}
 
       - name: Use NodeJS v16
+        # as Windows executables are exposed inside WSL at top of PATH, we
+        # would end with broken npm script in PATH on wsl.
+        if: "!contains(matrix.shell, 'wsl')"
         uses: actions/setup-node@v2
         with:
           node-version: 16
 
       - name: Run ./tools/test-setup.sh
-
         run: |
+          # echo "$HOME/.local/bin" >> $GITHUB_PATH
           ./tools/test-setup.sh
-        shell: bash
 
       - name: Link development version of ansible-language-server
         if: ${{ matrix.devel }}
@@ -104,16 +110,17 @@ jobs:
           npm run compile
           popd
           npm ls --depth=0 --link=true
-        shell: bash
 
       # Build extension
       - name: Run build
-        run: npm run compile
+        run: |
+          npm run compile
+          npm run ${{ matrix.npm-target }}
 
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.0
         with:
-          run: npm run ${{ matrix.npm-target }}
+          run: npm && npm run ${{ matrix.npm-target }}
 
       - name: Run package
         run: npm run package
@@ -124,6 +131,18 @@ jobs:
         with:
           name: ansible-extension-from-pr-${{ github.event.number }}.vsix
           path: ansible-*.vsix
+          retention-days: 15
+
+      - name: Publish test logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.npm-target }}.zip
+          path: |
+            out/e2eTestReport
+            out/userdata/logs
+            out/test-resources/settings/logs
+          if-no-files-found: ignore
           retention-days: 15
 
       # extra safety measure that ensures code was not modified during build

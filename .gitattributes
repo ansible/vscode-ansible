@@ -1,2 +1,5 @@
 # Set default behavior to automatically normalize line endings.
-* text=auto
+# Forcing UNIX line endings is needed for WSL compatibility.
+* text eol=lf
+*.gif binary
+*.png binary
