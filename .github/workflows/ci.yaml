@@ -126,6 +126,18 @@ jobs:
           path: ansible-*.vsix
           retention-days: 15
 
+      - name: Publish test logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.npm-target }}.zip
+          path: |
+            out/e2eTestReport
+            out/userdata/logs
+            out/test-resources/settings/logs
+          if-no-files-found: ignore
+          retention-days: 15
+
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
         # on devel we use `npm link --save ..` which will alter tracked files
