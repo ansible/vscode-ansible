@@ -10,6 +10,9 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  FORCE_COLOR: "1"  # make mocha output colorful
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
@@ -33,8 +36,8 @@ jobs:
           # - macos-11
           # - windows-latest
         npm-target:
-          - test:ui
-          # - test:ui-oldest
+          - test-ui
+          - test-ui-oldest
         upload-artifact:
           - false
         name:
@@ -44,14 +47,14 @@ jobs:
             npm-target: lint
             os: ubuntu-latest
             upload-artifact: true
-          # - name: devel
-          #   # this job will install latest version of ansible-language-server
-          #   # instead of the one mentioned in package[-lock].json
-          #   npm-target: test:ui
-          #   os: ubuntu-latest
-          #   devel: true
-          - name: test:e2e
-            npm-target: test:e2e
+          - name: devel
+            # this job will install latest version of ansible-language-server
+            # instead of the one mentioned in package[-lock].json
+            npm-target: test-ui
+            os: ubuntu-latest
+            devel: true
+          - name: test-e2e
+            npm-target: test-e2e
             os: ubuntu-latest
             experimental: true
 
@@ -69,10 +72,10 @@ jobs:
           # We will later move this folder to ../ due to below bug:
           # https://github.com/actions/checkout/issues/197
 
-      # ~400mb, caching them should speedup test:ui execution
+      # ~400mb, caching them should speedup test-ui execution
       - name: Enable test-resources caching
         uses: actions/cache@v2
-        if: ${{ contains(matrix.npm-target, 'test:ui') }}
+        if: ${{ contains(matrix.npm-target, 'test-ui') }}
         with:
           path: |
             out/test-resources
@@ -131,8 +134,12 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
         with:
-          name: userdata-logs
-          path: out/userdata/logs/
+          name: logs-${{ matrix.os }}-${{ matrix.npm-target }}.zip
+          path: |
+            out/e2eTestReport
+            out/userdata/logs
+            out/test-resources/settings/logs
+          if-no-files-found: ignore
           retention-days: 15
 
       # extra safety measure that ensures code was not modified during build

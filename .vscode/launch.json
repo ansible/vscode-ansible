@@ -29,7 +29,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/examples"
       ],
-      "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
+      "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
       "preLaunchTask": "npm: watch"
     },
     {
@@ -41,7 +41,7 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/examples"
       ],
-      "outFiles": ["${workspaceFolder}/out/client/**/*.js"],
+      "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
       "preLaunchTask": "Webpack Watch"
     },
     {

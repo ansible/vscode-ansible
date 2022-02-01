@@ -9,7 +9,7 @@ def installBuildRequirements(){
 
 def buildVscodeExtension(){
   sh "npm install"
-  sh "npm run vscode:prepublish"
+  sh "npm run vscode-prepublish"
 }
 
 node("rhel8"){

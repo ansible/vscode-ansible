@@ -22,7 +22,7 @@ language server code into the `ansible-language-server` directory _next to_ the
 root directory of this repository. Remember to `npm install` in that directory.
 
 Once the language server directory is prepared, you may compile both client and
-server using the `npm run compile:withserver` command. Then you may launch the
+server using the `npm run compile-withserver` command. Then you may launch the
 **Client + Server (source)** configuration.
 
 ### Debug a web-packed application
@@ -32,7 +32,7 @@ In rare cases, you might want to debug the application code compiled with
 the client, while the sourcemaps for the server point to the JavaScript files of
 the `ansible-language-server` under `node_modules`.
 
-To launch in this mode, first run webpack (`npm run webpack:dev`). Then you may
+To launch in this mode, first run webpack (`npm run webpack-dev`). Then you may
 launch the **Launch Extension (webpacked)** configuration, followed by the
 **Attach to Server** configuration.
 

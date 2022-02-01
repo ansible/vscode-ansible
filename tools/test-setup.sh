@@ -8,12 +8,13 @@ if [ "$RUNNER_OS" == "Linux" ]; then
 fi
 
 pipx install pre-commit
-# see https://github.com/pypa/pipx/issues/88
-pipx install ansible-lint
 if [ "$RUNNER_OS" != "Windows" ]; then
-    pipx inject --include-apps ansible-lint yamllint ansible-core
-    ansible-lint --version
+    # GHA comes with ansible-core preinstalled via pipx, so we will
+    # inject the linter into it. MacOS does not have it.
+    pipx install ansible-core
+    pipx inject --include-apps ansible-core ansible-lint yamllint
     ansible --version
+    ansible-lint --version
 fi
 
 npm config set fund false
