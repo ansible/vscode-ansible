@@ -243,10 +243,9 @@ jobs:
         --notest
     - name: Generate changelog draft to a temporary file
       run: >-
+        2>/dev/null
         python -m
         tox
-        --parallel auto
-        --parallel-live
         --skip-missing-interpreters false
         --skip-pkg-install
         -e draft-changelog
@@ -254,6 +253,7 @@ jobs:
         |
         tee
         ${{ needs.pre-setup.outputs.changelog-draft-name }}
+      shell: bash
     - name: Generate changelog update with tox and stage it in Git
       run: >-
         python -m
