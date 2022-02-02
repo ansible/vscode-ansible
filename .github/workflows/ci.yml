@@ -631,8 +631,9 @@ jobs:
         BRANCH_PREFIX: ''
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         PULL_REQUEST_BODY: >-
-          Automated metadata update with the just released version
+          Automated metadata update with the version
           ${{ needs.pre-setup.outputs.dist-version }}
+          preview.
         PULL_REQUEST_BRANCH: ${{ github.event.repository.default_branch }}
         PULL_REQUEST_FROM_BRANCH: >-
           release/${{ needs.pre-setup.outputs.dist-version }}
@@ -643,13 +644,42 @@ jobs:
         echo "PR number: ${{ steps.pr.outputs.pull_request_number }}"
         echo "PR URL: ${{ steps.pr.outputs.pull_request_url }}"
 
+    - name: Prepare a combined PR description
+      run: |
+        SECTION_ANCHOR="v$(echo '${{
+            needs.pre-setup.outputs.dist-version
+        }}' | sed 's/\./-/g')-$(date '+%Y-%m-%d')"
+
+        echo '## Summary' > pr-description.md
+        echo >> pr-description.md
+        echo 'Automated metadata update with the version ${{
+            needs.pre-setup.outputs.dist-version
+        }} preview.' >> pr-description.md
+        echo >> pr-description.md
+
+        echo '## Read the Docs preview' >> pr-description.md
+        echo >> pr-description.md
+        echo "https://als--${{
+            steps.pr.outputs.pull_request_number
+        }}.org.readthedocs.build/en/${{
+            steps.pr.outputs.pull_request_number
+        }}/changelog/#${SECTION_ANCHOR}" >> pr-description.md
+        echo >> pr-description.md
+
+        echo '## v${{
+            needs.pre-setup.outputs.dist-version
+        }} changelog <sub>/DRAFT/<sub>' >> pr-description.md
+        echo >> pr-description.md
+        cat '${{
+            needs.pre-setup.outputs.changelog-draft-name
+        }}' >> pr-description.md
+      shell: bash
+
     - name: Append the release changelog to the PR description
       run: >-
         gh pr edit
         '${{ steps.pr.outputs.pull_request_url }}'
-        --body-file='${{
-            needs.pre-setup.outputs.changelog-draft-name
-        }}'
+        --body-file=pr-description.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
