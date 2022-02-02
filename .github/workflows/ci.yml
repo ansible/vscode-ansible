@@ -640,6 +640,8 @@ jobs:
         --body-file='${{
             needs.pre-setup.outputs.changelog-draft-name
         }}'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create a merge commit with the release branch
       run: |
