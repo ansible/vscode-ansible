@@ -592,6 +592,12 @@ jobs:
       with:
         name: npm-package-bump-patch
 
+    - name: Apply the changelog patch
+      run: git am '${{ needs.pre-setup.outputs.changelog-patch-name }}'
+    - name: Drop the changelog patch file
+      run: rm -fv '${{ needs.pre-setup.outputs.changelog-patch-name }}'
+      shell: bash
+
     - name: Apply the version patch
       run: git am ${{ needs.pre-setup.outputs.version-patch-name }}
     - name: Drop the version patch file
@@ -640,6 +646,8 @@ jobs:
         --body-file='${{
             needs.pre-setup.outputs.changelog-draft-name
         }}'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Create a merge commit with the release branch
       run: |
