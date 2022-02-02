@@ -70,6 +70,8 @@ jobs:
       git-tag: ${{ steps.git-tag.outputs.tag }}
       tarball-artifact-name: ${{ steps.artifact-name.outputs.filename }}
       version-patch-name: ${{ steps.patch-name.outputs.filename }}
+      changelog-patch-name: ${{ steps.changelog-patch-name.outputs.filename }}
+      changelog-draft-name: ${{ steps.changelog-draft-name.outputs.filename }}
     steps:
     - name: Switch to using Python 3.10 by default
       uses: actions/setup-python@v2.2.2
@@ -127,6 +129,10 @@ jobs:
         )
         print(f'::set-output name=dist-version::{ver}')
         print(f'::set-output name=dist-public-version::{ver_no_local}')
+        print(
+            '::set-output name=dist-version-for-filenames::'
+            f'{ver.replace("+", "-")}'
+        )
     - name: Set the target Git tag
       id: git-tag
       run: >-
@@ -151,6 +157,22 @@ jobs:
             && github.event.inputs.release-version
             || steps.scm-version.outputs.dist-public-version
         }}-from-GitHub-Actions-CI-CD.patch')
+    - name: Set the expected changelog patch filename
+      id: changelog-patch-name
+      run: |
+        print('::set-output name=filename::0001-Generate-a-changelog-entry-for-v${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-version-for-filenames
+        }}.patch')
+    - name: Set the expected changelog draft filename
+      id: changelog-draft-name
+      run: |
+        print('::set-output name=filename::change-notes-v${{
+            steps.request-check.outputs.release-requested == 'true'
+            && github.event.inputs.release-version
+            || steps.scm-version.outputs.dist-version-for-filenames
+        }}.md')
 
   lint:
     env:
@@ -179,7 +201,23 @@ jobs:
 
     runs-on: Ubuntu-latest
 
+    env:
+      PY_COLORS: 1
+      TOX_PARALLEL_NO_SPINNER: 1
+      TOXENV: make-changelog
+
     steps:
+    - name: Switch to using Python v3.10 by default
+      uses: actions/setup-python@v2
+      with:
+        python-version: >-
+          3.10
+    - name: Install tox
+      run: >-
+        python -m
+        pip install
+        --user
+        tox
     - name: Fetch the src snapshot
       uses: actions/checkout@v2
       with:
@@ -194,6 +232,56 @@ jobs:
         Set up NodeJS ${{ matrix.node-version }}
         with the global NPM registry
       uses: actions/setup-node@v2
+
+    - name: Pre-populate tox env
+      run: >-
+        python -m
+        tox
+        --parallel auto
+        --parallel-live
+        --skip-missing-interpreters false
+        --notest
+    - name: Generate changelog draft to a temporary file
+      run: >-
+        python -m
+        tox
+        --parallel auto
+        --parallel-live
+        --skip-missing-interpreters false
+        --skip-pkg-install
+        -e draft-changelog
+        -qq
+        |
+        tee
+        ${{ needs.pre-setup.outputs.changelog-draft-name }}
+    - name: Generate changelog update with tox and stage it in Git
+      run: >-
+        python -m
+        tox
+        --parallel auto
+        --parallel-live
+        --skip-missing-interpreters false
+        --skip-pkg-install
+        --
+        '${{ needs.pre-setup.outputs.dist-version }}'
+        --yes
+    - name: >-
+        Commit the changelog updates for release
+        ${{ needs.pre-setup.outputs.git-tag }} in the local Git repo
+      run: >-
+        git commit -m
+        'Generate a changelog entry for ${{
+            needs.pre-setup.outputs.git-tag
+        }}'
+    - name: Log the changelog commit
+      run: git show --color
+    - name: Create a changelog update patch from the last Git commit
+      run: >-
+        git format-patch
+        --output='${{ needs.pre-setup.outputs.changelog-patch-name }}'
+        -1 HEAD
+    - name: Verify that expected patch got created
+      run: ls -1 '${{ needs.pre-setup.outputs.changelog-patch-name }}'
 
     - name: >-
         Bump the package version to ${{
@@ -212,7 +300,10 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: npm-package-bump-patch
-        path: ${{ needs.pre-setup.outputs.version-patch-name }}
+        path: |
+          ${{ needs.pre-setup.outputs.version-patch-name }}
+          ${{ needs.pre-setup.outputs.changelog-patch-name }}
+          ${{ needs.pre-setup.outputs.changelog-draft-name }}
 
     - name: Build a package tarball artifact
       run: npm pack
@@ -406,6 +497,12 @@ jobs:
       with:
         name: npm-package-bump-patch
 
+    - name: Apply the changelog patch
+      run: git am '${{ needs.pre-setup.outputs.changelog-patch-name }}'
+    - name: Drop the changelog patch file
+      run: rm -fv '${{ needs.pre-setup.outputs.changelog-patch-name }}'
+      shell: bash
+
     - name: Apply the version patch
       run: git am ${{ needs.pre-setup.outputs.version-patch-name }}
     - name: Drop the version patch file
@@ -459,9 +556,127 @@ jobs:
       with:
         jobs: ${{ toJSON(needs) }}
 
+  github-release-pull-request:
+    name: >-
+      Open a GitHub Pull Request for
+      ${{ needs.pre-setup.outputs.git-tag }}
+    if: fromJSON(needs.pre-setup.outputs.release-requested)
+    needs:
+    - check
+    - pre-setup  # transitive, for accessing settings
+
+    runs-on: Ubuntu-latest
+
+    environment: git-repo
+
+    outputs:
+      pull_request_url: ${{ steps.pr.outputs.pull_request_url }}
+
+    permissions:
+      pull-requests: write
+
+    steps:
+    - name: Fetch the src
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0  # To reach the common commit w/ the repo default branch
+        ref: ${{ github.event.inputs.release-commitish }}
+        ssh-key: ${{ secrets.DEPLOYMENT_KEY }}
+    - name: Setup git user as [bot]
+      # Refs:
+      # * https://github.community/t/github-actions-bot-email-address/17204/6
+      # * https://github.com/actions/checkout/issues/13#issuecomment-724415212
+      uses: fregante/setup-git-user@v1.0.1
+    - name: Fetch the GHA artifact with the version patch
+      uses: actions/download-artifact@v2
+      with:
+        name: npm-package-bump-patch
+
+    - name: Apply the version patch
+      run: git am ${{ needs.pre-setup.outputs.version-patch-name }}
+    - name: Drop the version patch file
+      run: rm -fv ${{ needs.pre-setup.outputs.version-patch-name }}
+
+    - name: >-
+        Create a local 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}' branch
+      run: >-
+        git checkout -b 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}'
+
+    - name: >-
+        Push the `release/${{
+            needs.pre-setup.outputs.dist-version
+        }}` release branch to GitHub
+      run: >-
+        git push --atomic origin
+        'release/${{ needs.pre-setup.outputs.dist-version }}'
+
+    - name: pull-request-action
+      id: pr
+      uses: vsoch/pull-request-action@1.0.18
+      env:
+        BRANCH_PREFIX: ''
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PULL_REQUEST_BODY: >-
+          Automated metadata update with the just released version
+          ${{ needs.pre-setup.outputs.dist-version }}
+        PULL_REQUEST_BRANCH: ${{ github.event.repository.default_branch }}
+        PULL_REQUEST_FROM_BRANCH: >-
+          release/${{ needs.pre-setup.outputs.dist-version }}
+        PULL_REQUEST_TITLE: >-
+          Bump version to ${{ needs.pre-setup.outputs.git-tag }}
+    - name: Log the pull request details
+      run: |
+        echo "PR number: ${{ steps.pr.outputs.pull_request_number }}"
+        echo "PR URL: ${{ steps.pr.outputs.pull_request_url }}"
+
+    - name: Append the release changelog to the PR description
+      run: >-
+        gh pr edit
+        '${{ steps.pr.outputs.pull_request_url }}'
+        --body-file='${{
+            needs.pre-setup.outputs.changelog-draft-name
+        }}'
+
+    - name: Create a merge commit with the release branch
+      run: |
+        sh -x
+
+        git fetch origin '+refs/heads/${{
+            github.event.repository.default_branch
+        }}:refs/remotes/origin/${{
+            github.event.repository.default_branch
+        }}'
+
+        git checkout '${{ github.event.repository.default_branch }}'
+
+        git merge --no-ff -m "Merge branch 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}' into ${{
+          github.event.repository.default_branch
+        }}" 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}'
+
+        git checkout -B 'release/${{
+          needs.pre-setup.outputs.dist-version
+        }}'
+
+    - name: >-
+        Push the `release/${{
+            needs.pre-setup.outputs.dist-version
+        }}` release branch to GitHub
+      # ... after PR is created so that `pull_request` `synchronize`
+      # originates from a non-GHA token
+      run: >-
+        git push --atomic origin
+        'release/${{ needs.pre-setup.outputs.dist-version }}'
+
   publish-npmjs:
     name: Publish ${{ needs.pre-setup.outputs.git-tag }} to Npmjs
-    if: fromJSON(needs.pre-setup.outputs.release-requested)
     environment:
       name: release
       url: >-
@@ -469,7 +684,7 @@ jobs:
           needs.pre-setup.outputs.dist-public-version
         }}
     needs:
-    - check
+    - github-release-pull-request
     - pre-setup  # transitive, for accessing settings
 
     runs-on: Ubuntu-latest
@@ -534,118 +749,13 @@ jobs:
       env:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  post-release-repo-update:
-    name: Publish post-release meta for ${{ needs.pre-setup.outputs.git-tag }}
-    needs:
-    - pre-setup  # transitive, for accessing settings
-    - publish-npmjs
-
-    runs-on: Ubuntu-latest
-
-    steps:
-    - name: Fetch the src
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0  # To reach the common commit w/ the repo default branch
-        ref: ${{ github.event.inputs.release-commitish }}
-    - name: Setup git user as [bot]
-      # Refs:
-      # * https://github.community/t/github-actions-bot-email-address/17204/6
-      # * https://github.com/actions/checkout/issues/13#issuecomment-724415212
-      uses: fregante/setup-git-user@v1.0.1
-    - name: Fetch the GHA artifact with the version patch
-      uses: actions/download-artifact@v2
-      with:
-        name: npm-package-bump-patch
-
-    - name: Apply the version patch
-      run: git am ${{ needs.pre-setup.outputs.version-patch-name }}
-    - name: Drop the version patch file
-      run: rm -fv ${{ needs.pre-setup.outputs.version-patch-name }}
-
-    - name: Create a merge commit with the release branch
-      run: |
-        sh -x
-
-        git checkout -b 'release/${{
-          needs.pre-setup.outputs.dist-version
-        }}'
-
-        git fetch origin '+refs/heads/${{
-            github.event.repository.default_branch
-        }}:refs/remotes/origin/${{
-            github.event.repository.default_branch
-        }}'
-
-        git checkout '${{ github.event.repository.default_branch }}'
-
-        git merge --no-ff -m "Merge branch 'release/${{
-          needs.pre-setup.outputs.dist-version
-        }}' into ${{
-          github.event.repository.default_branch
-        }}" 'release/${{
-          needs.pre-setup.outputs.dist-version
-        }}'
-
-        git checkout -B 'release/${{
-          needs.pre-setup.outputs.dist-version
-        }}'
-
-    - name: >-
-        Tag the release in the local Git repo
-        as ${{ needs.pre-setup.outputs.git-tag }}
-      run: git tag ${{ needs.pre-setup.outputs.git-tag }} HEAD
-    - name: >-
-        Push the `${{ needs.pre-setup.outputs.git-tag }}` tag and
-        the `release/${{
-            needs.pre-setup.outputs.dist-version
-        }}` release branch corresponding to the just published
-        release back to GitHub
-      run: >-
-        git push --atomic origin
-        '${{ needs.pre-setup.outputs.git-tag }}'
-        'release/${{ needs.pre-setup.outputs.dist-version }}'
-
-  github-release-pull-request:
-    name: >-
-      Open a GitHub Pull Request for
-      ${{ needs.pre-setup.outputs.git-tag }}
-    needs:
-    - post-release-repo-update
-    - pre-setup  # transitive, for accessing settings
-    runs-on: Ubuntu-latest
-
-    permissions:
-      pull-requests: write
-
-    steps:
-    - name: pull-request-action
-      id: pr
-      uses: vsoch/pull-request-action@1.0.18
-      env:
-        BRANCH_PREFIX: ''
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        PULL_REQUEST_BODY: >-
-          Automated metadata update with the just released version
-          ${{ needs.pre-setup.outputs.dist-version }}
-        PULL_REQUEST_BRANCH: ${{ github.event.repository.default_branch }}
-        PULL_REQUEST_FROM_BRANCH: >-
-          release/${{ needs.pre-setup.outputs.dist-version }}
-        PULL_REQUEST_TITLE: >-
-          Bump version to ${{ needs.pre-setup.outputs.git-tag }}
-    - name: Log the pull request details
-      run: >-
-        echo
-        "PR number: ${{ steps.pr.outputs.pull_request_number }}"
-        "\nPR URL: ${{ steps.pr.outputs.pull_request_url }}"
-
   publish-github-release:
     name: >-
       Publish a GitHub Release for
       ${{ needs.pre-setup.outputs.git-tag }}
     needs:
-    - post-release-repo-update
     - pre-setup  # transitive, for accessing settings
+    - publish-npmjs
     runs-on: Ubuntu-latest
 
     permissions:
@@ -657,6 +767,10 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: npm-package-tarball
+    - name: Fetch the GHA artifact with the release changelog draft
+      uses: actions/download-artifact@v2
+      with:
+        name: npm-package-bump-patch
 
     - name: >-
         Publish a GitHub Release for
@@ -668,7 +782,7 @@ jobs:
         artifacts: |
           ${{ needs.pre-setup.outputs.tarball-artifact-name }}
         artifactContentType: application/gzip  # .tgz / RFC 6713
-        # body/bodyFile:  # FIXME: Use once Towncrier is integrated.
+        bodyFile: ${{ needs.pre-setup.outputs.changelog-draft-name }}
         commit: release/${{ needs.pre-setup.outputs.dist-version }}
         discussionCategory: Announcements
         draft: false
@@ -683,4 +797,50 @@ jobs:
         replacesArtifacts: false
         tag: ${{ needs.pre-setup.outputs.git-tag }}
         token: ${{ secrets.GITHUB_TOKEN }}
+
+  merge-pr:
+    name: Merge the release PR
+    # ... when it's already published
+    needs:
+    - github-release-pull-request  # transitive, for accessing the PR number
+    - publish-github-release
+    runs-on: Ubuntu-latest
+
+    permissions:
+      contents: write  # Needed to merge or enable auto-merge
+      pull-requests: write
+
+    steps:
+    - name: Auto-approve the PR
+      # ... to fulfill the branch protection requirement
+      run: >-
+        gh pr review
+        '${{ steps.pr.outputs.pull_request_url }}'
+        --approve
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Enable auto-merge for the PR
+      # ... so that GitHub merges it right when the branch protection
+      # conditions are fulfilled, this will fail if it is green already
+      run: >-
+        gh pr merge
+        --auto --merge
+        '${{ needs.github-release-pull-request.outputs.pull_request_url }}'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Attempt to merge the PR
+      # ... in case the branch protection is still being evaluated
+      # NOTE: At this point the release has already been published to Npmjs
+      # NOTE: and GitHub releases so human gating has already happened via
+      # NOTE: approving the deployment environment earlier.
+      # NOTE: This means that the PR must get merged no matter what, just to
+      # NOTE: correspond the published artifacts for tracability and transparency.
+      if: failure()
+      run: >-
+        gh pr merge
+        --merge
+        '${{ needs.github-release-pull-request.outputs.pull_request_url }}'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ...
