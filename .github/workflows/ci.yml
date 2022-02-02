@@ -251,6 +251,10 @@ jobs:
         -e draft-changelog
         -qq
         |
+        sed
+        's/{issue}`\([0-9]\+\)`/#\1/g;
+        s/{user}`\([-.a-zA-Z0-9]\+\)`/@\1/g'
+        |
         tee
         ${{ needs.pre-setup.outputs.changelog-draft-name }}
       shell: bash
