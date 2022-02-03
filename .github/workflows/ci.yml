@@ -887,4 +887,43 @@ jobs:
         '${{ needs.github-release-pull-request.outputs.pull_request_url }}'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  clean-up-on-failure-or-cancellation:
+    name: Close release PR and branch on failure
+    # ... when publishing to Npmjs was canceled or failed
+
+    if: >-  # necessary so that the check is always performed
+      !success()
+      && fromJSON(needs.pre-setup.outputs.release-requested)
+
+    needs:
+    # If these fail, there's no point in keeping the branch.
+    # Besides, a pre-existing PR or a branch can break workflows
+    # when the same version re-release is requested.
+    - github-release-pull-request
+    - pre-setup  # transitive, for accessing settings
+    - publish-npmjs
+
+    runs-on: Ubuntu-latest
+
+    permissions:
+      contents: write  # Needed to drop the branch
+
+    steps:
+    - name: Check out src from Git
+      # ... to pre-provision the GH token in the env
+      uses: actions/checkout@v2.3.4
+      with:
+        fetch-depth: 1
+
+    - name: Delete the release branch and the PR
+      # ... but only in the event of a failure to create a PR or
+      # make a release to Npmjs
+      run: >-
+        git push
+        --atomic
+        -d origin
+        'release/${{ needs.pre-setup.outputs.dist-version }}'
+        || :
+
 ...
