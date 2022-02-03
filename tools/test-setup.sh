@@ -25,14 +25,19 @@ if [ -f "/etc/os-release" ]; then
     if [ ! -f "/var/cache/apt/pkgcache.bin" ]; then
         sudo apt-get update  # mandatory or other apt-get commands fail
     fi
-    # add podman repos
-    echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-    curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key" | sudo apt-key add -
-
     # avoid outdated ansible and pipx
     sudo apt-get remove -y ansible pipx || true
     sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-        curl pre-commit python3-venv podman
+        curl pre-commit python3-venv
+
+    which podman || {
+        # add podman repos
+        echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+        curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key" | sudo apt-key add -
+        sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+        podman
+    }
+
     podman pull quay.io/ansible/creator-ee:latest
     # validate that podman is really working
     podman run -t quay.io/ansible/creator-ee:latest ansible-lint --version
