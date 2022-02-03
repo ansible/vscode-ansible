@@ -5,7 +5,6 @@ import glob from 'glob';
 export function run(): Promise<void> {
   // Create the mocha test
   const mocha = new Mocha({
-    color: true,
     ui: 'bdd',
     timeout: 30000,
     reporter: 'mochawesome',
@@ -14,7 +13,6 @@ export function run(): Promise<void> {
       reportDir: 'out/e2eTestReport',
       reportTitle: 'vscode-ansible e2e test',
       reportPageTitle: 'vscode-ansible e2e test report',
-      cdn: true,
       charts: true,
     },
   });
