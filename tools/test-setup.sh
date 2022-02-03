@@ -3,6 +3,8 @@
 # name and location is based on Zuul CI, which can automatically run it.
 set -euo pipefail
 
+cat /proc/version
+
 # User specific environment
 # shellcheck disable=SC2076
 for entry in "$HOME/.local/bin"; do
