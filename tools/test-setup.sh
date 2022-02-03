@@ -32,13 +32,22 @@ if [ -f "/etc/os-release" ]; then
     sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
         curl gnupg2 pre-commit python3-venv
 
-    which podman || {
-        # add podman repos
-        echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
-        curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key" | sudo apt-key add -
-        sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-        podman
-    }
+    if cat /proc/version | grep icrosoft | grep -v WSL2; then
+        # wsl1
+        docker ps
+        docker info
+        docker pull quay.io/ansible/creator-ee:latest
+        docker run -t quay.io/ansible/creator-ee:latest ansible-lint --version
+    else
+        # linux or wsl2
+        which podman || {
+            # add podman repos
+            echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list
+            curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_20.04/Release.key" | sudo apt-key add -
+            sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+            podman
+        }
+    fi
 
     podman pull quay.io/ansible/creator-ee:latest
     # validate that podman is really working
