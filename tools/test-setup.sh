@@ -28,7 +28,7 @@ if [ -f "/etc/os-release" ]; then
     # avoid outdated ansible and pipx
     sudo apt-get remove -y ansible pipx || true
     sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-        curl pre-commit python3-venv
+        curl gnupg2 pre-commit python3-venv
 
     which podman || {
         # add podman repos
