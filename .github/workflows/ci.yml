@@ -659,6 +659,25 @@ jobs:
         }} preview.' >> pr-description.md
         echo >> pr-description.md
 
+        echo '## Approve publishing v${{
+            needs.pre-setup.outputs.dist-version
+        }} to Npmjs 👇' >> pr-description.md
+        echo >> pr-description.md
+        echo 'To proceed with publishing this release to Npmjs, ' \
+          'follow the link below and approve the pending deployment:' \
+          >> pr-description.md
+        echo >> pr-description.md
+        echo '### https://github.com/${{
+           github.repository
+        }}/actions/runs/${{
+            github.run_id
+        }}' >> pr-description.md
+        echo >> pr-description.md
+        echo '_**Note:** Approving this PR is not mandatory but ' \
+          'approving the pending deployment referenced above is._' \
+          >> pr-description.md
+        echo >> pr-description.md
+
         echo '## Read the Docs preview' >> pr-description.md
         echo >> pr-description.md
         echo "https://als--${{
