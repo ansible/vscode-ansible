@@ -42,9 +42,9 @@ jobs:
           popd
 
       - name: >-
-          Run test:ui with vscode-ansible
+          Run test-ui with vscode-ansible
         uses: GabrielBB/xvfb-action@v1
         with:
           run: >-
-            npm run test:ui
+            npm run test-ui
           working-directory: ../vscode-ansible
