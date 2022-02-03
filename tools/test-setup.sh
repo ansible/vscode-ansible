@@ -38,7 +38,7 @@ if [ -f "/etc/os-release" ]; then
         # docker info
         # docker pull quay.io/ansible/creator-ee:latest
         # docker run -t quay.io/ansible/creator-ee:latest ansible-lint --version
-        echo "WARNING:: WSL1 detected, no container engine available."
+        echo "::warning::WSL1 detected, no container engine available."
     else
         # linux or wsl2
         which podman || {
