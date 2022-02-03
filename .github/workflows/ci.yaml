@@ -35,8 +35,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          # - ubuntu-latest
-          # - macos-11
+          - ubuntu-latest
+          - macos-11
           - windows-latest
         npm-target:
           - test-ui

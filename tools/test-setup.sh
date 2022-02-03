@@ -34,10 +34,11 @@ if [ -f "/etc/os-release" ]; then
 
     if cat /proc/version | grep icrosoft | grep -v WSL2; then
         # wsl1
-        docker ps
-        docker info
-        docker pull quay.io/ansible/creator-ee:latest
-        docker run -t quay.io/ansible/creator-ee:latest ansible-lint --version
+        # docker ps
+        # docker info
+        # docker pull quay.io/ansible/creator-ee:latest
+        # docker run -t quay.io/ansible/creator-ee:latest ansible-lint --version
+        echo "WARNING:: WSL1 detected, no container engine available."
     else
         # linux or wsl2
         which podman || {
@@ -47,11 +48,12 @@ if [ -f "/etc/os-release" ]; then
             sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
             podman
         }
+
+        podman pull quay.io/ansible/creator-ee:latest
+        # validate that podman is really working
+        podman run -t quay.io/ansible/creator-ee:latest ansible-lint --version
     fi
 
-    podman pull quay.io/ansible/creator-ee:latest
-    # validate that podman is really working
-    podman run -t quay.io/ansible/creator-ee:latest ansible-lint --version
 fi
 
 # on WSL we want to avoid using Windows's npm (broken)
