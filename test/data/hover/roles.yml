@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  roles:
+    - role: test_role
+      test_manager: admin@test.com
+      become: True
+      tags: typeA
