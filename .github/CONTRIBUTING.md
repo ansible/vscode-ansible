@@ -9,8 +9,8 @@ In order to contribute, you'll need to:
 
 3. Send it to us as a PR.
 
-4. Iterate on your PR, incorporating the requested improvements
-   and participating in the discussions.
+4. Iterate on your PR, incorporating the requested improvements and
+   participating in the discussions.
 
 Prerequisites:
 
