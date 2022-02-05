@@ -15,5 +15,10 @@ overrides:
       parser: json5
       quoteProps: preserve
       singleQuote: false
+  - files:
+      - '*.md'
+    options:
+      # compatibility with markdownlint
+      proseWrap: always
 semi: true
 singleQuote: true

@@ -1,5 +1,6 @@
 # Untracked files, cannot symlink .gitignore due to:
 # https://github.com/prettier/prettier/issues/4708#issuecomment-1030581671
+.pytest_cache
 .tox
 out
 
@@ -8,6 +9,7 @@ jinja-language-configuration.json
 syntaxes/external/jinja.tmLanguage.json
 
 # Files temporary excluded during prettier adoption:
-*.md
+docs/**/*.md
+.github/**/*.md
 *.yaml
 *.yml
