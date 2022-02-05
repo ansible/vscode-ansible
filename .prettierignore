@@ -1,0 +1,13 @@
+# Untracked files, cannot symlink .gitignore due to:
+# https://github.com/prettier/prettier/issues/4708#issuecomment-1030581671
+.tox
+out
+
+# Tracked but externally sourced, no reformatting wanted:
+jinja-language-configuration.json
+syntaxes/external/jinja.tmLanguage.json
+
+# Files temporary excluded during prettier adoption:
+*.md
+*.yaml
+*.yml

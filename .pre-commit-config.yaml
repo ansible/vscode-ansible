@@ -82,13 +82,6 @@ repos:
     rev: "v2.5.1"
     hooks:
       - id: prettier
-        types_or: ["json", "ts"]
-        exclude: >
-          (?x)^(
-            ansible-language-configuration.json|
-            jinja-language-configuration.json|
-            syntaxes/external/jinja.tmLanguage.json
-          )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.30.0
     hooks:

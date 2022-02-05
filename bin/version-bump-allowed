@@ -1,20 +1,17 @@
 #!/usr/bin/env node
 
-console.debug('Checking if it is allowed to bump the package version...')
+console.debug('Checking if it is allowed to bump the package version...');
 console.debug(
   `The previous package version was ${process.env.npm_package_version}`
-)
+);
 
 const isGitHubActionsCiCd =
-  process.env.CI === 'true' &&
-  process.env.GITHUB_ACTIONS === 'true'
+  process.env.CI === 'true' && process.env.GITHUB_ACTIONS === 'true';
 
 console.debug(
   `The package bump is ${
-      isGitHubActionsCiCd
-      ? ''
-      : 'not '
+    isGitHubActionsCiCd ? '' : 'not '
   }running under GitHub Actions CI/CD`
-)
+);
 
-process.exit(~~!isGitHubActionsCiCd)
+process.exit(~~!isGitHubActionsCiCd);
