@@ -1,8 +1,8 @@
 import { CommandRunner } from '../../src/utils/commandRunner';
-import { expect } from 'chai';
+import { AssertionError, expect } from 'chai';
 import { WorkspaceManager } from '../../src/services/workspaceManager';
 import { createConnection } from 'vscode-languageserver/node';
-import { getDoc, isWindows } from './helper';
+import { getDoc } from './helper';
 
 describe('commandRunner', () => {
   const tests = [
@@ -48,15 +48,15 @@ describe('commandRunner', () => {
           args[0],
           args.slice(1).join(' ')
         );
-        expect(proc.stdout).contains(stdout);
-        expect(proc.stderr).contains(stderr);
+        expect(proc.stdout, proc.stderr).contains(stdout);
+        expect(proc.stderr, proc.stdout).contains(stderr);
       } catch (e) {
-        if (!isWindows()) {
-          // ansible does not work on Windows, so we can't test it
-          expect(e.code).equals(rc);
-          expect(e.stderr).contains(stderr);
-          expect(e.stderr).contains(stdout);
+        if (e instanceof AssertionError) {
+          throw e;
         }
+        expect(e.code, e).equals(rc);
+        expect(e.stdout, e).contains(stdout);
+        expect(e.stderr, e).contains(stderr);
       }
     });
   });
