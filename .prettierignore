@@ -9,7 +9,5 @@ jinja-language-configuration.json
 syntaxes/external/jinja.tmLanguage.json
 
 # Files temporary excluded during prettier adoption:
-docs/*.md
-docs/contributing/*.md
 *.yaml
 *.yml
