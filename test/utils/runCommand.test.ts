@@ -2,7 +2,7 @@ import { CommandRunner } from '../../src/utils/commandRunner';
 import { AssertionError, expect } from 'chai';
 import { WorkspaceManager } from '../../src/services/workspaceManager';
 import { createConnection } from 'vscode-languageserver/node';
-import { getDoc } from './helper';
+import { getDoc } from '../helper';
 
 describe('commandRunner', () => {
   const tests = [

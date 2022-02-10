@@ -10,7 +10,7 @@ import {
   isTaskParam,
   parseAllDocuments,
 } from '../../src/utils/yaml';
-import { getDoc, isWindows } from './helper';
+import { getDoc, isWindows } from '../helper';
 
 async function getPathInFile(
   yamlFile: string,
