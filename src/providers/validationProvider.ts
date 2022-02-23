@@ -93,7 +93,7 @@ export async function doValidate(
   return diagnosticsByFile;
 }
 
-function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
+export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   const yDocuments = parseAllDocuments(textDocument.getText(), {
     prettyErrors: false,
