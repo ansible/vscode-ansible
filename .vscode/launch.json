@@ -13,7 +13,7 @@
     {
       "name": "Both (src)",
       "stopAll": true,
-      "configurations": ["Launch Extension", "Attach to Server (source)"],
+      "configurations": ["Launch Extension", "Attach to Server (src)"],
       "presentation": {
         "order": 1
       }
@@ -61,7 +61,7 @@
       "port": 6010,
       "restart": true,
       "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
-      "preLaunchTask": "npm: watch:server"
+      "preLaunchTask": "npm: watch-server"
     }
   ]
 }
