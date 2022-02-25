@@ -43,7 +43,7 @@ cd vscode-ansible
   both client and server using command
 
 ```bash
-npm run compile:withserver
+npm run compile-withserver
 ```
 
 - In the Run and debug window select **Client + Server (source)** configuration
