@@ -23,6 +23,52 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.5.0 (2022-03-01)
+
+### Features
+
+- Emit notification about unsupported platforms -- by {user}`ssbarnea`
+
+  ({issue}`195`)
+
+### Documentation
+
+- Dropped the brackets from the changelog titles for the release sections. We
+  now don't strictly follow the release notes format suggested by [Keep a
+  Changelog][keepachangelog] -- by {user}`webknjaz`
+
+  [keepachangelog]: https://keepachangelog.com/en/1.1.0/ '{issue}`164`'
+
+- Replaced all the credits in the changelog with a dedicated Sphinx role -- by
+  {user}`webknjaz`
+
+  ({issue}`165`)
+
+### Miscellaneous
+
+- Added changelog fragment management infrastructure using
+  [Towncrier][towncrier] -- by {user}`webknjaz`
+
+  [towncrier]:
+    https://github.com/twisted/towncrier
+    '{issue}`158`, {issue}`198`, {issue}`201`, {issue}`202`,
+{issue}`204`, {issue}`208`, {issue}`210`'
+
+- Added [Sphinx][sphinx] documentation generator and set up the CI
+  infrastructure for it -- by {user}`webknjaz`
+
+  [sphinx]: https://github.com/twisted/towncrier '{issue}`161`'
+
+- Added docs and references to the Community Code Of Conduct, security and
+  contributing guides, and a pull request template -- by {user}`webknjaz`
+
+  ({issue}`163`)
+
+- Fixed a half-baked change in the GitHub Actions CI/CD workflow job that is
+  used in branch protection -- by {user}`webknjaz`
+
+  ({issue}`169`)
+
 ## v0.4.0 (2021-11-25)
 
 ### Bugfixes
