@@ -8,10 +8,18 @@ import {
   TextDocuments,
 } from 'vscode-languageserver/node';
 import { AnsibleLanguageService } from './ansibleLanguageService';
+import { getUnsupportedError } from './utils/misc';
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
 const connection: Connection = createConnection(ProposedFeatures.all);
+
+// Detect if we are running in an unsupported environment and pass the
+// error message to the client if so.
+const errorMessage = getUnsupportedError();
+if (errorMessage) {
+  connection.sendNotification('ansible/errorMessage', errorMessage);
+}
 
 const docChangeHandlers: NotificationHandler<DidChangeTextDocumentParams>[] =
   [];

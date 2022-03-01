@@ -79,3 +79,14 @@ export function withInterpreter(
     return [command, undefined];
   }
 }
+
+/**
+ * Returns errors messages when LS is run on unsupported platform, or undefined
+ * when all is fine.
+ */
+export function getUnsupportedError(): string | undefined {
+  // win32 applies to x64 arch too, is the platform name
+  if (process.platform === 'win32') {
+    return 'Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.';
+  }
+}
