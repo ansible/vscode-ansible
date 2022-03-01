@@ -35,6 +35,11 @@ describe('commandRunner', () => {
   tests.forEach(({ args, rc, stdout, stderr }) => {
     it(`call ${args.join(' ')}`, async function () {
       this.timeout(10000);
+
+      // try to enforce ansible to output ANSI in order to check if we are
+      // still able to disable it at runtime in order to keep output parseable.
+      process.env.ANSIBLE_FORCE_COLOR = '1';
+
       process.argv.push('--node-ipc');
       const connection = createConnection();
       const workspaceManager = new WorkspaceManager(connection);

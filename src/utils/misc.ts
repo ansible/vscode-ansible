@@ -50,6 +50,10 @@ export function withInterpreter(
 ): [string, NodeJS.ProcessEnv | undefined] {
   let command = `${executable} ${args}`; // base case
 
+  const newEnv = Object.assign({}, process.env, {
+    ANSIBLE_FORCE_COLOR: '0', // ensure output is parseable (no ANSI)
+  });
+
   if (activationScript) {
     command = `bash -c 'source ${activationScript} && ${executable} ${args}'`;
     return [command, undefined];
@@ -67,17 +71,11 @@ export function withInterpreter(
     }
 
     // emulating virtual environment activation script
-    const envOverride = {
-      VIRTUAL_ENV: virtualEnv,
-      PATH: `${pathEntry}:${process.env.PATH}`,
-    };
-    const newEnv = Object.assign({}, process.env, envOverride);
+    newEnv['VIRTUAL_ENV'] = virtualEnv;
+    newEnv['PATH'] = `${pathEntry}:${process.env.PATH}`;
     delete newEnv.PYTHONHOME;
-
-    return [command, newEnv];
-  } else {
-    return [command, undefined];
   }
+  return [command, newEnv];
 }
 
 /**
