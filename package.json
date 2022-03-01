@@ -41,88 +41,88 @@
       "url": "https://github.com/ansible/vscode-ansible/graphs/contributors"
     }
   ],
-  "jsonValidation": [
-    {
-      "fileMatch": [
-        ".ansible-navigator.json",
-        "ansible-navigator.json"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-navigator.json"
-    }
-  ],
-  "yamlValidation": [
-    {
-      "fileMatch": [
-        "execution-environment.yml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-ee.json"
-    },
-    {
-      "fileMatch": [
-        "meta/runtime.yml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta-runtime.json"
-    },
-    {
-      "fileMatch": [
-        ".ansible-navigator.yaml",
-        ".ansible-navigator.yml",
-        "ansible-navigator.yaml",
-        "ansible-navigator.yml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-navigator.json"
-    },
-    {
-      "fileMatch": "requirements.yml",
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-requirements.json"
-    },
-    {
-      "fileMatch": "meta/main.yml",
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"
-    },
-    {
-      "fileMatch": [
-        "playbooks/vars/*.yml",
-        "playbooks/vars/*.yaml",
-        "vars/*.yml",
-        "vars/*.yaml",
-        "defaults/*.yml",
-        "defaults/*.yaml",
-        "host_vars/*.yml",
-        "host_vars/*.yaml",
-        "group_vars/*.yml",
-        "group_vars/*.yaml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-vars.json"
-    },
-    {
-      "fileMatch": [
-        "zuul.d/*.yaml",
-        "zuul-tests.d/*.yaml",
-        ".zuul.yaml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/zuul.json"
-    },
-    {
-      "fileMatch": [
-        ".ansible-lint"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-lint.json"
-    },
-    {
-      "fileMatch": [
-        "molecule/*/molecule.yml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/molecule.json"
-    },
-    {
-      "fileMatch": [
-        "galaxy.yml"
-      ],
-      "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-galaxy.json"
-    }
-  ],
   "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          ".ansible-navigator.json",
+          "ansible-navigator.json"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-navigator.json"
+      }
+    ],
+    "yamlValidation": [
+      {
+        "fileMatch": [
+          "execution-environment.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-ee.json"
+      },
+      {
+        "fileMatch": [
+          "meta/runtime.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta-runtime.json"
+      },
+      {
+        "fileMatch": [
+          ".ansible-navigator.yaml",
+          ".ansible-navigator.yml",
+          "ansible-navigator.yaml",
+          "ansible-navigator.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-navigator.json"
+      },
+      {
+        "fileMatch": "requirements.yml",
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-requirements.json"
+      },
+      {
+        "fileMatch": "meta/main.yml",
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-meta.json"
+      },
+      {
+        "fileMatch": [
+          "playbooks/vars/*.yml",
+          "playbooks/vars/*.yaml",
+          "vars/*.yml",
+          "vars/*.yaml",
+          "defaults/*.yml",
+          "defaults/*.yaml",
+          "host_vars/*.yml",
+          "host_vars/*.yaml",
+          "group_vars/*.yml",
+          "group_vars/*.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-vars.json"
+      },
+      {
+        "fileMatch": [
+          "zuul.d/*.yaml",
+          "zuul-tests.d/*.yaml",
+          ".zuul.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/zuul.json"
+      },
+      {
+        "fileMatch": [
+          ".ansible-lint"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-lint.json"
+      },
+      {
+        "fileMatch": [
+          "molecule/*/molecule.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/molecule.json"
+      },
+      {
+        "fileMatch": [
+          "galaxy.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/schemas/main/f/ansible-galaxy.json"
+      }
+    ],
     "commands": [
       {
         "category": "%commands.category.ansible-playbook%",
