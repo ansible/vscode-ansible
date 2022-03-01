@@ -145,7 +145,7 @@ export class ExecutionEnvironment {
           hostCacheBasePath,
           containerName,
           ansibleConfig.collections_paths,
-          '**/ansible_collections'
+          'ansible_collections'
         );
 
         const builtin_plugin_locations: string[] = [];
@@ -165,7 +165,7 @@ export class ExecutionEnvironment {
           hostCacheBasePath,
           containerName,
           builtin_plugin_locations,
-          '*'
+          '/'
         );
 
         // Copy builtin modules
@@ -173,7 +173,7 @@ export class ExecutionEnvironment {
           hostCacheBasePath,
           containerName,
           ansibleConfig.module_locations,
-          '**/modules'
+          '/'
         );
       }
       // plugin cache successfully created
@@ -276,7 +276,8 @@ export class ExecutionEnvironment {
     searchPath: string,
     pluginFolderPath: string
   ): boolean {
-    const command = `${this._container_engine} exec ${containerName} find ${searchPath} -path '${pluginFolderPath}'`;
+    const completeSearchPath = path.join(searchPath, pluginFolderPath);
+    const command = `${this._container_engine} exec ${containerName} ls ${completeSearchPath}`;
     try {
       this.connection.console.info(`Executing command ${command}`);
       const result = child_process
@@ -284,7 +285,7 @@ export class ExecutionEnvironment {
           encoding: 'utf-8',
         })
         .trim();
-      return result !== '';
+      return result.trim() !== '';
     } catch (error) {
       this.connection.console.error(error);
       return false;
