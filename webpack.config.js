@@ -22,7 +22,7 @@ const config = {
         ? '[name]/extension.js'
         : '[name]/src/[name].js';
     },
-    path: path.resolve(__dirname, 'out'),
+    path: path.resolve(__dirname, 'out/dist'),
     libraryTarget: 'commonjs2',
     devtoolModuleFilenameTemplate: (info) => {
       return info.id === 'client'
