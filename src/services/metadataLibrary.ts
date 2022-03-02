@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
-import { URL } from 'url';
 import { Connection } from 'vscode-languageserver';
 import { DidChangeWatchedFilesParams } from 'vscode-languageserver-protocol';
+import { URI } from 'vscode-uri';
 import { parseAllDocuments } from 'yaml';
 import { IDocumentMetadata } from '../interfaces/documentMeta';
 import { fileExists, hasOwnProperty } from '../utils/misc';
@@ -64,9 +64,10 @@ export class MetadataLibrary {
       source: metadataUri,
       collections: new Array<string>(),
     };
-    if (await fileExists(metadataUri)) {
+    const metadataFilePath = URI.parse(metadataUri).path;
+    if (await fileExists(metadataFilePath)) {
       try {
-        const metaContents = await fs.readFile(new URL(metadataUri), {
+        const metaContents = await fs.readFile(metadataFilePath, {
           encoding: 'utf8',
         });
         parseAllDocuments(metaContents).forEach((metaDoc) => {
