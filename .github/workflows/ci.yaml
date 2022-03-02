@@ -62,15 +62,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      - name: Clone development branch of ansible-language-server
-        if: ${{ matrix.devel }}
-        uses: actions/checkout@v2
-        with:
-          repository: ansible/ansible-language-server
-          path: ansible-language-server
-          # We will later move this folder to ../ due to below bug:
-          # https://github.com/actions/checkout/issues/197
-
       # ~400mb, caching them should speedup test-ui execution
       - name: Enable test-resources caching
         uses: actions/cache@v2
@@ -96,26 +87,23 @@ jobs:
         if: ${{ matrix.devel }}
         run: |
           set -ex
-          mv ansible-language-server ..
-          npm link --save ../ansible-language-server
-          pushd ../ansible-language-server
-          npm ci
-          npm run compile
-          popd
-          npm ls --depth=0 --link=true
+          # install from git does run prepare and produce out/ but if you
+          # attempt to install with tarball, it will get you an empty out/
+          npm install --save https://github.com/ansible/ansible-language-server
+          git diff
         shell: bash
 
       # Build extension
       - name: Run build
         run: npm run compile
 
+      - name: Run package
+        run: npm run package
+
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.0
         with:
           run: npm run ${{ matrix.npm-target }}
-
-      - name: Run package
-        run: npm run package
 
       - name: Publish vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
@@ -139,7 +127,7 @@ jobs:
 
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
-        # on devel we use `npm link --save ..` which will alter tracked files
+        # on devel we install ansible-language-server from source, which alters package.json
         if: ${{ !matrix.devel }}
         run: git diff --exit-code
 
