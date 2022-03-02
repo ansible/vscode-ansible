@@ -79,6 +79,8 @@
     "deps": "ncu -u && npm install",
     "lint": "npm ci && pre-commit run -a",
     "prepack": "npm ci && npm run compile",
+    "//prepare": "Prepare is needed for installation from source",
+    "prepare": "npm run compile",
     "preversion": "bin/version-bump-allowed",
     "watch": "tsc --watch -p .",
     "test": "nyc -s -a mocha && nyc report --check-coverage",

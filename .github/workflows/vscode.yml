@@ -29,16 +29,12 @@ jobs:
         with:
           node-version: 16
 
-      - name: Compile language server
-        run: npm ci && npm run compile
-
       - name: Link ansible-language-server into vscode-ansible
         run: |
           set -ex
           mv vscode-ansible ..
           pushd ../vscode-ansible
-          npm link --save ../ansible-language-server
-          npm ls --depth=0 --link=true
+          npm install --save ../ansible-language-server
           popd
 
       - name: >-
