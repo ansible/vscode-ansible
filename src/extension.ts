@@ -1,6 +1,6 @@
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions } from "vscode";
+import { commands, ExtensionContext, extensions, window } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
@@ -56,6 +56,9 @@ export function activate(context: ExtensionContext): void {
   );
 
   // start the client and the server
+  client.onNotification("ansible/errorMessage", async (message) => {
+    window.showErrorMessage(message);
+  });
   client.start();
 
   notifyAboutConflicts();
