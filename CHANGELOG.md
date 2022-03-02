@@ -23,6 +23,20 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.5.2 (2022-03-02)
+
+### Bugfixes
+
+- Used ls instead of find for execution-environments while check if ansible
+  plugins are present in a given path -- by {user}`ganeshrn`
+
+  ({issue}`190`)
+
+- Fixed source of `INVALID_URL` type error that occurred during the search for
+  ansible-lint config file -- by {user} `priyamsahoo`
+
+  ({issue}`233`)
+
 ## v0.5.1 (2022-03-01)
 
 ### Bugfixes
