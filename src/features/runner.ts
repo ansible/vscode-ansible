@@ -48,13 +48,12 @@ export class AnsiblePlaybookRunProvider {
     return (...fileObj: vscode.Uri[] | undefined[]) => {
       const playbookFsPath = extractTargetFsPath(...fileObj);
       if (typeof playbookFsPath === 'undefined') {
+        let tool_name = 'ansible-playbook';
+        if (useNavigator) {
+          tool_name = 'ansible-navigator';
+        }
         vscode.window.showErrorMessage(
-          `No Ansible playbook file has been specified
-                    to be executed with ansible-${
-  useNavigator
-    ? 'navigator'
-    : 'playbook'
-}.`,
+          `No Ansible playbook file has been specified to be executed with ${tool_name}.`
         );
         return;
       }
