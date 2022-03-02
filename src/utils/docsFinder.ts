@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { parseDocument } from "yaml";
-import globby = require("globby");
+import { globby } from "globby";
 import { LazyModuleDocumentation, parseRawRouting } from "./docsParser";
 import { IModuleMetadata } from "../interfaces/module";
 import {
