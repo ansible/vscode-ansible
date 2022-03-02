@@ -272,9 +272,10 @@ const encryptText = (
   vaultId: string | undefined,
   config: vscode.WorkspaceConfiguration
 ): Promise<string> => {
-  const cmd = !!vaultId
-    ? `${ansibleVaultPath(config)} encrypt_string --encrypt-vault-id="${vaultId}"`
-    : `${ansibleVaultPath(config)} encrypt_string`;
+  let cmd = `${ansibleVaultPath(config)} encrypt_string`;
+  if (vaultId) {
+    cmd += ` --encrypt-vault-id ${vaultId}`;
+  }
   return pipeTextThrougCmd(text, rootPath, cmd);
 };
 
