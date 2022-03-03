@@ -48,6 +48,7 @@ node("rhel8"){
       input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad'
     }
 
+    installBuildRequirements()
     stage "Publish to Marketplaces"
     unstash 'vsix';
     def vsix = findFiles(glob: '**.vsix')
