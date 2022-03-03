@@ -485,5 +485,5 @@
     "test-compile": "npm run clean && tsc -p ./",
     "test-e2e": "npm run test-compile && node ./out/client/test/testRunner"
   },
-  "version": "0.8.0"
+  "version": "0.8.1"
 }
