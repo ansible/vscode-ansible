@@ -10,7 +10,7 @@ export function testHoverLocal(): void {
       await activate(docUri1);
     });
 
-    describe('Hover for play keyworks', () => {
+    describe('Hover for play keywords', () => {
       it('should hover over `name` keyword', async () => {
         await testHover(docUri1, new vscode.Position(0, 4), [
           {
@@ -42,7 +42,7 @@ export function testHoverLocal(): void {
       });
     });
 
-    describe('Hover for task keyworks', () => {
+    describe('Hover for task keywords', () => {
       it('should hover over builtin module name', async () => {
         await testHover(docUri1, new vscode.Position(5, 7), [
           {

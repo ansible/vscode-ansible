@@ -10,7 +10,7 @@ const config = {
   mode: 'none',
   target: 'node', // vscode extensions run in a Node.js-context
   node: {
-    __dirname: false, // leave the __dirname-behaviour intact
+    __dirname: false, // leave the __dirname-behavior intact
   },
   entry: {
     client: './src/extension.ts',

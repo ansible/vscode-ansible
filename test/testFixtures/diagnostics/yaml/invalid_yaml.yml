@@ -3,6 +3,6 @@
   hosts: localhost
   tasks:
   # This  following line is invalid and has been kept this way to test the YAML diagnostics features of extension.
-  # The file is ignored while running yammlint pre-commit hook.
+  # The file is ignored while running yamllint pre-commit hook.
     - debug: msg="foo: bar"
 become: true

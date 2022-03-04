@@ -236,7 +236,7 @@ const decryptInline = async (
   return decryptedText;
 };
 
-const pipeTextThrougCmd = (
+const pipeTextThroughCmd = (
   text: string,
   rootPath: string | undefined,
   cmd: string
@@ -276,7 +276,7 @@ const encryptText = (
   if (vaultId) {
     cmd += ` --encrypt-vault-id ${vaultId}`;
   }
-  return pipeTextThrougCmd(text, rootPath, cmd);
+  return pipeTextThroughCmd(text, rootPath, cmd);
 };
 
 const decryptText = (
@@ -285,7 +285,7 @@ const decryptText = (
   config: vscode.WorkspaceConfiguration
 ): Promise<string> => {
   const cmd = `${ansibleVaultPath(config)} decrypt`;
-  return pipeTextThrougCmd(text, rootPath, cmd);
+  return pipeTextThroughCmd(text, rootPath, cmd);
 };
 
 const encryptFile = (
@@ -405,7 +405,7 @@ const handleMultiline = (
     } else if (multilineStyle === MultilineStyle.Folding) {
       return handleFoldedMultiline(lines, leadingSpacesCount);
     } else {
-      throw new Error('this type of multiline text is not suppored');
+      throw new Error('this type of multiline text is not supported');
     }
   }
   return text;

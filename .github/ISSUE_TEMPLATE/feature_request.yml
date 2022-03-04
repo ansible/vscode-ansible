@@ -18,7 +18,7 @@ body:
         🛈 **Tip:** If you are seeking community support, or want to ask a
         question, please consider [starting a discussion][discussions].
 
-
+        []: # (cspell: disable-next-line)
         [issues]: ../search?q=is%3Aissue&type=issues
 
         [discussions]: ../discussions

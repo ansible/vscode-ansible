@@ -46,7 +46,7 @@
   - Updated container cleanup logic for execution environment @ganeshrn
 - Switched the default execution environment to `ansible/creator-ee:latest`
   (#331) @ganeshrn @ssbarnea
-- Enabled auto-selecttion of the only vault-id (#298) @jeinwag
+- Enabled auto-selection of the only vault-id (#298) @jeinwag
 
 ### Bugfixes
 
@@ -100,7 +100,7 @@ The most notable change that happened was the migration to using
 particular, this:
 
 - Added the brand new Ansible Language Server
-- Removed the support for working with the valuted content
+- Removed the support for working with the vaulted content
 
 ### Changes
 
