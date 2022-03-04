@@ -2,6 +2,22 @@
 
 # Change Log
 
+## 0.8.0
+
+## Minor Changes
+
+- Update ansible-language-server version (#434) @ganeshrn
+- Add support for meta/runtime.yml and execution-environment.yml (#379)
+  @ssbarnea
+- Add schema for ansible-navigator configuration (#365) @ssbarnea
+
+## Bugfixes
+
+- Restore webpack archive (#437) @ssbarnea
+- Fix jsonValidation and yamlValidation extension point (#432) @yaegassy
+- Fix extension broken debug capability (#431) @ganeshrn
+- Declare lextudio.restructuredtext ext as conflicting (#366) @ssbarnea
+
 ## 0.7.1
 
 ### Bugfixes

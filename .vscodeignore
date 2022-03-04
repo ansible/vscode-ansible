@@ -1,19 +1,15 @@
-**/.ignore
-.*
-.*/**
-CHANGELOG.md
-Jenkinsfile
-commitlint.config.js
-doc
-node_modules
-src
-syntaxes/README.md
-tsconfig.json
-webpack.config.js
-
-images/**
+# Everything is excluded unless we add it manually, preventing accidental
+# inclusion of unwanted files.
+# See https://github.com/Microsoft/vscode-mono-debug/blob/main/.vscodeignore
+*
+*/**
+**/.DS_Store
+!CHANGELOG.md
+!LICENSE
+!README.md
 !images/logo.png
-out/**
-!out/client/src/extension.js
-server/**
+!out/client/extension.js
 !out/server/src/server.js
+!package.json
+!package.nls.json
+!syntaxes/**/*

@@ -23,7 +23,7 @@ node("rhel8"){
 
   stage 'build'
   sh "npm install"
-  sh "npm run compile"
+  sh "npm run webpack"
 
 // add stage with testing here
 //   stage 'Test for staging'
@@ -48,6 +48,7 @@ node("rhel8"){
       input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad'
     }
 
+    installBuildRequirements()
     stage "Publish to Marketplaces"
     unstash 'vsix';
     def vsix = findFiles(glob: '**.vsix')
