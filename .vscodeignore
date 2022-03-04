@@ -4,10 +4,12 @@
 *
 */**
 **/.DS_Store
+!ansible-language-configuration.json
 !CHANGELOG.md
 !LICENSE
 !README.md
 !images/logo.png
+!jinja-language-configuration.json
 !out/client/extension.js
 !out/server/src/server.js
 !package.json
