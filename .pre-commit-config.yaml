@@ -60,6 +60,11 @@ repos:
         #   args: ['--autofix']
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v5.8.4
+    hooks:
+      - id: cspell
+        name: Spell check with cspell
   - repo: https://github.com/openstack/bashate
     rev: 2.1.0
     hooks:

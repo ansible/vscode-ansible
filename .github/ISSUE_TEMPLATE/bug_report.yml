@@ -19,6 +19,7 @@ body:
         question, please consider [starting a discussion][discussions].
 
 
+        []: # (cspell: disable-next-line)
         [issues]: ../search?q=is%3Aissue&type=issues
 
         [discussions]: ../discussions
@@ -59,7 +60,7 @@ body:
             extension to it automatically. Only the extension that
             processes that language will be in control of working with
             that file. It is technically impossible within the VS Code
-            ecossytem for <code>redhat.ansible</code> to "steal" that
+            ecosystem for <code>redhat.ansible</code> to "steal" that
             control from any other extension. Most often this happens
             with pre-existing extensions that provide support for YAML.
           </p>
@@ -69,7 +70,7 @@ body:
             language in your editor's status bar and choosing
             <code>Ansible</code> from the selection. With this, VS Code
             will remember the language for that specific file. You may
-            need to repeat this for other files that got mislanguaged.
+            need to repeat this for other files that got a wrong language.
           </p>
         </details>
 

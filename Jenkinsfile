@@ -27,6 +27,7 @@ node("rhel8"){
 
 // add stage with testing here
 //   stage 'Test for staging'
+//   // cspell: disable-next-line
 //   wrap([$class: 'Xvnc']) {
 //     sh "npm test --silent"
 //   }
@@ -37,6 +38,7 @@ node("rhel8"){
 
   stage 'upload to staging'
   def vsix = findFiles(glob: '**.vsix')
+  // cspell: disable-next-line
   sh "rsync -Pzrlt --rsh=ssh --protocol=28 ${vsix[0].path} ${UPLOAD_LOCATION}/snapshots/vscode-ansible/"
   stash name:'vsix', includes:vsix[0].path
 }
@@ -65,6 +67,7 @@ node("rhel8"){
     archive includes:"**.vsix"
 
     stage ("Promote the build to stable") {
+    // cspell: disable-next-line
     sh "rsync -Pzrlt --rsh=ssh --protocol=28 *.vsix* ${UPLOAD_LOCATION}/stable/vscode-ansible/"
     }
   }
