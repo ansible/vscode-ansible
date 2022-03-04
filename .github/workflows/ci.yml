@@ -1,4 +1,5 @@
 ---
+# spell-checker:ignore fregante hexdigest vsoch ncipollo ghpnr
 name: CI
 
 on:
@@ -777,7 +778,7 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-ghpnr:
-    name: Publish ${{ needs.pre-setup.outputs.git-tag }} to GHPNR
+    name: Publish ${{ needs.pre-setup.outputs.git-tag }} to Github NPM Registry
     if: >-
       fromJSON(needs.pre-setup.outputs.is-untagged-devel) ||
       fromJSON(needs.pre-setup.outputs.release-requested)
@@ -898,7 +899,7 @@ jobs:
       # NOTE: and GitHub releases so human gating has already happened via
       # NOTE: approving the deployment environment earlier.
       # NOTE: This means that the PR must get merged no matter what, just to
-      # NOTE: correspond the published artifacts for tracability and transparency.
+      # NOTE: correspond the published artifacts for traceability and transparency.
       if: failure()
       run: >-
         gh pr merge

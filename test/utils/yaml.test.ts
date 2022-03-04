@@ -288,13 +288,13 @@ describe('yaml', () => {
       expect(test).to.be.eq(false);
     });
 
-    it('isUndecisiveWithoutPlayKeywords', async () => {
+    it('isIndecisiveWithoutPlayKeywords', async () => {
       const path = (await getPathInFile('isPlayParam.yml', 7, 3)) as Node[];
       const test = isPlayParam(path, 'file://test/isPlay.yml');
       expect(test).to.be.eq(undefined);
     });
 
-    it('isUndecisiveWithoutPlayKeywordsWithoutPath', async () => {
+    it('isIndecisiveWithoutPlayKeywordsWithoutPath', async () => {
       const path = (await getPathInFile('isPlayParam.yml', 7, 3)) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(undefined);

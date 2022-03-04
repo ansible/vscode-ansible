@@ -1,6 +1,7 @@
 #!/bin/bash
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
+# (cspell: disable-next-line)
 set -euxo pipefail
 
 # User specific environment

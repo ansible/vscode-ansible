@@ -522,7 +522,7 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
 }
 
 /**
- * For a given yaml file that is recognised as Ansible file, the function
+ * For a given yaml file that is recognized as Ansible file, the function
  * checks whether the file is a playbook or not
  * @param textDocument the text document to check
  */

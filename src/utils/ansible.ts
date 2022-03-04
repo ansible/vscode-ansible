@@ -94,7 +94,7 @@ playKeywords.set(
 
 playKeywords.set(
   'handlers',
-  'A section with tasks that are treated as handlers, these won’t get executed normally, only when notified after each section of tasks is complete. A handler’s listen field is not templatable.'
+  'A section with tasks that are treated as handlers, these won’t get executed normally, only when notified after each section of tasks is complete. A handler’s listen field cannot use templates.'
 );
 
 playKeywords.set(
@@ -621,7 +621,7 @@ taskKeywords.set(
 
 taskKeywords.set(
   'loop_control',
-  'Several keys here allow you to modify/set loop behaviour in a task.'
+  'Several keys here allow you to modify/set loop behavior in a task.'
 );
 
 taskKeywords.set(

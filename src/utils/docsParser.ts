@@ -179,10 +179,10 @@ function parseRawRoutesByName(
 function parseRawRoute(rawRoute: Record<PropertyKey, unknown>): IPluginRoute {
   const route: IPluginRoute = {};
   if (isObject(rawRoute.deprecation)) {
-    route.deprecation = parseRawDepracationOrTombstone(rawRoute.deprecation);
+    route.deprecation = parseRawDeprecationOrTombstone(rawRoute.deprecation);
   }
   if (isObject(rawRoute.tombstone)) {
-    route.tombstone = parseRawDepracationOrTombstone(rawRoute.tombstone);
+    route.tombstone = parseRawDeprecationOrTombstone(rawRoute.tombstone);
   }
   if (typeof rawRoute.redirect === 'string') {
     route.redirect = rawRoute.redirect;
@@ -190,7 +190,7 @@ function parseRawRoute(rawRoute: Record<PropertyKey, unknown>): IPluginRoute {
   return route;
 }
 
-function parseRawDepracationOrTombstone(
+function parseRawDeprecationOrTombstone(
   rawInfo: Record<PropertyKey, unknown>
 ): {
   removalVersion?: string;
