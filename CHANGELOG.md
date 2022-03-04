@@ -2,6 +2,12 @@
 
 # Change Log
 
+## 0.8.1
+
+## Bugfixes
+
+- Add language configuration files in vsix package (#454) @ganeshrn
+
 ## 0.8.0
 
 ## Minor Changes
