@@ -83,14 +83,20 @@ export class AnsibleLint {
 
       const docPath = URI.parse(textDocument.uri).path;
       mountPaths.add(path.dirname(docPath));
-      let progressTracker;
-      if (this.useProgressTracker) {
-        progressTracker = await this.connection.window.createWorkDoneProgress();
-      }
+
+      const progressTracker = this.useProgressTracker
+        ? await this.connection.window.createWorkDoneProgress()
+        : {
+            begin: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+            done: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+          };
+
       const ansibleLintConfigPromise = this.getAnsibleLintConfig(
         workingDirectory,
         ansibleLintConfigPath
       );
+
+      progressTracker.begin('ansible-lint', undefined, 'Processing files...');
 
       const commandRunner = new CommandRunner(
         this.connection,
@@ -99,14 +105,6 @@ export class AnsibleLint {
       );
 
       try {
-        if (progressTracker) {
-          progressTracker.begin(
-            'ansible-lint',
-            undefined,
-            'Processing files...'
-          );
-        }
-
         // get Ansible configuration
         const result = await commandRunner.runCommand(
           'ansible-lint',
@@ -131,33 +129,37 @@ export class AnsibleLint {
             stdout: string;
             stderr: string;
           };
-          if (execError.code === 2) {
+
+          if (execError.stdout) {
             diagnostics = this.processReport(
               execError.stdout,
               await ansibleLintConfigPromise,
               workingDirectory
             );
           } else {
-            if (progressTracker) {
-              progressTracker.done();
+            if (execError.stderr) {
+              this.connection.console.info(
+                `[ansible-lint] ${execError.stderr}`
+              );
             }
+
+            progressTracker.done();
             this.connection.window.showErrorMessage(execError.message);
             return -1;
           }
-
-          if (execError.stderr) {
-            this.connection.console.info(`[ansible-lint] ${execError.stderr}`);
-          }
         } else {
-          this.connection.console.error(
-            `Exception in AnsibleLint service: ${JSON.stringify(error)}`
-          );
+          const exceptionString = `Exception in AnsibleLint service: ${JSON.stringify(
+            error
+          )}`;
+
+          progressTracker.done();
+          this.connection.console.error(exceptionString);
+          this.connection.window.showErrorMessage(exceptionString);
+          return -1;
         }
       }
 
-      if (progressTracker) {
-        progressTracker.done();
-      }
+      progressTracker.done();
     }
     return diagnostics;
   }

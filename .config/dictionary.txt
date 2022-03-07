@@ -1,14 +1,5 @@
-Ansible
-Dpkg
-FQCN
-FQCNs
-HORIZONTALLINE
-Jenkinsfile
-PYTHONHOME
-TLDR
-WSLENV
-YOLO
 alphanums
+Ansible
 ansible
 ansiblefest
 autocrlf
@@ -26,12 +17,17 @@ devel
 dirhtml
 doctree
 doctrees
+Dpkg
 dunamai
 endfor
 eqeqeq
+FQCN
+FQCNs
 globbing
 globby
+HORIZONTALLINE
 installdeps
+Jenkinsfile
 jsdoc
 lcov
 libyaml
@@ -54,12 +50,16 @@ pkgcache
 prettierrc
 preversion
 pyparsing
+PYTHONHOME
 pyup
 seealso
 showcontent
+stderr
+stdout
 suboption
 suboptions
 testorg
+TLDR
 toctree
 todos
 towncrier
@@ -73,7 +73,9 @@ whereis
 withserver
 wordwrap
 workdir
+WSLENV
 xvfb
+YOLO
 
 # names and usernames:
 Ganesh
