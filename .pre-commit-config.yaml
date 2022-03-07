@@ -88,7 +88,7 @@ repos:
     hooks:
       - id: prettier
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.31.0
+    rev: v0.31.1
     hooks:
       - id: markdownlint
         exclude: >
@@ -96,7 +96,7 @@ repos:
             docs/changelog-fragments\.d/\d+\.\w+\.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.8.0
+    rev: v8.10.0
     hooks:
       - id: eslint
         args:
