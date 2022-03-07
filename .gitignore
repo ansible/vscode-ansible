@@ -11,3 +11,4 @@ vscode-ansible
 .tox
 .python-version
 __pycache__
+.temp
