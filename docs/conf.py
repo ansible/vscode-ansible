@@ -225,7 +225,7 @@ spelling_ignore_python_builtins = True
 spelling_ignore_wiki_words = True
 spelling_show_suggestions = True
 spelling_word_list_filename = [
-    "spelling_wordlist.txt",
+    "../.config/dictionary.txt",
 ]
 
 # -- Options for extlinks extension ------------------------------------------

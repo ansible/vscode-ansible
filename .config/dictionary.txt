@@ -1,3 +1,4 @@
+Ansible
 Dpkg
 FQCN
 FQCNs
@@ -8,6 +9,7 @@ TLDR
 WSLENV
 YOLO
 alphanums
+ansible
 ansiblefest
 autocrlf
 autofix
@@ -22,6 +24,7 @@ customizer
 deps
 devel
 dirhtml
+doctree
 doctrees
 dunamai
 endfor
