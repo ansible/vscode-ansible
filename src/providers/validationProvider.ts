@@ -58,7 +58,7 @@ export async function doValidate(
         console.debug(
           'Ansible-lint command execution failed. Falling back to ansible syntax-check'
         );
-        connection.window.showInformationMessage(
+        connection?.window.showInformationMessage(
           'Falling back to ansible syntax-check.'
         );
       }
