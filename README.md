@@ -7,6 +7,7 @@ following projects:
 
 - [Ansible extension for vscode/codium](https://github.com/ansible/vscode-ansible)
 - [Ansible extension for coc.nvim](https://github.com/yaegassy/coc-ansible)
+- [Ansible client for Emacs LSP](https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/)
 
 ## Features
 
