@@ -29,13 +29,19 @@ jobs:
         with:
           node-version: 16
 
-      - name: Link ansible-language-server into vscode-ansible
+      - name: Inject unreleased ansible-language-server into vscode-ansible extension
+        # do not try to use command below as vsce package is unable to work with symlinked modules:
+        # npm install --save ../ansible-language-server
         run: |
           set -ex
           mv vscode-ansible ..
           pushd ../vscode-ansible
-          npm install --save ../ansible-language-server
-          popd
+          npm ci  # Install vscode-ansible dependencies
+          rm -rf node_modules/@ansible/ansible-language-server
+          cp -r ../ansible-language-server node_modules/@ansible/ansible-language-server
+          npm ls
+          # npm install --save ../ansible-language-server
+          npm run package
 
       - name: >-
           Run test-ui with vscode-ansible
