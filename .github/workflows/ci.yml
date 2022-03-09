@@ -320,7 +320,7 @@ jobs:
         path: ${{ needs.pre-setup.outputs.tarball-artifact-name }}
 
   docs:
-    name: 📚 ${{ matrix.toxenv }}
+    name: docs
 
     runs-on: ${{ matrix.os }}-latest
     strategy:
@@ -331,9 +331,7 @@ jobs:
         - >-
           3.10
         toxenv:
-        - build-docs
-        - linkcheck-docs
-        - spellcheck-docs
+        - docs
       fail-fast: false
 
     env:

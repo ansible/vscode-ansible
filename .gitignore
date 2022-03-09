@@ -12,3 +12,4 @@ vscode-ansible
 .python-version
 __pycache__
 .temp
+UNKNOWN.egg-info
