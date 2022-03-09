@@ -175,26 +175,6 @@ jobs:
             || steps.scm-version.outputs.dist-version-for-filenames
         }}.md')
 
-  lint:
-    env:
-      PIP_DISABLE_PIP_VERSION_CHECK: "1"
-    runs-on: Ubuntu-latest
-    steps:
-    - name: Fetch the src snapshot
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 1
-        ref: ${{ github.event.inputs.release-commitish }}
-    - name: Setup node
-      uses: actions/setup-node@v2
-    - name: Install dependencies
-      run: |
-        python -m pip install --user --upgrade pip
-        python -m pip install -r test-requirements.txt
-        npm ci
-    - name: npm run lint
-      run: npm run lint
-
   build:
     name: Build ${{ needs.pre-setup.outputs.git-tag }}
     needs:
@@ -319,8 +299,8 @@ jobs:
         name: npm-package-tarball
         path: ${{ needs.pre-setup.outputs.tarball-artifact-name }}
 
-  docs:
-    name: docs
+  tox:
+    name: ${{ matrix.toxenv }}
 
     runs-on: ${{ matrix.os }}-latest
     strategy:
@@ -332,12 +312,14 @@ jobs:
           3.10
         toxenv:
         - docs
+        - lint
       fail-fast: false
 
     env:
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
       PY_COLORS: 1
-      TOX_PARALLEL_NO_SPINNER: 1
       TOXENV: ${{ matrix.toxenv }}
+      TOX_PARALLEL_NO_SPINNER: 1
 
     steps:
     - name: >-
@@ -346,6 +328,11 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
+    - name: Setup node
+      if: contains(matrix.toxenv, 'lint')
+      uses: actions/setup-node@v2
+
     - name: >-
         Calculate Python interpreter version hash value
         for use in the cache key
@@ -548,8 +535,7 @@ jobs:
     if: always()
 
     needs:
-    - docs
-    - lint
+    - tox  # lint, docs
     - test
     # - vscode
 

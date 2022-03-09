@@ -77,7 +77,7 @@
     "compile": "tsc -p .",
     "coverage": "nyc report --reporter=text-lcov > out/coverage.lcov",
     "deps": "ncu -u && npm install",
-    "lint": "npm ci && pre-commit run -a",
+    "lint": "pre-commit run -a",
     "prepack": "npm ci && npm run compile",
     "//prepare": "Prepare is needed for installation from source",
     "prepare": "npm run compile",
