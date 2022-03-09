@@ -75,6 +75,7 @@ wordwrap
 workdir
 WSLENV
 xvfb
+yammlint
 YOLO
 
 # names and usernames:

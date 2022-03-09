@@ -2,7 +2,8 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import * as path from 'path';
 import { promises as fs } from 'fs';
 import { WorkspaceManager } from '../src/services/workspaceManager';
-import { createConnection } from 'vscode-languageserver/node';
+import { createConnection, TextDocuments } from 'vscode-languageserver/node';
+import { ValidationManager } from '../src/services/validationManager';
 
 const FIXTURES_BASE_PATH = path.join('test', 'fixtures');
 
@@ -36,5 +37,25 @@ export function createTestWorkspaceManager(): WorkspaceManager {
   const connection = createConnection();
   const workspaceManager = new WorkspaceManager(connection);
 
+  workspaceManager.clientCapabilities.window = {
+    showMessage: { messageActionItem: { additionalPropertiesSupport: false } },
+    showDocument: { support: true },
+    workDoneProgress: true,
+  };
+
+  connection.listen();
   return workspaceManager;
+}
+
+export function createTestValidationManager(): ValidationManager {
+  process.argv.push('--node-ipc');
+  const connection = createConnection();
+
+  const documents: TextDocuments<TextDocument> = new TextDocuments(
+    TextDocument
+  );
+  const validationManager = new ValidationManager(connection, documents);
+
+  connection.listen();
+  return validationManager;
 }

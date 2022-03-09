@@ -1,0 +1,16 @@
+---
+- name: Test play
+  hosts: localhost
+  vars:
+    MY_VAR: faulty
+  tasks:
+    - ansible.builtin.debug:
+        msg: Happy debugging
+
+    - name: Comparison
+      ansible.builtin.ping:
+        data: 10101
+      when: MY_VAR != ''
+
+    - name: this would typically fire deprecated-command-syntax
+      command: warn=no chmod 644 X
