@@ -2,6 +2,7 @@ import IntervalTree from '@flatten-js/interval-tree';
 import {
   Connection,
   Diagnostic,
+  integer,
   TextDocumentContentChangeEvent,
   TextDocuments,
 } from 'vscode-languageserver';
@@ -136,7 +137,7 @@ export class ValidationManager {
           if (displacement) {
             const displacedDiagnostics = diagnosticTree.search([
               change.range.start.line,
-              Number.MAX_SAFE_INTEGER,
+              integer.MAX_VALUE,
             ]);
             if (displacedDiagnostics) {
               for (const diagnostic of displacedDiagnostics as Array<Diagnostic>) {

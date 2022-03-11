@@ -5,6 +5,7 @@ import {
   Connection,
   Diagnostic,
   DiagnosticSeverity,
+  integer,
   Position,
   Range,
 } from 'vscode-languageserver';
@@ -134,7 +135,7 @@ export class AnsiblePlaybook {
     };
     const end: Position = {
       line: line - 1,
-      character: Number.MAX_SAFE_INTEGER,
+      character: integer.MAX_VALUE,
     };
     const range: Range = {
       start,

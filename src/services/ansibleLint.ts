@@ -7,6 +7,7 @@ import {
   Diagnostic,
   DiagnosticSeverity,
   DidChangeWatchedFilesParams,
+  integer,
   Position,
   Range,
 } from 'vscode-languageserver';
@@ -197,7 +198,7 @@ export class AnsibleLint {
             };
             const end: Position = {
               line: begin_line - 1,
-              character: Number.MAX_SAFE_INTEGER,
+              character: integer.MAX_VALUE,
             };
             const range: Range = {
               start: start,
