@@ -19,14 +19,25 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
       preview: true,
       preserveFocus: false,
     });
-    await vscode.languages.setTextDocumentLanguage(doc, "ansible");
 
-    await sleep(5000); // Wait for server activation
-
+    await reinitializeAnsibleExtension();
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
   }
+}
+
+async function reinitializeAnsibleExtension(): Promise<void> {
+  await vscode.languages.setTextDocumentLanguage(doc, "ansible");
+  await sleep(5000); // Wait for server activation
+
+  await vscode.commands.executeCommand(
+    "workbench.extensions.action.disableAllWorkspace"
+  );
+  await vscode.commands.executeCommand(
+    "workbench.extensions.action.enableAllWorkspace"
+  );
+  await sleep(5000); // Wait for server activation
 }
 
 export async function sleep(ms: number): Promise<void> {
