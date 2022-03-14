@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { Position } from 'vscode-languageserver';
+import { Position, integer } from 'vscode-languageserver';
 import {
   doValidate,
   getYamlValidation,
@@ -41,7 +41,7 @@ describe('doValidate()', () => {
                 start: { line: 4, character: 0 } as Position,
                 end: {
                   line: 4,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -53,7 +53,7 @@ describe('doValidate()', () => {
                 start: { line: 6, character: 0 } as Position,
                 end: {
                   line: 6,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -66,7 +66,7 @@ describe('doValidate()', () => {
                 start: { line: 9, character: 0 } as Position,
                 end: {
                   line: 9,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -79,7 +79,7 @@ describe('doValidate()', () => {
                 start: { line: 14, character: 0 } as Position,
                 end: {
                   line: 14,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -97,7 +97,7 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -115,7 +115,7 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -183,7 +183,7 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -252,7 +252,7 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
@@ -323,7 +323,7 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
               source: 'Ansible',
