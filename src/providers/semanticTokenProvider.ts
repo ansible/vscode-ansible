@@ -3,17 +3,17 @@ import {
   SemanticTokens,
   SemanticTokensBuilder,
   SemanticTokenTypes,
-} from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { IOption } from '../interfaces/module';
-import { DocsLibrary } from '../services/docsLibrary';
+} from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from "yaml/types";
+import { IOption } from "../interfaces/module";
+import { DocsLibrary } from "../services/docsLibrary";
 import {
   blockKeywords,
   isTaskKeyword,
   playKeywords,
   roleKeywords,
-} from '../utils/ansible';
+} from "../utils/ansible";
 import {
   findProvidedModule,
   getOrigRange,
@@ -22,7 +22,7 @@ import {
   isRoleParam,
   isTaskParam,
   parseAllDocuments,
-} from '../utils/yaml';
+} from "../utils/yaml";
 
 export const tokenTypes = [
   SemanticTokenTypes.method,
@@ -81,7 +81,7 @@ async function markSemanticTokens(
         } else if (isTaskParam(keyPath)) {
           if (isTaskKeyword(pair.key.value)) {
             markKeyword(pair.key, builder, document);
-            if (pair.key.value === 'args') {
+            if (pair.key.value === "args") {
               const module = await findProvidedModule(
                 path.concat(pair, pair.key),
                 document,
@@ -179,7 +179,7 @@ function markModuleParameters(
           document
         );
         if (
-          option.type === 'dict' &&
+          option.type === "dict" &&
           moduleParamPair.value instanceof YAMLMap
         ) {
           // highlight sub-parameters
@@ -190,7 +190,7 @@ function markModuleParameters(
             document
           );
         } else if (
-          option.type === 'list' &&
+          option.type === "list" &&
           moduleParamPair.value instanceof YAMLSeq
         ) {
           // highlight list of sub-parameters

@@ -1,11 +1,11 @@
-import * as _ from 'lodash';
-import { Position, TextDocument } from 'vscode-languageserver-textdocument';
-import { Document, Options, parseCST } from 'yaml';
-import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from 'yaml/types';
-import { IModuleMetadata, IOption } from '../interfaces/module';
-import { DocsLibrary } from '../services/docsLibrary';
-import { isTaskKeyword, playExclusiveKeywords } from './ansible';
-import { playKeywords, taskKeywords } from '../utils/ansible';
+import * as _ from "lodash";
+import { Position, TextDocument } from "vscode-languageserver-textdocument";
+import { Document, Options, parseCST } from "yaml";
+import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from "yaml/types";
+import { IModuleMetadata, IOption } from "../interfaces/module";
+import { DocsLibrary } from "../services/docsLibrary";
+import { isTaskKeyword, playExclusiveKeywords } from "./ansible";
+import { playKeywords, taskKeywords } from "../utils/ansible";
 
 /**
  * A helper class used for building YAML path assertions and retrieving parent
@@ -79,7 +79,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
     if (
       node instanceof Pair &&
       node.key instanceof Scalar &&
-      typeof node.key.value === 'string'
+      typeof node.key.value === "string"
     ) {
       return node.key.value;
     }
@@ -274,7 +274,7 @@ function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
   const declaredCollections: string[] = [];
   const collectionsPair = _.find(
     playNode?.items,
-    (pair) => pair.key instanceof Scalar && pair.key.value === 'collections'
+    (pair) => pair.key instanceof Scalar && pair.key.value === "collections"
   );
 
   if (collectionsPair) {
@@ -334,7 +334,7 @@ export function isBlockParam(path: Node[]): boolean {
   const isInYAMLSeq = !!builder.parent(YAMLSeq).get();
   if (mapNode && isInYAMLSeq) {
     const providedKeys = getYamlMapKeys(mapNode);
-    return providedKeys.includes('block');
+    return providedKeys.includes("block");
   }
   return false;
 }
@@ -348,7 +348,7 @@ export function isRoleParam(path: Node[]): boolean {
     .parent(YAMLSeq)
     .parent(YAMLMap)
     .getStringKey();
-  return rolesKey === 'roles';
+  return rolesKey === "roles";
 }
 
 /**
@@ -365,7 +365,7 @@ export async function getPossibleOptionsForPath(
   if (!taskParamPath) return null;
 
   const optionTraceElement = suboptionTrace.pop();
-  if (!optionTraceElement || optionTraceElement[1] !== 'dict') {
+  if (!optionTraceElement || optionTraceElement[1] !== "dict") {
     // that element must always be a `dict`
     // (unlike for sub-options, which can also be a 'list')
     return null;
@@ -377,7 +377,7 @@ export async function getPossibleOptionsForPath(
 
   let module;
   // Module options can either be directly under module or in 'args'
-  if (taskParamNode.value === 'args') {
+  if (taskParamNode.value === "args") {
     module = await findProvidedModule(taskParamPath, document, docsLibrary);
   } else {
     [module] = await docsLibrary.findModule(
@@ -410,8 +410,8 @@ export async function getPossibleOptionsForPath(
  */
 export function getTaskParamPathWithTrace(
   path: Node[]
-): [Node[], [string, 'list' | 'dict'][]] {
-  const trace: [string, 'list' | 'dict'][] = [];
+): [Node[], [string, "list" | "dict"][]] {
+  const trace: [string, "list" | "dict"][] = [];
   while (!isTaskParam(path)) {
     let parentKeyPath = new AncestryBuilder(path)
       .parentOfKey()
@@ -421,9 +421,9 @@ export function getTaskParamPathWithTrace(
       const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
       if (
         parentKeyNode instanceof Scalar &&
-        typeof parentKeyNode.value === 'string'
+        typeof parentKeyNode.value === "string"
       ) {
-        trace.push([parentKeyNode.value, 'dict']);
+        trace.push([parentKeyNode.value, "dict"]);
         path = parentKeyPath;
         continue;
       }
@@ -437,9 +437,9 @@ export function getTaskParamPathWithTrace(
       const parentKeyNode = parentKeyPath[parentKeyPath.length - 1];
       if (
         parentKeyNode instanceof Scalar &&
-        typeof parentKeyNode.value === 'string'
+        typeof parentKeyNode.value === "string"
       ) {
-        trace.push([parentKeyNode.value, 'list']);
+        trace.push([parentKeyNode.value, "list"]);
         path = parentKeyPath;
         continue;
       }

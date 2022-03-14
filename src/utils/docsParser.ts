@@ -1,22 +1,22 @@
-import * as _ from 'lodash';
-import * as fs from 'fs';
-import { parseDocument } from 'yaml';
-import { YAMLError } from 'yaml/util';
+import * as _ from "lodash";
+import * as fs from "fs";
+import { parseDocument } from "yaml";
+import { YAMLError } from "yaml/util";
 import {
   IDescription,
   IModuleDocumentation,
   IModuleMetadata,
   IOption,
-} from '../interfaces/module';
-import { hasOwnProperty, isObject } from './misc';
+} from "../interfaces/module";
+import { hasOwnProperty, isObject } from "./misc";
 import {
   IPluginRoute,
   IPluginRoutesByName,
   IPluginRoutesByType,
   IPluginTypes,
-} from '../interfaces/pluginRouting';
+} from "../interfaces/pluginRouting";
 
-const DOCUMENTATION = 'DOCUMENTATION';
+const DOCUMENTATION = "DOCUMENTATION";
 
 export function processDocumentationFragments(
   module: IModuleMetadata,
@@ -27,7 +27,7 @@ export function processDocumentationFragments(
     module.rawDocumentationFragments.get(DOCUMENTATION);
   if (
     mainDocumentationFragment &&
-    hasOwnProperty(mainDocumentationFragment, 'extends_documentation_fragment')
+    hasOwnProperty(mainDocumentationFragment, "extends_documentation_fragment")
   ) {
     const docFragmentNames: string[] =
       mainDocumentationFragment.extends_documentation_fragment instanceof Array
@@ -35,14 +35,14 @@ export function processDocumentationFragments(
         : [mainDocumentationFragment.extends_documentation_fragment];
     const resultContents = {};
     for (const docFragmentName of docFragmentNames) {
-      const fragmentNameArray = docFragmentName.split('.');
+      const fragmentNameArray = docFragmentName.split(".");
       let fragmentPartName: string;
       if (fragmentNameArray.length === 2 || fragmentNameArray.length === 4) {
         fragmentPartName = fragmentNameArray.pop()?.toUpperCase() as string;
       } else {
         fragmentPartName = DOCUMENTATION;
       }
-      const docFragmentCatalogueName = fragmentNameArray.join('.');
+      const docFragmentCatalogueName = fragmentNameArray.join(".");
       const docFragment =
         docFragments.get(docFragmentCatalogueName) ||
         docFragments.get(`ansible.builtin.${docFragmentCatalogueName}`);
@@ -73,7 +73,7 @@ function docFragmentMergeCustomizer(
   key: string
 ): Record<string, unknown>[] | undefined {
   if (
-    ['notes', 'requirements', 'seealso'].includes(key) &&
+    ["notes", "requirements", "seealso"].includes(key) &&
     _.isArray(objValue)
   ) {
     return objValue.concat(srcValue);
@@ -85,7 +85,7 @@ export function processRawDocumentation(
 ): IModuleDocumentation | undefined {
   // currently processing only the main documentation
   const rawDoc = moduleDocParts.get(DOCUMENTATION);
-  if (rawDoc && typeof rawDoc.module === 'string') {
+  if (rawDoc && typeof rawDoc.module === "string") {
     const moduleDoc: IModuleDocumentation = {
       module: rawDoc.module,
       options: processRawOptions(rawDoc.options),
@@ -95,12 +95,12 @@ export function processRawDocumentation(
       moduleDoc.shortDescription = rawDoc.short_description;
     if (isIDescription(rawDoc.description))
       moduleDoc.description = rawDoc.description;
-    if (typeof rawDoc.version_added === 'string')
+    if (typeof rawDoc.version_added === "string")
       moduleDoc.versionAdded = rawDoc.version_added;
     if (isIDescription(rawDoc.author)) moduleDoc.author = rawDoc.author;
     if (isIDescription(rawDoc.requirements))
       moduleDoc.requirements = rawDoc.requirements;
-    if (typeof rawDoc.seealso === 'object')
+    if (typeof rawDoc.seealso === "object")
       moduleDoc.seealso = rawDoc.seealso as Record<string, unknown>;
     if (isIDescription(rawDoc.notes)) moduleDoc.notes = rawDoc.notes;
     return moduleDoc;
@@ -122,12 +122,12 @@ export function processRawOptions(rawOptions: unknown): Map<string, IOption> {
           optionDoc.description = rawOption.description;
         if (rawOption.choices instanceof Array)
           optionDoc.choices = rawOption.choices;
-        if (typeof rawOption.type === 'string') optionDoc.type = rawOption.type;
-        if (typeof rawOption.elements === 'string')
+        if (typeof rawOption.type === "string") optionDoc.type = rawOption.type;
+        if (typeof rawOption.elements === "string")
           optionDoc.elements = rawOption.elements;
         if (rawOption.aliases instanceof Array)
           optionDoc.aliases = rawOption.aliases;
-        if (typeof rawOption.version_added === 'string')
+        if (typeof rawOption.version_added === "string")
           optionDoc.versionAdded = rawOption.version_added;
         options.set(optionName, optionDoc);
         if (optionDoc.aliases) {
@@ -144,20 +144,20 @@ export function processRawOptions(rawOptions: unknown): Map<string, IOption> {
 function isIDescription(obj: unknown): obj is IDescription {
   return (
     obj instanceof Array || // won't check that all elements are string
-    typeof obj === 'string'
+    typeof obj === "string"
   );
 }
 
 export function parseRawRouting(rawDoc: unknown): IPluginRoutesByType {
   const routesByType = new Map<IPluginTypes, IPluginRoutesByName>();
   if (
-    hasOwnProperty(rawDoc, 'plugin_routing') &&
+    hasOwnProperty(rawDoc, "plugin_routing") &&
     isObject(rawDoc.plugin_routing)
   ) {
     for (const [pluginType, rawRoutesByName] of Object.entries(
       rawDoc.plugin_routing
     )) {
-      if (pluginType === 'modules' && isObject(rawRoutesByName)) {
+      if (pluginType === "modules" && isObject(rawRoutesByName)) {
         routesByType.set(pluginType, parseRawRoutesByName(rawRoutesByName));
       }
     }
@@ -184,7 +184,7 @@ function parseRawRoute(rawRoute: Record<PropertyKey, unknown>): IPluginRoute {
   if (isObject(rawRoute.tombstone)) {
     route.tombstone = parseRawDeprecationOrTombstone(rawRoute.tombstone);
   }
-  if (typeof rawRoute.redirect === 'string') {
+  if (typeof rawRoute.redirect === "string") {
     route.redirect = rawRoute.redirect;
   }
   return route;
@@ -200,13 +200,13 @@ function parseRawDeprecationOrTombstone(
   let warningText;
   let removalDate;
   let removalVersion;
-  if (typeof rawInfo.warning_text === 'string') {
+  if (typeof rawInfo.warning_text === "string") {
     warningText = rawInfo.warning_text;
   }
-  if (typeof rawInfo.removal_date === 'string') {
+  if (typeof rawInfo.removal_date === "string") {
     removalDate = rawInfo.removal_date;
   }
-  if (typeof rawInfo.removal_version === 'string') {
+  if (typeof rawInfo.removal_version === "string") {
     removalVersion = rawInfo.removal_version;
   }
   return {
@@ -247,7 +247,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
   public get rawDocumentationFragments(): Map<string, Record<string, unknown>> {
     if (!this._contents) {
       this._contents = new Map<string, Record<string, unknown>>();
-      const contents = fs.readFileSync(this.source, { encoding: 'utf8' });
+      const contents = fs.readFileSync(this.source, { encoding: "utf8" });
       let m;
       while ((m = LazyModuleDocumentation.docsRegex.exec(contents)) !== null) {
         if (m && m.groups && m.groups.name && m.groups.doc && m.groups.pre) {

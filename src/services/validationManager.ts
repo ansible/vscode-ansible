@@ -1,12 +1,12 @@
-import IntervalTree from '@flatten-js/interval-tree';
+import IntervalTree from "@flatten-js/interval-tree";
 import {
   Connection,
   Diagnostic,
   integer,
   TextDocumentContentChangeEvent,
   TextDocuments,
-} from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+} from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 
 /**
  * Provides cache for selected diagnostics.
@@ -115,7 +115,7 @@ export class ValidationManager {
     const diagnosticTree = this.validationCache.get(fileUri);
     if (diagnosticTree) {
       for (const change of changes) {
-        if ('range' in change) {
+        if ("range" in change) {
           const invalidatedDiagnostics = diagnosticTree.search([
             change.range.start.line,
             change.range.end.line,

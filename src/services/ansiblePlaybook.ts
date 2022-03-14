@@ -1,6 +1,6 @@
-import * as child_process from 'child_process';
-import * as path from 'path';
-import { URI } from 'vscode-uri';
+import * as child_process from "child_process";
+import * as path from "path";
+import { URI } from "vscode-uri";
 import {
   Connection,
   Diagnostic,
@@ -8,10 +8,10 @@ import {
   integer,
   Position,
   Range,
-} from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { WorkspaceFolderContext } from './workspaceManager';
-import { CommandRunner } from '../utils/commandRunner';
+} from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { WorkspaceFolderContext } from "./workspaceManager";
+import { CommandRunner } from "../utils/commandRunner";
 
 /**
  * Acts as an interface to ansible-playbook command.
@@ -57,9 +57,9 @@ export class AnsiblePlaybook {
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
     progressTracker.begin(
-      'ansible syntax-check',
+      "ansible syntax-check",
       undefined,
-      'Processing files...'
+      "Processing files..."
     );
 
     const commandRunner = new CommandRunner(
@@ -70,7 +70,7 @@ export class AnsiblePlaybook {
     try {
       // run ansible playbook syntax-check
       await commandRunner.runCommand(
-        'ansible-playbook',
+        "ansible-playbook",
         `${docPath} --syntax-check`,
         workingDirectory,
         mountPaths
@@ -125,7 +125,7 @@ export class AnsiblePlaybook {
     const diagnostics: Map<string, Diagnostic[]> = new Map();
     if (!result) {
       this.connection.console.warn(
-        'Standard output from ansible syntax-check is suspiciously empty.'
+        "Standard output from ansible syntax-check is suspiciously empty."
       );
       return diagnostics;
     }
@@ -152,7 +152,7 @@ export class AnsiblePlaybook {
       message: result,
       range,
       severity,
-      source: 'Ansible',
+      source: "Ansible",
     });
 
     diagnostics.set(locationUri, fileDiagnostics);

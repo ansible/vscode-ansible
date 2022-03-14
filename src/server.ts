@@ -1,4 +1,4 @@
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   Connection,
   createConnection,
@@ -6,9 +6,9 @@ import {
   NotificationHandler,
   ProposedFeatures,
   TextDocuments,
-} from 'vscode-languageserver/node';
-import { AnsibleLanguageService } from './ansibleLanguageService';
-import { getUnsupportedError } from './utils/misc';
+} from "vscode-languageserver/node";
+import { AnsibleLanguageService } from "./ansibleLanguageService";
+import { getUnsupportedError } from "./utils/misc";
 
 // Create a connection for the server, using Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -18,7 +18,7 @@ const connection: Connection = createConnection(ProposedFeatures.all);
 // error message to the client if so.
 const errorMessage = getUnsupportedError();
 if (errorMessage) {
-  connection.sendNotification('ansible/errorMessage', errorMessage);
+  connection.sendNotification("ansible/errorMessage", errorMessage);
 }
 
 const docChangeHandlers: NotificationHandler<DidChangeTextDocumentParams>[] =
@@ -35,7 +35,7 @@ connection.onDidChangeTextDocument((params) => {
 // overrides, such as `onDidChangeTextDocument`.
 const connectionProxy = new Proxy(connection, {
   get: (target, p, receiver) => {
-    if (p === 'onDidChangeTextDocument') {
+    if (p === "onDidChangeTextDocument") {
       return (handler: NotificationHandler<DidChangeTextDocumentParams>) => {
         docChangeHandlers.push(handler);
       };

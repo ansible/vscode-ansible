@@ -1,6 +1,6 @@
 // utils function to resolve executable path
-import * as path from 'path';
-import { ExtensionSettings } from '../interfaces/extensionSettings';
+import * as path from "path";
+import { ExtensionSettings } from "../interfaces/extensionSettings";
 
 /**
  * A method to return the path to the provided executable
@@ -12,7 +12,7 @@ export function getAnsibleCommandExecPath(
   name: string,
   settings: ExtensionSettings
 ): string {
-  return name === 'ansible-lint'
+  return name === "ansible-lint"
     ? settings.ansibleLint.path
     : path.join(path.dirname(settings.ansible.path), name);
 }

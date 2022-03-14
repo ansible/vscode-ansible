@@ -1,6 +1,6 @@
-export type IContainerEngine = 'auto' | 'podman' | 'docker';
+export type IContainerEngine = "auto" | "podman" | "docker";
 
-export type IPullPolicy = 'always' | 'missing' | 'never' | 'tag';
+export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
 export interface ExtensionSettings {
   ansible: { path: string; useFullyQualifiedCollectionNames: boolean };

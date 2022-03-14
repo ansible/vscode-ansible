@@ -6,22 +6,22 @@ import {
   InitializeResult,
   TextDocuments,
   TextDocumentSyncKind,
-} from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+} from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import {
   doCompletion,
   doCompletionResolve,
-} from './providers/completionProvider';
-import { getDefinition } from './providers/definitionProvider';
-import { doHover } from './providers/hoverProvider';
+} from "./providers/completionProvider";
+import { getDefinition } from "./providers/definitionProvider";
+import { doHover } from "./providers/hoverProvider";
 import {
   doSemanticTokens,
   tokenModifiers,
   tokenTypes,
-} from './providers/semanticTokenProvider';
-import { doValidate } from './providers/validationProvider';
-import { ValidationManager } from './services/validationManager';
-import { WorkspaceManager } from './services/workspaceManager';
+} from "./providers/semanticTokenProvider";
+import { doValidate } from "./providers/validationProvider";
+import { ValidationManager } from "./services/validationManager";
+import { WorkspaceManager } from "./services/workspaceManager";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -61,7 +61,7 @@ export class AnsibleLanguageService {
           semanticTokensProvider: {
             documentSelector: [
               {
-                language: 'ansible',
+                language: "ansible",
               },
             ],
             full: true,
@@ -97,7 +97,7 @@ export class AnsibleLanguageService {
         this.connection.client.register(
           DidChangeConfigurationNotification.type,
           {
-            section: 'ansible',
+            section: "ansible",
           }
         );
       }
@@ -112,15 +112,15 @@ export class AnsibleLanguageService {
         watchers: [
           {
             // watch ansible configuration
-            globPattern: '**/ansible.cfg',
+            globPattern: "**/ansible.cfg",
           },
           {
             // watch ansible-lint configuration
-            globPattern: '**/.ansible-lint',
+            globPattern: "**/.ansible-lint",
           },
           {
             // watch role meta-configuration
-            globPattern: '**/meta/main.{yml,yaml}',
+            globPattern: "**/meta/main.{yml,yaml}",
           },
         ],
       });
@@ -134,7 +134,7 @@ export class AnsibleLanguageService {
           context.documentSettings.handleConfigurationChanged(params)
         );
       } catch (error) {
-        this.handleError(error, 'onDidChangeConfiguration');
+        this.handleError(error, "onDidChangeConfiguration");
       }
     });
 
@@ -152,7 +152,7 @@ export class AnsibleLanguageService {
           );
         }
       } catch (error) {
-        this.handleError(error, 'onDidOpen');
+        this.handleError(error, "onDidOpen");
       }
     });
 
@@ -164,7 +164,7 @@ export class AnsibleLanguageService {
           context.documentSettings.handleDocumentClosed(e.document.uri);
         }
       } catch (error) {
-        this.handleError(error, 'onDidClose');
+        this.handleError(error, "onDidClose");
       }
     });
 
@@ -174,7 +174,7 @@ export class AnsibleLanguageService {
           context.handleWatchedDocumentChange(params)
         );
       } catch (error) {
-        this.handleError(error, 'onDidChangeWatchedFiles');
+        this.handleError(error, "onDidChangeWatchedFiles");
       }
     });
 
@@ -192,7 +192,7 @@ export class AnsibleLanguageService {
           );
         }
       } catch (error) {
-        this.handleError(error, 'onDidSave');
+        this.handleError(error, "onDidSave");
       }
     });
 
@@ -203,7 +203,7 @@ export class AnsibleLanguageService {
           e.contentChanges
         );
       } catch (error) {
-        this.handleError(error, 'onDidChangeTextDocument');
+        this.handleError(error, "onDidChangeTextDocument");
       }
     });
 
@@ -217,7 +217,7 @@ export class AnsibleLanguageService {
           this.connection
         );
       } catch (error) {
-        this.handleError(error, 'onDidChangeContent');
+        this.handleError(error, "onDidChangeContent");
       }
     });
 
@@ -233,7 +233,7 @@ export class AnsibleLanguageService {
           }
         }
       } catch (error) {
-        this.handleError(error, 'onSemanticTokens');
+        this.handleError(error, "onSemanticTokens");
       }
       return {
         data: [],
@@ -256,7 +256,7 @@ export class AnsibleLanguageService {
           }
         }
       } catch (error) {
-        this.handleError(error, 'onHover');
+        this.handleError(error, "onHover");
       }
       return null;
     });
@@ -273,7 +273,7 @@ export class AnsibleLanguageService {
           }
         }
       } catch (error) {
-        this.handleError(error, 'onCompletion');
+        this.handleError(error, "onCompletion");
       }
       return null;
     });
@@ -289,7 +289,7 @@ export class AnsibleLanguageService {
           }
         }
       } catch (error) {
-        this.handleError(error, 'onCompletionResolve');
+        this.handleError(error, "onCompletionResolve");
       }
       return completionItem;
     });
@@ -310,7 +310,7 @@ export class AnsibleLanguageService {
           }
         }
       } catch (error) {
-        this.handleError(error, 'onDefinition');
+        this.handleError(error, "onDefinition");
       }
       return null;
     });
@@ -319,7 +319,7 @@ export class AnsibleLanguageService {
   private handleError(error: unknown, contextName: string) {
     const leadMessage = `An error occurred in '${contextName}' handler: `;
     if (error instanceof Error) {
-      const stack = error.stack ? `\n${error.stack}` : '';
+      const stack = error.stack ? `\n${error.stack}` : "";
       this.connection.console.error(
         `${leadMessage}[${error.name}] ${error.message}${stack}`
       );

@@ -1,5 +1,5 @@
-import IntervalTree from '@flatten-js/interval-tree';
-import * as _ from 'lodash';
+import IntervalTree from "@flatten-js/interval-tree";
+import * as _ from "lodash";
 import {
   Connection,
   Diagnostic,
@@ -7,12 +7,12 @@ import {
   DiagnosticSeverity,
   Location,
   Range,
-} from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { ValidationManager } from '../services/validationManager';
-import { WorkspaceFolderContext } from '../services/workspaceManager';
-import { isPlaybook, parseAllDocuments } from '../utils/yaml';
-import { CommandRunner } from '../utils/commandRunner';
+} from "vscode-languageserver";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { ValidationManager } from "../services/validationManager";
+import { WorkspaceFolderContext } from "../services/workspaceManager";
+import { isPlaybook, parseAllDocuments } from "../utils/yaml";
+import { CommandRunner } from "../utils/commandRunner";
 
 /**
  * Validates the given document.
@@ -40,15 +40,15 @@ export async function doValidate(
     const settings = await context.documentSettings.get(textDocument.uri);
     const commandRunner = new CommandRunner(connection, context, settings);
     const lintExecutable = settings.executionEnvironment.enabled
-      ? 'ansible-lint'
+      ? "ansible-lint"
       : settings.ansibleLint.path;
     const lintAvailability = await commandRunner.getExecutablePath(
       lintExecutable
     );
-    console.debug('Path for lint: ', lintAvailability);
+    console.debug("Path for lint: ", lintAvailability);
 
     if (lintAvailability) {
-      console.debug('Validating using ansible-lint');
+      console.debug("Validating using ansible-lint");
       diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
     }
 
@@ -56,21 +56,21 @@ export async function doValidate(
       // Notifying the user about the failed ansible-lint command and falling back to ansible syntax-check in this scenario
       if (diagnosticsByFile === -1) {
         console.debug(
-          'Ansible-lint command execution failed. Falling back to ansible syntax-check'
+          "Ansible-lint command execution failed. Falling back to ansible syntax-check"
         );
         connection?.window.showInformationMessage(
-          'Falling back to ansible syntax-check.'
+          "Falling back to ansible syntax-check."
         );
       }
-      console.debug('Validating using ansible syntax-check');
+      console.debug("Validating using ansible syntax-check");
 
       if (isPlaybook(textDocument)) {
-        console.log('is playbook...');
+        console.log("is playbook...");
         diagnosticsByFile = await context.ansiblePlaybook.doValidate(
           textDocument
         );
       } else {
-        console.log('not a playbook...');
+        console.log("not a playbook...");
         diagnosticsByFile = new Map();
       }
     }
@@ -116,12 +116,12 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
 
         let severity;
         switch (error.name) {
-          case 'YAMLReferenceError':
-          case 'YAMLSemanticError':
-          case 'YAMLSyntaxError':
+          case "YAMLReferenceError":
+          case "YAMLSemanticError":
+          case "YAMLSyntaxError":
             severity = DiagnosticSeverity.Error;
             break;
-          case 'YAMLWarning':
+          case "YAMLWarning":
             severity = DiagnosticSeverity.Warning;
             break;
           default:
@@ -132,7 +132,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
           message: error.message,
           range: range || Range.create(0, 0, 0, 0),
           severity: severity,
-          source: 'Ansible [YAML]',
+          source: "Ansible [YAML]",
         });
       }
     });
@@ -157,7 +157,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
               start: range.end,
               end: range.end,
             }),
-            'the scope of this error ends here'
+            "the scope of this error ends here"
           ),
         ];
         // collapse the range

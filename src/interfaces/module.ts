@@ -1,4 +1,4 @@
-import { YAMLError } from 'yaml/util';
+import { YAMLError } from "yaml/util";
 
 export type IDescription = string | Array<unknown>;
 
