@@ -1,7 +1,7 @@
 /* "stdlib" */
-import * as path from 'path';
-import { commands, ExtensionContext, extensions } from 'vscode';
-import { toggleEncrypt } from './features/vault';
+import * as path from "path";
+import { commands, ExtensionContext, extensions } from "vscode";
+import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
 import {
@@ -9,14 +9,14 @@ import {
   LanguageClientOptions,
   ServerOptions,
   TransportKind,
-} from 'vscode-languageclient/node';
+} from "vscode-languageclient/node";
 
 /* local */
-import { AnsiblePlaybookRunProvider } from './features/runner';
+import { AnsiblePlaybookRunProvider } from "./features/runner";
 import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
-} from './extensionConflicts';
+} from "./extensionConflicts";
 
 let client: LanguageClient;
 
@@ -24,18 +24,15 @@ export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
 
   context.subscriptions.push(
-    commands.registerCommand(
-      'extension.ansible.vault',
-      toggleEncrypt
-    )
+    commands.registerCommand("extension.ansible.vault", toggleEncrypt)
   );
 
   const serverModule = context.asAbsolutePath(
-    path.join('out', 'server', 'src', 'server.js')
+    path.join("out", "server", "src", "server.js")
   );
 
   // server is run at port 6009 for debugging
-  const debugOptions = { execArgv: ['--nolazy', '--inspect=6010'] };
+  const debugOptions = { execArgv: ["--nolazy", "--inspect=6010"] };
 
   const serverOptions: ServerOptions = {
     run: { module: serverModule, transport: TransportKind.ipc },
@@ -48,12 +45,12 @@ export function activate(context: ExtensionContext): void {
 
   const clientOptions: LanguageClientOptions = {
     // register the server for Ansible documents
-    documentSelector: [{ scheme: 'file', language: 'ansible' }],
+    documentSelector: [{ scheme: "file", language: "ansible" }],
   };
 
   client = new LanguageClient(
-    'ansibleServer',
-    'Ansible Server',
+    "ansibleServer",
+    "Ansible Server",
     serverOptions,
     clientOptions
   );

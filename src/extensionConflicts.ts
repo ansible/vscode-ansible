@@ -2,16 +2,16 @@
  *  Copyright (c) Red Hat, Inc. All rights reserved..
  *  Licensed under the MIT License. See LICENSE in the project root for details.
  *--------------------------------------------------------------------------------------------*/
-import { commands, Extension, extensions, window } from 'vscode';
+import { commands, Extension, extensions, window } from "vscode";
 
 // A set of VSCode extension ID's that conflict with our extension
 const conflictingIDs = [
-  'haaaad.ansible',
-  'lextudio.restructuredtext', // https://github.com/vscode-restructuredtext/vscode-restructuredtext/issues/286
-  'sysninja.vscode-ansible-mod',
-  'tomaciazek.ansible',
-  'vscoss.vscode-ansible',
-  'zbr.vscode-ansible',
+  "haaaad.ansible",
+  "lextudio.restructuredtext", // https://github.com/vscode-restructuredtext/vscode-restructuredtext/issues/286
+  "sysninja.vscode-ansible-mod",
+  "tomaciazek.ansible",
+  "vscoss.vscode-ansible",
+  "zbr.vscode-ansible",
 ];
 
 // A set of VSCode extension ID's that are currently uninstalling
@@ -19,7 +19,7 @@ const uninstallingIDs = new Set();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isExtensionPresent(obj: any): obj is Extension<any> {
-  return typeof obj !== 'undefined' && !uninstallingIDs.has(obj.id);
+  return typeof obj !== "undefined" && !uninstallingIDs.has(obj.id);
 }
 
 /**
@@ -49,13 +49,13 @@ export async function showUninstallConflictsNotification(
     uninstallingIDs.add(ext.id);
   }
 
-  const uninstallMsg = 'Uninstall';
+  const uninstallMsg = "Uninstall";
 
   if (!conflictingExts.length) {
     return;
   }
   // Gather all the conflicting display names
-  let conflictMsg = '';
+  let conflictMsg = "";
   if (conflictingExts.length === 1) {
     conflictMsg = `${conflictingExts[0].packageJSON.displayName} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
   } else {
@@ -63,7 +63,7 @@ export async function showUninstallConflictsNotification(
       (ext) => `${ext.packageJSON.displayName} (${ext.id})`
     );
     conflictMsg = `The ${extNames.join(
-      ', '
+      ", "
     )} extensions are incompatible with redhat.ansible. Please uninstall them.`;
   }
 
@@ -75,7 +75,7 @@ export async function showUninstallConflictsNotification(
       }
       for (const ext of conflictingExts) {
         commands.executeCommand(
-          'workbench.extensions.uninstallExtension',
+          "workbench.extensions.uninstallExtension",
           ext.id
         );
         uninstallingIDs.delete(ext.id);

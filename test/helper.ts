@@ -1,6 +1,6 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { assert } from 'chai';
+import * as vscode from "vscode";
+import * as path from "path";
+import { assert } from "chai";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -10,7 +10,7 @@ export let editor: vscode.TextEditor;
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
-  const extension = vscode.extensions.getExtension('redhat.ansible');
+  const extension = vscode.extensions.getExtension("redhat.ansible");
   const activation = await extension?.activate();
 
   try {
@@ -19,13 +19,13 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
       preview: true,
       preserveFocus: false,
     });
-    await vscode.languages.setTextDocumentLanguage(doc, 'ansible');
+    await vscode.languages.setTextDocumentLanguage(doc, "ansible");
 
     await sleep(5000); // Wait for server activation
 
     return activation;
   } catch (e) {
-    console.error('Error from activation -> ', e);
+    console.error("Error from activation -> ", e);
   }
 }
 
@@ -36,7 +36,7 @@ export async function sleep(ms: number): Promise<void> {
 export const getDocPath = (p: string): string => {
   return path.resolve(
     __dirname,
-    path.join('..', '..', '..', 'test', 'testFixtures', p)
+    path.join("..", "..", "..", "test", "testFixtures", p)
   );
 };
 
@@ -48,7 +48,7 @@ export async function updateSettings(
   setting: string,
   value: unknown
 ): Promise<void> {
-  const ansibleConfiguration = vscode.workspace.getConfiguration('ansible');
+  const ansibleConfiguration = vscode.workspace.getConfiguration("ansible");
   const useGlobalSettings = true;
   return ansibleConfiguration.update(setting, value, useGlobalSettings);
 }
@@ -80,7 +80,7 @@ export async function testHover(
   expectedHover: vscode.Hover[]
 ): Promise<void> {
   const actualHover = (await vscode.commands.executeCommand(
-    'vscode.executeHoverProvider',
+    "vscode.executeHoverProvider",
     docUri,
     position
   )) as vscode.Hover[];
