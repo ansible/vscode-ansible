@@ -450,7 +450,7 @@
     "validation"
   ],
   "license": "MIT",
-  "main": "./out/client/extension.js",
+  "main": "./out/client/src/extension.js",
   "name": "ansible",
   "preview": true,
   "publisher": "redhat",
