@@ -450,7 +450,7 @@
     "validation"
   ],
   "license": "MIT",
-  "main": "./out/client/extension.js",
+  "main": "./out/client/src/extension.js",
   "name": "ansible",
   "preview": true,
   "publisher": "redhat",
@@ -461,7 +461,7 @@
   },
   "scripts": {
     "code": "npm run package && code --force --install-extension *.vsix",
-    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out/server",
+    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "//deps": "Update all dependencies",
     "deps": "ncu -u && npm install",
@@ -482,8 +482,9 @@
     "webpack-dev": "npm run clean && webpack --mode development --config ./webpack.config.js",
     "webpack-watch": "webpack --mode development --config ./webpack.config.js --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
-    "test-compile": "npm run clean && tsc -p ./",
-    "test-e2e": "npm run test-compile && node ./out/client/test/testRunner"
+    "test-compile": "npm run clean && npm run compile && tsc -p ./",
+    "test-e2e": "npm run test-compile && node ./out/client/test/testRunner",
+    "test-e2e-withserver": "npm run test-compile-withserver && node ./out/client/test/testRunner"
   },
   "version": "0.8.1"
 }

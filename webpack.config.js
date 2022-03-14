@@ -20,7 +20,7 @@ const config = {
   output: {
     filename: (pathData) => {
       return pathData.chunk.name === "client"
-        ? "[name]/extension.js"
+        ? "[name]/src/extension.js"
         : "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
