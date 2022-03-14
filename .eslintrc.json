@@ -12,11 +12,10 @@
     "ecmaVersion": 2019,
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "prettier"],
   "rules": {
     "eqeqeq": ["error", "smart"],
     "prefer-template": "warn",
-    "quotes": ["error", "single"],
-    "indent": ["error", 2]
+    "prettier/prettier": "error"
   }
 }

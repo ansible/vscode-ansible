@@ -1,28 +1,28 @@
-import * as path from 'path';
-import Mocha from 'mocha';
-import glob from 'glob';
+import * as path from "path";
+import Mocha from "mocha";
+import glob from "glob";
 
 export function run(): Promise<void> {
   // Create the mocha test
   const mocha = new Mocha({
     color: true,
-    ui: 'bdd',
+    ui: "bdd",
     timeout: 30000,
-    reporter: 'mochawesome',
+    reporter: "mochawesome",
     reporterOptions: {
-      reportFilename: 'e2e_test_report',
-      reportDir: 'out/e2eTestReport',
-      reportTitle: 'vscode-ansible e2e test',
-      reportPageTitle: 'vscode-ansible e2e test report',
+      reportFilename: "e2e_test_report",
+      reportDir: "out/e2eTestReport",
+      reportTitle: "vscode-ansible e2e test",
+      reportPageTitle: "vscode-ansible e2e test report",
       cdn: true,
       charts: true,
     },
   });
 
-  const testsRoot = path.resolve(__dirname, '..');
+  const testsRoot = path.resolve(__dirname, "..");
 
   return new Promise((c, e) => {
-    glob('**/**.test.js', { cwd: testsRoot }, (err, files) => {
+    glob("**/**.test.js", { cwd: testsRoot }, (err, files) => {
       if (err) {
         return e(err);
       }

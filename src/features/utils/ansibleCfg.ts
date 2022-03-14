@@ -1,16 +1,16 @@
 /* node "stdlib" */
-import * as fs from 'fs';
+import * as fs from "fs";
 
 /* vscode"stdlib" */
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
 /* third-party */
-import untildify from 'untildify';
-import * as ini from 'ini';
+import untildify from "untildify";
+import * as ini from "ini";
 
 // Get rootPath based on multi-workspace API
 export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
-  if (typeof vscode.workspace.getWorkspaceFolder !== 'function') {
+  if (typeof vscode.workspace.getWorkspaceFolder !== "function") {
     return vscode.workspace.workspaceFolders?.[0]?.name;
   }
 
@@ -35,7 +35,7 @@ export async function scanAnsibleCfg(
    * 3) ~/.ansible.cfg
    * 4) /etc/ansible.cfg
    */
-  const cfgFiles = ['~/.ansible.cfg', '/etc/ansible.cfg'];
+  const cfgFiles = ["~/.ansible.cfg", "/etc/ansible.cfg"];
 
   if (!!rootPath) {
     cfgFiles.unshift(`${rootPath}/ansible.cfg`);
@@ -55,9 +55,9 @@ export async function scanAnsibleCfg(
       !!c?.defaults?.vault_identity_list || !!c?.defaults?.vault_password_file
   );
   console.log(
-    typeof cfg != 'undefined'
+    typeof cfg != "undefined"
       ? `Found 'defaults.vault_identity_list' within '${cfg.path}'`
-      : 'Found no \'defaults.vault_identity_list\' within config files'
+      : "Found no 'defaults.vault_identity_list' within config files"
   );
 
   return cfg;
@@ -74,7 +74,7 @@ export async function getValueByCfg(
     return undefined;
   }
 
-  const parsedConfig = ini.parse(await fs.promises.readFile(path, 'utf-8'));
+  const parsedConfig = ini.parse(await fs.promises.readFile(path, "utf-8"));
   const vault_identity_list = parsedConfig?.defaults?.vault_identity_list;
   const vault_password_file = parsedConfig?.defaults?.vault_password_file;
 
@@ -93,7 +93,7 @@ export async function getAnsibleCfg(
 ): Promise<AnsibleVaultConfig | undefined> {
   if (!!process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
     return {
-      path: 'ANSIBLE_VAULT_IDENTITY_LIST',
+      path: "ANSIBLE_VAULT_IDENTITY_LIST",
       defaults: {
         vault_identity_list: process.env.ANSIBLE_VAULT_IDENTITY_LIST,
         vault_password_file: undefined,
