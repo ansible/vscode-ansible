@@ -482,8 +482,9 @@
     "webpack-dev": "npm run clean && webpack --mode development --config ./webpack.config.js",
     "webpack-watch": "webpack --mode development --config ./webpack.config.js --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
-    "test-compile": "npm run clean && tsc -p ./",
-    "test-e2e": "npm run test-compile && node ./out/client/test/testRunner"
+    "test-compile": "npm run clean && npm run compile && tsc -p ./",
+    "test-e2e": "npm run test-compile && node ./out/client/test/testRunner",
+    "test-e2e-withserver": "npm run test-compile-withserver && node ./out/client/test/testRunner"
   },
   "version": "0.8.1"
 }
