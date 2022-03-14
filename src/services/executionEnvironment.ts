@@ -82,7 +82,7 @@ export class ExecutionEnvironment {
         );
         return;
       }
-      this.fetchPluginDocs();
+      await this.fetchPluginDocs();
     } catch (error) {
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
