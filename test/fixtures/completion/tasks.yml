@@ -1,0 +1,7 @@
+- name: Test playbook
+  gather_facts: False
+  hosts: localhost
+  tasks:
+    - name: Builtin module
+      ansible.builtin.debug:
+        msg: "Hello World"
