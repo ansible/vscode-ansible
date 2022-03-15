@@ -5,6 +5,9 @@ import { WorkspaceManager } from '../src/services/workspaceManager';
 import { createConnection, TextDocuments } from 'vscode-languageserver/node';
 import { ValidationManager } from '../src/services/validationManager';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const Fuse = require('fuse.js');
+
 const FIXTURES_BASE_PATH = path.join('test', 'fixtures');
 
 export function setFixtureAnsibleCollectionPathEnv(): void {
@@ -26,6 +29,34 @@ export async function getDoc(filename: string): Promise<TextDocument> {
 export function isWindows(): boolean {
   // win32 applies to x64 arch too, is the platform name
   return process.platform === 'win32';
+}
+
+export function smartFilter(completionList, triggerCharacter) {
+  completionList.sort((a, b) => a.sortText.localeCompare(b.sortText));
+
+  const searcher = new Fuse(completionList, {
+    keys: ['filterText'],
+    threshold: 0.6,
+    refIndex: false,
+  });
+
+  let filteredCompletionList = triggerCharacter
+    ? searcher.search(triggerCharacter).slice(0, 5)
+    : completionList.slice(0, 5);
+
+  if (filteredCompletionList.length === 0) {
+    const newSearcher = new Fuse(completionList, {
+      keys: ['label'],
+      threshold: 0.4,
+      refIndex: false,
+    });
+
+    filteredCompletionList = triggerCharacter
+      ? newSearcher.search(triggerCharacter).slice(0, 5)
+      : completionList.slice(0, 5);
+  }
+
+  return filteredCompletionList;
 }
 
 /**

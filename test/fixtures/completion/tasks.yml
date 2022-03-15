@@ -5,3 +5,10 @@
     - name: Builtin module
       ansible.builtin.debug:
         msg: "Hello World"
+
+    - vyos.vyos.vyos_prefix_lists:
+        config:
+          - afi:
+            prefix_lists:
+
+    - an

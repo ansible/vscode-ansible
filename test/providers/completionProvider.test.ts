@@ -1,15 +1,12 @@
 import { expect } from 'chai';
-import { tests } from 'vscode';
 import { Position } from 'vscode-languageserver';
-import {
-  doCompletion,
-  doCompletionResolve,
-} from '../../src/providers/completionProvider';
+import { doCompletion } from '../../src/providers/completionProvider';
 import {} from '../../src/providers/validationProvider';
 import {
   createTestWorkspaceManager,
   getDoc,
   setFixtureAnsibleCollectionPathEnv,
+  smartFilter,
 } from '../helper';
 
 setFixtureAnsibleCollectionPathEnv();
@@ -24,11 +21,20 @@ describe('doCompletion()', () => {
         position: { line: 0, character: 4 } as Position,
         triggerCharacter: 'na',
       },
-
       {
         keyword: 'hosts',
         position: { line: 2, character: 5 } as Position,
         triggerCharacter: 'hos',
+      },
+      {
+        keyword: 'module name',
+        position: { line: 8, character: 6 } as Position,
+        triggerCharacter: 'an',
+      },
+      {
+        keyword: 'suboptions',
+        position: { line: 11, character: 12 } as Position,
+        triggerCharacter: '',
       },
     ];
 
@@ -37,61 +43,29 @@ describe('doCompletion()', () => {
         const textDoc = await getDoc('completion/tasks.yml');
         const context = workspaceManager.getContext(textDoc.uri);
 
-        const actualCompletion = await doCompletion(textDoc, position, context);
-        const filteredCompletion = actualCompletion.filter((item) => {
-          return item.filterText
-            ? item.filterText.includes(triggerCharacter)
-            : item.label.includes(triggerCharacter);
-        });
+        // Update setting to avoid fqcn
+        const docSettings = context.documentSettings.get(textDoc.uri);
+        const cachedDefaultSetting = (await docSettings).ansible
+          .useFullyQualifiedCollectionNames;
+        (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
 
-        console.log(
-          'ACTUAL -> ',
-          actualCompletion.sort((a, b) => a.sortText.localeCompare(b.sortText))
+        const actualCompletion = await doCompletion(textDoc, position, context);
+
+        const filteredCompletion = smartFilter(
+          actualCompletion,
+          triggerCharacter
         );
-        console.log(' *********** FILTERED -> ', filteredCompletion);
+
+        filteredCompletion.forEach((item) => {
+          item.item ? console.log(item.item.label) : console.log(item.label);
+        });
+        console.log('\n');
 
         expect(filteredCompletion).not.to.be.null;
+
+        (await docSettings).ansible.useFullyQualifiedCollectionNames =
+          cachedDefaultSetting;
       });
     });
   });
-
-  // it('Testing the completion', async function () {
-  //   const textDoc = await getDoc('completion/tasks.yml');
-  //   const context = workspaceManager.getContext(textDoc.uri);
-
-  //   const position = { line: 5, character: 10 } as Position;
-
-  //   //   Update setting to avoid fqcn
-  //   const docSettings = context.documentSettings.get(textDoc.uri);
-  //   const cachedDefaultSetting = (await docSettings).ansible
-  //     .useFullyQualifiedCollectionNames;
-  //   (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
-
-  //   const actualCompletion = await doCompletion(textDoc, position, context);
-
-  //   const actualCompletionResolve = await doCompletionResolve(
-  //     actualCompletion[0],
-  //     context
-  //   );
-
-  //   console.log('HELLO -> ', actualCompletionResolve);
-
-  //   // actualCompletion.forEach((item) => {
-  //   //   console.log('*** -> ', item.label);
-  //   // });
-
-  //   // const filteredCompletion = actualCompletion.filter((item) => {
-  //   //   if (item.filterText) {
-  //   //     return item.filterText.includes('prefix_list');
-  //   //   }
-  //   // });
-
-  //   // filteredCompletion.forEach((item) => {
-  //   //   console.log(`*** ${item.data.moduleFqcn} -> `, item.label);
-  //   // });
-  //   expect(actualCompletion).not.to.be.null;
-
-  //   (await docSettings).ansible.useFullyQualifiedCollectionNames =
-  //     cachedDefaultSetting;
-  // });
 });
