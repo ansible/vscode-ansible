@@ -28,3 +28,7 @@
 
                   - sub_sub_sub_opt_1:
                     sub_sub_sub_opt_2:
+
+    - name: Netcommon module
+      ansible.netcommon.cli_command:
+        command: show version | json
