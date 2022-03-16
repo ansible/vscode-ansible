@@ -47,7 +47,7 @@ export function smartFilter(completionList, triggerCharacter) {
   if (filteredCompletionList.length === 0) {
     const newSearcher = new Fuse(completionList, {
       keys: ['label'],
-      threshold: 0.4,
+      threshold: 0.2,
       refIndex: false,
     });
 
