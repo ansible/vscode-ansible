@@ -1,0 +1,19 @@
+# https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/enabling-and-disabling-dependabot-version-updates
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    labels:
+      - dependencies
+      # as dependabot bumps only the pinned test dependencies, is safe to:
+      - bot:chronographer:skip
+    open-pull-requests-limit: 3
+    allow:
+      # tell dependabot to update only important dependencies, not indirect ones
+      - dependency-name: pre-commit
+      - dependency-name: click
+      - dependency-name: lxml
+      - dependency-name: pre-commit
+      - dependency-name: pyparsing
