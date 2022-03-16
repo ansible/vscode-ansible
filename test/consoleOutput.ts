@@ -21,27 +21,27 @@ export class ConsoleOutput {
   public capture(): void {
     this.logOutput = "";
     console.log = (msg) => {
-      this.logOutput += msg + "\n";
+      this.logOutput += `${msg}\n`;
     };
 
     this.debugOutput = "";
     console.debug = (msg) => {
-      this.debugOutput += msg + "\n";
+      this.debugOutput += `${msg}\n`;
     };
 
     this.infoOutput = "";
     console.info = (msg) => {
-      this.infoOutput += msg + "\n";
+      this.infoOutput += `${msg}\n`;
     };
 
     this.warnOutput = "";
     console.warn = (msg) => {
-      this.warnOutput += msg + "\n";
+      this.warnOutput += `${msg}\n`;
     };
 
     this.errorOutput = "";
     console.error = (msg) => {
-      this.errorOutput += msg + "\n";
+      this.errorOutput += `${msg}\n`;
     };
   }
 
