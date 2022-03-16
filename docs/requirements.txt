@@ -65,7 +65,7 @@ pygments==2.10.0
     # via
     #   ansible-pygments
     #   sphinx
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via packaging
 pytz==2021.3
     # via babel
