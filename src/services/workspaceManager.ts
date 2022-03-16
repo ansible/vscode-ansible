@@ -1,20 +1,20 @@
-import * as _ from 'lodash';
+import * as _ from "lodash";
 import {
   ClientCapabilities,
   Connection,
   DidChangeWatchedFilesParams,
   WorkspaceFolder,
   WorkspaceFoldersChangeEvent,
-} from 'vscode-languageserver';
-import { AnsibleConfig } from './ansibleConfig';
-import { AnsibleLint } from './ansibleLint';
-import { AnsiblePlaybook } from './ansiblePlaybook';
-import { DocsLibrary } from './docsLibrary';
-import { ExecutionEnvironment } from './executionEnvironment';
-import { MetadataLibrary } from './metadataLibrary';
-import { SettingsManager } from './settingsManager';
-import * as path from 'path';
-import { URI } from 'vscode-uri';
+} from "vscode-languageserver";
+import { AnsibleConfig } from "./ansibleConfig";
+import { AnsibleLint } from "./ansibleLint";
+import { AnsiblePlaybook } from "./ansiblePlaybook";
+import { DocsLibrary } from "./docsLibrary";
+import { ExecutionEnvironment } from "./executionEnvironment";
+import { MetadataLibrary } from "./metadataLibrary";
+import { SettingsManager } from "./settingsManager";
+import * as path from "path";
+import { URI } from "vscode-uri";
 
 /**
  * Holds the overall context for the whole workspace.

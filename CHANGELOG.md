@@ -46,7 +46,7 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
   [vscode-ansible#373]:
     https://github.com/ansible/vscode-ansible/issues/373
-    '{issue}`236`'
+    "{issue}`236`"
 
 ## v0.5.0 (2022-03-01)
 
@@ -62,7 +62,7 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
   now don't strictly follow the release notes format suggested by [Keep a
   Changelog][keepachangelog] -- by {user}`webknjaz`
 
-  [keepachangelog]: https://keepachangelog.com/en/1.1.0/ '{issue}`164`'
+  [keepachangelog]: https://keepachangelog.com/en/1.1.0/ "{issue}`164`"
 
 - Replaced all the credits in the changelog with a dedicated Sphinx role -- by
   {user}`webknjaz`
@@ -76,13 +76,13 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
   [towncrier]:
     https://github.com/twisted/towncrier
-    '{issue}`158`, {issue}`198`, {issue}`201`, {issue}`202`,
-{issue}`204`, {issue}`208`, {issue}`210`'
+    "{issue}`158`, {issue}`198`, {issue}`201`, {issue}`202`,
+{issue}`204`, {issue}`208`, {issue}`210`"
 
 - Added [Sphinx][sphinx] documentation generator and set up the CI
   infrastructure for it -- by {user}`webknjaz`
 
-  [sphinx]: https://github.com/twisted/towncrier '{issue}`161`'
+  [sphinx]: https://github.com/twisted/towncrier "{issue}`161`"
 
 - Added docs and references to the Community Code Of Conduct, security and
   contributing guides, and a pull request template -- by {user}`webknjaz`

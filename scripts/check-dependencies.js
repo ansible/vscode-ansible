@@ -7,13 +7,13 @@
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-const exit = require('process').exit;
-const dependencies = require('../package.json').dependencies;
+const exit = require("process").exit;
+const dependencies = require("../package.json").dependencies;
 
 for (const dep in dependencies) {
   if (Object.prototype.hasOwnProperty.call(dependencies, dep)) {
     const version = dependencies[dep];
-    if (version === 'next') {
+    if (version === "next") {
       console.error(
         `Dependency ${dep} has "${version}" version, please change it to fixed version`
       );

@@ -1,9 +1,9 @@
-import * as child_process from 'child_process';
-import { promises as fs } from 'fs';
-import { promisify } from 'util';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Range } from 'vscode-languageserver-types';
-import * as path from 'path';
+import * as child_process from "child_process";
+import { promises as fs } from "fs";
+import { promisify } from "util";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { Range } from "vscode-languageserver-types";
+import * as path from "path";
 
 export async function fileExists(filePath: string): Promise<boolean> {
   return !!(await fs.stat(filePath).catch(() => false));
@@ -31,7 +31,7 @@ export function hasOwnProperty<X, Y extends PropertyKey>(
  * Checks whether `obj` is a non-null object.
  */
 export function isObject<X>(obj: X): obj is X & Record<PropertyKey, unknown> {
-  return obj && typeof obj === 'object';
+  return obj && typeof obj === "object";
 }
 
 export function insert(str: string, index: number, val: string): string {
@@ -50,7 +50,7 @@ export function withInterpreter(
   let command = `${executable} ${args}`; // base case
 
   const newEnv = Object.assign({}, process.env, {
-    ANSIBLE_FORCE_COLOR: '0', // ensure output is parseable (no ANSI)
+    ANSIBLE_FORCE_COLOR: "0", // ensure output is parseable (no ANSI)
   });
 
   if (activationScript) {
@@ -59,9 +59,9 @@ export function withInterpreter(
   }
 
   if (interpreterPath) {
-    const virtualEnv = path.resolve(interpreterPath, '../..');
+    const virtualEnv = path.resolve(interpreterPath, "../..");
 
-    const pathEntry = path.join(virtualEnv, 'bin');
+    const pathEntry = path.join(virtualEnv, "bin");
     if (path.isAbsolute(executable)) {
       // if both interpreter path and absolute command path are provided, we can
       // bolster the chances of success by letting the interpreter execute the
@@ -70,8 +70,8 @@ export function withInterpreter(
     }
 
     // emulating virtual environment activation script
-    newEnv['VIRTUAL_ENV'] = virtualEnv;
-    newEnv['PATH'] = `${pathEntry}:${process.env.PATH}`;
+    newEnv["VIRTUAL_ENV"] = virtualEnv;
+    newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
     delete newEnv.PYTHONHOME;
   }
   return [command, newEnv];
@@ -83,7 +83,7 @@ export function withInterpreter(
  */
 export function getUnsupportedError(): string | undefined {
   // win32 applies to x64 arch too, is the platform name
-  if (process.platform === 'win32') {
-    return 'Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.';
+  if (process.platform === "win32") {
+    return "Ansible Language Server can only run inside WSL on Windows. Refer to vscode documentation for more details.";
   }
 }

@@ -14,7 +14,6 @@
   "plugins": ["@typescript-eslint"],
   "rules": {
     "eqeqeq": ["error", "smart"],
-    "prefer-template": "warn",
-    "quotes": ["warn", "single"]
+    "prefer-template": "warn"
   }
 }

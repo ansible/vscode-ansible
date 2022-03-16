@@ -1,7 +1,7 @@
-import * as _ from 'lodash';
-import { Connection } from 'vscode-languageserver';
-import { DidChangeConfigurationParams } from 'vscode-languageserver-protocol';
-import { ExtensionSettings } from '../interfaces/extensionSettings';
+import * as _ from "lodash";
+import { Connection } from "vscode-languageserver";
+import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
+import { ExtensionSettings } from "../interfaces/extensionSettings";
 
 export class SettingsManager {
   private connection: Connection;
@@ -13,14 +13,14 @@ export class SettingsManager {
     new Map();
 
   private defaultSettings: ExtensionSettings = {
-    ansible: { path: 'ansible', useFullyQualifiedCollectionNames: true },
-    ansibleLint: { enabled: true, path: 'ansible-lint', arguments: '' },
-    python: { interpreterPath: '', activationScript: '' },
+    ansible: { path: "ansible", useFullyQualifiedCollectionNames: true },
+    ansibleLint: { enabled: true, path: "ansible-lint", arguments: "" },
+    python: { interpreterPath: "", activationScript: "" },
     executionEnvironment: {
-      containerEngine: 'auto',
+      containerEngine: "auto",
       enabled: false,
-      image: 'quay.io/ansible/creator-ee:latest',
-      pullPolicy: 'missing',
+      image: "quay.io/ansible/creator-ee:latest",
+      pullPolicy: "missing",
     },
   };
   private globalSettings: ExtensionSettings = this.defaultSettings;
@@ -48,7 +48,7 @@ export class SettingsManager {
     if (!result) {
       result = this.connection.workspace.getConfiguration({
         scopeUri: uri,
-        section: 'ansible',
+        section: "ansible",
       });
       this.documentSettings.set(uri, result);
     }
@@ -78,7 +78,7 @@ export class SettingsManager {
 
           const newConfigPromise = this.connection.workspace.getConfiguration({
             scopeUri: uri,
-            section: 'ansible',
+            section: "ansible",
           });
           newDocumentSettings.set(uri, newConfigPromise);
 

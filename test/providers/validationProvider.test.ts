@@ -1,25 +1,25 @@
-import { expect } from 'chai';
-import { Position } from 'vscode-languageserver';
+import { expect } from "chai";
+import { Position, integer } from "vscode-languageserver";
 import {
   doValidate,
   getYamlValidation,
-} from '../../src/providers/validationProvider';
+} from "../../src/providers/validationProvider";
 import {
   createTestValidationManager,
   createTestWorkspaceManager,
   getDoc,
   setFixtureAnsibleCollectionPathEnv,
-} from '../helper';
+} from "../helper";
 
 setFixtureAnsibleCollectionPathEnv();
 
-describe('doValidate()', () => {
+describe("doValidate()", () => {
   const workspaceManager = createTestWorkspaceManager();
   const validationManager = createTestValidationManager();
 
-  describe('Get validation only from cache', () => {
-    it('should provide no diagnostics', async function () {
-      const textDoc = await getDoc('diagnostics/lint_errors.yml');
+  describe("Get validation only from cache", () => {
+    it("should provide no diagnostics", async function () {
+      const textDoc = await getDoc("diagnostics/lint_errors.yml");
 
       const actualDiagnostics = await doValidate(textDoc, validationManager);
 
@@ -27,98 +27,97 @@ describe('doValidate()', () => {
     });
   });
 
-  describe('Ansible diagnostics', () => {
-    describe('Diagnostics using ansible-lint', () => {
+  describe("Ansible diagnostics", () => {
+    describe("Diagnostics using ansible-lint", () => {
       const tests = [
         {
-          name: 'specific ansible lint errors',
-          file: 'diagnostics/lint_errors.yml',
+          name: "specific ansible lint errors",
+          file: "diagnostics/lint_errors.yml",
           diagnosticReport: [
             {
               severity: 1,
-              message: 'violates variable naming standards',
+              message: "violates variable naming standards",
               range: {
                 start: { line: 4, character: 0 } as Position,
                 end: {
                   line: 4,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
             {
               severity: 1,
-              message: 'All tasks should be named',
+              message: "All tasks should be named",
               range: {
                 start: { line: 6, character: 0 } as Position,
                 end: {
                   line: 6,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
             {
               severity: 1,
-              // eslint-disable-next-line quotes
-              message: "Don't compare to empty string",
-              range: {
-                start: { line: 9, character: 0 } as Position,
-                end: {
-                  line: 9,
-                  character: Number.MAX_SAFE_INTEGER,
-                } as Position,
-              },
-              source: 'Ansible',
-            },
-            {
-              severity: 1,
-              message:
-                'Commands should not change things if nothing needs doing',
+              message: "Use FQCN for builtin actions",
               range: {
                 start: { line: 14, character: 0 } as Position,
                 end: {
                   line: 14,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
+            },
+            {
+              severity: 1,
+              message:
+                "Commands should not change things if nothing needs doing",
+              range: {
+                start: { line: 14, character: 0 } as Position,
+                end: {
+                  line: 14,
+                  character: integer.MAX_VALUE,
+                } as Position,
+              },
+              source: "Ansible",
             },
           ],
         },
         {
-          name: 'empty playbook',
-          file: 'diagnostics/empty.yml',
+          name: "empty playbook",
+          file: "diagnostics/empty.yml",
           diagnosticReport: [
             {
               severity: 1,
-              message: '[syntax-check] Empty playbook, nothing to do',
+              message: "[syntax-check] Empty playbook, nothing to do",
               range: {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
           ],
         },
         {
-          name: 'no host',
-          file: 'diagnostics/noHost.yml',
+          name: "no host",
+          file: "diagnostics/noHost.yml",
           diagnosticReport: [
             {
               severity: 1,
-              message: '[syntax-check] Ansible syntax check failed',
+              message: "[syntax-check] Ansible syntax check failed",
               range: {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
           ],
         },
@@ -159,21 +158,21 @@ describe('doValidate()', () => {
       });
     });
 
-    describe('Diagnostics after falling back to --syntax-check due to change in settings', () => {
+    describe("Diagnostics after falling back to --syntax-check due to change in settings", () => {
       const tests = [
         {
-          name: 'no specific ansible lint errors',
-          file: 'diagnostics/lint_errors.yml',
+          name: "no specific ansible lint errors",
+          file: "diagnostics/lint_errors.yml",
           diagnosticReport: [],
         },
         {
-          name: 'empty playbook',
-          file: 'diagnostics/empty.yml',
+          name: "empty playbook",
+          file: "diagnostics/empty.yml",
           diagnosticReport: [],
         },
         {
-          name: 'no host',
-          file: 'diagnostics/noHost.yml',
+          name: "no host",
+          file: "diagnostics/noHost.yml",
           diagnosticReport: [
             {
               severity: 1,
@@ -183,10 +182,10 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
           ],
         },
@@ -233,16 +232,16 @@ describe('doValidate()', () => {
         });
       });
     });
-    describe('Diagnostics after falling back to --syntax-check due to unavailability of ansible-lint', () => {
+    describe("Diagnostics after falling back to --syntax-check due to unavailability of ansible-lint", () => {
       const tests = [
         {
-          name: 'no specific ansible lint errors',
-          file: 'diagnostics/lint_errors.yml',
+          name: "no specific ansible lint errors",
+          file: "diagnostics/lint_errors.yml",
           diagnosticReport: [],
         },
         {
-          name: 'no host',
-          file: 'diagnostics/noHost.yml',
+          name: "no host",
+          file: "diagnostics/noHost.yml",
           diagnosticReport: [
             {
               severity: 1,
@@ -252,10 +251,10 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
           ],
         },
@@ -269,7 +268,7 @@ describe('doValidate()', () => {
           //   Update setting to disable ansible-lint
           const docSettings = context.documentSettings.get(textDoc.uri);
           const cachedDefaultSetting = (await docSettings).ansibleLint.path;
-          (await docSettings).ansibleLint.path = 'invalid-ansible-lint-path';
+          (await docSettings).ansibleLint.path = "invalid-ansible-lint-path";
 
           const actualDiagnostics = await doValidate(
             textDoc,
@@ -304,16 +303,16 @@ describe('doValidate()', () => {
       });
     });
 
-    describe('Diagnostics after falling back to --syntax-check due to failure in execution of ansible-lint command', () => {
+    describe("Diagnostics after falling back to --syntax-check due to failure in execution of ansible-lint command", () => {
       const tests = [
         {
-          name: 'no specific ansible lint errors',
-          file: 'diagnostics/lint_errors.yml',
+          name: "no specific ansible lint errors",
+          file: "diagnostics/lint_errors.yml",
           diagnosticReport: [],
         },
         {
-          name: 'no host',
-          file: 'diagnostics/noHost.yml',
+          name: "no host",
+          file: "diagnostics/noHost.yml",
           diagnosticReport: [
             {
               severity: 1,
@@ -323,10 +322,10 @@ describe('doValidate()', () => {
                 start: { line: 0, character: 0 } as Position,
                 end: {
                   line: 0,
-                  character: Number.MAX_SAFE_INTEGER,
+                  character: integer.MAX_VALUE,
                 } as Position,
               },
-              source: 'Ansible',
+              source: "Ansible",
             },
           ],
         },
@@ -341,7 +340,7 @@ describe('doValidate()', () => {
           const docSettings = context.documentSettings.get(textDoc.uri);
           const cachedDefaultSetting = (await docSettings).ansibleLint
             .arguments;
-          (await docSettings).ansibleLint.arguments = '-f invalid_argument';
+          (await docSettings).ansibleLint.arguments = "-f invalid_argument";
 
           const actualDiagnostics = await doValidate(
             textDoc,
@@ -376,15 +375,15 @@ describe('doValidate()', () => {
     });
   });
 
-  describe('YAML diagnostics', () => {
+  describe("YAML diagnostics", () => {
     const tests = [
       {
-        name: 'invalid YAML',
-        file: 'diagnostics/invalid_yaml.yml',
+        name: "invalid YAML",
+        file: "diagnostics/invalid_yaml.yml",
         diagnosticReport: [
           {
             severity: 1,
-            message: 'Nested mappings are not allowed',
+            message: "Nested mappings are not allowed",
             range: {
               start: { line: 6, character: 13 } as Position,
               end: {
@@ -392,11 +391,11 @@ describe('doValidate()', () => {
                 character: 13,
               } as Position,
             },
-            source: 'Ansible [YAML]',
+            source: "Ansible [YAML]",
           },
           {
             severity: 1,
-            message: 'Document contains trailing content',
+            message: "Document contains trailing content",
             range: {
               start: { line: 7, character: 0 } as Position,
               end: {
@@ -404,7 +403,7 @@ describe('doValidate()', () => {
                 character: 0,
               } as Position,
             },
-            source: 'Ansible [YAML]',
+            source: "Ansible [YAML]",
           },
         ],
       },

@@ -1,11 +1,11 @@
-import { format } from 'util';
-import { MarkupContent, MarkupKind } from 'vscode-languageserver';
+import { format } from "util";
+import { MarkupContent, MarkupKind } from "vscode-languageserver";
 import {
   IDescription,
   IModuleDocumentation,
   IOption,
-} from '../interfaces/module';
-import { IPluginRoute } from '../interfaces/pluginRouting';
+} from "../interfaces/module";
+import { IPluginRoute } from "../interfaces/pluginRouting";
 
 export function formatModule(
   module: IModuleDocumentation,
@@ -13,7 +13,7 @@ export function formatModule(
 ): MarkupContent {
   const sections: string[] = [];
   if (module.deprecated || route?.deprecation) {
-    sections.push('**DEPRECATED**');
+    sections.push("**DEPRECATED**");
     if (route?.deprecation) {
       if (route.deprecation.warningText) {
         sections.push(`${route.deprecation.warningText}`);
@@ -30,27 +30,27 @@ export function formatModule(
     sections.push(`*${formatDescription(module.shortDescription)}*`);
   }
   if (module.description) {
-    sections.push('**Description**');
+    sections.push("**Description**");
     sections.push(formatDescription(module.description));
   }
   if (module.requirements) {
-    sections.push('**Requirements**');
+    sections.push("**Requirements**");
     sections.push(formatDescription(module.requirements));
   }
   if (module.notes) {
-    sections.push('**Notes**');
+    sections.push("**Notes**");
     sections.push(formatDescription(module.notes));
   }
   return {
     kind: MarkupKind.Markdown,
-    value: sections.join('\n\n'),
+    value: sections.join("\n\n"),
   };
 }
 
 export function formatTombstone(route: IPluginRoute): MarkupContent {
   const sections: string[] = [];
   if (route?.tombstone) {
-    sections.push('**REMOVED**');
+    sections.push("**REMOVED**");
     if (route.tombstone.warningText) {
       sections.push(`${route.tombstone.warningText}`);
     }
@@ -63,7 +63,7 @@ export function formatTombstone(route: IPluginRoute): MarkupContent {
   }
   return {
     kind: MarkupKind.Markdown,
-    value: sections.join('\n\n'),
+    value: sections.join("\n\n"),
   };
 }
 
@@ -97,12 +97,12 @@ export function formatOption(
   }
   return {
     kind: MarkupKind.Markdown,
-    value: sections.join('\n\n'),
+    value: sections.join("\n\n"),
   };
 }
 
 export function formatDescription(doc?: IDescription, asList = true): string {
-  let result = '';
+  let result = "";
   if (doc instanceof Array) {
     const lines: string[] = [];
     doc.forEach((element) => {
@@ -112,8 +112,8 @@ export function formatDescription(doc?: IDescription, asList = true): string {
         lines.push(`${replaceMacros(element)}\n`);
       }
     });
-    result += lines.join('\n');
-  } else if (typeof doc === 'string') {
+    result += lines.join("\n");
+  } else if (typeof doc === "string") {
     result += replaceMacros(doc);
   }
   return result;
@@ -122,16 +122,16 @@ export function formatDescription(doc?: IDescription, asList = true): string {
 export function getDetails(option: IOption): string | undefined {
   const details = [];
   if (option.required) {
-    details.push('(required)');
+    details.push("(required)");
   }
   if (option.type) {
-    if (option.type === 'list' && option.elements) {
+    if (option.type === "list" && option.elements) {
       details.push(`list(${option.elements})`);
     } else {
       details.push(option.type);
     }
   }
-  if (details) return details.join(' ');
+  if (details) return details.join(" ");
 }
 
 // TODO: do something with links
@@ -147,18 +147,18 @@ const macroPatterns = {
 };
 function replaceMacros(text: unknown): string {
   let safeText;
-  if (typeof text === 'string') {
+  if (typeof text === "string") {
     safeText = text;
   } else {
     safeText = JSON.stringify(text);
   }
   return safeText
-    .replace(macroPatterns.link, '[$1]($2)')
-    .replace(macroPatterns.url, '$1')
-    .replace(macroPatterns.reference, '[$1]($2)')
-    .replace(macroPatterns.module, '*`$1`*')
-    .replace(macroPatterns.monospace, '`$1`')
-    .replace(macroPatterns.italics, '_$1_')
-    .replace(macroPatterns.bold, '**$1**')
-    .replace(macroPatterns.hr, '<hr>');
+    .replace(macroPatterns.link, "[$1]($2)")
+    .replace(macroPatterns.url, "$1")
+    .replace(macroPatterns.reference, "[$1]($2)")
+    .replace(macroPatterns.module, "*`$1`*")
+    .replace(macroPatterns.monospace, "`$1`")
+    .replace(macroPatterns.italics, "_$1_")
+    .replace(macroPatterns.bold, "**$1**")
+    .replace(macroPatterns.hr, "<hr>");
 }

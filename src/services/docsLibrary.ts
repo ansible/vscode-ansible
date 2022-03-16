@@ -1,18 +1,18 @@
-import { Connection } from 'vscode-languageserver';
-import { Node } from 'yaml/types';
-import { getDeclaredCollections } from '../utils/yaml';
-import { findDocumentation, findPluginRouting } from '../utils/docsFinder';
-import { WorkspaceFolderContext } from './workspaceManager';
+import { Connection } from "vscode-languageserver";
+import { Node } from "yaml/types";
+import { getDeclaredCollections } from "../utils/yaml";
+import { findDocumentation, findPluginRouting } from "../utils/docsFinder";
+import { WorkspaceFolderContext } from "./workspaceManager";
 import {
   IPluginRoute,
   IPluginRoutesByType,
   IPluginRoutingByCollection,
-} from '../interfaces/pluginRouting';
+} from "../interfaces/pluginRouting";
 import {
   processDocumentationFragments,
   processRawDocumentation,
-} from '../utils/docsParser';
-import { IModuleMetadata } from '../interfaces/module';
+} from "../utils/docsParser";
+import { IModuleMetadata } from "../interfaces/module";
 export class DocsLibrary {
   private connection: Connection;
   private modules = new Map<string, IModuleMetadata>();
@@ -40,12 +40,12 @@ export class DocsLibrary {
         await this.context.executionEnvironment;
       }
       for (const modulesPath of ansibleConfig.module_locations) {
-        (await findDocumentation(modulesPath, 'builtin')).forEach((doc) => {
+        (await findDocumentation(modulesPath, "builtin")).forEach((doc) => {
           this.modules.set(doc.fqcn, doc);
           this.moduleFqcns.add(doc.fqcn);
         });
 
-        (await findDocumentation(modulesPath, 'builtin_doc_fragment')).forEach(
+        (await findDocumentation(modulesPath, "builtin_doc_fragment")).forEach(
           (doc) => {
             this.docFragments.set(doc.fqcn, doc);
           }
@@ -53,11 +53,11 @@ export class DocsLibrary {
       }
 
       (
-        await findPluginRouting(ansibleConfig.ansible_location, 'builtin')
+        await findPluginRouting(ansibleConfig.ansible_location, "builtin")
       ).forEach((r, collection) => this.pluginRouting.set(collection, r));
 
       for (const collectionsPath of ansibleConfig.collections_paths) {
-        (await findDocumentation(collectionsPath, 'collection')).forEach(
+        (await findDocumentation(collectionsPath, "collection")).forEach(
           (doc) => {
             this.modules.set(doc.fqcn, doc);
             this.moduleFqcns.add(doc.fqcn);
@@ -65,18 +65,18 @@ export class DocsLibrary {
         );
 
         (
-          await findDocumentation(collectionsPath, 'collection_doc_fragment')
+          await findDocumentation(collectionsPath, "collection_doc_fragment")
         ).forEach((doc) => {
           this.docFragments.set(doc.fqcn, doc);
         });
 
-        (await findPluginRouting(collectionsPath, 'collection')).forEach(
+        (await findPluginRouting(collectionsPath, "collection")).forEach(
           (r, collection) => this.pluginRouting.set(collection, r)
         );
 
         // add all valid redirect routes as possible FQCNs
         for (const [collection, routesByType] of this.pluginRouting) {
-          for (const [name, route] of routesByType.get('modules') || []) {
+          for (const [name, route] of routesByType.get("modules") || []) {
             if (route.redirect && !route.tombstone) {
               this.moduleFqcns.add(`${collection}.${name}`);
             }
@@ -163,7 +163,7 @@ export class DocsLibrary {
     contextPath: Node[] | undefined
   ) {
     const candidateFqcns = [];
-    if (searchText.split('.').length === 3) {
+    if (searchText.split(".").length === 3) {
       candidateFqcns.push(searchText); // try searching as-is (FQCN match)
     } else {
       candidateFqcns.push(`ansible.builtin.${searchText}`); // try searching built-in
@@ -190,12 +190,12 @@ export class DocsLibrary {
   }
 
   public getModuleRoute(fqcn: string): IPluginRoute | undefined {
-    const fqcn_array = fqcn.split('.');
+    const fqcn_array = fqcn.split(".");
     if (fqcn_array.length === 3) {
       const [namespace, collection, name] = fqcn_array;
       return this.pluginRouting
         .get(`${namespace}.${collection}`)
-        ?.get('modules')
+        ?.get("modules")
         ?.get(name);
     }
   }

@@ -1,6 +1,6 @@
 export type IPluginRoutingByCollection = Map<string, IPluginRoutesByType>;
 
-export type IPluginTypes = 'modules'; // currently only modules are supported
+export type IPluginTypes = "modules"; // currently only modules are supported
 
 export type IPluginRoutesByType = Map<IPluginTypes, IPluginRoutesByName>;
 
