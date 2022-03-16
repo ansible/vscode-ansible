@@ -1,38 +1,38 @@
-import { expect } from 'chai';
-import { Position } from 'vscode-languageserver';
-import { doCompletion } from '../../src/providers/completionProvider';
-import {} from '../../src/providers/validationProvider';
+import { expect } from "chai";
+import { Position } from "vscode-languageserver";
+import { doCompletion } from "../../src/providers/completionProvider";
+import {} from "../../src/providers/validationProvider";
 import {
   createTestWorkspaceManager,
   getDoc,
   setFixtureAnsibleCollectionPathEnv,
   smartFilter,
-} from '../helper';
+} from "../helper";
 
 setFixtureAnsibleCollectionPathEnv();
 
-describe('doCompletion()', () => {
+describe("doCompletion()", () => {
   const workspaceManager = createTestWorkspaceManager();
 
-  describe('Completion for play keywords', () => {
+  describe("Completion for play keywords", () => {
     const tests = [
       {
-        name: 'name',
+        name: "name",
         position: { line: 0, character: 2 } as Position,
-        triggerCharacter: '',
-        completion: 'name',
+        triggerCharacter: "",
+        completion: "name",
       },
       {
-        name: 'hosts',
+        name: "hosts",
         position: { line: 2, character: 5 } as Position,
-        triggerCharacter: 'hos',
-        completion: 'hosts',
+        triggerCharacter: "hos",
+        completion: "hosts",
       },
     ];
 
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
-        const textDoc = await getDoc('completion/simple_tasks.yml');
+        const textDoc = await getDoc("completion/simple_tasks.yml");
         const context = workspaceManager.getContext(textDoc.uri);
 
         const actualCompletion = await doCompletion(textDoc, position, context);
@@ -45,7 +45,7 @@ describe('doCompletion()', () => {
         filteredCompletion.forEach((item) => {
           item.item ? console.log(item.item.label) : console.log(item.label);
         });
-        console.log('\n');
+        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -60,25 +60,25 @@ describe('doCompletion()', () => {
     });
   });
 
-  describe('Completion for role keywords', () => {
+  describe("Completion for role keywords", () => {
     const tests = [
       {
-        name: 'name',
+        name: "name",
         position: { line: 4, character: 6 } as Position,
-        triggerCharacter: '',
-        completion: 'name',
+        triggerCharacter: "",
+        completion: "name",
       },
       {
-        name: 'when',
+        name: "when",
         position: { line: 5, character: 8 } as Position,
-        triggerCharacter: 'wh',
-        completion: 'when',
+        triggerCharacter: "wh",
+        completion: "when",
       },
     ];
 
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
-        const textDoc = await getDoc('completion/with_roles.yml');
+        const textDoc = await getDoc("completion/with_roles.yml");
         const context = workspaceManager.getContext(textDoc.uri);
 
         const actualCompletion = await doCompletion(textDoc, position, context);
@@ -91,7 +91,7 @@ describe('doCompletion()', () => {
         filteredCompletion.forEach((item) => {
           item.item ? console.log(item.item.label) : console.log(item.label);
         });
-        console.log('\n');
+        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -106,25 +106,25 @@ describe('doCompletion()', () => {
     });
   });
 
-  describe('Completion for block keywords', () => {
+  describe("Completion for block keywords", () => {
     const tests = [
       {
-        name: 'become_user',
+        name: "become_user",
         position: { line: 8, character: 13 } as Position,
-        triggerCharacter: 'user',
-        completion: 'become_user',
+        triggerCharacter: "user",
+        completion: "become_user",
       },
       {
-        name: 'become',
+        name: "become",
         position: { line: 7, character: 8 } as Position,
-        triggerCharacter: 'be',
-        completion: 'become',
+        triggerCharacter: "be",
+        completion: "become",
       },
     ];
 
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
-        const textDoc = await getDoc('completion/with_blocks.yml');
+        const textDoc = await getDoc("completion/with_blocks.yml");
         const context = workspaceManager.getContext(textDoc.uri);
 
         const actualCompletion = await doCompletion(textDoc, position, context);
@@ -137,7 +137,7 @@ describe('doCompletion()', () => {
         filteredCompletion.forEach((item) => {
           item.item ? console.log(item.item.label) : console.log(item.label);
         });
-        console.log('\n');
+        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -152,25 +152,25 @@ describe('doCompletion()', () => {
     });
   });
 
-  describe('Completion for task keywords', () => {
+  describe("Completion for task keywords", () => {
     const tests = [
       {
-        name: 'loop',
+        name: "loop",
         position: { line: 10, character: 9 } as Position,
-        triggerCharacter: 'loop',
-        completion: 'loop',
+        triggerCharacter: "loop",
+        completion: "loop",
       },
       {
-        name: 'debugger',
+        name: "debugger",
         position: { line: 13, character: 9 } as Position,
-        triggerCharacter: 'deb',
-        completion: 'debugger',
+        triggerCharacter: "deb",
+        completion: "debugger",
       },
     ];
 
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
-        const textDoc = await getDoc('completion/simple_tasks.yml');
+        const textDoc = await getDoc("completion/simple_tasks.yml");
         const context = workspaceManager.getContext(textDoc.uri);
 
         const actualCompletion = await doCompletion(textDoc, position, context);
@@ -183,7 +183,7 @@ describe('doCompletion()', () => {
         filteredCompletion.forEach((item) => {
           item.item ? console.log(item.item.label) : console.log(item.label);
         });
-        console.log('\n');
+        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -197,61 +197,61 @@ describe('doCompletion()', () => {
       });
     });
   });
-  describe('Completion for module names (with different trigger scenarios)', () => {
+  describe("Completion for module names (with different trigger scenarios)", () => {
     const tests = [
       {
-        name: 'with name as first option always',
+        name: "with name as first option always",
         position: { line: 6, character: 6 } as Position,
-        triggerCharacter: '',
-        completion: 'name',
+        triggerCharacter: "",
+        completion: "name",
       },
       {
-        name: 'with `ping`',
+        name: "with `ping`",
         position: { line: 7, character: 8 } as Position,
-        triggerCharacter: 'ping',
-        completion: 'ansible.builtin.ping',
+        triggerCharacter: "ping",
+        completion: "ansible.builtin.ping",
       },
       {
-        name: 'with `debu`',
+        name: "with `debu`",
         position: { line: 7, character: 8 } as Position,
-        triggerCharacter: 'debu',
-        completion: 'ansible.builtin.debug',
+        triggerCharacter: "debu",
+        completion: "ansible.builtin.debug",
       },
       {
-        name: 'with `ansible.`',
+        name: "with `ansible.`",
         position: { line: 7, character: 8 } as Position,
-        triggerCharacter: 'ansible.',
-        completion: 'ansible.',
+        triggerCharacter: "ansible.",
+        completion: "ansible.",
       },
       {
-        name: 'with `ansible.builtin.`',
+        name: "with `ansible.builtin.`",
         position: { line: 7, character: 8 } as Position,
-        triggerCharacter: 'ansible.builtin.',
-        completion: 'ansible.builtin.',
+        triggerCharacter: "ansible.builtin.",
+        completion: "ansible.builtin.",
       },
       {
-        name: 'with `org_1.c`',
+        name: "with `org_1.c`",
         position: { line: 16, character: 13 } as Position,
-        triggerCharacter: 'org_1.c',
-        completion: 'org_1.c',
+        triggerCharacter: "org_1.c",
+        completion: "org_1.c",
       },
       {
-        name: 'with `org_1.coll_4.`',
+        name: "with `org_1.coll_4.`",
         position: { line: 16, character: 19 } as Position,
-        triggerCharacter: 'org_1.coll_4.',
-        completion: 'org_1.coll_4.',
+        triggerCharacter: "org_1.coll_4.",
+        completion: "org_1.coll_4.",
       },
       {
-        name: 'with `cli_`',
-        position: { line: 7, character: 8 } as Position,
-        triggerCharacter: 'cli_',
-        completion: 'cli_',
+        name: "with `cli_`",
+        position: { line: 32, character: 6 } as Position,
+        triggerCharacter: "cli_",
+        completion: "cli_",
       },
     ];
 
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide autocompletion ${name}`, async function () {
-        const textDoc = await getDoc('completion/simple_tasks.yml');
+        const textDoc = await getDoc("completion/simple_tasks.yml");
         const context = workspaceManager.getContext(textDoc.uri);
 
         const actualCompletion = await doCompletion(textDoc, position, context);
@@ -264,7 +264,7 @@ describe('doCompletion()', () => {
         filteredCompletion.forEach((item) => {
           item.item ? console.log(item.item.label) : console.log(item.label);
         });
-        console.log('\n');
+        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -279,49 +279,49 @@ describe('doCompletion()', () => {
     });
   });
 
-  describe('Completion for module options and suboptions', () => {
+  describe("Completion for module options and suboptions", () => {
     const tests = [
       {
-        name: 'builtin module option (ansible.builtin.debug -> msg)',
+        name: "builtin module option (ansible.builtin.debug -> msg)",
         position: { line: 8, character: 9 } as Position,
-        triggerCharacter: 'm',
-        completion: 'msg',
+        triggerCharacter: "m",
+        completion: "msg",
       },
       {
-        name: 'collection module option (org_1.coll_4.module_1 -> opt_1)',
+        name: "collection module option (org_1.coll_4.module_1 -> opt_1)",
         position: { line: 17, character: 8 } as Position,
-        triggerCharacter: '',
-        completion: 'opt_1',
+        triggerCharacter: "",
+        completion: "opt_1",
       },
       {
-        name: 'collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_1)',
+        name: "collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_1)",
         position: { line: 21, character: 12 } as Position,
-        triggerCharacter: '1',
-        completion: 'sub_opt_1',
+        triggerCharacter: "1",
+        completion: "sub_opt_1",
       },
       {
-        name: 'collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_2 -> sub_sub_opt_3 -> sub_sub_sub_opt_2)',
+        name: "collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_2 -> sub_sub_opt_3 -> sub_sub_sub_opt_2)",
         position: { line: 26, character: 20 } as Position,
-        triggerCharacter: '2',
-        completion: 'sub_sub_sub_opt_2',
+        triggerCharacter: "2",
+        completion: "sub_sub_sub_opt_2",
       },
       {
-        name: 'only non repeating options',
+        name: "only non repeating options",
         position: { line: 9, character: 9 } as Position,
-        triggerCharacter: 'm',
-        completion: '',
+        triggerCharacter: "m",
+        completion: "",
       },
       {
-        name: 'only non repeating suboptions',
+        name: "only non repeating suboptions",
         position: { line: 29, character: 20 } as Position,
-        triggerCharacter: '1',
-        completion: '',
+        triggerCharacter: "1",
+        completion: "",
       },
     ];
 
     tests.forEach(({ name, position, triggerCharacter, completion }) => {
       it(`should provide completion for ${name}`, async function () {
-        const textDoc = await getDoc('completion/simple_tasks.yml');
+        const textDoc = await getDoc("completion/simple_tasks.yml");
         const context = workspaceManager.getContext(textDoc.uri);
 
         const actualCompletion = await doCompletion(textDoc, position, context);
@@ -334,7 +334,7 @@ describe('doCompletion()', () => {
         filteredCompletion.forEach((item) => {
           item.item ? console.log(item.item.label) : console.log(item.label);
         });
-        console.log('\n');
+        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
