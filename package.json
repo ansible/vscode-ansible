@@ -390,7 +390,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.5.2",
+    "@ansible/ansible-language-server": "^0.5.3",
     "@types/ini": "^1.3.31",
     "ini": "^2.0.0",
     "untildify": "^4.0.0",
