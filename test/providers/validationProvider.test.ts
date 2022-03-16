@@ -60,12 +60,11 @@ describe("doValidate()", () => {
             },
             {
               severity: 1,
-              // eslint-disable-next-line quotes
-              message: "Don't compare to empty string",
+              message: "Use FQCN for builtin actions",
               range: {
-                start: { line: 9, character: 0 } as Position,
+                start: { line: 14, character: 0 } as Position,
                 end: {
-                  line: 9,
+                  line: 14,
                   character: integer.MAX_VALUE,
                 } as Position,
               },
