@@ -42,11 +42,21 @@ jobs:
           npm ls
           # npm install --save ../ansible-language-server
           npm run package
+          # we need to bring vsix artifact inside workspace
+          cp *.vsix ../ansible-language-server/
 
-      - name: >-
-          Run test-ui with vscode-ansible
+      - name: Publish vsix artifact
+        if: ${{ github.event.number }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ansible-extension-from-pr-${{ github.event.number }}.vsix
+          # this action cannot archive artifacts from outside workspace "../"
+          # https://github.com/actions/upload-artifact/issues/246
+          path: ansible-*.vsix
+          retention-days: 15
+
+      - name: Run test-ui with vscode-ansible
         uses: GabrielBB/xvfb-action@v1
         with:
-          run: >-
-            npm run test-ui
+          run: sh -c "npm run test-ui && cp *.vsix ../ansible-language-server/"
           working-directory: ../vscode-ansible
