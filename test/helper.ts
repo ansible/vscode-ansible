@@ -60,6 +60,49 @@ export function smartFilter(completionList, triggerCharacter) {
 }
 
 /**
+ * A function that tries to imitate the filtering of the completion items done in the respective client extension
+ * when the user starts typing against the provided auto-completions
+ * @param completionList list with completion items
+ * @param triggerCharacter string against which fuzzy search is to be done
+ * @returns list after sorting and filtering
+ */
+export function smartFilter(completionList, triggerCharacter) {
+  if (!completionList) {
+    return [];
+  }
+
+  // Sort completion list based on `sortText` property of the completion item
+  completionList.sort((a, b) => a.sortText.localeCompare(b.sortText));
+
+  // Construct a new Fuse object to do fuzzy search with key as `filterText` property of the completion item
+  const searcher = new Fuse(completionList, {
+    keys: ["filterText"],
+    threshold: 0.4,
+    refIndex: false,
+  });
+
+  let filteredCompletionList = triggerCharacter
+    ? searcher.search(triggerCharacter).slice(0, 5)
+    : completionList.slice(0, 5);
+
+  if (filteredCompletionList.length === 0) {
+    // Handle the case when filterText property is not available in completion item.
+    // In this case, construct a new Fuse object to do fuzzy search with key as `label` property of the completion item
+    const newSearcher = new Fuse(completionList, {
+      keys: ["label"],
+      threshold: 0.2,
+      refIndex: false,
+    });
+
+    filteredCompletionList = triggerCharacter
+      ? newSearcher.search(triggerCharacter).slice(0, 5)
+      : completionList.slice(0, 5);
+  }
+
+  return filteredCompletionList;
+}
+
+/**
  * A function that initiates the connection object with ipc that can be used to create a workspace manager for testing purposes
  * @returns {WorkspaceManager} object to serve as a workspace manager for testing purposes
  */

@@ -7,4 +7,3 @@
           ansible.builtin.command: "ls -l /test/"
       become: True
       become_user: root
-

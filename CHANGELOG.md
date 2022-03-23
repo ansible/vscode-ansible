@@ -23,6 +23,36 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.5.3 (2022-03-16)
+
+### Bugfixes
+
+- Fixed intermittent issue with execution environment for auto-completion and
+  hover by waiting for async function to copy plugins from within EE to local
+  host cache --{user}`ganeshrn`.
+
+  ({issue}`263`)
+
+### Features
+
+- Enhanced the logic of ansible-lint service to do the following things by
+  --{user}`priyamsahoo`:
+
+  - Fallback to `--syntax-check` in every failure scenarios (for eg. in case of
+    wrong arguments passed, etc) and give visual feedback to the user in terms
+    of notification about what went wrong.
+  - Handle different response types sent by ansible-lint (for e.g. ansible-lint
+    sends failure reports as stdout and sometimes as errors) by making them
+    uniform in terms of structure and redirection.
+
+  ({issue}`243`)
+
+- Replaced the value `2^53 - 1 (which is Number.MAX_SAFE_INTEGER)` with
+  `2^31 - 1 (which is integer.MAX_VALUE)` to support extension clients that do
+  handle 64-bit floating point IEEE 754 number by --{user}`priyamsahoo`.
+
+  ({issue}`261`)
+
 ## v0.5.2 (2022-03-02)
 
 ### Bugfixes

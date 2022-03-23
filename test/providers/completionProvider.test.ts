@@ -42,10 +42,10 @@ describe("doCompletion()", () => {
           triggerCharacter
         );
 
-        filteredCompletion.forEach((item) => {
-          item.item ? console.log(item.item.label) : console.log(item.label);
-        });
-        console.log("\n");
+        // filteredCompletion.forEach((item) => {
+        //   item.item ? console.log(item.item.label) : console.log(item.label);
+        // });
+        // console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -88,11 +88,6 @@ describe("doCompletion()", () => {
           triggerCharacter
         );
 
-        filteredCompletion.forEach((item) => {
-          item.item ? console.log(item.item.label) : console.log(item.label);
-        });
-        console.log("\n");
-
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
         } else {
@@ -133,11 +128,6 @@ describe("doCompletion()", () => {
           actualCompletion,
           triggerCharacter
         );
-
-        filteredCompletion.forEach((item) => {
-          item.item ? console.log(item.item.label) : console.log(item.label);
-        });
-        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -180,11 +170,6 @@ describe("doCompletion()", () => {
           triggerCharacter
         );
 
-        filteredCompletion.forEach((item) => {
-          item.item ? console.log(item.item.label) : console.log(item.label);
-        });
-        console.log("\n");
-
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
         } else {
@@ -206,43 +191,43 @@ describe("doCompletion()", () => {
         completion: "name",
       },
       {
-        name: "with `ping`",
+        name: "for `ansible.builtin.ping` with `ping`",
         position: { line: 7, character: 8 } as Position,
         triggerCharacter: "ping",
         completion: "ansible.builtin.ping",
       },
       {
-        name: "with `debu`",
+        name: "for `ansible.builtin.debug` with `debu`", // cspell: ignore debu
         position: { line: 7, character: 8 } as Position,
         triggerCharacter: "debu",
         completion: "ansible.builtin.debug",
       },
       {
-        name: "with `ansible.`",
+        name: "list for all modules under ansible namespace with `ansible.`",
         position: { line: 7, character: 8 } as Position,
         triggerCharacter: "ansible.",
         completion: "ansible.",
       },
       {
-        name: "with `ansible.builtin.`",
+        name: "list for all the modules under ansible.builtin with `ansible.builtin.`",
         position: { line: 7, character: 8 } as Position,
         triggerCharacter: "ansible.builtin.",
         completion: "ansible.builtin.",
       },
       {
-        name: "with `org_1.c`",
+        name: "list for all the collection modules starting with `c` under org_1 namespace with `org_1.c`",
         position: { line: 16, character: 13 } as Position,
         triggerCharacter: "org_1.c",
         completion: "org_1.c",
       },
       {
-        name: "with `org_1.coll_4.`",
+        name: "list for all the modules under coll_4 in org_1 with `org_1.coll_4.`",
         position: { line: 16, character: 19 } as Position,
         triggerCharacter: "org_1.coll_4.",
         completion: "org_1.coll_4.",
       },
       {
-        name: "with `cli_`",
+        name: "list for all the modules that contain `cli_` in their name with `cli_`",
         position: { line: 32, character: 6 } as Position,
         triggerCharacter: "cli_",
         completion: "cli_",
@@ -260,11 +245,6 @@ describe("doCompletion()", () => {
           actualCompletion,
           triggerCharacter
         );
-
-        filteredCompletion.forEach((item) => {
-          item.item ? console.log(item.item.label) : console.log(item.label);
-        });
-        console.log("\n");
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
@@ -331,10 +311,67 @@ describe("doCompletion()", () => {
           triggerCharacter
         );
 
-        filteredCompletion.forEach((item) => {
-          item.item ? console.log(item.item.label) : console.log(item.label);
-        });
-        console.log("\n");
+        if (!completion) {
+          expect(filteredCompletion.length).be.equal(0);
+        } else {
+          if (!filteredCompletion[0].item) {
+            expect(filteredCompletion[0].label).be.equal(completion);
+          } else {
+            expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          }
+        }
+      });
+    });
+  });
+
+  describe("Completion for module name without FQCN", () => {
+    const tests = [
+      {
+        name: "`ping` with `pin` (ansible.builtin.ping)",
+        position: { line: 7, character: 9 } as Position,
+        triggerCharacter: "pin",
+        completion: "ping",
+      },
+      {
+        name: "module option for ping (ping -> data)",
+        position: { line: 8, character: 8 } as Position,
+        triggerCharacter: "",
+        completion: "data",
+      },
+      {
+        name: "`module_3` from `org_1.coll_3` with `module_3` (org_1.coll_3.module_3)",
+        position: { line: 11, character: 14 } as Position,
+        triggerCharacter: "module_3",
+        completion: "module_3",
+      },
+      {
+        name: "module sub option for module_3 (org_1.coll_3.module_3 -> opt_1 -> sub_opt_2)",
+        position: { line: 13, character: 13 } as Position,
+        triggerCharacter: "2",
+        completion: "sub_opt_2",
+      },
+    ];
+
+    tests.forEach(({ name, position, triggerCharacter, completion }) => {
+      it(`should provide completion for ${name}`, async function () {
+        const textDoc = await getDoc("completion/tasks_without_fqcn.yml");
+        const context = workspaceManager.getContext(textDoc.uri);
+
+        //   Update setting to stop using FQCN for module names
+        const docSettings = context.documentSettings.get(textDoc.uri);
+        const cachedDefaultSetting = (await docSettings).ansibleLint.enabled;
+        (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
+
+        const actualCompletion = await doCompletion(textDoc, position, context);
+
+        // Revert back the default settings
+        (await docSettings).ansible.useFullyQualifiedCollectionNames =
+          cachedDefaultSetting;
+
+        const filteredCompletion = smartFilter(
+          actualCompletion,
+          triggerCharacter
+        );
 
         if (!completion) {
           expect(filteredCompletion.length).be.equal(0);
