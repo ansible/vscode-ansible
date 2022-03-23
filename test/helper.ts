@@ -31,34 +31,6 @@ export function isWindows(): boolean {
   return process.platform === "win32";
 }
 
-export function smartFilter(completionList, triggerCharacter) {
-  completionList.sort((a, b) => a.sortText.localeCompare(b.sortText));
-
-  const searcher = new Fuse(completionList, {
-    keys: ["filterText"],
-    threshold: 0.6,
-    refIndex: false,
-  });
-
-  let filteredCompletionList = triggerCharacter
-    ? searcher.search(triggerCharacter).slice(0, 5)
-    : completionList.slice(0, 5);
-
-  if (filteredCompletionList.length === 0) {
-    const newSearcher = new Fuse(completionList, {
-      keys: ["label"],
-      threshold: 0.2,
-      refIndex: false,
-    });
-
-    filteredCompletionList = triggerCharacter
-      ? newSearcher.search(triggerCharacter).slice(0, 5)
-      : completionList.slice(0, 5);
-  }
-
-  return filteredCompletionList;
-}
-
 /**
  * A function that tries to imitate the filtering of the completion items done in the respective client extension
  * when the user starts typing against the provided auto-completions
