@@ -44,7 +44,7 @@ jobs:
         include:
           - name: lint
             npm-target: lint
-            os: ubuntu-latest
+            os: ubuntu-20.04
             upload-artifact: true
 
           - name: devel-ui
