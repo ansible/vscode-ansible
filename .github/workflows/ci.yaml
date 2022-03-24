@@ -171,10 +171,11 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: |
+          docker images
           ls ~/.cache/ansible-language-server/quay_io_ansible_creator_ee_latest/d3d40aa33ba0/usr
           tree ~/.cache/ansible-language-server/quay_io_ansible_creator_ee_latest/
         shell: bash
-      
+
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
         # on devel we install ansible-language-server from source, which alters package.json
