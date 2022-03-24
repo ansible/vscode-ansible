@@ -163,6 +163,16 @@ jobs:
           if-no-files-found: ignore
           retention-days: 15
 
+      - name: debug EE plugin cache files
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          docker images
+          docker image inspect quay.io/ansible/network-ee:stable-2.12
+          ls -al ~/.cache/
+          tree ~/.cache/
+        shell: bash
+
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
         # on devel we install ansible-language-server from source, which alters package.json
