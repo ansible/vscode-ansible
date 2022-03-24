@@ -172,7 +172,6 @@ jobs:
         continue-on-error: true
         run: |
           docker images
-          ls ~/.cache/ansible-language-server/quay_io_ansible_creator_ee_latest/d3d40aa33ba0/usr
           tree ~/.cache/ansible-language-server/quay_io_ansible_creator_ee_latest/
         shell: bash
 
