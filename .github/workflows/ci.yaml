@@ -44,7 +44,7 @@ jobs:
         include:
           - name: lint
             npm-target: lint
-            os: ubuntu-20.04
+            os: ubuntu-latest
             upload-artifact: true
 
           - name: devel-ui
@@ -103,10 +103,6 @@ jobs:
 
         run: |
           ./tools/test-setup.sh
-          which docker
-          which podman || true
-          docker pull -q quay.io/ansible/creator-ee:latest
-          docker run -t quay.io/ansible/creator-ee:latest ansible --version
         shell: bash
 
       - name: Checkout ansible-language-server
@@ -167,21 +163,11 @@ jobs:
           if-no-files-found: ignore
           retention-days: 15
 
-      - name: debug EE plugin cache files
-        if: ${{ always() }}
-        continue-on-error: true
-        run: |
-          docker images
-          ls -al ~/.cache/
-          tree ~/.cache/
-        shell: bash
-
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
         # on devel we install ansible-language-server from source, which alters package.json
         if: ${{ !matrix.devel }}
         run: git diff --exit-code
-
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
