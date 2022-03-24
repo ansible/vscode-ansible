@@ -24,6 +24,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
       await updateSettings("trace.server", "verbose", "ansibleServer");
       await updateSettings("executionEnvironment.enabled", true);
       await updateSettings("executionEnvironment.containerEngine", "docker");
+      await updateSettings("executionEnvironment.image", "quay.io/ansible/network-ee:stable-2.12");
     });
 
     after(async () => {
