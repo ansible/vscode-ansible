@@ -1,7 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
 import { parseDocument } from "yaml";
-import globby = require("globby");
 import { LazyModuleDocumentation, parseRawRouting } from "./docsParser";
 import { IModuleMetadata } from "../interfaces/module";
 import {
@@ -20,6 +19,7 @@ export async function findDocumentation(
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return [];
   }
+  const globby = await getGlobby();
   let files;
   switch (kind) {
     case "builtin":
@@ -80,6 +80,7 @@ export async function findPluginRouting(
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return pluginRouting;
   }
+  const globby = await getGlobby();
   let files;
   switch (kind) {
     case "builtin":
@@ -110,4 +111,12 @@ export async function findPluginRouting(
   }
 
   return pluginRouting;
+}
+
+async function getGlobby() {
+  return (
+    await (Function('return import("globby")')() as Promise<
+      typeof import("globby")
+    >)
+  ).globby;
 }
