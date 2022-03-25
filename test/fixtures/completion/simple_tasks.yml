@@ -1,0 +1,34 @@
+- name: Test playbook
+  gather_facts: False
+  hosts: localhost
+  vars:
+    my_var: 'test'
+  tasks:
+    - name: Builtin module
+      ansible.builtin.debug:
+        msg: "Hello World {{ item }}"
+        verbosity: 3
+      loop:
+        - one
+        - two
+      debugger: on_skipped
+
+    - name: Collection module
+      org_1.coll_4.module_1:
+        opt_1:
+          - sub_opt_1:
+            sub_opt_2:
+
+          - sub_opt_1:
+            sub_opt_2:
+              - sub_sub_opt_1:
+                sub_sub_opt_3:
+                  - sub_sub_sub_opt_1:
+                    sub_sub_sub_opt_2:
+
+                  - sub_sub_sub_opt_1:
+                    sub_sub_sub_opt_2:
+
+    - name: Netcommon module
+      ansible.netcommon.cli_command:
+        command: show version | json

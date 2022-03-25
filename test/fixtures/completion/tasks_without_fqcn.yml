@@ -1,0 +1,16 @@
+- name: Test playbook
+  gather_facts: false
+  hosts: localhost
+  vars:
+    my_var: 'test'
+  tasks:
+    - name: Builtin module
+      ping:
+        data: crashed
+
+    - name: Collection module
+      org_1.coll_3.module_3:
+        opt_1:
+          - sub_opt_2:
+
+        opt_3:
