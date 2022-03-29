@@ -5,7 +5,7 @@
 #    pip-compile --no-annotate --output-file=requirements.txt requirements.in
 #
 cfgv==3.3.1
-click==8.0.4
+click==8.1.0
 distlib==0.3.4
 filelock==3.6.0
 identify==2.4.11
