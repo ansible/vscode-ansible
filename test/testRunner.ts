@@ -44,11 +44,11 @@ async function main(): Promise<void> {
     fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
     fs.copyFileSync(settings_src, settings_dst);
 
-    // Install the latest released redhat.ansible extension
+    // Install the ansible extension from generated .vsix
     const installLog = cp.execSync(
       `"${cliPath}" ${cliArgs.join(
         " "
-      )} --install-extension redhat.ansible --force`
+      )} --install-extension ansible-*.vsix --force`
     );
     console.log(installLog.toString());
 

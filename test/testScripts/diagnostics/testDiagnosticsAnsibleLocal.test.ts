@@ -1,5 +1,6 @@
 /* eslint-disable quotes */
 import * as vscode from "vscode";
+import { integer } from "vscode-languageclient";
 import {
   getDocUri,
   activate,
@@ -30,7 +31,7 @@ export function testDiagnosticsAnsibleLocal(): void {
             message: "All tasks should be named",
             range: new vscode.Range(
               new vscode.Position(3, 0),
-              new vscode.Position(3, Number.MAX_SAFE_INTEGER)
+              new vscode.Position(3, integer.MAX_VALUE)
             ),
             source: "Ansible",
           },
@@ -49,7 +50,7 @@ export function testDiagnosticsAnsibleLocal(): void {
             message: "Ansible syntax check failed",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, Number.MAX_SAFE_INTEGER)
+              new vscode.Position(0, integer.MAX_VALUE)
             ),
             source: "Ansible",
           },
@@ -90,7 +91,7 @@ export function testDiagnosticsAnsibleLocal(): void {
             message: "the field 'hosts' is required but was not set",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, Number.MAX_SAFE_INTEGER)
+              new vscode.Position(0, integer.MAX_VALUE)
             ),
             source: "Ansible",
           },
