@@ -4,6 +4,7 @@ import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
+import { AnsibleConfig } from "./ansibleConfig";
 import { ImagePuller } from "../utils/imagePuller";
 import { asyncExec } from "../utils/misc";
 import { WorkspaceFolderContext } from "./workspaceManager";
@@ -82,7 +83,6 @@ export class ExecutionEnvironment {
         );
         return;
       }
-      await this.fetchPluginDocs();
     } catch (error) {
       if (error instanceof Error) {
         this.connection.window.showErrorMessage(error.message);
@@ -94,8 +94,7 @@ export class ExecutionEnvironment {
     }
   }
 
-  async fetchPluginDocs(): Promise<void> {
-    const ansibleConfig = await this.context.ansibleConfig;
+  async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
     const containerName = `${this._container_image.replace(
       /[^a-z0-9]/gi,
       "_"
