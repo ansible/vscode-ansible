@@ -12,6 +12,7 @@ codeclimate
 codecov
 commitish
 commitlint
+compat
 customizer
 deps
 devel
