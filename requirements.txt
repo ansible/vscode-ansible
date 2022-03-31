@@ -5,7 +5,7 @@
 #    pip-compile --no-annotate --output-file=requirements.txt requirements.in
 #
 ansible-compat==2.0.2
-ansible-core==2.12.3
+ansible-core==2.12.4
 ansible-lint==6.0.2
 bracex==2.2.1
 cffi==1.15.0
