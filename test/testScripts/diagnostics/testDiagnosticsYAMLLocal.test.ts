@@ -1,5 +1,6 @@
 /* eslint-disable quotes */
 import * as vscode from "vscode";
+import { integer } from "vscode-languageclient";
 import {
   getDocUri,
   activate,
@@ -27,7 +28,7 @@ export function testDiagnosticsYAMLLocal(): void {
             message: "Ansible syntax check failed",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, Number.MAX_SAFE_INTEGER)
+              new vscode.Position(0, integer.MAX_VALUE)
             ),
             source: "Ansible",
           },
@@ -80,7 +81,7 @@ export function testDiagnosticsYAMLLocal(): void {
               "  mapping values are not allowed in this context\n",
             range: new vscode.Range(
               new vscode.Position(6, 21),
-              new vscode.Position(6, Number.MAX_SAFE_INTEGER)
+              new vscode.Position(6, integer.MAX_VALUE)
             ),
             source: "Ansible",
           },
