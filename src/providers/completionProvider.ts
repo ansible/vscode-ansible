@@ -1,3 +1,4 @@
+import { EOL } from "os";
 import {
   CompletionItem,
   CompletionItemKind,
@@ -118,6 +119,7 @@ export async function doCompletion(
 
           const inlineCollections = getDeclaredCollections(path);
           const cursorAtEndOfLine = atEndOfLine(document, position);
+
           let textEdit: TextEdit | undefined;
           const nodeRange = getNodeRange(node, document);
           if (nodeRange) {
@@ -126,6 +128,10 @@ export async function doCompletion(
               newText: "", // placeholder
             };
           }
+          const cursorAtFirstElementOfList = firstElementOfList(
+            document,
+            nodeRange
+          );
 
           // offer modules
           const moduleCompletionItems = [...docsLibrary.moduleFqcns].map(
@@ -154,6 +160,7 @@ export async function doCompletion(
                   moduleFqcn: moduleFqcn,
                   inlineCollections: inlineCollections,
                   atEndOfLine: cursorAtEndOfLine,
+                  firstElementOfList: cursorAtFirstElementOfList,
                 },
                 textEdit: textEdit,
               };
@@ -185,6 +192,13 @@ export async function doCompletion(
 
         const nodeRange = getNodeRange(node, document);
 
+        const cursorAtFirstElementOfList = firstElementOfList(
+          document,
+          nodeRange
+        );
+
+        const cursorAtEndOfLine = atEndOfLine(document, position);
+
         return remainingOptions
           .map(([option, specs]) => {
             return {
@@ -213,9 +227,13 @@ export async function doCompletion(
                 ? CompletionItemKind.Reference
                 : CompletionItemKind.Property,
               documentation: formatOption(option.specs),
-              insertText: atEndOfLine(document, position)
-                ? `${option.name}:`
-                : undefined,
+              data: {
+                documentUri: document.uri, // preserve document URI for completion request
+                type: option.specs.type,
+                range: nodeRange,
+                atEndOfLine: cursorAtEndOfLine,
+                firstElementOfList: cursorAtFirstElementOfList,
+              },
             };
             const insertText = atEndOfLine(document, position)
               ? `${option.name}:`
@@ -342,7 +360,10 @@ export async function doCompletionResolve(
 
       const insertName = useFqcn ? completionItem.data.moduleFqcn : name;
       const insertText = completionItem.data.atEndOfLine
-        ? `${insertName}:`
+        ? `${insertName}:${resolveSuffix(
+            "dict", // since a module is always a dictionary
+            completionItem.data.firstElementOfList
+          )}`
         : insertName;
 
       if (completionItem.textEdit) {
@@ -357,6 +378,23 @@ export async function doCompletionResolve(
       );
     }
   }
+
+  if (completionItem.data?.type) {
+    // resolve completion for a module option or sub-option
+
+    const insertText = completionItem.data.atEndOfLine
+      ? `${completionItem.label}:${resolveSuffix(
+          completionItem.data.type,
+          completionItem.data.firstElementOfList
+        )}`
+      : `${completionItem.label}`;
+
+    if (completionItem.textEdit) {
+      completionItem.textEdit.newText = insertText;
+    } else {
+      completionItem.insertText = insertText;
+    }
+  }
   return completionItem;
 }
 
@@ -369,4 +407,38 @@ function atEndOfLine(document: TextDocument, position: Position): boolean {
     document.offsetAt(position)
   ];
   return charAfterCursor === "\n" || charAfterCursor === "\r";
+}
+
+/**
+ * A utility function to check if the item is the first element of a list or not
+ * @param document current document
+ * @param nodeRange range of the keyword in the document
+ * @returns {boolean} true if the key is the first element of the list, else false
+ */
+function firstElementOfList(document: TextDocument, nodeRange: Range): boolean {
+  const checkNodeRange = {
+    start: { line: nodeRange.start.line, character: 0 },
+    end: nodeRange.start,
+  };
+  const elementsBeforeKey = document.getText(checkNodeRange).trim();
+
+  return elementsBeforeKey === "-";
+}
+
+function resolveSuffix(optionType: string, firstElementOfList: boolean) {
+  let returnSuffix: string;
+
+  switch (optionType) {
+    case "list":
+      returnSuffix = firstElementOfList ? `${EOL}\t\t- ` : `${EOL}\t- `;
+      break;
+    case "dict":
+      returnSuffix = firstElementOfList ? `${EOL}\t\t` : `${EOL}\t`;
+      break;
+    default:
+      returnSuffix = " ";
+      break;
+  }
+
+  return returnSuffix;
 }
