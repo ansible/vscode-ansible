@@ -2,6 +2,7 @@ import { EOL } from "os";
 import {
   CompletionItem,
   CompletionItemKind,
+  InsertTextFormat,
   MarkupContent,
   Range,
   TextEdit,
@@ -368,8 +369,10 @@ export async function doCompletionResolve(
 
       if (completionItem.textEdit) {
         completionItem.textEdit.newText = insertText;
+        completionItem.insertTextFormat = InsertTextFormat.Snippet;
       } else {
         completionItem.insertText = insertText;
+        completionItem.insertTextFormat = InsertTextFormat.PlainText;
       }
 
       completionItem.documentation = formatModule(
