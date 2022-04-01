@@ -46,9 +46,10 @@ export const getDocUri = (p: string): vscode.Uri => {
 
 export async function updateSettings(
   setting: string,
-  value: unknown
+  value: unknown,
+  section = "ansible"
 ): Promise<void> {
-  const ansibleConfiguration = vscode.workspace.getConfiguration("ansible");
+  const ansibleConfiguration = vscode.workspace.getConfiguration(section);
   const useGlobalSettings = true;
   return ansibleConfiguration.update(setting, value, useGlobalSettings);
 }
