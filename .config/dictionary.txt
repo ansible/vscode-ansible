@@ -42,6 +42,7 @@ monospace
 mycollection
 mymodule
 mynamespace
+neovim
 netcommon
 nocolor
 notest
