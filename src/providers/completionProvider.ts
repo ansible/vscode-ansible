@@ -44,6 +44,9 @@ const priorityMap = {
   requiredOption: 1,
   option: 2,
   aliasOption: 3,
+  // choices
+  defaultChoice: 1,
+  choice: 2,
 };
 
 export async function doCompletion(
@@ -172,7 +175,7 @@ export async function doCompletion(
         return completionItems;
       }
 
-      // Finally, check if we're looking for module options or sub-options
+      // Check if we're looking for module options or sub-options
       const options = await getPossibleOptionsForPath(
         path,
         document,
@@ -249,6 +252,78 @@ export async function doCompletion(
             }
             return completionItem;
           });
+      }
+
+      // Now check if we're looking for option/sub-option values
+      let keyPath: Node[] | null;
+      // establish path for the key (option/sub-option name)
+      if (new AncestryBuilder(path).parent(YAMLMap).getValue() === null) {
+        keyPath = new AncestryBuilder(path)
+          .parent(YAMLMap) // compensates for `_:`
+          .parent(YAMLMap)
+          .getKeyPath();
+      } else {
+        // in this case there is a character immediately after `_:`, which
+        // prevents formation of nested map
+        keyPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
+      }
+      if (keyPath) {
+        const keyNode = keyPath[keyPath.length - 1];
+        const keyOptions = await getPossibleOptionsForPath(
+          keyPath,
+          document,
+          docsLibrary
+        );
+        if (
+          keyOptions &&
+          keyNode instanceof Scalar &&
+          keyOptions.has(keyNode.value)
+        ) {
+          const nodeRange = getNodeRange(node, document);
+
+          const option = keyOptions.get(keyNode.value);
+          const choices = [];
+          let defaultChoice = option.default;
+          if (option.type === "bool" && typeof option.default === "string") {
+            // the YAML parser does not recognize values such as 'Yes'/'no' as booleans
+            defaultChoice =
+              option.default.toLowerCase() === "yes" ? true : false;
+          }
+          if (option.choices) {
+            choices.push(...option.choices);
+          } else if (option.type === "bool") {
+            choices.push(true);
+            choices.push(false);
+          } else if (defaultChoice !== undefined) {
+            choices.push(defaultChoice);
+          }
+          return choices.map((choice, index) => {
+            let priority;
+            if (choice === defaultChoice) {
+              priority = priorityMap.defaultChoice;
+            } else {
+              priority = priorityMap.choice;
+            }
+            const insertValue = new String(choice).toString();
+            const completionItem: CompletionItem = {
+              label: insertValue,
+              detail: choice === defaultChoice ? "default" : undefined,
+              // using index preserves order from the specification
+              // except when overridden by the priority
+              sortText: priority.toString() + index.toString().padStart(3),
+              kind: CompletionItemKind.Value,
+            };
+            if (nodeRange) {
+              completionItem.textEdit = {
+                range: nodeRange,
+                newText: insertValue,
+              };
+            } else {
+              completionItem.insertText = insertValue;
+            }
+            return completionItem;
+          });
+        }
       }
     }
   }

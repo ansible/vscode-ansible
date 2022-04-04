@@ -228,7 +228,7 @@ describe("doCompletion()", () => {
       },
       {
         name: "list for all the modules that contain `cli_` in their name with `cli_`",
-        position: { line: 32, character: 6 } as Position,
+        position: { line: 33, character: 6 } as Position,
         triggerCharacter: "cli_",
         completion: "cli_",
       },
@@ -319,6 +319,67 @@ describe("doCompletion()", () => {
           } else {
             expect(filteredCompletion[0].item.label).to.be.equal(completion);
           }
+        }
+      });
+    });
+  });
+
+  describe("Completion for option and suboption values", () => {
+    const tests = [
+      {
+        name: "builtin module option (ansible.builtin.debug -> msg)",
+        position: { line: 8, character: 13 } as Position,
+        triggerCharacter: "",
+        completion: ["Hello world!"],
+      },
+      {
+        name: "collection module option (org_1.coll_4.module_1 -> opt_3)",
+        position: { line: 30, character: 15 } as Position,
+        triggerCharacter: "3",
+        completion: ["choice_3"],
+      },
+      {
+        name: "collection module sub option (org_1.coll_4.module_1 -> opt_1 -> sub_opt_1)",
+        position: { line: 18, character: 23 } as Position,
+        triggerCharacter: "1",
+        completion: ["choice_1"],
+      },
+      {
+        name: "default first",
+        position: { line: 30, character: 15 } as Position,
+        triggerCharacter: "",
+        completion: ["choice_4", "choice_1", "choice_2", "choice_3"],
+      },
+      {
+        name: "boolean values",
+        position: { line: 31, character: 15 } as Position,
+        triggerCharacter: "",
+        completion: ["false", "true"],
+      },
+    ];
+
+    tests.forEach(({ name, position, triggerCharacter, completion }) => {
+      it(`should provide completion for ${name}`, async function () {
+        const textDoc = await getDoc("completion/simple_tasks.yml");
+        const context = workspaceManager.getContext(textDoc.uri);
+
+        const actualCompletion = await doCompletion(textDoc, position, context);
+
+        const filteredCompletion = smartFilter(
+          actualCompletion,
+          triggerCharacter
+        ).map((completion) => {
+          if (!completion.item) {
+            return completion.label;
+          } else {
+            return completion.item.label;
+          }
+        });
+
+        if (!completion) {
+          expect(filteredCompletion.length).be.equal(0);
+        } else {
+          expect(filteredCompletion).be.deep.equal(completion);
         }
       });
     });
