@@ -459,7 +459,7 @@
     "deps": "ncu -u && npm install",
     "lint": "pre-commit run -a",
     "package": "npm ci && npm run webpack && rimraf *.vsix && vsce package && vsce ls",
-    "//vsce": "used in ansible-language-server (ALS) repo CI to package the extension with unreleased version of ALS",
+    "//vsce": "used in ansible-language-server repo CI to package the extension with unreleased version of ansible-language-server",
     "vsce": "rimraf *.vsix && vsce package && vsce ls",
     "prepare": "git config --unset core.hooksPath || true && rimraf .husky",
     "pretest": "npm run compile",
