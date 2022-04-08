@@ -1,9 +1,13 @@
 # Development
 
+To ease local development and testing, we use
+[tox](https://github.com/ansible/devtools/wiki/tox) but you can also call npm
+directly if you want.
+
 ## Running & debugging the extension locally
 
 There are multiple ways to run this extension in debug mode, depending on your
-needs and setup.
+needs and setup. To run the default test suite, just run `tox`.
 
 ### Debug with language server from _npm_
 
@@ -50,28 +54,8 @@ The current link to edit the extension presence on the marketplace is
 ## Package extension
 
 ```shell
-vsce package
+tox -e packaging
 ```
-
-## Publish extension (obsolete)
-
-Obviously that you need to be able to publish, likely you will need to run
-`vsce login redhat` first (needs publisher name).
-
-```shell
-vsce publish
-```
-
-As it is likely that you are not logged in or your PAT is expired, the magic url
-to visit to regenerate one should be something like:
-
-<https://dev.azure.com/USERNAME/_usersSettings/tokens>
-
-When creating a PAT, the Scopes needed are Marketplace Acquire + Publish.
-
-The funny bit is you need to give access to "All organizations" because the only
-organization listed there was "myuser", which produced a token that gave 401
-(access denied).
 
 ## Release and publication of extension
 
