@@ -13,3 +13,5 @@ vscode-ansible
 __pycache__
 .temp
 UNKNOWN.egg-info
+# Used on GHA to generate changelogs:
+change-notes-*.md

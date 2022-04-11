@@ -241,12 +241,11 @@ jobs:
       shell: bash
     - name: Generate changelog update with tox and stage it in Git
       run: >-
-        python -m
-        tox
-        --parallel auto
-        --parallel-live
+        python -m tox
         --skip-missing-interpreters false
         --skip-pkg-install
+        -e make-changelog
+        --allow-dirty
         --
         '${{ needs.pre-setup.outputs.dist-version }}'
         --yes
