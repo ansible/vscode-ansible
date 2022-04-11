@@ -16,7 +16,7 @@ certifi==2021.10.8
     # via requests
 charset-normalizer==2.0.8
     # via requests
-click==8.1.1
+click==8.1.2
     # via towncrier
 click-default-group==1.2.2
     # via towncrier

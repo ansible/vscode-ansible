@@ -10,7 +10,7 @@ ansible-lint==6.0.2
 bracex==2.2.1
 cffi==1.15.0
 cfgv==3.3.1
-click==8.1.1
+click==8.1.2
 commonmark==0.9.1
 cryptography==36.0.2
 distlib==0.3.4
