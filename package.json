@@ -43,6 +43,7 @@
   "dependencies": {
     "@flatten-js/interval-tree": "^1.0.18",
     "globby": "^13.1.1",
+    "handlebars": "^4.7.7",
     "ini": "^2.0.0",
     "lodash": "^4.17.21",
     "uuid": "^8.3.2",
@@ -85,7 +86,8 @@
     "preversion": "bin/version-bump-allowed",
     "watch": "tsc --watch -p .",
     "test": "nyc -s -a mocha && nyc report --check-coverage",
-    "check-dependencies": "node ./scripts/check-dependencies.js"
+    "check-dependencies": "node ./scripts/check-dependencies.js",
+    "generate-settings-readme": "ts-node tools/settings-doc-generator.ts"
   },
   "all": true
 }

@@ -17,6 +17,7 @@ customizer
 deps
 devel
 dirhtml
+docker
 doctree
 doctrees
 Dpkg
@@ -51,6 +52,7 @@ nvim
 parseable
 patchback
 pkgcache
+podman
 prettierrc
 preversion
 pyparsing

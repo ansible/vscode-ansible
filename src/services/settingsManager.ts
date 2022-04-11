@@ -1,7 +1,10 @@
 import * as _ from "lodash";
 import { Connection } from "vscode-languageserver";
 import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
-import { ExtensionSettings } from "../interfaces/extensionSettings";
+import {
+  ExtensionSettingsWithDescription,
+  ExtensionSettings,
+} from "../interfaces/extensionSettings";
 
 export class SettingsManager {
   private connection: Connection;
@@ -12,17 +15,71 @@ export class SettingsManager {
   private documentSettings: Map<string, Thenable<ExtensionSettings>> =
     new Map();
 
-  private defaultSettings: ExtensionSettings = {
-    ansible: { path: "ansible", useFullyQualifiedCollectionNames: true },
-    ansibleLint: { enabled: true, path: "ansible-lint", arguments: "" },
-    python: { interpreterPath: "", activationScript: "" },
+  // settings with their default values and descriptions
+  // default values of settings to be updated here
+  readonly defaultSettingsWithDescription: ExtensionSettingsWithDescription = {
+    ansible: {
+      path: {
+        default: "ansible",
+        description: "Path to the ansible executable",
+      },
+      useFullyQualifiedCollectionNames: {
+        default: true,
+        description:
+          "Toggle usage of fully qualified collection names (FQCN) when inserting module names",
+      },
+    },
+    ansibleLint: {
+      enabled: { default: true, description: "Toggle usage of ansible-lint" },
+      path: {
+        default: "ansible-lint",
+        description: "Path to the ansible-lint executable",
+      },
+      arguments: {
+        default: "",
+        description:
+          "Optional command line arguments to be appended to ansible-lint invocation",
+      },
+    },
+    python: {
+      interpreterPath: {
+        default: "",
+        description:
+          "Path to the python/python3 executable. This settings may be used to make the extension work with ansible and ansible-lint installations in a python virtual environment",
+      },
+      activationScript: {
+        default: "",
+        description:
+          "Path to a custom activation script, which is to be used instead of te settings above to run in a python virtual environment",
+      },
+    },
     executionEnvironment: {
-      containerEngine: "auto",
-      enabled: false,
-      image: "quay.io/ansible/creator-ee:latest",
-      pullPolicy: "missing",
+      containerEngine: {
+        default: "auto",
+        description:
+          "Container engine to be used while running with execution environment. valid values are 'auto', 'podman' and 'docker'. For 'auto', it will look for 'podman' and then for 'docker'",
+      },
+      enabled: {
+        default: false,
+        description: "Toggle usage of an execution environment",
+      },
+      image: {
+        default: "quay.io/ansible/creator-ee:latest",
+        description: "Name of the execution environment to be used",
+      },
+      pullPolicy: {
+        default: "missing",
+        description:
+          "Image pull policy to be used. Valid values are 'always', 'missing', 'never' and 'tag'. always will always pull the image when extension is activated or reloaded. 'missing' will pull if not locally available. 'never' will never pull the image and 'tag' will always pull if the image tag is 'latest', otherwise pull if not locally available.",
+      },
     },
   };
+
+  // Structure the settings similar to the ExtensionSettings interface for usage in the code
+  private defaultSettings: ExtensionSettings = this._settingsAdjustment(
+    _.cloneDeep(this.defaultSettingsWithDescription)
+  );
+
   private globalSettings: ExtensionSettings = this.defaultSettings;
 
   constructor(connection: Connection, clientSupportsConfigRequests: boolean) {
@@ -101,5 +158,26 @@ export class SettingsManager {
       }
       this.globalSettings = params.settings.ansible || this.defaultSettings;
     }
+  }
+
+  /**
+   * A recursive function to restructure the raw settings object similar to ExtensionSettings interface in order
+   * to make it work with the code
+   * @param settingsObject settings object with `default` and `description` as keys
+   * @returns settings object with a structure similar to ExtensionSettings interface
+   */
+  private _settingsAdjustment(settingsObject) {
+    for (const key in settingsObject) {
+      const value = settingsObject[key];
+
+      if (value && typeof value === "object") {
+        if (value.default !== undefined) {
+          settingsObject[key] = value.default;
+        } else {
+          this._settingsAdjustment(value);
+        }
+      }
+    }
+    return settingsObject;
   }
 }
