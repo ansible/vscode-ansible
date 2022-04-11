@@ -7,6 +7,7 @@ import {
   IPluginRoutesByType,
   IPluginRoutingByCollection,
 } from "../interfaces/pluginRouting";
+import { glob } from "glob";
 
 export async function findDocumentation(
   dir: string,
@@ -19,29 +20,50 @@ export async function findDocumentation(
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return [];
   }
-  const globby = await getGlobby();
+  // const globby = await getGlobby();
   let files;
   switch (kind) {
     case "builtin":
-      files = await globby([`${dir}/**/*.py`, "!/**/_*.py"]);
+      files = await globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
+      // files2 = globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
+      // console.log(`globby files ${files.length} -> `, files);
+      // console.log(`glob files ${files2.length} -> `, files2);
       break;
     case "builtin_doc_fragment":
-      files = await globby([
+      files = await globArray([
         `${path.resolve(dir, "../")}/plugins/doc_fragments/*.py`,
         "!/**/_*.py",
       ]);
+      // files2 = globArray([
+      //   `${path.resolve(dir, "../")}/plugins/doc_fragments/*.py`,
+      //   "!/**/_*.py",
+      // ]);
+      // console.log(`globby files ${files.length} -> `, files);
+      // console.log(`glob files ${files2.length} -> `, files2);
       break;
     case "collection":
-      files = await globby([
+      files = await globArray([
         `${dir}/ansible_collections/*/*/plugins/modules/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/modules/_*.py`,
       ]);
+      // files2 = globArray([
+      //   `${dir}/ansible_collections/*/*/plugins/modules/*.py`,
+      //   `!${dir}/ansible_collections/*/*/plugins/modules/_*.py`,
+      // ]);
+      // console.log(`globby files ${files.length} -> `, files);
+      // console.log(`glob files ${files2.length} -> `, files2);
       break;
     case "collection_doc_fragment":
-      files = await globby([
+      files = await globArray([
         `${dir}/ansible_collections/*/*/plugins/doc_fragments/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/doc_fragments/_*.py`,
       ]);
+      // files2 = globArray([
+      //   `${dir}/ansible_collections/*/*/plugins/doc_fragments/*.py`,
+      //   `!${dir}/ansible_collections/*/*/plugins/doc_fragments/_*.py`,
+      // ]);
+      // console.log(`globby files ${files.length} -> `, files);
+      // console.log(`glob files ${files2.length} -> `, files2);
       break;
   }
   return files.map((file) => {
@@ -80,14 +102,22 @@ export async function findPluginRouting(
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return pluginRouting;
   }
-  const globby = await getGlobby();
+  // const globby = await getGlobby();
   let files;
   switch (kind) {
     case "builtin":
-      files = await globby([`${dir}/config/ansible_builtin_runtime.yml`]);
+      files = await globArray([`${dir}/config/ansible_builtin_runtime.yml`]);
+      // files2 = globArray([`${dir}/config/ansible_builtin_runtime.yml`]);
+      // console.log(`globby files ${files.length} -> `, files);
+      // console.log(`glob files ${files2.length} -> `, files2);
       break;
     case "collection":
-      files = await globby([`${dir}/ansible_collections/*/*/meta/runtime.yml`]);
+      files = await globArray([
+        `${dir}/ansible_collections/*/*/meta/runtime.yml`,
+      ]);
+      // files2 = globArray([`${dir}/ansible_collections/*/*/meta/runtime.yml`]);
+      // console.log(`globby files ${files.length} -> `, files);
+      // console.log(`glob files ${files2.length} -> `, files2);
       break;
   }
   for (const file of files) {
@@ -113,10 +143,41 @@ export async function findPluginRouting(
   return pluginRouting;
 }
 
-async function getGlobby() {
-  return (
-    await (Function('return import("globby")')() as Promise<
-      typeof import("globby")
-    >)
-  ).globby;
+/**
+ * A glob utility function that that accepts array of patterns and also
+ * excludes matching patterns that begin with '!' from the returned array
+ * @param arrayOfPatterns array of patterns
+ * @returns matched files
+ */
+export function globArray(arrayOfPatterns: string[]): string[] {
+  // Patterns to be matched
+  const matchPatterns = arrayOfPatterns.filter(
+    (pattern) => !pattern.startsWith("!")
+  );
+
+  // Patterns to be excluded
+  const ignorePatterns = arrayOfPatterns
+    .filter((pattern) => pattern.startsWith("!"))
+    .map((item) => item.slice(1));
+
+  let matchFiles = [];
+  matchPatterns.forEach((pattern) => {
+    const matchedFiles = glob.sync(pattern);
+    matchFiles = matchFiles.concat(matchedFiles);
+  });
+  const matchFilesSet = new Set(matchFiles);
+
+  if (ignorePatterns.length === 0) {
+    return [...matchFilesSet];
+  } else {
+    let matchFilesAfterExclusion = [];
+    matchPatterns.forEach((pattern) => {
+      const ignoredFiles = glob.sync(pattern, {
+        ignore: ignorePatterns,
+      });
+      matchFilesAfterExclusion = matchFilesAfterExclusion.concat(ignoredFiles);
+    });
+    const matchFilesAfterExclusionSet = new Set(matchFilesAfterExclusion);
+    return [...matchFilesAfterExclusionSet];
+  }
 }
