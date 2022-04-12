@@ -46,13 +46,22 @@ jobs:
             npm-target: lint
             os: ubuntu-latest
             upload-artifact: true
-          - name: devel
+          - name: test-ui-with-main-als
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
             npm-target: test-ui
             os: ubuntu-latest
-            devel: true
-          - name: test-e2e
+            als-main-branch: true
+          - name: test-ui-with-released-als
+            npm-target: test-ui
+            os: ubuntu-latest
+          - name: test-e2e-with-main-als
+            # this job will install latest version of ansible-language-server
+            # instead of the one mentioned in package[-lock].json
+            npm-target: test-ui
+            os: ubuntu-latest
+            als-main-branch: true
+          - name: test-e2e-with-release-als
             npm-target: test-e2e
             os: ubuntu-latest
             experimental: true
@@ -60,7 +69,8 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - name: Checkout vscode-ansible
+        uses: actions/checkout@v2
 
       # ~400mb, caching them should speedup test-ui execution
       - name: Enable test-resources caching
@@ -83,14 +93,27 @@ jobs:
           ./tools/test-setup.sh
         shell: bash
 
-      - name: Link development version of ansible-language-server
-        if: ${{ matrix.devel }}
+      - name: Checkout ansible-language-server
+        if: ${{ matrix.als-main-branch }}
+        uses: actions/checkout@v2
+        with:
+          repository: ansible/ansible-language-server
+          path: ansible-language-server
+
+      - name: Link main branch of ansible-language-server repository
+        if: ${{ matrix.als-main-branch }}
+        # do not try to use command below as vsce package is unable to work with symlinked modules:
+        # npm install --save ../ansible-language-server
         run: |
           set -ex
-          # install from git does run prepare and produce out/ but if you
-          # attempt to install with tarball, it will get you an empty out/
-          npm install --save https://github.com/ansible/ansible-language-server
-          git diff
+          npm ci #  Install ansible-language-server dependencies
+          cd ../vscode-ansible
+          rm -rf node_modules/@ansible/ansible-language-server
+          rm -rf out/server/src/*
+          cp -r ../ansible-language-server node_modules/@ansible/ansible-language-server
+          npm ls
+          npm run webpack
+          npm run vsce
         shell: bash
 
       # Build extension
@@ -127,8 +150,8 @@ jobs:
 
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
-        # on devel we install ansible-language-server from source, which alters package.json
-        if: ${{ !matrix.devel }}
+        # on main-branch we install ansible-language-server from source, which alters package.json
+        if: ${{ !matrix.als-main-branch }}
         run: git diff --exit-code
 
   check: # This job does nothing and is only used for the branch protection
