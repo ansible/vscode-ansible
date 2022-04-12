@@ -1,5 +1,0 @@
-ansible-lint>=6.0.2
-click
-lxml
-pre-commit
-pyparsing

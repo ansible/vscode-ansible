@@ -32,7 +32,9 @@ build:
 # to build docs
 python:
   install:
-  - requirements: docs/requirements.txt
+    # We also defined PIP_CONSTRAINTS=requirements.txt on readthedocs config
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs
   system_packages: false
-
-...
