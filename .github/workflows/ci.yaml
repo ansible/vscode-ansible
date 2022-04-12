@@ -105,6 +105,8 @@ jobs:
         with:
           repository: ansible/ansible-language-server
           path: ansible-language-server
+          # We will later move this folder to ../ due to below bug:
+          # https://github.com/actions/checkout/issues/197
 
       - name: Link main branch of ansible-language-server repository
         if: ${{ matrix.als-main-branch }}
@@ -112,6 +114,8 @@ jobs:
         # npm install --save ../ansible-language-server
         run: |
           set -ex
+          mv ansible-language-server ..
+          pushd ../ansible-language-server
           npm ci #  Install ansible-language-server dependencies
           cd ../vscode-ansible
           rm -rf node_modules/@ansible/ansible-language-server
