@@ -126,13 +126,13 @@ jobs:
           npm run vsce
         shell: bash
 
-      # Build extension
+      # Build extension when testing with released version of ansible-language-server
       - name: Run build
-        if: ${{ matrix.als-main-branch }} == false
+        if: ${{ matrix.als-main-branch == false }}
         run: npm run compile
 
       - name: Run package
-        if: ${{ matrix.als-main-branch }} == false
+        if: ${{ matrix.als-main-branch == false }}
         run: npm run package
 
       - name: Run ${{ matrix.npm-target }}
