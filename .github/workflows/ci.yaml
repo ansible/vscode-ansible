@@ -47,26 +47,26 @@ jobs:
             os: ubuntu-latest
             upload-artifact: true
 
-          - name: test-ui-with-main-als
+          - name: test-ui-with-als-main-branch
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
             npm-target: test-ui
             os: ubuntu-latest
             als-main-branch: true
 
-          - name: test-ui-with-released-als
+          - name: test-ui-with-als-npm-release
             npm-target: test-ui
             os: ubuntu-latest
             als-main-branch: false
 
-          - name: test-e2e-with-main-als
+          - name: test-e2e-with-als-main-branch
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
             npm-target: test-ui
             os: ubuntu-latest
             als-main-branch: true
 
-          - name: test-e2e-with-release-als
+          - name: test-e2e-with-als-npm-release
             npm-target: test-e2e
             os: ubuntu-latest
             als-main-branch: false
