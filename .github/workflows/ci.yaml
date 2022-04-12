@@ -62,7 +62,7 @@ jobs:
           - name: test-e2e-with-als-main-branch
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
-            npm-target: test-ui
+            npm-target: test-e2e
             os: ubuntu-latest
             als-main-branch: true
 
@@ -70,7 +70,6 @@ jobs:
             npm-target: test-e2e
             os: ubuntu-latest
             als-main-branch: false
-            experimental: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
