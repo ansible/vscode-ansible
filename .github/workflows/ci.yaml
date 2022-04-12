@@ -46,24 +46,30 @@ jobs:
             npm-target: lint
             os: ubuntu-latest
             upload-artifact: true
+
           - name: test-ui-with-main-als
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
             npm-target: test-ui
             os: ubuntu-latest
             als-main-branch: true
+
           - name: test-ui-with-released-als
             npm-target: test-ui
             os: ubuntu-latest
+            als-main-branch: false
+
           - name: test-e2e-with-main-als
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
             npm-target: test-ui
             os: ubuntu-latest
             als-main-branch: true
+
           - name: test-e2e-with-release-als
             npm-target: test-e2e
             os: ubuntu-latest
+            als-main-branch: false
             experimental: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -118,9 +124,11 @@ jobs:
 
       # Build extension
       - name: Run build
+        if: ${{ matrix.als-main-branch }} == false
         run: npm run compile
 
       - name: Run package
+        if: ${{ matrix.als-main-branch }} == false
         run: npm run package
 
       - name: Run ${{ matrix.npm-target }}
