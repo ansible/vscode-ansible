@@ -13,5 +13,6 @@
   "ansible.python.interpreterPath": "python3",
 
   "security.workspace.trust.enabled": false,
-  "security.workspace.trust.startupPrompt": "never"
+  "security.workspace.trust.startupPrompt": "never",
+  "redhat.telemetry.enabled": false
 }
