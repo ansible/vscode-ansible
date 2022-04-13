@@ -23,6 +23,41 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.6.0 (2022-04-12)
+
+### Bugfixes
+
+- Fixed indentation issue while resolving auto-completion items to support
+  editors like vim and neovim -- by {user}`yaegassy`
+
+  ({issue}`285`)
+
+- Fixed globby issue by replacing it with glob and writing utility function to
+  support array of file patterns and file path exclusion patterns -- by
+  {user}`priyamsahoo`
+
+  ({issue}`295`)
+
+### Features
+
+- Added auto-completion for values of module options and sub-options -- by
+  {user}`tomaciazek`
+
+  ({issue}`288`)
+
+- Refactored settings structure in the code to include descriptions and added
+  utility for updating the settings doc to keep in sync with it -- by
+  {user}`priyamsahoo`
+
+  ({issue}`294`)
+
+### Miscellaneous
+
+- Moved glob utils into a separate utils file and remove commented code -- by
+  {user}`ganeshrn`
+
+  ({issue}`299`)
+
 ## v0.5.4 (2022-03-31)
 
 ### Bugfixes
