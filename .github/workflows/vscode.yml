@@ -8,7 +8,7 @@ on:
 
 jobs:
   ui-test:
-    name: vscode-ansible-main-branch-test-suite
+    name: devel-vscode-ansible
     runs-on: ubuntu-latest
     steps:
       - name: Install test dependencies
@@ -40,11 +40,17 @@ jobs:
         run: |
           set -ex
           mv vscode-ansible ..
-          pushd ../vscode-ansible
-          npm ci  # Install vscode-ansible dependencies
-          cd ../ansible-language-server
+
+          # workaround to sync the latest version of ansible-language-server
+          # in the vscode-ansible package.json to avoid npm related failures while vsce packaging
+          python tools/version_sync.py
+
+          npm install # update ansible-language-server package-lock.json
           npm ci #  Install ansible-language-server dependencies
-          cd ../vscode-ansible
+
+          pushd ../vscode-ansible
+          npm install # update vscode-ansible package-lock.json
+          npm ci  # Install vscode-ansible dependencies
           rm -rf node_modules/@ansible/ansible-language-server
           rm -rf out/server/src/*
           cp -r ../ansible-language-server node_modules/@ansible/ansible-language-server
