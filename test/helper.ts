@@ -19,14 +19,17 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
       preview: true,
       preserveFocus: false,
     });
-    await vscode.languages.setTextDocumentLanguage(doc, "ansible");
 
-    await sleep(5000); // Wait for server activation
-
+    await reinitializeAnsibleExtension();
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
   }
+}
+
+async function reinitializeAnsibleExtension(): Promise<void> {
+  await vscode.languages.setTextDocumentLanguage(doc, "ansible");
+  await sleep(20000); // Wait for server activation
 }
 
 export async function sleep(ms: number): Promise<void> {

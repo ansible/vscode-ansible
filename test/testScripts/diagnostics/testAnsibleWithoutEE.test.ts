@@ -9,10 +9,10 @@ import {
   updateSettings,
 } from "../../helper";
 
-export function testDiagnosticsAnsibleLocal(): void {
-  describe("TEST FOR ANSIBLE DIAGNOSTICS", () => {
-    const docUri1 = getDocUri("diagnostics/ansible/1.yml");
-    const docUri2 = getDocUri("diagnostics/ansible/2.yml");
+export function testDiagnosticsAnsibleWithoutEE(): void {
+  describe("TEST FOR ANSIBLE DIAGNOSTICS WITHOUT EE", () => {
+    const docUri1 = getDocUri("diagnostics/ansible/without_ee/1.yml");
+    const docUri2 = getDocUri("diagnostics/ansible/without_ee/2.yml");
 
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");

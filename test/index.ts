@@ -7,7 +7,7 @@ export function run(): Promise<void> {
   const mocha = new Mocha({
     color: true,
     ui: "bdd",
-    timeout: 30000,
+    timeout: 50000,
     reporter: "mochawesome",
     reporterOptions: {
       reportFilename: "e2e_test_report",

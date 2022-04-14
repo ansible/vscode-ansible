@@ -1,0 +1,20 @@
+- name: Test playbook
+  gather_facts: False
+  hosts: localhost
+  tasks:
+    - name: Builtin module
+      ansible.builtin.debug:
+        msg:
+
+    - name: Collection module present in creator-ee
+      ansible.posix.patch:
+        src: /tmp/index.html.patch
+        dest: /var/www/index.html
+
+    - name: Collection module not present in creator-ee
+      vyos.vyos.vyos_prefix_lists:
+        config:
+          - prefix_lists:
+              - entries:
+                  - sequence: 12
+                    description: Test

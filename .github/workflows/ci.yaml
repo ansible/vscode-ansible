@@ -67,13 +67,6 @@ jobs:
             devel: false
 
           - name: test-e2e
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in package[-lock].json
-            npm-target: test-e2e
-            os: ubuntu-latest
-            devel: true
-
-          - name: test-e2e
             npm-target: test-e2e
             os: ubuntu-latest
             devel: false
@@ -162,6 +155,21 @@ jobs:
             out/test-resources/settings/logs
           if-no-files-found: ignore
           retention-days: 15
+
+      - name: debug EE plugin cache files
+        if: ${{ always() }}
+        continue-on-error: true
+        run: |
+          podman images
+          podman image inspect quay.io/ansible/network-ee:stable-2.12
+          ls -al ~/.cache/
+          tree ~/.cache/
+        shell: bash
+
+      ## commented out for future use to debug on the GHA node if required
+      # - name: Setup tmate session
+      #   if: ${{ always() }}
+      #   uses: mxschmitt/action-tmate@v3
 
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
