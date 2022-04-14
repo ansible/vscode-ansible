@@ -173,9 +173,10 @@ jobs:
           tree ~/.cache/
         shell: bash
 
-      - name: Setup tmate session
-        if: ${{ always() }}
-        uses: mxschmitt/action-tmate@v3
+      ## commented out for future use to debug on the GHA node if required
+      # - name: Setup tmate session
+      #   if: ${{ always() }}
+      #   uses: mxschmitt/action-tmate@v3
 
       # extra safety measure that ensures code was not modified during build
       - name: Ensure git does not report dirty
