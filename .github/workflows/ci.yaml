@@ -67,13 +67,6 @@ jobs:
             devel: false
 
           - name: test-e2e
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in package[-lock].json
-            npm-target: test-e2e
-            os: ubuntu-latest
-            devel: true
-
-          - name: test-e2e
             npm-target: test-e2e
             os: ubuntu-latest
             devel: false
