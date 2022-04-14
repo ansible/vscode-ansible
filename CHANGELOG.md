@@ -23,6 +23,10 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.6.1 (2022-04-14)
+
+No significant changes.
+
 ## v0.6.0 (2022-04-12)
 
 ### Bugfixes
