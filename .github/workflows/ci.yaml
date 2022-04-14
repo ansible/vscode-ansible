@@ -167,12 +167,11 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: |
-          docker images
-          docker image inspect quay.io/ansible/network-ee:stable-2.12
+          podman images
+          podman image inspect quay.io/ansible/network-ee:stable-2.12
           ls -al ~/.cache/
           tree ~/.cache/
         shell: bash
-      
 
       - name: Setup tmate session
         if: ${{ always() }}
