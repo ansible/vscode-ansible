@@ -5,6 +5,8 @@ name: CI
 on:
   pull_request:
   push:
+    branches: # any integration branch but not tag
+      - "main"
   workflow_dispatch:
     inputs:
       release-version:
