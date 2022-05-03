@@ -28,6 +28,7 @@ ovsx
 pipx
 pyparsing
 reindent
+reindented
 suboptions
 testorg
 tsbuildinfo
