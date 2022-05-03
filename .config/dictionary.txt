@@ -87,6 +87,22 @@ wordwrap
 workdir
 xvfb
 yammlint
+
+# sphinx:
+pathsep
+sectionauthor
+moduleauthor
+extlinks
+intersphinx
+viewcode
+pageview
+autoversion
+deflist
+smartquotes
+nitpicky
+topbar
+opensearch
+
 # names and usernames:
 Ganesh
 Maciążek
