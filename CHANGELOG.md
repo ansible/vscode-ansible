@@ -2,6 +2,19 @@
 
 # Change Log
 
+## 0.9.0
+
+### Minor Changes
+
+- Add e2e test-cases for execution-environment (#459) @ganeshrn
+- Change client extension entry point (#461) @ganeshrn
+
+### Bugfixes
+
+- Update URL of external resources (#480) @ssbarnea
+- Remove Zuul schema definition from extension config (#470) @ssbarnea
+- Fix e2e testing (#469) @priyamsahoo
+
 ## 0.8.1
 
 ## Bugfixes
