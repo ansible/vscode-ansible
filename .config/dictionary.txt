@@ -54,6 +54,7 @@ Schwalm
 Sorin
 Tomasz
 alefragnani
+bthornto
 dbaeumer
 eamodio
 esbenp
@@ -64,14 +65,15 @@ haaaad
 hbenl
 jeinwag
 lextudio
+mxschmitt
 priyamsahoo
+prsahoo
 ritwickdey
 ssbarnea
 ssydoren
 stopendy
 sysninja
 tomaciazek
+vyos
 webknjaz
 yaegassy
-mxschmitt
-vyos
