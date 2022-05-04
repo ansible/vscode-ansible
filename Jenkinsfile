@@ -6,14 +6,12 @@ def installBuildRequirements() {
   env.PATH = "${env.PATH}:${nodeHome}/bin"
 
   sh 'npm install --global vsce'
-
 }
 
 node('rhel8') {
   stage 'Checkout code'
   deleteDir()
   git branch: 'main', url: 'https://github.com/ansible/vscode-ansible.git'
-
 
   stage 'install build requirements'
   installBuildRequirements()
@@ -29,7 +27,7 @@ node('rhel8') {
 //     sh "npm test --silent"
 //   }
 
-  stage 'package' {
+  stage('package') {
     def packageJson = readJSON file: 'package.json'
     sh "vsce package -o vscode-ansible-${packageJson.version}-${env.BUILD_NUMBER}.vsix"
   }
