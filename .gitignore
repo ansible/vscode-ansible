@@ -6,3 +6,4 @@ out
 test-resources
 test-resources-oldest
 .vscode-test
+CHANGELOG.html
