@@ -9,23 +9,19 @@ def installBuildRequirements() {
 }
 
 node('rhel8') {
-  stage 'Checkout code'
-  deleteDir()
-  git branch: 'main', url: 'https://github.com/ansible/vscode-ansible.git'
+  stage('checkout') {
+        deleteDir()
+        git url: "https://github.com/${params.FORK}/vscode-ansible.git", branch: params.BRANCH
+  }
 
-  stage 'install build requirements'
-  installBuildRequirements()
+  stage('requirements') {
+    installBuildRequirements()
+  }
 
-  stage 'build'
-  sh 'npm install'
-  sh 'npm run webpack'
-
-// add stage with testing here
-//   stage 'Test for staging'
-//   // cspell: disable-next-line
-//   wrap([$class: 'Xvnc']) {
-//     sh "npm test --silent"
-//   }
+  stage('build') {
+    sh 'npm install'
+    sh 'npm run webpack'
+  }
 
   stage('package') {
     def packageJson = readJSON file: 'package.json'
@@ -48,7 +44,7 @@ node('rhel8') {
       input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto'
     }
 
-    stage 'Publish to Marketplaces' {
+    stage('publish') {
       unstash 'vsix'
       def vsix = findFiles(glob: '**.vsix')
       // VS Code Marketplace
@@ -64,7 +60,7 @@ node('rhel8') {
       }
     }
 
-    stage ('Promote the build to stable') {
+    stage('promote to stable') {
       sh "sftp -C ${UPLOAD_LOCATION}/stable/vscode-ansible/ <<< \$'put -p -r ${vsix[0].path}'"
     }
   }
