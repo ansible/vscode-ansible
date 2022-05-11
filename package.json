@@ -87,6 +87,8 @@
     "preversion": "bin/version-bump-allowed",
     "watch": "tsc --watch -p .",
     "test": "nyc -s -a mocha && nyc report --check-coverage",
+    "test-with-ee": "nyc -s -a mocha --grep @ee && nyc report --check-coverage",
+    "test-without-ee": "nyc -s -a mocha --grep @ee --invert && nyc report --check-coverage",
     "check-dependencies": "node ./scripts/check-dependencies.js",
     "generate-settings-readme": "ts-node tools/settings-doc-generator.ts"
   },

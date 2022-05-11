@@ -1,6 +1,7 @@
 import * as ini from "ini";
 import * as _ from "lodash";
 import * as path from "path";
+import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
@@ -22,7 +23,8 @@ export class AnsibleConfig {
       const settings = await this.context.documentSettings.get(
         this.context.workspaceFolder.uri
       );
-
+      const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
+      const mountPaths = new Set([workingDirectory]);
       const commandRunner = new CommandRunner(
         this.connection,
         this.context,
@@ -32,9 +34,10 @@ export class AnsibleConfig {
       // get Ansible configuration
       const ansibleConfigResult = await commandRunner.runCommand(
         "ansible-config",
-        "dump"
+        "dump",
+        workingDirectory,
+        mountPaths
       );
-
       let config = ini.parse(ansibleConfigResult.stdout);
       config = _.mapKeys(
         config,

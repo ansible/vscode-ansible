@@ -87,6 +87,8 @@ wordwrap
 workdir
 xvfb
 yammlint
+tls
+ro
 
 # sphinx:
 pathsep

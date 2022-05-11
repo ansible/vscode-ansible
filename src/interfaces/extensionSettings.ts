@@ -10,10 +10,10 @@ export type IContainerEngine = "auto" | "podman" | "docker";
 export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
 export interface ExtensionSettingsWithDescription {
-  ansible: AnsibleSettings;
-  ansibleLint: AnsibleLintSettings;
-  executionEnvironment: ExecutionEnvironmentSettings;
-  python: PythonSettings;
+  ansible: AnsibleSettingsWithDescription;
+  ansibleLint: AnsibleLintSettingsWithDescription;
+  executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
+  python: PythonSettingsWithDescription;
 }
 
 export interface ExtensionSettings {
@@ -23,7 +23,9 @@ export interface ExtensionSettings {
     enabled: boolean;
     containerEngine: IContainerEngine;
     image: string;
-    pullPolicy: IPullPolicy;
+    pull: { policy: IPullPolicy; arguments: string };
+    volumeMounts: Array<IVolumeMounts>;
+    containerOptions: string;
   };
   python: { interpreterPath: string; activationScript: string };
 }
@@ -31,20 +33,34 @@ export interface ExtensionSettings {
 /**
  * Interface for execution environment settings
  */
-interface ExecutionEnvironmentSettings {
+interface ExecutionEnvironmentSettingsWithDescription {
   containerEngine: {
     default: IContainerEngine;
     description: string;
   };
   enabled: { default: boolean; description: string };
   image: { default: string; description: string };
-  pullPolicy: { default: IPullPolicy; description: string };
+  pull: {
+    policy: { default: IPullPolicy; description: string };
+    arguments: { default: string; description: string };
+  };
+  volumeMounts: Array<{
+    src: { default: string; description: string };
+    dest: { default: string; description: string };
+    options: { default: string; description: string };
+  }>;
+  containerOptions: { default: string; description: string };
 }
 
+export interface IVolumeMounts {
+  src: string;
+  dest: string;
+  options: string | undefined;
+}
 /**
  * Interface for ansible settings
  */
-interface AnsibleSettings {
+interface AnsibleSettingsWithDescription {
   path: {
     default: string;
     description: string;
@@ -58,7 +74,7 @@ interface AnsibleSettings {
 /**
  * Interface for ansible lint settings
  */
-interface AnsibleLintSettings {
+interface AnsibleLintSettingsWithDescription {
   enabled: {
     default: boolean;
     description: string;
@@ -76,7 +92,7 @@ interface AnsibleLintSettings {
 /**
  * Interface for python settings
  */
-interface PythonSettings {
+interface PythonSettingsWithDescription {
   interpreterPath: {
     default: string;
     description: string;

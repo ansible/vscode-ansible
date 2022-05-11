@@ -8,16 +8,25 @@ import { AnsibleConfig } from "./ansibleConfig";
 import { ImagePuller } from "../utils/imagePuller";
 import { asyncExec } from "../utils/misc";
 import { WorkspaceFolderContext } from "./workspaceManager";
-import { IContainerEngine } from "../interfaces/extensionSettings";
+import {
+  ExtensionSettings,
+  IContainerEngine,
+} from "../interfaces/extensionSettings";
+import { IVolumeMounts } from "../interfaces/extensionSettings";
 
 export class ExecutionEnvironment {
+  public isServiceInitialized: boolean;
+  private settings: ExtensionSettings;
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
   private successFileMarker = "SUCCESS";
+  private settingsVolumeMounts: string[] = [];
+  private settingsContainerOptions: string;
   private _container_engine: IContainerEngine;
   private _container_image: string;
   private _container_image_id: string;
+  private _container_volume_mounts: Array<IVolumeMounts>;
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -28,59 +37,31 @@ export class ExecutionEnvironment {
 
   public async initialize(): Promise<void> {
     try {
-      const settings = await this.context.documentSettings.get(
+      this.settings = await this.context.documentSettings.get(
         this.context.workspaceFolder.uri
       );
-      if (!settings.executionEnvironment.enabled) {
+      if (!this.settings.executionEnvironment.enabled) {
         return;
       }
-      this._container_image = settings.executionEnvironment.image;
-      this._container_engine = settings.executionEnvironment.containerEngine;
-      if (this._container_engine === "auto") {
-        for (const ce of ["podman", "docker"]) {
-          try {
-            child_process.execSync(`which ${ce}`, {
-              encoding: "utf-8",
-            });
-          } catch (error) {
-            this.connection.console.info(`Container engine '${ce}' not found`);
-            continue;
-          }
-          this._container_engine = <IContainerEngine>ce;
-          this.connection.console.log(`Container engine set to: '${ce}'`);
-          break;
-        }
-      } else {
-        try {
-          child_process.execSync(`which ${this._container_engine}`, {
-            encoding: "utf-8",
-          });
-        } catch (error) {
-          this.connection.window.showErrorMessage(
-            `Container engine '${this._container_engine}' not found. Failed with error '${error}'`
-          );
-          return;
-        }
-      }
-      if (!["podman", "docker"].includes(this._container_engine)) {
-        this.connection.window.showInformationMessage(
-          "No valid container engine found."
-        );
+      this._container_image = this.settings.executionEnvironment.image;
+      this._container_engine =
+        this.settings.executionEnvironment.containerEngine;
+      this._container_volume_mounts =
+        this.settings.executionEnvironment.volumeMounts;
+
+      const setEngineSuccess = this.setContainerEngine();
+      if (setEngineSuccess === false) {
+        this.isServiceInitialized = false;
         return;
       }
-      const imagePuller = new ImagePuller(
-        this.connection,
-        this.context,
-        this._container_engine,
-        this._container_image,
-        settings.executionEnvironment.pullPolicy
-      );
-      const setupDone = await imagePuller.setupImage();
-      if (!setupDone) {
-        this.connection.window.showErrorMessage(
-          `Execution environment image '${this._container_image}' setup failed.
-           For more details check output console logs for ansible-language-server`
-        );
+
+      this.updateContainerVolumeMountFromSettings();
+      this.settingsContainerOptions =
+        this.settings.executionEnvironment.containerOptions;
+
+      const pullSuccess = await this.pullContainerImage();
+      if (pullSuccess === false) {
+        this.isServiceInitialized = false;
         return;
       }
     } catch (error) {
@@ -91,10 +72,18 @@ export class ExecutionEnvironment {
           `Exception in ExecutionEnvironment service: ${JSON.stringify(error)}`
         );
       }
+      this.isServiceInitialized = false;
     }
+    this.isServiceInitialized = true;
   }
 
-  async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
+  public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
+    if (!this.isServiceInitialized) {
+      this.connection.console.error(
+        `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`
+      );
+      return;
+    }
     const containerName = `${this._container_image.replace(
       /[^a-z0-9]/gi,
       "_"
@@ -177,7 +166,7 @@ export class ExecutionEnvironment {
       }
       // plugin cache successfully created
       fs.closeSync(
-        fs.openSync(path.join(hostCacheBasePath, this.successFileMarker), "w")
+        fs.openSync(path.join(hostCacheBasePath, this.successFileMarker), "w+")
       );
     } catch (error) {
       this.connection.window.showErrorMessage(
@@ -193,7 +182,16 @@ export class ExecutionEnvironment {
     }
   }
 
-  public wrapContainerArgs(command: string, mountPaths?: Set<string>): string {
+  public wrapContainerArgs(
+    command: string,
+    mountPaths?: Set<string>
+  ): string | undefined {
+    if (!this.isServiceInitialized) {
+      this.connection.console.error(
+        "ExecutionEnvironment service not correctly initialized."
+      );
+      return undefined;
+    }
     const workspaceFolderPath = URI.parse(
       this.context.workspaceFolder.uri
     ).path;
@@ -213,6 +211,25 @@ export class ExecutionEnvironment {
       containerCommand.push("-v", volumeMountPath);
     }
 
+    // handle container volume mounts setting from client
+    if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
+      this.settingsVolumeMounts.forEach((volumeMount) => {
+        if (containerCommand.includes(volumeMount)) {
+          return;
+        }
+        containerCommand.push("-v", volumeMount);
+      });
+    }
+
+    // handle Ansible environment variables
+    for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
+      if (envVarKey.startsWith("ANSIBLE_")) {
+        containerCommand.push("-e", `${envVarKey}=${envVarValue}`);
+      }
+    }
+    // ensure output is parseable (no ANSI)
+    containerCommand.push("-e", "ANSIBLE_FORCE_COLOR=0");
+
     if (this._container_engine === "podman") {
       // container namespace stuff
       containerCommand.push("--group-add=root");
@@ -222,6 +239,20 @@ export class ExecutionEnvironment {
       containerCommand.push("--quiet");
     } else {
       containerCommand.push(`--user=${process.getuid()}`);
+    }
+
+    // handle container options setting from client
+    if (this.settingsContainerOptions && this.settingsContainerOptions !== "") {
+      const containerOptions = this.settingsContainerOptions.split(" ");
+      containerOptions.forEach((containerOption) => {
+        if (
+          containerOption === "" ||
+          containerCommand.includes(containerOption)
+        ) {
+          return;
+        }
+        containerCommand.push(containerOption);
+      });
     }
     containerCommand.push(`--name ansible_language_server_${uuidv4()}`);
     containerCommand.push(this._container_image);
@@ -233,7 +264,63 @@ export class ExecutionEnvironment {
     return generatedCommand;
   }
 
-  public cleanUpContainer(containerName: string): void {
+  private async pullContainerImage(): Promise<boolean> {
+    const imagePuller = new ImagePuller(
+      this.connection,
+      this.context,
+      this._container_engine,
+      this._container_image,
+      this.settings.executionEnvironment.pull.policy,
+      this.settings.executionEnvironment.pull.arguments
+    );
+    const setupDone = await imagePuller.setupImage();
+    if (!setupDone) {
+      this.connection.window.showErrorMessage(
+        `Execution environment image '${this._container_image}' setup failed.
+         For more details check output console logs for ansible-language-server`
+      );
+      return false;
+    }
+    return true;
+  }
+
+  private setContainerEngine(): boolean {
+    if (this._container_engine === "auto") {
+      for (const ce of ["podman", "docker"]) {
+        try {
+          child_process.execSync(`which ${ce}`, {
+            encoding: "utf-8",
+          });
+        } catch (error) {
+          this.connection.console.info(`Container engine '${ce}' not found`);
+          continue;
+        }
+        this._container_engine = <IContainerEngine>ce;
+        this.connection.console.log(`Container engine set to: '${ce}'`);
+        break;
+      }
+    } else {
+      try {
+        child_process.execSync(`which ${this._container_engine}`, {
+          encoding: "utf-8",
+        });
+      } catch (error) {
+        this.connection.window.showErrorMessage(
+          `Container engine '${this._container_engine}' not found. Failed with error '${error}'`
+        );
+        return false;
+      }
+    }
+    if (!["podman", "docker"].includes(this._container_engine)) {
+      this.connection.window.showErrorMessage(
+        "Valid container engine not found. Install either 'podman' or 'docker' if you want to use execution environment, if not disable Ansible extension execution environment setting."
+      );
+      return false;
+    }
+    return true;
+  }
+
+  private cleanUpContainer(containerName: string): void {
     const cleanUpCommands = [
       `${this._container_engine} stop ${containerName}`,
       `${this._container_engine} rm ${containerName}`,
@@ -257,7 +344,7 @@ export class ExecutionEnvironment {
     }
   }
 
-  public doesContainerNameExist(containerName: string): boolean {
+  private doesContainerNameExist(containerName: string): boolean {
     let containerNameExist = false;
     try {
       child_process.execSync(
@@ -268,6 +355,36 @@ export class ExecutionEnvironment {
       containerNameExist = false;
     }
     return containerNameExist;
+  }
+
+  private updateContainerVolumeMountFromSettings(): void {
+    for (const volumeMounts of this._container_volume_mounts || []) {
+      const fsSrcPath = volumeMounts.src;
+      const fsDestPath = volumeMounts.dest;
+      const options = volumeMounts.options;
+      if (fsSrcPath === "" || !fs.existsSync(fsSrcPath)) {
+        this.connection.console.error(
+          `Volume mount source path '${fsSrcPath}' does not exist. Ignoring this volume mount entry.`
+        );
+        continue;
+      }
+      if (fsDestPath === "") {
+        this.connection.console.error(
+          `Volume mount destination path '${fsDestPath}' not provided. Ignoring this volume mount entry.`
+        );
+        continue;
+      }
+
+      let mountPath = `${fsSrcPath}:${fsDestPath}`;
+      if (options && options !== "") {
+        mountPath += `:${options}`;
+      }
+      if (this.settingsVolumeMounts.includes(mountPath)) {
+        continue;
+      } else {
+        this.settingsVolumeMounts.push("-v", mountPath);
+      }
+    }
   }
 
   private isPluginInPath(
@@ -294,8 +411,28 @@ export class ExecutionEnvironment {
   private runContainer(containerName: string): boolean {
     // ensure container is not running
     this.cleanUpContainer(containerName);
+
     try {
-      const command = `${this._container_engine} run --rm -it -d --name ${containerName} ${this._container_image} bash`;
+      let command = `${this._container_engine} run --rm -it -d `;
+      if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
+        command += this.settingsVolumeMounts.join(" ");
+      }
+
+      // handle Ansible environment variables
+      for (const [envVarKey, envVarValue] of Object.entries(process.env)) {
+        if (envVarKey.startsWith("ANSIBLE_")) {
+          command += ` -e ${envVarKey}=${envVarValue} `;
+        }
+      }
+      command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parseable (no ANSI)
+      if (
+        this.settingsContainerOptions &&
+        this.settingsContainerOptions !== ""
+      ) {
+        command += ` ${this.settingsContainerOptions} `;
+      }
+      command += ` --name ${containerName} ${this._container_image} bash`;
+
       this.connection.console.log(`run container with command '${command}'`);
       child_process.execSync(command, {
         encoding: "utf-8",

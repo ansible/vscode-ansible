@@ -9,19 +9,22 @@ export class ImagePuller {
   private _containerEngine: string;
   private _containerImage: string;
   private _pullPolicy: string;
+  private _pullArguments: string;
 
   constructor(
     connection: Connection,
     context: WorkspaceFolderContext,
     containerEngine: string,
     containerImage: string,
-    pullPolicy: string
+    pullPolicy: string,
+    pullArguments: string
   ) {
     this.connection = connection;
     this.context = context;
     this._containerEngine = containerEngine;
     this._containerImage = containerImage;
     this._pullPolicy = pullPolicy;
+    this._pullArguments = pullArguments;
     this.useProgressTracker =
       !!context.clientCapabilities.window?.workDoneProgress;
   }
@@ -42,7 +45,14 @@ export class ImagePuller {
       );
 
       try {
-        const pullCommand = `${this._containerEngine} pull ${this._containerImage}`;
+        let pullCommand;
+        if (this._pullArguments && this._pullArguments !== "") {
+          pullCommand = `${this._containerEngine} pull ${this._containerImage} ${this._pullArguments}`;
+        } else {
+          pullCommand = `${this._containerEngine} pull ${this._containerImage}`;
+        }
+
+        this.connection.console.log(`Running pull command: '${pullCommand}'`);
         if (progressTracker) {
           progressTracker.begin(
             "execution-environment",

@@ -412,22 +412,28 @@ jobs:
         - name: test-node12-linux
           node-version: 12
           os: ubuntu-latest
+          npm-target: test
         - name: test-node14-linux
           node-version: 14
           os: ubuntu-latest
+          npm-target: test
         - name: test-node16-linux
           node-version: 16
           os: ubuntu-latest
+          npm-target: test
         # macos
         - name: test-node12-macos
           node-version: 12
           os: macos-11
+          npm-target: test-without-ee
         - name: test-node14-macos
           node-version: 14
           os: macos-11
+          npm-target: test-without-ee
         - name: test-node16-macos
           node-version: 16
           os: macos-11
+          npm-target: test-without-ee
         # windows
         # TODO: revisit this after windows + wsl2 node
         # is enabled in CI
@@ -516,8 +522,9 @@ jobs:
     - name: Log ansible-lint version
       if: runner.os != 'Windows'
       run: ansible-lint --version
-    - name: Run testing against the Git checkout
-      run: npm test
+
+    - name: npm run ${{ matrix.npm-target }} against the Git checkout
+      run: npm run ${{ matrix.npm-target }}
 
     - name: Produce coverage report
       run: npm run coverage

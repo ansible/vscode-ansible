@@ -54,8 +54,33 @@ Name of the execution environment to be used \
 _default value:
 `quay.io/ansible/creator-ee:latest`_
 
-- **ansible.executionEnvironment.pullPolicy**:
+- **ansible.executionEnvironment.pull.policy**:
 Image pull policy to be used. Valid values are &#x27;always&#x27;, &#x27;missing&#x27;, &#x27;never&#x27; and &#x27;tag&#x27;. always will always pull the image when extension is activated or reloaded. &#x27;missing&#x27; will pull if not locally available. &#x27;never&#x27; will never pull the image and &#x27;tag&#x27; will always pull if the image tag is &#x27;latest&#x27;, otherwise pull if not locally available. \
 _default value:
 `missing`_
+
+- **ansible.executionEnvironment.pull.arguments**:
+Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. &#x27;-–tls-verify&#x3D;false&#x27; \
+_default value:
+`""`_
+
+- **ansible.executionEnvironment.volumeMounts.0.src**:
+The name of the local volume or path to be mounted within execution environment. \
+_default value:
+`""`_
+
+- **ansible.executionEnvironment.volumeMounts.0.dest**:
+The path where the file or directory are mounted in the container. \
+_default value:
+`""`_
+
+- **ansible.executionEnvironment.volumeMounts.0.options**:
+The field is optional, and is a comma-separated list of options, such as ro,Z \
+_default value:
+`""`_
+
+- **ansible.executionEnvironment.containerOptions**:
+Extra parameters passed to the container engine command example: &#x27;--net&#x3D;host&#x27; \
+_default value:
+`""`_
 

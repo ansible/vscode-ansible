@@ -1,25 +1,61 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
-import { promises as fs } from "fs";
+import { readFileSync } from "fs";
 import { WorkspaceManager } from "../src/services/workspaceManager";
 import { createConnection, TextDocuments } from "vscode-languageserver/node";
 import { ValidationManager } from "../src/services/validationManager";
+import { ExtensionSettings } from "../src/interfaces/extensionSettings";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Fuse = require("fuse.js");
 
-const FIXTURES_BASE_PATH = path.join("test", "fixtures");
+export const FIXTURES_BASE_PATH = path.join("test", "fixtures");
+export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+  FIXTURES_BASE_PATH,
+  "common",
+  "collections"
+);
 
-export function setFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATHS = path.resolve(
-    FIXTURES_BASE_PATH,
-    "common",
-    "collections"
-  );
+export function setFixtureAnsibleCollectionPathEnv(
+  prePendPath: string | undefined = undefined
+): void {
+  if (prePendPath) {
+    process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
+  } else {
+    process.env.ANSIBLE_COLLECTIONS_PATHS =
+      ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
+  }
 }
 
-export async function getDoc(filename: string): Promise<TextDocument> {
-  const file = await fs.readFile(path.resolve(FIXTURES_BASE_PATH, filename), {
+export function unSetFixtureAnsibleCollectionPathEnv(): void {
+  process.env.ANSIBLE_COLLECTIONS_PATHS = undefined;
+}
+
+export async function enableExecutionEnvironmentSettings(
+  docSettings: Thenable<ExtensionSettings>
+): Promise<void> {
+  (await docSettings).executionEnvironment.enabled = true;
+  (await docSettings).executionEnvironment.volumeMounts = [
+    {
+      src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
+      dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
+      options: undefined,
+    },
+  ];
+}
+
+export async function disableExecutionEnvironmentSettings(
+  docSettings: Thenable<ExtensionSettings>
+): Promise<void> {
+  (await docSettings).executionEnvironment.enabled = false;
+}
+
+export function resolveDocUri(filename: string): string {
+  return path.resolve(FIXTURES_BASE_PATH, filename).toString();
+}
+
+export function getDoc(filename: string): TextDocument {
+  const file = readFileSync(path.resolve(FIXTURES_BASE_PATH, filename), {
     encoding: "utf8",
   });
   const docUri = path.resolve(FIXTURES_BASE_PATH, filename).toString();

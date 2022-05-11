@@ -28,7 +28,6 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-11
         npm-target:
           - test
         upload-artifact:
@@ -37,10 +36,15 @@ jobs:
           - false
         include:
           - name: test (wsl)
-            npm-target: test
+            # runner does not support running container
+            npm-target: test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
             os: windows-2019
             shell: "wsl-bash {0}"
+          - name: test (macos)
+            os: macos-11
+            # runner does not support running container
+            npm-target: test-without-ee
 
     steps:
       - name: Disable autocrlf

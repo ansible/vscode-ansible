@@ -20,7 +20,7 @@ import { URI } from "vscode-uri";
  * Holds the overall context for the whole workspace.
  */
 export class WorkspaceManager {
-  private connection: Connection;
+  public connection: Connection;
   private sortedWorkspaceFolders: WorkspaceFolder[] = [];
   private folderContexts: Map<string, WorkspaceFolderContext> = new Map();
   public clientCapabilities: ClientCapabilities = {};

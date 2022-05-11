@@ -67,10 +67,41 @@ export class SettingsManager {
         default: "quay.io/ansible/creator-ee:latest",
         description: "Name of the execution environment to be used",
       },
-      pullPolicy: {
-        default: "missing",
+      pull: {
+        policy: {
+          default: "missing",
+          description:
+            "Image pull policy to be used. Valid values are 'always', 'missing', 'never' and 'tag'. always will always pull the image when extension is activated or reloaded. 'missing' will pull if not locally available. 'never' will never pull the image and 'tag' will always pull if the image tag is 'latest', otherwise pull if not locally available.",
+        },
+        arguments: {
+          default: "",
+          description:
+            "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. '-–tls-verify=false'",
+        },
+      },
+      volumeMounts: [
+        {
+          src: {
+            default: "",
+            description:
+              "The name of the local volume or path to be mounted within execution environment.",
+          },
+          dest: {
+            default: "",
+            description:
+              "The path where the file or directory are mounted in the container.",
+          },
+          options: {
+            default: "",
+            description:
+              "The field is optional, and is a comma-separated list of options, such as ro,Z",
+          },
+        },
+      ],
+      containerOptions: {
+        default: "",
         description:
-          "Image pull policy to be used. Valid values are 'always', 'missing', 'never' and 'tag'. always will always pull the image when extension is activated or reloaded. 'missing' will pull if not locally available. 'never' will never pull the image and 'tag' will always pull if the image tag is 'latest', otherwise pull if not locally available.",
+          "Extra parameters passed to the container engine command example: '--net=host'",
       },
     },
   };
@@ -80,7 +111,7 @@ export class SettingsManager {
     _.cloneDeep(this.defaultSettingsWithDescription)
   );
 
-  private globalSettings: ExtensionSettings = this.defaultSettings;
+  public globalSettings: ExtensionSettings = this.defaultSettings;
 
   constructor(connection: Connection, clientSupportsConfigRequests: boolean) {
     this.connection = connection;
