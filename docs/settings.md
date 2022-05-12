@@ -64,23 +64,19 @@ Specify any additional parameters that should be added to the pull command when 
 _default value:
 `""`_
 
-- **ansible.executionEnvironment.volumeMounts.0.src**:
-The name of the local volume or path to be mounted within execution environment. \
-_default value:
-`""`_
-
-- **ansible.executionEnvironment.volumeMounts.0.dest**:
-The path where the file or directory are mounted in the container. \
-_default value:
-`""`_
-
-- **ansible.executionEnvironment.volumeMounts.0.options**:
-The field is optional, and is a comma-separated list of options, such as ro,Z \
-_default value:
-`""`_
-
 - **ansible.executionEnvironment.containerOptions**:
 Extra parameters passed to the container engine command example: &#x27;--net&#x3D;host&#x27; \
 _default value:
+`""`_
+
+- **ansible.executionEnvironment.volumeMounts**:
+  - **src**: The name of the local volume or path to be mounted within execution environment. \
+  _default value:
+`""`_
+  - **dest**: The path where the file or directory are mounted in the container. \
+  _default value:
+`""`_
+  - **options**: The field is optional, and is a comma-separated list of options, such as ro,Z \
+  _default value:
 `""`_
 
