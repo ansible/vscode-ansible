@@ -7,7 +7,7 @@ import {
 } from "vscode-test";
 import fs from "fs";
 
-export const FIXTURES_BASE_PATH = path.join("testFixtures");
+export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
