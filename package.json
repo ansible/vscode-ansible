@@ -205,7 +205,7 @@
           "scope": "resource",
           "type": "string",
           "default": "",
-          "description": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. ’–-tls-verify=false’"
+          "description": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. '–-tls-verify=false'"
         },
         "ansible.executionEnvironment.pull.policy": {
           "scope": "resource",
@@ -415,7 +415,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.6.1",
+    "@ansible/ansible-language-server": "^0.7.0",
     "@types/ini": "^1.3.31",
     "ini": "^3.0.0",
     "untildify": "^4.0.0",
