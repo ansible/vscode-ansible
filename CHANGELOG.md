@@ -23,6 +23,51 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.7.0 (2022-05-12)
+
+### Bugfixes
+
+- Fixed settings-doc-generator script to support array-type values -- by
+  {user}`priyamsahoo`
+
+  ({issue}`323`)
+
+### Features
+
+- ````md
+  Added EE settings for volume mounts, container options and pull arguments --
+  by {user}`ganeshrn`
+
+  - Add settings to allow custom volume mount path eg:
+
+  ```code
+    "ansible.executionEnvironment.volumeMounts": [
+
+         {
+             "src" : "/Users/home/common/collections",
+             "dest": "/Users/home/common/collections"
+         }
+     ],
+  ```
+
+  - Add setting to pass container options
+
+  ```code
+   "ansible.executionEnvironment.containerOptions": ["--net=host"]
+  ```
+
+  - Add setting to pass container image pull arguments
+
+  ```code
+  "ansible.executionEnvironment.pull.arguments": ["–-tls-verify=false"]
+  ```
+
+  - Move `execution-environment.pull-policy` setting to
+    `execution-environment.pull.policy`
+  ````
+
+  ({issue}`318`)
+
 ## v0.6.1 (2022-04-14)
 
 No significant changes.

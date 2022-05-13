@@ -4,7 +4,7 @@
   "displayName": "Ansible",
   "description": "Ansible language server",
   "license": "MIT",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "contributors": [
     {
       "name": "Tomasz Maciążek",
