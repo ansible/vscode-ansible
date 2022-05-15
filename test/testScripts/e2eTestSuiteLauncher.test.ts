@@ -3,6 +3,10 @@ import { testDiagnosticsAnsibleWithoutEE } from "./diagnostics/testAnsibleWithou
 import { testDiagnosticsYAMLWithoutEE } from "./diagnostics/testYamlWithoutEE.test";
 import { testHoverEE } from "./hover/testWithEE.test";
 import { testHoverWithoutEE } from "./hover/testWithoutEE.test";
+import {
+  enableExecutionEnvironmentSettings,
+  disableExecutionEnvironmentSettings,
+} from "../helper";
 
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
@@ -21,13 +25,11 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
 
   describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
     before(async () => {
-      await updateSettings("trace.server", "verbose", "ansibleServer");
-      await updateSettings("executionEnvironment.enabled", true);
+      await enableExecutionEnvironmentSettings();
     });
 
     after(async () => {
-      await updateSettings("trace.server", "off", "ansibleServer"); // Revert back the default settings
-      await updateSettings("executionEnvironment.enabled", false);
+      await disableExecutionEnvironmentSettings(); // Revert back the default settings
     });
 
     testHoverEE();

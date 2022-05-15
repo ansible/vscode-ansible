@@ -160,8 +160,9 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: |
+          pwd
           podman images
-          podman image inspect quay.io/ansible/network-ee:stable-2.12
+          podman image inspect quay.io/ansible/creator-ee:latest
           ls -al ~/.cache/
           tree ~/.cache/
         shell: bash

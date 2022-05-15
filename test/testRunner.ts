@@ -5,14 +5,8 @@ import {
   downloadAndUnzipVSCode,
   resolveCliPathFromVSCodeExecutablePath,
 } from "vscode-test";
+import { ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH } from "./helper";
 import fs from "fs";
-
-export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
-export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
-  FIXTURES_BASE_PATH,
-  "common",
-  "collections"
-);
 
 async function main(): Promise<void> {
   try {
@@ -78,10 +72,6 @@ async function main(): Promise<void> {
     // Set collections_path in env
     process.env["ANSIBLE_COLLECTIONS_PATH"] =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
-
-    // This is necessary to prevent failures.
-    // For more details regarding the cause, check https://github.com/ansible/vscode-ansible/issues/373
-    process.env["ANSIBLE_FORCE_COLOR"] = "0";
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
