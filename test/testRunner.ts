@@ -5,8 +5,14 @@ import {
   downloadAndUnzipVSCode,
   resolveCliPathFromVSCodeExecutablePath,
 } from "vscode-test";
-import { ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH } from "./helper";
 import fs from "fs";
+
+export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
+export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+  FIXTURES_BASE_PATH,
+  "common",
+  "collections"
+);
 
 async function main(): Promise<void> {
   try {
@@ -32,6 +38,7 @@ async function main(): Promise<void> {
       "testFixtures",
       "settings.json"
     );
+
     const settings_dst = path.join(
       __dirname,
       "..",

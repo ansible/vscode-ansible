@@ -1,9 +1,9 @@
-import { updateSettings } from "../helper";
 import { testDiagnosticsAnsibleWithoutEE } from "./diagnostics/testAnsibleWithoutEE.test";
 import { testDiagnosticsYAMLWithoutEE } from "./diagnostics/testYamlWithoutEE.test";
 import { testHoverEE } from "./hover/testWithEE.test";
 import { testHoverWithoutEE } from "./hover/testWithoutEE.test";
 import {
+  updateSettings,
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
 } from "../helper";
