@@ -9,6 +9,18 @@ import {
 } from "../helper";
 
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
+  describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
+    before(async () => {
+      await enableExecutionEnvironmentSettings();
+    });
+
+    after(async () => {
+      await disableExecutionEnvironmentSettings(); // Revert back the default settings
+    });
+
+    testHoverEE();
+  });
+  
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
     before(async () => {
       await updateSettings("trace.server", "verbose", "ansibleServer");
@@ -23,15 +35,4 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
     testDiagnosticsYAMLWithoutEE();
   });
 
-  describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
-    before(async () => {
-      await enableExecutionEnvironmentSettings();
-    });
-
-    after(async () => {
-      await disableExecutionEnvironmentSettings(); // Revert back the default settings
-    });
-
-    testHoverEE();
-  });
 });
