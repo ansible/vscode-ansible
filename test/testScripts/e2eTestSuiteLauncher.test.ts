@@ -26,7 +26,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
 
   describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
     before(async () => {
-      await setFixtureAnsibleCollectionPathEnv(
+      setFixtureAnsibleCollectionPathEnv(
         "/home/runner/.ansible/collections:/usr/share/ansible/collections"
       );
       await enableExecutionEnvironmentSettings();
