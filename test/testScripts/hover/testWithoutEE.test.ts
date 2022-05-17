@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import { getDocUri, activate, testHover } from "../../helper";
 
-export function testHoverLocal(): void {
-  describe("TEST FOR HOVER", () => {
-    const docUri1 = getDocUri("hover/1.yml");
+export function testHoverWithoutEE(): void {
+  describe("TEST FOR HOVER WITHOUT EE", () => {
+    const docUri1 = getDocUri("hover/without_ee/1.yml");
 
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");

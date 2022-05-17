@@ -14,6 +14,7 @@ deps
 devel
 eqeqeq
 extest
+groovylint
 hotfixes
 johndoe
 keyfile
@@ -28,6 +29,7 @@ ovsx
 pipx
 pyparsing
 reindent
+reindented
 suboptions
 testorg
 tsbuildinfo
@@ -53,6 +55,7 @@ Schwalm
 Sorin
 Tomasz
 alefragnani
+bthornto
 dbaeumer
 eamodio
 esbenp
@@ -63,12 +66,15 @@ haaaad
 hbenl
 jeinwag
 lextudio
+mxschmitt
 priyamsahoo
+prsahoo
 ritwickdey
 ssbarnea
 ssydoren
 stopendy
 sysninja
 tomaciazek
+vyos
 webknjaz
 yaegassy

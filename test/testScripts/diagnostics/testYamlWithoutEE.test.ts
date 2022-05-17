@@ -9,8 +9,8 @@ import {
   updateSettings,
 } from "../../helper";
 
-export function testDiagnosticsYAMLLocal(): void {
-  describe("TEST FOR YAML DIAGNOSTICS", () => {
+export function testDiagnosticsYAMLWithoutEE(): void {
+  describe("TEST FOR YAML DIAGNOSTICS WITHOUT EE", () => {
     const docUri1 = getDocUri("diagnostics/yaml/invalid_yaml.yml");
 
     before(async () => {

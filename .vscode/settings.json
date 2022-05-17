@@ -20,5 +20,6 @@
   "search.exclude": {
     "out": true,
     ".vscode-test": true
-  }
+  },
+  "redhat.telemetry.enabled": false
 }
