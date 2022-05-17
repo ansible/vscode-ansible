@@ -76,10 +76,6 @@ async function main(): Promise<void> {
     const extLog = cp.execSync(cmd);
     console.warn("%s\n%s", cmd, extLog.toString());
 
-    // Set collections_path in env
-    process.env["ANSIBLE_COLLECTIONS_PATH"] =
-      ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
-
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
     const extensionDevelopmentPath = path.resolve(__dirname, "../../");
