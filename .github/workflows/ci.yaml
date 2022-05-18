@@ -131,14 +131,13 @@ jobs:
           npm run compile
           npm run package
 
-      - name: Run ${{ matrix.npm-target }}
-        uses: GabrielBB/xvfb-action@v1.0
-        continue-on-error: true
-        with:
-          run: npm run ${{ matrix.npm-target }}
-
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
+
+      - name: Run ${{ matrix.npm-target }}
+        uses: GabrielBB/xvfb-action@v1.0
+        with:
+          run: npm run ${{ matrix.npm-target }}
 
       - name: Publish vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
