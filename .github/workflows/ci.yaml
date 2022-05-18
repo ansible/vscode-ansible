@@ -136,6 +136,9 @@ jobs:
         with:
           run: npm run ${{ matrix.npm-target }}
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Publish vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
         uses: actions/upload-artifact@v2
