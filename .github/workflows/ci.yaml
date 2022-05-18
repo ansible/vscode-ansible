@@ -125,14 +125,14 @@ jobs:
           npm run vsce
         shell: bash
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Build and package extension with released ansible-language-server
         if: ${{ matrix.devel == false }}
         run: |
           npm run compile
           npm run package
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
 
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.0
