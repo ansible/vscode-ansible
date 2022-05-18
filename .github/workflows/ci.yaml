@@ -162,7 +162,7 @@ jobs:
         run: |
           pwd
           podman images
-          podman image inspect quay.io/ansible/creator-ee:latest
+          podman image inspect quay.io/ansible/creator-ee:v0.4.2
           ls -al ~/.cache/
           tree ~/.cache/
         shell: bash
