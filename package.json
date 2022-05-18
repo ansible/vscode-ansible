@@ -192,7 +192,7 @@
         "ansible.executionEnvironment.image": {
           "scope": "resource",
           "type": "string",
-          "default": "quay.io/ansible/creator-ee:latest",
+          "default": "quay.io/ansible/creator-ee:v0.4.2",
           "description": "Specify the name of the execution environment image."
         },
         "ansible.executionEnvironment.containerOptions": {
