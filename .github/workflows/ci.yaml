@@ -125,8 +125,9 @@ jobs:
           npm run vsce
         shell: bash
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+      ## uncomment to debug on GHA runner
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
 
       - name: Build and package extension with released ansible-language-server
         if: ${{ matrix.devel == false }}
