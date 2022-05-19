@@ -116,6 +116,10 @@ export class ExecutionEnvironment {
           ansibleConfig.module_locations,
           hostCacheBasePath
         );
+
+        this.connection.console.log(
+          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`
+        );
       } else {
         if (this.useProgressTracker) {
           progressTracker =
@@ -129,6 +133,9 @@ export class ExecutionEnvironment {
             true
           );
         }
+        this.connection.console.log(
+          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`
+        );
         ansibleConfig.collections_paths = await this.copyPluginDocFiles(
           hostCacheBasePath,
           containerName,
@@ -164,6 +171,9 @@ export class ExecutionEnvironment {
           "/"
         );
       }
+      this.connection.console.log(
+        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`
+      );
       // plugin cache successfully created
       fs.closeSync(
         fs.openSync(path.join(hostCacheBasePath, this.successFileMarker), "w+")
