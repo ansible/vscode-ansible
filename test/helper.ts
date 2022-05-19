@@ -5,6 +5,13 @@ import { assert } from "chai";
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
+export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
+export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+  FIXTURES_BASE_PATH,
+  "common",
+  "collections"
+);
+
 /**
  * Activates the redhat.ansible extension
  */
@@ -55,6 +62,39 @@ export async function updateSettings(
   const ansibleConfiguration = vscode.workspace.getConfiguration(section);
   const useGlobalSettings = true;
   return ansibleConfiguration.update(setting, value, useGlobalSettings);
+}
+
+export function setFixtureAnsibleCollectionPathEnv(
+  prePendPath: string | undefined = undefined
+): void {
+  if (prePendPath) {
+    process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
+  } else {
+    process.env.ANSIBLE_COLLECTIONS_PATHS =
+      ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
+  }
+}
+
+export function unSetFixtureAnsibleCollectionPathEnv(): void {
+  process.env.ANSIBLE_COLLECTIONS_PATHS = undefined;
+}
+
+export async function enableExecutionEnvironmentSettings(): Promise<void> {
+  await updateSettings("trace.server", "verbose", "ansibleServer");
+  await updateSettings("executionEnvironment.enabled", true);
+
+  const volumeMounts = [
+    {
+      src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
+      dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
+      options: undefined,
+    },
+  ];
+  await updateSettings("executionEnvironment.volumeMounts", volumeMounts);
+}
+
+export async function disableExecutionEnvironmentSettings(): Promise<void> {
+  await updateSettings("executionEnvironment.enabled", false);
 }
 
 export async function testDiagnostics(

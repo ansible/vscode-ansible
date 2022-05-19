@@ -125,16 +125,28 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.executionEnvironment.containerEngine`: The container engine to be
   used while running with execution environment. Valid values are `auto`,
   `podman` and `docker`. For `auto` it will look for `podman` then `docker`.
+- `ansible.executionEnvironment.containerOptions`: Extra parameters passed to
+  the container engine command example: `--net=host`
 - `ansible.executionEnvironment.enabled`: Enable or disable the use of an
   execution environment.
 - `ansible.executionEnvironment.image`: Specify the name of the execution
   environment image.
-- `ansible.executionEnvironment.pullPolicy`: Specify the image pull policy.
+- `ansible.executionEnvironment.pull.arguments`: Specify any additional
+  parameters that should be added to the pull command when pulling an execution
+  environment from a container registry. e.g. `–-tls-verify=false`
+- `ansible.executionEnvironment.pull.policy`: Specify the image pull policy.
   Valid values are `always`, `missing`, `never` and `tag`. Setting `always` will
   always pull the image when extension is activated or reloaded. Setting
   `missing` will pull if not locally available. Setting `never` will never pull
   the image and setting tag will always pull if the image tag is 'latest',
   otherwise pull if not locally available.
+- `ansible.executionEnvironment.volumeMounts`: The setting contains volume mount
+  information for each entry in the list. Individual entry consist of a
+  - `src`: The name of the local volume or path to be mounted within execution
+    environment.
+  - `dest`: The path where the file or directory are mounted in the container.
+  - `options`: The field is optional, and is a comma-separated list of options,
+    such as ro,Z
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.

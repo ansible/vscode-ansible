@@ -125,6 +125,10 @@ jobs:
           npm run vsce
         shell: bash
 
+      ## uncomment to debug on GHA runner
+      # - name: Setup tmate session
+      #   uses: mxschmitt/action-tmate@v3
+
       - name: Build and package extension with released ansible-language-server
         if: ${{ matrix.devel == false }}
         run: |
@@ -160,8 +164,9 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: |
+          pwd
           podman images
-          podman image inspect quay.io/ansible/network-ee:stable-2.12
+          podman image inspect quay.io/ansible/creator-ee:latest
           ls -al ~/.cache/
           tree ~/.cache/
         shell: bash
