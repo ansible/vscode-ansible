@@ -7,6 +7,13 @@ import {
 } from "vscode-test";
 import fs from "fs";
 
+export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
+export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
+  FIXTURES_BASE_PATH,
+  "common",
+  "collections"
+);
+
 async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
@@ -31,6 +38,7 @@ async function main(): Promise<void> {
       "testFixtures",
       "settings.json"
     );
+
     const settings_dst = path.join(
       __dirname,
       "..",
@@ -67,23 +75,6 @@ async function main(): Promise<void> {
     )} --list-extensions --show-versions`;
     const extLog = cp.execSync(cmd);
     console.warn("%s\n%s", cmd, extLog.toString());
-
-    // Set collections_path in env
-    const FIXTURES_COLLECTION_DIR = path.join(
-      __dirname,
-      "..",
-      "..",
-      "..",
-      "test",
-      "testFixtures",
-      "common",
-      "collections"
-    );
-    process.env["ANSIBLE_COLLECTIONS_PATH"] = FIXTURES_COLLECTION_DIR;
-
-    // This is necessary to prevent failures.
-    // For more details regarding the cause, check https://github.com/ansible/vscode-ansible/issues/373
-    process.env["ANSIBLE_FORCE_COLOR"] = "0";
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
