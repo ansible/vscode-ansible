@@ -1,5 +1,5 @@
 # alternative KISS pipeline to bloated ci.yml, modeled after vscode-ansible one.
-name: npm
+name: tox
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
@@ -17,9 +17,12 @@ env:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test:
-    name: ${{ matrix.name || format('{0} ({1})', matrix.npm-target, matrix.os) }}
+    env:
+      # to expose matrix job name to steps, which is not possible with expansions
+      JOB_NAME: ${{ matrix.name || format('{0} ({1})', matrix.tox-target, matrix.os) }}
+    name: ${{ matrix.name || format('{0} ({1})', matrix.tox-target, matrix.os) }}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
@@ -28,23 +31,31 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-        npm-target:
-          - test
+        node-version:
+          - "12"
+        tox-target:
+          - test-node12
+          - test-node14
+          - test-node16
         upload-artifact:
           - false
         name:
           - false
         include:
+          - name: lint
+            tox-target: lint
+          - name: docs
+            tox-target: docs
           - name: test (wsl)
             # runner does not support running container
-            npm-target: test-without-ee
+            tox-target: test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
             os: windows-2019
             shell: "wsl-bash {0}"
           - name: test (macos)
             os: macos-11
             # runner does not support running container
-            npm-target: test-without-ee
+            tox-target: test-without-ee
 
     steps:
       - name: Disable autocrlf
@@ -65,22 +76,30 @@ jobs:
           # https://github.com/Vampire/setup-wsl#wsl-shell-command
           wsl-shell-command: "bash -i -euo pipefail"
 
-      - name: Use NodeJS v16
-        # as Windows executables are exposed inside WSL at top of PATH, we
-        # would end with broken npm script in PATH on wsl.
-        if: "!contains(matrix.shell, 'wsl')"
-        uses: actions/setup-node@v2
-        with:
-          node-version: 16
-
       - name: Run ./tools/test-setup.sh
         run: ./tools/test-setup.sh
 
-      - name: npm run compile
-        run: npm run compile
+      - name: Install tox
+        run: python3 -m pip install --user tox
 
-      - name: npm run ${{ matrix.npm-target }}
-        run: npm run ${{ matrix.npm-target }}
+      - name: Dump node version into .nvmrc file
+        # save node version in .nvmrc file by looking for a pattern like
+        # node12 in job name. If pattern is not found it uses 'current' alias
+        run: >
+          python3 -c 'import os, re;
+          v = re.search("node(\d+)", os.environ.get("JOB_NAME", "")) or ["", "current"];
+          print(v[1])' > .nvmrc
+
+      - name: Use node
+        # as Windows executables are exposed inside WSL at top of PATH, we
+        # would end with broken npm script in PATH on wsl.
+        if: "!contains(matrix.shell, 'wsl')"
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: tox -e ${{ matrix.tox-target }}
+        run: python3 -m tox -e ${{ matrix.tox-target }}
 
   check: # This job does nothing and is only used for the branch protection
     if: always()

@@ -55,6 +55,7 @@ notest
 notfound
 npmjs
 nvim
+nvmrc
 parseable
 patchback
 pkgcache

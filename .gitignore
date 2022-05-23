@@ -15,3 +15,7 @@ __pycache__
 UNKNOWN.egg-info
 # Used on GHA to generate changelogs:
 change-notes-*.md
+
+# Ignored because we support multiple versions and switch between them
+.nvmrc
+.node-version
