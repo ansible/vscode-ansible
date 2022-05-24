@@ -60,6 +60,7 @@ dbaeumer
 eamodio
 esbenp
 fgierlinger
+fredericgiquel
 ganeshrn
 gnalawad
 haaaad
