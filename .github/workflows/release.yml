@@ -1,12 +1,8 @@
 ---
 # spell-checker:ignore fregante hexdigest vsoch ncipollo ghpnr
-name: CI
+name: release
 
 on:
-  pull_request:
-  push:
-    branches: # any integration branch but not tag
-      - "main"
   workflow_dispatch:
     inputs:
       release-version:
