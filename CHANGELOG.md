@@ -23,6 +23,14 @@ https://github.com/ansible/ansible-language-server/tree/main/docs/changelog-frag
 
 <!-- towncrier release notes start -->
 
+## v0.7.2 (2022-05-24)
+
+### Bugfixes
+
+- Fix auto-completion for modules when documentation is not displayed (#330)
+  @fredericgiquel
+- add ee service plugin path logs (#331) @ganeshrn
+
 ## v0.7.1 (2022-05-13)
 
 No significant changes.

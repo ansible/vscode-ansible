@@ -54,6 +54,7 @@ nocolor
 notest
 notfound
 npmjs
+npmrc
 nvim
 nvmrc
 parseable

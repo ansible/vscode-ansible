@@ -1,0 +1,23 @@
+---
+name: publish
+"on":
+  workflow_dispatch:
+
+jobs:
+  npmjs:
+    name: Publish to npmjs.com
+    environment:
+      name: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm pack
+      - run: npm publish --dry-run --access public ansible-ansible-language-server-*.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
