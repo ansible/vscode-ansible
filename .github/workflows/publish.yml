@@ -18,6 +18,6 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm pack
-      - run: npm publish --dry-run --access public ansible-ansible-language-server-*.tgz
+      - run: npm publish --access public ansible-ansible-language-server-*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
