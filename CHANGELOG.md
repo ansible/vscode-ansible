@@ -2,6 +2,23 @@
 
 # Change Log
 
+## 0.10.0
+
+### Minor Changes
+
+- Add EE settings for volume mounts, container options and pull arguments (#499)
+  @ganeshrn
+
+### Bugfixes
+
+- Upgrade ansible-language-server to 0.7.2 (#506) @ssbarnea
+- Fix auto-completion for modules when documentation is not displayed
+  ([ansible/ansible-language-server#330](https://github.com/ansible/ansible-language-server/pull/330))
+  @fredericgiquel
+- add ee service plugin path logs
+  ([ansible/ansible-language-server#331](https://github.com/ansible/ansible-language-server/pull/331))
+  @ganeshrn
+
 ## 0.9.0
 
 ### Minor Changes
