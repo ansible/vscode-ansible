@@ -509,5 +509,5 @@
     "test-e2e": "npm run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "npm run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "0.9.0"
+  "version": "0.10.0"
 }
