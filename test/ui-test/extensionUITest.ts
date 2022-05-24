@@ -15,7 +15,7 @@ export function extensionUIAssetsTest(): void {
     let sideBar: SideBarView;
 
     before(async function () {
-      this.timeout(6000);
+      this.timeout(10000);
       view = (await new ActivityBar().getViewControl(
         "Extensions"
       )) as ViewControl;
@@ -34,7 +34,7 @@ export function extensionUIAssetsTest(): void {
     });
 
     after(async function () {
-      this.timeout(4000);
+      this.timeout(8000);
       if (sideBar && (await sideBar.isDisplayed())) {
         const viewControl = (await new ActivityBar().getViewControl(
           "Extensions"
