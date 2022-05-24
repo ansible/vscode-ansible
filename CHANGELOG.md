@@ -2,6 +2,17 @@
 
 # Change Log
 
+## 0.10.0
+
+### Minor Changes
+
+- Add EE settings for volume mounts, container options and pull arguments (#499)
+  @ganeshrn
+
+### Bugfixes
+
+- Upgrade ansible-language-server to 0.7.2 (#506) @ssbarnea
+
 ## 0.9.0
 
 ### Minor Changes
