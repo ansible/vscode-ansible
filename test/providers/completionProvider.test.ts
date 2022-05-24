@@ -47,8 +47,12 @@ function testPlayKeywords(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).be.equal(completion);
+          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
+            completion
+          );
         }
       }
     });
@@ -88,8 +92,12 @@ function testRoleKeywords(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).be.equal(completion);
+          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
+            completion
+          );
         }
       }
     });
@@ -129,8 +137,12 @@ function testBlockKeywords(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).be.equal(completion);
+          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
+            completion
+          );
         }
       }
     });
@@ -170,8 +182,12 @@ function testTaskKeywords(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).be.equal(completion);
+          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
+            completion
+          );
         }
       }
     });
@@ -241,8 +257,12 @@ function testModuleNames(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).to.contain(completion);
+          expect(filteredCompletion[0].textEdit.newText).to.contain(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.contain(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).to.contain(
+            completion
+          );
         }
       }
     });
@@ -306,8 +326,12 @@ function testModuleOptions(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).be.equal(completion);
+          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).be.equal(
+            completion
+          );
         }
       }
     });
@@ -355,7 +379,7 @@ function testModuleOptionsValues(
     it(`should provide completion for ${name}`, async function () {
       const actualCompletion = await doCompletion(textDoc, position, context);
 
-      const filteredCompletion = smartFilter(
+      const labelCompletion = smartFilter(
         actualCompletion,
         triggerCharacter
       ).map((completion) => {
@@ -367,9 +391,26 @@ function testModuleOptionsValues(
       });
 
       if (!completion) {
-        expect(filteredCompletion.length).be.equal(0);
+        expect(labelCompletion.length).be.equal(0);
       } else {
-        expect(filteredCompletion).be.deep.equal(completion);
+        expect(labelCompletion).be.deep.equal(completion);
+      }
+
+      const newTextCompletion = smartFilter(
+        actualCompletion,
+        triggerCharacter
+      ).map((completion) => {
+        if (!completion.item) {
+          return completion.textEdit.newText;
+        } else {
+          return completion.item.textEdit.newText;
+        }
+      });
+
+      if (!completion) {
+        expect(newTextCompletion.length).be.equal(0);
+      } else {
+        expect(newTextCompletion).be.deep.equal(completion);
       }
     });
   });
@@ -429,8 +470,12 @@ function testModuleNamesWithoutFQCN(
       } else {
         if (!filteredCompletion[0].item) {
           expect(filteredCompletion[0].label).be.equal(completion);
+          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
+          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
+            completion
+          );
         }
       }
     });

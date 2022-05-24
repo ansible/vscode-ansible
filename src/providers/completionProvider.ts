@@ -149,6 +149,13 @@ export async function doCompletion(
                 kind = CompletionItemKind.Class;
               }
               const [namespace, collection, name] = moduleFqcn.split(".");
+              const insertName = useFqcn ? moduleFqcn : name;
+              const insertText = cursorAtEndOfLine
+                ? `${insertName}:${resolveSuffix(
+                    "dict", // since a module is always a dictionary
+                    cursorAtFirstElementOfList
+                  )}`
+                : insertName;
               return {
                 label: useFqcn ? moduleFqcn : name,
                 kind: kind,
@@ -166,7 +173,10 @@ export async function doCompletion(
                   atEndOfLine: cursorAtEndOfLine,
                   firstElementOfList: cursorAtFirstElementOfList,
                 },
-                textEdit: textEdit,
+                textEdit: {
+                  ...textEdit,
+                  newText: insertText,
+                },
               };
             }
           );
