@@ -1,0 +1,117 @@
+# see https://taskfile.dev/#/
+version: "3"
+output: group
+vars:
+  VERSION:
+    sh: node -p "require('./package.json').version"
+tasks:
+  default:
+    desc: Run most commands
+    deps:
+      - lint
+      - package
+    cmds:
+      - echo Done {{.VERSION}}!
+  setup:
+    desc: Install dependencies
+    cmds:
+      - bash ./tools/test-setup.sh
+      - python3 -m pip install --user pre-commit
+      - npm ci
+    sources:
+      - bash tools/test-setup.sh
+      - package.json
+      - package-lock.json
+  build:
+    desc: Build the project
+    deps:
+      - setup
+    cmds:
+      - npm run compile && sleep 1
+    sources:
+      - package-lock.json
+      - package.json
+      - src/
+      - tsconfig.json
+      - webpack.config.js
+  code:
+    desc: Forced install of extension in your code instance
+    deps:
+      - package
+    cmds:
+      - npm run package && code --force --install-extension *.vsix
+  deps:
+    desc: Update dependencies
+    deps:
+      - setup
+    cmds:
+      - python3 -m pre_commit autoupdate
+      # bumps some developments dependencies
+      - npx ncu -u --dep dev
+      # running install after ncu is needed in order to update the lock file
+      - npm install
+  lint:
+    desc: Lint the project
+    deps:
+      - setup
+    env:
+      PRE_COMMIT_COLOR: always
+    cmds:
+      - python3 -m pre_commit run -a
+    silent: true
+    sources:
+      - "*.*"
+      - .config
+      - .github
+      - .vscode
+      - doc
+      - examples
+      - images
+      - src
+      - syntaxes
+      - test
+      - tools
+  test:
+    desc: Run all tests
+    deps:
+      - test-ui
+      - test-e2e
+    interactive: true
+  test-e2e:
+    desc: Run e2e tests
+    deps:
+      - build
+    cmds:
+      - npm run test-e2e
+    interactive: true
+  test-ui:
+    desc: Run UI tests
+    deps:
+      - build
+    cmds:
+      - npm run test-ui-current
+      - npm run test-ui-oldest
+    interactive: true
+  package:
+    desc: Package extension
+    deps:
+      - build
+    sources:
+      - CHANGELOG.md
+      - README.md
+      - package*.json
+      - out/
+    generates:
+      - "*.vsix"
+    cmds:
+      - rm -f *.vsix
+      # --pre-release not supported until we do VS Code >=1.63
+      - npx vsce package --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+    silent: true
+  pr:
+    desc: Opens a pull request using gh
+    deps:
+      - lint
+    cmds:
+      - gh pr create
+    interactive: true

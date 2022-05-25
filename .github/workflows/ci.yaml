@@ -77,6 +77,12 @@ jobs:
       - name: Checkout vscode-ansible
         uses: actions/checkout@v2
 
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       # ~400mb, caching them should speedup test-ui execution
       - name: Enable test-resources caching
         uses: actions/cache@v3
@@ -92,11 +98,8 @@ jobs:
         with:
           node-version: 16
 
-      - name: Run ./tools/test-setup.sh
-
-        run: |
-          ./tools/test-setup.sh
-        shell: bash
+      - name: Run task setup
+        run: task setup
 
       - name: Checkout ansible-language-server
         if: ${{ matrix.devel }}
@@ -131,14 +134,12 @@ jobs:
 
       - name: Build and package extension with released ansible-language-server
         if: ${{ matrix.devel == false }}
-        run: |
-          npm run compile
-          npm run package
+        run: task package
 
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.6
         with:
-          run: npm run ${{ matrix.npm-target }}
+          run: task ${{ matrix.npm-target }}
 
       - name: Publish vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
