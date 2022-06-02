@@ -2,4 +2,4 @@ extension: ["ts"]
 require: ts-node/register
 spec: './test/ui-test/*.ts'
 package: "./package.json"
-timeout: 3001 # default is 2000
+timeout: 10001 # default is 2000
