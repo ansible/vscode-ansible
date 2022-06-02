@@ -88,7 +88,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}
 
       - name: Use NodeJS v16
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
         with:
           node-version: 16
 
