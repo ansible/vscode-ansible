@@ -160,8 +160,8 @@ jobs:
           if-no-files-found: ignore
           retention-days: 15
 
-      - name: debug EE plugin cache files
-        if: ${{ always() }}
+      - name: Debug EE plugin cache files
+        if: ${{ contains(matrix.npm-target, 'e2e') }}
         continue-on-error: true
         run: |
           pwd
