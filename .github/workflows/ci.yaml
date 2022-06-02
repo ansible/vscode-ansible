@@ -85,7 +85,7 @@ jobs:
           path: |
             out/test-resources
             out/test-resources-oldest
-          key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}-v2
+          key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
