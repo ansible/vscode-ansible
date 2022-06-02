@@ -9,3 +9,4 @@ test-resources-oldest
 CHANGELOG.html
 *.tgz
 .task
+.venv
