@@ -142,7 +142,7 @@ jobs:
 
       - name: Publish vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ansible-extension-from-pr-${{ github.event.number }}.vsix
           path: ansible-*.vsix
@@ -150,7 +150,7 @@ jobs:
 
       - name: Publish test logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: logs-${{ matrix.os }}-${{ matrix.npm-target }}.zip
           path: |
