@@ -7,7 +7,7 @@
 alabaster==0.7.12
 ansible-compat==2.0.4
 ansible-core==2.13.0
-ansible-lint==6.2.1
+ansible-lint==6.2.2
 ansible-pygments==0.1.1
 attrs==21.4.0
 babel==2.9.1
