@@ -214,6 +214,14 @@ export class ExecutionEnvironment {
     );
 
     for (const mountPath of mountPaths || []) {
+      // push to array only if mount path is valid
+      if (mountPath === "" || !fs.existsSync(mountPath)) {
+        this.connection.console.error(
+          `Volume mount source path '${mountPath}' does not exist. Ignoring this volume mount entry.`
+        );
+        continue;
+      }
+
       const volumeMountPath = `${mountPath}:${mountPath}`;
       if (containerCommand.includes(volumeMountPath)) {
         continue;
