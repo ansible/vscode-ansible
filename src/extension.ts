@@ -1,12 +1,13 @@
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions } from "vscode";
+import { commands, ExtensionContext, extensions, window } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
 import {
   LanguageClient,
   LanguageClientOptions,
+  NotificationType,
   ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
@@ -25,6 +26,13 @@ export function activate(context: ExtensionContext): void {
 
   context.subscriptions.push(
     commands.registerCommand("extension.ansible.vault", toggleEncrypt)
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      "extension.resync-ansible-inventory",
+      resyncAnsibleInventory
+    )
   );
 
   const serverModule = context.asAbsolutePath(
@@ -84,4 +92,20 @@ function notifyAboutConflicts(): void {
   if (conflictingExtensions.length > 0) {
     showUninstallConflictsNotification(conflictingExtensions);
   }
+}
+
+/**
+ * Sends notification to the server to invalidate ansible inventory service cache
+ * And resync the ansible inventory
+ */
+function resyncAnsibleInventory(): void {
+  client.onReady().then(() => {
+    client.onNotification(
+      new NotificationType(`resync/ansible-inventory`),
+      (event: any) => {
+        console.log(event);
+      }
+    );
+    client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+  });
 }
