@@ -1,13 +1,16 @@
 # Development
 
 To ease local development and testing, we use
-[tox](https://github.com/ansible/devtools/wiki/tox) but you can also call npm
-directly if you want.
+[taskfile.dev](https://taskfile.dev/) but you can also call npm directly for
+most commands if you want.
+
+To see all the commands available, run `task -l` and it will list all of them
+along with their descriptions.
 
 ## Running & debugging the extension locally
 
 There are multiple ways to run this extension in debug mode, depending on your
-needs and setup. To run the default test suite, just run `tox`.
+needs and setup. To run the default test suite, just run `task`.
 
 ### Debug with language server from _npm_
 
@@ -17,7 +20,7 @@ JavaScript files under `out/server/src` and set breakpoints in them.
 
 To run in this mode, you should first ensure that your code is compiled by
 running `npm run compile`. Then you may either launch the **Client + Server**
-configuration, or just **Launch Extension**.
+configuration or just **Launch Extension**.
 
 ### Debug with local language server source code
 
@@ -54,7 +57,7 @@ The current link to edit the extension presence on the marketplace is
 ## Package extension
 
 ```shell
-tox -e packaging
+task package
 ```
 
 ## Release and publication of extension

@@ -8,3 +8,4 @@ test-resources-oldest
 .vscode-test
 CHANGELOG.html
 *.tgz
+.task
