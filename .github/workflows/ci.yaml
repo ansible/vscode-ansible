@@ -99,7 +99,9 @@ jobs:
           node-version: 16
 
       - name: Run task setup
-        run: task setup
+        uses: GabrielBB/xvfb-action@v1.6
+        with:
+          run: task setup
 
       - name: Checkout ansible-language-server
         if: ${{ matrix.devel }}
@@ -117,24 +119,25 @@ jobs:
         run: |
           set -ex
           mv ansible-language-server ..
-          pushd ../ansible-language-server
+          cd ../ansible-language-server
           npm ci #  Install ansible-language-server dependencies
           cd ../vscode-ansible
           rm -rf node_modules/@ansible/ansible-language-server
           rm -rf out/server/src/*
           cp -r ../ansible-language-server node_modules/@ansible/ansible-language-server
           npm ls
-          npm run webpack
-          npm run vsce
         shell: bash
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
 
-      - name: Build and package extension with released ansible-language-server
-        if: ${{ matrix.devel == false }}
-        run: task package
+      - name: task package
+        # Build and package extension with released ansible-language-server
+        # if: ${{ matrix.devel == false }}
+        uses: GabrielBB/xvfb-action@v1.6
+        with:
+          run: task package
 
       - name: Run ${{ matrix.npm-target }}
         uses: GabrielBB/xvfb-action@v1.6
