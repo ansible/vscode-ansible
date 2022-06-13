@@ -4,8 +4,6 @@
 Example custom dynamic inventory script for Ansible, in Python.
 '''
 
-import os
-import sys
 import argparse
 from time import sleep
 
