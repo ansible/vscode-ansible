@@ -19,9 +19,11 @@ tasks:
       - python3 -m pip install --user pre-commit
       - npm ci
     sources:
-      - bash tools/test-setup.sh
+      - node_modules/**/*
+      - tools/test-setup.sh
       - package.json
       - package-lock.json
+      - Taskfile.yml
   build:
     desc: Build the project
     deps:
@@ -29,11 +31,13 @@ tasks:
     cmds:
       - npm run compile && sleep 1
     sources:
+      - node_modules/**/*
       - package-lock.json
       - package.json
       - src/
       - tsconfig.json
       - webpack.config.js
+      - Taskfile.yml
   code:
     desc: Forced install of extension in your code instance
     deps:
@@ -80,7 +84,7 @@ tasks:
   test-e2e:
     desc: Run e2e tests
     deps:
-      - build
+      - package
     cmds:
       - npm run test-e2e
     interactive: true
@@ -105,8 +109,10 @@ tasks:
       - "*.vsix"
     cmds:
       - rm -f *.vsix
+      - npm run webpack
       # --pre-release not supported until we do VS Code >=1.63
       - npx vsce package --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - npx vsce ls
     silent: true
   pr:
     desc: Opens a pull request using gh
