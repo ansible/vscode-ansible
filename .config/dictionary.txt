@@ -33,6 +33,7 @@ pyparsing
 reindent
 reindented
 simplejson
+sourcemaps
 suboptions
 taskfile
 testhost
