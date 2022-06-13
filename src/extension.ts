@@ -1,6 +1,6 @@
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions, window } from "vscode";
+import { commands, ExtensionContext, extensions } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
@@ -102,7 +102,7 @@ function resyncAnsibleInventory(): void {
   client.onReady().then(() => {
     client.onNotification(
       new NotificationType(`resync/ansible-inventory`),
-      (event: any) => {
+      (event) => {
         console.log(event);
       }
     );
