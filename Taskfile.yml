@@ -2,28 +2,36 @@
 version: "3"
 output: group
 vars:
+  VENV_PATH: '{{default ".venv" (env "VIRTUAL_ENV")}}'
+  VENV_PYTHON: '{{if (eq OS "windows")}}{{.VENV_PATH}}/Scripts/python.exe{{else}}{{.VENV_PATH}}/bin/python{{end}}'
   VERSION:
     sh: node -p "require('./package.json').version"
 tasks:
   default:
     desc: Run most commands
     deps:
+      - setup
       - lint
       - package
     cmds:
+      - echo {{.TASK}}
       - echo Done {{.VERSION}}!
   setup:
     desc: Install dependencies
     cmds:
       - bash ./tools/test-setup.sh
-      - python3 -m pip install --user pre-commit
       - npm ci
+    env:
+      VENV_PATH: '{{.VENV_PATH}}'
     sources:
       - node_modules/**/*
       - tools/test-setup.sh
       - package.json
       - package-lock.json
       - Taskfile.yml
+    generates:
+      - .venv
+      - node_modules
   build:
     desc: Build the project
     deps:
@@ -49,7 +57,7 @@ tasks:
     deps:
       - setup
     cmds:
-      - python3 -m pre_commit autoupdate
+      - "{{.VENV_PYTHON}} -m pre_commit autoupdate"
       # bumps some developments dependencies
       - npx ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file
@@ -61,7 +69,7 @@ tasks:
     env:
       PRE_COMMIT_COLOR: always
     cmds:
-      - python3 -m pre_commit run -a
+      - "{{.VENV_PYTHON}} -m pre_commit run -a"
     silent: true
     sources:
       - "*.*"
@@ -86,15 +94,21 @@ tasks:
     deps:
       - package
     cmds:
-      - npm run test-e2e
+      - >
+        source "${VENV_PATH:-.venv}/bin/activate" &&
+        npm run test-e2e
     interactive: true
   test-ui:
     desc: Run UI tests
     deps:
       - build
     cmds:
-      - npm run test-ui-current
-      - npm run test-ui-oldest
+      - >
+        source "${VENV_PATH:-.venv}/bin/activate" &&
+        npm run test-ui-current
+      - >
+        source "${VENV_PATH:-.venv}/bin/activate" &&
+        npm run test-ui-oldest
     interactive: true
   package:
     desc: Package extension
