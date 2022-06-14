@@ -3,7 +3,8 @@
     "onCommand:extension.ansible-navigator.run",
     "onCommand:extension.ansible-playbook.run",
     "onCommand:extension.ansible.vault",
-    "onLanguage:ansible"
+    "onLanguage:ansible",
+    "onCommand:extension.resync-ansible-inventory"
   ],
   "badges": [
     {
@@ -116,6 +117,10 @@
       }
     ],
     "commands": [
+      {
+        "command": "extension.resync-ansible-inventory",
+        "title": "Resync Ansible Inventory"
+      },
       {
         "category": "%commands.category.ansible-playbook%",
         "command": "extension.ansible-playbook.run",

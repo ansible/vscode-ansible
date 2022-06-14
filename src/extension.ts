@@ -7,6 +7,7 @@ import { toggleEncrypt } from "./features/vault";
 import {
   LanguageClient,
   LanguageClientOptions,
+  NotificationType,
   ServerOptions,
   TransportKind,
 } from "vscode-languageclient/node";
@@ -25,6 +26,13 @@ export function activate(context: ExtensionContext): void {
 
   context.subscriptions.push(
     commands.registerCommand("extension.ansible.vault", toggleEncrypt)
+  );
+
+  context.subscriptions.push(
+    commands.registerCommand(
+      "extension.resync-ansible-inventory",
+      resyncAnsibleInventory
+    )
   );
 
   const serverModule = context.asAbsolutePath(
@@ -84,4 +92,20 @@ function notifyAboutConflicts(): void {
   if (conflictingExtensions.length > 0) {
     showUninstallConflictsNotification(conflictingExtensions);
   }
+}
+
+/**
+ * Sends notification to the server to invalidate ansible inventory service cache
+ * And resync the ansible inventory
+ */
+function resyncAnsibleInventory(): void {
+  client.onReady().then(() => {
+    client.onNotification(
+      new NotificationType(`resync/ansible-inventory`),
+      (event) => {
+        console.log(event);
+      }
+    );
+    client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+  });
 }
