@@ -34,7 +34,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-11
-          - windows-latest
         npm-target:
           - test-ui
         upload-artifact:
@@ -98,10 +97,7 @@ jobs:
         with:
           node-version: 16
 
-      - name: Run task setup
-        uses: GabrielBB/xvfb-action@v1.6
-        with:
-          run: task setup
+      - run: task setup
 
       - name: Checkout ansible-language-server
         if: ${{ matrix.devel }}
@@ -131,15 +127,10 @@ jobs:
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
+      - run: task package
 
-      - name: task package
-        # Build and package extension with released ansible-language-server
-        # if: ${{ matrix.devel == false }}
-        uses: GabrielBB/xvfb-action@v1.6
-        with:
-          run: task package
-
-      - name: Run ${{ matrix.npm-target }}
+      - name: task ${{ matrix.npm-target }}
+        # xvfb needed for chrome headless tests
         uses: GabrielBB/xvfb-action@v1.6
         with:
           run: task ${{ matrix.npm-target }}
