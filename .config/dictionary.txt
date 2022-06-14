@@ -49,6 +49,7 @@ vsix
 webpacked
 whitespaces
 withserver
+xvfb
 
 # names and usernames:
 Anson
