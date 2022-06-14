@@ -1,6 +1,3 @@
-FQCN
-FQCNs
-TLDR
 alphanums
 autofix
 autoupdate
@@ -15,7 +12,10 @@ deps
 devel
 eqeqeq
 extest
+FQCN
+FQCNs
 groovylint
+hostvars
 hotfixes
 johndoe
 keyfile
@@ -28,13 +28,18 @@ myuser
 overridable
 ovsx
 pipx
+projectuser
 pyparsing
 reindent
 reindented
+simplejson
 sourcemaps
 suboptions
 taskfile
+testhost
 testorg
+TLDR
+towerhost
 tsbuildinfo
 unstash
 untildify

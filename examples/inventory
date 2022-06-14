@@ -1,0 +1,11 @@
+hello.world
+host1.domain.com
+192.168.1.193
+
+[routers]
+router1.domain.com
+router2.domain.com
+
+[switches]
+switch1.domain.com
+switch2.domain.com
