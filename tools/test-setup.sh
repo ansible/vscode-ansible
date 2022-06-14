@@ -32,4 +32,4 @@ ansible --version
 ansible-lint --version
 pre-commit --version
 
-npm ci
+yarn install

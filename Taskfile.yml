@@ -18,42 +18,49 @@ tasks:
     cmds:
       - echo {{.TASK}}
       - echo Done {{.VERSION}}!
+  clean:
+    desc: Clean up all files that not tracked by git
+    cmds:
+      - git clean -dxf
   setup:
     desc: Install dependencies
     cmds:
       - bash ./tools/test-setup.sh
-      - npm ci
     env:
       VENV_PATH: '{{.VENV_PATH}}'
     sources:
       - node_modules/**/*
       - tools/test-setup.sh
       - package.json
-      - package-lock.json
+      - yarn.lock
       - Taskfile.yml
     generates:
       - .venv
       - node_modules
+    run: once
   build:
     desc: Build the project
     deps:
       - setup
     cmds:
-      - npm run compile && sleep 1
+      - yarn run compile
     sources:
+      - Taskfile.yml
       - node_modules/**/*
-      - package-lock.json
       - package.json
       - src/
       - tsconfig.json
       - webpack.config.js
-      - Taskfile.yml
+      - yarn.lock.json
   code:
+    env:
+      # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
+      NODE_OPTIONS: "--no-deprecation"
     desc: Forced install of extension in your code instance
     deps:
       - package
     cmds:
-      - npm run package && code --force --install-extension *.vsix
+      - code --force --install-extension *.vsix
   deps:
     desc: Update dependencies
     deps:
@@ -62,9 +69,10 @@ tasks:
       - "{{.VENV_PYTHON}} -m piptools compile -q --no-header --no-annotate .config/requirements.txt --output-file .config/requirements.txt"
       - "{{.VENV_PYTHON}} -m pre_commit autoupdate"
       # bumps some developments dependencies
-      - npx ncu -u --dep dev
-      # running install after ncu is needed in order to update the lock file
-      - npm install
+      - yarn upgrade-interactive
+      # running install after upgrade is needed in order to update the lock file
+      - yarn install
+    interactive: true
   lint:
     desc: Lint the project
     deps:
@@ -99,19 +107,19 @@ tasks:
     cmds:
       - >
         source "${VENV_PATH:-.venv}/bin/activate" &&
-        npm run test-e2e
+        yarn run test-e2e
     interactive: true
   test-ui:
     desc: Run UI tests
     deps:
-      - build
+      - package
     cmds:
       - >
         source "${VENV_PATH:-.venv}/bin/activate" &&
-        npm run test-ui-current
+        yarn run test-ui-current
       - >
         source "${VENV_PATH:-.venv}/bin/activate" &&
-        npm run test-ui-oldest
+        yarn run test-ui-oldest
     interactive: true
   package:
     desc: Package extension
@@ -126,10 +134,11 @@ tasks:
       - "*.vsix"
     cmds:
       - rm -f *.vsix
-      - npm run webpack
+      - yarn run webpack
       # --pre-release not supported until we do VS Code >=1.63
-      - npx vsce package --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
-      - npx vsce ls
+      # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
+      - npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - npx vsce ls --no-yarn
     silent: true
   pr:
     desc: Opens a pull request using gh

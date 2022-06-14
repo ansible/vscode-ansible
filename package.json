@@ -442,26 +442,26 @@
     "mocha": "^10.0.0",
     "mochawesome": "^7.1.3",
     "mochawesome-report-generator": "^6.2.0",
-    "npm-check-updates": "^13.0.3",
     "rimraf": "^3.0.2",
     "standard-version": "^9.5.0",
     "ts-loader": "^9.3.0",
     "ts-node": "^10.8.0",
     "typescript": "^4.6.4",
-    "vsce": "^2.8.0",
+    "vsce": "^2.9.2",
     "vscode-extension-tester": "^4.2.5",
     "vscode-test": "^1.6.1",
     "webpack": "^5.72.1",
-    "webpack-cli": "^4.9.2"
+    "webpack-cli": "^4.9.2",
+    "yarn-audit-fix": "^9.3.2"
   },
   "displayName": "Ansible",
   "engineStrict": true,
   "engines": {
     "//": "node version affects only development, it does not affect vscode runtime",
     "node": ">=16.0",
-    "npm": ">=7.12.1",
+    "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
     "vscode": "^1.48.0",
-    "yarn": "\n\nERROR: Please use npm, yarn is not supported in this repository!!!\n\n"
+    "yarn": ">=3.2.1"
   },
   "extensionDependencies": [
     "ms-python.python",
@@ -490,25 +490,25 @@
     "url": "https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
-    "code": "npm run package && code --force --install-extension *.vsix",
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
-    "pretest": "npm run compile",
-    "sanity": "npm ci && npm install --ignore-scripts && ncu upgrade '@ansible/ansible-language-server@latest' && npm version --allow-same-version --no-commit-hooks --no-git-tag-version $npm_package_version",
-    "test-ui": "npm run test-ui-current && npm run test-ui-oldest",
-    "test-ui-current": "extest setup-and-run -e out/ext -i -s out/test-resources out/client/test/ui-test/allTestsSuite.js",
-    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.48.0 -s out/test-resources-oldest -i -u out/client/test/ui-test/allTestsSuite.js",
-    "vscode-prepublish": "npm run webpack",
+    "preinstall": "",
+    "pretest": "yarn run compile",
+    "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
+    "test-ui-current": "extest setup-and-run -e out/ext -s out/test-resources out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.48.0 -s out/test-resources-oldest -u out/client/test/ui-test/allTestsSuite.js",
+    "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
-    "webpack": "npm run clean && npm run compile && webpack --mode production --config ./webpack.config.js",
-    "webpack-dev": "npm run clean && webpack --mode development --config ./webpack.config.js",
+    "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.js",
+    "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.js",
     "webpack-watch": "webpack --mode development --config ./webpack.config.js --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
-    "test-compile": "npm run clean && npm run compile && tsc -p ./",
-    "test-compile-withserver": "npm run clean && npm run compile-withserver && tsc -p ./",
-    "test-e2e": "npm run test-compile && node ./out/client/test/testRunner",
-    "test-e2e-withserver": "npm run test-compile-withserver && node ./out/client/test/testRunner"
+    "test-compile": "yarn run clean && yarn run compile && tsc -p ./",
+    "test-compile-withserver": "yarn run clean && yarn run compile-withserver && tsc -p ./",
+    "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
+    "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "0.10.0"
+  "version": "0.10.0",
+  "packageManager": "yarn@3.2.1"
 }
