@@ -20,3 +20,15 @@ updates:
     labels:
       - "dependencies"
       - "skip-changelog"
+  - package-ecosystem: pip
+    directory: /.config
+    schedule:
+      interval: daily
+    labels:
+      - dependabot-deps-updates
+      - skip-changelog
+    allow:
+      - dependency-name: "ansible-compat"
+      - dependency-name: "ansible-lint"
+      - dependency-name: "ansible-core"
+    open-pull-requests-limit: 2

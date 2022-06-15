@@ -28,6 +28,7 @@ mochawesome
 myuser
 overridable
 ovsx
+piptools
 pipx
 projectuser
 pyparsing
