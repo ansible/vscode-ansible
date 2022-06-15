@@ -1,6 +1,8 @@
 # see https://taskfile.dev/#/
 version: "3"
 output: group
+env:
+  FORCE_COLOR: "true"
 vars:
   VENV_PATH: '{{default ".venv" (env "VIRTUAL_ENV")}}'
   VENV_PYTHON: '{{if (eq OS "windows")}}{{.VENV_PATH}}/Scripts/python.exe{{else}}{{.VENV_PATH}}/bin/python{{end}}'
@@ -57,6 +59,7 @@ tasks:
     deps:
       - setup
     cmds:
+      - "{{.VENV_PYTHON}} -m piptools compile -q --no-header --no-annotate .config/requirements.txt --output-file .config/requirements.txt"
       - "{{.VENV_PYTHON}} -m pre_commit autoupdate"
       # bumps some developments dependencies
       - npx ncu -u --dep dev

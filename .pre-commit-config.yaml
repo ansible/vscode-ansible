@@ -11,6 +11,10 @@ ci:
     # https://github.com/pre-commit-ci/issues/issues/55
     - npm-sanity
 minimum_pre_commit_version: 2.9.0 # types_or
+exclude: >
+  (?x)^(
+    .config/requirements.txt
+  )$
 repos:
   - repo: local
     hooks:

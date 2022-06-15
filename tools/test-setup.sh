@@ -8,14 +8,16 @@ if [ "$RUNNER_OS" == "Linux" ]; then
 fi
 
 if [[ "$UNAME" == CYGWIN* || "$UNAME" == MINGW* ]] ; then
-    echo "You cannot use Windows for development, but you could try using WSL2 if you ensure that everything runs under it."
+    echo "You cannot use Windows for development, but you could try using " \
+        "WSL2 if you ensure that everything runs under it."
     exit 2
 fi
 
+if [[ ! -d "${VENV_PATH:-.venv}" ]]; then
+    python3 -m venv "${VENV_PATH:-.venv}"
+fi
+
 if [ -z ${VIRTUAL_ENV+x} ]; then
-    if [[ ! -d "${VENV_PATH:-.venv}" ]]; then
-        python3 -m venv "${VENV_PATH:-.venv}"
-    fi
     which -a python3
     python3 --version
     # shellcheck disable=SC1091
@@ -25,8 +27,9 @@ fi
 # GHA comes with ansible-core preinstalled via pipx, so we will
 # inject the linter into it. MacOS does not have it.
 pip install -U pip
-pip install -q pre-commit 'ansible-core>=2.13' 'ansible-lint>=6.2.2'
+pip install -q -r .config/requirements.in -c .config/requirements.txt
 ansible --version
 ansible-lint --version
+pre-commit --version
 
 npm ci
