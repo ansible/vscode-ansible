@@ -1,17 +1,5 @@
 # Changelog
 
-```{spelling}
-
-Ansible
-Bugfixes
-Changelog
-globbing
-linter
-Npmjs
-suboptions
-unhandled
-```
-
 ```{include} ../CHANGELOG.md
 :end-before: <!-- towncrier release notes start -->
 :start-after: DO-NOT-REMOVE-versioning-promise-START

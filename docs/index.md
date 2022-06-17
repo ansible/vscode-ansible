@@ -1,10 +1,5 @@
 <!-- markdownlint-disable first-line-heading -->
 
-```{spelling}
-
-linter
-```
-
 (\_ansible_language_server_index)=
 
 # {{ project }} Documentation

@@ -1,14 +1,5 @@
 <!-- markdownlint-disable first-line-heading -->
 
-```{spelling}
-de
-facto
-linters
-Pre
-reStructuredText
-Towncrier
-```
-
 ```{include} ../../.github/CONTRIBUTING.md
 
 ```
