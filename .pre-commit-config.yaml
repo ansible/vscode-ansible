@@ -102,7 +102,7 @@ repos:
             docs/settings.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.17.0
+    rev: v8.18.0
     hooks:
       - id: eslint
         args:
