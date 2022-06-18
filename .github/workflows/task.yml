@@ -1,5 +1,5 @@
 # alternative KISS pipeline to bloated ci.yml, modeled after vscode-ansible one.
-name: tox
+name: task
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
@@ -19,8 +19,8 @@ jobs:
   test:
     env:
       # to expose matrix job name to steps, which is not possible with expansions
-      JOB_NAME: ${{ matrix.name || format('{0} ({1})', matrix.tox-target, matrix.os) }}
-    name: ${{ matrix.name || format('{0} ({1})', matrix.tox-target, matrix.os) }}
+      JOB_NAME: ${{ matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
+    name: ${{ matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
     defaults:
@@ -33,7 +33,7 @@ jobs:
           - ubuntu-latest
         node-version:
           - "12"
-        tox-target:
+        task-name:
           - test-node12
           - test-node14
           - test-node16
@@ -43,19 +43,19 @@ jobs:
           - false
         include:
           - name: lint
-            tox-target: lint
+            task-name: lint
           - name: docs
-            tox-target: docs
+            task-name: docs
           - name: test (wsl)
             # runner does not support running container
-            tox-target: test-without-ee
+            task-name: test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
             os: windows-2019
             shell: "wsl-bash {0}"
           - name: test (macos)
             os: macos-11
             # runner does not support running container
-            tox-target: test-without-ee
+            task-name: test-without-ee
 
     steps:
       - name: Disable autocrlf
@@ -76,15 +76,24 @@ jobs:
           # https://github.com/Vampire/setup-wsl#wsl-shell-command
           wsl-shell-command: "bash -i -euo pipefail"
 
-      - name: Run ./tools/test-setup.sh
-        run: ./tools/test-setup.sh
+      - name: Install Task
+        if: "!contains(matrix.shell, 'wsl')"
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install tox
-        run: python3 -m pip install --user tox
+      - name: Install Task (wsl)
+        if: "contains(matrix.shell, 'wsl')"
+        run: |
+          sudo apt-get update && sudo apt-get install -y curl
+          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          task --version
 
       - name: Dump node version into .nvmrc file
         # save node version in .nvmrc file by looking for a pattern like
         # node12 in job name. If pattern is not found it uses 'current' alias
+        if: "!contains(matrix.shell, 'wsl')"
         run: >
           python3 -c 'import os, re;
           v = re.search("node(\d+)", os.environ.get("JOB_NAME", "")) or ["", "current"];
@@ -98,8 +107,10 @@ jobs:
         with:
           node-version-file: '.nvmrc'
 
-      - name: tox -e ${{ matrix.tox-target }}
-        run: python3 -m tox -e ${{ matrix.tox-target }}
+      - run: task setup
+
+      - name: task ${{ matrix.task-name }}
+        run: task ${{ matrix.task-name }}
 
   check: # This job does nothing and is only used for the branch protection
     if: always()

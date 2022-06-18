@@ -12,31 +12,10 @@ from pathlib import Path
 from setuptools_scm import get_version
 
 
-# Patches for parsimonious->sphinx-js under Python 3.10/3.9:
-collections.Mapping = collections.abc.Mapping
-
-
 # -- Path setup --------------------------------------------------------------
 
 PROJECT_ROOT_DIR = Path(__file__).parents[1].resolve()  # pylint: disable=no-member
 get_scm_version = partial(get_version, root=PROJECT_ROOT_DIR)
-
-# Patch necessary for sphinx-js to locate the `typedoc` executable:
-os.environ["PATH"] = (
-    f'{PROJECT_ROOT_DIR / "node_modules" / "typedoc" / "bin"!s}'
-    f'{os.pathsep}{os.getenv("PATH", "")}'
-)
-
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-
-
-# Make in-tree extension importable in non-tox setups/envs, like RTD.
-# Refs:
-# https://github.com/readthedocs/readthedocs.org/issues/6311
-# https://github.com/readthedocs/readthedocs.org/issues/7182
-sys.path.insert(0, str((Path(__file__).parent / "_ext").resolve()))
 
 # -- Project information -----------------------------------------------------
 

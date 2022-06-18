@@ -3,6 +3,8 @@ node_modules
 *.vsix
 *.tgz
 out/server
+out/.doctrees
+out/docs_out
 tsconfig.tsbuildinfo
 vscode-ansible
 .nyc_output
@@ -19,3 +21,5 @@ change-notes-*.md
 # Ignored because we support multiple versions and switch between them
 .nvmrc
 .node-version
+.task
+.venv

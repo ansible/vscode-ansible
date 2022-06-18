@@ -7,29 +7,7 @@
 # Contributing docs
 
 We use [Sphinx][sphinx] to generate our docs website. You can trigger the
-process locally by executing:
-
-```shell-session
-$ tox -e build-docs
-build-docs create: .tox/build-docs
-build-docs installdeps: -r docs/requirements.txt
-...
-
-========================================================================================================================
-
-Documentation available under:
-
-    file://.tox/build-docs/docs_out/index.html
-
-To serve docs, use
-
-    $ python3 -m http.server --directory  ".tox/build-docs/docs_out" 0
-
-========================================================================================================================
-_______________________________________________________ summary ________________________________________________________
-  build-docs: commands succeeded
-  congratulations :)
-```
+process locally by executing `task docs`:
 
 It is also integrated with [Read The Docs][rtd] that builds and publishes each
 commit to the main branch and generates live docs previews for each pull

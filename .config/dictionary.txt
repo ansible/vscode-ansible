@@ -6,6 +6,7 @@ HORIZONTALLINE
 Jenkinsfile
 PYTHONHOME
 TLDR
+Taskfile
 WSLENV
 YOLO
 alphanums
@@ -18,6 +19,7 @@ autoupdate
 backticks
 cacheable
 chronographer
+cmds
 codeclimate
 codecov
 commitish
@@ -32,6 +34,7 @@ doctree
 doctrees
 dunamai
 endfor
+envdir
 eqeqeq
 globbing
 globby

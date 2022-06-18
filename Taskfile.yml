@@ -1,0 +1,164 @@
+---
+# see https://taskfile.dev/#/
+version: "3"
+output: group
+vars:
+  VENV_PATH: '{{default ".venv" (env "VIRTUAL_ENV")}}'
+  VENV_PYTHON: '{{if (eq OS "windows")}}{{.VENV_PATH}}/Scripts/python.exe{{else}}{{.VENV_PATH}}/bin/python{{end}}'
+  NODE_ENV: |
+    [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm";
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" --silent;
+    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh";
+tasks:
+  default:
+    desc: Run most commands
+    deps:
+      - lint
+      - package
+    env:
+      VERSION:
+        sh: node -p "require('./package.json').version"
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install'
+      - echo Done {{.VERSION}}!
+  docs:
+    desc: Build the documentation
+    vars:
+      sphinx_common_args: '-j auto --color -a -n -W --keep-going -T -d "../out/.doctrees" . "../out/docs_out"'
+    deps:
+      - setup
+    dir: docs
+    cmds:
+      # Retrieve possibly missing commits:
+      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
+      - git fetch --tags
+      - npm run generate-settings-readme
+      - >
+        source ../"${VENV_PATH:-.venv}/bin/activate" &&
+        python -m sphinx -b html {{.sphinx_common_args}} &&
+        python -m sphinx -b linkcheck {{.sphinx_common_args}} &&
+        python ../tools/docs_summary.py
+
+  setup:
+    desc: Install dependencies
+    run: once
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+    cmds:
+      - ./tools/test-setup.sh
+      - npm ci
+    sources:
+      - Taskfile.yml
+      - package.json
+      - requirements.txt
+      - setup.cfg
+      - tools/test-setup.sh
+  build:
+    desc: Build the project
+    deps:
+      - setup
+    cmds:
+      - npm run compile
+    sources:
+      - package-lock.json
+      - package.json
+      - src/
+      - tsconfig.json
+      - webpack.config.js
+  deps:
+    desc: Update dependencies
+    deps:
+      - setup
+    cmds:
+      - bash -c "PIP_CONSTRAINTS= pip-compile -q --extra docs --extra test --strip-extras --no-annotate setup.cfg -o requirements.txt"
+      - python3 -m pre_commit autoupdate
+      # bumps some developments dependencies
+      - npx ncu -u --dep dev
+      # running install after ncu is needed in order to update the lock file
+      - npm install
+  lint:
+    desc: Lint the project
+    deps:
+      - setup
+    env:
+      PRE_COMMIT_COLOR: always
+    cmds:
+      - "{{.VENV_PATH}}/bin/python3 -m pre_commit run -a"
+    silent: true
+    sources:
+      - "*.*"
+      - .config
+      - .github
+      - .vscode
+      - doc
+      - images
+      - src
+      - syntaxes
+      - test
+      - tools
+  test:
+    desc: Run all tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source {{.VENV_PATH}}/bin/activate &&
+        which -a ansible-lint &&
+        npm run test
+    interactive: true
+  test-node12:
+    desc: Run all tests using node 12
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install 12'
+      - task: test
+  test-node14:
+    desc: Run all tests using node 14
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install 14'
+      - task: test
+  test-node16:
+    desc: Run all tests using node 16
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install 16'
+      - task: test
+  test-with-ee:
+    desc: Run only ee tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source {{.VENV_PATH}}/bin/activate &&
+        npm run test-with-ee
+    interactive: true
+  test-without-ee:
+    desc: Run only non-ee tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source {{.VENV_PATH}}/bin/activate &&
+        npm run test-without-ee
+    interactive: true
+  package:
+    desc: Package extension
+    deps:
+      - build
+    sources:
+      - CHANGELOG.md
+      - README.md
+      - package*.json
+      - out/
+    generates:
+      - "*.vsix"
+    cmds:
+      - rm -f *.tgz
+      - npm pack
+    silent: false
+  pr:
+    desc: Opens a pull request using gh
+    deps:
+      - lint
+    cmds:
+      - gh pr create
+    interactive: true

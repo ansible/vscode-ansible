@@ -2,7 +2,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -euxo pipefail
+set -euo pipefail
 
 # User specific environment
 # shellcheck disable=SC2076
@@ -36,27 +36,37 @@ if [ "$(which npm)" == '/mnt/c/Program Files/nodejs/npm' ]; then
     sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 nodejs gcc g++ make
 fi
 
-which pipx || python3 -m pip install --user pipx
-which -a pipx
-which pre-commit || pipx install pre-commit
+if [[ ! -d "${VENV_PATH:-.venv}" ]]; then
+    python3 -m venv "${VENV_PATH:-.venv}"
+fi
+
+if [ -z ${VIRTUAL_ENV+x} ]; then
+    which -a python3
+    python3 --version
+    # shellcheck disable=SC1091
+    source "${VENV_PATH:-.venv}/bin/activate"
+fi
+python3 -m pip install -U pip
 
 if [[ $(uname) != MINGW* ]]; then # if we are not on pure Windows
-    # GHA comes with ansible-core preinstalled via pipx, so we will
-    # inject the linter into it. MacOS does not have it.
-    which ansible || pipx install ansible-core
-
-    # we need pipx 1.0 as Ubuntu has a outdated/incompatible version
-    pipx inject --include-deps --include-apps ansible-core ansible-lint yamllint
+    python3 -m pip install -c requirements.txt ".[test,docs]"
     ansible --version
     ansible-lint --version
 fi
+
+command -v nvm >/dev/null 2>&1 || {
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    [ -z "${NVM_DIR:-}" ] && export NVM_DIR="$HOME/.nvm";
+    [ -s "${NVM_DIR:-}/nvm.sh" ] && . "${NVM_DIR:-}/nvm.sh" --silent;
+    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh";
+}
 
 # Log some useful info in case of unexpected failures:
 uname
 git --version
 python3 --version
 pre-commit --version
-node --version
+nvm --version
 npm --version
 
 # install npm packages
