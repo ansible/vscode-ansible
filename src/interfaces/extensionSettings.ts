@@ -12,6 +12,7 @@ export type IPullPolicy = "always" | "missing" | "never" | "tag";
 export interface ExtensionSettingsWithDescription {
   ansible: AnsibleSettingsWithDescription;
   ansibleLint: AnsibleLintSettingsWithDescription;
+  completion: CompletionSettingsWithDescription;
   executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
   python: PythonSettingsWithDescription;
 }
@@ -19,6 +20,10 @@ export interface ExtensionSettingsWithDescription {
 export interface ExtensionSettings {
   ansible: { path: string; useFullyQualifiedCollectionNames: boolean };
   ansibleLint: { enabled: boolean; path: string; arguments: string };
+  completion: {
+    provideRedirectModules: boolean;
+    provideModuleOptionAliases: boolean;
+  };
   executionEnvironment: {
     enabled: boolean;
     containerEngine: IContainerEngine;
@@ -99,6 +104,20 @@ interface PythonSettingsWithDescription {
   };
   activationScript: {
     default: string;
+    description: string;
+  };
+}
+
+/**
+ * Interface for completion settings
+ */
+interface CompletionSettingsWithDescription {
+  provideRedirectModules: {
+    default: boolean;
+    description: string;
+  };
+  provideModuleOptionAliases: {
+    default: boolean;
     description: string;
   };
 }

@@ -104,6 +104,17 @@ export class SettingsManager {
           "Extra parameters passed to the container engine command example: '--net=host'",
       },
     },
+    completion: {
+      provideRedirectModules: {
+        default: true,
+        description:
+          "Toggle redirected module provider when completing modules",
+      },
+      provideModuleOptionAliases: {
+        default: true,
+        description: "Toggle alias provider when completing module options",
+      },
+    },
   };
 
   // Structure the settings similar to the ExtensionSettings interface for usage in the code

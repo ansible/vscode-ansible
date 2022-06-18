@@ -65,6 +65,12 @@ export async function doCompletion(
 
   const useFqcn = (await context.documentSettings.get(document.uri)).ansible
     .useFullyQualifiedCollectionNames;
+  const provideRedirectModulesCompletion = (
+    await context.documentSettings.get(document.uri)
+  ).completion.provideRedirectModules;
+  const provideModuleOptionAliasesCompletion = (
+    await context.documentSettings.get(document.uri)
+  ).completion.provideModuleOptionAliases;
 
   // We need inclusive matching, since cursor position is the position of the character right after it
   // NOTE: Might no longer be required due to the hack above
@@ -138,8 +144,13 @@ export async function doCompletion(
           );
 
           // offer modules
-          const moduleCompletionItems = [...docsLibrary.moduleFqcns].map(
-            (moduleFqcn): CompletionItem => {
+          const moduleCompletionItems = [...docsLibrary.moduleFqcns]
+            .filter(
+              (moduleFqcn) =>
+                provideRedirectModulesCompletion ||
+                !docsLibrary.getModuleRoute(moduleFqcn)?.redirect
+            )
+            .map((moduleFqcn): CompletionItem => {
               let priority, kind;
               if (docsLibrary.getModuleRoute(moduleFqcn)?.redirect) {
                 priority = priorityMap.redirectedModuleName;
@@ -178,8 +189,7 @@ export async function doCompletion(
                   newText: insertText,
                 },
               };
-            }
-          );
+            });
           completionItems.push(...moduleCompletionItems);
         }
         return completionItems;
@@ -220,6 +230,9 @@ export async function doCompletion(
               specs: specs,
             };
           })
+          .filter(
+            (option) => provideModuleOptionAliasesCompletion || !isAlias(option)
+          )
           .map((option, index) => {
             // translate option documentation to CompletionItem
             const details = getDetails(option.specs);

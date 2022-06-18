@@ -69,6 +69,16 @@ Extra parameters passed to the container engine command example: &#x27;--net&#x3
 _default value:
 `""`_
 
+- **ansible.completion.provideRedirectModules**:
+Toggle redirected module provider when completing modules \
+_default value:
+`true`_
+
+- **ansible.completion.provideModuleOptionAliases**:
+Toggle alias provider when completing module options \
+_default value:
+`true`_
+
 - **ansible.executionEnvironment.volumeMounts**:
   - **src**: The name of the local volume or path to be mounted within execution environment. \
   _default value:
