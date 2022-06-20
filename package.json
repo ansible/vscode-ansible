@@ -30,6 +30,13 @@
   "bin": {
     "ansible-language-server": "./bin/ansible-language-server"
   },
+  "main": "./out/server/src/server.js",
+  "types": "./out/server/src/server.d.ts",
+  "files": [
+    "CHANGELOG.md",
+    "icon.png",
+    "out/server/src"
+  ],
   "categories": [
     "Programming Languages"
   ],
