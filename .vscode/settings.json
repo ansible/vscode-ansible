@@ -18,4 +18,5 @@
     "**/node_modules": true,
   },
   "explorerExclude.backup": null,
+  "mypy.configFile": ".config/mypy.ini",
 }

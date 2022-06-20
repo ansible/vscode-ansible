@@ -5,6 +5,7 @@
 
 import collections
 import os
+import json
 import sys
 from functools import partial
 from pathlib import Path
@@ -14,8 +15,10 @@ from setuptools_scm import get_version
 
 # -- Path setup --------------------------------------------------------------
 
-PROJECT_ROOT_DIR = Path(__file__).parents[1].resolve()  # pylint: disable=no-member
-get_scm_version = partial(get_version, root=PROJECT_ROOT_DIR)
+# pylint: disable=no-member
+PROJECT_ROOT_DIR = Path(__file__).parents[1].resolve()
+with open(PROJECT_ROOT_DIR / "package.json", "r", encoding="utf-8") as pkg:
+    version = json.loads(pkg.read())['version']
 
 # -- Project information -----------------------------------------------------
 
@@ -30,16 +33,7 @@ github_sponsors_url = f"{github_url}/sponsors"
 project = " ".join(github_repo_name.split("-")).title()
 author = f"{project} project contributors"
 copyright = author  # pylint: disable=redefined-builtin
-
-# The short X.Y version
-version = ".".join(
-    get_scm_version(local_scheme="no-local-version",).split(
-        "."
-    )[:3],
-)
-
-# The full version, including alpha/beta/rc tags
-release = get_scm_version()
+release = version
 
 rst_epilog = f"""
 .. |project| replace:: {project}
