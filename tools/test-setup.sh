@@ -49,7 +49,7 @@ fi
 python3 -m pip install -U pip
 
 if [[ $(uname) != MINGW* ]]; then # if we are not on pure Windows
-    python3 -m pip install -c requirements.txt ".[test,docs]"
+    python3 -m pip install -c .config/requirements.txt -r .config/requirements.in
     ansible --version
     ansible-lint --version
 fi

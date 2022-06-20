@@ -13,6 +13,4 @@ dictionaries:
   - "!cryptocurrencies"
   - "!cpp"
 ignorePaths:
-  - docs/requirements.in
-  - docs/requirements.txt
-  - requirements.txt
+  - .config/requirements.txt

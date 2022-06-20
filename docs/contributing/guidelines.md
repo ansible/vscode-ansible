@@ -22,7 +22,3 @@ roles. {ref}`Read the docs <myst:intro/writing>` to learn more on how to use it.
 [myst]: https://pypi.org/project/myst-parser/
 [rtd]: https://readthedocs.org
 [sphinx]: https://www.sphinx-doc.org
-
-```{include} ../changelog-fragments.d/README.md
-
-```

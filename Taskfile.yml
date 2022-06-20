@@ -51,7 +51,7 @@ tasks:
     sources:
       - Taskfile.yml
       - package.json
-      - requirements.txt
+      - .config/requirements.*
       - setup.cfg
       - tools/test-setup.sh
   build:
@@ -71,7 +71,7 @@ tasks:
     deps:
       - setup
     cmds:
-      - bash -c "PIP_CONSTRAINTS= pip-compile -q --extra docs --extra test --strip-extras --no-annotate setup.cfg -o requirements.txt"
+      - bash -c "PIP_CONSTRAINTS= pip-compile -q --strip-extras --no-annotate .config/requirements.in -o .config/requirements.txt"
       - python3 -m pre_commit autoupdate
       # bumps some developments dependencies
       - npx ncu -u --dep dev

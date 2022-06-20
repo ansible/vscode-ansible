@@ -4,7 +4,7 @@ import os
 import sys
 
 if __name__ == "__main__":
-    docs_dir = pathlib.Path("out") / "docs_out"
+    docs_dir = (pathlib.Path("../out") / "docs_out").resolve()
     index_file = (docs_dir / "index.html").absolute()
     print(f"""
 Documentation index: file://{index_file}
