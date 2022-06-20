@@ -76,6 +76,21 @@ jobs:
           # https://github.com/Vampire/setup-wsl#wsl-shell-command
           wsl-shell-command: "bash -i -euo pipefail"
 
+      - name: Enable caching
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/npm
+            ~/.cache/pip
+            ~/.nvm/.cache
+            ~/Library/Caches/pip
+          key: >
+            ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles(
+            'package.json',
+            'package-lock.json',
+            '.config/requirements.txt'
+            ) }}
+
       - name: Install Task
         if: "!contains(matrix.shell, 'wsl')"
         uses: arduino/setup-task@v1
