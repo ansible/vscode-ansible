@@ -6,7 +6,6 @@ out
 
 # Tracked but externally sourced, no reformatting wanted:
 jinja-language-configuration.json
-syntaxes/external/jinja.tmLanguage.json
 
 # Files temporary excluded during prettier adoption:
 *.yaml

@@ -94,7 +94,6 @@ tasks:
       - doc
       - images
       - src
-      - syntaxes
       - test
       - tools
   test:

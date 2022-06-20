@@ -16,4 +16,3 @@ ignorePaths:
   - docs/requirements.in
   - docs/requirements.txt
   - requirements.txt
-  - syntaxes/**/*.*
