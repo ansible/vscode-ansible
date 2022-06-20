@@ -65,6 +65,7 @@ patchback
 pkgcache
 podman
 prettierrc
+preid
 preversion
 pyparsing
 pyup
