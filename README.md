@@ -95,6 +95,15 @@ You may also open the implementation of any module using the standard _Go to
 Definition_ operation, for instance, by clicking on the module name while
 holding `ctrl`/`cmd`.
 
+## Standalone Usage
+
+For standalone usage with a language server client, Ansible language server can
+be installed from npm with the following command:
+
+```bash
+npm install -g @ansible/ansible-language-server
+```
+
 ## Language Server Settings
 
 For details on settings, their descriptions and their default values refer to
