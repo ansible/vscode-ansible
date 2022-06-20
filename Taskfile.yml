@@ -161,3 +161,11 @@ tasks:
     cmds:
       - gh pr create
     interactive: true
+  release:
+    desc: Create a new release (used by CI)
+    vars:
+      DRAFT_RELEASE_NAME:
+        sh: gh api repos/{owner}/{repo}/releases --jq '.[0].name'
+    cmds:
+      - npm version {{.DRAFT_RELEASE_NAME}} --allow-same-version --no-commit-hooks --no-git-tag-version
+      - ./tools/mk_changelog.sh
