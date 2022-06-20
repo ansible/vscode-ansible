@@ -66,8 +66,6 @@ repos:
         exclude: >
           (?x)^(
             .vscode/.*|
-            ansible-language-configuration.json|
-            jinja-language-configuration.json|
             scripts/tsconfig.json|
             scripts/tsconfig.esm.json|
             scripts/tsconfig.umd.json|
