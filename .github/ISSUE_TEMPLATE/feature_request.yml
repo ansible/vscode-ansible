@@ -2,8 +2,8 @@
 name: 💡 Feature request
 description: Suggest an idea for this project
 labels:
-- enhancement
-- new
+  - enhancement
+  - new
 
 body:
   - type: markdown
@@ -12,7 +12,8 @@ body:
         **Thanks for taking the time to fill out this feature request!**
 
 
-        ⚠ Please, verify first that the feature you want is not [already requested][issues].
+        ⚠ Please, verify first that the feature you want is not
+        [already requested][issues].
 
 
         🛈 **Tip:** If you are seeking community support, or want to ask a
@@ -61,4 +62,5 @@ body:
     id: context
     attributes:
       label: Additional context
-      description: Add any other context or screenshots about the feature request.
+      description: >
+        Add any other context or screenshots about the feature request.

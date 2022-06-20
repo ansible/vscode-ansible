@@ -6,7 +6,7 @@ This language server adds support for Ansible and is currently used by the
 following projects:
 
 - [Ansible extension for vscode/codium](https://github.com/ansible/vscode-ansible)
-- [Ansible extension for coc.nvim](https://github.com/yaegassy/coc-ansible)
+- [Ansible extension for vim and neovim](https://github.com/yaegassy/coc-ansible)
 - [Ansible client for Emacs LSP](https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/)
 
 ## Features
@@ -50,7 +50,7 @@ are shown as warnings instead.
 **_Note_**
 
 If `ansible-lint` is not installed/found or running `ansible-lint` results in
-error it will fallback to `ansible --syntax-check` for validation.
+errors, it will fall back to `ansible --syntax-check` for validation.
 
 ### Smart auto-completion
 
@@ -58,7 +58,7 @@ error it will fallback to `ansible --syntax-check` for validation.
 
 The extension tries to detect whether the cursor is on a play, block or task
 etc. and provides suggestions accordingly. There are also a few other rules that
-improve user experience:
+improve the user experience:
 
 - the `name` property is always suggested first
 - on module options, the required properties are shown first, and aliases are
@@ -97,8 +97,8 @@ holding `ctrl`/`cmd`.
 
 ## Standalone Usage
 
-For standalone usage with a language server client, Ansible language server can
-be installed from npm with the following command:
+For standalone usage with a language-server client, the Ansible language server
+can be installed from npm with the following command:
 
 ```bash
 npm install -g @ansible/ansible-language-server
@@ -111,7 +111,7 @@ For details on settings, their descriptions and their default values refer to
 
 ## Developer support
 
-For details on setting up development environment and debugging refer to the
+For details on setting up the development environment and debugging refer to the
 [development document].
 
 [development document]:
@@ -133,9 +133,8 @@ For Windows users, this extension works perfectly well with extensions such as
 ## Known limitations
 
 - The shorthand syntax for module options (key=value pairs) is not supported.
-- Only Jinja _expressions_ inside Ansible YAML files are supported. In order to
-  have syntax highlighting of Jinja template files, you'll need to install other
-  extension.
+- Only Jinja _expressions_ inside Ansible YAML files are supported. To do syntax
+  highlighting of Jinja template files, you'll need to install other extensions.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
 
 ## Credit

@@ -2,8 +2,8 @@
 name: 🐛 Bug report
 description: Create a report to help us improve
 labels:
-- bug
-- new
+  - bug
+  - new
 
 body:
   - type: markdown
@@ -12,7 +12,8 @@ body:
         **Thanks for taking the time to fill out this bug report!**
 
 
-        ⚠ Please, verify first that your issue is not [already reported][issues].
+        ⚠ Please, verify first that your issue is not
+        [already reported][issues].
 
 
         🛈 **Tip:** If you are seeking community support, or want to ask a
@@ -67,9 +68,9 @@ body:
         $ ansible --version
         ansible [core 2.11.1]
           config file = ~/.ansible.cfg
-          configured module search path = ['~/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
-          ansible python module location = ~/venv/ansible4/lib/python3.6/site-packages/ansible
-          ansible collection location = ~/.ansible/collections:/usr/share/ansible/collections
+          configured module search path = ...
+          ansible python module location = ...
+          ansible collection location = ...
           executable location = ~/venv/ansible4/bin/ansible
           python version = 3.6.9 (default, Jul 17 2020, 12:50:27) [GCC 8.4.0]
           jinja version = 3.0.1

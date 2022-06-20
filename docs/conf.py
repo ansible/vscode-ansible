@@ -3,14 +3,8 @@
 # Ref: https://www.sphinx-doc.org/en/master/usage/configuration.html
 """Configuration for the Sphinx documentation generator."""
 
-import collections
-import os
 import json
-import sys
-from functools import partial
 from pathlib import Path
-
-from setuptools_scm import get_version
 
 
 # -- Path setup --------------------------------------------------------------
@@ -217,10 +211,6 @@ myst_substitutions = {
 
 # Example sphinx-js use: https://mozilla.github.io/fathom/ruleset.html
 js_language = "typescript"
-# js_source_path = '../src'  # default: '../'
-# jsdoc_cache =  # FIXME: think about cache invalidation?
-# jsdoc_config_path = '../conf.json'
-# root_for_relative_js_paths = js_source_path
 
 # -- Strict mode -------------------------------------------------------------
 
