@@ -15,5 +15,5 @@ _extends: ansible-community/devtools
 # * edit the release to point it the new tag instead of the -next.0 one
 tag-template: 'v$RESOLVED_VERSION-next.0'
 # instead of 2x# we use 3x to make the outcome ready to embed into CHANGELOG.md
-category-template: '### $TITLE"'
+category-template: '### $TITLE'
 template: '$CHANGES'
