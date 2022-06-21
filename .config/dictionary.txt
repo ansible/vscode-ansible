@@ -46,6 +46,7 @@ libyaml
 lineinfile
 linkcheck
 linkify
+loglevel
 lxml
 markdownlint
 monospace

@@ -1,7 +1,6 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
-output: group
 vars:
   VENV_PATH: '{{default ".venv" (env "VIRTUAL_ENV")}}'
   VENV_PYTHON: '{{if (eq OS "windows")}}{{.VENV_PATH}}/Scripts/python.exe{{else}}{{.VENV_PATH}}/bin/python{{end}}'
@@ -13,13 +12,14 @@ tasks:
   default:
     desc: Run most commands
     deps:
-      - lint
-      - package
+      - setup
     env:
       VERSION:
         sh: node -p "require('./package.json').version"
     cmds:
       - bash -c '{{ .NODE_ENV }} nvm install'
+      - task: lint
+      - task: package
       - echo Done {{.VERSION}}!
   docs:
     desc: Build the documentation

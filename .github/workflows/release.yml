@@ -11,6 +11,8 @@ permissions: write-all
 jobs:
   release:
     name: Create release PR
+    environment:
+      name: release
     runs-on: ubuntu-latest
 
     steps:
@@ -28,4 +30,6 @@ jobs:
 
       - run: task release
         env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          # We cannot use GITHUB_TOKEN because, by design, actions performed by
+          # github-actions do not trigger workflows, so we need a bot.
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}

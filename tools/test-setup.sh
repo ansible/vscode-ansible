@@ -20,18 +20,26 @@ fi
 
 
 if [ -f "/usr/bin/apt-get" ]; then
+
     if [ ! -f "/var/cache/apt/pkgcache.bin" ]; then
         sudo apt-get update  # mandatory or other apt-get commands fail
     fi
-    # avoid outdated ansible and pipx
-    sudo apt-get remove -y ansible pipx || true
-    sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
-        curl git python3-venv python3-pip
+    INSTALL=0
+    for CMD in curl git python3; do
+        command -v $CMD >/dev/null 2>&1 || INSTALL=1
+    done
+    if [ "$INSTALL" -eq 1 ]; then
+        echo "We need sudo to install some package: python3, git, curl"
+        # avoid outdated ansible and pipx
+        sudo apt-get remove -y ansible pipx || true
+        sudo apt-get install -y --no-install-recommends -o=Dpkg::Use-Pty=0 \
+            curl git python3-venv python3-pip
+    fi
 fi
 
 
 # install gh if missing
-which gh 2>/dev/null || {
+which gh >/dev/null 2>&1 || {
     echo "Trying to install missing gh on $OS ..."
     if [ "$OS" == "linux" ]; then
       which dnf && sudo dnf install -y gh || true
@@ -51,8 +59,6 @@ if [[ ! -d "${VENV_PATH:-.venv}" ]]; then
 fi
 
 if [ -z ${VIRTUAL_ENV+x} ]; then
-    which -a python3
-    python3 --version
     # shellcheck disable=SC1091
     source "${VENV_PATH:-.venv}/bin/activate"
 fi

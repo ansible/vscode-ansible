@@ -25,7 +25,7 @@ fi
 sed $SED_OPTION -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' CHANGELOG.md
 
 # use prettier to reformat the changelog, lik rewrapping long lines
-npx prettier -w CHANGELOG.md
+npx prettier --loglevel error -w CHANGELOG.md
 
 # update version
 npm version "${RELEASE_NAME}" --allow-same-version --no-commit-hooks --no-git-tag-version
