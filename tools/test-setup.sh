@@ -73,6 +73,9 @@ command -v nvm >/dev/null 2>&1 || {
     . "${NVM_DIR:-}/nvm.sh" --silent;
     [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh";
 }
+which npm  >/dev/null 2>&1 || {
+    nvm install
+}
 
 # Log some useful info in case of unexpected failures:
 uname

@@ -11,7 +11,12 @@ gh api "repos/{owner}/{repo}/releases" --jq '.[0].body' | \
 truncate -s -1 out/next.md
 
 # inject the temp nodes into the CHANGELOG.md
-sed -i '' -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' CHANGELOG.md
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    SED_OPTION='-i \x27\x27'
+else
+    SED_OPTION='-i'
+fi
+sed $SED_OPTION -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' CHANGELOG.md
 
 # use prettier to reformat the changelog, lik rewrapping long lines
 npx prettier -w CHANGELOG.md
