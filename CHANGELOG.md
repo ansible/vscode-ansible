@@ -20,6 +20,21 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.8.0
+
+### Minor Changes
+
+- Add settings for completion (#348) @fredericgiquel
+
+### Bugfixes
+
+- Fix documentation version reading (#363) @ssbarnea
+- docs: add note on standalone usage (#347) @mtoohey31
+- Refactor npm package (#356) @ssbarnea
+- Bump ansible-lint from 6.2.2 to 6.3.0 (#346)
+- Add check to validate mount path before passing it as an arg in EE (#345)
+  @priyamsahoo
+
 ## v0.7.2 (2022-05-24)
 
 ### Bugfixes
