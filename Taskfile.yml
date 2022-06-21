@@ -166,5 +166,5 @@ tasks:
     deps:
       - setup
     cmds:
-      - ./tools/mk_changelog.sh
+      - ./tools/release.sh
     interactive: true

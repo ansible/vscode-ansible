@@ -10,9 +10,7 @@ permissions: write-all
 
 jobs:
   release:
-    name: Create a new release pull request
-    environment:
-      name: release
+    name: Create release PR
     runs-on: ubuntu-latest
 
     steps:

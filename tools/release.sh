@@ -34,7 +34,7 @@ task lint --silent
 git checkout -B "release/${RELEASE_NAME}"
 
 # commit the changes
-echo "Release ${RELEASE_NAME}" | cat -  out/next.md | git commit --file -
+echo "Release ${RELEASE_NAME}" | cat -  out/next.md | git commit --author "Ansible DevTools <ansible-devtools@redhat.com>" --file -
 
 # Unless, CI is defined we prompt for confirmation
 if [[ -z ${CI+z} ]]; then
