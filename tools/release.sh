@@ -1,6 +1,12 @@
 #!/bin/bash
 set -eo pipefail
 
+# Fail if repo is dirty
+if [[ -n $(git status -s) ]]; then
+  echo 'ERROR: Release script requires a clean git repo.'
+  exit 1
+fi
+
 RELEASE_NAME=$(gh api 'repos/{owner}/{repo}/releases' --jq '.[0].name')
 echo -e "\n## ${RELEASE_NAME}\n" > out/next.md
 gh api "repos/{owner}/{repo}/releases" --jq '.[0].body' | \
@@ -34,7 +40,9 @@ task lint --silent
 git checkout -B "release/${RELEASE_NAME}"
 
 # commit the changes
-echo "Release ${RELEASE_NAME}" | cat -  out/next.md | git commit --author "Ansible DevTools <ansible-devtools@redhat.com>" --file -
+git config user.email || git config user.email ansible-devtools@redhat.com
+git config user.name || git config user.name "Ansible DevTools"
+echo "Release ${RELEASE_NAME}" | cat -  out/next.md | git commit --file -
 
 # Unless, CI is defined we prompt for confirmation
 if [[ -z ${CI+z} ]]; then
