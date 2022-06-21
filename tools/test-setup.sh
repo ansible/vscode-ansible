@@ -29,6 +29,16 @@ if [ -f "/usr/bin/apt-get" ]; then
         curl git python3-venv python3-pip
 fi
 
+
+# install gh if missing
+which gh 2>/dev/null || {
+    echo "Trying to install missing gh on $OS ..."
+    if [ "$OS" == "linux" ]; then
+      which dnf && sudo dnf install -y gh || true
+    fi
+    gh --version || echo "WARNING: gh cli not found and it might be needed for some commands."
+}
+
 # on WSL we want to avoid using Windows's npm (broken)
 if [ "$(which npm)" == '/mnt/c/Program Files/nodejs/npm' ]; then
 
@@ -55,9 +65,12 @@ if [[ $(uname) != MINGW* ]]; then # if we are not on pure Windows
 fi
 
 command -v nvm >/dev/null 2>&1 || {
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    # define its location (needed)
     [ -z "${NVM_DIR:-}" ] && export NVM_DIR="$HOME/.nvm";
-    [ -s "${NVM_DIR:-}/nvm.sh" ] && . "${NVM_DIR:-}/nvm.sh" --silent;
+    # install if missing
+    [ ! -s "${NVM_DIR:-}/nvm.sh" ] && curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    # activate vnm
+    . "${NVM_DIR:-}/nvm.sh" --silent;
     [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh";
 }
 
