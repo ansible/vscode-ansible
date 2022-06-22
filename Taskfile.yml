@@ -45,11 +45,11 @@ tasks:
     env:
       # used inside test-setup.sh
       OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
     cmds:
       - ./tools/test-setup.sh
       - npm ci
     sources:
-      - Taskfile.yml
       - package.json
       - .config/requirements.*
       - setup.cfg
@@ -98,12 +98,18 @@ tasks:
       - tools
   test:
     desc: Run all tests
+    vars:
+      ENGINE:
+        sh: bash -c "command -v podman docker | head -n 1"
     deps:
       - setup
     cmds:
+      - "{{.ENGINE}} pull quay.io/ansible/creator-ee:latest"
+      # Tests that container engine is functional and that we have the image:
+      - "{{.ENGINE}} run -it quay.io/ansible/creator-ee:latest ansible-lint --version"
       - >
         source {{.VENV_PATH}}/bin/activate &&
-        which -a ansible-lint &&
+        command -v ansible-lint &&
         npm run test
     interactive: true
   test-node12:

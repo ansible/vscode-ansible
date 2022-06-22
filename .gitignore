@@ -25,3 +25,4 @@ change-notes-*.md
 .task
 .venv
 out/next.md
+out/log

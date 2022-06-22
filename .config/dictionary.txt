@@ -56,6 +56,7 @@ mynamespace
 neovim
 netcommon
 nocolor
+noheading
 notest
 notfound
 npmjs
@@ -66,20 +67,23 @@ parseable
 patchback
 pkgcache
 podman
-prettierrc
 preid
+prettierrc
 preversion
 pyparsing
 pyup
+ro
 seealso
 setuptools
 showcontent
+showformat
 sphinxcontrib
 stderr
 stdout
 suboption
 suboptions
 testorg
+tls
 toctree
 todos
 towncrier
@@ -95,9 +99,6 @@ wordwrap
 workdir
 xvfb
 yammlint
-tls
-ro
-
 # sphinx:
 pathsep
 sectionauthor
