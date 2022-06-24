@@ -125,7 +125,7 @@ jobs:
       - run: task setup
 
       - name: task ${{ matrix.task-name }}
-        run: task ${{ matrix.task-name }}
+        run: task -v ${{ matrix.task-name }}
 
   check: # This job does nothing and is only used for the branch protection
     if: always()

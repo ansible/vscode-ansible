@@ -2,6 +2,7 @@
 ansible-lint>=6.0.2
 click
 lxml
+pip-tools
 pre-commit
 pyparsing
 # vscode integration

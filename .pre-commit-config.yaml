@@ -11,7 +11,15 @@ ci:
     # https://github.com/pre-commit-ci/issues/issues/55
     - npm-ci
     - codecov
+    - shellcheck # docker not available on pre-commit.ci
 repos:
+  - repo: https://github.com/koalaman/shellcheck-precommit
+    rev: v0.8.0
+    hooks:
+      - id: shellcheck
+        # cspell:disable-next-line
+        entry: docker.io/koalaman/shellcheck:v0.8.0
+        args: ["--color=always"]
   - repo: local
     hooks:
       - id: npm-ci
@@ -34,7 +42,8 @@ repos:
         # https://superuser.com/a/1587813/3004
         entry: >
           bash -c '[ $(
-          curl --silent -o /dev/stderr -w "%{http_code}" -X POST --data-binary @codecov.yml https://codecov.io/validate
+          curl --silent -o /dev/stderr -w "%{http_code}" -X POST
+          --data-binary @codecov.yml https://codecov.io/validate
           ) -eq 200 ]'
         language: system
         files: "codecov.yml"

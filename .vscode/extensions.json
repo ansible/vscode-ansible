@@ -4,5 +4,6 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "hbenl.vscode-mocha-test-adapter",
+    "timonwong.shellcheck",
   ],
 }

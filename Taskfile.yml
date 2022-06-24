@@ -1,9 +1,13 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
+env: &env
+  # basically the same thing from .envrc file:
+  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
+    sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
 vars:
-  VENV_PATH: '{{default ".venv" (env "VIRTUAL_ENV")}}'
-  VENV_PYTHON: '{{if (eq OS "windows")}}{{.VENV_PATH}}/Scripts/python.exe{{else}}{{.VENV_PATH}}/bin/python{{end}}'
+  HOSTNAME:
+    sh: echo ${HOSTNAME:-localhost}
   NODE_ENV: |
     [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm";
     [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" --silent;
@@ -20,6 +24,7 @@ tasks:
       - bash -c '{{ .NODE_ENV }} nvm install'
       - task: lint
       - task: package
+      - task: docs
       - echo Done {{.VERSION}}!
   docs:
     desc: Build the documentation
@@ -27,14 +32,13 @@ tasks:
       sphinx_common_args: '-j auto --color -a -n -W --keep-going -T -d "../out/.doctrees" . "../out/docs_out"'
     deps:
       - setup
-    dir: docs
     cmds:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags
       - npm run generate-settings-readme
-      - >
-        source ../"${VENV_PATH:-.venv}/bin/activate" &&
+      - source $VIRTUAL_ENV/bin/activate &&
+        cd docs &&
         python -m sphinx -b html {{.sphinx_common_args}} &&
         python -m sphinx -b linkcheck {{.sphinx_common_args}} &&
         python ../tools/docs_summary.py
@@ -48,12 +52,13 @@ tasks:
       ARCH: "{{ARCH}}"
     cmds:
       - ./tools/test-setup.sh
-      - npm ci
     sources:
       - package.json
       - .config/requirements.*
       - setup.cfg
       - tools/test-setup.sh
+    generates:
+      - out/log/manifest.yml
   build:
     desc: Build the project
     deps:
@@ -71,8 +76,8 @@ tasks:
     deps:
       - setup
     cmds:
-      - bash -c "PIP_CONSTRAINTS= pip-compile -q --strip-extras --no-annotate .config/requirements.in -o .config/requirements.txt"
-      - python3 -m pre_commit autoupdate
+      - bash -c "PIP_CONSTRAINTS= $VIRTUAL_ENV/bin/python -m piptools compile -q --no-header --strip-extras --no-annotate .config/requirements.in -o .config/requirements.txt"
+      - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
       # bumps some developments dependencies
       - npx ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file
@@ -82,9 +87,10 @@ tasks:
     deps:
       - setup
     env:
+      <<: *env
       PRE_COMMIT_COLOR: always
     cmds:
-      - "{{.VENV_PATH}}/bin/python3 -m pre_commit run -a"
+      - $VIRTUAL_ENV/bin/python -m pre_commit run -a
     silent: true
     sources:
       - "*.*"
@@ -106,9 +112,9 @@ tasks:
     cmds:
       - "{{.ENGINE}} pull quay.io/ansible/creator-ee:latest"
       # Tests that container engine is functional and that we have the image:
-      - "{{.ENGINE}} run -it quay.io/ansible/creator-ee:latest ansible-lint --version"
+      - "{{.ENGINE}} run -i quay.io/ansible/creator-ee:latest ansible-lint --version"
       - >
-        source {{.VENV_PATH}}/bin/activate &&
+        source $VIRTUAL_ENV/bin/activate &&
         command -v ansible-lint &&
         npm run test
     interactive: true
@@ -133,7 +139,7 @@ tasks:
       - setup
     cmds:
       - >
-        source {{.VENV_PATH}}/bin/activate &&
+        source $VIRTUAL_ENV/bin/activate &&
         npm run test-with-ee
     interactive: true
   test-without-ee:
@@ -142,7 +148,7 @@ tasks:
       - setup
     cmds:
       - >
-        source {{.VENV_PATH}}/bin/activate &&
+        source $VIRTUAL_ENV/bin/activate &&
         npm run test-without-ee
     interactive: true
   package:
