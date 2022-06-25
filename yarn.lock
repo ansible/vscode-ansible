@@ -459,10 +459,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/selenium-webdriver@npm:^3.0.15":
-  version: 3.0.20
-  resolution: "@types/selenium-webdriver@npm:3.0.20"
-  checksum: 6f96abc30b0dc00b833f3dd69dde561984f4d5aa5ad8b234e222d301e74be898b5acc01d4810bb012743ce4b1ae902605365900b3f7ad04c4f522d6e663c9fff
+"@types/selenium-webdriver@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "@types/selenium-webdriver@npm:4.1.1"
+  dependencies:
+    "@types/ws": "*"
+  checksum: 83acb0ea048493cd1032c5af552b4ea7bf4ea7074ca7a36330d783f132850b77f977e9abdb0a78b2d978f2eb73a604676c5266063079470f10b718f45a1d3834
   languageName: node
   linkType: hard
 
@@ -477,6 +479,15 @@ __metadata:
   version: 1.68.0
   resolution: "@types/vscode@npm:1.68.0"
   checksum: 9866b7b3462a0bf4856a7443e4f58fa67e3bba50952940551089242b6d4b0035ff42015f403de8ae33e9e29fd00b500241e2976b745a423a9fa7a3c65c54a524
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:*":
+  version: 8.5.3
+  resolution: "@types/ws@npm:8.5.3"
+  dependencies:
+    "@types/node": "*"
+  checksum: 0ce46f850d41383fcdc2149bcacc86d7232fa7a233f903d2246dff86e31701a02f8566f40af5f8b56d1834779255c04ec6ec78660fe0f9b2a69cf3d71937e4ae
   languageName: node
   linkType: hard
 
@@ -987,7 +998,7 @@ __metadata:
     typescript: ^4.6.4
     untildify: ^4.0.0
     vsce: ^2.9.2
-    vscode-extension-tester: ^4.2.5
+    vscode-extension-tester: "https://github.com/redhat-developer/vscode-extension-tester#v4.4.0"
     vscode-languageclient: ^7.0.0
     vscode-test: ^1.6.1
     webpack: ^5.72.1
@@ -3642,7 +3653,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jszip@npm:^3.1.3":
+"jszip@npm:^3.10.0":
   version: 3.10.0
   resolution: "jszip@npm:3.10.0"
   dependencies:
@@ -4305,9 +4316,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-page-objects@npm:^1.9.0":
-  version: 1.9.2
-  resolution: "monaco-page-objects@npm:1.9.2"
+"monaco-page-objects@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "monaco-page-objects@npm:2.0.0"
   dependencies:
     clipboardy: ^2.3.0
     clone-deep: ^4.0.1
@@ -4315,8 +4326,8 @@ __metadata:
     fs-extra: ^10.0.0
     ts-essentials: ^8.0.0
   peerDependencies:
-    selenium-webdriver: ^3.0.0
-  checksum: 538650b99a12502aa617ab6d16760c1de32559b4a2cd599790439bcc4c45128ed79b4bdf38f4ced7da6aac4e47bcf48e7bf7591cc13fbc557259caf9cd1ba644
+    selenium-webdriver: ^4.2.0
+  checksum: 643f0e1fcef705c8e6cbf4fecadfe0770101b1e424e94000f3cf37a0a420a5432f7045745305c23a43e25395bf5a60ba2b96568357a37d154e00b27a9509e80c
   languageName: node
   linkType: hard
 
@@ -4573,13 +4584,6 @@ __metadata:
     type-check: ^0.4.0
     word-wrap: ^1.2.3
   checksum: dbc6fa065604b24ea57d734261914e697bd73b69eff7f18e967e8912aa2a40a19a9f599a507fa805be6c13c24c4eae8c71306c239d517d42d4c041c942f508a0
-  languageName: node
-  linkType: hard
-
-"os-tmpdir@npm:~1.0.1":
-  version: 1.0.2
-  resolution: "os-tmpdir@npm:1.0.2"
-  checksum: 5666560f7b9f10182548bf7013883265be33620b1c1b4a4d405c25be2636f970c5488ff3e6c48de75b55d02bde037249fe5dbfbb4c0fb7714953d56aed062e6d
   languageName: node
   linkType: hard
 
@@ -5269,7 +5273,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:2, rimraf@npm:^2.5.4":
+"rimraf@npm:2":
   version: 2.7.1
   resolution: "rimraf@npm:2.7.1"
   dependencies:
@@ -5348,15 +5352,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^3.0.0":
-  version: 3.6.0
-  resolution: "selenium-webdriver@npm:3.6.0"
+"selenium-webdriver@npm:^4.2.0":
+  version: 4.3.0
+  resolution: "selenium-webdriver@npm:4.3.0"
   dependencies:
-    jszip: ^3.1.3
-    rimraf: ^2.5.4
-    tmp: 0.0.30
-    xml2js: ^0.4.17
-  checksum: 5bc1045d0205c5aed1f3e3cf8047d3bb677e370e96ae4a8acd172846c07aeb40c031bee5017a7c432bec36e46c5bbce82fe3b40086b7daa4cb31dcaf69daad55
+    jszip: ^3.10.0
+    tmp: ^0.2.1
+    ws: ">=8.7.0"
+  checksum: 886a1369a473b62798ffc94ee552ae8c17c56ad3f4afacc6d4e05a397fceb12bc2a74e6348f34f64d20eb4097678e5905bf5dc8768be7c65a725d2bb4502ccd2
   languageName: node
   linkType: hard
 
@@ -5956,15 +5959,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tmp@npm:0.0.30":
-  version: 0.0.30
-  resolution: "tmp@npm:0.0.30"
-  dependencies:
-    os-tmpdir: ~1.0.1
-  checksum: d3e97e8e73b2d2dfff9916072004088b4737c67d11ea255d0ccc8584f252b253b60ecf04122b21848ec46ad5a92e31febc6d6a3068f6c8a20c9b0e23a802e78d
-  languageName: node
-  linkType: hard
-
 "tmp@npm:^0.2.1":
   version: 0.2.1
   resolution: "tmp@npm:0.2.1"
@@ -6411,23 +6405,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester-locators@npm:^1.62.0, vscode-extension-tester-locators@npm:^1.62.1":
-  version: 1.62.2
-  resolution: "vscode-extension-tester-locators@npm:1.62.2"
-  dependencies:
-    vscode-extension-tester-locators: ^1.62.1
+"vscode-extension-tester-locators@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "vscode-extension-tester-locators@npm:2.0.0"
   peerDependencies:
-    monaco-page-objects: ^1.0.0
-    selenium-webdriver: ^3.0.0
-  checksum: 16e8696b9b57e2d97c6b187820d16a85aedf1a421dbd11c5eeefef1692e6d208c866195bd4d3237b4df6bb41ffeb0e5309a98959185bc7c12fd356879d8482c6
+    monaco-page-objects: ^2.0.0
+    selenium-webdriver: ^4.2.0
+  checksum: 377b49d8693b292c991d24062b26278a49e4fa2f8e9b7332df3e8113353db35dac59a75ede898a3ea3b5b8c677726f5d0ea7238f07c9c1e42885137c1b55578c
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^4.2.5":
-  version: 4.2.5
-  resolution: "vscode-extension-tester@npm:4.2.5"
+"vscode-extension-tester@https://github.com/redhat-developer/vscode-extension-tester#v4.4.0":
+  version: 4.4.0
+  resolution: "vscode-extension-tester@https://github.com/redhat-developer/vscode-extension-tester.git#commit=aeb3241a9139bb56bb02eb11678df73e19222819"
   dependencies:
-    "@types/selenium-webdriver": ^3.0.15
+    "@types/selenium-webdriver": ^4.1.1
     commander: ^8.0.0
     compare-versions: ^3.6.0
     fs-extra: ^10.0.0
@@ -6435,18 +6427,18 @@ __metadata:
     got: ^11.8.2
     hpagent: ^0.1.2
     js-yaml: ^4.1.0
-    monaco-page-objects: ^1.9.0
+    monaco-page-objects: ^2.0.0
     sanitize-filename: ^1.6.3
-    selenium-webdriver: ^3.0.0
+    selenium-webdriver: ^4.2.0
     targz: ^1.0.1
     unzip-stream: ^0.3.0
     vsce: ^2.3.0
-    vscode-extension-tester-locators: ^1.62.0
+    vscode-extension-tester-locators: ^2.0.0
   peerDependencies:
     mocha: ">=5.2.0"
   bin:
     extest: out/cli.js
-  checksum: cddf162318b2f432e5f86dbe7ae27a81b09e86d6724db4f83c38a2b16532b336eb9c4e8eebaa27925e0b4393d37e7cb02b31a5a726d84ee28aa43f027d2cc57b
+  checksum: 463380f28c856827b7b1e6e4c8df748e9bd48ec3ff832260d38eac16b69756df8ccc7dd109dc2b8bdd6dfde8a9b443310d77506d89e2c527d1950b28af3bd188
   languageName: node
   linkType: hard
 
@@ -6696,7 +6688,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"xml2js@npm:^0.4.17, xml2js@npm:^0.4.23":
+"ws@npm:>=8.7.0":
+  version: 8.8.0
+  resolution: "ws@npm:8.8.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ^5.0.2
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 6ceed1ca1cb800ef60c7fc8346c7d5d73d73be754228eb958765abf5d714519338efa20ffe674167039486eb3a813aae5a497f8d319e16b4d96216a31df5bd95
+  languageName: node
+  linkType: hard
+
+"xml2js@npm:^0.4.23":
   version: 0.4.23
   resolution: "xml2js@npm:0.4.23"
   dependencies:
