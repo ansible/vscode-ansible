@@ -43,6 +43,8 @@ tasks:
     deps:
       - setup
     cmds:
+      # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
+      # - cd node_modules/vscode-extension-tester && npm update vsce
       - yarn run compile
     sources:
       - Taskfile.yml
@@ -96,9 +98,9 @@ tasks:
       - tools
   test:
     desc: Run all tests
-    deps:
-      - test-ui
-      - test-e2e
+    cmds:
+      - task: test-ui
+      - task: test-e2e
     interactive: true
   test-e2e:
     desc: Run e2e tests
