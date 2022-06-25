@@ -15,6 +15,8 @@
   },
   "files.exclude": {
     "out": true,
+    ".task": true,
+    ".yarn": true,
     ".vscode-test": true
   },
   "search.exclude": {

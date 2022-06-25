@@ -1,7 +1,7 @@
 version: 2
 updates:
-  # update only production dependencies (~5): npm list -depth 0 -prod true
-  - package-ecosystem: npm
+  # update only production dependencies (~5)
+  - package-ecosystem: npm # ok for yarn too
     allow:
       - dependency-type: production
     directory: /

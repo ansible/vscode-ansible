@@ -30,6 +30,7 @@ overridable
 ovsx
 piptools
 pipx
+preinstall
 projectuser
 pyparsing
 reindent
@@ -52,6 +53,7 @@ webpacked
 whitespaces
 withserver
 xvfb
+yarnpkg
 
 # names and usernames:
 Anson

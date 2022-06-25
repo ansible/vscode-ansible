@@ -90,7 +90,7 @@ jobs:
           path: |
             out/test-resources
             out/test-resources-oldest
-          key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'package-lock.json') }}
+          key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
@@ -116,12 +116,11 @@ jobs:
           set -ex
           mv ansible-language-server ..
           cd ../ansible-language-server
-          npm ci #  Install ansible-language-server dependencies
+          yarn link --relative ../ansible-language-server #  Install ansible-language-server dependencies
           cd ../vscode-ansible
           rm -rf node_modules/@ansible/ansible-language-server
           rm -rf out/server/src/*
           cp -r ../ansible-language-server node_modules/@ansible/ansible-language-server
-          npm ls
         shell: bash
 
       ## uncomment to debug on GHA runner

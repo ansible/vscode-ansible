@@ -5,7 +5,7 @@ def installBuildRequirements() {
   def nodeHome = tool 'nodejs-lts'
   env.PATH = "${env.PATH}:${nodeHome}/bin"
 
-  sh 'npm install --global vsce'
+  sh 'npm install --global yarn'
 }
 
 node('rhel8') {
@@ -19,13 +19,13 @@ node('rhel8') {
   }
 
   stage('build') {
-    sh 'npm install'
-    sh 'npm run webpack'
+    sh 'yarn install'
+    sh 'yarn build'
   }
 
   stage('package') {
     def packageJson = readJSON file: 'package.json'
-    sh "vsce package -o vscode-ansible-${packageJson.version}-${env.BUILD_NUMBER}.vsix"
+    sh "npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json ${packageJson.version}-${env.BUILD_NUMBER}"
   }
 
   if (params.UPLOAD_LOCATION) {
