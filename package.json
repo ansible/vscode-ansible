@@ -448,7 +448,7 @@
     "ts-node": "^10.8.0",
     "typescript": "^4.6.4",
     "vsce": "^2.9.2",
-    "vscode-extension-tester": "^4.2.5",
+    "vscode-extension-tester": "https://github.com/redhat-developer/vscode-extension-tester#v4.4.0",
     "vscode-test": "^1.6.1",
     "webpack": "^5.72.1",
     "webpack-cli": "^4.9.2",
