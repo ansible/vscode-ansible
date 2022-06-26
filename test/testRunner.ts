@@ -4,7 +4,7 @@ import {
   runTests,
   downloadAndUnzipVSCode,
   resolveCliPathFromVSCodeExecutablePath,
-} from "vscode-test";
+} from "@vscode/test-electron";
 import fs from "fs";
 
 export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
@@ -17,7 +17,17 @@ export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
 async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
-    const cliPath = resolveCliPathFromVSCodeExecutablePath(executable);
+    var downloadPlatform =
+      process.platform === "darwin"
+        ? "darwin"
+        : process.platform === "win32"
+        ? "win32-archive"
+        : "linux-x64";
+
+    const cliPath = resolveCliPathFromVSCodeExecutablePath(
+      executable,
+      downloadPlatform
+    );
     const userDataPath = path.resolve(__dirname, "../../userdata");
     const extPath = path.resolve(__dirname, "../../ext");
     // We want to avoid using developer data dir as this is likely to break
