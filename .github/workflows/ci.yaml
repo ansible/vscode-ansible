@@ -16,58 +16,39 @@ env:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
-    name: >-
-      ${{
-        matrix.name
-        && matrix.name
-        || format(
-          '{0} ({1})',
-          matrix.npm-target,
-          matrix.os
-        )
-      }}
+    name: ${{ matrix.name }}
+    # ${{ matrix.name && matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        # Avoid letting github do the matrix multiplication and use manual
+        # includes for each job, this gives us fine control over job name.
         os:
           - ubuntu-latest
-          - macos-11
-        npm-target:
-          - test-ui
+        task-name:
+          - test
         upload-artifact:
           - false
         name:
-          - false
+          - test
         include:
           - name: lint
-            npm-target: lint
+            task-name: lint
             os: ubuntu-latest
             upload-artifact: true
 
-          - name: devel-ui
+          - name: devel
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in package[-lock].json
-            npm-target: test-ui
+            task-name: test
             os: ubuntu-latest
             devel: true
 
-          - name: devel-e2e
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in package[-lock].json
-            npm-target: test-e2e
-            os: ubuntu-latest
-            devel: true
-
-          - name: test-ui
-            npm-target: test-ui
-            os: ubuntu-latest
-            devel: false
-
-          - name: test-e2e
-            npm-target: test-e2e
-            os: ubuntu-latest
+          - name: test (macos)
+            task-name: test
+            os:  macos-11
             devel: false
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -85,19 +66,20 @@ jobs:
       # ~400mb, caching them should speedup test-ui execution
       - name: Enable test-resources caching
         uses: actions/cache@v3
-        if: ${{ contains(matrix.npm-target, 'test-ui') }}
+        if: ${{ contains(matrix.task-name, 'test-ui') }}
         with:
           path: |
             out/test-resources
             out/test-resources-oldest
-          key: ${{ runner.os }}-${{ matrix.npm-target }}-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
         with:
           node-version: 16
 
-      - run: task setup
+      - name: task setup
+        run: task setup
 
       - name: Checkout ansible-language-server
         if: ${{ matrix.devel }}
@@ -126,15 +108,16 @@ jobs:
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
-      - run: task package
+      - name: task package
+        run: task package --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
-      - name: task ${{ matrix.npm-target }}
+      - name: task ${{ matrix.task-name }}
         # xvfb needed for chrome headless tests
         uses: GabrielBB/xvfb-action@v1.6
         with:
-          run: task ${{ matrix.npm-target }}
+          run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
-      - name: Publish vsix artifact
+      - name: Upload vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
         uses: actions/upload-artifact@v3
         with:
@@ -142,11 +125,11 @@ jobs:
           path: ansible-*.vsix
           retention-days: 15
 
-      - name: Publish test logs
+      - name: Upload test logs
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: logs-${{ matrix.os }}-${{ matrix.npm-target }}.zip
+          name: logs-${{ matrix.os }}-${{ matrix.task-name }}.zip
           path: |
             out/e2eTestReport
             out/userdata/logs
@@ -155,7 +138,7 @@ jobs:
           retention-days: 15
 
       - name: Debug EE plugin cache files
-        if: ${{ contains(matrix.npm-target, 'e2e') }}
+        if: ${{ contains(matrix.task-name, 'e2e') }}
         continue-on-error: true
         run: |
           pwd

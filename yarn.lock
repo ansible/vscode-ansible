@@ -998,7 +998,7 @@ __metadata:
     typescript: ^4.6.4
     untildify: ^4.0.0
     vsce: ^2.9.2
-    vscode-extension-tester: "https://github.com/redhat-developer/vscode-extension-tester#v4.4.0"
+    vscode-extension-tester: "https://github.com/ssbarnea/vscode-extension-tester#master"
     vscode-languageclient: ^7.0.0
     vscode-test: ^1.6.1
     webpack: ^5.72.1
@@ -6345,36 +6345,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vsce@npm:^2.3.0":
-  version: 2.9.1
-  resolution: "vsce@npm:2.9.1"
-  dependencies:
-    azure-devops-node-api: ^11.0.1
-    chalk: ^2.4.2
-    cheerio: ^1.0.0-rc.9
-    commander: ^6.1.0
-    glob: ^7.0.6
-    hosted-git-info: ^4.0.2
-    keytar: ^7.7.0
-    leven: ^3.1.0
-    markdown-it: ^12.3.2
-    mime: ^1.3.4
-    minimatch: ^3.0.3
-    parse-semver: ^1.1.1
-    read: ^1.0.7
-    semver: ^5.1.0
-    tmp: ^0.2.1
-    typed-rest-client: ^1.8.4
-    url-join: ^4.0.1
-    xml2js: ^0.4.23
-    yauzl: ^2.3.1
-    yazl: ^2.2.2
-  bin:
-    vsce: vsce
-  checksum: c1af8d8a40139b35b23e71db4b9203ff99393754d6781dcc959df88c7d1f5f8c24c278b087f3de95e57a05e5444d93b65a0ab4b514798c8b6a396fc8a6d97afd
-  languageName: node
-  linkType: hard
-
 "vsce@npm:^2.9.2":
   version: 2.9.2
   resolution: "vsce@npm:2.9.2"
@@ -6415,9 +6385,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@https://github.com/redhat-developer/vscode-extension-tester#v4.4.0":
-  version: 4.4.0
-  resolution: "vscode-extension-tester@https://github.com/redhat-developer/vscode-extension-tester.git#commit=aeb3241a9139bb56bb02eb11678df73e19222819"
+"vscode-extension-tester@https://github.com/ssbarnea/vscode-extension-tester#master":
+  version: 4.3.0
+  resolution: "vscode-extension-tester@https://github.com/ssbarnea/vscode-extension-tester.git#commit=4ddf9ea32e067482063c4a177275d009068d9e82"
   dependencies:
     "@types/selenium-webdriver": ^4.1.1
     commander: ^8.0.0
@@ -6432,13 +6402,13 @@ __metadata:
     selenium-webdriver: ^4.2.0
     targz: ^1.0.1
     unzip-stream: ^0.3.0
-    vsce: ^2.3.0
+    vsce: ^2.9.2
     vscode-extension-tester-locators: ^2.0.0
   peerDependencies:
     mocha: ">=5.2.0"
   bin:
     extest: out/cli.js
-  checksum: 463380f28c856827b7b1e6e4c8df748e9bd48ec3ff832260d38eac16b69756df8ccc7dd109dc2b8bdd6dfde8a9b443310d77506d89e2c527d1950b28af3bd188
+  checksum: 2c4315205bf881c79f774a3ee7ad8bc7ac984136af6d2cc5cf612da6845fbc02041fc9ce1055087fa5b7f1f8b19f707bc4b8a7788737a0a9d72f68f999b027db
   languageName: node
   linkType: hard
 

@@ -1,3 +1,6 @@
+FQCN
+FQCNs
+TLDR
 alphanums
 autofix
 autoupdate
@@ -11,10 +14,9 @@ copyfiles
 cygwin
 deps
 devel
+endgroup
 eqeqeq
 extest
-FQCN
-FQCNs
 groovylint
 hostvars
 hotfixes
@@ -41,7 +43,6 @@ suboptions
 taskfile
 testhost
 testorg
-TLDR
 towerhost
 tsbuildinfo
 unstash
