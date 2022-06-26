@@ -622,6 +622,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vscode/test-electron@npm:^2.1.4":
+  version: 2.1.4
+  resolution: "@vscode/test-electron@npm:2.1.4"
+  dependencies:
+    http-proxy-agent: ^4.0.1
+    https-proxy-agent: ^5.0.0
+    rimraf: ^3.0.2
+    unzipper: ^0.10.11
+  checksum: 2a541f70689cfdbfd911884caeba2fabf0bfeede4ee11b77bd97e8bd4bb6388341c7785230a05696b590e9aa6513d29b18ce82cc85965e664710ce4decc19b03
+  languageName: node
+  linkType: hard
+
 "@webassemblyjs/ast@npm:1.11.1":
   version: 1.11.1
   resolution: "@webassemblyjs/ast@npm:1.11.1"
@@ -983,6 +995,7 @@ __metadata:
     "@types/vscode": ^1.48.0
     "@typescript-eslint/eslint-plugin": ^5.26.0
     "@typescript-eslint/parser": ^5.26.0
+    "@vscode/test-electron": ^2.1.4
     chai: ^4.3.6
     copyfiles: ^2.4.1
     eslint: ^8.16.0
@@ -1000,7 +1013,6 @@ __metadata:
     vsce: ^2.9.2
     vscode-extension-tester: "https://github.com/ssbarnea/vscode-extension-tester#master"
     vscode-languageclient: ^7.0.0
-    vscode-test: ^1.6.1
     webpack: ^5.72.1
     webpack-cli: ^4.9.2
     yarn-audit-fix: ^9.3.2
@@ -6462,18 +6474,6 @@ __metadata:
   bin:
     installServerIntoExtension: bin/installServerIntoExtension
   checksum: 80cfbd5f8f0869c5369d1a61fe86b3210ee941cb646eb31b672045670ef3ce213dc1fd3bcd4cef6ef8bc7c5025f98e4a70dad645d97a0bd4708962bbd921683a
-  languageName: node
-  linkType: hard
-
-"vscode-test@npm:^1.6.1":
-  version: 1.6.1
-  resolution: "vscode-test@npm:1.6.1"
-  dependencies:
-    http-proxy-agent: ^4.0.1
-    https-proxy-agent: ^5.0.0
-    rimraf: ^3.0.2
-    unzipper: ^0.10.11
-  checksum: 37779441eaccfe7eb4c5ec53950441d2084b213010c6cb40855d4126f41140d021dbc12388da025df0f2ea1bfa85a4e5bcdd7c13bf78144dee18fa9b35c90793
   languageName: node
   linkType: hard
 
