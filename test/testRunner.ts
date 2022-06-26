@@ -17,7 +17,7 @@ export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
 async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
-    var downloadPlatform =
+    const downloadPlatform =
       process.platform === "darwin"
         ? "darwin"
         : process.platform === "win32"
