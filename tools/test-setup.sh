@@ -94,7 +94,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
 fi
 
 # GHA failsafe only: fail if ansible or ansible-lint are pre-installed
-if [[ "${CI}" == "1" ]]; then
+if [[ "${CI:-}" == "1" ]]; then
     if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
         echo "::error title=Please ensure there is no preinstalled copy of " \
             "ansible on CI."
