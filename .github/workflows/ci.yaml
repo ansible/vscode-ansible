@@ -38,6 +38,9 @@ jobs:
             task-name: lint
             os: ubuntu-latest
             upload-artifact: true
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
 
           - name: devel
             # this job will install latest version of ansible-language-server
@@ -50,6 +53,9 @@ jobs:
             task-name: test
             os:  macos-11
             devel: false
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -71,6 +77,7 @@ jobs:
           path: |
             out/test-resources
             out/test-resources-oldest
+            ~/.local/share/containers/podman/machine/qemu
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: Use NodeJS v16

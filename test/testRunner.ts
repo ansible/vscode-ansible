@@ -111,6 +111,10 @@ async function main(): Promise<void> {
         "--disable-extension=GitHub.copilot",
         "./test/testFixtures/",
       ]),
+      extensionTestsEnv: {
+        SKIP_PODMAN: process.env.SKIP_PODMAN ?? "0",
+        SKIP_DOCKER: process.env.SKIP_DOCKER ?? "0",
+      },
     });
   } catch (err) {
     console.error("Failed to run tests due to exception!\n%s", err);

@@ -3,6 +3,9 @@
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[shellscript]": {
+    "editor.tabSize": 4
+  },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
