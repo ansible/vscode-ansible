@@ -32,6 +32,17 @@ get_version () {
     fi
 }
 
+# macos specific
+if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
+    command -v podman >/dev/null 2>&1 || {
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+        time podman machine init
+        time podman machine start
+        podman info
+        podman run hello-world
+    }
+fi
+
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
 if [[ "${OS:-}" == "windows" ]]; then
@@ -82,6 +93,23 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     fi
 fi
 
+# GHA failsafe only: fail if ansible or ansible-lint are pre-installed
+if [[ "${CI}" == "1" ]]; then
+    if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
+        echo "::error title=Please ensure there is no preinstalled copy of " \
+            "ansible on CI."
+        exit 66
+    fi
+    if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
+        echo "::error title=Please ensure there is no preinstalled copy of " \
+            "ansible-lint on CI."
+        exit 67
+    fi
+    if [[ -d "${HOME}/.ansible" ]]; then
+        echo "::error title=Unexpected ~/.ansible folder found on CI."
+        exit 68
+    fi
+fi
 
 # install gh if missing
 command -v gh >/dev/null 2>&1 || {

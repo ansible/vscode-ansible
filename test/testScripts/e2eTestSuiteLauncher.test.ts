@@ -27,18 +27,21 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
     testDiagnosticsYAMLWithoutEE();
   });
 
-  describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
-    before(async () => {
-      setFixtureAnsibleCollectionPathEnv(
-        "/home/runner/.ansible/collections:/usr/share/ansible/collections"
-      );
-      await enableExecutionEnvironmentSettings();
-    });
+  const skip_ee = process.env.SKIP_PODMAN || process.env.SKIP_DOCKER || "0";
+  if (skip_ee !== "1") {
+    describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv(
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections"
+        );
+        await enableExecutionEnvironmentSettings();
+      });
 
-    after(async () => {
-      await disableExecutionEnvironmentSettings(); // Revert back the default settings
-    });
+      after(async () => {
+        await disableExecutionEnvironmentSettings(); // Revert back the default settings
+      });
 
-    testHoverEE();
-  });
+      testHoverEE();
+    });
+  }
 });
