@@ -11,6 +11,8 @@ HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
+RED='\033[0;31m'
+NC='\033[0m' # No Color
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
@@ -27,10 +29,24 @@ get_version () {
         fi
         "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
-        >&2 echo "ERROR $? running: $*"
+        >&2 echo -e "${RED}ERROR $? running: $*${NC}"
         return 99
     fi
 }
+
+# Ensure that git is configured properly to allow unattended commits, something
+# that is needed by some tasks, like devel or deps.
+git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
+git config user.name  >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
+if [[ "${GIT_NOT_CONFIGURED:-}" == "1" ]]; then
+    if [ -z "${CI:-}" ]; then
+        >&2 echo -e "${RED}ERROR: git config user.email or user.name are not configured.${NC}"
+        exit 40
+    else
+        git config user.email ansible-devtools@redhat.com
+        git config user.name "Ansible DevTools"
+    fi
+fi
 
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
@@ -93,24 +109,6 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     fi
 fi
 
-# GHA failsafe only: fail if ansible or ansible-lint are pre-installed
-if [[ "${CI:-}" == "1" ]]; then
-    if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
-        echo "::error title=Please ensure there is no preinstalled copy of " \
-            "ansible on CI."
-        exit 66
-    fi
-    if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
-        echo "::error title=Please ensure there is no preinstalled copy of " \
-            "ansible-lint on CI."
-        exit 67
-    fi
-    if [[ -d "${HOME}/.ansible" ]]; then
-        echo "::error title=Unexpected ~/.ansible folder found on CI."
-        exit 68
-    fi
-fi
-
 # install gh if missing
 command -v gh >/dev/null 2>&1 || {
     echo "Trying to install missing gh on ${OS} ..."
@@ -128,7 +126,6 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
         nodejs gcc g++ make python3-dev
 fi
 
-
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     python3 -m venv "${VIRTUAL_ENV}"
@@ -142,6 +139,39 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     python3 -m pip install -q \
         -c .config/requirements.txt -r .config/requirements.in
 fi
+
+# GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
+# other than our own virtualenv. (test isolation)
+if [[ -n "${CI:-}" ]]; then
+    command -v ansible >/dev/null 2>&1 || {
+        pipx uninstall --verbose ansible || true
+        if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
+            echo -e "::error::Please ensure there is no preinstalled copy of ansible on CI.\n$(which -a ansible)"
+            exit 66
+        fi
+    }
+    command -v ansible-lint >/dev/null 2>&1 || {
+        pipx uninstall --verbose ansible-lint || true
+        if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
+            echo -e "::error::Please ensure there is no preinstalled copy of ansible-lint on CI.\n$(which -a ansible-lint)"
+            exit 67
+        fi
+    }
+    if [[ -d "${HOME}/.ansible" ]]; then
+        echo -e "${RED}Removing unexpected ~/.ansible folder found on CI to avoid test contamination.${NC}"
+        rm -rf "${HOME}/.ansible"
+    fi
+fi
+
+# Fail if detected tool paths are not from inside out out/ folder
+for CMD in ansible ansible-lint; do
+    CMD=$(command -v $CMD)
+    [[ "${CMD%%/out*}" == "$(pwd)" ]] || {
+        echo -e "::error:: ${CMD} executable is not from our own virtualenv:\n${CMD%%/out*}\n$(pwd)"
+        exit 68
+    }
+done
+unset CMD
 
 command -v nvm >/dev/null 2>&1 || {
     # define its location (needed)
@@ -159,9 +189,9 @@ command -v npm  >/dev/null 2>&1 || {
     nvm install stable
 }
 
-# Detect podman and ensure that it is usable
+# Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
-if [[ "${PODMAN_VERSION}" != 'null' ]]; then
+if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     if [[ "$(podman machine ls --format '{{.Running}}' --noheading || true)" \
             == "false" ]]; then
         echo -n "Starting podman machine "
