@@ -1,11 +1,16 @@
+---
 # see https://taskfile.dev/#/
 version: "3"
 output: group
-env:
+env: &env
   FORCE_COLOR: "true"
+  PRE_COMMIT_COLOR: always
+  # basically the same thing from .envrc file:
+  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
+    sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
 vars:
-  VENV_PATH: '{{default ".venv" (env "VIRTUAL_ENV")}}'
-  VENV_PYTHON: '{{if (eq OS "windows")}}{{.VENV_PATH}}/Scripts/python.exe{{else}}{{.VENV_PATH}}/bin/python{{end}}'
+  HOSTNAME:
+    sh: echo ${HOSTNAME:-localhost}
   VERSION:
     sh: node -p "require('./package.json').version"
 tasks:
@@ -24,10 +29,12 @@ tasks:
       - git clean -dxf
   setup:
     desc: Install dependencies
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
     cmds:
       - bash ./tools/test-setup.sh
-    env:
-      VENV_PATH: '{{.VENV_PATH}}'
     sources:
       - node_modules/**/*
       - tools/test-setup.sh
@@ -37,6 +44,7 @@ tasks:
     generates:
       - .venv
       - node_modules
+      - out/log/manifest.yml
     run: once
   build:
     desc: Build the project
@@ -68,8 +76,8 @@ tasks:
     deps:
       - setup
     cmds:
-      - "{{.VENV_PYTHON}} -m piptools compile -q --no-header --no-annotate .config/requirements.txt --output-file .config/requirements.txt"
-      - "{{.VENV_PYTHON}} -m pre_commit autoupdate"
+      - $VIRTUAL_ENV/bin/python -m piptools compile -q --no-header --no-annotate .config/requirements.txt --output-file .config/requirements.txt
+      - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
       # bumps some developments dependencies
       - yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
@@ -79,10 +87,8 @@ tasks:
     desc: Lint the project
     deps:
       - setup
-    env:
-      PRE_COMMIT_COLOR: always
     cmds:
-      - "{{.VENV_PYTHON}} -m pre_commit run -a"
+      - $VIRTUAL_ENV/bin/python -m pre_commit run -a
     silent: true
     sources:
       - "*.*"
@@ -108,7 +114,7 @@ tasks:
       - package
     cmds:
       - >
-        source "${VENV_PATH:-.venv}/bin/activate" &&
+        source "${VIRTUAL_ENV}/bin/activate" &&
         yarn run test-e2e
     interactive: true
   test-ui:
@@ -117,10 +123,10 @@ tasks:
       - package
     cmds:
       - >
-        source "${VENV_PATH:-.venv}/bin/activate" &&
+        source "${VIRTUAL_ENV}/bin/activate" &&
         yarn run test-ui-current
       - >
-        source "${VENV_PATH:-.venv}/bin/activate" &&
+        source "${VIRTUAL_ENV}/bin/activate" &&
         yarn run test-ui-oldest
     interactive: true
   package:

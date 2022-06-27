@@ -132,8 +132,9 @@ jobs:
           name: logs-${{ matrix.os }}-${{ matrix.task-name }}.zip
           path: |
             out/e2eTestReport
-            out/userdata/logs
+            out/log
             out/test-resources/settings/logs
+            out/userdata/logs
           if-no-files-found: ignore
           retention-days: 15
 
