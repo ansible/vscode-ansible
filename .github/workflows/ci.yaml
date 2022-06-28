@@ -87,8 +87,16 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.local/share/containers/podman/machine/qemu
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt') }}
+
+      - name: Enable caching of podman machine on macos
+        if: "contains(matrix.os, 'macos')"
+        uses: actions/cache@v3
+        with:
+          path: |
+              ~/.local/share/containers/podman/machine/qemu
+          # we do not yet have a good way to determine when to reset podman machine cache
+          key: ${{ runner.os }}-podman-${{ matrix.task-name }}-${{ hashFiles('package.json') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
@@ -136,15 +144,15 @@ jobs:
         if: "contains(matrix.os, 'macos')"
         # Stopping podman machine is needed or caching it will fail
         run: |
-          command -v podman && {
+          set -x
+          command -v podman
+          podman machine list --format '{{.Running}}' --noheading
           podman machine stop
-          while [[ "$(podman machine ls --format '{{.Running}}' \
-                --noheading || true)" != "false" ]]; do
-            sleep 1
-            echo -n .
-          done
-          echo .
-          }
+          pgrep qemu
+          sleep 2
+          sudo purge
+          podman machine list --format '{{.Running}}' --noheading
+          pgrep qemu
         continue-on-error: true
 
       ## commented out for future use to debug on the GHA node if required

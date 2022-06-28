@@ -165,9 +165,9 @@ fi
 
 # Fail if detected tool paths are not from inside out out/ folder
 for CMD in ansible ansible-lint; do
-    CMD=$(command -v $CMD)
-    [[ "${CMD%%/out*}" == "$(pwd)" ]] || {
-        echo -e "::error:: ${CMD} executable is not from our own virtualenv:\n${CMD%%/out*}\n$(pwd)"
+    CMD=$(command -v $CMD 2>/dev/null)
+    [[ "${CMD%%/out*}" == "$(pwd -P)" ]] || {
+        echo -e "::error:: ${CMD} executable is not from our own virtualenv:\n${CMD}"
         exit 68
     }
 done
@@ -187,6 +187,18 @@ command -v nvm >/dev/null 2>&1 || {
 }
 command -v npm  >/dev/null 2>&1 || {
     nvm install stable
+}
+# Check if npm has permissions to install packages (system installed does not)
+# Share https://stackoverflow.com/a/59227497/99834
+test -w "$(npm config get prefix)" || {
+    echo -e "WARN: ${RED}Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix${NC}"
+    npm config set prefix "${HOME}/.local/"
+}
+
+command -v yarn >/dev/null 2>&1 || {
+    echo -e "WARN: ${RED}Installing missing yarn${NC}"
+    npm install -g yarn
+    yarn --version
 }
 
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
