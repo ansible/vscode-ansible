@@ -23,6 +23,18 @@ tasks:
     cmds:
       - echo {{.TASK}}
       - echo Done {{.VERSION}}!
+  devel:
+    desc: Updates the language server to latest from @main and run all tests
+    deps:
+      - setup
+    cmds:
+      - tools/dirty.sh
+      - yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'
+      - git add package.json yarn.lock
+      - echo "Update ansible-language-server" | git commit --file -
+      - tools/dirty.sh
+      - task: test
+      - echo "Tests passed, you can now run "task pr" to create a pull request."
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
@@ -36,13 +48,11 @@ tasks:
     cmds:
       - bash ./tools/test-setup.sh
     sources:
-      - node_modules/**/*
       - tools/test-setup.sh
       - package.json
       - yarn.lock
       - Taskfile.yml
     generates:
-      - .venv
       - node_modules
       - out/log/manifest.yml
     run: once
@@ -89,6 +99,7 @@ tasks:
       - setup
     cmds:
       - $VIRTUAL_ENV/bin/python -m pre_commit run -a
+      - tools/dirty.sh
     silent: true
     sources:
       - "*.*"
@@ -107,6 +118,7 @@ tasks:
     cmds:
       - task: test-ui
       - task: test-e2e
+      - tools/dirty.sh
     interactive: true
   test-e2e:
     desc: Run e2e tests
@@ -146,7 +158,9 @@ tasks:
       # --pre-release not supported until we do VS Code >=1.63
       # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
       - npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
-      - npx vsce ls --no-yarn
+      # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+      - zipinfo -1 *.vsix
+      - tools/dirty.sh
     silent: true
   pr:
     desc: Opens a pull request using gh
