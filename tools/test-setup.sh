@@ -34,6 +34,13 @@ get_version () {
     fi
 }
 
+# fail-fast if we detect incompatible filesystem (o-w)
+# https://github.com/ansible/ansible/pull/42070
+python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
+    >&2 echo -e "${RED}ERROR: Cannot run from world-writable filesystem, try moving code to a secured location. See https://github.com/ansible/ansible/issues/42388${NC}"
+    exit 100
+}
+
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
@@ -195,11 +202,13 @@ test -w "$(npm config get prefix)" || {
     npm config set prefix "${HOME}/.local/"
 }
 
-command -v yarn >/dev/null 2>&1 || {
-    echo -e "WARN: ${RED}Installing missing yarn${NC}"
-    npm install -g yarn
-    yarn --version
-}
+if [[ -f yarn.lock ]]; then
+    command -v yarn >/dev/null 2>&1 || {
+        echo -e "WARN: ${RED}Installing missing yarn${NC}"
+        npm install -g yarn
+        yarn --version
+    }
+fi
 
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
@@ -245,7 +254,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python)
   task: $(get_version task)
-  yarn: $(get_version yarn)
+  yarn: $(get_version || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: $(get_version docker || echo null)
@@ -254,7 +263,12 @@ creator-ee:
   ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
 EOF
 
-yarn install
+# Install node deps using either yarn or npm
+if [[ -f yarn.lock ]]; then
+    yarn install
+else
+    npm ci
+fi
 
 echo "=== ${0##*/} -> out/log/manifest.yml and returned ${ERR} ==="
 exit "${ERR}"
