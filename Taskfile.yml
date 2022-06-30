@@ -26,6 +26,12 @@ tasks:
       - task: package
       - task: docs
       - echo Done {{.VERSION}}!
+  vscode:
+    desc: Run vscode-ansible tests using current code from ALS
+    deps:
+      - setup
+    cmds:
+      - ./tools/vscode.sh
   docs:
     desc: Build the documentation
     vars:

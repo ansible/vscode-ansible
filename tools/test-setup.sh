@@ -62,7 +62,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb)
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done

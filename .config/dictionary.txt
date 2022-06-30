@@ -6,6 +6,8 @@ HORIZONTALLINE
 Jenkinsfile
 OSTYPE
 PYTHONHOME
+SIGINT
+SIGTERM
 TLDR
 Taskfile
 WSLENV
@@ -67,6 +69,7 @@ nvim
 nvmrc
 parseable
 patchback
+pgrep
 piptools
 pkgcache
 podman
@@ -77,6 +80,7 @@ pyparsing
 pyup
 ro
 seealso
+servernum
 setuptools
 showcontent
 showformat
