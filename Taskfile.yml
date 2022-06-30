@@ -29,7 +29,9 @@ tasks:
       - setup
     cmds:
       - tools/dirty.sh
-      - yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'
+      # If we call `task devel -- <path>` we will link that path, otherwise
+      # we will just update ansible-language-server to @main.
+      - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'{{end}}"
       - git add package.json yarn.lock
       - echo "Update ansible-language-server" | git commit --file -
       - tools/dirty.sh
