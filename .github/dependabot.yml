@@ -1,17 +1,19 @@
 version: 2
 updates:
+  # Temporary disabled until we find replacement that works with yarn v2 locks
+  # due to https://github.com/dependabot/dependabot-core/issues/1297
   # update only production dependencies (~5)
-  - package-ecosystem: npm # ok for yarn too
-    allow:
-      - dependency-type: production
-    directory: /
-    schedule:
-      interval: daily
-    labels:
-      - dependabot-deps-updates
-      - skip-changelog
-    versioning-strategy: increase
-    open-pull-requests-limit: 2
+  # - package-ecosystem: npm # ok for yarn too
+  #   allow:
+  #     - dependency-type: production
+  #   directory: /
+  #   schedule:
+  #     interval: daily
+  #   labels:
+  #     - dependabot-deps-updates
+  #     - skip-changelog
+  #   versioning-strategy: increase
+  #   open-pull-requests-limit: 2
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
