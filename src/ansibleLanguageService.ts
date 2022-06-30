@@ -314,6 +314,25 @@ export class AnsibleLanguageService {
       }
       return null;
     });
+
+    // Custom actions that are performed on receiving special notifications from the client
+    // Resync ansible inventory service by clearing the cached items
+    this.connection.onNotification("resync/ansible-inventory", async () => {
+      this.workspaceManager.forEachContext((e) => {
+        // Invalidate ansible inventory cache
+        e.clearAnsibleInventory();
+        this.connection.window.showInformationMessage(
+          "Re-syncing ansible inventory. This might take some time."
+        );
+
+        // Run the ansible inventory service
+        e.ansibleInventory.then(() => {
+          this.connection.window.showInformationMessage(
+            "Ansible Inventory re-synced."
+          );
+        });
+      });
+    });
   }
 
   private handleError(error: unknown, contextName: string) {

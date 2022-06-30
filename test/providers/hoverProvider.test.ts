@@ -191,21 +191,21 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testPlayKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testPlayKeywords(context, textDoc);
@@ -218,21 +218,21 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testTaskKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testTaskKeywords(context, textDoc);
@@ -245,21 +245,21 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testBlockKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testBlockKeywords(context, textDoc);
@@ -279,21 +279,21 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testRoleKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testRoleKeywords(context, textDoc);
@@ -312,21 +312,21 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleNames(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleNames(context, textDoc);
@@ -339,21 +339,21 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testNoHover(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testNoHover(context, textDoc);

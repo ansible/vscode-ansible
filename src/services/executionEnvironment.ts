@@ -213,6 +213,7 @@ export class ExecutionEnvironment {
       ...["-v", `${workspaceFolderPath}:${workspaceFolderPath}`]
     );
 
+    // TODO: add condition to check file path exists or not
     for (const mountPath of mountPaths || []) {
       // push to array only if mount path is valid
       if (mountPath === "" || !fs.existsSync(mountPath)) {

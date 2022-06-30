@@ -348,6 +348,46 @@ export async function doCompletion(
           });
         }
       }
+
+      // check for 'hosts' keyword and 'ansible_host keyword under vars' to provide inventory auto-completion
+      let keyPathForHosts: Node[] | null;
+
+      if (new AncestryBuilder(path).parent(YAMLMap).getValue() === null) {
+        keyPathForHosts = new AncestryBuilder(path)
+          .parent(YAMLMap) // compensates for `_:`
+          .parent(YAMLMap)
+          .getKeyPath();
+      } else {
+        keyPathForHosts = new AncestryBuilder(path)
+          .parent(YAMLMap) // compensates for `_:`
+          .getKeyPath();
+      }
+      if (keyPathForHosts) {
+        const keyNodeForHosts = keyPathForHosts[keyPathForHosts.length - 1];
+
+        const conditionForHostsKeyword =
+          isPlayParam(keyPathForHosts) && keyNodeForHosts["value"] === "hosts";
+
+        const conditionForAnsibleHostKeyword =
+          keyNodeForHosts["value"] === "ansible_host" &&
+          new AncestryBuilder(keyPathForHosts)
+            .parent()
+            .parent(YAMLMap)
+            .getStringKey() === "vars";
+
+        if (conditionForHostsKeyword || conditionForAnsibleHostKeyword) {
+          // const nodeRange = getNodeRange(node, document);
+          // nodeRange is not being passed to getHostCompletion because this will prevent
+          // completion for items beyond ',', ':', '!', and we know that 'hosts' keyword supports regex
+
+          const hostsList = (await context.ansibleInventory).hostList;
+
+          const testHostCompletion: CompletionItem[] =
+            getHostCompletion(hostsList);
+
+          return testHostCompletion;
+        }
+      }
     }
   }
   return null;
@@ -389,6 +429,19 @@ function getKeywordCompletion(
     } else {
       completionItem.insertText = insertText;
     }
+    return completionItem;
+  });
+}
+
+function getHostCompletion(hostObjectList): CompletionItem[] {
+  return hostObjectList.map(({ host, priority }) => {
+    const completionItem: CompletionItem = {
+      label: host,
+      sortText: `${priority}_${host}`,
+      kind: [1, 2].includes(priority)
+        ? CompletionItemKind.Variable
+        : CompletionItemKind.Value,
+    };
     return completionItem;
   });
 }

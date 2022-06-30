@@ -12,6 +12,8 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   setFixtureAnsibleCollectionPathEnv,
+  setAnsibleConfigEnv,
+  unsetAnsibleConfigEnv,
 } from "../helper";
 
 function testPlayKeywords(
@@ -244,7 +246,7 @@ function testModuleNames(
   ];
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
-    it(`should provide autocompletion ${name}`, async function () {
+    it(`should provide completion for ${name}`, async function () {
       const actualCompletion = await doCompletion(textDoc, position, context);
 
       const filteredCompletion = smartFilter(
@@ -482,6 +484,61 @@ function testModuleNamesWithoutFQCN(
   });
 }
 
+function testHostValues(
+  context: WorkspaceFolderContext,
+  textDoc: TextDocument
+) {
+  const tests = [
+    {
+      name: "hello-worlds group",
+      position: { line: 2, character: 9 } as Position,
+      triggerCharacter: "hello",
+      completion: ["hello-worlds", "hello.world.1", "hello.world.2"],
+    },
+    {
+      name: "test-inventories group",
+      position: { line: 2, character: 9 } as Position,
+      triggerCharacter: "inventor",
+      completion: ["test-inventories", "test.inventory.3", "test.inventory.4"],
+    },
+    {
+      name: "localhost",
+      position: { line: 2, character: 14 } as Position,
+      triggerCharacter: "local",
+      completion: ["localhost"],
+    },
+    {
+      name: "all",
+      position: { line: 2, character: 9 } as Position,
+      triggerCharacter: "all",
+      completion: ["all"],
+    },
+  ];
+
+  tests.forEach(({ name, position, triggerCharacter, completion }) => {
+    it(`should provide completion for ${name} as hosts value`, async function () {
+      const actualCompletion = await doCompletion(textDoc, position, context);
+
+      const filteredCompletion = smartFilter(
+        actualCompletion,
+        triggerCharacter
+      ).map((completion) => {
+        if (!completion.item) {
+          return completion.label;
+        } else {
+          return completion.item.label;
+        }
+      });
+
+      if (!completion) {
+        expect(filteredCompletion.length).be.equal(0);
+      } else {
+        expect(filteredCompletion).be.deep.equal(completion);
+      }
+    });
+  });
+}
+
 describe("doCompletion()", () => {
   const workspaceManager = createTestWorkspaceManager();
   let fixtureFilePath = "completion/simple_tasks.yml";
@@ -491,27 +548,59 @@ describe("doCompletion()", () => {
   let textDoc = getDoc(fixtureFilePath);
   let docSettings = context.documentSettings.get(textDoc.uri);
 
+  describe("Completion for host values with static inventory file", () => {
+    describe("With EE enabled @ee", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv(
+          "/home/runner/.ansible/collections:/usr/share/ansible"
+        );
+        await enableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testHostValues(context, textDoc);
+
+      after(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+    });
+    describe("With EE disabled", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+
+        setAnsibleConfigEnv();
+      });
+
+      testHostValues(context, textDoc);
+
+      after(() => {
+        unsetAnsibleConfigEnv();
+      });
+    });
+  });
+
   describe("Completion for play keywords", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testPlayKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testPlayKeywords(context, textDoc);
@@ -530,21 +619,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testRoleKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testRoleKeywords(context, textDoc);
@@ -563,21 +652,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testBlockKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testBlockKeywords(context, textDoc);
@@ -596,21 +685,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testTaskKeywords(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testTaskKeywords(context, textDoc);
@@ -622,21 +711,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleNames(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleNames(context, textDoc);
@@ -649,21 +738,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleOptions(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleOptions(context, textDoc);
@@ -676,21 +765,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleOptionsValues(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleOptionsValues(context, textDoc);
@@ -709,21 +798,21 @@ describe("doCompletion()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible"
         );
-        enableExecutionEnvironmentSettings(docSettings);
+        await enableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleNamesWithoutFQCN(context, textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        disableExecutionEnvironmentSettings(docSettings);
+        await disableExecutionEnvironmentSettings(docSettings);
       });
 
       testModuleNamesWithoutFQCN(context, textDoc);

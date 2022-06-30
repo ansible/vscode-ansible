@@ -12,6 +12,7 @@ export class AnsibleConfig {
   private _collection_paths: string[] = [];
   private _module_locations: string[] = [];
   private _ansible_location = "";
+  private _default_host_list: string[] = [];
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -49,6 +50,15 @@ export class AnsibleConfig {
         );
       } else {
         this._collection_paths = [];
+      }
+
+      // get default host list from config dump
+      if (typeof config.DEFAULT_HOST_LIST === "string") {
+        this._default_host_list = parsePythonStringArray(
+          config.DEFAULT_HOST_LIST
+        );
+      } else {
+        this._default_host_list = [];
       }
 
       // get Ansible basic information
@@ -93,6 +103,14 @@ export class AnsibleConfig {
 
   get collections_paths(): string[] {
     return this._collection_paths;
+  }
+
+  set default_host_list(defaultHostList: string[]) {
+    this._default_host_list = defaultHostList;
+  }
+
+  get default_host_list(): string[] {
+    return this._default_host_list;
   }
 
   set module_locations(updatedModulesPath: string[]) {

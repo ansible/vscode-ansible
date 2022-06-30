@@ -15,6 +15,7 @@ import { MetadataLibrary } from "./metadataLibrary";
 import { SettingsManager } from "./settingsManager";
 import * as path from "path";
 import { URI } from "vscode-uri";
+import { AnsibleInventory } from "./ansibleInventory";
 
 /**
  * Holds the overall context for the whole workspace.
@@ -133,6 +134,7 @@ export class WorkspaceFolderContext {
   private _executionEnvironment: Thenable<ExecutionEnvironment> | undefined;
   private _docsLibrary: Thenable<DocsLibrary> | undefined;
   private _ansibleConfig: Thenable<AnsibleConfig> | undefined;
+  private _ansibleInventory: Thenable<AnsibleInventory> | undefined;
   private _ansibleLint: AnsibleLint | undefined;
   private _ansiblePlaybook: AnsiblePlaybook | undefined;
 
@@ -157,6 +159,7 @@ export class WorkspaceFolderContext {
         this._executionEnvironment = undefined;
         this._ansibleConfig = undefined;
         this._docsLibrary = undefined;
+        this._ansibleInventory = undefined;
       }
     );
   }
@@ -193,6 +196,20 @@ export class WorkspaceFolderContext {
         .then(() => ansibleConfig);
     }
     return this._ansibleConfig;
+  }
+
+  public get ansibleInventory(): Thenable<AnsibleInventory> {
+    if (!this._ansibleInventory) {
+      const ansibleInventory = new AnsibleInventory(this.connection, this);
+      this._ansibleInventory = ansibleInventory
+        .initialize()
+        .then(() => ansibleInventory);
+    }
+    return this._ansibleInventory;
+  }
+
+  public clearAnsibleInventory(): void {
+    this._ansibleInventory = undefined;
   }
 
   public get ansibleLint(): AnsibleLint {
