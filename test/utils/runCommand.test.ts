@@ -3,9 +3,26 @@ import { AssertionError, expect } from "chai";
 import { WorkspaceManager } from "../../src/services/workspaceManager";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "../helper";
+import * as path from "path";
 
 describe("commandRunner", () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const pkgJSON = require(path.resolve(__dirname, "..", "..", "package.json"));
+
   const tests = [
+    {
+      args: [
+        path.join(
+          path.resolve(__dirname, "..", ".."),
+          "bin",
+          "ansible-language-server"
+        ),
+        "--version",
+      ],
+      rc: 0,
+      stdout: `${pkgJSON["version"]}`,
+      stderr: "",
+    },
     {
       args: ["ansible-config", "dump"],
       rc: 0,
