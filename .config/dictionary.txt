@@ -21,11 +21,13 @@ endgroup
 envrc
 eqeqeq
 extest
+githubcli
 groovylint
 hostvars
 hotfixes
 johndoe
 keyfile
+keyrings
 libyaml
 liveserver
 lxml
