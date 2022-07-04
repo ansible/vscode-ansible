@@ -122,7 +122,7 @@ tasks:
       - >
         source $VIRTUAL_ENV/bin/activate &&
         command -v ansible-lint &&
-        npm run test
+        bash -c '{{ .NODE_ENV }} npm run test'
     interactive: true
   test-node12:
     desc: Run all tests using node 12
@@ -146,7 +146,7 @@ tasks:
     cmds:
       - >
         source $VIRTUAL_ENV/bin/activate &&
-        npm run test-with-ee
+        bash -c '{{ .NODE_ENV }} npm run test-with-ee'
     interactive: true
   test-without-ee:
     desc: Run only non-ee tests
@@ -155,7 +155,7 @@ tasks:
     cmds:
       - >
         source $VIRTUAL_ENV/bin/activate &&
-        npm run test-without-ee
+        bash -c '{{ .NODE_ENV }} npm run test-without-ee'
     interactive: true
   package:
     desc: Package extension
@@ -170,7 +170,7 @@ tasks:
       - "*.vsix"
     cmds:
       - rm -f *.tgz
-      - npm pack
+      - bash -c '{{ .NODE_ENV }} npm pack'
     silent: false
   pr:
     desc: Opens a pull request using gh

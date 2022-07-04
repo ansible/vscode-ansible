@@ -28,7 +28,7 @@ get_version () {
         fi
         "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
-        log error "$? running: $*"
+        log error "Got $? while trying to retrieve ${1:-} version"
         return 99
     fi
 }
@@ -126,11 +126,26 @@ EOF
     PATH="${HOME}/.local/bin:${PATH}"
 fi
 
+# fail-fast if we detect incompatible filesystem (o-w)
+# https://github.com/ansible/ansible/pull/42070
+python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
+    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://github.com/ansible/devtools/wiki/permissions#ansible-filesystem-requirements"
+    exit 100
+}
+
 # install gh if missing
 command -v gh >/dev/null 2>&1 || {
     log notice "Trying to install missing gh on ${OS} ..."
-    if [[ "${OS}" == "linux" ]]; then
-        command -v dnf && sudo dnf install -y gh
+    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+    if [[ -f "/usr/bin/apt-get" ]]; then
+      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+          sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+      sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+      sudo apt update
+      sudo apt install gh
+    else
+        command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
     fi
     gh --version || log warning "gh cli not found and it might be needed for some commands."
 }
@@ -199,12 +214,11 @@ command -v nvm >/dev/null 2>&1 || {
     # install if missing
     [[ ! -s "${NVM_DIR:-}/nvm.sh" ]] && {
         log warning "Installing missing nvm"
-        curl -s -o- \
-        https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+        curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
     }
     # activate nvm
     # shellcheck disable=1091
-    . "${NVM_DIR:-}/nvm.sh"
+    . "${NVM_DIR:-${HOME}/.nvm}/nvm.sh"
     # shellcheck disable=1091
     [[ -s "/usr/local/opt/nvm/nvm.sh" ]] && . "/usr/local/opt/nvm/nvm.sh";
 }

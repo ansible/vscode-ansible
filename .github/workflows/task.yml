@@ -48,13 +48,13 @@ jobs:
             task-name: lint
           - name: docs
             task-name: docs
-          - name: test (wsl)
+          - name: test-without-ee (wsl)
             # runner does not support running container
             task-name: test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
             os: windows-2019
             shell: "wsl-bash {0}"
-          - name: test (macos)
+          - name: test-without-ee (macos)
             os: macos-11
             # runner does not support running container
             task-name: test-without-ee
@@ -72,14 +72,27 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: "contains(matrix.shell, 'wsl')"
-        uses: Vampire/setup-wsl@v1.3.0
+        uses: Vampire/setup-wsl@v1.3.1
         with:
+          set-as-default: 'true'
           # we want to load user profile
           # https://github.com/Vampire/setup-wsl#wsl-shell-command
-          wsl-shell-command: "bash -i -euo pipefail"
+          wsl-shell-command: "bash -euo pipefail"
+          # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
+          wsl-conf: |
+            [automount]
+            enabled = true
+            root = /
+            options = "metadata,umask=077"
+            [interop]
+            enabled = false
+            appendWindowsPath = false
+            [network]
+            hostname = wsl
           additional-packages:
             curl
             git
+            make
             python3-dev
             python3-pip
             python3-venv
