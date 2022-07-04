@@ -68,12 +68,6 @@ repos:
             .yarn/.*|
             yarn.lock
           )$
-  - repo: https://github.com/openstack/bashate
-    rev: 2.1.0
-    hooks:
-      - id: bashate
-        entry: bashate
-        verbose: false
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.26.3
     hooks:

@@ -11,7 +11,6 @@ HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
-RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 mkdir -p out/log
@@ -21,7 +20,7 @@ mkdir -p out/log
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
 get_version () {
-    if command -v "$1" >/dev/null 2>&1; then
+    if command -v "${1:-}" >/dev/null 2>&1; then
         _cmd=("${@:1}")
         # if we did not pass any arguments, we add --version ourselves:
         if [[ $# -eq 1 ]]; then
@@ -29,18 +28,59 @@ get_version () {
         fi
         "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
-        >&2 echo -e "${RED}ERROR $? running: $*${NC}"
+        log error "Got $? while trying to retrieve ${1:-} version"
         return 99
     fi
 }
+
+# Use "log [notice|warning|error] message" to  print a colored message to
+# stderr, with colors.
+log () {
+    local prefix
+    if [ "$#" -ne 2 ]; then
+        log error "Incorrect call ($*), use: log [notice|warning|error] 'message'."
+        exit 2
+    fi
+    case $1 in
+        notice)   prefix='\033[0;36mNOTICE:  ';;
+        warning)  prefix='\033[0;33mWARNING: ';;
+        error)    prefix='\033[0;31mERROR:   ';;
+        *)        log error "log first argument must be 'notice', 'warning' or 'error', not $1."; exit 2;;
+    esac
+    >&2 echo -e "${prefix}${2}${NC}"
+}
+
+if [[ -f "/usr/bin/apt-get" ]]; then
+    INSTALL=0
+    # qemu-user-static is required by podman on arm64
+    # python3-dev is needed for headers as some packages might need to compile
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static)
+    for DEB in "${DEBS[@]}"; do
+        [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
+            "${DEB}" || true)" != 'installed' ]] && INSTALL=1
+    done
+    if [[ "${INSTALL}" -eq 1 ]]; then
+        printf '%s\n' "We need sudo to install some packages: ${DEBS[*]}"
+        # mandatory or other apt-get commands fail
+        sudo apt-get update -qq -o=Dpkg::Use-Pty=0
+        # avoid outdated ansible and pipx
+        sudo apt-get remove -y ansible pipx || true
+        # install all required packages
+        sudo apt-get -qq install -y \
+            --no-install-recommends \
+            --no-install-suggests \
+            -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
+    fi
+fi
 
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
 git config user.name  >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
 if [[ "${GIT_NOT_CONFIGURED:-}" == "1" ]]; then
+    echo CI="${CI:-}"
     if [ -z "${CI:-}" ]; then
-        >&2 echo -e "${RED}ERROR: git config user.email or user.name are not configured.${NC}"
+        log error "git config user.email or user.name are not configured."
         exit 40
     else
         git config user.email ansible-devtools@redhat.com
@@ -62,20 +102,20 @@ fi
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
 if [[ "${OS:-}" == "windows" ]]; then
-    echo "ERROR: You cannot use Windows build tools for development, try WSL."
+    log error "You cannot use Windows build tools for development, try WSL."
     exit 1
 fi
 if grep -qi microsoft /proc/version >/dev/null 2>&1; then
     # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
     if [[ "$(pwd -P || true)" == /mnt/* ]]; then
-        echo "WARNING: Under WSL, you must avoid running from mounts "\
-            "(/mnt/*) due to critical performance issues."
+        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
     fi
 fi
 
 # User specific environment
 if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
-    echo "WARN: ~/.local/bin was not found in PATH, attempting to add it."
+    # shellcheck disable=SC2088
+    log warning "~/.local/bin was not found in PATH, attempting to add it."
     cat >>"${HOME}/.bashrc" <<EOF
 # User specific environment
 if ! [[ "${PATH}" =~ "${HOME}/.local/bin" ]]; then
@@ -86,41 +126,33 @@ EOF
     PATH="${HOME}/.local/bin:${PATH}"
 fi
 
-if [[ -f "/usr/bin/apt-get" ]]; then
-    INSTALL=0
-    # qemu-user-static is required by podman on arm64
-    # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static)
-    for DEB in "${DEBS[@]}"; do
-        [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
-            "${DEB}" || true)" != 'installed' ]] && INSTALL=1
-    done
-    if [[ "${INSTALL}" -eq 1 ]]; then
-        printf '%s\n' "We need sudo to install some packages: ${DEBS[*]}"
-        # mandatory or other apt-get commands fail
-        sudo apt-get update -qq -o=Dpkg::Use-Pty=0
-        # avoid outdated ansible and pipx
-        sudo apt-get remove -y ansible pipx || true
-        # install all required packages
-        sudo apt-get install -y \
-            --no-install-recommends \
-            --no-install-suggests \
-            -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
-    fi
-fi
+# fail-fast if we detect incompatible filesystem (o-w)
+# https://github.com/ansible/ansible/pull/42070
+python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
+    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://github.com/ansible/devtools/wiki/permissions#ansible-filesystem-requirements"
+    exit 100
+}
 
 # install gh if missing
 command -v gh >/dev/null 2>&1 || {
-    echo "Trying to install missing gh on ${OS} ..."
-    if [[ "${OS}" == "linux" ]]; then
-        command -v dnf && sudo dnf install -y gh
+    log notice "Trying to install missing gh on ${OS} ..."
+    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+    if [[ -f "/usr/bin/apt-get" ]]; then
+      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+          sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+      sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+      sudo apt update
+      sudo apt install gh
+    else
+        command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
     fi
-    gh --version || echo "WARNING: gh cli not found and it might be needed " \
-       "for some commands."
+    gh --version || log warning "gh cli not found and it might be needed for some commands."
 }
 
 # on WSL we want to avoid using Windows's npm (broken)
 if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
+    log notice "Installing npm ..."
     curl -sL https://deb.nodesource.com/setup_16.x | sudo bash
     sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         nodejs gcc g++ make python3-dev
@@ -128,6 +160,7 @@ fi
 
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
+    log notice "Creating virtualenv ..."
     python3 -m venv "${VIRTUAL_ENV}"
 fi
 # shellcheck disable=SC1091
@@ -144,21 +177,23 @@ fi
 # other than our own virtualenv. (test isolation)
 if [[ -n "${CI:-}" ]]; then
     command -v ansible >/dev/null 2>&1 || {
+        log warning "Attempting to remove pre-installed ansible on CI ..."
         pipx uninstall --verbose ansible || true
         if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
-            echo -e "::error::Please ensure there is no preinstalled copy of ansible on CI.\n$(which -a ansible)"
+            log error "Please ensure there is no preinstalled copy of ansible on CI.\n$(which -a ansible)"
             exit 66
         fi
     }
     command -v ansible-lint >/dev/null 2>&1 || {
+        log warning "Attempting to remove pre-installed ansible-lint on CI ..."
         pipx uninstall --verbose ansible-lint || true
         if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
-            echo -e "::error::Please ensure there is no preinstalled copy of ansible-lint on CI.\n$(which -a ansible-lint)"
+            log error "Please ensure there is no preinstalled copy of ansible-lint on CI.\n$(which -a ansible-lint)"
             exit 67
         fi
     }
     if [[ -d "${HOME}/.ansible" ]]; then
-        echo -e "${RED}Removing unexpected ~/.ansible folder found on CI to avoid test contamination.${NC}"
+        log warning "Removing unexpected ~/.ansible folder found on CI to avoid test contamination."
         rm -rf "${HOME}/.ansible"
     fi
 fi
@@ -167,7 +202,7 @@ fi
 for CMD in ansible ansible-lint; do
     CMD=$(command -v $CMD 2>/dev/null)
     [[ "${CMD%%/out*}" == "$(pwd -P)" ]] || {
-        echo -e "::error:: ${CMD} executable is not from our own virtualenv:\n${CMD}"
+        log error "${CMD} executable is not from our own virtualenv:\n${CMD}"
         exit 68
     }
 done
@@ -177,36 +212,41 @@ command -v nvm >/dev/null 2>&1 || {
     # define its location (needed)
     [[ -z "${NVM_DIR:-}" ]] && export NVM_DIR="${HOME}/.nvm";
     # install if missing
-    [[ ! -s "${NVM_DIR:-}/nvm.sh" ]] && curl -s -o- \
-        https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    [[ ! -s "${NVM_DIR:-}/nvm.sh" ]] && {
+        log warning "Installing missing nvm"
+        curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    }
     # activate nvm
     # shellcheck disable=1091
-    . "${NVM_DIR:-}/nvm.sh"
+    . "${NVM_DIR:-${HOME}/.nvm}/nvm.sh"
     # shellcheck disable=1091
     [[ -s "/usr/local/opt/nvm/nvm.sh" ]] && . "/usr/local/opt/nvm/nvm.sh";
 }
 command -v npm  >/dev/null 2>&1 || {
+    log notice "Installing nodejs stable."
     nvm install stable
 }
 # Check if npm has permissions to install packages (system installed does not)
 # Share https://stackoverflow.com/a/59227497/99834
 test -w "$(npm config get prefix)" || {
-    echo -e "WARN: ${RED}Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix${NC}"
+    log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
     npm config set prefix "${HOME}/.local/"
 }
 
-command -v yarn >/dev/null 2>&1 || {
-    echo -e "WARN: ${RED}Installing missing yarn${NC}"
-    npm install -g yarn
-    yarn --version
-}
+if [[ -f yarn.lock ]]; then
+    command -v yarn >/dev/null 2>&1 || {
+        log warning "Installing missing yarn"
+        npm install -g yarn
+        yarn --version
+    }
+fi
 
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
 if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     if [[ "$(podman machine ls --format '{{.Running}}' --noheading || true)" \
             == "false" ]]; then
-        echo -n "Starting podman machine "
+        log notice "Starting podman machine"
         podman machine start
         while [[ "$(podman machine ls --format '{{.Running}}' \
                 --noheading || true)" != "true" ]]; do
@@ -215,6 +255,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
         done
         echo .
     fi
+    log notice "Pull our test container image."
     podman pull --quiet "${IMAGE}" >/dev/null
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
@@ -245,7 +286,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python)
   task: $(get_version task)
-  yarn: $(get_version yarn)
+  yarn: $(get_version yarn || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: $(get_version docker || echo null)
@@ -254,7 +295,13 @@ creator-ee:
   ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
 EOF
 
-yarn install
+log notice "Install node deps using either yarn or npm"
+if [[ -f yarn.lock ]]; then
+    yarn install
+else
+    npm ci --no-audit
+fi
 
-echo "=== ${0##*/} -> out/log/manifest.yml and returned ${ERR} ==="
+[[ $ERR -eq 0 ]] && level=notice || level=error
+log "${level}" "${0##*/} -> out/log/manifest.yml and returned ${ERR}"
 exit "${ERR}"
