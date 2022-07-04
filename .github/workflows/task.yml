@@ -72,7 +72,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: "contains(matrix.shell, 'wsl')"
-        uses: Vampire/setup-wsl@v1.2.1
+        uses: Vampire/setup-wsl@v1.3.0
         with:
           # we want to load user profile
           # https://github.com/Vampire/setup-wsl#wsl-shell-command
