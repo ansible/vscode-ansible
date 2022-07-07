@@ -1,0 +1,35 @@
+---
+# This workflow is generating a pull request with updated version and changelog
+name: release
+"on":
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions: write-all
+
+jobs:
+  release:
+    name: Create release PR
+    environment:
+      name: release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run: task release
+        env:
+          # We cannot use GITHUB_TOKEN because, by design, actions performed by
+          # github-actions do not trigger workflows, so we need a bot.
+          GITHUB_TOKEN: ${{ secrets.BOT_PAT }}

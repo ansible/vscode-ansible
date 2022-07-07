@@ -2,6 +2,8 @@
 
 # Change Log
 
+<!-- KEEP-THIS-COMMENT -->
+
 ## 0.10.0
 
 ### Minor Changes

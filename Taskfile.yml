@@ -171,3 +171,10 @@ tasks:
     cmds:
       - gh pr create
     interactive: true
+  release:
+    desc: Create a new release (used by CI)
+    deps:
+      - setup
+    cmds:
+      - ./tools/release.sh
+    interactive: true
