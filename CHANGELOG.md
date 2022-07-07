@@ -20,6 +20,13 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.9.0
+
+### Minor Changes
+
+- Add --version flag for ansible-language-server (#392) @yaegassy
+- Auto-complete hosts values based on ansible inventory file (#350) @priyamsahoo
+
 ## v0.8.0
 
 ### Minor Changes
