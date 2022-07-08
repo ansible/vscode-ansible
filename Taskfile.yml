@@ -32,8 +32,12 @@ tasks:
       # If we call `task devel -- <path>` we will link that path, otherwise
       # we will just update ansible-language-server to @main.
       - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'{{end}}"
-      - git add package.json yarn.lock
-      - echo "Update ansible-language-server" | git commit --file -
+      - >
+        bash -c 'git diff --quiet --exit-code || {
+        git add package.json yarn.lock &&
+        echo "Update ansible-language-server" |
+        git commit --file -
+        ;}'
       - tools/dirty.sh
       - task: test
       - echo "Tests passed, you can now run "task pr" to create a pull request."
