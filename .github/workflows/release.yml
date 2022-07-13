@@ -17,6 +17,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
+        with:
+          # needed by "gh pr create"
+          fetch-depth: 0
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v3
         with:
