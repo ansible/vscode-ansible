@@ -63,14 +63,14 @@ export async function doCompletion(
   preparedText = insert(preparedText, offset, "_:");
   const yamlDocs = parseAllDocuments(preparedText);
 
-  const useFqcn = (await context.documentSettings.get(document.uri)).ansible
-    .useFullyQualifiedCollectionNames;
-  const provideRedirectModulesCompletion = (
-    await context.documentSettings.get(document.uri)
-  ).completion.provideRedirectModules;
-  const provideModuleOptionAliasesCompletion = (
-    await context.documentSettings.get(document.uri)
-  ).completion.provideModuleOptionAliases;
+  const extensionSettings = await context.documentSettings.get(document.uri);
+
+  const useFqcn =
+    extensionSettings.ansible?.useFullyQualifiedCollectionNames ?? true;
+  const provideRedirectModulesCompletion =
+    extensionSettings.completion?.provideRedirectModules ?? true;
+  const provideModuleOptionAliasesCompletion =
+    extensionSettings.completion?.provideModuleOptionAliases ?? true;
 
   // We need inclusive matching, since cursor position is the position of the character right after it
   // NOTE: Might no longer be required due to the hack above
