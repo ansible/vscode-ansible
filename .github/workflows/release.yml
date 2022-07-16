@@ -32,4 +32,5 @@ jobs:
         env:
           # We cannot use GITHUB_TOKEN because, by design, actions performed by
           # github-actions do not trigger workflows, so we need a bot.
+          GH_TOKEN: ${{ secrets.BOT_PAT }}
           GITHUB_TOKEN: ${{ secrets.BOT_PAT }}
