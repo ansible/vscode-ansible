@@ -1,6 +1,6 @@
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions } from "vscode";
+import { commands, ExtensionContext, extensions, StatusBarItem, window, StatusBarAlignment, MarkdownString } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
@@ -18,8 +18,12 @@ import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
+import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
 
 let client: LanguageClient;
+
+// status bar item
+let myStatusBarItem: StatusBarItem;
 
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
@@ -34,6 +38,15 @@ export function activate(context: ExtensionContext): void {
       resyncAnsibleInventory
     )
   );
+
+  // register a command that is invoked when the status bar item is clicked
+  // context.subscriptions.push(commands.registerCommand( "extension.status-bar-test", checkStatusBarClick));
+
+  // create a new status bar item that we can manage
+  myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+  context.subscriptions.push(myStatusBarItem);
+  myStatusBarItem.text = "$(beaker) Ansible info";
+
 
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
@@ -73,6 +86,10 @@ export function activate(context: ExtensionContext): void {
       notifyAboutConflicts();
     });
   });
+
+  // Update ansible meta data in the statusbar tooltip (client-server)
+  client.onReady().then(updateAnsibleInfo);
+  window.onDidChangeActiveTextEditor(updateAnsibleInfo);
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -107,5 +124,29 @@ function resyncAnsibleInventory(): void {
       }
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+  });
+}
+
+/**
+ * Sends notification with active file uri as param to the server 
+ * and receives notification from the server with ansible meta data associated with the opened file as param 
+ */
+function updateAnsibleInfo(): void {
+  if(window.activeTextEditor?.document.languageId !== "ansible") {
+    myStatusBarItem.hide();
+    return;
+  }
+
+  client.onReady().then(() => {
+    client.onNotification(
+      new NotificationType(`update/ansible-metadata`),
+      (ansibleMetaData) => {
+        const tooltip = formatAnsibleMetaData(ansibleMetaData);
+        myStatusBarItem.tooltip = tooltip;
+        myStatusBarItem.show();
+      }
+    );
+    const activeFileUri = window.activeTextEditor?.document.uri.toString();
+    client.sendNotification(new NotificationType(`update/ansible-metadata`), [activeFileUri]);
   });
 }
