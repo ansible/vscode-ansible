@@ -25,7 +25,7 @@
   ],
   "config": {
     "//": "Oldest version known to work. Be careful updating as it is mentioned in multiple places.",
-    "min_vscode": "1.48.0"
+    "min_vscode": "1.63.0"
   },
   "contributors": [
     {
@@ -431,8 +431,8 @@
     "@types/chai": "^4.3.1",
     "@types/glob": "^7.2.0",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^17.0.35",
-    "@types/vscode": "^1.48.0",
+    "@types/node": "^17.0.45",
+    "@types/vscode": "^1.63.0",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "@vscode/test-electron": "^2.1.5",
@@ -461,7 +461,7 @@
     "//": "node version affects only development, it does not affect vscode runtime",
     "node": ">=16.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.48.0",
+    "vscode": "^1.63.0",
     "yarn": ">=3.2.1"
   },
   "extensionDependencies": [
@@ -497,7 +497,7 @@
     "pretest": "yarn run compile",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "extest setup-and-run -e out/ext -s out/test-resources out/client/test/ui-test/allTestsSuite.js",
-    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.48.0 -s out/test-resources-oldest -u out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.63.0 -s out/test-resources-oldest -u out/client/test/ui-test/allTestsSuite.js",
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",

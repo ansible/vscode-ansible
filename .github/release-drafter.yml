@@ -17,3 +17,22 @@ tag-template: 'v$RESOLVED_VERSION-next.0'
 # instead of 2x# we use 3x to make the outcome ready to embed into CHANGELOG.md
 category-template: '### $TITLE'
 template: '$CHANGES'
+# Due to vscode pre-release versioning limitations we cannot use the PATCH part
+# of the MAJOR.MINOR.PATCH, so both bugfixes and minor changes will affect
+# the MINOR number. Regardless this, we will still list enhancement and bugs
+# in different sections in changelog, only the versioning logic being affected.
+# https://code.visualstudio.com/api/working-with-extensions/publishing-extension
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "bug"
+      - "deprecated"
+      - "enhancement"
+      - "feature"
+      - "minor"
+      - "patch"
+      - "refactoring"
+  default: minor
