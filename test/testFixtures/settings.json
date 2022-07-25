@@ -18,5 +18,6 @@
 
   "security.workspace.trust.enabled": false,
   "security.workspace.trust.startupPrompt": "never",
-  "redhat.telemetry.enabled": false
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off"
 }
