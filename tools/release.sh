@@ -9,7 +9,10 @@ fi
 
 RELEASE_NAME=$(gh api 'repos/{owner}/{repo}/releases' --jq '.[0].name')
 echo -e "\n## ${RELEASE_NAME}\n" > out/next.md
-gh api "repos/{owner}/{repo}/releases" --jq '.[0].body' | \
+# /releases endpoint returns all releases in inverse chronologic order,
+# including drafts, so last release is not always first element.
+# /releases/latest does retrieve only the last published release
+gh api "repos/{owner}/{repo}/releases/latest" --jq '.body' | \
     sed -e's/[[:space:]]*$//' \
     >> out/next.md
 
