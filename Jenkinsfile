@@ -20,7 +20,7 @@ node('rhel8') {
 
   stage('build') {
     sh 'yarn install'
-    sh 'yarn build'
+    sh 'yarn run compile'
   }
 
   stage('package') {

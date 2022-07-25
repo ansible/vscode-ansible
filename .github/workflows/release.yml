@@ -28,7 +28,7 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: task release
+      - run: task release -v
         env:
           # We cannot use GITHUB_TOKEN because, by design, actions performed by
           # github-actions do not trigger workflows, so we need a bot.
