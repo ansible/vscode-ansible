@@ -53,7 +53,7 @@ if [[ -z ${CI+z} ]]; then
 fi
 
 # do push the new branch
-git push origin "release/${RELEASE_NAME}"
+git push origin --force "release/${RELEASE_NAME}"
 
 # create pull request
 gh pr create --label skip-changelog --fill
