@@ -58,7 +58,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.0.0
+    rev: v6.3.2
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -69,7 +69,7 @@ repos:
             yarn.lock
           )$
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.26.3
+    rev: v1.27.1
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -100,7 +100,7 @@ repos:
             syntaxes/external/jinja.tmLanguage.json
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.31.1
+    rev: v0.32.1
     hooks:
       - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
@@ -109,7 +109,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.19.0
+    rev: v8.20.0
     hooks:
       - id: eslint
         args:
