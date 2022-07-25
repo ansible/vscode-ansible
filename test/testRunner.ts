@@ -37,6 +37,7 @@ async function main(): Promise<void> {
       `--user-data-dir=${userDataPath}`,
       `--extensions-dir=${extPath}`,
     ];
+    const env = { ...process.env, NODE_NO_WARNINGS: "1" };
 
     // Copy default user settings.json
     const settings_src = path.join(
@@ -66,7 +67,10 @@ async function main(): Promise<void> {
     const installLog = cp.execSync(
       `"${cliPath}" ${cliArgs.join(
         " "
-      )} --install-extension ansible-*.vsix --force`
+      )} --install-extension ansible-*.vsix --force`,
+      {
+        env: env,
+      }
     );
     console.log(installLog.toString());
 
@@ -74,7 +78,8 @@ async function main(): Promise<void> {
     const dependencies = ["ms-python.python", "redhat.vscode-yaml"];
     for (const dep of dependencies) {
       const installLog = cp.execSync(
-        `"${cliPath}" ${cliArgs.join(" ")} --install-extension ${dep} --force`
+        `"${cliPath}" ${cliArgs.join(" ")} --install-extension ${dep} --force`,
+        { env: env }
       );
       console.log(installLog.toString());
     }
