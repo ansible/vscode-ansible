@@ -20,7 +20,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     describe("YAML diagnostics in the presence of ansible-lint", () => {
       it("should provide diagnostics with YAML validation (with ansible-lint)", async () => {
         await activate(docUri1);
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await sleep(1000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -71,7 +71,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
 
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await sleep(1000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {

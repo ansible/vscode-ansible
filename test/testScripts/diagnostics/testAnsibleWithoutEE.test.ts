@@ -23,7 +23,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
 
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await sleep(1000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -42,7 +42,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
 
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await sleep(1000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, [
           {
@@ -74,7 +74,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
 
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await sleep(1000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, []);
       });
@@ -83,7 +83,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
 
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await sleep(1000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, [
           {
