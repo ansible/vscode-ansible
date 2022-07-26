@@ -112,12 +112,15 @@ jobs:
         continue-on-error: ${{ matrix.continue-on-error || false }}
 
       - name: Upload vsix artifact
-        if: ${{ github.event.number && matrix.upload-artifact }}
+        if: ${{ matrix.upload-artifact }}
         uses: actions/upload-artifact@v3
         with:
-          name: ansible-extension-from-pr-${{ github.event.number }}.vsix
+          name: ansible-extension-build.zip
           path: ansible-*.vsix
-          retention-days: 15
+          # We need to be sure that we release before the expiration comes up
+          # or our publishing pipeline will fail to retrieve the artifacts.
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Upload test logs
         if: ${{ always() }}

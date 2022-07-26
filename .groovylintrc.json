@@ -1,0 +1,6 @@
+{
+  "extends": "recommended-jenkinsfile",
+  "rules": {
+    "LineLength": "off"
+  }
+}

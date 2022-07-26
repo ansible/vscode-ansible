@@ -11,8 +11,15 @@ env: &env
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-localhost}
-  VERSION:
-    sh: node -p "require('./package.json').version"
+  BUILD:
+    # Example "2207281547", using short year so it fits into 2^32-1
+    sh: git log -1 --format=%cd --date=format:'%y%m%d%H%M'
+  BASE_VERSION:
+    sh: node -p "require('./package.json').version.split('.', 2).join('.')"
+  VERSION: "{{.BASE_VERSION}}.{{.BUILD}}"
+  HASH:
+    # used to generate unique id for vsix files
+    sh: git rev-parse --short=6 HEAD
 tasks:
   default:
     desc: Run most commands
@@ -59,7 +66,8 @@ tasks:
       - yarn.lock
       - Taskfile.yml
     generates:
-      - node_modules
+      # Do not put entire `node_modules` here because it will always run,
+      # probably due to random tempt files being modified in inside at each run.
       - out/log/manifest.yml
     run: once
   build:
@@ -157,13 +165,13 @@ tasks:
       - package*.json
       - out/
     generates:
-      - "*.vsix"
+      - "ansible-{{.VERSION}}.vsix"
     cmds:
       - rm -f *.vsix
       - yarn run webpack
       # --pre-release not supported until we do VS Code >=1.63
       # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}
       # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
       - zipinfo -1 *.vsix
       - tools/dirty.sh

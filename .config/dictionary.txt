@@ -25,6 +25,7 @@ githubcli
 groovylint
 hostvars
 hotfixes
+jenkinsfile
 johndoe
 keyfile
 keyrings

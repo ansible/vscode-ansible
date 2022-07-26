@@ -47,9 +47,10 @@ node('rhel8') {
       input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto'
     }
 
+    unstash 'vsix'
+    def vsix = findFiles(glob: '**.vsix')
+
     stage('publish') {
-      unstash 'vsix'
-      def vsix = findFiles(glob: '**.vsix')
       // VS Code Marketplace
       withCredentials([[$class: 'StringBinding', credentialsId: 'vscode_java_marketplace', variable: 'TOKEN']]) {
         sh "vsce publish -p $TOKEN ${params.publishPreRelease ? '--pre-release' : ''} --packagePath ${vsix[0].path}"
