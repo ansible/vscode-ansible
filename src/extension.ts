@@ -1,6 +1,6 @@
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions, StatusBarItem, window, StatusBarAlignment, MarkdownString } from "vscode";
+import { commands, ExtensionContext, extensions, StatusBarItem, window, StatusBarAlignment, MarkdownString, ThemeColor } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
@@ -45,8 +45,6 @@ export function activate(context: ExtensionContext): void {
   // create a new status bar item that we can manage
   myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
   context.subscriptions.push(myStatusBarItem);
-  myStatusBarItem.text = "$(beaker) Ansible info";
-
 
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
@@ -120,7 +118,7 @@ function resyncAnsibleInventory(): void {
     client.onNotification(
       new NotificationType(`resync/ansible-inventory`),
       (event) => {
-        console.log(event);
+        console.log("resync ansible inventory event ->", event);
       }
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
@@ -140,10 +138,30 @@ function updateAnsibleInfo(): void {
   client.onReady().then(() => {
     client.onNotification(
       new NotificationType(`update/ansible-metadata`),
-      (ansibleMetaData) => {
-        const tooltip = formatAnsibleMetaData(ansibleMetaData);
-        myStatusBarItem.tooltip = tooltip;
-        myStatusBarItem.show();
+      (ansibleMetaDataList: any) => {
+        const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);        
+        if(ansibleMetaData.ansiblePresent) {
+          // console.log("data -> ", ansibleMetaData.metaData)
+          console.log("ansible found");
+          const testTooltip = ansibleMetaData.markdown;
+          myStatusBarItem.text = `$(pass-filled) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
+          myStatusBarItem.backgroundColor = "";
+          myStatusBarItem.tooltip = testTooltip;
+
+          if(!ansibleMetaData.ansibleLintPresent) {
+            myStatusBarItem.text = `$(warning) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`; 
+            myStatusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
+          }
+
+          myStatusBarItem.show();
+        } else {
+          // console.log("data -> ", ansibleMetaData.metaData)
+          console.log("ansible not found");
+          myStatusBarItem.text = "$(error) Ansible Info";
+          myStatusBarItem.tooltip = ansibleMetaData.markdown;
+          myStatusBarItem.backgroundColor = new ThemeColor('statusBarItem.errorBackground');
+          myStatusBarItem.show();
+        }
       }
     );
     const activeFileUri = window.activeTextEditor?.document.uri.toString();
