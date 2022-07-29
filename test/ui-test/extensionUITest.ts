@@ -1,4 +1,4 @@
-import { expect } from "chai";
+import { expect, config } from "chai";
 import {
   ActivityBar,
   SideBarView,
@@ -6,6 +6,7 @@ import {
   ExtensionsViewSection,
 } from "vscode-extension-tester";
 
+config.truncateThreshold = 0;
 /**
  * @author Ondrej Dockal <odockal@redhat.com>
  */
