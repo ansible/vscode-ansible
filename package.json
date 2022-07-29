@@ -453,7 +453,7 @@
     "vscode-extension-tester": "https://github.com/ssbarnea/vscode-extension-tester#master",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0",
-    "yarn-audit-fix": "^9.3.2"
+    "yarn-audit-fix": "^9.3.3"
   },
   "displayName": "Ansible",
   "engineStrict": true,
