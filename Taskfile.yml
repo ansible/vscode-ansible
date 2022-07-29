@@ -123,6 +123,7 @@ tasks:
     desc: Run all tests
     cmds:
       - task: test-ui
+      - task: test-ui-old
       - task: test-e2e
       - tools/dirty.sh
     interactive: true
@@ -143,6 +144,12 @@ tasks:
       - >
         source "${VIRTUAL_ENV}/bin/activate" &&
         yarn run test-ui-current
+    interactive: true
+  test-ui-old:
+    desc: Run UI tests (oldest vscode)
+    deps:
+      - package
+    cmds:
       - >
         source "${VIRTUAL_ENV}/bin/activate" &&
         yarn run test-ui-oldest
