@@ -14,9 +14,8 @@ updates:
     schedule:
       interval: "daily"
     labels:
-      - dependencies
-      # as dependabot bumps only the pinned test dependencies, is safe to:
-      - bot:chronographer:skip
+      - "dependencies"
+      - "skip-changelog"
     open-pull-requests-limit: 3
     allow:
       # tell dependabot to update only important dependencies, not indirect ones
