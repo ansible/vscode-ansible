@@ -89,7 +89,7 @@ virtualenv==20.13.3
 wcmatch==8.3
 wheel==0.37.1
 wrapt==1.14.1
-yamllint==1.26.3
+yamllint==1.27.1
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip
