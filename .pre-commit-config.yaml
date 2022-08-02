@@ -72,7 +72,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.3.4
+    rev: v6.5.0
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -123,7 +123,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.20.0
+    rev: v8.21.0
     hooks:
       - id: eslint
         args:
