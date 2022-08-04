@@ -5,6 +5,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     let mdString = "";
     let ansiblePresent = true;
     let ansibleLintPresent = true;
+    let eeEnabled = false;
 
     // check if ansible is missing
     if(Object.keys(ansibleMetaData["ansible information"]).length === 0) {
@@ -21,7 +22,12 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         markdown.supportHtml = true;
         markdown.isTrusted = true;
 
-        return {metaData: ansibleMetaData, markdown, ansiblePresent, ansibleLintPresent};
+        return {metaData: ansibleMetaData, markdown, ansiblePresent, ansibleLintPresent, eeEnabled};
+    }
+
+    // check if ee is enabled or not
+    if(ansibleMetaData["execution environment information"]) {
+        eeEnabled = true;
     }
 
     // check is ansible-lint is missing
@@ -30,7 +36,8 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     }
 
 
-    mdString += `### Ansible environment details \n`;
+
+    mdString += eeEnabled ? `### Ansible meta data (in Execution Environment)\n` : `### Ansible meta data\n`;
     mdString += `\n<hr>\n`
 
     Object.keys(ansibleMetaData).forEach((mainKey) => {
@@ -43,7 +50,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
 
         const valueObj = ansibleMetaData[mainKey];
         Object.keys(valueObj).forEach((key) => {
-            mdString += `   - ${key}: `
+            mdString += `\n   - ${key}: `
             const value = valueObj[key];
             if(typeof value === 'object') {
                 value.forEach((val: any, index: any) => {
@@ -82,5 +89,5 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         markdown.appendMarkdown(`Ansible lint is missing in the environment`);
     }
 
-    return {metaData: ansibleMetaData, markdown, ansiblePresent, ansibleLintPresent};
+    return {metaData: ansibleMetaData, markdown, ansiblePresent, ansibleLintPresent, eeEnabled};
 }

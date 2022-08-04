@@ -144,7 +144,7 @@ function updateAnsibleInfo(): void {
           // console.log("data -> ", ansibleMetaData.metaData)
           console.log("ansible found");
           const testTooltip = ansibleMetaData.markdown;
-          myStatusBarItem.text = `$(pass-filled) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
+          myStatusBarItem.text = ansibleMetaData.eeEnabled ? `$(pass-filled) [EE] Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}` : `$(pass-filled) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
           myStatusBarItem.backgroundColor = "";
           myStatusBarItem.tooltip = testTooltip;
 
