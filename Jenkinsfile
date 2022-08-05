@@ -1,70 +1,91 @@
 #!/usr/bin/env groovy
-/* groovylint-disable GStringExpressionWithinString MethodReturnTypeRequired FactoryMethodName UnnecessaryGetter */
 
 def installBuildRequirements() {
   def nodeHome = tool 'nodejs-lts'
   env.PATH = "${env.PATH}:${nodeHome}/bin"
-
-  sh 'npm install --global yarn'
+  // install yarn
+  sh 'corepack enable'
+  sh 'yarn --version'
 }
+def vsix_glob = '**.vsix'
+def node_name = 'rhel8'
+def stash_name = 'vsix'
+def gh_org = 'ansible'
+def gh_repo = 'vscode-ansible'
+def gh_branch = params.BRANCH ?: 'main'
+// publishing is safe as we have manual approval step
+def publishToMarketPlace = true
+def publishPreRelease = true
+def version = '0.0.0'
+def upload_location = 'tools@filemgmt.jboss.org:/downloads_htdocs/tools/vscode'
 
-node('rhel8') {
-  stage('checkout') {
-        deleteDir()
-        git url: "https://github.com/${params.FORK}/vscode-ansible.git", branch: params.BRANCH
-  }
-
-  stage('requirements') {
-    installBuildRequirements()
-  }
-
-  stage('build') {
-    sh 'yarn install'
-    sh 'yarn run compile'
-    sh 'yarn run webpack'
-  }
-
-  stage('package') {
+node(node_name) {
+    stage('checkout') {
+    deleteDir()
+    git url: "https://github.com/${gh_org}/${gh_repo}", branch: gh_branch
+    // if a tagged with something not containing "next", we will consider it a release
+    publishPreRelease = sh(
+              script: 'git describe --exact-match --tags HEAD 2>/dev/null | grep -v next',
+              returnStatus: true
+          )
+    echo "Determined publishPreRelease=${publishPreRelease}"
     def packageJson = readJSON file: 'package.json'
-    // We always replace MAJOR.MINOR.PATCH from package.json with MAJOR.MINOR.BUILD
-    def version = packageJson.version[0..packageJson.version.lastIndexOf('.') - 1] + ".${env.BUILD_NUMBER}"
-    sh "npx vsce package ${ params.publishPreRelease ? '--pre-release' : '' } --no-dependencies --no-git-tag-version --no-update-package-json ${ version }"
-  }
+    version = packageJson.version[0..packageJson.version.lastIndexOf('.') - 1] + ".${env.BUILD_NUMBER}"
+    echo "Determined version=${version}"
 
-  if (params.UPLOAD_LOCATION) {
-    stage('snapshot') {
-        def filesToPush = findFiles(glob: '**.vsix')
-        sh "sftp -C ${UPLOAD_LOCATION}/snapshots/vscode-ansible/ <<< \$'put -p -r ${filesToPush[0].path}'"
-        stash name:'vsix', includes:filesToPush[0].path
+    currentBuild.displayName = version + (publishPreRelease ? '' : ' 🏁')
     }
-  }
+
+    stage('requirements') {
+      installBuildRequirements()
+    }
+
+    stage('build') {
+      sh 'yarn install'
+      sh 'yarn run compile'
+      sh 'yarn run webpack'
+    }
+
+    stage('package') {
+      // We always replace MAJOR.MINOR.PATCH from package.json with MAJOR.MINOR.BUILD
+      sh "npx vsce package ${ publishPreRelease ? '--pre-release' : '' } --no-dependencies --no-git-tag-version --no-update-package-json ${ version }"
+    }
+
+    if (upload_location) {
+    stage('snapshot') {
+          def filesToPush = findFiles(glob: vsix_glob)
+          sh "sftp -o StrictHostKeyChecking=no -C ${upload_location}/snapshots/vscode-ansible/ <<< \$'put -p -r ${filesToPush[0].path}'"
+          stash name:stash_name, includes:filesToPush[0].path
+    }
+    }
 }
 
-node('rhel8') {
-  if (publishToMarketPlace.equals('true')) {
+node(node_name) {
+  if (publishToMarketPlace) {
     timeout(time:5, unit:'DAYS') {
       // these are LDAP accounts
-      input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto'
+      input message:'Approve deployment?', submitter: 'ssbarnea,gnalawad,prsahoo,bthornto'
     }
 
-    stage('publish') {
-      unstash 'vsix'
-      def vsix = findFiles(glob: '**.vsix')
-      // VS Code Marketplace
-      withCredentials([[$class: 'StringBinding', credentialsId: 'vscode_java_marketplace', variable: 'TOKEN']]) {
-        sh "vsce publish -p $TOKEN ${params.publishPreRelease ? '--pre-release' : ''} --packagePath ${vsix[0].path}"
-      }
-      archive includes:'**.vsix'
+    installBuildRequirements()
+    unstash stash_name
+    def vsix = findFiles(glob: vsix_glob)
 
-      // Open-vsx Marketplace
-      sh 'npm install -g ovsx'
-      withCredentials([[$class: 'StringBinding', credentialsId: 'open-vsx-access-token', variable: 'OVSX_TOKEN']]) {
-        sh "ovsx publish -p $OVSX_TOKEN ${vsix[0].path}"
-      }
+    stage('publish') {
+        // VS Code Marketplace
+        withCredentials([[$class: 'StringBinding', credentialsId: 'vscode_java_marketplace', variable: 'TOKEN']]) {
+          sh "npx vsce publish -p $TOKEN ${publishPreRelease ? '--pre-release' : ''} --packagePath ${vsix[0].path}"
+        }
+        archive includes:vsix_glob
+
+        // Open-vsx Marketplace
+        withCredentials([[$class: 'StringBinding', credentialsId: 'open-vsx-access-token', variable: 'OVSX_TOKEN']]) {
+          sh "npx ovsx publish -p $OVSX_TOKEN ${vsix[0].path}"
+        }
     }
 
     stage('promote to stable') {
-      sh "sftp -C ${UPLOAD_LOCATION}/stable/vscode-ansible/ <<< \$'put -p -r ${vsix[0].path}'"
+        sh "sftp -o StrictHostKeyChecking=no -C ${upload_location}/stable/vscode-ansible/ <<< \$'put -p -r ${vsix[0].path}'"
     }
   }
 }

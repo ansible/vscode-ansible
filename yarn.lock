@@ -1004,6 +1004,7 @@ __metadata:
     mocha: ^10.0.0
     mochawesome: ^7.1.3
     mochawesome-report-generator: ^6.2.0
+    ovsx: ^0.5.1
     prettier: ^2.7.1
     rimraf: ^3.0.2
     standard-version: ^9.5.0
@@ -1546,6 +1547,13 @@ __metadata:
   version: 1.0.3
   resolution: "chrome-trace-event@npm:1.0.3"
   checksum: cb8b1fc7e881aaef973bd0c4a43cd353c2ad8323fb471a041e64f7c2dd849cde4aad15f8b753331a32dda45c973f032c8a03b8177fc85d60eaa75e91e08bfb97
+  languageName: node
+  linkType: hard
+
+"ci-info@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "ci-info@npm:2.0.0"
+  checksum: 3b374666a85ea3ca43fa49aa3a048d21c9b475c96eb13c133505d2324e7ae5efd6a454f41efe46a152269e9b6a00c9edbe63ec7fa1921957165aae16625acd67
   languageName: node
   linkType: hard
 
@@ -2778,6 +2786,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"follow-redirects@npm:^1.14.6":
+  version: 1.15.1
+  resolution: "follow-redirects@npm:1.15.1"
+  peerDependenciesMeta:
+    debug:
+      optional: true
+  checksum: 6aa4e3e3cdfa3b9314801a1cd192ba756a53479d9d8cca65bf4db3a3e8834e62139245cd2f9566147c8dfe2efff1700d3e6aefd103de4004a7b99985e71dd533
+  languageName: node
+  linkType: hard
+
 "fs-constants@npm:^1.0.0":
   version: 1.0.0
   resolution: "fs-constants@npm:1.0.0"
@@ -3413,6 +3431,17 @@ __metadata:
   dependencies:
     binary-extensions: ^2.0.0
   checksum: 84192eb88cff70d320426f35ecd63c3d6d495da9d805b19bc65b518984b7c0760280e57dbf119b7e9be6b161784a5a673ab2c6abe83abb5198a432232ad5b35c
+  languageName: node
+  linkType: hard
+
+"is-ci@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "is-ci@npm:2.0.0"
+  dependencies:
+    ci-info: ^2.0.0
+  bin:
+    is-ci: bin.js
+  checksum: 77b869057510f3efa439bbb36e9be429d53b3f51abd4776eeea79ab3b221337fe1753d1e50058a9e2c650d38246108beffb15ccfd443929d77748d8c0cc90144
   languageName: node
   linkType: hard
 
@@ -4597,6 +4626,22 @@ __metadata:
     type-check: ^0.4.0
     word-wrap: ^1.2.3
   checksum: dbc6fa065604b24ea57d734261914e697bd73b69eff7f18e967e8912aa2a40a19a9f599a507fa805be6c13c24c4eae8c71306c239d517d42d4c041c942f508a0
+  languageName: node
+  linkType: hard
+
+"ovsx@npm:^0.5.1":
+  version: 0.5.1
+  resolution: "ovsx@npm:0.5.1"
+  dependencies:
+    commander: ^6.1.0
+    follow-redirects: ^1.14.6
+    is-ci: ^2.0.0
+    leven: ^3.1.0
+    tmp: ^0.2.1
+    vsce: ^2.6.3
+  bin:
+    ovsx: lib/ovsx
+  checksum: 9a192906319649c8840c2beb15398602c54457c4769b7d4854f83c066cdc599f63ae7f4aa14fb2e4609d993ea70b11e40bba94e964914fb1588ba4a1a4af5edb
   languageName: node
   linkType: hard
 
@@ -6367,7 +6412,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vsce@npm:^2.10.0, vsce@npm:^2.9.2":
+"vsce@npm:^2.10.0, vsce@npm:^2.6.3, vsce@npm:^2.9.2":
   version: 2.10.0
   resolution: "vsce@npm:2.10.0"
   dependencies:

@@ -12,6 +12,7 @@ cmds
 codespell
 commitlint
 copyfiles
+corepack
 cygwin
 dedupe
 deps
@@ -26,6 +27,8 @@ githubcli
 groovylint
 hostvars
 hotfixes
+htdocs
+jenkinsfile
 johndoe
 keyfile
 keyrings

@@ -1,0 +1,10 @@
+{
+  "extends": "recommended-jenkinsfile",
+  "rules": {
+    "LineLength": "off",
+    "DuplicateNumberLiteral": "off",
+    "DuplicateStringLiteral": {
+      "ignoreStrings": "StringBinding"
+    }
+  }
+}
