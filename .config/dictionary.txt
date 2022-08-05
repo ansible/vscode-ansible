@@ -13,6 +13,7 @@ codespell
 commitlint
 copyfiles
 cygwin
+dedupe
 deps
 devel
 direnv
