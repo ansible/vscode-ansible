@@ -20,12 +20,15 @@ node('rhel8') {
 
   stage('build') {
     sh 'yarn install'
-    sh 'yarn build'
+    sh 'yarn run compile'
+    sh 'yarn run webpack'
   }
 
   stage('package') {
     def packageJson = readJSON file: 'package.json'
-    sh "npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json ${packageJson.version}-${env.BUILD_NUMBER}"
+    // We always replace MAJOR.MINOR.PATCH from package.json with MAJOR.MINOR.BUILD
+    def version = packageJson.version[0..packageJson.version.lastIndexOf('.') - 1] + ".${env.BUILD_NUMBER}"
+    sh "npx vsce package ${ params.publishPreRelease ? '--pre-release' : '' } --no-dependencies --no-git-tag-version --no-update-package-json ${ version }"
   }
 
   if (params.UPLOAD_LOCATION) {
@@ -49,7 +52,7 @@ node('rhel8') {
       def vsix = findFiles(glob: '**.vsix')
       // VS Code Marketplace
       withCredentials([[$class: 'StringBinding', credentialsId: 'vscode_java_marketplace', variable: 'TOKEN']]) {
-        sh "vsce publish -p $TOKEN --packagePath ${vsix[0].path}"
+        sh "vsce publish -p $TOKEN ${params.publishPreRelease ? '--pre-release' : ''} --packagePath ${vsix[0].path}"
       }
       archive includes:'**.vsix'
 

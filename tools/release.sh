@@ -9,7 +9,10 @@ fi
 
 RELEASE_NAME=$(gh api 'repos/{owner}/{repo}/releases' --jq '.[0].name')
 echo -e "\n## ${RELEASE_NAME}\n" > out/next.md
-gh api "repos/{owner}/{repo}/releases" --jq '.[0].body' | \
+# /releases endpoint returns all releases in inverse chronologic order,
+# including drafts, so last release is not always first element.
+# /releases/latest does retrieve only the last published release
+gh api "repos/{owner}/{repo}/releases/latest" --jq '.body' | \
     sed -e's/[[:space:]]*$//' \
     >> out/next.md
 
@@ -27,7 +30,7 @@ fi
 yarn exec prettier --loglevel error -w CHANGELOG.md
 
 # update version
-yarn version "${RELEASE_NAME}"
+yarn version --immediate "${RELEASE_NAME}"
 
 # commit the release
 git add package.json CHANGELOG.md
@@ -53,7 +56,7 @@ if [[ -z ${CI+z} ]]; then
 fi
 
 # do push the new branch
-git push origin "release/${RELEASE_NAME}"
+git push origin --force "release/${RELEASE_NAME}"
 
 # create pull request
 gh pr create --label skip-changelog --fill

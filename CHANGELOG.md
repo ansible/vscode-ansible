@@ -4,6 +4,17 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.11.0
+
+### Minor Changes
+
+- Add command to re-sync ansible inventory file (#522) @priyamsahoo
+- Require vscode 1.63 or newer (November 2021) (#567) @ssbarnea
+
+### Bugfixes
+
+- Update ansible-language-server to 0.9.0 (#548) @ssbarnea
+
 ## 0.10.0
 
 ### Minor Changes

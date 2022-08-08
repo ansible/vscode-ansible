@@ -16,7 +16,12 @@
   "ansible.python.interpreterPath": "python3",
   "ansibleServer.trace.server": "verbose",
 
+  "extensions.autoUpdate": false,
+  "extensions.autoCheckUpdates": false,
+
   "security.workspace.trust.enabled": false,
   "security.workspace.trust.startupPrompt": "never",
-  "redhat.telemetry.enabled": false
+  "redhat.telemetry.enabled": false,
+  "telemetry.telemetryLevel": "off",
+  "workbench.startupEditor": "none"
 }
