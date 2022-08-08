@@ -1,6 +1,15 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions, StatusBarItem, window, StatusBarAlignment, MarkdownString, ThemeColor } from "vscode";
+import {
+  commands,
+  ExtensionContext,
+  extensions,
+  StatusBarItem,
+  window,
+  StatusBarAlignment,
+  ThemeColor,
+} from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
@@ -126,11 +135,11 @@ function resyncAnsibleInventory(): void {
 }
 
 /**
- * Sends notification with active file uri as param to the server 
- * and receives notification from the server with ansible meta data associated with the opened file as param 
+ * Sends notification with active file uri as param to the server
+ * and receives notification from the server with ansible meta data associated with the opened file as param
  */
 function updateAnsibleInfo(): void {
-  if(window.activeTextEditor?.document.languageId !== "ansible") {
+  if (window.activeTextEditor?.document.languageId !== "ansible") {
     myStatusBarItem.hide();
     return;
   }
@@ -139,18 +148,22 @@ function updateAnsibleInfo(): void {
     client.onNotification(
       new NotificationType(`update/ansible-metadata`),
       (ansibleMetaDataList: any) => {
-        const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);        
-        if(ansibleMetaData.ansiblePresent) {
+        const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
+        if (ansibleMetaData.ansiblePresent) {
           // console.log("data -> ", ansibleMetaData.metaData)
           console.log("ansible found");
           const testTooltip = ansibleMetaData.markdown;
-          myStatusBarItem.text = ansibleMetaData.eeEnabled ? `$(pass-filled) [EE] ${ansibleMetaData.metaData["ansible information"]["ansible version"]}` : `$(pass-filled) ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
+          myStatusBarItem.text = ansibleMetaData.eeEnabled
+            ? `$(pass-filled) [EE] ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`
+            : `$(pass-filled) ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
           myStatusBarItem.backgroundColor = "";
           myStatusBarItem.tooltip = testTooltip;
 
-          if(!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`; 
-            myStatusBarItem.backgroundColor = new ThemeColor('statusBarItem.warningBackground');
+          if (!ansibleMetaData.ansibleLintPresent) {
+            myStatusBarItem.text = `$(warning) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
+            myStatusBarItem.backgroundColor = new ThemeColor(
+              "statusBarItem.warningBackground"
+            );
           }
 
           myStatusBarItem.show();
@@ -159,12 +172,16 @@ function updateAnsibleInfo(): void {
           console.log("ansible not found");
           myStatusBarItem.text = "$(error) Ansible Info";
           myStatusBarItem.tooltip = ansibleMetaData.markdown;
-          myStatusBarItem.backgroundColor = new ThemeColor('statusBarItem.errorBackground');
+          myStatusBarItem.backgroundColor = new ThemeColor(
+            "statusBarItem.errorBackground"
+          );
           myStatusBarItem.show();
         }
       }
     );
     const activeFileUri = window.activeTextEditor?.document.uri.toString();
-    client.sendNotification(new NotificationType(`update/ansible-metadata`), [activeFileUri]);
+    client.sendNotification(new NotificationType(`update/ansible-metadata`), [
+      activeFileUri,
+    ]);
   });
 }
