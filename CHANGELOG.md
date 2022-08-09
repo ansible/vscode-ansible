@@ -20,6 +20,20 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.10.0
+
+### Minor Changes
+
+- Expose metadata about environment to the client (#413) @priyamsahoo
+
+### Bugfixes
+
+- Fallback to default value if setting is not provided by client (#409)
+  @fredericgiquel
+- Bump ansible-compat from 2.1.0 to 2.2.0 in /.config (#408)
+- Add handling of cases where lsp clients do not send required settings (#405)
+  @yaegassy
+
 ## v0.9.0
 
 ### Minor Changes
