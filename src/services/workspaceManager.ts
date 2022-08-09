@@ -72,7 +72,7 @@ export class WorkspaceManager {
    */
   public getWorkspaceFolder(uri: string): WorkspaceFolder | undefined {
     for (const workspaceFolder of this.sortedWorkspaceFolders) {
-      if (uri.startsWith(workspaceFolder.uri)) {
+      if (URI.parse(uri).toString().startsWith(workspaceFolder.uri)) {
         return workspaceFolder;
       }
     }
@@ -81,7 +81,7 @@ export class WorkspaceManager {
      * opened in client without any workspace.
      * Set the workspace to directory of the file pointed by uri.
      */
-    const documentFolderPathParts = uri.split(path.sep);
+    const documentFolderPathParts = URI.parse(uri).toString().split(path.sep);
     documentFolderPathParts.pop();
     const workspaceFolder: WorkspaceFolder = {
       uri: documentFolderPathParts.join(path.sep),

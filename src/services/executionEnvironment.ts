@@ -522,4 +522,13 @@ export class ExecutionEnvironment {
     const markerFilePath = path.join(hostCacheBasePath, this.successFileMarker);
     return true ? fs.existsSync(markerFilePath) : false;
   }
+
+  public get getBasicContainerAndImageDetails() {
+    return {
+      containerEngine: this._container_engine,
+      containerImage: this._container_image,
+      containerImageId: this._container_image_id,
+      containerVolumeMounts: this._container_volume_mounts,
+    };
+  }
 }

@@ -13,6 +13,7 @@ export class AnsibleConfig {
   private _module_locations: string[] = [];
   private _ansible_location = "";
   private _default_host_list: string[] = [];
+  private _ansible_meta_data = {};
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -68,6 +69,7 @@ export class AnsibleConfig {
       );
 
       const versionInfo = ini.parse(ansibleVersionResult.stdout);
+      this._ansible_meta_data = versionInfo;
       this._module_locations = parsePythonStringArray(
         versionInfo["configured module search path"]
       );
@@ -123,6 +125,10 @@ export class AnsibleConfig {
 
   public get ansible_location(): string {
     return this._ansible_location;
+  }
+
+  public get ansible_meta_data(): object {
+    return this._ansible_meta_data;
   }
 }
 

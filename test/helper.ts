@@ -21,9 +21,7 @@ export const ANSIBLE_CONFIG_FILE = path.resolve(
   "ansible.cfg"
 );
 
-export function setFixtureAnsibleCollectionPathEnv(
-  prePendPath: string | undefined = undefined
-): void {
+export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
   } else {
