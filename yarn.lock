@@ -5,9 +5,9 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server.git#commit=bef4433f758730e7e4b5ca807a1f21c7a51edb04":
-  version: 0.9.0
-  resolution: "@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server.git#commit=bef4433f758730e7e4b5ca807a1f21c7a51edb04"
+"@ansible/ansible-language-server@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "@ansible/ansible-language-server@npm:0.10.0"
   dependencies:
     "@flatten-js/interval-tree": ^1.0.18
     glob: ^8.0.1
@@ -19,8 +19,8 @@ __metadata:
     vscode-uri: ^3.0.3
     yaml: ^1.10.2 <2.0
   bin:
-    ansible-language-server: ./bin/ansible-language-server
-  checksum: 6ffab525bd46aa5c67b8d69a08de88eaa82293a325765b3f80cad8a1f8ea2ca8a5891d1e0c412e7203321fd3b248f2914494a1ae1143d809907660102af66abe
+    ansible-language-server: bin/ansible-language-server
+  checksum: 9d180c6921f0cf366d279e5dc3b1bf79ef4a72a55bf03795af1a5ec8c3ee138ba580f09b991ef23e4d3d72706cf17453b7229594b9155961d6be90588535c3a8
   languageName: node
   linkType: hard
 
@@ -993,7 +993,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
-    "@ansible/ansible-language-server": "https://github.com/ansible/ansible-language-server.git#commit=bef4433f758730e7e4b5ca807a1f21c7a51edb04"
+    "@ansible/ansible-language-server": ^0.10.0
     "@types/chai": ^4.3.3
     "@types/glob": ^7.2.0
     "@types/ini": ^1.3.31
