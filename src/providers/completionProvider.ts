@@ -65,12 +65,11 @@ export async function doCompletion(
 
   const extensionSettings = await context.documentSettings.get(document.uri);
 
-  const useFqcn =
-    extensionSettings.ansible?.useFullyQualifiedCollectionNames ?? true;
+  const useFqcn = extensionSettings.ansible.useFullyQualifiedCollectionNames;
   const provideRedirectModulesCompletion =
-    extensionSettings.completion?.provideRedirectModules ?? true;
+    extensionSettings.completion.provideRedirectModules;
   const provideModuleOptionAliasesCompletion =
-    extensionSettings.completion?.provideModuleOptionAliases ?? true;
+    extensionSettings.completion.provideModuleOptionAliases;
 
   // We need inclusive matching, since cursor position is the position of the character right after it
   // NOTE: Might no longer be required due to the hack above

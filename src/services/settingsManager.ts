@@ -139,16 +139,21 @@ export class SettingsManager {
     this.configurationChangeHandlers.set(uri, handler);
   }
 
-  public get(uri: string): Thenable<ExtensionSettings> {
+  public async get(uri: string): Promise<ExtensionSettings> {
     if (!this.clientSupportsConfigRequests) {
       return Promise.resolve(this.globalSettings);
     }
     let result = this.documentSettings.get(uri);
     if (!result) {
-      result = this.connection.workspace.getConfiguration({
+      const clientSettings = await this.connection.workspace.getConfiguration({
         scopeUri: uri,
         section: "ansible",
       });
+      // Recursively merge globalSettings with clientSettings to use:
+      //  - setting from client when provided
+      //  - default value of setting otherwise
+      const mergedSettings = _.merge(this.globalSettings, clientSettings);
+      result = Promise.resolve(mergedSettings);
       this.documentSettings.set(uri, result);
     }
     return result;
