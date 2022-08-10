@@ -87,7 +87,6 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   markdown.isTrusted = true;
 
   if (!ansibleLintPresent) {
-    // mdString += `ansible-lint is not present in the environment`
     markdown.appendMarkdown(
       `\n<p><span style="color:#FFEF4A;">$(warning) Warning(s):</p></h5>`
     );
