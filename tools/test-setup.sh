@@ -91,7 +91,8 @@ fi
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+        # https://github.com/containers/podman/issues/12815
+        HOMEBREW_NO_ENV_HINTS=1 time brew install --HEAD --force podman
         time podman machine init
         time podman machine start
         podman info
