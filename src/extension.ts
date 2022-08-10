@@ -9,6 +9,7 @@ import {
   window,
   StatusBarAlignment,
   ThemeColor,
+  MarkdownString,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
@@ -146,6 +147,10 @@ function updateAnsibleInfo(): void {
   }
 
   client.onReady().then(() => {
+    myStatusBarItem.tooltip = new MarkdownString(
+      ` $(sync~spin) Fetching... `,
+      true
+    );
     myStatusBarItem.show();
     client.onNotification(
       new NotificationType(`update/ansible-metadata`),
@@ -155,12 +160,12 @@ function updateAnsibleInfo(): void {
           console.log("ansible found");
           cachedAnsibleVersion =
             ansibleMetaData.metaData["ansible information"]["ansible version"];
-          const testTooltip = ansibleMetaData.markdown;
+          const tooltip = ansibleMetaData.markdown;
           myStatusBarItem.text = ansibleMetaData.eeEnabled
             ? `$(pass-filled) [EE] ${cachedAnsibleVersion}`
             : `$(pass-filled) ${cachedAnsibleVersion}`;
           myStatusBarItem.backgroundColor = "";
-          myStatusBarItem.tooltip = testTooltip;
+          myStatusBarItem.tooltip = tooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {
             myStatusBarItem.text = `$(warning) Ansible ${cachedAnsibleVersion}`;
