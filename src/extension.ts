@@ -30,6 +30,7 @@ import {
 import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
 
 let client: LanguageClient;
+let cachedAnsibleVersion: string;
 
 // status bar item
 let myStatusBarItem: StatusBarItem;
@@ -48,12 +49,12 @@ export function activate(context: ExtensionContext): void {
     )
   );
 
-  // register a command that is invoked when the status bar item is clicked
-  // context.subscriptions.push(commands.registerCommand( "extension.status-bar-test", checkStatusBarClick));
-
   // create a new status bar item that we can manage
   myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
   context.subscriptions.push(myStatusBarItem);
+
+  myStatusBarItem.text = cachedAnsibleVersion;
+  myStatusBarItem.show();
 
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
@@ -145,22 +146,24 @@ function updateAnsibleInfo(): void {
   }
 
   client.onReady().then(() => {
+    myStatusBarItem.show();
     client.onNotification(
       new NotificationType(`update/ansible-metadata`),
       (ansibleMetaDataList: any) => {
         const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
         if (ansibleMetaData.ansiblePresent) {
-          // console.log("data -> ", ansibleMetaData.metaData)
           console.log("ansible found");
+          cachedAnsibleVersion =
+            ansibleMetaData.metaData["ansible information"]["ansible version"];
           const testTooltip = ansibleMetaData.markdown;
           myStatusBarItem.text = ansibleMetaData.eeEnabled
-            ? `$(pass-filled) [EE] ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`
-            : `$(pass-filled) ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
+            ? `$(pass-filled) [EE] ${cachedAnsibleVersion}`
+            : `$(pass-filled) ${cachedAnsibleVersion}`;
           myStatusBarItem.backgroundColor = "";
           myStatusBarItem.tooltip = testTooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) Ansible ${ansibleMetaData.metaData["ansible information"]["ansible version"]}`;
+            myStatusBarItem.text = `$(warning) Ansible ${cachedAnsibleVersion}`;
             myStatusBarItem.backgroundColor = new ThemeColor(
               "statusBarItem.warningBackground"
             );
@@ -168,7 +171,6 @@ function updateAnsibleInfo(): void {
 
           myStatusBarItem.show();
         } else {
-          // console.log("data -> ", ansibleMetaData.metaData)
           console.log("ansible not found");
           myStatusBarItem.text = "$(error) Ansible Info";
           myStatusBarItem.tooltip = ansibleMetaData.markdown;
