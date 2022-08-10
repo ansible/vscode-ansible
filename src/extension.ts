@@ -1,6 +1,16 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 /* "stdlib" */
 import * as path from "path";
-import { commands, ExtensionContext, extensions } from "vscode";
+import {
+  commands,
+  ExtensionContext,
+  extensions,
+  StatusBarItem,
+  window,
+  StatusBarAlignment,
+  ThemeColor,
+  MarkdownString,
+} from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
 /* third-party */
@@ -18,8 +28,13 @@ import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
+import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
 
 let client: LanguageClient;
+let cachedAnsibleVersion: string;
+
+// status bar item
+let myStatusBarItem: StatusBarItem;
 
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
@@ -34,6 +49,13 @@ export function activate(context: ExtensionContext): void {
       resyncAnsibleInventory
     )
   );
+
+  // create a new status bar item that we can manage
+  myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
+  context.subscriptions.push(myStatusBarItem);
+
+  myStatusBarItem.text = cachedAnsibleVersion;
+  myStatusBarItem.show();
 
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
@@ -73,6 +95,10 @@ export function activate(context: ExtensionContext): void {
       notifyAboutConflicts();
     });
   });
+
+  // Update ansible meta data in the statusbar tooltip (client-server)
+  client.onReady().then(updateAnsibleInfo);
+  window.onDidChangeActiveTextEditor(updateAnsibleInfo);
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -103,9 +129,66 @@ function resyncAnsibleInventory(): void {
     client.onNotification(
       new NotificationType(`resync/ansible-inventory`),
       (event) => {
-        console.log(event);
+        console.log("resync ansible inventory event ->", event);
       }
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+  });
+}
+
+/**
+ * Sends notification with active file uri as param to the server
+ * and receives notification from the server with ansible meta data associated with the opened file as param
+ */
+function updateAnsibleInfo(): void {
+  if (window.activeTextEditor?.document.languageId !== "ansible") {
+    myStatusBarItem.hide();
+    return;
+  }
+
+  client.onReady().then(() => {
+    myStatusBarItem.tooltip = new MarkdownString(
+      ` $(sync~spin) Fetching... `,
+      true
+    );
+    myStatusBarItem.show();
+    client.onNotification(
+      new NotificationType(`update/ansible-metadata`),
+      (ansibleMetaDataList: any) => {
+        const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
+        if (ansibleMetaData.ansiblePresent) {
+          console.log("ansible found");
+          cachedAnsibleVersion =
+            ansibleMetaData.metaData["ansible information"]["ansible version"];
+          const tooltip = ansibleMetaData.markdown;
+          myStatusBarItem.text = ansibleMetaData.eeEnabled
+            ? `$(pass-filled) [EE] ${cachedAnsibleVersion}`
+            : `$(pass-filled) ${cachedAnsibleVersion}`;
+          myStatusBarItem.backgroundColor = "";
+          myStatusBarItem.tooltip = tooltip;
+
+          if (!ansibleMetaData.ansibleLintPresent) {
+            myStatusBarItem.text = `$(warning) Ansible ${cachedAnsibleVersion}`;
+            myStatusBarItem.backgroundColor = new ThemeColor(
+              "statusBarItem.warningBackground"
+            );
+          }
+
+          myStatusBarItem.show();
+        } else {
+          console.log("ansible not found");
+          myStatusBarItem.text = "$(error) Ansible Info";
+          myStatusBarItem.tooltip = ansibleMetaData.markdown;
+          myStatusBarItem.backgroundColor = new ThemeColor(
+            "statusBarItem.errorBackground"
+          );
+          myStatusBarItem.show();
+        }
+      }
+    );
+    const activeFileUri = window.activeTextEditor?.document.uri.toString();
+    client.sendNotification(new NotificationType(`update/ansible-metadata`), [
+      activeFileUri,
+    ]);
   });
 }
