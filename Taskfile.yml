@@ -71,7 +71,7 @@ tasks:
       # - cd node_modules/vscode-extension-tester && npm update vsce
       - yarn run clean
       - yarn run compile
-      - tsc -p ./
+      - npx tsc -p ./
     sources:
       - Taskfile.yml
       - node_modules/**/*
