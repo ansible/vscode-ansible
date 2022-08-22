@@ -483,7 +483,6 @@
   "license": "MIT",
   "main": "./out/client/src/extension.js",
   "name": "ansible",
-  "preview": true,
   "publisher": "redhat",
   "qna": false,
   "repository": {
