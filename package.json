@@ -241,7 +241,7 @@
               },
               "options": {
                 "type": "string",
-                "description": "The field is optional, and is a comma-separated list of options, such as ro,Z"
+                "description": "The field is optional, and is a comma-separated list of options, such as `ro,Z`"
               }
             }
           }
