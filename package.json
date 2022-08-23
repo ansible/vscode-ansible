@@ -295,13 +295,13 @@
         ],
         "filenamePatterns": [
           "**/playbooks/*.yml",
-          "**/playbooks/*.yaml"
+          "**/playbooks/*.yaml",
+          "**/*playbook.yml",
+          "**/*playbook.yaml"
         ],
         "filenames": [
           "site.yml",
-          "site.yaml",
-          "playbook.yml",
-          "playbook.yaml"
+          "site.yaml"
         ],
         "configuration": "./ansible-language-configuration.json"
       },
