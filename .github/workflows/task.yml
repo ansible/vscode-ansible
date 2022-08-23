@@ -9,6 +9,10 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 env:
   FORCE_COLOR: "1" # make mocha output colorful
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
@@ -106,8 +110,10 @@ jobs:
           path: |
             ~/.cache/npm
             ~/.cache/pip
+            ~/.cache/yarn
             ~/.nvm/.cache
             ~/Library/Caches/pip
+            ~/.local/share/containers/podman/machine/qemu
           key: >
             ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles(
             'package.json',
@@ -158,6 +164,21 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         run: task -v ${{ matrix.task-name }}
+
+      - name: Stop services
+        if: "contains(matrix.os, 'macos')"
+        # Stopping podman machine is needed or caching it will fail
+        run: |
+          command -v podman && {
+          podman machine stop
+          while [[ "$(podman machine ls --format '{{.Running}}' \
+                --noheading || true)" != "false" ]]; do
+            sleep 1
+            echo -n .
+          done
+          echo .
+          }
+        continue-on-error: true
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
