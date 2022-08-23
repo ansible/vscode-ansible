@@ -18,7 +18,9 @@
     ["(", ")"],
     ["\"", "\""],
     ["'", "'"],
-    ["{{ ", " "] // curly braces are already auto-closed, this adds space at the end if one is added at the beginning
+    ["{{ ", " "], // curly braces are already auto-closed, this adds space at the end if one is added at the beginning
+    ["{#", "#}"],
+    ["{%", "%}"]
   ],
   // added `'` and `"` -> in Ansible this pattern is extremely common:
   // `"{{ jinja_expression }}"`

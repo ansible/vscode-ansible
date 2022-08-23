@@ -4,6 +4,16 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.12.0
+
+### Minor Changes
+
+- Add command to re-sync ansible inventory file (#522) @priyamsahoo
+
+### Bugfixes
+
+- Update ansible-language-server to 0.9.0 (#548) @ssbarnea
+
 ## v0.11.0
 
 ### Minor Changes
