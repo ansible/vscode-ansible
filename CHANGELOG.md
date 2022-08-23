@@ -20,6 +20,12 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.10.1
+
+### Bugfixes
+
+- Disable python debugger when running external commands (#420) @ssbarnea
+
 ## v0.10.0
 
 ### Minor Changes
