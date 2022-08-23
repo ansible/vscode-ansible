@@ -62,7 +62,6 @@ requests==2.27.1
 resolvelib==0.5.4
 rich==12.0.0
 ruamel-yaml==0.17.21
-ruamel-yaml-clib==0.2.6
 setuptools-scm==6.4.2
 six==1.16.0
 snowballstemmer==2.2.0
