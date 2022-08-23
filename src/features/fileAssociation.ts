@@ -21,8 +21,8 @@ export async function configureModelines(
         return null;
       }
 
-      let tryApplyModelines = (): boolean => {
-        let editor = vscode.window.visibleTextEditors.find(
+      const tryApplyModelines = (): boolean => {
+        const editor = vscode.window.visibleTextEditors.find(
           (e) => e.document === doc
         );
         if (editor) {
@@ -47,7 +47,7 @@ export async function configureModelines(
   // Listen for saves and change settings if necessary
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((doc) => {
-      let editor = vscode.window.visibleTextEditors.find(
+      const editor = vscode.window.visibleTextEditors.find(
         (e) => e.document === doc
       );
       if (editor) applyModeLines(editor);

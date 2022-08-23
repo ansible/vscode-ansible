@@ -1,3 +1,4 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
 import * as vscode from "vscode";
 
 /**
@@ -18,13 +19,13 @@ export async function applyModeLines(
   }
 
   try {
-    let modelineOptions: any = searchModelines(editor.document);
+    const modelineOptions: any = searchModelines(editor.document);
 
-    let language = modelineOptions.language;
+    const language = modelineOptions.language;
 
     if (language && language.length > 0) {
       await vscode.languages.getLanguages().then((codeLangs) => {
-        let codeLang = codeLangs.find(
+        const codeLang = codeLangs.find(
           (codeLang) => codeLang.toLowerCase() === language.toLowerCase()
         );
         if (codeLang) {
@@ -46,11 +47,11 @@ export async function applyModeLines(
 
 function searchModelines(textDoc: vscode.TextDocument) {
   // vscode modeline options
-  let vscodeModelineRegex = /^.{0,8}code:(.*)/;
-  let vscodeModelineOptsRegex = /(\w+)=([^\s]+)/g;
+  const vscodeModelineRegex = /^.{0,8}code:(.*)/;
+  const vscodeModelineOptsRegex = /(\w+)=([^\s]+)/g;
 
-  let parseOption = (name: string, value: string): any => {
-    let parsedVal = _parseGenericValue(value);
+  const parseOption = (name: string, value: string): any => {
+    const parsedVal = _parseGenericValue(value);
     switch (name.toLowerCase()) {
       case "language":
       case "lang":
@@ -61,11 +62,11 @@ function searchModelines(textDoc: vscode.TextDocument) {
   };
   let options = {};
 
-  let searchLines = getLinesToSearch(textDoc);
+  const searchLines = getLinesToSearch(textDoc);
   searchLines.forEach((line) => {
     let match = line.match(vscodeModelineRegex);
     if (match) {
-      let opts = match[1];
+      const opts = match[1];
       while ((match = vscodeModelineOptsRegex.exec(opts))) {
         options = parseOption(match[1], match[2]);
       }
@@ -80,11 +81,11 @@ function getLinesToSearch(document: vscode.TextDocument): string[] {
   // don't try to find modelines on lines longer than this
   const MAX_LINE_LENGTH = 500;
 
-  let lines = document.getText().split(/\n/g);
+  const lines = document.getText().split(/\n/g);
   let checkNumLines = NUM_LINES_TO_SEARCH;
   // avoid checking same line multiple times if file doesn't have enough lines
   if (lines.length < NUM_LINES_TO_SEARCH * 2) checkNumLines = lines.length / 2;
-  let topLines = lines.slice(0, checkNumLines),
+  const topLines = lines.slice(0, checkNumLines),
     bottomLines = lines.slice(-checkNumLines);
   return topLines
     .concat(bottomLines)
@@ -95,7 +96,7 @@ function _parseGenericValue(value: string): any {
   if (typeof value != "string") return value;
   value = value.trim();
   if (/^(true|false)$/i.test(value)) {
-    return value.toLowerCase() == "true";
+    return value.toLowerCase() === "true";
   } else if (/^[0-9]+$/.test(value)) {
     return parseInt(value, 10);
   }
