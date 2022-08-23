@@ -1,0 +1,6 @@
+# code: language=ansible
+- hosts: switches
+  tasks:
+    - name: This file has modelines and the language is set by it
+      ansible.builtin.debug:
+        msg: Hello world!

@@ -35,6 +35,8 @@ loglevel
 lxml
 markdownlint
 mochawesome
+modeline
+modelines
 myuser
 noheading
 npmrc

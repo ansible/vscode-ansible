@@ -4,6 +4,7 @@
     "onCommand:extension.ansible-playbook.run",
     "onCommand:extension.ansible.vault",
     "onLanguage:ansible",
+    "onLanguage:yaml",
     "onCommand:extension.resync-ansible-inventory"
   ],
   "badges": [
@@ -289,8 +290,18 @@
           "ansible"
         ],
         "extensions": [
-          ".yml",
-          ".yaml"
+          ".ansible.yml",
+          ".ansible.yaml"
+        ],
+        "filenamePatterns": [
+          "**/playbooks/*.yml",
+          "**/playbooks/*.yaml",
+          "**/*playbook*.yml",
+          "**/*playbook*.yaml"
+        ],
+        "filenames": [
+          "site.yml",
+          "site.yaml"
         ],
         "configuration": "./ansible-language-configuration.json"
       },
