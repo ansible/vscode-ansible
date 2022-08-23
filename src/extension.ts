@@ -10,6 +10,7 @@ import {
   StatusBarAlignment,
   ThemeColor,
   MarkdownString,
+  workspace,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
@@ -29,6 +30,7 @@ import {
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
 import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
+import { configureModelines } from "./features/fileAssociation";
 
 let client: LanguageClient;
 let cachedAnsibleVersion: string;
@@ -38,6 +40,9 @@ let myStatusBarItem: StatusBarItem;
 
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
+
+  // add ability to read modelines and assign doc "ansible" language to the doc accordingly
+  configureModelines(context);
 
   context.subscriptions.push(
     commands.registerCommand("extension.ansible.vault", toggleEncrypt)
@@ -99,6 +104,7 @@ export function activate(context: ExtensionContext): void {
   // Update ansible meta data in the statusbar tooltip (client-server)
   client.onReady().then(updateAnsibleInfo);
   window.onDidChangeActiveTextEditor(updateAnsibleInfo);
+  workspace.onDidOpenTextDocument(updateAnsibleInfo);
 }
 
 export function deactivate(): Thenable<void> | undefined {
