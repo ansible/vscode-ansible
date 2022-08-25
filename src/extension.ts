@@ -29,7 +29,7 @@ import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
-import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
+import { formatAnsibleMetaData } from "./features/utils/formatAnsibleMetaData";
 import { configureModelines } from "./features/fileAssociation";
 
 let client: LanguageClient;
@@ -174,7 +174,7 @@ function updateAnsibleInfo(): void {
           myStatusBarItem.tooltip = tooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) Ansible ${cachedAnsibleVersion}`;
+            myStatusBarItem.text = `$(warning) ${cachedAnsibleVersion}`;
             myStatusBarItem.backgroundColor = new ThemeColor(
               "statusBarItem.warningBackground"
             );
