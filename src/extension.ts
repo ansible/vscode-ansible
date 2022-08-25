@@ -10,6 +10,7 @@ import {
   StatusBarAlignment,
   ThemeColor,
   MarkdownString,
+  workspace,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 
@@ -28,7 +29,8 @@ import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
-import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
+import { formatAnsibleMetaData } from "./features/utils/formatAnsibleMetaData";
+import { configureModelines } from "./features/fileAssociation";
 
 let client: LanguageClient;
 let cachedAnsibleVersion: string;
@@ -38,6 +40,9 @@ let myStatusBarItem: StatusBarItem;
 
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
+
+  // add ability to read modelines and assign doc "ansible" language to the doc accordingly
+  configureModelines(context);
 
   context.subscriptions.push(
     commands.registerCommand("extension.ansible.vault", toggleEncrypt)
@@ -99,6 +104,7 @@ export function activate(context: ExtensionContext): void {
   // Update ansible meta data in the statusbar tooltip (client-server)
   client.onReady().then(updateAnsibleInfo);
   window.onDidChangeActiveTextEditor(updateAnsibleInfo);
+  workspace.onDidOpenTextDocument(updateAnsibleInfo);
 }
 
 export function deactivate(): Thenable<void> | undefined {
@@ -168,7 +174,7 @@ function updateAnsibleInfo(): void {
           myStatusBarItem.tooltip = tooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) Ansible ${cachedAnsibleVersion}`;
+            myStatusBarItem.text = `$(warning) ${cachedAnsibleVersion}`;
             myStatusBarItem.backgroundColor = new ThemeColor(
               "statusBarItem.warningBackground"
             );

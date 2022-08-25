@@ -4,6 +4,7 @@
     "onCommand:extension.ansible-playbook.run",
     "onCommand:extension.ansible.vault",
     "onLanguage:ansible",
+    "onLanguage:yaml",
     "onCommand:extension.resync-ansible-inventory"
   ],
   "badges": [
@@ -240,7 +241,7 @@
               },
               "options": {
                 "type": "string",
-                "description": "The field is optional, and is a comma-separated list of options, such as ro,Z"
+                "description": "The field is optional, and is a comma-separated list of options, such as `ro,Z`"
               }
             }
           }
@@ -289,8 +290,18 @@
           "ansible"
         ],
         "extensions": [
-          ".yml",
-          ".yaml"
+          ".ansible.yml",
+          ".ansible.yaml"
+        ],
+        "filenamePatterns": [
+          "**/playbooks/*.yml",
+          "**/playbooks/*.yaml",
+          "**/*playbook*.yml",
+          "**/*playbook*.yaml"
+        ],
+        "filenames": [
+          "site.yml",
+          "site.yaml"
         ],
         "configuration": "./ansible-language-configuration.json"
       },
@@ -420,7 +431,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.10.0",
+    "@ansible/ansible-language-server": "^0.10.1",
     "@types/ini": "^1.3.31",
     "ini": "^3.0.0",
     "untildify": "^4.0.0",
@@ -483,7 +494,6 @@
   "license": "MIT",
   "main": "./out/client/src/extension.js",
   "name": "ansible",
-  "preview": true,
   "publisher": "redhat",
   "qna": false,
   "repository": {

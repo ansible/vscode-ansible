@@ -146,7 +146,7 @@ any level (User, Remote, Workspace and/or Folder).
     environment.
   - `dest`: The path where the file or directory are mounted in the container.
   - `options`: The field is optional, and is a comma-separated list of options,
-    such as ro,Z
+    such as `ro,Z`
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment.
