@@ -174,7 +174,7 @@ function updateAnsibleInfo(): void {
           myStatusBarItem.tooltip = tooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) Ansible ${cachedAnsibleVersion}`;
+            myStatusBarItem.text = `$(warning) ${cachedAnsibleVersion}`;
             myStatusBarItem.backgroundColor = new ThemeColor(
               "statusBarItem.warningBackground"
             );
