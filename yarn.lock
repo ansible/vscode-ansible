@@ -5,9 +5,9 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@ansible/ansible-language-server@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "@ansible/ansible-language-server@npm:0.10.0"
+"@ansible/ansible-language-server@npm:^0.10.1":
+  version: 0.10.1
+  resolution: "@ansible/ansible-language-server@npm:0.10.1"
   dependencies:
     "@flatten-js/interval-tree": ^1.0.18
     glob: ^8.0.1
@@ -20,7 +20,7 @@ __metadata:
     yaml: ^1.10.2 <2.0
   bin:
     ansible-language-server: bin/ansible-language-server
-  checksum: 9d180c6921f0cf366d279e5dc3b1bf79ef4a72a55bf03795af1a5ec8c3ee138ba580f09b991ef23e4d3d72706cf17453b7229594b9155961d6be90588535c3a8
+  checksum: 068d5c37e3b1b26aea692aada7af2e2e3445187d46a4e55dda419e2b72c7264e2f69d35f43a7c33f7e0712c717d5d0be4020f840c42471131fce35b65fb5ea4b
   languageName: node
   linkType: hard
 
@@ -993,7 +993,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
-    "@ansible/ansible-language-server": ^0.10.0
+    "@ansible/ansible-language-server": ^0.10.1
     "@types/chai": ^4.3.3
     "@types/glob": ^7.2.0
     "@types/ini": ^1.3.31
