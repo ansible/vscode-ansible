@@ -29,7 +29,7 @@ import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
-import { formatAnsibleMetaData } from "./formatAnsibleMetaData";
+import { formatAnsibleMetaData } from "./features/utils/formatAnsibleMetaData";
 import { configureModelines } from "./features/fileAssociation";
 
 let client: LanguageClient;
