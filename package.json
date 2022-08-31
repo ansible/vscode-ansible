@@ -100,9 +100,10 @@
       },
       {
         "fileMatch": [
-          ".ansible-lint"
+          ".ansible-lint",
+          ".config/ansible-lint.yml"
         ],
-        "url": "https://raw.githubusercontent.com/ansible/schemas/main/f/ansible-lint.json"
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json"
       },
       {
         "fileMatch": [
