@@ -4,6 +4,18 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.13.0
+
+### Minor Changes
+
+- Allow jinja brace autocompletion (#593) @ganeshrn
+- Add feature to show ansible meta data (#586) @priyamsahoo
+
+### Bugfixes
+
+- Update test dependencies (#577) @ssbarnea
+- Update ansible-language-server (#574) @ssbarnea
+
 ## v0.12.0
 
 ### Minor Changes
