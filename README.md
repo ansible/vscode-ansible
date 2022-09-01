@@ -133,7 +133,7 @@ any level (User, Remote, Workspace and/or Folder).
   environment image.
 - `ansible.executionEnvironment.pull.arguments`: Specify any additional
   parameters that should be added to the pull command when pulling an execution
-  environment from a container registry. e.g. `–-tls-verify=false`
+  environment from a container registry. e.g. `--tls-verify=false`
 - `ansible.executionEnvironment.pull.policy`: Specify the image pull policy.
   Valid values are `always`, `missing`, `never` and `tag`. Setting `always` will
   always pull the image when extension is activated or reloaded. Setting
