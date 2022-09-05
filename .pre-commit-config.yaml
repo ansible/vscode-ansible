@@ -33,7 +33,7 @@ repos:
         files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
         entry: yarn run yarn-audit-fix
   - repo: https://github.com/ScribeMD/pre-commit-hooks
-    rev: 0.8.0
+    rev: 0.10.0
     hooks:
       - id: yarn-dedupe
       - id: yarn-audit
@@ -72,7 +72,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.8.0
+    rev: v6.8.1
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -104,7 +104,7 @@ repos:
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v2.7.1"
+    rev: "v3.0.0-alpha.0"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
@@ -123,7 +123,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.22.0
+    rev: v8.23.0
     hooks:
       - id: eslint
         args:
