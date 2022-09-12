@@ -17,7 +17,7 @@ export class ImagePuller {
     containerEngine: string,
     containerImage: string,
     pullPolicy: string,
-    pullArguments: string
+    pullArguments: string,
   ) {
     this.connection = connection;
     this.context = context;
@@ -41,7 +41,7 @@ export class ImagePuller {
     }
     if (pullRequired) {
       this.connection.console.log(
-        `Pulling image '${this._containerImage}' with pull-policy '${this._pullPolicy}' and image-tag '${imageTag}'`
+        `Pulling image '${this._containerImage}' with pull-policy '${this._pullPolicy}' and image-tag '${imageTag}'`,
       );
 
       try {
@@ -57,14 +57,14 @@ export class ImagePuller {
           progressTracker.begin(
             "execution-environment",
             undefined,
-            "Pulling Ansible execution environment image..."
+            "Pulling Ansible execution environment image...",
           );
         }
         child_process.execSync(pullCommand, {
           encoding: "utf-8",
         });
         this.connection.console.info(
-          `Container image '${this._containerImage}' pull successful`
+          `Container image '${this._containerImage}' pull successful`,
         );
         setupComplete = true;
       } catch (error) {
@@ -104,7 +104,7 @@ export class ImagePuller {
     try {
       const command = `${this._containerEngine} image inspect ${this._containerImage}`;
       this.connection.console.log(
-        `check for container image with command: '${command}'`
+        `check for container image with command: '${command}'`,
       );
       child_process.execSync(command, {
         encoding: "utf-8",
@@ -112,7 +112,7 @@ export class ImagePuller {
       return true;
     } catch (error) {
       this.connection.console.log(
-        `'${this._containerImage}' image inspection failed, image assumed to be corrupted or missing`
+        `'${this._containerImage}' image inspection failed, image assumed to be corrupted or missing`,
       );
       return false;
     }

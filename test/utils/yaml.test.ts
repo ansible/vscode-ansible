@@ -15,14 +15,14 @@ import { getDoc, isWindows } from "../helper";
 async function getPathInFile(
   yamlFile: string,
   line: number,
-  character: number
+  character: number,
 ) {
   const textDoc = await getDoc(`yaml/${yamlFile}`);
   const parsedDocs = parseAllDocuments(textDoc.getText());
   return getPathAt(
     textDoc,
     { line: line - 1, character: character - 1 },
-    parsedDocs
+    parsedDocs,
   );
 }
 

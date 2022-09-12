@@ -99,7 +99,7 @@ export class AnsibleLanguageService {
           DidChangeConfigurationNotification.type,
           {
             section: "ansible",
-          }
+          },
         );
       }
       if (
@@ -132,7 +132,7 @@ export class AnsibleLanguageService {
     this.connection.onDidChangeConfiguration(async (params) => {
       try {
         await this.workspaceManager.forEachContext((context) =>
-          context.documentSettings.handleConfigurationChanged(params)
+          context.documentSettings.handleConfigurationChanged(params),
         );
       } catch (error) {
         this.handleError(error, "onDidChangeConfiguration");
@@ -149,7 +149,7 @@ export class AnsibleLanguageService {
             this.validationManager,
             false,
             context,
-            this.connection
+            this.connection,
           );
         }
       } catch (error) {
@@ -172,7 +172,7 @@ export class AnsibleLanguageService {
     this.connection.onDidChangeWatchedFiles((params) => {
       try {
         this.workspaceManager.forEachContext((context) =>
-          context.handleWatchedDocumentChange(params)
+          context.handleWatchedDocumentChange(params),
         );
       } catch (error) {
         this.handleError(error, "onDidChangeWatchedFiles");
@@ -189,7 +189,7 @@ export class AnsibleLanguageService {
             this.validationManager,
             false,
             context,
-            this.connection
+            this.connection,
           );
         }
       } catch (error) {
@@ -201,7 +201,7 @@ export class AnsibleLanguageService {
       try {
         this.validationManager.reconcileCacheItems(
           e.textDocument.uri,
-          e.contentChanges
+          e.contentChanges,
         );
       } catch (error) {
         this.handleError(error, "onDidChangeTextDocument");
@@ -215,7 +215,7 @@ export class AnsibleLanguageService {
           this.validationManager,
           true,
           this.workspaceManager.getContext(e.document.uri),
-          this.connection
+          this.connection,
         );
       } catch (error) {
         this.handleError(error, "onDidChangeContent");
@@ -227,7 +227,7 @@ export class AnsibleLanguageService {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await doSemanticTokens(document, await context.docsLibrary);
@@ -246,13 +246,13 @@ export class AnsibleLanguageService {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await doHover(
               document,
               params.position,
-              await context.docsLibrary
+              await context.docsLibrary,
             );
           }
         }
@@ -267,7 +267,7 @@ export class AnsibleLanguageService {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await doCompletion(document, params.position, context);
@@ -283,7 +283,7 @@ export class AnsibleLanguageService {
       try {
         if (completionItem.data?.documentUri) {
           const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri
+            completionItem.data?.documentUri,
           );
           if (context) {
             return await doCompletionResolve(completionItem, context);
@@ -300,13 +300,13 @@ export class AnsibleLanguageService {
         const document = this.documents.get(params.textDocument.uri);
         if (document) {
           const context = this.workspaceManager.getContext(
-            params.textDocument.uri
+            params.textDocument.uri,
           );
           if (context) {
             return await getDefinition(
               document,
               params.position,
-              await context.docsLibrary
+              await context.docsLibrary,
             );
           }
         }
@@ -323,13 +323,13 @@ export class AnsibleLanguageService {
         // Invalidate ansible inventory cache
         e.clearAnsibleInventory();
         this.connection.window.showInformationMessage(
-          "Re-syncing ansible inventory. This might take some time."
+          "Re-syncing ansible inventory. This might take some time.",
         );
 
         // Run the ansible inventory service
         e.ansibleInventory.then(() => {
           this.connection.window.showInformationMessage(
-            "Ansible Inventory re-synced."
+            "Ansible Inventory re-synced.",
           );
         });
       });
@@ -341,13 +341,13 @@ export class AnsibleLanguageService {
       async (activeFileUri) => {
         const ansibleMetaData = await getAnsibleMetaData(
           this.workspaceManager.getContext(activeFileUri),
-          this.connection
+          this.connection,
         );
 
         this.connection.sendNotification("update/ansible-metadata", [
           ansibleMetaData,
         ]);
-      }
+      },
     );
   }
 
@@ -356,7 +356,7 @@ export class AnsibleLanguageService {
     if (error instanceof Error) {
       const stack = error.stack ? `\n${error.stack}` : "";
       this.connection.console.error(
-        `${leadMessage}[${error.name}] ${error.message}${stack}`
+        `${leadMessage}[${error.name}] ${error.message}${stack}`,
       );
     } else {
       this.connection.console.error(leadMessage + JSON.stringify(error));

@@ -29,7 +29,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
    * up.
    */
   parent<X extends Node | Pair>(
-    type?: new (...args: unknown[]) => X
+    type?: new (...args: unknown[]) => X,
   ): AncestryBuilder<X> {
     this._index--;
     if (this.get() instanceof Pair) {
@@ -133,7 +133,7 @@ export function getPathAt(
   document: TextDocument,
   position: Position,
   docs: Document[],
-  inclusive = false
+  inclusive = false,
 ): Node[] | null {
   const offset = document.offsetAt(position);
   const doc = _.find(docs, (d) => contains(d.contents, offset, inclusive));
@@ -146,7 +146,7 @@ export function getPathAt(
 export function contains(
   node: Node | null,
   offset: number,
-  inclusive: boolean
+  inclusive: boolean,
 ): boolean {
   const range = getOrigRange(node);
   return !!(
@@ -159,25 +159,25 @@ export function contains(
 export function getPathAtOffset(
   path: Node[],
   offset: number,
-  inclusive: boolean
+  inclusive: boolean,
 ): Node[] | null {
   if (path) {
     const currentNode = path[path.length - 1];
     if (currentNode instanceof YAMLMap) {
       let pair = _.find(currentNode.items, (p) =>
-        contains(p.key, offset, inclusive)
+        contains(p.key, offset, inclusive),
       );
       if (pair) {
         return getPathAtOffset(path.concat(pair, pair.key), offset, inclusive);
       }
       pair = _.find(currentNode.items, (p) =>
-        contains(p.value, offset, inclusive)
+        contains(p.value, offset, inclusive),
       );
       if (pair) {
         return getPathAtOffset(
           path.concat(pair, pair.value),
           offset,
-          inclusive
+          inclusive,
         );
       }
       pair = _.find(currentNode.items, (p) => {
@@ -194,7 +194,7 @@ export function getPathAtOffset(
       }
     } else if (currentNode instanceof YAMLSeq) {
       const item = _.find(currentNode.items, (n) =>
-        contains(n, offset, inclusive)
+        contains(n, offset, inclusive),
       );
       if (item) {
         return getPathAtOffset(path.concat(item), offset, inclusive);
@@ -274,7 +274,7 @@ function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
   const declaredCollections: string[] = [];
   const collectionsPair = _.find(
     playNode?.items,
-    (pair) => pair.key instanceof Scalar && pair.key.value === "collections"
+    (pair) => pair.key instanceof Scalar && pair.key.value === "collections",
   );
 
   if (collectionsPair) {
@@ -299,7 +299,7 @@ function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
  */
 export function isPlayParam(
   path: Node[],
-  fileUri?: string
+  fileUri?: string,
 ): boolean | undefined {
   const isAtRoot =
     new AncestryBuilder(path).parentOfKey().parent(YAMLSeq).getPath()
@@ -308,7 +308,7 @@ export function isPlayParam(
     const mapNode = new AncestryBuilder(path).parentOfKey().get() as YAMLMap;
     const providedKeys = getYamlMapKeys(mapNode);
     const containsPlayKeyword = providedKeys.some((p) =>
-      playExclusiveKeywords.has(p)
+      playExclusiveKeywords.has(p),
     );
     if (containsPlayKeyword) {
       return true;
@@ -359,7 +359,7 @@ export function isRoleParam(path: Node[]): boolean {
 export async function getPossibleOptionsForPath(
   path: Node[],
   document: TextDocument,
-  docsLibrary: DocsLibrary
+  docsLibrary: DocsLibrary,
 ): Promise<Map<string, IOption> | null> {
   const [taskParamPath, suboptionTrace] = getTaskParamPathWithTrace(path);
   if (!taskParamPath) return null;
@@ -383,7 +383,7 @@ export async function getPossibleOptionsForPath(
     [module] = await docsLibrary.findModule(
       taskParamNode.value,
       taskParamPath,
-      document.uri
+      document.uri,
     );
   }
   if (!module || !module.documentation) return null;
@@ -409,7 +409,7 @@ export async function getPossibleOptionsForPath(
  * alongside.
  */
 export function getTaskParamPathWithTrace(
-  path: Node[]
+  path: Node[],
 ): [Node[], [string, "list" | "dict"][]] {
   const trace: [string, "list" | "dict"][] = [];
   while (!isTaskParam(path)) {
@@ -456,7 +456,7 @@ export function getTaskParamPathWithTrace(
 export async function findProvidedModule(
   taskParamPath: Node[],
   document: TextDocument,
-  docsLibrary: DocsLibrary
+  docsLibrary: DocsLibrary,
 ): Promise<IModuleMetadata | undefined> {
   const taskParameterMap = new AncestryBuilder(taskParamPath)
     .parent(YAMLMap)
@@ -466,7 +466,7 @@ export async function findProvidedModule(
     const providedParameters = new Set(getYamlMapKeys(taskParameterMap));
     // should usually be 0 or 1
     const providedModuleNames = [...providedParameters].filter(
-      (x) => !x || !isTaskKeyword(x)
+      (x) => !x || !isTaskKeyword(x),
     );
 
     // find the module if it has been provided
@@ -474,7 +474,7 @@ export async function findProvidedModule(
       const [module] = await docsLibrary.findModule(
         m,
         taskParamPath,
-        document.uri
+        document.uri,
       );
       if (module) {
         return module;
@@ -492,7 +492,7 @@ export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
 }
 
 export function getOrigRange(
-  node: Node | null | undefined
+  node: Node | null | undefined,
 ): [number, number] | null | undefined {
   if (node?.cstNode?.range) {
     const range = node.cstNode.range;
@@ -513,7 +513,7 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
   const parsedDocuments: Document[] = [];
   for (const cstDoc of cst) {
     const parsedDocument = new Document(
-      Object.assign({ keepCstNodes: true }, options)
+      Object.assign({ keepCstNodes: true }, options),
     );
     parsedDocument.parse(cstDoc);
     parsedDocuments.push(parsedDocument);
@@ -559,14 +559,14 @@ export function isPlaybook(textDocument: TextDocument): boolean {
 
   //   Filters out all play keywords that are task keywords
   const filteredList = playKeywordsList.filter(
-    (value) => !taskKeywordsList.includes(value)
+    (value) => !taskKeywordsList.includes(value),
   );
 
   //   Check if any top-level key of the ansible file is a part of filtered list
   //    If it is: The file is a playbook
   //    Else: The file is not a playbook
   const isPlaybookValue = playbookKeys.some((r: string) =>
-    filteredList.includes(r)
+    filteredList.includes(r),
   );
 
   return isPlaybookValue;

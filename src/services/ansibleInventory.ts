@@ -18,17 +18,17 @@ export class AnsibleInventory {
 
   public async initialize() {
     const settings = await this.context.documentSettings.get(
-      this.context.workspaceFolder.uri
+      this.context.workspaceFolder.uri,
     );
 
     const commandRunner = new CommandRunner(
       this.connection,
       this.context,
-      settings
+      settings,
     );
 
     const defaultHostListPath = new Set(
-      (await this.context.ansibleConfig).default_host_list
+      (await this.context.ansibleConfig).default_host_list,
     );
 
     const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
@@ -38,7 +38,7 @@ export class AnsibleInventory {
       "ansible-inventory",
       "--list",
       workingDirectory,
-      defaultHostListPath
+      defaultHostListPath,
     );
 
     let inventoryHostsObject = [];
@@ -46,7 +46,7 @@ export class AnsibleInventory {
       inventoryHostsObject = JSON.parse(ansibleInventoryResult.stdout);
     } catch (error) {
       this.connection.console.error(
-        `Exception in AnsibleInventory service: ${JSON.stringify(error)}`
+        `Exception in AnsibleInventory service: ${JSON.stringify(error)}`,
       );
     }
 
@@ -66,11 +66,11 @@ export class AnsibleInventory {
  */
 function parseInventoryHosts(hostObj) {
   const topLevelGroups = hostObj.all.children.filter(
-    (item: string) => item !== "ungrouped"
+    (item: string) => item !== "ungrouped",
   );
 
   const groupsHavingChildren = topLevelGroups.filter(
-    (item) => hostObj[`${item}`] && hostObj[`${item}`].children
+    (item) => hostObj[`${item}`] && hostObj[`${item}`].children,
   );
 
   const otherGroups = getChildGroups(groupsHavingChildren, hostObj);

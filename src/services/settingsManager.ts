@@ -119,7 +119,7 @@ export class SettingsManager {
 
   // Structure the settings similar to the ExtensionSettings interface for usage in the code
   private defaultSettings: ExtensionSettings = this._settingsAdjustment(
-    _.cloneDeep(this.defaultSettingsWithDescription)
+    _.cloneDeep(this.defaultSettingsWithDescription),
   );
 
   public globalSettings: ExtensionSettings = this.defaultSettings;
@@ -164,7 +164,7 @@ export class SettingsManager {
   }
 
   public async handleConfigurationChanged(
-    params: DidChangeConfigurationParams
+    params: DidChangeConfigurationParams,
   ): Promise<void> {
     if (this.clientSupportsConfigRequests) {
       // find configuration change handlers to fire

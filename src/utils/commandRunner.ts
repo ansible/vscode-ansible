@@ -13,7 +13,7 @@ export class CommandRunner {
   constructor(
     connection: Connection,
     context: WorkspaceFolderContext,
-    settings: ExtensionSettings
+    settings: ExtensionSettings,
   ) {
     this.connection = connection;
     this.context = context;
@@ -24,7 +24,7 @@ export class CommandRunner {
     executable: string,
     args: string,
     workingDirectory?: string,
-    mountPaths?: Set<string>
+    mountPaths?: Set<string>,
   ): Promise<{
     stdout: string;
     stderr: string;
@@ -50,14 +50,14 @@ export class CommandRunner {
         executablePath,
         args,
         interpreterPath,
-        this.settings.python.activationScript
+        this.settings.python.activationScript,
       );
     } else {
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
       command = executionEnvironment.wrapContainerArgs(
         `${executable} ${args}`,
-        mountPaths
+        mountPaths,
       );
       runEnv = undefined;
     }
@@ -80,7 +80,7 @@ export class CommandRunner {
    * @returns Complete path of the executable (string) or undefined depending upon the presence of the executable
    */
   public async getExecutablePath(
-    executable: string
+    executable: string,
   ): Promise<string> | undefined {
     try {
       const executablePath = await this.runCommand("which", executable);

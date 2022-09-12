@@ -9,7 +9,7 @@ let connection: Connection;
 
 export async function getAnsibleMetaData(
   contextLocal: WorkspaceFolderContext,
-  connectionLocal: Connection
+  connectionLocal: Connection,
 ) {
   context = contextLocal;
   connection = connectionLocal;
@@ -21,7 +21,7 @@ export async function getAnsibleMetaData(
   ansibleMetaData["ansible-lint information"] = await getAnsibleLintInfo();
 
   const settings = await context.documentSettings.get(
-    context.workspaceFolder.uri
+    context.workspaceFolder.uri,
   );
 
   if (settings.executionEnvironment.enabled) {
@@ -34,7 +34,7 @@ export async function getAnsibleMetaData(
 
 export async function getResultsThroughCommandRunner(cmd, arg) {
   const settings = await context.documentSettings.get(
-    context.workspaceFolder.uri
+    context.workspaceFolder.uri,
   );
   const commandRunner = new CommandRunner(connection, context, settings);
   const workingDirectory = URI.parse(context.workspaceFolder.uri).path;
@@ -46,18 +46,18 @@ export async function getResultsThroughCommandRunner(cmd, arg) {
       cmd,
       arg,
       workingDirectory,
-      mountPaths
+      mountPaths,
     );
 
     if (result.stderr) {
       console.log(
-        `cmd '${cmd} ${arg}' has the following error: ${result.stderr}`
+        `cmd '${cmd} ${arg}' has the following error: ${result.stderr}`,
       );
       return undefined;
     }
   } catch (error) {
     console.log(
-      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${error.toString()}`
+      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${error.toString()}`,
     );
     return undefined;
   }
@@ -110,7 +110,7 @@ async function getPythonInfo() {
 
   const pythonVersionResult = await getResultsThroughCommandRunner(
     "python3",
-    "--version"
+    "--version",
   );
   if (pythonVersionResult === undefined) {
     return pythonInfo;
@@ -120,7 +120,7 @@ async function getPythonInfo() {
 
   const pythonPathResult = await getResultsThroughCommandRunner(
     "python",
-    '-c "import sys; print(sys.executable)"'
+    '-c "import sys; print(sys.executable)"',
   );
   pythonInfo["python location"] = pythonPathResult.stdout.trim();
 
@@ -132,7 +132,7 @@ async function getAnsibleLintInfo() {
 
   const ansibleLintVersionResult = await getResultsThroughCommandRunner(
     "ansible-lint",
-    "--version"
+    "--version",
   );
 
   if (ansibleLintVersionResult === undefined) {
@@ -141,7 +141,7 @@ async function getAnsibleLintInfo() {
 
   const ansibleLintPathResult = await getResultsThroughCommandRunner(
     "which",
-    "ansible-lint"
+    "ansible-lint",
   );
 
   ansibleLintInfo["ansible-lint version"] =
@@ -173,9 +173,9 @@ async function getExecutionEnvironmentInfo() {
           `${basicDetails.containerEngine} inspect --format='{{json .Config}}' ${basicDetails.containerImage}`,
           {
             encoding: "utf-8",
-          }
+          },
         )
-        .toString()
+        .toString(),
     );
     eeServiceWorking = true;
   } catch (error) {

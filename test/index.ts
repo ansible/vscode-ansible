@@ -8,7 +8,7 @@ const PRETEST_ERR_RC = 2;
 // isWindows returns false under WSL
 if (isWindows()) {
   console.error(
-    "ERROR: This project does not support pure Windows, try under WSL2."
+    "ERROR: This project does not support pure Windows, try under WSL2.",
   );
   process.exit(PRETEST_ERR_RC);
 }

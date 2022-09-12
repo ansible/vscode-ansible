@@ -52,7 +52,7 @@ const priorityMap = {
 export async function doCompletion(
   document: TextDocument,
   position: Position,
-  context: WorkspaceFolderContext
+  context: WorkspaceFolderContext,
 ): Promise<CompletionItem[] | null> {
   let preparedText = document.getText();
   const offset = document.offsetAt(position);
@@ -98,7 +98,7 @@ export async function doCompletion(
           document,
           position,
           path,
-          taskKeywords
+          taskKeywords,
         );
         if (isPlay === undefined) {
           // this can still turn into a play, so we should offer those keywords too
@@ -107,8 +107,8 @@ export async function doCompletion(
               document,
               position,
               path,
-              playWithoutTaskKeywords
-            )
+              playWithoutTaskKeywords,
+            ),
           );
         }
 
@@ -122,8 +122,8 @@ export async function doCompletion(
               document,
               position,
               path,
-              new Map([["block", blockKeywords.get("block") as string]])
-            )
+              new Map([["block", blockKeywords.get("block") as string]]),
+            ),
           );
 
           const inlineCollections = getDeclaredCollections(path);
@@ -139,7 +139,7 @@ export async function doCompletion(
           }
           const cursorAtFirstElementOfList = firstElementOfList(
             document,
-            nodeRange
+            nodeRange,
           );
 
           // offer modules
@@ -147,7 +147,7 @@ export async function doCompletion(
             .filter(
               (moduleFqcn) =>
                 provideRedirectModulesCompletion ||
-                !docsLibrary.getModuleRoute(moduleFqcn)?.redirect
+                !docsLibrary.getModuleRoute(moduleFqcn)?.redirect,
             )
             .map((moduleFqcn): CompletionItem => {
               let priority, kind;
@@ -163,7 +163,7 @@ export async function doCompletion(
               const insertText = cursorAtEndOfLine
                 ? `${insertName}:${resolveSuffix(
                     "dict", // since a module is always a dictionary
-                    cursorAtFirstElementOfList
+                    cursorAtFirstElementOfList,
                   )}`
                 : insertName;
               return {
@@ -198,7 +198,7 @@ export async function doCompletion(
       const options = await getPossibleOptionsForPath(
         path,
         document,
-        docsLibrary
+        docsLibrary,
       );
 
       if (options) {
@@ -210,14 +210,14 @@ export async function doCompletion(
         const providedOptions = new Set(getYamlMapKeys(optionMap));
 
         const remainingOptions = [...options.entries()].filter(
-          ([, specs]) => !providedOptions.has(specs.name)
+          ([, specs]) => !providedOptions.has(specs.name),
         );
 
         const nodeRange = getNodeRange(node, document);
 
         const cursorAtFirstElementOfList = firstElementOfList(
           document,
-          nodeRange
+          nodeRange,
         );
 
         const cursorAtEndOfLine = atEndOfLine(document, position);
@@ -230,7 +230,8 @@ export async function doCompletion(
             };
           })
           .filter(
-            (option) => provideModuleOptionAliasesCompletion || !isAlias(option)
+            (option) =>
+              provideModuleOptionAliasesCompletion || !isAlias(option),
           )
           .map((option, index) => {
             // translate option documentation to CompletionItem
@@ -294,7 +295,7 @@ export async function doCompletion(
         const keyOptions = await getPossibleOptionsForPath(
           keyPath,
           document,
-          docsLibrary
+          docsLibrary,
         );
         if (
           keyOptions &&
@@ -396,7 +397,7 @@ function getKeywordCompletion(
   document: TextDocument,
   position: Position,
   path: Node[],
-  keywords: Map<string, string | MarkupContent>
+  keywords: Map<string, string | MarkupContent>,
 ): CompletionItem[] {
   const parameterMap = new AncestryBuilder(path)
     .parent(YAMLMap)
@@ -405,7 +406,7 @@ function getKeywordCompletion(
   const providedParams = new Set(getYamlMapKeys(parameterMap));
 
   const remainingParams = [...keywords.entries()].filter(
-    ([keyword]) => !providedParams.has(keyword)
+    ([keyword]) => !providedParams.has(keyword),
   );
   const nodeRange = getNodeRange(path[path.length - 1], document);
   return remainingParams.map(([keyword, description]) => {
@@ -467,14 +468,14 @@ function getNodeRange(node: Node, document: TextDocument): Range | undefined {
 
 export async function doCompletionResolve(
   completionItem: CompletionItem,
-  context: WorkspaceFolderContext
+  context: WorkspaceFolderContext,
 ): Promise<CompletionItem> {
   if (completionItem.data?.moduleFqcn && completionItem.data?.documentUri) {
     // resolve completion for a module
 
     const docsLibrary = await context.docsLibrary;
     const [module] = await docsLibrary.findModule(
-      completionItem.data.moduleFqcn
+      completionItem.data.moduleFqcn,
     );
 
     if (module && module.documentation) {
@@ -493,14 +494,14 @@ export async function doCompletionResolve(
         declaredCollections.push("ansible.builtin");
 
         const metadata = await context.documentMetadata.get(
-          completionItem.data.documentUri
+          completionItem.data.documentUri,
         );
         if (metadata) {
           declaredCollections.push(...metadata.collections);
         }
 
         const canUseShortName = declaredCollections.some(
-          (c) => c === `${namespace}.${collection}`
+          (c) => c === `${namespace}.${collection}`,
         );
         if (!canUseShortName) {
           // not an Ansible built-in module, and not part of the declared
@@ -513,7 +514,7 @@ export async function doCompletionResolve(
       const insertText = completionItem.data.atEndOfLine
         ? `${insertName}:${resolveSuffix(
             "dict", // since a module is always a dictionary
-            completionItem.data.firstElementOfList
+            completionItem.data.firstElementOfList,
           )}`
         : insertName;
 
@@ -527,7 +528,7 @@ export async function doCompletionResolve(
 
       completionItem.documentation = formatModule(
         module.documentation,
-        docsLibrary.getModuleRoute(completionItem.data.moduleFqcn)
+        docsLibrary.getModuleRoute(completionItem.data.moduleFqcn),
       );
     }
   }
@@ -538,7 +539,7 @@ export async function doCompletionResolve(
     const insertText = completionItem.data.atEndOfLine
       ? `${completionItem.label}:${resolveSuffix(
           completionItem.data.type,
-          completionItem.data.firstElementOfList
+          completionItem.data.firstElementOfList,
         )}`
       : `${completionItem.label}`;
 

@@ -13,12 +13,12 @@ export const FIXTURES_BASE_PATH = path.join("test", "fixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
-  "collections"
+  "collections",
 );
 export const ANSIBLE_CONFIG_FILE = path.resolve(
   FIXTURES_BASE_PATH,
   "completion",
-  "ansible.cfg"
+  "ansible.cfg",
 );
 
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
@@ -43,7 +43,7 @@ export function unsetAnsibleConfigEnv(): void {
 }
 
 export async function enableExecutionEnvironmentSettings(
-  docSettings: Thenable<ExtensionSettings>
+  docSettings: Thenable<ExtensionSettings>,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = true;
   (await docSettings).executionEnvironment.volumeMounts = [
@@ -56,7 +56,7 @@ export async function enableExecutionEnvironmentSettings(
 }
 
 export async function disableExecutionEnvironmentSettings(
-  docSettings: Thenable<ExtensionSettings>
+  docSettings: Thenable<ExtensionSettings>,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = false;
 }
@@ -145,7 +145,7 @@ export function createTestValidationManager(): ValidationManager {
   const connection = createConnection();
 
   const documents: TextDocuments<TextDocument> = new TextDocuments(
-    TextDocument
+    TextDocument,
   );
   const validationManager = new ValidationManager(connection, documents);
 

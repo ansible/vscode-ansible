@@ -80,7 +80,7 @@ const output = template({ arrayOfDefaultSettings });
 fs.writeFileSync(settingsReadmeFileUri, `${WARNING_IN_README}\n${output}`);
 
 console.log(
-  `Readme file for settings description and default value generated.`
+  `Readme file for settings description and default value generated.`,
 );
 console.log(`File: ${settingsReadmeFileUri}`);
 
@@ -178,7 +178,7 @@ export function structureSettings(settingsInDotNotation) {
   // group the array elements based on their parent key
   const arrayObjFinal = _.groupBy(
     makeSettingsUnique(objWithArrayValues),
-    (obj) => obj.parent
+    (obj) => obj.parent,
   );
 
   // add them back to the settingsArray with appropriate structure and value

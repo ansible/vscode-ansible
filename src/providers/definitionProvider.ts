@@ -14,7 +14,7 @@ import {
 export async function getDefinition(
   document: TextDocument,
   position: Position,
-  docsLibrary: DocsLibrary
+  docsLibrary: DocsLibrary,
 ): Promise<DefinitionLink[] | null> {
   const yamlDocs = parseAllDocuments(document.getText());
   const path = getPathAt(document, position, yamlDocs);
@@ -28,7 +28,7 @@ export async function getDefinition(
         const [module] = await docsLibrary.findModule(
           node.value,
           path,
-          document.uri
+          document.uri,
         );
         if (module) {
           const range = getOrigRange(node);
@@ -42,13 +42,13 @@ export async function getDefinition(
                 module.sourceLineRange[0],
                 0,
                 module.sourceLineRange[1],
-                0
+                0,
               ),
               targetSelectionRange: Range.create(
                 module.sourceLineRange[0],
                 0,
                 module.sourceLineRange[1],
-                0
+                0,
               ),
             },
           ];

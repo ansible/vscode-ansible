@@ -49,7 +49,7 @@ export class WorkspaceManager {
         context = new WorkspaceFolderContext(
           this.connection,
           workspaceFolder,
-          this
+          this,
         );
         this.folderContexts.set(workspaceFolder.uri, context);
       }
@@ -58,12 +58,12 @@ export class WorkspaceManager {
   }
 
   public async forEachContext(
-    callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void
+    callbackfn: (value: WorkspaceFolderContext) => Promise<void> | void,
   ): Promise<void> {
     await Promise.all(
       _.map(Array.from(this.folderContexts.values()), (folder) =>
-        callbackfn(folder)
-      )
+        callbackfn(folder),
+      ),
     );
   }
 
@@ -91,7 +91,7 @@ export class WorkspaceManager {
     this.connection.console.log(
       `workspace folder explicitly set to ${
         URI.parse(workspaceFolder.uri).path
-      }`
+      }`,
     );
     return workspaceFolder;
   }
@@ -141,7 +141,7 @@ export class WorkspaceFolderContext {
   constructor(
     connection: Connection,
     workspaceFolder: WorkspaceFolder,
-    workspaceManager: WorkspaceManager
+    workspaceManager: WorkspaceManager,
   ) {
     this.connection = connection;
     this.clientCapabilities = workspaceManager.clientCapabilities;
@@ -149,7 +149,7 @@ export class WorkspaceFolderContext {
     this.documentMetadata = new MetadataLibrary(connection);
     this.documentSettings = new SettingsManager(
       connection,
-      !!this.clientCapabilities.workspace?.configuration
+      !!this.clientCapabilities.workspace?.configuration,
     );
     this.documentSettings.onConfigurationChanged(
       this.workspaceFolder.uri,
@@ -160,12 +160,12 @@ export class WorkspaceFolderContext {
         this._ansibleConfig = undefined;
         this._docsLibrary = undefined;
         this._ansibleInventory = undefined;
-      }
+      },
     );
   }
 
   public handleWatchedDocumentChange(
-    params: DidChangeWatchedFilesParams
+    params: DidChangeWatchedFilesParams,
   ): void {
     this.documentMetadata.handleWatchedDocumentChange(params);
     this.ansibleLint.handleWatchedDocumentChange(params);
@@ -230,7 +230,7 @@ export class WorkspaceFolderContext {
     if (!this._executionEnvironment) {
       const executionEnvironment = new ExecutionEnvironment(
         this.connection,
-        this
+        this,
       );
       this._executionEnvironment = executionEnvironment
         .initialize()

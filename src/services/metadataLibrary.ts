@@ -28,7 +28,7 @@ export class MetadataLibrary {
   }
 
   public handleWatchedDocumentChange(
-    params: DidChangeWatchedFilesParams
+    params: DidChangeWatchedFilesParams,
   ): void {
     for (const fileEvent of params.changes) {
       // remove from cache on any change
@@ -58,7 +58,7 @@ export class MetadataLibrary {
   }
 
   private async readAnsibleMetadata(
-    metadataUri: string
+    metadataUri: string,
   ): Promise<IDocumentMetadata> {
     const metadata = {
       source: metadataUri,

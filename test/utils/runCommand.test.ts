@@ -15,7 +15,7 @@ describe("commandRunner", () => {
         path.join(
           path.resolve(__dirname, "..", ".."),
           "bin",
-          "ansible-language-server"
+          "ansible-language-server",
         ),
         "--version",
       ],
@@ -68,7 +68,7 @@ describe("commandRunner", () => {
       try {
         const proc = await commandRunner.runCommand(
           args[0],
-          args.slice(1).join(" ")
+          args.slice(1).join(" "),
         );
         expect(proc.stdout, proc.stderr).contains(stdout);
         expect(proc.stderr, proc.stdout).contains(stderr);

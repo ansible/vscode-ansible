@@ -18,7 +18,7 @@ import {
 
 function testPlayKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -41,7 +41,7 @@ function testPlayKeywords(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -53,7 +53,7 @@ function testPlayKeywords(
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
           expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion
+            completion,
           );
         }
       }
@@ -63,7 +63,7 @@ function testPlayKeywords(
 
 function testRoleKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -86,7 +86,7 @@ function testRoleKeywords(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -98,7 +98,7 @@ function testRoleKeywords(
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
           expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion
+            completion,
           );
         }
       }
@@ -108,7 +108,7 @@ function testRoleKeywords(
 
 function testBlockKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -131,7 +131,7 @@ function testBlockKeywords(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -143,7 +143,7 @@ function testBlockKeywords(
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
           expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion
+            completion,
           );
         }
       }
@@ -153,7 +153,7 @@ function testBlockKeywords(
 
 function testTaskKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -176,7 +176,7 @@ function testTaskKeywords(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -188,7 +188,7 @@ function testTaskKeywords(
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
           expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion
+            completion,
           );
         }
       }
@@ -198,7 +198,7 @@ function testTaskKeywords(
 
 function testModuleNames(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -251,7 +251,7 @@ function testModuleNames(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -263,7 +263,7 @@ function testModuleNames(
         } else {
           expect(filteredCompletion[0].item.label).to.contain(completion);
           expect(filteredCompletion[0].item.textEdit.newText).to.contain(
-            completion
+            completion,
           );
         }
       }
@@ -273,7 +273,7 @@ function testModuleNames(
 
 function testModuleOptions(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -320,7 +320,7 @@ function testModuleOptions(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -332,7 +332,7 @@ function testModuleOptions(
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
           expect(filteredCompletion[0].item.textEdit.newText).be.equal(
-            completion
+            completion,
           );
         }
       }
@@ -342,7 +342,7 @@ function testModuleOptions(
 
 function testModuleOptionsValues(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -383,7 +383,7 @@ function testModuleOptionsValues(
 
       const labelCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       ).map((completion) => {
         if (!completion.item) {
           return completion.label;
@@ -400,7 +400,7 @@ function testModuleOptionsValues(
 
       const newTextCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       ).map((completion) => {
         if (!completion.item) {
           return completion.textEdit.newText;
@@ -420,7 +420,7 @@ function testModuleOptionsValues(
 
 function testModuleNamesWithoutFQCN(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -464,7 +464,7 @@ function testModuleNamesWithoutFQCN(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       );
 
       if (!completion) {
@@ -476,7 +476,7 @@ function testModuleNamesWithoutFQCN(
         } else {
           expect(filteredCompletion[0].item.label).to.be.equal(completion);
           expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion
+            completion,
           );
         }
       }
@@ -486,7 +486,7 @@ function testModuleNamesWithoutFQCN(
 
 function testHostValues(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -521,7 +521,7 @@ function testHostValues(
 
       const filteredCompletion = smartFilter(
         actualCompletion,
-        triggerCharacter
+        triggerCharacter,
       ).map((completion) => {
         if (!completion.item) {
           return completion.label;
@@ -552,7 +552,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -584,7 +584,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -617,7 +617,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -650,7 +650,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -683,7 +683,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -709,7 +709,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -736,7 +736,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -763,7 +763,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -796,7 +796,7 @@ describe("doCompletion()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });

@@ -32,18 +32,18 @@ export const tokenTypes = [
 ];
 
 const tokenTypesLegend = new Map(
-  tokenTypes.map((value, index) => [value, index])
+  tokenTypes.map((value, index) => [value, index]),
 );
 
 export const tokenModifiers = [SemanticTokenModifiers.definition];
 
 const tokenModifiersLegend = new Map(
-  tokenModifiers.map((value, index) => [value, index])
+  tokenModifiers.map((value, index) => [value, index]),
 );
 
 export async function doSemanticTokens(
   document: TextDocument,
-  docsLibrary: DocsLibrary
+  docsLibrary: DocsLibrary,
 ): Promise<SemanticTokens> {
   const builder = new SemanticTokensBuilder();
   const yDocuments = parseAllDocuments(document.getText());
@@ -59,7 +59,7 @@ async function markSemanticTokens(
   path: Node[],
   builder: SemanticTokensBuilder,
   document: TextDocument,
-  docsLibrary: DocsLibrary
+  docsLibrary: DocsLibrary,
 ): Promise<void> {
   const node = path[path.length - 1];
   if (node instanceof YAMLMap) {
@@ -85,7 +85,7 @@ async function markSemanticTokens(
               const module = await findProvidedModule(
                 path.concat(pair, pair.key),
                 document,
-                docsLibrary
+                docsLibrary,
               );
               if (module && pair.value instanceof YAMLMap) {
                 // highlight module parameters
@@ -93,7 +93,7 @@ async function markSemanticTokens(
                   pair.value,
                   module.documentation?.options,
                   builder,
-                  document
+                  document,
                 );
               }
             }
@@ -101,7 +101,7 @@ async function markSemanticTokens(
             const [module] = await docsLibrary.findModule(
               pair.key.value,
               keyPath,
-              document.uri
+              document.uri,
             );
             if (module) {
               // highlight module name
@@ -110,7 +110,7 @@ async function markSemanticTokens(
                 SemanticTokenTypes.class,
                 [],
                 builder,
-                document
+                document,
               );
               if (pair.value instanceof YAMLMap) {
                 // highlight module parameters
@@ -118,7 +118,7 @@ async function markSemanticTokens(
                   pair.value,
                   module.documentation?.options,
                   builder,
-                  document
+                  document,
                 );
               }
             } else {
@@ -141,7 +141,7 @@ async function markSemanticTokens(
           path.concat(pair, pair.value),
           builder,
           document,
-          docsLibrary
+          docsLibrary,
         );
       }
     }
@@ -154,7 +154,7 @@ async function markSemanticTokens(
           path.concat(item),
           builder,
           document,
-          docsLibrary
+          docsLibrary,
         );
       }
     }
@@ -165,7 +165,7 @@ function markModuleParameters(
   moduleParamMap: YAMLMap,
   options: Map<string, IOption> | undefined,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   for (const moduleParamPair of moduleParamMap.items) {
     if (moduleParamPair.key instanceof Scalar) {
@@ -176,7 +176,7 @@ function markModuleParameters(
           SemanticTokenTypes.method,
           [],
           builder,
-          document
+          document,
         );
         if (
           option.type === "dict" &&
@@ -187,7 +187,7 @@ function markModuleParameters(
             moduleParamPair.value,
             option.suboptions,
             builder,
-            document
+            document,
           );
         } else if (
           option.type === "list" &&
@@ -216,7 +216,7 @@ function markModuleParameters(
 function markAllNestedKeysAsOrdinary(
   node: Node,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   if (node instanceof Pair) {
     if (node.key instanceof Scalar) {
@@ -241,7 +241,7 @@ function markAllNestedKeysAsOrdinary(
 function markKeyword(
   node: Scalar,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   markNode(node, SemanticTokenTypes.keyword, [], builder, document);
 }
@@ -249,14 +249,14 @@ function markKeyword(
 function markOrdinaryKey(
   node: Scalar,
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   markNode(
     node,
     SemanticTokenTypes.property,
     [SemanticTokenModifiers.definition],
     builder,
-    document
+    document,
   );
 }
 
@@ -265,7 +265,7 @@ function markNode(
   tokenType: SemanticTokenTypes,
   tokenModifiers: SemanticTokenModifiers[],
   builder: SemanticTokensBuilder,
-  document: TextDocument
+  document: TextDocument,
 ) {
   const range = getOrigRange(node);
   if (range) {
@@ -276,7 +276,7 @@ function markNode(
       startPosition.character,
       length,
       encodeTokenType(tokenType),
-      encodeTokenModifiers(tokenModifiers)
+      encodeTokenModifiers(tokenModifiers),
     );
   }
 }
@@ -290,7 +290,7 @@ function encodeTokenType(tokenType: SemanticTokenTypes) {
 }
 
 function encodeTokenModifiers(
-  tokenModifiers: SemanticTokenModifiers[]
+  tokenModifiers: SemanticTokenModifiers[],
 ): number {
   let encodedModifiers = 0;
   for (const tokenModifier of tokenModifiers) {

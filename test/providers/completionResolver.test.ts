@@ -39,22 +39,22 @@ function testFQCNEnabled(context: WorkspaceFolderContext) {
     it(`should resolve completion for ${name}`, async function () {
       const actualCompletionResolveAtLineEnd = await doCompletionResolve(
         completionItem,
-        context
+        context,
       );
 
       expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
-        `${completionText}:${EOL}\t`
+        `${completionText}:${EOL}\t`,
       );
 
       // Check for completion resolution when asked in between of lines
       completionItem.data.atEndOfLine = false;
       const actualCompletionResolveAtInBetween = await doCompletionResolve(
         completionItem,
-        context
+        context,
       );
 
       expect(actualCompletionResolveAtInBetween.insertText).be.equal(
-        `${completionText}`
+        `${completionText}`,
       );
     });
   });
@@ -95,22 +95,22 @@ function testFQCNDisabled(context: WorkspaceFolderContext) {
     it(`should resolve completion for ${name}`, async function () {
       const actualCompletionResolveAtLineEnd = await doCompletionResolve(
         completionItem,
-        context
+        context,
       );
 
       expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
-        `${completionText}:${EOL}\t`
+        `${completionText}:${EOL}\t`,
       );
 
       // Check for completion resolution when asked in between of lines
       completionItem.data.atEndOfLine = false;
       const actualCompletionResolveAtInBetween = await doCompletionResolve(
         completionItem,
-        context
+        context,
       );
 
       expect(actualCompletionResolveAtInBetween.insertText).be.equal(
-        `${completionText}`
+        `${completionText}`,
       );
     });
   });
@@ -161,7 +161,7 @@ function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
     it(`should resolve completion for ${name}`, async function () {
       const actualCompletionResolveAtLineEnd = await doCompletionResolve(
         completionItem,
-        context
+        context,
       );
 
       let returnSuffix: string;
@@ -181,18 +181,18 @@ function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
           break;
       }
       expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
-        `${completionText}:${returnSuffix}`
+        `${completionText}:${returnSuffix}`,
       );
 
       // Check for completion resolution when asked in between of lines
       completionItem.data.atEndOfLine = false;
       const actualCompletionResolveAtInBetween = await doCompletionResolve(
         completionItem,
-        context
+        context,
       );
 
       expect(actualCompletionResolveAtInBetween.insertText).be.equal(
-        `${completionText}`
+        `${completionText}`,
       );
     });
   });
@@ -211,7 +211,7 @@ describe("doCompletionResolve()", () => {
     describe("With useFQCN enabled and with EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -234,7 +234,7 @@ describe("doCompletionResolve()", () => {
     describe("With useFQCN disabled and with EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
         (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
@@ -267,7 +267,7 @@ describe("doCompletionResolve()", () => {
     describe("with EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });

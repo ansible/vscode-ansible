@@ -9,7 +9,7 @@ import { IPluginRoute } from "../interfaces/pluginRouting";
 
 export function formatModule(
   module: IModuleDocumentation,
-  route?: IPluginRoute
+  route?: IPluginRoute,
 ): MarkupContent {
   const sections: string[] = [];
   if (module.deprecated || route?.deprecation) {
@@ -19,7 +19,7 @@ export function formatModule(
         sections.push(`${route.deprecation.warningText}`);
       }
       sections.push(
-        `Removal date: ${route.deprecation.removalDate}, removal version: ${route.deprecation.removalVersion}`
+        `Removal date: ${route.deprecation.removalDate}, removal version: ${route.deprecation.removalVersion}`,
       );
     }
   }
@@ -55,7 +55,7 @@ export function formatTombstone(route: IPluginRoute): MarkupContent {
       sections.push(`${route.tombstone.warningText}`);
     }
     sections.push(
-      `Removal date: ${route.tombstone.removalDate}, removal version: ${route.tombstone.removalVersion}`
+      `Removal date: ${route.tombstone.removalDate}, removal version: ${route.tombstone.removalVersion}`,
     );
   }
   if (route?.redirect) {
@@ -69,7 +69,7 @@ export function formatTombstone(route: IPluginRoute): MarkupContent {
 
 export function formatOption(
   option: IOption,
-  with_details = false
+  with_details = false,
 ): MarkupContent {
   const sections: string[] = [];
   if (with_details) {
@@ -83,7 +83,7 @@ export function formatOption(
   }
   if (option.default !== undefined) {
     sections.push(
-      `*Default*:\n \`\`\`javascript\n${format(option.default)}\n\`\`\``
+      `*Default*:\n \`\`\`javascript\n${format(option.default)}\n\`\`\``,
     );
   }
   if (option.choices) {

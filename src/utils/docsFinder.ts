@@ -15,7 +15,7 @@ export async function findDocumentation(
     | "builtin"
     | "collection"
     | "builtin_doc_fragment"
-    | "collection_doc_fragment"
+    | "collection_doc_fragment",
 ): Promise<IModuleMetadata[]> {
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return [];
@@ -67,14 +67,14 @@ export async function findDocumentation(
       `${namespace}.${collection}.${name}`,
       namespace,
       collection,
-      name
+      name,
     );
   });
 }
 
 export async function findPluginRouting(
   dir: string,
-  kind: "builtin" | "collection"
+  kind: "builtin" | "collection",
 ): Promise<IPluginRoutingByCollection> {
   const pluginRouting = new Map<string, IPluginRoutesByType>();
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {

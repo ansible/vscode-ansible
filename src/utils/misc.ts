@@ -13,7 +13,7 @@ export const asyncExec = promisify(child_process.exec);
 
 export function toLspRange(
   range: [number, number],
-  textDocument: TextDocument
+  textDocument: TextDocument,
 ): Range {
   const start = textDocument.positionAt(range[0]);
   const end = textDocument.positionAt(range[1]);
@@ -22,7 +22,7 @@ export function toLspRange(
 
 export function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
-  prop: Y
+  prop: Y,
 ): obj is X & Record<Y, unknown> {
   return isObject(obj) && obj.hasOwnProperty(prop);
 }
@@ -45,7 +45,7 @@ export function withInterpreter(
   executable: string,
   args: string,
   interpreterPath: string,
-  activationScript: string
+  activationScript: string,
 ): [string, NodeJS.ProcessEnv | undefined] {
   let command = `${executable} ${args}`; // base case
 

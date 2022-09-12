@@ -23,7 +23,7 @@ function getAnsibleTestInfo() {
       "fixtures",
       "utils",
       "getAnsibleMetaData",
-      "ansible.cfg"
+      "ansible.cfg",
     ),
   ];
   ansibleInfo["ansible collections location"] = [
@@ -37,7 +37,7 @@ function getAnsibleTestInfo() {
       "fixtures",
       "utils",
       "getAnsibleMetaData",
-      "inventory"
+      "inventory",
     ),
   ];
   return ansibleInfo;
@@ -133,25 +133,25 @@ describe("getAnsibleMetaData()", () => {
     describe("Verify ansible details", () => {
       it("should contain all the keys for ansible information", function () {
         expect(Object.keys(ansibleInfoForTest).length).equals(
-          Object.keys(actualAnsibleMetaData["ansible information"]).length
+          Object.keys(actualAnsibleMetaData["ansible information"]).length,
         );
       });
 
       it("should have information about ansible version used", function () {
         expect(
-          actualAnsibleMetaData["ansible information"]["ansible version"]
+          actualAnsibleMetaData["ansible information"]["ansible version"],
         ).includes(ansibleInfoForTest["ansible version"]);
       });
 
       it("should have a valid ansible location", function () {
         expect(
-          actualAnsibleMetaData["ansible information"]["ansible location"]
+          actualAnsibleMetaData["ansible information"]["ansible location"],
         ).include(ansibleInfoForTest["ansible location"]);
       });
 
       it("should have a valid config file location", function () {
         expect(
-          actualAnsibleMetaData["ansible information"]["config file path"]
+          actualAnsibleMetaData["ansible information"]["config file path"],
         ).to.include.members(ansibleInfoForTest["config file path"]);
       });
 
@@ -159,9 +159,9 @@ describe("getAnsibleMetaData()", () => {
         expect(
           actualAnsibleMetaData["ansible information"][
             "ansible collections location"
-          ]
+          ],
         ).to.include.members(
-          ansibleInfoForTest["ansible collections location"]
+          ansibleInfoForTest["ansible collections location"],
         );
       });
 
@@ -169,9 +169,9 @@ describe("getAnsibleMetaData()", () => {
         expect(
           actualAnsibleMetaData["ansible information"][
             "ansible default host list path"
-          ]
+          ],
         ).to.include.members(
-          ansibleInfoForTest["ansible default host list path"]
+          ansibleInfoForTest["ansible default host list path"],
         );
       });
     });
@@ -179,18 +179,18 @@ describe("getAnsibleMetaData()", () => {
     describe("Verify python details", () => {
       it("should contain all the keys for python information", function () {
         expect(Object.keys(pythonInfoForTest).length).equals(
-          Object.keys(actualAnsibleMetaData["python information"]).length
+          Object.keys(actualAnsibleMetaData["python information"]).length,
         );
       });
       it("should have information about python version used", function () {
         expect(
-          actualAnsibleMetaData["python information"]["python version"]
+          actualAnsibleMetaData["python information"]["python version"],
         ).includes(pythonInfoForTest["python version"]);
       });
 
       it("should have a valid python location", function () {
         expect(
-          actualAnsibleMetaData["python information"]["python location"]
+          actualAnsibleMetaData["python information"]["python location"],
         ).include(pythonInfoForTest["python location"]);
       });
     });
@@ -198,14 +198,14 @@ describe("getAnsibleMetaData()", () => {
     describe("Verify ansible-lint details", () => {
       it("should contain all the keys for ansible-lint information", function () {
         expect(Object.keys(ansibleLintInfoForTest).length).equals(
-          Object.keys(actualAnsibleMetaData["ansible-lint information"]).length
+          Object.keys(actualAnsibleMetaData["ansible-lint information"]).length,
         );
       });
       it("should have information about ansible-lint version used", function () {
         expect(
           actualAnsibleMetaData["ansible-lint information"][
             "ansible-lint version"
-          ]
+          ],
         ).includes(ansibleLintInfoForTest["ansible-lint version"]);
       });
 
@@ -213,7 +213,7 @@ describe("getAnsibleMetaData()", () => {
         expect(
           actualAnsibleMetaData["ansible-lint information"][
             "ansible-lint location"
-          ]
+          ],
         ).include(ansibleLintInfoForTest["ansible-lint location"]);
       });
     });
@@ -244,7 +244,7 @@ describe("getAnsibleMetaData()", () => {
         expect(executionEnvironmentInfoForTest["container engine"]).to.include(
           actualAnsibleMetaData["execution environment information"][
             "container engine"
-          ]
+          ],
         );
       });
 
@@ -252,7 +252,7 @@ describe("getAnsibleMetaData()", () => {
         expect(
           actualAnsibleMetaData["execution environment information"][
             "container image"
-          ]
+          ],
         ).to.include(executionEnvironmentInfoForTest["container image"]);
       });
 
@@ -260,9 +260,9 @@ describe("getAnsibleMetaData()", () => {
         expect(
           actualAnsibleMetaData["execution environment information"][
             "container volume mounts"
-          ][0]["src"]
+          ][0]["src"],
         ).to.include(
-          executionEnvironmentInfoForTest["container volume mounts"][0]["src"]
+          executionEnvironmentInfoForTest["container volume mounts"][0]["src"],
         );
       });
 

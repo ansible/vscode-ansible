@@ -9,7 +9,7 @@ import { glob } from "glob";
 export function globArray(arrayOfPatterns: string[]): string[] {
   // Patterns to be matched
   const matchPatterns = arrayOfPatterns.filter(
-    (pattern) => !pattern.startsWith("!")
+    (pattern) => !pattern.startsWith("!"),
   );
 
   // Patterns to be excluded

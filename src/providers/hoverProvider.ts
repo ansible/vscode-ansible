@@ -30,7 +30,7 @@ import {
 export async function doHover(
   document: TextDocument,
   position: Position,
-  docsLibrary: DocsLibrary
+  docsLibrary: DocsLibrary,
 ): Promise<Hover | null> {
   const yamlDocs = parseAllDocuments(document.getText());
   const path = getPathAt(document, position, yamlDocs);
@@ -59,14 +59,14 @@ export async function doHover(
           const [module, hitFqcn] = await docsLibrary.findModule(
             node.value,
             path,
-            document.uri
+            document.uri,
           );
           const range = getOrigRange(node);
           if (module && module.documentation) {
             return {
               contents: formatModule(
                 module.documentation,
-                docsLibrary.getModuleRoute(hitFqcn || node.value)
+                docsLibrary.getModuleRoute(hitFqcn || node.value),
               ),
               range: range ? toLspRange(range, document) : undefined,
             };
@@ -87,7 +87,7 @@ export async function doHover(
       const options = await getPossibleOptionsForPath(
         path,
         document,
-        docsLibrary
+        docsLibrary,
       );
 
       if (options) {
@@ -106,7 +106,7 @@ export async function doHover(
 function getKeywordHover(
   document: TextDocument,
   node: Scalar,
-  keywords: Map<string, string | MarkupContent>
+  keywords: Map<string, string | MarkupContent>,
 ): Hover | null {
   const keywordDocumentation = keywords.get(node.value);
   const markupDoc =

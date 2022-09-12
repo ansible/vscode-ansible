@@ -27,7 +27,7 @@ export class AnsiblePlaybook {
 
   constructor(
     private connection: Connection,
-    private context: WorkspaceFolderContext
+    private context: WorkspaceFolderContext,
   ) {
     this.useProgressTracker =
       !!context.clientCapabilities.window?.workDoneProgress;
@@ -41,7 +41,7 @@ export class AnsiblePlaybook {
    * Perform ansible syntax-check for the given document.
    */
   public async doValidate(
-    textDocument: TextDocument
+    textDocument: TextDocument,
   ): Promise<Map<string, Diagnostic[]>> {
     const docPath = URI.parse(textDocument.uri).path;
     let diagnostics: Map<string, Diagnostic[]> = new Map();
@@ -59,13 +59,13 @@ export class AnsiblePlaybook {
     progressTracker.begin(
       "ansible syntax-check",
       undefined,
-      "Processing files..."
+      "Processing files...",
     );
 
     const commandRunner = new CommandRunner(
       this.connection,
       this.context,
-      settings
+      settings,
     );
     try {
       // run ansible playbook syntax-check
@@ -73,7 +73,7 @@ export class AnsiblePlaybook {
         "ansible-playbook",
         `${docPath} --syntax-check`,
         workingDirectory,
-        mountPaths
+        mountPaths,
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -88,7 +88,7 @@ export class AnsiblePlaybook {
           /The error appears to be in '(?<filename>.*)': line (?<line>\d+), column (?<column>\d+)/;
 
         const filteredErrorMessage = ansibleSyntaxCheckRegex.exec(
-          execError.stderr
+          execError.stderr,
         );
 
         diagnostics = filteredErrorMessage
@@ -96,18 +96,18 @@ export class AnsiblePlaybook {
               execError.message,
               filteredErrorMessage.groups.filename,
               parseInt(filteredErrorMessage.groups.line),
-              parseInt(filteredErrorMessage.groups.column)
+              parseInt(filteredErrorMessage.groups.column),
             )
           : this.processReport(execError.message, docPath, 1, 1);
 
         if (execError.stderr) {
           this.connection.console.info(
-            `[ansible syntax-check] ${execError.stderr}`
+            `[ansible syntax-check] ${execError.stderr}`,
           );
         }
       } else {
         this.connection.console.error(
-          `Exception in AnsibleSyntaxCheck service: ${JSON.stringify(error)}`
+          `Exception in AnsibleSyntaxCheck service: ${JSON.stringify(error)}`,
         );
       }
     }
@@ -120,12 +120,12 @@ export class AnsiblePlaybook {
     result: string,
     fileName: string,
     line: number,
-    column: number
+    column: number,
   ): Map<string, Diagnostic[]> {
     const diagnostics: Map<string, Diagnostic[]> = new Map();
     if (!result) {
       this.connection.console.warn(
-        "Standard output from ansible syntax-check is suspiciously empty."
+        "Standard output from ansible syntax-check is suspiciously empty.",
       );
       return diagnostics;
     }

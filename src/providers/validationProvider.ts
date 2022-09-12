@@ -26,7 +26,7 @@ export async function doValidate(
   validationManager: ValidationManager,
   quick = true,
   context?: WorkspaceFolderContext,
-  connection?: Connection
+  connection?: Connection,
 ): Promise<Map<string, Diagnostic[]>> {
   let diagnosticsByFile;
   if (quick || !context) {
@@ -43,7 +43,7 @@ export async function doValidate(
       ? "ansible-lint"
       : settings.ansibleLint.path;
     const lintAvailability = await commandRunner.getExecutablePath(
-      lintExecutable
+      lintExecutable,
     );
     console.debug("Path for lint: ", lintAvailability);
 
@@ -56,10 +56,10 @@ export async function doValidate(
       // Notifying the user about the failed ansible-lint command and falling back to ansible syntax-check in this scenario
       if (diagnosticsByFile === -1) {
         console.debug(
-          "Ansible-lint command execution failed. Falling back to ansible syntax-check"
+          "Ansible-lint command execution failed. Falling back to ansible syntax-check",
         );
         connection?.window.showInformationMessage(
-          "Falling back to ansible syntax-check."
+          "Falling back to ansible syntax-check.",
         );
       }
       console.debug("Validating using ansible syntax-check");
@@ -67,7 +67,7 @@ export async function doValidate(
       if (isPlaybook(textDocument)) {
         console.log("is playbook...");
         diagnosticsByFile = await context.ansiblePlaybook.doValidate(
-          textDocument
+          textDocument,
         );
       } else {
         console.log("not a playbook...");
@@ -107,10 +107,12 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
         const start = textDocument.positionAt(
           errorRange.origStart !== undefined
             ? errorRange.origStart
-            : errorRange.start
+            : errorRange.start,
         );
         const end = textDocument.positionAt(
-          errorRange.origEnd !== undefined ? errorRange.origEnd : errorRange.end
+          errorRange.origEnd !== undefined
+            ? errorRange.origEnd
+            : errorRange.end,
         );
         range = Range.create(start, end);
 
@@ -157,7 +159,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
               start: range.end,
               end: range.end,
             }),
-            "the scope of this error ends here"
+            "the scope of this error ends here",
           ),
         ];
         // collapse the range

@@ -14,7 +14,7 @@ import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
 
 function testPlayKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -39,7 +39,7 @@ function testPlayKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary
+        await context.docsLibrary,
       );
       expect(actualHover.contents["value"]).includes(doc);
     });
@@ -48,7 +48,7 @@ function testPlayKeywords(
 
 function testTaskKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -63,7 +63,7 @@ function testTaskKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary
+        await context.docsLibrary,
       );
       expect(actualHover.contents["value"]).includes(doc);
     });
@@ -72,7 +72,7 @@ function testTaskKeywords(
 
 function testBlockKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -87,7 +87,7 @@ function testBlockKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary
+        await context.docsLibrary,
       );
       expect(actualHover.contents["value"]).includes(doc);
     });
@@ -96,7 +96,7 @@ function testBlockKeywords(
 
 function testRoleKeywords(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -111,7 +111,7 @@ function testRoleKeywords(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary
+        await context.docsLibrary,
       );
       expect(actualHover.contents["value"]).includes(doc);
     });
@@ -120,7 +120,7 @@ function testRoleKeywords(
 
 function testModuleNames(
   context: WorkspaceFolderContext,
-  textDoc: TextDocument
+  textDoc: TextDocument,
 ) {
   const tests = [
     {
@@ -140,7 +140,7 @@ function testModuleNames(
       const actualHover = await doHover(
         textDoc,
         position,
-        await context.docsLibrary
+        await context.docsLibrary,
       );
       expect(actualHover.contents["value"]).includes(doc);
     });
@@ -152,7 +152,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
     const actualHover = await doHover(
       textDoc,
       { line: 13, character: 24 } as Position,
-      await context.docsLibrary
+      await context.docsLibrary,
     );
     expect(actualHover).to.be.null;
   });
@@ -161,7 +161,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
     const actualHover = await doHover(
       textDoc,
       { line: 13, character: 8 } as Position,
-      await context.docsLibrary
+      await context.docsLibrary,
     );
     expect(actualHover).to.be.null;
   });
@@ -170,7 +170,7 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
     const actualHover = await doHover(
       textDoc,
       { line: 14, character: 10 } as Position,
-      await context.docsLibrary
+      await context.docsLibrary,
     );
     expect(actualHover).to.be.null;
   });
@@ -189,7 +189,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -216,7 +216,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -243,7 +243,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -277,7 +277,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -310,7 +310,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });
@@ -337,7 +337,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible"
+          "/home/runner/.ansible/collections:/usr/share/ansible",
         );
         await enableExecutionEnvironmentSettings(docSettings);
       });

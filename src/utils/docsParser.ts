@@ -20,7 +20,7 @@ const DOCUMENTATION = "DOCUMENTATION";
 
 export function processDocumentationFragments(
   module: IModuleMetadata,
-  docFragments: Map<string, IModuleMetadata>
+  docFragments: Map<string, IModuleMetadata>,
 ): void {
   module.fragments = [];
   const mainDocumentationFragment =
@@ -54,14 +54,14 @@ export function processDocumentationFragments(
         _.mergeWith(
           resultContents,
           docFragment.rawDocumentationFragments.get(fragmentPartName),
-          docFragmentMergeCustomizer
+          docFragmentMergeCustomizer,
         );
       }
     }
     _.mergeWith(
       resultContents,
       mainDocumentationFragment,
-      docFragmentMergeCustomizer
+      docFragmentMergeCustomizer,
     );
     module.rawDocumentationFragments.set(DOCUMENTATION, resultContents);
   }
@@ -70,7 +70,7 @@ export function processDocumentationFragments(
 function docFragmentMergeCustomizer(
   objValue: unknown,
   srcValue: unknown,
-  key: string
+  key: string,
 ): Record<string, unknown>[] | undefined {
   if (
     ["notes", "requirements", "seealso"].includes(key) &&
@@ -81,7 +81,7 @@ function docFragmentMergeCustomizer(
 }
 
 export function processRawDocumentation(
-  moduleDocParts: Map<string, Record<string, unknown>>
+  moduleDocParts: Map<string, Record<string, unknown>>,
 ): IModuleDocumentation | undefined {
   // currently processing only the main documentation
   const rawDoc = moduleDocParts.get(DOCUMENTATION);
@@ -155,7 +155,7 @@ export function parseRawRouting(rawDoc: unknown): IPluginRoutesByType {
     isObject(rawDoc.plugin_routing)
   ) {
     for (const [pluginType, rawRoutesByName] of Object.entries(
-      rawDoc.plugin_routing
+      rawDoc.plugin_routing,
     )) {
       if (pluginType === "modules" && isObject(rawRoutesByName)) {
         routesByType.set(pluginType, parseRawRoutesByName(rawRoutesByName));
@@ -166,7 +166,7 @@ export function parseRawRouting(rawDoc: unknown): IPluginRoutesByType {
 }
 
 function parseRawRoutesByName(
-  rawRoutesByName: Record<PropertyKey, unknown>
+  rawRoutesByName: Record<PropertyKey, unknown>,
 ): IPluginRoutesByName {
   const routesByName = new Map<string, IPluginRoute>();
   for (const [moduleName, rawRoute] of Object.entries(rawRoutesByName)) {
@@ -191,7 +191,7 @@ function parseRawRoute(rawRoute: Record<PropertyKey, unknown>): IPluginRoute {
 }
 
 function parseRawDeprecationOrTombstone(
-  rawInfo: Record<PropertyKey, unknown>
+  rawInfo: Record<PropertyKey, unknown>,
 ): {
   removalVersion?: string;
   removalDate?: string;
@@ -235,7 +235,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     fqcn: string,
     namespace: string,
     collection: string,
-    name: string
+    name: string,
   ) {
     this.source = source;
     this.fqcn = fqcn;
@@ -273,7 +273,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
   }
 
   public set rawDocumentationFragments(
-    value: Map<string, Record<string, unknown>>
+    value: Map<string, Record<string, unknown>>,
   ) {
     this._contents = value;
   }

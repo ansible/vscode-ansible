@@ -28,7 +28,7 @@ describe("get()", () => {
       });
       it("should return default value for all settings", () => {
         expect(mergedSettings).to.deep.equal(
-          context.documentSettings.globalSettings
+          context.documentSettings.globalSettings,
         );
       });
     });
@@ -49,7 +49,7 @@ describe("get()", () => {
       });
       it("should return default value otherwise", () => {
         expect(mergedSettings.ansibleLint.path).to.equal(
-          context.documentSettings.globalSettings.ansibleLint.path
+          context.documentSettings.globalSettings.ansibleLint.path,
         );
       });
     });

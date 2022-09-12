@@ -38,7 +38,7 @@ export class ExecutionEnvironment {
   public async initialize(): Promise<void> {
     try {
       this.settings = await this.context.documentSettings.get(
-        this.context.workspaceFolder.uri
+        this.context.workspaceFolder.uri,
       );
       if (!this.settings.executionEnvironment.enabled) {
         return;
@@ -69,7 +69,7 @@ export class ExecutionEnvironment {
         this.connection.window.showErrorMessage(error.message);
       } else {
         this.connection.console.error(
-          `Exception in ExecutionEnvironment service: ${JSON.stringify(error)}`
+          `Exception in ExecutionEnvironment service: ${JSON.stringify(error)}`,
         );
       }
       this.isServiceInitialized = false;
@@ -80,13 +80,13 @@ export class ExecutionEnvironment {
   public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
     if (!this.isServiceInitialized) {
       this.connection.console.error(
-        `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`
+        `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`,
       );
       return;
     }
     const containerName = `${this._container_image.replace(
       /[^a-z0-9]/gi,
-      "_"
+      "_",
     )}`;
     let progressTracker;
 
@@ -99,7 +99,7 @@ export class ExecutionEnvironment {
         })
         .trim();
       const hostCacheBasePath = path.resolve(
-        `${process.env.HOME}/.cache/ansible-language-server/${containerName}/${this._container_image_id}`
+        `${process.env.HOME}/.cache/ansible-language-server/${containerName}/${this._container_image_id}`,
       );
 
       const isContainerRunning = this.runContainer(containerName);
@@ -110,15 +110,15 @@ export class ExecutionEnvironment {
       if (this.isPluginDocCacheValid(hostCacheBasePath)) {
         ansibleConfig.collections_paths = this.updateCachePaths(
           ansibleConfig.collections_paths,
-          hostCacheBasePath
+          hostCacheBasePath,
         );
         ansibleConfig.module_locations = this.updateCachePaths(
           ansibleConfig.module_locations,
-          hostCacheBasePath
+          hostCacheBasePath,
         );
 
         this.connection.console.log(
-          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`
+          `Cached plugin paths: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
         );
       } else {
         if (this.useProgressTracker) {
@@ -130,17 +130,17 @@ export class ExecutionEnvironment {
             "execution-environment",
             undefined,
             `Copy plugin docs from '${this._container_image} to host cache path`,
-            true
+            true,
           );
         }
         this.connection.console.log(
-          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`
+          `Identified plugin paths by AnsibleConfig service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
         );
         ansibleConfig.collections_paths = await this.copyPluginDocFiles(
           hostCacheBasePath,
           containerName,
           ansibleConfig.collections_paths,
-          "ansible_collections"
+          "ansible_collections",
         );
 
         const builtin_plugin_locations: string[] = [];
@@ -160,7 +160,7 @@ export class ExecutionEnvironment {
           hostCacheBasePath,
           containerName,
           builtin_plugin_locations,
-          "/"
+          "/",
         );
 
         // Copy builtin modules
@@ -168,21 +168,21 @@ export class ExecutionEnvironment {
           hostCacheBasePath,
           containerName,
           ansibleConfig.module_locations,
-          "/"
+          "/",
         );
       }
       this.connection.console.log(
-        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`
+        `Copied plugin paths by ExecutionEnvironment service: \n collections_paths: ${ansibleConfig.collections_paths} \n module_locations: ${ansibleConfig.module_locations}`,
       );
       // plugin cache successfully created
       fs.closeSync(
-        fs.openSync(path.join(hostCacheBasePath, this.successFileMarker), "w+")
+        fs.openSync(path.join(hostCacheBasePath, this.successFileMarker), "w+"),
       );
     } catch (error) {
       this.connection.window.showErrorMessage(
         `Exception in ExecutionEnvironment service while fetching docs: ${JSON.stringify(
-          error
-        )}`
+          error,
+        )}`,
       );
     } finally {
       if (progressTracker) {
@@ -194,23 +194,23 @@ export class ExecutionEnvironment {
 
   public wrapContainerArgs(
     command: string,
-    mountPaths?: Set<string>
+    mountPaths?: Set<string>,
   ): string | undefined {
     if (!this.isServiceInitialized) {
       this.connection.console.error(
-        "ExecutionEnvironment service not correctly initialized."
+        "ExecutionEnvironment service not correctly initialized.",
       );
       return undefined;
     }
     const workspaceFolderPath = URI.parse(
-      this.context.workspaceFolder.uri
+      this.context.workspaceFolder.uri,
     ).path;
     const containerCommand: Array<string> = [this._container_engine];
     containerCommand.push(...["run", "--rm"]);
     containerCommand.push(...["--workdir", workspaceFolderPath]);
 
     containerCommand.push(
-      ...["-v", `${workspaceFolderPath}:${workspaceFolderPath}`]
+      ...["-v", `${workspaceFolderPath}:${workspaceFolderPath}`],
     );
 
     // TODO: add condition to check file path exists or not
@@ -218,7 +218,7 @@ export class ExecutionEnvironment {
       // push to array only if mount path is valid
       if (mountPath === "" || !fs.existsSync(mountPath)) {
         this.connection.console.error(
-          `Volume mount source path '${mountPath}' does not exist. Ignoring this volume mount entry.`
+          `Volume mount source path '${mountPath}' does not exist. Ignoring this volume mount entry.`,
         );
         continue;
       }
@@ -278,7 +278,7 @@ export class ExecutionEnvironment {
     containerCommand.push(command);
     const generatedCommand = containerCommand.join(" ");
     this.connection.console.log(
-      `container engine invocation: ${generatedCommand}`
+      `container engine invocation: ${generatedCommand}`,
     );
     return generatedCommand;
   }
@@ -290,13 +290,13 @@ export class ExecutionEnvironment {
       this._container_engine,
       this._container_image,
       this.settings.executionEnvironment.pull.policy,
-      this.settings.executionEnvironment.pull.arguments
+      this.settings.executionEnvironment.pull.arguments,
     );
     const setupDone = await imagePuller.setupImage();
     if (!setupDone) {
       this.connection.window.showErrorMessage(
         `Execution environment image '${this._container_image}' setup failed.
-         For more details check output console logs for ansible-language-server`
+         For more details check output console logs for ansible-language-server`,
       );
       return false;
     }
@@ -325,14 +325,14 @@ export class ExecutionEnvironment {
         });
       } catch (error) {
         this.connection.window.showErrorMessage(
-          `Container engine '${this._container_engine}' not found. Failed with error '${error}'`
+          `Container engine '${this._container_engine}' not found. Failed with error '${error}'`,
         );
         return false;
       }
     }
     if (!["podman", "docker"].includes(this._container_engine)) {
       this.connection.window.showErrorMessage(
-        "Valid container engine not found. Install either 'podman' or 'docker' if you want to use execution environment, if not disable Ansible extension execution environment setting."
+        "Valid container engine not found. Install either 'podman' or 'docker' if you want to use execution environment, if not disable Ansible extension execution environment setting.",
       );
       return false;
     }
@@ -347,7 +347,7 @@ export class ExecutionEnvironment {
 
     if (!this.doesContainerNameExist(containerName)) {
       console.log(
-        `clean up container not required as container with name ${containerName} does not exist`
+        `clean up container not required as container with name ${containerName} does not exist`,
       );
       return;
     }
@@ -367,7 +367,7 @@ export class ExecutionEnvironment {
     let containerNameExist = false;
     try {
       child_process.execSync(
-        `${this._container_engine} inspect ${containerName}`
+        `${this._container_engine} inspect ${containerName}`,
       );
       containerNameExist = true;
     } catch (error) {
@@ -383,13 +383,13 @@ export class ExecutionEnvironment {
       const options = volumeMounts.options;
       if (fsSrcPath === "" || !fs.existsSync(fsSrcPath)) {
         this.connection.console.error(
-          `Volume mount source path '${fsSrcPath}' does not exist. Ignoring this volume mount entry.`
+          `Volume mount source path '${fsSrcPath}' does not exist. Ignoring this volume mount entry.`,
         );
         continue;
       }
       if (fsDestPath === "") {
         this.connection.console.error(
-          `Volume mount destination path '${fsDestPath}' not provided. Ignoring this volume mount entry.`
+          `Volume mount destination path '${fsDestPath}' not provided. Ignoring this volume mount entry.`,
         );
         continue;
       }
@@ -409,7 +409,7 @@ export class ExecutionEnvironment {
   private isPluginInPath(
     containerName: string,
     searchPath: string,
-    pluginFolderPath: string
+    pluginFolderPath: string,
   ): boolean {
     const completeSearchPath = path.join(searchPath, pluginFolderPath);
     const command = `${this._container_engine} exec ${containerName} ls ${completeSearchPath}`;
@@ -458,7 +458,7 @@ export class ExecutionEnvironment {
       });
     } catch (error) {
       this.connection.window.showErrorMessage(
-        `Failed to initialize execution environment '${this._container_image}': ${error}`
+        `Failed to initialize execution environment '${this._container_image}': ${error}`,
       );
       return false;
     }
@@ -469,7 +469,7 @@ export class ExecutionEnvironment {
     hostPluginDocCacheBasePath: string,
     containerName: string,
     containerPluginPaths: string[],
-    searchKind: string
+    searchKind: string,
   ): Promise<string[]> {
     const updatedHostDocPath: string[] = [];
 
@@ -491,7 +491,7 @@ export class ExecutionEnvironment {
         fs.mkdirSync(destPath, { recursive: true });
         const copyCommand = `${this._container_engine} cp ${containerName}:${srcPath} ${destPathFolder}`;
         this.connection.console.log(
-          `Copying plugins from container to local cache path ${copyCommand}`
+          `Copying plugins from container to local cache path ${copyCommand}`,
         );
         asyncExec(copyCommand, {
           encoding: "utf-8",
@@ -506,7 +506,7 @@ export class ExecutionEnvironment {
 
   private updateCachePaths(
     pluginPaths: string[],
-    cacheBasePath: string
+    cacheBasePath: string,
   ): string[] {
     const localCachePaths: string[] = [];
     pluginPaths.forEach((srcPath) => {

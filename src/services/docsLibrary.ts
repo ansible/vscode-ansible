@@ -32,7 +32,7 @@ export class DocsLibrary {
   public async initialize(): Promise<void> {
     try {
       const settings = await this.context.documentSettings.get(
-        this.context.workspaceFolder.uri
+        this.context.workspaceFolder.uri,
       );
       const ansibleConfig = await this.context.ansibleConfig;
       if (settings.executionEnvironment.enabled) {
@@ -49,7 +49,7 @@ export class DocsLibrary {
         (await findDocumentation(modulesPath, "builtin_doc_fragment")).forEach(
           (doc) => {
             this.docFragments.set(doc.fqcn, doc);
-          }
+          },
         );
       }
 
@@ -62,7 +62,7 @@ export class DocsLibrary {
           (doc) => {
             this.modules.set(doc.fqcn, doc);
             this.moduleFqcns.add(doc.fqcn);
-          }
+          },
         );
 
         (
@@ -72,7 +72,7 @@ export class DocsLibrary {
         });
 
         (await findPluginRouting(collectionsPath, "collection")).forEach(
-          (r, collection) => this.pluginRouting.set(collection, r)
+          (r, collection) => this.pluginRouting.set(collection, r),
         );
 
         // add all valid redirect routes as possible FQCNs
@@ -89,7 +89,7 @@ export class DocsLibrary {
         this.connection.window.showErrorMessage(error.message);
       } else {
         this.connection.console.error(
-          `Exception in DocsLibrary service: ${JSON.stringify(error)}`
+          `Exception in DocsLibrary service: ${JSON.stringify(error)}`,
         );
       }
     }
@@ -108,13 +108,13 @@ export class DocsLibrary {
   public async findModule(
     searchText: string,
     contextPath?: Node[],
-    documentUri?: string
+    documentUri?: string,
   ): Promise<[IModuleMetadata | undefined, string | undefined]> {
     let hitFqcn;
     const candidateFqcns = await this.getCandidateFqcns(
       searchText,
       documentUri,
-      contextPath
+      contextPath,
     );
 
     // check routing
@@ -151,7 +151,7 @@ export class DocsLibrary {
       if (!module.documentation) {
         // translate raw documentation into a typed structure
         module.documentation = processRawDocumentation(
-          module.rawDocumentationFragments
+          module.rawDocumentationFragments,
         );
       }
     }
@@ -161,7 +161,7 @@ export class DocsLibrary {
   private async getCandidateFqcns(
     searchText: string,
     documentUri: string | undefined,
-    contextPath: Node[] | undefined
+    contextPath: Node[] | undefined,
   ) {
     const candidateFqcns = [];
     if (searchText.split(".").length === 3) {
@@ -174,7 +174,7 @@ export class DocsLibrary {
         if (metadata) {
           // try searching declared collections
           candidateFqcns.push(
-            ...metadata.collections.map((c) => `${c}.${searchText}`)
+            ...metadata.collections.map((c) => `${c}.${searchText}`),
           );
         }
       }
@@ -182,8 +182,8 @@ export class DocsLibrary {
       if (contextPath) {
         candidateFqcns.push(
           ...getDeclaredCollections(contextPath).map(
-            (c) => `${c}.${searchText}`
-          )
+            (c) => `${c}.${searchText}`,
+          ),
         );
       }
     }
