@@ -1,6 +1,55 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import * as vscode from "vscode";
 
+export async function configureModelines(
+  context: vscode.ExtensionContext,
+  doc: vscode.TextDocument
+): Promise<void> {
+  // Listen for new documents being opened
+
+  context.subscriptions.push(
+    vscode.workspace.onDidOpenTextDocument(() => {
+      // apparently the window.visibleTextEditors array is not up to date at this point,
+      // so we have to work around that by waiting a bit.
+
+      const tryApplyModelines = async (): Promise<boolean> => {
+        const editor = vscode.window.visibleTextEditors.find(
+          (e) => e.document === doc
+        );
+        if (editor) {
+          await applyModeLines(editor);
+          return true;
+        }
+        return false;
+      };
+
+      setTimeout(async () => {
+        if (!(await tryApplyModelines())) {
+          // if it's still not available, try one more time after 500ms
+          setTimeout(async () => {
+            if (!(await tryApplyModelines()))
+              console.log("[modelines] could not find TextEditor");
+          }, 500);
+        }
+      }, 100);
+    })
+  );
+
+  // Listen for saves and change settings if necessary
+  context.subscriptions.push(
+    vscode.workspace.onDidSaveTextDocument(async (doc) => {
+      const editor = vscode.window.visibleTextEditors.find(
+        (e) => e.document === doc
+      );
+      if (editor) await applyModeLines(editor);
+    })
+  );
+
+  setImmediate(
+    async () => await applyModeLines(vscode.window.activeTextEditor)
+  );
+}
+
 /**
  * This function reads the modeline config and tries to assign language to the document based on it
  * credits: https://github.com/ctlajoie/vscode-modelines/blob/master/src/modelines.ts
@@ -14,24 +63,23 @@ export async function applyModeLines(
     return;
   }
 
-  if (editor.document.languageId === "ansible") {
-    return;
-  }
-
   try {
     const modelineOptions: any = searchModelines(editor.document);
 
     const language = modelineOptions.language;
 
     if (language && language.length > 0) {
-      await vscode.languages.getLanguages().then((codeLangs) => {
+      await vscode.languages.getLanguages().then(async function (codeLangs) {
         const codeLang = codeLangs.find(
           (codeLang) => codeLang.toLowerCase() === language.toLowerCase()
         );
         if (codeLang) {
           if (codeLang === "ansible" || codeLang === "yaml") {
             console.debug("[modelines] language set by modelines");
-            vscode.languages.setTextDocumentLanguage(editor.document, codeLang);
+            await vscode.languages.setTextDocumentLanguage(
+              editor.document,
+              codeLang
+            );
           } else {
             vscode.window.showWarningMessage(
               'Supported languages are "ansible" and "yaml"'
@@ -45,7 +93,7 @@ export async function applyModeLines(
   }
 }
 
-function searchModelines(textDoc: vscode.TextDocument) {
+export function searchModelines(textDoc: vscode.TextDocument) {
   // vscode modeline options
   const vscodeModelineRegex = /^.{0,8}code:(.*)/;
   const vscodeModelineOptsRegex = /(\w+)=([^\s]+)/g;

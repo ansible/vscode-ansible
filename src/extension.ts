@@ -30,7 +30,7 @@ import {
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
 import { formatAnsibleMetaData } from "./features/utils/formatAnsibleMetaData";
-import { configureModelines } from "./features/fileAssociation";
+import { languageAssociation } from "./features/fileAssociation";
 
 let client: LanguageClient;
 let cachedAnsibleVersion: string;
@@ -41,8 +41,8 @@ let myStatusBarItem: StatusBarItem;
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
 
-  // add ability to read modelines and assign doc "ansible" language to the doc accordingly
-  configureModelines(context);
+  // dynamically associate "ansible" language to the yaml file
+  languageAssociation(context);
 
   context.subscriptions.push(
     commands.registerCommand("extension.ansible.vault", toggleEncrypt)
