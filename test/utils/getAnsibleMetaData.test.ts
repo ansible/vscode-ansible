@@ -79,7 +79,7 @@ function testCommands() {
         result: "configured module search path",
       },
       {
-        args: ["python", "--version"],
+        args: ["python3", "--version"],
         result: "Python",
       },
       {
