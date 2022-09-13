@@ -22,12 +22,12 @@ the extension:
 
 ### With file inspection
 
-#### File inspection for ansible keywords:
+#### File inspection for ansible keywords
 
 - Primary method is inspection for top level playbook keywords like hosts and
   import_playbook in yaml files.
 
-#### Modelines (optional):
+#### Modelines (optional)
 
 - If modelines present, it is given highest priority and language is set
   according to modelines.
