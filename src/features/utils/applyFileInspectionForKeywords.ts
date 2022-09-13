@@ -9,6 +9,12 @@ export async function applyFileInspectionForKeywords(
   }
 
   try {
+    const fileType = editor.document.fileName.split(".").pop();
+
+    if (fileType !== "yaml" && fileType !== "yml") {
+      return;
+    }
+
     const fileText = editor.document.getText();
     const parsedYaml = fileText ? yaml.parse(fileText) : "";
 
