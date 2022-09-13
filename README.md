@@ -6,7 +6,59 @@ and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging
 [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
-## Activating Red Hat Ansible extension
+## Language association to yaml files
+
+The extension works only when a document is assigned `ansible` language. The
+following method is used to assign `ansible` language to the document opened by
+the extension:
+
+### Without file inspection
+
+- yaml files under `/playbooks` dir.
+- files with the following double extension: `.ansible.yml` or `.ansible.yaml`.
+- notable yaml names recognized by ansible like `site.yml` or `site.yaml`
+- yaml files having playbook in their filename: `*playbook*.yml` or
+  `*playbook*.yaml`
+
+Additionally, in vscode, you can add persistent file association for language to
+`settings.json` file like this:
+
+```json
+{
+  ...
+
+  "files.associations": {
+    "*plays.yml": "ansible",
+    "*init.yml": "yaml",
+  }
+}
+```
+
+### With file inspection
+
+#### File inspection for ansible keywords
+
+- Primary method is inspection for top level playbook keywords like hosts and
+  import_playbook in yaml files.
+
+#### Modelines (optional)
+
+- The extension also supports the usage of
+  [modelines](https://vim.fandom.com/wiki/Modeline_magic) and when used, it is
+  given highest priority and language is set according to modelines. Example and
+  syntax of modelines:
+
+```yaml
+# code: language=ansible
+or
+# code: language=yaml
+```
+
+Rest all the .yml, or .yaml files will remain yaml by default unless the user
+explicitly changes the language to ansible for which the process is mentioned
+below.
+
+## Activating Red Hat Ansible extension manually
 
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
