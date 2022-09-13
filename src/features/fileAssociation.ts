@@ -27,14 +27,10 @@ export async function languageAssociation(
         Object.keys(searchModelines(doc)).length === 0 ? false : true;
 
       if (canApplyModelines) {
-        // apply modelines
-        console.log("___ can apply: ", canApplyModelines);
+        // apply modelines and return
         await configureModelines(context, doc);
-        console.log("APPLIED MODELINES");
         return;
       }
-
-      console.log("NOW APPLYING FILE INSPECTION");
 
       const tryApplyFileInspectionForKeywords =
         async function (): Promise<boolean> {

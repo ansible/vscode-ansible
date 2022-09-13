@@ -27,8 +27,6 @@ export async function applyFileInspectionForKeywords(
           editor.document,
           "ansible"
         );
-      } else {
-        await vscode.languages.setTextDocumentLanguage(editor.document, "yaml");
       }
     }
   } catch (err) {

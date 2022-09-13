@@ -69,24 +69,17 @@ export async function applyModeLines(
     const language = modelineOptions.language;
 
     if (language && language.length > 0) {
-      await vscode.languages.getLanguages().then(async function (codeLangs) {
-        const codeLang = codeLangs.find(
-          (codeLang) => codeLang.toLowerCase() === language.toLowerCase()
+      if (language === "ansible" || language === "yaml") {
+        console.debug("[modelines] language set by modelines");
+        await vscode.languages.setTextDocumentLanguage(
+          editor.document,
+          language
         );
-        if (codeLang) {
-          if (codeLang === "ansible" || codeLang === "yaml") {
-            console.debug("[modelines] language set by modelines");
-            await vscode.languages.setTextDocumentLanguage(
-              editor.document,
-              codeLang
-            );
-          } else {
-            vscode.window.showWarningMessage(
-              'Supported languages are "ansible" and "yaml"'
-            );
-          }
-        }
-      });
+      } else {
+        vscode.window.showWarningMessage(
+          'Supported languages are "ansible" and "yaml"'
+        );
+      }
     }
   } catch (err) {
     console.error(err);
