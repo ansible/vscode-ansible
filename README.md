@@ -20,6 +20,20 @@ the extension:
 - yaml files having playbook in their filename: `*playbook*.yml` or
   `*playbook*.yaml`
 
+Additionally, in vscode, you can add persistent file association for language to
+`settings.json` file like this:
+
+```json
+{
+  ...
+
+  "files.associations": {
+    "*plays.yml": "ansible",
+    "*init.yml": "yaml",
+  }
+}
+```
+
 ### With file inspection
 
 #### File inspection for ansible keywords
@@ -29,8 +43,12 @@ the extension:
 
 #### Modelines (optional)
 
-- If modelines present, it is given highest priority and language is set
-  according to modelines.
+- The extension also supports the usage of [modelines](https://vim.fandom.com/wiki/Modeline_magic) and when used, it is given highest priority and language is set according to modelines. Example and syntax of modelines:
+```yaml
+# code: language=ansible
+or
+# code: language=yaml
+``` 
 
 Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
