@@ -1,5 +1,6 @@
 # code: language=ansible
-- hosts: switches
+
+- hosts: localhost
   tasks:
     - name: This file has modelines and the language is set by it
       ansible.builtin.debug:

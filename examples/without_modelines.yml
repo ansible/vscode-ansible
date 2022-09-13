@@ -1,0 +1,5 @@
+- hosts: localhost
+  tasks:
+    - name: This file does modelines and the language is set by it by inspecting ansible keywords
+      ansible.builtin.debug:
+        msg: Hello world!
