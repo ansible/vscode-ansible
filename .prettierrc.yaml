@@ -12,3 +12,4 @@ overrides:
       proseWrap: always
       printWidth: 80
 semi: true
+trailingComma: es5 # needed to force prettier 3.x to use 2.x settings and avoid conflict with eslint
