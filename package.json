@@ -100,9 +100,10 @@
       },
       {
         "fileMatch": [
-          ".ansible-lint"
+          ".ansible-lint",
+          ".config/ansible-lint.yml"
         ],
-        "url": "https://raw.githubusercontent.com/ansible/schemas/main/f/ansible-lint.json"
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json"
       },
       {
         "fileMatch": [
@@ -520,7 +521,7 @@
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "0.12.0",
+  "version": "0.13.0",
   "packageManager": "yarn@3.2.1",
   "vsce": {
     "dependencies": false,
