@@ -1027,7 +1027,7 @@ __metadata:
     typescript: ^4.8.3
     untildify: ^4.0.0
     vsce: ^2.11.0
-    vscode-extension-tester: "https://github.com/ssbarnea/vscode-extension-tester.git#commit=4ddf9ea32e067482063c4a177275d009068d9e82"
+    vscode-extension-tester: ^4.4.1
     vscode-languageclient: ^7.0.0
     webpack: ^5.74.0
     webpack-cli: ^4.10.0
@@ -4362,9 +4362,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-page-objects@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "monaco-page-objects@npm:2.0.0"
+"monaco-page-objects@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "monaco-page-objects@npm:2.0.1"
   dependencies:
     clipboardy: ^2.3.0
     clone-deep: ^4.0.1
@@ -4373,7 +4373,7 @@ __metadata:
     ts-essentials: ^8.0.0
   peerDependencies:
     selenium-webdriver: ^4.2.0
-  checksum: 643f0e1fcef705c8e6cbf4fecadfe0770101b1e424e94000f3cf37a0a420a5432f7045745305c23a43e25395bf5a60ba2b96568357a37d154e00b27a9509e80c
+  checksum: b9431bb0475069e9017d1589bbea6d34d46a50659ff15572a82b0415e26c2e23aa5589f7f0d1b8b29cd497cf6fade94a180a06e45efee771176cf78b4d162062
   languageName: node
   linkType: hard
 
@@ -6393,7 +6393,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vsce@npm:^2.11.0, vsce@npm:^2.9.2":
+"vsce@npm:^2.11.0, vsce@npm:^2.3.0":
   version: 2.11.0
   resolution: "vsce@npm:2.11.0"
   dependencies:
@@ -6433,9 +6433,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@https://github.com/ssbarnea/vscode-extension-tester.git#commit=4ddf9ea32e067482063c4a177275d009068d9e82":
-  version: 4.3.0
-  resolution: "vscode-extension-tester@https://github.com/ssbarnea/vscode-extension-tester.git#commit=4ddf9ea32e067482063c4a177275d009068d9e82"
+"vscode-extension-tester@npm:^4.4.1":
+  version: 4.4.1
+  resolution: "vscode-extension-tester@npm:4.4.1"
   dependencies:
     "@types/selenium-webdriver": ^4.1.1
     commander: ^8.0.0
@@ -6445,18 +6445,18 @@ __metadata:
     got: ^11.8.2
     hpagent: ^0.1.2
     js-yaml: ^4.1.0
-    monaco-page-objects: ^2.0.0
+    monaco-page-objects: ^2.0.1
     sanitize-filename: ^1.6.3
     selenium-webdriver: ^4.2.0
     targz: ^1.0.1
     unzip-stream: ^0.3.0
-    vsce: ^2.9.2
+    vsce: ^2.3.0
     vscode-extension-tester-locators: ^2.0.0
   peerDependencies:
     mocha: ">=5.2.0"
   bin:
     extest: out/cli.js
-  checksum: 2c4315205bf881c79f774a3ee7ad8bc7ac984136af6d2cc5cf612da6845fbc02041fc9ce1055087fa5b7f1f8b19f707bc4b8a7788737a0a9d72f68f999b027db
+  checksum: 49ecc4f11b73903fb60cf0debb56b317e325b089096b5b9745617f2303aab11bd4621a99586c316c52fa2ee1645119f42b86fbe8f7430e2a042946628134bc7c
   languageName: node
   linkType: hard
 
