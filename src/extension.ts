@@ -168,8 +168,8 @@ function updateAnsibleInfo(): void {
             ansibleMetaData.metaData["ansible information"]["ansible version"];
           const tooltip = ansibleMetaData.markdown;
           myStatusBarItem.text = ansibleMetaData.eeEnabled
-            ? `$(pass-filled) [EE] ${cachedAnsibleVersion}`
-            : `$(pass-filled) ${cachedAnsibleVersion}`;
+            ? `$(bracket-dot) [EE] ${cachedAnsibleVersion}`
+            : `$(bracket-dot) ${cachedAnsibleVersion}`;
           myStatusBarItem.backgroundColor = "";
           myStatusBarItem.tooltip = tooltip;
 
