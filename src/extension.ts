@@ -33,6 +33,7 @@ import { formatAnsibleMetaData } from "./features/utils/formatAnsibleMetaData";
 import { languageAssociation } from "./features/fileAssociation";
 
 let client: LanguageClient;
+let isActiveClient = false;
 let cachedAnsibleVersion: string;
 
 // status bar item
@@ -91,26 +92,37 @@ export function activate(context: ExtensionContext): void {
   );
 
   // start the client and the server
-  client.start();
+  startClient();
 
   notifyAboutConflicts();
-  client.onReady().then(() => {
+
+  // Update ansible meta data in the statusbar tooltip (client-server)
+  window.onDidChangeActiveTextEditor(updateAnsibleInfo);
+  workspace.onDidOpenTextDocument(updateAnsibleInfo);
+}
+
+const startClient = async () => {
+  try {
+    await client.start();
+    isActiveClient = true;
+
     // If the extensions change, fire this notification again to pick up on any association changes
     extensions.onDidChange(() => {
       notifyAboutConflicts();
     });
-  });
 
-  // Update ansible meta data in the statusbar tooltip (client-server)
-  client.onReady().then(updateAnsibleInfo);
-  window.onDidChangeActiveTextEditor(updateAnsibleInfo);
-  workspace.onDidOpenTextDocument(updateAnsibleInfo);
-}
+    // Update ansible meta data in the statusbar tooltip (client-server)
+    updateAnsibleInfo();
+  } catch (error) {
+    console.error("Language Client initialization failed");
+  }
+};
 
 export function deactivate(): Thenable<void> | undefined {
   if (!client) {
     return undefined;
   }
+  isActiveClient = false;
   return client.stop();
 }
 
@@ -131,7 +143,7 @@ function notifyAboutConflicts(): void {
  * And resync the ansible inventory
  */
 function resyncAnsibleInventory(): void {
-  client.onReady().then(() => {
+  if (isActiveClient) {
     client.onNotification(
       new NotificationType(`resync/ansible-inventory`),
       (event) => {
@@ -139,7 +151,7 @@ function resyncAnsibleInventory(): void {
       }
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
-  });
+  }
 }
 
 /**
@@ -152,7 +164,7 @@ function updateAnsibleInfo(): void {
     return;
   }
 
-  client.onReady().then(() => {
+  if (isActiveClient) {
     myStatusBarItem.tooltip = new MarkdownString(
       ` $(sync~spin) Fetching... `,
       true
@@ -196,5 +208,5 @@ function updateAnsibleInfo(): void {
     client.sendNotification(new NotificationType(`update/ansible-metadata`), [
       activeFileUri,
     ]);
-  });
+  }
 }
