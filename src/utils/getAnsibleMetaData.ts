@@ -51,9 +51,9 @@ export async function getResultsThroughCommandRunner(cmd, arg) {
 
     if (result.stderr) {
       console.log(
-        `cmd '${cmd} ${arg}' has the following error: ${result.stderr}`,
+        `cmd '${cmd} ${arg}' has the following error/warning: ${result.stderr}`,
       );
-      return undefined;
+      return result;
     }
   } catch (error) {
     console.log(
