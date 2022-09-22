@@ -4,6 +4,19 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.14.0
+
+### Minor Changes
+
+- Add feature to dynamically associate yaml files to `ansible` language (#600)
+  @priyamsahoo
+
+### Bugfixes
+
+- Use new location of ansible-lint config JSON Schema (#608) @ssbarnea
+- Fix the display of double `Ansible` in status-bar text (#605) @priyamsahoo
+- Disable python debugger when running external commands (#603) @ssbarnea
+
 ## v0.13.0
 
 ### Minor Changes
