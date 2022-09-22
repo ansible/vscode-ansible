@@ -20,6 +20,15 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.10.2
+
+### Bugfixes
+
+- Fix 'handlers' keyword syntax highlighting and auto-completion (#440)
+  @priyamsahoo
+- Fix missing ansible-lint warning (#438) @priyamsahoo
+- Replace `python` with `python3` in command execution (#430) @priyamsahoo
+
 ## v0.10.1
 
 ### Bugfixes
