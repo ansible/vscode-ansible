@@ -698,6 +698,14 @@ taskKeywords.set(
   "Conditional expression, determines if an iteration of a task is run or not.",
 );
 
+taskKeywords.set(
+  "listen",
+  `Allows handlers to listen on topics that can group multiple handlers.
+
+  NOTE:
+  Applies only to handlers. See [listen](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html#handlers-running-when-notified)`,
+);
+
 export const playExclusiveKeywords = new Map(
   [...playKeywords].filter(
     ([k]) =>
