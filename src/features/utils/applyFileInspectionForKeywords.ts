@@ -28,7 +28,7 @@ export async function applyFileInspectionForKeywords(
       );
 
       if (found) {
-        console.debug("[file-inspection] language set by file inspection");
+        console.log("[file-inspection] language set by file inspection");
         await vscode.languages.setTextDocumentLanguage(
           editor.document,
           "ansible"
