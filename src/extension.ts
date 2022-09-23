@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 /* "stdlib" */
 import * as path from "path";
 import {
