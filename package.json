@@ -432,7 +432,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.10.1",
+    "@ansible/ansible-language-server": "^0.10.2",
     "@types/ini": "^1.3.31",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
@@ -521,7 +521,7 @@
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "0.13.0",
+  "version": "0.14.0",
   "packageManager": "yarn@3.2.1",
   "vsce": {
     "dependencies": false,
