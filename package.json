@@ -109,7 +109,7 @@
         "fileMatch": [
           "molecule/*/molecule.yml"
         ],
-        "url": "https://raw.githubusercontent.com/ansible/schemas/main/f/molecule.json"
+        "url": "https://raw.githubusercontent.com/ansible-community/molecule/main/src/molecule/data/molecule.json"
       },
       {
         "fileMatch": [
