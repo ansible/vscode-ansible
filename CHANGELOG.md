@@ -20,6 +20,12 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v0.10.3
+
+### Bugfixes
+
+- pythonInfo: use python3 instead of python (#445) @clwluvw
+
 ## v0.10.2
 
 ### Bugfixes
