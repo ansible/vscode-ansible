@@ -34,7 +34,7 @@ let isActiveClient = false;
 let cachedAnsibleVersion: string;
 
 // status bar item
-let myStatusBarItem: StatusBarItem;
+let metadataStatusBarItem: StatusBarItem;
 
 export function activate(context: ExtensionContext): void {
   new AnsiblePlaybookRunProvider(context);
@@ -54,11 +54,14 @@ export function activate(context: ExtensionContext): void {
   );
 
   // create a new status bar item that we can manage
-  myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
-  context.subscriptions.push(myStatusBarItem);
+  metadataStatusBarItem = window.createStatusBarItem(
+    StatusBarAlignment.Right,
+    100
+  );
+  context.subscriptions.push(metadataStatusBarItem);
 
-  myStatusBarItem.text = cachedAnsibleVersion;
-  myStatusBarItem.show();
+  metadataStatusBarItem.text = cachedAnsibleVersion;
+  metadataStatusBarItem.show();
 
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
@@ -157,13 +160,13 @@ function resyncAnsibleInventory(): void {
  */
 function updateAnsibleInfoInStatusbar(): void {
   if (window.activeTextEditor?.document.languageId !== "ansible") {
-    myStatusBarItem.hide();
+    metadataStatusBarItem.hide();
     return;
   }
 
   cachedAnsibleVersion = updateAnsibleInfo(
     client,
-    myStatusBarItem,
+    metadataStatusBarItem,
     isActiveClient,
     cachedAnsibleVersion
   );

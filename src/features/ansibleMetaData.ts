@@ -9,7 +9,7 @@ import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
  * and receives notification from the server with ansible meta data associated with the opened file as param
  *
  * @param client Language client
- * @param myStatusBarItem Statusbar item
+ * @param metadataStatusBarItem Statusbar item
  * @param isActiveClient Boolean representing the activation status of the client
  * @param cachedAnsibleVersion String representing the cached ansible version which is updated globally
  *
@@ -17,16 +17,16 @@ import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
  */
 export function updateAnsibleInfo(
   client: LanguageClient,
-  myStatusBarItem: StatusBarItem,
+  metadataStatusBarItem: StatusBarItem,
   isActiveClient: boolean,
   cachedAnsibleVersion: string
 ): string {
   if (isActiveClient) {
-    myStatusBarItem.tooltip = new MarkdownString(
+    metadataStatusBarItem.tooltip = new MarkdownString(
       ` $(sync~spin) Fetching... `,
       true
     );
-    myStatusBarItem.show();
+    metadataStatusBarItem.show();
     client.onNotification(
       new NotificationType(`update/ansible-metadata`),
       (ansibleMetaDataList: any) => {
@@ -36,28 +36,28 @@ export function updateAnsibleInfo(
           cachedAnsibleVersion =
             ansibleMetaData.metaData["ansible information"]["ansible version"];
           const tooltip = ansibleMetaData.markdown;
-          myStatusBarItem.text = ansibleMetaData.eeEnabled
+          metadataStatusBarItem.text = ansibleMetaData.eeEnabled
             ? `$(bracket-dot) [EE] ${cachedAnsibleVersion}`
             : `$(bracket-dot) ${cachedAnsibleVersion}`;
-          myStatusBarItem.backgroundColor = "";
-          myStatusBarItem.tooltip = tooltip;
+          metadataStatusBarItem.backgroundColor = "";
+          metadataStatusBarItem.tooltip = tooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) ${cachedAnsibleVersion}`;
-            myStatusBarItem.backgroundColor = new ThemeColor(
+            metadataStatusBarItem.text = `$(warning) ${cachedAnsibleVersion}`;
+            metadataStatusBarItem.backgroundColor = new ThemeColor(
               "statusBarItem.warningBackground"
             );
           }
 
-          myStatusBarItem.show();
+          metadataStatusBarItem.show();
         } else {
           console.log("Ansible not found in the workspace");
-          myStatusBarItem.text = "$(error) Ansible Info";
-          myStatusBarItem.tooltip = ansibleMetaData.markdown;
-          myStatusBarItem.backgroundColor = new ThemeColor(
+          metadataStatusBarItem.text = "$(error) Ansible Info";
+          metadataStatusBarItem.tooltip = ansibleMetaData.markdown;
+          metadataStatusBarItem.backgroundColor = new ThemeColor(
             "statusBarItem.errorBackground"
           );
-          myStatusBarItem.show();
+          metadataStatusBarItem.show();
         }
       }
     );
