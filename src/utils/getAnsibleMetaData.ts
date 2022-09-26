@@ -119,7 +119,7 @@ async function getPythonInfo() {
   pythonInfo["python version"] = pythonVersionResult.stdout.trim();
 
   const pythonPathResult = await getResultsThroughCommandRunner(
-    "python",
+    "python3",
     '-c "import sys; print(sys.executable)"',
   );
   pythonInfo["python location"] = pythonPathResult.stdout.trim();
