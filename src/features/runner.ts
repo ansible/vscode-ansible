@@ -23,14 +23,14 @@ export class AnsiblePlaybookRunProvider {
         (fileObj) => this.makeCmdRunner()(fileObj)
       )
     );
-    console.debug('Added a "Run Ansible Playbook" command...');
+    console.log('Added a "Run Ansible Playbook" command...');
     this.vsCodeExtCtx.subscriptions.push(
       vscode.commands.registerCommand(
         "extension.ansible-navigator.run",
         (fileObj) => this.makeCmdRunner(true)(fileObj)
       )
     );
-    console.debug('Added a "Run with Ansible Navigator" command...');
+    console.log('Added a "Run with Ansible Navigator" command...');
   }
 
   /**
