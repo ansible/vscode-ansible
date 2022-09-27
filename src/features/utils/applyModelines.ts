@@ -70,7 +70,7 @@ export async function applyModeLines(
 
     if (language && language.length > 0) {
       if (language === "ansible" || language === "yaml") {
-        console.debug("[modelines] language set by modelines");
+        console.log("[modelines] language set by modelines");
         await vscode.languages.setTextDocumentLanguage(
           editor.document,
           language
