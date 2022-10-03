@@ -453,7 +453,7 @@ function testModuleNamesWithoutFQCN(
     it(`should provide completion for ${name}`, async function () {
       //   Update setting to stop using FQCN for module names
       const docSettings = context.documentSettings.get(textDoc.uri);
-      const cachedDefaultSetting = (await docSettings).ansibleLint.enabled;
+      const cachedDefaultSetting = (await docSettings).validation.lint.enabled;
       (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
 
       const actualCompletion = await doCompletion(textDoc, position, context);

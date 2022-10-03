@@ -49,119 +49,110 @@ export class AnsibleLint {
    */
   public async doValidate(
     textDocument: TextDocument,
-  ): Promise<Map<string, Diagnostic[]> | -1> {
+  ): Promise<Map<string, Diagnostic[]>> {
     let diagnostics: Map<string, Diagnostic[]> = new Map();
 
     const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;
     const mountPaths = new Set([workingDirectory]);
     const settings = await this.context.documentSettings.get(textDocument.uri);
 
-    if (!settings.ansibleLint.enabled) {
-      console.debug(
-        "Ansible-lint is disabled. Falling back to ansible syntax-check",
-      );
-      return;
-    } else {
-      let linterArguments = settings.ansibleLint.arguments ?? "";
+    let linterArguments = settings.validation.lint.arguments ?? "";
 
-      // Determine linter config file
-      let ansibleLintConfigPath = linterArguments.match(
-        /(?:^|\s)-c\s*(?<sep>[\s'"])(?<conf>.+?)(?:\k<sep>|$)/,
-      )?.groups?.conf;
-      if (!ansibleLintConfigPath) {
-        // Config file not provided in arguments -> search for one mimicking the
-        // way ansible-lint looks for it, going up the directory structure
-        const ansibleLintConfigFile = await this.findAnsibleLintConfigFile(
-          textDocument.uri,
-        );
-        if (ansibleLintConfigFile) {
-          ansibleLintConfigPath = URI.parse(ansibleLintConfigFile).path;
-          linterArguments = `${linterArguments} -c "${ansibleLintConfigPath}"`;
-          mountPaths.add(path.dirname(ansibleLintConfigPath));
-        }
+    // Determine linter config file
+    let ansibleLintConfigPath = linterArguments.match(
+      /(?:^|\s)-c\s*(?<sep>[\s'"])(?<conf>.+?)(?:\k<sep>|$)/,
+    )?.groups?.conf;
+    if (!ansibleLintConfigPath) {
+      // Config file not provided in arguments -> search for one mimicking the
+      // way ansible-lint looks for it, going up the directory structure
+      const ansibleLintConfigFile = await this.findAnsibleLintConfigFile(
+        textDocument.uri,
+      );
+      if (ansibleLintConfigFile) {
+        ansibleLintConfigPath = URI.parse(ansibleLintConfigFile).path;
+        linterArguments = `${linterArguments} -c "${ansibleLintConfigPath}"`;
+        mountPaths.add(path.dirname(ansibleLintConfigPath));
       }
-      linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
+    }
+    linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
 
-      const docPath = URI.parse(textDocument.uri).path;
-      mountPaths.add(path.dirname(docPath));
+    const docPath = URI.parse(textDocument.uri).path;
+    mountPaths.add(path.dirname(docPath));
 
-      const progressTracker = this.useProgressTracker
-        ? await this.connection.window.createWorkDoneProgress()
-        : {
-            begin: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-            done: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-          };
+    const progressTracker = this.useProgressTracker
+      ? await this.connection.window.createWorkDoneProgress()
+      : {
+          begin: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+          done: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+        };
 
-      const ansibleLintConfigPromise = this.getAnsibleLintConfig(
+    const ansibleLintConfigPromise = this.getAnsibleLintConfig(
+      workingDirectory,
+      ansibleLintConfigPath,
+    );
+
+    progressTracker.begin("ansible-lint", undefined, "Processing files...");
+
+    const commandRunner = new CommandRunner(
+      this.connection,
+      this.context,
+      settings,
+    );
+
+    try {
+      // get Ansible configuration
+      const result = await commandRunner.runCommand(
+        "ansible-lint",
+        `${linterArguments} "${docPath}"`,
         workingDirectory,
-        ansibleLintConfigPath,
+        mountPaths,
       );
 
-      progressTracker.begin("ansible-lint", undefined, "Processing files...");
-
-      const commandRunner = new CommandRunner(
-        this.connection,
-        this.context,
-        settings,
+      diagnostics = this.processReport(
+        result.stdout,
+        await ansibleLintConfigPromise,
+        workingDirectory,
       );
 
-      try {
-        // get Ansible configuration
-        const result = await commandRunner.runCommand(
-          "ansible-lint",
-          `${linterArguments} "${docPath}"`,
-          workingDirectory,
-          mountPaths,
-        );
+      if (result.stderr) {
+        this.connection.console.info(`[ansible-lint] ${result.stderr}`);
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        const execError = error as ExecException & {
+          // according to the docs, these are always available
+          stdout: string;
+          stderr: string;
+        };
 
-        diagnostics = this.processReport(
-          result.stdout,
-          await ansibleLintConfigPromise,
-          workingDirectory,
-        );
-
-        if (result.stderr) {
-          this.connection.console.info(`[ansible-lint] ${result.stderr}`);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          const execError = error as ExecException & {
-            // according to the docs, these are always available
-            stdout: string;
-            stderr: string;
-          };
-
-          if (execError.stdout) {
-            diagnostics = this.processReport(
-              execError.stdout,
-              await ansibleLintConfigPromise,
-              workingDirectory,
-            );
-          } else {
-            if (execError.stderr) {
-              this.connection.console.info(
-                `[ansible-lint] ${execError.stderr}`,
-              );
-            }
-
-            progressTracker.done();
-            this.connection.window.showErrorMessage(execError.message);
-            return -1;
-          }
+        if (execError.stdout) {
+          diagnostics = this.processReport(
+            execError.stdout,
+            await ansibleLintConfigPromise,
+            workingDirectory,
+          );
         } else {
-          const exceptionString = `Exception in AnsibleLint service: ${JSON.stringify(
-            error,
-          )}`;
+          if (execError.stderr) {
+            this.connection.console.info(`[ansible-lint] ${execError.stderr}`);
+          }
 
           progressTracker.done();
-          this.connection.console.error(exceptionString);
-          this.connection.window.showErrorMessage(exceptionString);
-          return -1;
+          this.connection.window.showErrorMessage(execError.message);
+          return;
         }
-      }
+      } else {
+        const exceptionString = `Exception in AnsibleLint service: ${JSON.stringify(
+          error,
+        )}`;
 
-      progressTracker.done();
+        progressTracker.done();
+        this.connection.console.error(exceptionString);
+        this.connection.window.showErrorMessage(exceptionString);
+        return;
+      }
     }
+
+    progressTracker.done();
     return diagnostics;
   }
 

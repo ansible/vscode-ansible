@@ -14,21 +14,6 @@ Toggle usage of fully qualified collection names (FQCN) when inserting module na
 _default value:
 `true`_
 
-- **ansible.ansibleLint.enabled**:
-Toggle usage of ansible-lint \
-_default value:
-`true`_
-
-- **ansible.ansibleLint.path**:
-Path to the ansible-lint executable \
-_default value:
-`ansible-lint`_
-
-- **ansible.ansibleLint.arguments**:
-Optional command line arguments to be appended to ansible-lint invocation \
-_default value:
-`""`_
-
 - **ansible.python.interpreterPath**:
 Path to the python/python3 executable. This settings may be used to make the extension work with ansible and ansible-lint installations in a python virtual environment \
 _default value:
@@ -68,17 +53,6 @@ _default value:
 Extra parameters passed to the container engine command example: &#x27;--net&#x3D;host&#x27; \
 _default value:
 `""`_
-
-- **ansible.completion.provideRedirectModules**:
-Toggle redirected module provider when completing modules \
-_default value:
-`true`_
-
-- **ansible.completion.provideModuleOptionAliases**:
-Toggle alias provider when completing module options \
-_default value:
-`true`_
-
 - **ansible.executionEnvironment.volumeMounts**:
   - **src**: The name of the local volume or path to be mounted within execution environment. \
   _default value:
@@ -90,3 +64,32 @@ _default value:
   _default value:
 `""`_
 
+- **ansible.completion.provideRedirectModules**:
+Toggle redirected module provider when completing modules \
+_default value:
+`true`_
+
+- **ansible.completion.provideModuleOptionAliases**:
+Toggle alias provider when completing module options \
+_default value:
+`true`_
+
+- **ansible.validation.enabled**:
+Toggle validation provider. If enabled and ansible-lint is disabled, validation falls back to ansible-playbook --syntax-check \
+_default value:
+`true`_
+
+- **ansible.validation.lint.enabled**:
+Toggle usage of ansible-lint \
+_default value:
+`true`_
+
+- **ansible.validation.lint.path**:
+Path to the ansible-lint executable \
+_default value:
+`ansible-lint`_
+
+- **ansible.validation.lint.arguments**:
+Optional command line arguments to be appended to ansible-lint invocation \
+_default value:
+`""`_

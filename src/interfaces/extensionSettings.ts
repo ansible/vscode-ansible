@@ -11,18 +11,24 @@ export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
 export interface ExtensionSettingsWithDescription {
   ansible: AnsibleSettingsWithDescription;
-  ansibleLint: AnsibleLintSettingsWithDescription;
   completion: CompletionSettingsWithDescription;
+  validation: ValidationSettingsWithDescription;
   executionEnvironment: ExecutionEnvironmentSettingsWithDescription;
   python: PythonSettingsWithDescription;
 }
 
 export interface ExtensionSettings {
-  ansible: { path: string; useFullyQualifiedCollectionNames: boolean };
-  ansibleLint: { enabled: boolean; path: string; arguments: string };
+  ansible: {
+    path: string;
+    useFullyQualifiedCollectionNames: boolean;
+  };
   completion: {
     provideRedirectModules: boolean;
     provideModuleOptionAliases: boolean;
+  };
+  validation: {
+    enabled: boolean;
+    lint: { enabled: boolean; path: string; arguments: string };
   };
   executionEnvironment: {
     enabled: boolean;
@@ -62,6 +68,7 @@ export interface IVolumeMounts {
   dest: string;
   options: string | undefined;
 }
+
 /**
  * Interface for ansible settings
  */
@@ -72,24 +79,6 @@ interface AnsibleSettingsWithDescription {
   };
   useFullyQualifiedCollectionNames: {
     default: boolean;
-    description: string;
-  };
-}
-
-/**
- * Interface for ansible lint settings
- */
-interface AnsibleLintSettingsWithDescription {
-  enabled: {
-    default: boolean;
-    description: string;
-  };
-  path: {
-    default: string;
-    description: string;
-  };
-  arguments: {
-    default: string;
     description: string;
   };
 }
@@ -119,5 +108,29 @@ interface CompletionSettingsWithDescription {
   provideModuleOptionAliases: {
     default: boolean;
     description: string;
+  };
+}
+
+/**
+ * Interface for validation settings
+ */
+interface ValidationSettingsWithDescription {
+  enabled: {
+    default: boolean;
+    description: string;
+  };
+  lint: {
+    enabled: {
+      default: boolean;
+      description: string;
+    };
+    path: {
+      default: string;
+      description: string;
+    };
+    arguments: {
+      default: string;
+      description: string;
+    };
   };
 }

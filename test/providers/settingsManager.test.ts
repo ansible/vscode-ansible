@@ -39,17 +39,17 @@ describe("get()", () => {
       before(async () => {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, {
-          ansibleLint: { enabled: false },
+          validation: { lint: { enabled: false } },
         });
         context = workspaceManager.getContext("");
         mergedSettings = await context.documentSettings.get("");
       });
       it("should return setting from client when defined", () => {
-        expect(mergedSettings.ansibleLint.enabled).to.equal(false);
+        expect(mergedSettings.validation.lint.enabled).to.equal(false);
       });
       it("should return default value otherwise", () => {
-        expect(mergedSettings.ansibleLint.path).to.equal(
-          context.documentSettings.globalSettings.ansibleLint.path,
+        expect(mergedSettings.validation.lint.path).to.equal(
+          context.documentSettings.globalSettings.validation.lint.path,
         );
       });
     });

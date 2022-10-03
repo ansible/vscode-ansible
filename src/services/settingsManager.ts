@@ -29,18 +29,6 @@ export class SettingsManager {
           "Toggle usage of fully qualified collection names (FQCN) when inserting module names",
       },
     },
-    ansibleLint: {
-      enabled: { default: true, description: "Toggle usage of ansible-lint" },
-      path: {
-        default: "ansible-lint",
-        description: "Path to the ansible-lint executable",
-      },
-      arguments: {
-        default: "",
-        description:
-          "Optional command line arguments to be appended to ansible-lint invocation",
-      },
-    },
     python: {
       interpreterPath: {
         default: "",
@@ -113,6 +101,28 @@ export class SettingsManager {
       provideModuleOptionAliases: {
         default: true,
         description: "Toggle alias provider when completing module options",
+      },
+    },
+    validation: {
+      enabled: {
+        default: true,
+        description:
+          "Toggle validation provider. If enabled and ansible-lint is disabled, validation falls back to ansible-playbook --syntax-check",
+      },
+      lint: {
+        enabled: {
+          default: true,
+          description: "Toggle usage of ansible-lint",
+        },
+        path: {
+          default: "ansible-lint",
+          description: "Path to the ansible-lint executable",
+        },
+        arguments: {
+          default: "",
+          description:
+            "Optional command line arguments to be appended to ansible-lint invocation",
+        },
       },
     },
   };

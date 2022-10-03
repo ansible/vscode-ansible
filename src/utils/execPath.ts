@@ -13,6 +13,6 @@ export function getAnsibleCommandExecPath(
   settings: ExtensionSettings,
 ): string {
   return name === "ansible-lint"
-    ? settings.ansibleLint.path
+    ? settings.validation.lint.path
     : path.join(path.dirname(settings.ansible.path), name);
 }
