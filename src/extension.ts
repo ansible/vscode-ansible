@@ -4,9 +4,7 @@ import {
   commands,
   ExtensionContext,
   extensions,
-  StatusBarItem,
   window,
-  StatusBarAlignment,
   workspace,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
@@ -27,16 +25,11 @@ import {
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
 import { languageAssociation } from "./features/fileAssociation";
-import { updateAnsibleInfo } from "./features/ansibleMetaData";
+import { MetadataManager } from "./features/ansibleMetaData";
 
 let client: LanguageClient;
-let isActiveClient = false;
-let cachedAnsibleVersion: string;
 
-// status bar item
-let metadataStatusBarItem: StatusBarItem;
-
-export function activate(context: ExtensionContext): void {
+export async function activate(context: ExtensionContext): Promise<void> {
   new AnsiblePlaybookRunProvider(context);
 
   // dynamically associate "ansible" language to the yaml file
@@ -52,16 +45,6 @@ export function activate(context: ExtensionContext): void {
       resyncAnsibleInventory
     )
   );
-
-  // create a new status bar item that we can manage
-  metadataStatusBarItem = window.createStatusBarItem(
-    StatusBarAlignment.Right,
-    100
-  );
-  context.subscriptions.push(metadataStatusBarItem);
-
-  metadataStatusBarItem.text = cachedAnsibleVersion;
-  metadataStatusBarItem.show();
 
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
@@ -92,27 +75,28 @@ export function activate(context: ExtensionContext): void {
   );
 
   // start the client and the server
-  startClient();
+  await startClient();
 
   notifyAboutConflicts();
 
-  // Update ansible meta data in the statusbar tooltip (client-server)
-  window.onDidChangeActiveTextEditor(updateAnsibleInfoInStatusbar);
-  workspace.onDidOpenTextDocument(updateAnsibleInfoInStatusbar);
+  // hande metadata status bar
+  let metaData = new MetadataManager(context, client);
+  metaData.updateAnsibleInfoInStatusbar()
+
+  // register ansible meta data in the statusbar tooltip (client-server)
+  window.onDidChangeActiveTextEditor(metaData.updateAnsibleInfoInStatusbar);
+  workspace.onDidOpenTextDocument(metaData.updateAnsibleInfoInStatusbar);
 }
 
 const startClient = async () => {
   try {
     await client.start();
-    isActiveClient = true;
 
     // If the extensions change, fire this notification again to pick up on any association changes
     extensions.onDidChange(() => {
       notifyAboutConflicts();
     });
 
-    // Update ansible meta data in the statusbar tooltip (client-server)
-    updateAnsibleInfoInStatusbar();
   } catch (error) {
     console.error("Language Client initialization failed");
   }
@@ -122,7 +106,6 @@ export function deactivate(): Thenable<void> | undefined {
   if (!client) {
     return undefined;
   }
-  isActiveClient = false;
   return client.stop();
 }
 
@@ -143,7 +126,7 @@ function notifyAboutConflicts(): void {
  * And resync the ansible inventory
  */
 function resyncAnsibleInventory(): void {
-  if (isActiveClient) {
+  if (client.isRunning()) {
     client.onNotification(
       new NotificationType(`resync/ansible-inventory`),
       (event) => {
@@ -154,20 +137,4 @@ function resyncAnsibleInventory(): void {
   }
 }
 
-/**
- * Calls the 'updateAnsibleInfo' function to update the ansible metadata
- * in the statusbar hovering action
- */
-function updateAnsibleInfoInStatusbar(): void {
-  if (window.activeTextEditor?.document.languageId !== "ansible") {
-    metadataStatusBarItem.hide();
-    return;
-  }
 
-  cachedAnsibleVersion = updateAnsibleInfo(
-    client,
-    metadataStatusBarItem,
-    isActiveClient,
-    cachedAnsibleVersion
-  );
-}
