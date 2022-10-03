@@ -79,7 +79,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   notifyAboutConflicts();
 
-  // hande metadata status bar
+  // handle metadata status bar
   const metaData = new MetadataManager(context, client);
   metaData.updateAnsibleInfoInStatusbar();
 
