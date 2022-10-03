@@ -47,6 +47,10 @@ export class MetadataManager {
     this.updateAnsibleInfo();
   }
 
+  /**
+   * Sends notification with active file uri as param to the server
+   * and receives notification from the server with ansible meta data associated with the opened file as param
+   */
   public updateAnsibleInfo(): void {
     if (!this.client.isRunning()) {
       return;
