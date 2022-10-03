@@ -14,7 +14,7 @@ import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
 export class MetadataManager {
   private context;
   private client;
-  private cachedAnsibleVersion: string = "";
+  private cachedAnsibleVersion = "";
   private metadataStatusBarItem: StatusBarItem;
 
   constructor(context: ExtensionContext, client: LanguageClient) {
@@ -26,7 +26,7 @@ export class MetadataManager {
 
   private initialiseStatusBar(): StatusBarItem {
     // create a new status bar item that we can manage
-    let metadataStatusBarItem = window.createStatusBarItem(
+    const metadataStatusBarItem = window.createStatusBarItem(
       StatusBarAlignment.Right,
       100
     );
@@ -103,4 +103,3 @@ export class MetadataManager {
     return;
   }
 }
-

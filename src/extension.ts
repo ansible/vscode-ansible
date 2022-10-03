@@ -80,8 +80,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   notifyAboutConflicts();
 
   // hande metadata status bar
-  let metaData = new MetadataManager(context, client);
-  metaData.updateAnsibleInfoInStatusbar()
+  const metaData = new MetadataManager(context, client);
+  metaData.updateAnsibleInfoInStatusbar();
 
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(metaData.updateAnsibleInfoInStatusbar);
@@ -96,7 +96,6 @@ const startClient = async () => {
     extensions.onDidChange(() => {
       notifyAboutConflicts();
     });
-
   } catch (error) {
     console.error("Language Client initialization failed");
   }
@@ -136,5 +135,3 @@ function resyncAnsibleInventory(): void {
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
   }
 }
-
-
