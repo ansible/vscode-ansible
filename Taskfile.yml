@@ -63,6 +63,7 @@ tasks:
       - .config/requirements.*
       - setup.cfg
       - tools/test-setup.sh
+      - .config/
     generates:
       - out/log/manifest.yml
   build:
