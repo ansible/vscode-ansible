@@ -1,6 +1,6 @@
 alabaster==0.7.12
 ansible-compat==2.2.1
-ansible-core==2.13.4
+ansible-core==2.14.0b2
 ansible-lint==6.8.0b3
 ansible-pygments==0.1.1
 astroid==2.11.6

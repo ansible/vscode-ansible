@@ -27,7 +27,7 @@ jobs:
       JOB_NAME: ${{ matrix.name || matrix.task-name }}
     name: ${{ matrix.name || matrix.task-name }}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
@@ -35,7 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-22.04
         node-version:
           - "12"
         task-name:
@@ -182,7 +182,7 @@ jobs:
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs:
       - test
     steps:

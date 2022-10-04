@@ -1,5 +1,5 @@
 # testing and linting
-ansible-core>=2.13
+ansible-core>=2.14.0.dev0
 ansible-lint>=6.8.0.dev0
 # end-of dependencies for which we allow pre-releases
 click

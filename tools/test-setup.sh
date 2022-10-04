@@ -72,6 +72,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
 fi
+python3 --version
 
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
