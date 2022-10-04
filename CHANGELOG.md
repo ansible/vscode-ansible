@@ -20,6 +20,17 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.0.0
+
+### Minor Changes
+
+- Update settings to disable validation (#448) @priyamsahoo
+
+### Bugfixes
+
+- Fix bug related to diagnostics caching when validation is disabled (#451)
+  @priyamsahoo
+
 ## v0.10.3
 
 ### Bugfixes
