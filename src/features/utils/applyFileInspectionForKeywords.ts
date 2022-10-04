@@ -36,6 +36,6 @@ export async function applyFileInspectionForKeywords(
       }
     }
   } catch (err) {
-    console.error(err);
+    console.error("Error loading yaml file");
   }
 }
