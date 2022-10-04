@@ -1,5 +1,7 @@
 # testing and linting
-ansible-lint>=6.0.2
+ansible-core>=2.13
+ansible-lint>=6.8.0.dev0
+# end-of dependencies for which we allow pre-releases
 click
 lxml
 pip-tools
@@ -11,7 +13,7 @@ mypy  # vscode integration
 pylint  # vscode integration
 # docs
 linkify-it-py>=2.0.0  # myst-parser extra
-MarkupSafe<2.1 # see https://github.com/pallets/jinja/issues/1585
+MarkupSafe
 myst-parser >= 0.18.0
 setuptools-scm >= 6.0.1
 Sphinx >= 5.0.2

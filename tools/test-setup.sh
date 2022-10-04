@@ -166,10 +166,10 @@ fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
-python3 -m pip install -q -U pip pip-tools
+python3 -m pip install -q -U pip pip-tools setuptools wheel
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    python3 -m pip install -q \
+    python3 -m pip install \
         -c .config/requirements.txt -r .config/requirements.in
 fi
 
