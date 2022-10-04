@@ -106,7 +106,7 @@ function testAnsibleLintErrors(
         },
         {
           severity: 1,
-          message: "Use FQCN for builtin actions",
+          message: "Use FQCN for builtin module actions",
           range: {
             start: { line: 14, character: 0 } as Position,
             end: {
@@ -119,6 +119,18 @@ function testAnsibleLintErrors(
         {
           severity: 1,
           message: "Commands should not change things if nothing needs doing",
+          range: {
+            start: { line: 14, character: 0 } as Position,
+            end: {
+              line: 14,
+              character: integer.MAX_VALUE,
+            } as Position,
+          },
+          source: "Ansible",
+        },
+        {
+          severity: 1,
+          message: "Avoid using free-form",
           range: {
             start: { line: 14, character: 0 } as Position,
             end: {

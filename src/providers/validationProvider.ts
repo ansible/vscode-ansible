@@ -45,6 +45,7 @@ export async function doValidate(
       const blankDiagnostics = new Map<string, Diagnostic[]>();
       blankDiagnostics.set(textDocument.uri, []);
       validationManager.processDiagnostics(textDocument.uri, blankDiagnostics);
+      validationManager.cacheDiagnostics(textDocument.uri, blankDiagnostics);
       return blankDiagnostics;
     }
 
