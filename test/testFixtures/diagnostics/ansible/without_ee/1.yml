@@ -1,4 +1,4 @@
-- name: play name
+- name: Play name
   hosts: localhost
   tasks:
     - ansible.builtin.debug:

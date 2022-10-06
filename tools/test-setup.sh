@@ -169,7 +169,7 @@ fi
 python3 -m pip install -q -U pip
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    python3 -m pip install -q \
+    python3 -m pip install \
         -c .config/requirements.txt -r .config/requirements.in
 fi
 

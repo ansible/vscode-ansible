@@ -25,7 +25,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         await testDiagnostics(docUri1, [
           {
             severity: 0,
-            message: "Ansible syntax check failed",
+            message: "Failed to load YAML file",
             range: new vscode.Range(
               new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE)
