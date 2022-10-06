@@ -57,14 +57,14 @@ export function testDiagnosticsYAMLWithoutEE(): void {
 
     describe("YAML diagnostics in the absence of ansible-lint", () => {
       before(async () => {
-        await updateSettings("ansibleLint.enabled", false);
+        await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
       });
 
       after(async () => {
-        await updateSettings("ansibleLint.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
       });
 
       it("should provide diagnostics with YAML validation (with --syntax-check)", async () => {

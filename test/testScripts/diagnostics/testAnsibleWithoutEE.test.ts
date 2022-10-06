@@ -60,14 +60,14 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
 
     describe("Diagnostic test with ansible-syntax-check", () => {
       before(async () => {
-        await updateSettings("ansibleLint.enabled", false);
+        await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
       });
 
       after(async () => {
-        await updateSettings("ansibleLint.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
       });
 
       it("should return no diagnostics", async function () {
