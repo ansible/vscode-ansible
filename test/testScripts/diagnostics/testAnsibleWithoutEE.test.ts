@@ -99,5 +99,27 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         ]);
       });
     });
+
+    describe("Diagnostic test for no diagnostics", () => {
+      before(async () => {
+        await updateSettings("validation.enabled", false);
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+      });
+
+      after(async () => {
+        await updateSettings("validation.enabled", true); // Revert back the setting to default
+      });
+
+      it("should return no diagnostics even when `hosts` key in missing", async function () {
+        await activate(docUri2);
+        await vscode.commands.executeCommand("workbench.action.files.save");
+
+        await sleep(2000); // Wait for the diagnostics to compute on this file
+
+        await testDiagnostics(docUri2, []);
+      });
+    });
   });
 }

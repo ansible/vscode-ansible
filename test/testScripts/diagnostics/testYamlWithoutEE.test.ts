@@ -107,5 +107,27 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         ]);
       });
     });
+
+    describe("YAML diagnostics when diagnostics is disabled", () => {
+      before(async () => {
+        await updateSettings("validation.enabled", false);
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+      });
+
+      after(async () => {
+        await updateSettings("validation.enabled", true); // Revert back the setting to default
+      });
+
+      it("should provide no diagnostics with invalid YAML file", async () => {
+        await activate(docUri1);
+        await vscode.commands.executeCommand("workbench.action.files.save");
+
+        await sleep(2000); // Wait for the diagnostics to compute on this file
+
+        await testDiagnostics(docUri1, []);
+      });
+    });
   });
 }
