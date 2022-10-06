@@ -143,41 +143,85 @@
       "type": "object",
       "title": "Ansible",
       "properties": {
+        "ansibleServer.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VSCode and the ansible language server.",
+          "order": 0
+        },
         "ansible.ansible.path": {
           "scope": "machine-overridable",
           "type": "string",
           "default": "ansible",
-          "description": "Path to the ansible executable. All subcommands are expected to have adjacent locations."
+          "description": "Path to the ansible executable. All subcommands are expected to have adjacent locations.",
+          "order": 1
         },
         "ansible.ansible.useFullyQualifiedCollectionNames": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
-          "description": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary."
+          "description": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
+          "order": 2
         },
-        "ansible.ansibleLint.arguments": {
-          "scope": "resource",
-          "type": "string",
-          "default": "",
-          "description": "Command line arguments to be passed to ansible-lint."
-        },
-        "ansible.ansibleLint.enabled": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "description": "Enable linting with ansible-lint on document open/save."
-        },
-        "ansible.ansibleLint.path": {
+        "ansible.python.interpreterPath": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "ansible-lint",
-          "description": "Path to the ansible-lint executable."
+          "default": "python3",
+          "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
+          "order": 3
+        },
+        "ansible.python.activationScript": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored.",
+          "order": 4
         },
         "ansible.ansibleNavigator.path": {
           "default": "ansible-navigator",
           "description": "%configuration.navigate.executablePath%",
           "scope": "machine-overridable",
-          "type": "string"
+          "type": "string",
+          "order": 5
+        },
+        "ansible.validation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Toggles the validation provider.",
+          "order": 6
+        },
+        "ansible.validation.lint.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "description": "Enable linting with ansible-lint on document open/save.",
+          "order": 7
+        },
+        "ansible.validation.lint.path": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "ansible-lint",
+          "description": "Path to the ansible-lint executable.",
+          "order": 8
+        },
+        "ansible.validation.lint.arguments": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "description": "Command line arguments to be passed to ansible-lint.",
+          "order": 9
+        },
+        "ansible.executionEnvironment.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": false,
+          "description": "Enable or disable the use of an execution environment.",
+          "order": 10
         },
         "ansible.executionEnvironment.containerEngine": {
           "scope": "resource",
@@ -188,31 +232,29 @@
             "docker"
           ],
           "default": "auto",
-          "description": "Specify the container engine (auto=podman then docker)."
-        },
-        "ansible.executionEnvironment.enabled": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": false,
-          "description": "Enable or disable the use of an execution environment."
-        },
-        "ansible.executionEnvironment.image": {
-          "scope": "resource",
-          "type": "string",
-          "default": "quay.io/ansible/creator-ee:latest",
-          "description": "Specify the name of the execution environment image."
+          "description": "Specify the container engine (auto=podman then docker).",
+          "order": 11
         },
         "ansible.executionEnvironment.containerOptions": {
           "scope": "resource",
           "type": "string",
           "default": "",
-          "description": "Extra parameters passed to the container engine command example: '--net=host'"
+          "description": "Extra parameters passed to the container engine command example: '--net=host'",
+          "order": 12
+        },
+        "ansible.executionEnvironment.image": {
+          "scope": "resource",
+          "type": "string",
+          "default": "quay.io/ansible/creator-ee:latest",
+          "description": "Specify the name of the execution environment image.",
+          "order": 13
         },
         "ansible.executionEnvironment.pull.arguments": {
           "scope": "resource",
           "type": "string",
           "default": "",
-          "description": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. '–-tls-verify=false'"
+          "description": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. '–-tls-verify=false'",
+          "order": 14
         },
         "ansible.executionEnvironment.pull.policy": {
           "scope": "resource",
@@ -224,7 +266,8 @@
             "tag"
           ],
           "default": "missing",
-          "description": "Specify the image pull policy.\nalways: Always pull the image when extension is activated or reloaded\nmissing: Pull if not locally available\nnever: Never pull the image\ntag: If the image tag is 'latest', always pull the image, otherwise pull if not locally available"
+          "description": "Specify the image pull policy.\nalways: Always pull the image when extension is activated or reloaded\nmissing: Pull if not locally available\nnever: Never pull the image\ntag: If the image tag is 'latest', always pull the image, otherwise pull if not locally available",
+          "order": 15
         },
         "ansible.executionEnvironment.volumeMounts": {
           "scope": "resource",
@@ -245,29 +288,8 @@
                 "description": "The field is optional, and is a comma-separated list of options, such as `ro,Z`"
               }
             }
-          }
-        },
-        "ansible.python.activationScript": {
-          "scope": "machine-overridable",
-          "type": "string",
-          "default": "",
-          "description": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored."
-        },
-        "ansible.python.interpreterPath": {
-          "scope": "machine-overridable",
-          "type": "string",
-          "default": "python3",
-          "description": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
-        },
-        "ansibleServer.trace.server": {
-          "type": "string",
-          "enum": [
-            "off",
-            "messages",
-            "verbose"
-          ],
-          "default": "off",
-          "description": "Traces the communication between VSCode and the ansible language server."
+          },
+          "order": 16
         }
       }
     },
@@ -432,7 +454,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^0.10.3",
+    "@ansible/ansible-language-server": "^1.0.0",
     "@types/ini": "^1.3.31",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
