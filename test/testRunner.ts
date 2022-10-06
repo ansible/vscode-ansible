@@ -13,6 +13,17 @@ export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   "common",
   "collections"
 );
+const PRETEST_ERR_RC = 2;
+
+// display ansible-lint version and exit testing if ansible-lint is absent
+const command = "ansible-lint --version";
+try {
+  const result = cp.execSync(command);
+  console.info(`Detected: ${result}`);
+} catch (e) {
+  console.error(`error: test requisites not met, '${command}' returned ${e}`);
+  process.exit(PRETEST_ERR_RC);
+}
 
 async function main(): Promise<void> {
   try {

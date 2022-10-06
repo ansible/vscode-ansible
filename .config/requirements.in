@@ -1,5 +1,5 @@
 ansible-core>=2.13
-ansible-lint>=6.2.2
+ansible-lint>=6.8.0.dev0
 mypy # used by vscode
 pip-tools>=6.6.2
 pre-commit>=2.19
