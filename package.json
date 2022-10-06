@@ -192,7 +192,7 @@
         "ansible.validation.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Toggles the validation provider.",
+          "description": "Toggles the validation provider. If the enabled it will run all the validation providers that are individually enabled, for example if 'ansible.validation.lint.enabled' is 'true' it will run ansible-lint. If none of the provider is enabled it runs ansible-playbook --syntax-check` to provide basic validations.",
           "order": 6
         },
         "ansible.validation.lint.enabled": {
