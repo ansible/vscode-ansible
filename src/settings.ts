@@ -20,7 +20,9 @@ export class SettingsManager {
       "ansible.executionEnvironment"
     );
     this.settings = {
-      activationScript: ansibleSettings.get("python.activationScript") as string,
+      activationScript: ansibleSettings.get(
+        "python.activationScript"
+      ) as string,
       interpreterPath: ansibleSettings.get("python.interpreterPath") as string,
       executionEnvironment: {
         enabled: eeSettings.get("enabled", false),

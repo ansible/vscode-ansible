@@ -4,7 +4,7 @@ export type IContainerEngine = "auto" | "podman" | "docker";
 
 export interface ExtensionSettings {
   activationScript: string;
-  interpreterPath: string
+  interpreterPath: string;
   executionEnvironment: ExecutionEnvironmentSettings;
 }
 
