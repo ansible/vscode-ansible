@@ -25,7 +25,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         await testDiagnostics(docUri1, [
           {
             severity: 0,
-            message: "Ansible syntax check failed",
+            message: "Failed to load YAML file",
             range: new vscode.Range(
               new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE)
@@ -57,14 +57,14 @@ export function testDiagnosticsYAMLWithoutEE(): void {
 
     describe("YAML diagnostics in the absence of ansible-lint", () => {
       before(async () => {
-        await updateSettings("ansibleLint.enabled", false);
+        await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
       });
 
       after(async () => {
-        await updateSettings("ansibleLint.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
       });
 
       it("should provide diagnostics with YAML validation (with --syntax-check)", async () => {
@@ -105,6 +105,28 @@ export function testDiagnosticsYAMLWithoutEE(): void {
             source: "Ansible [YAML]",
           },
         ]);
+      });
+    });
+
+    describe("YAML diagnostics when diagnostics is disabled", () => {
+      before(async () => {
+        await updateSettings("validation.enabled", false);
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+      });
+
+      after(async () => {
+        await updateSettings("validation.enabled", true); // Revert back the setting to default
+      });
+
+      it("should provide no diagnostics with invalid YAML file", async () => {
+        await activate(docUri1);
+        await vscode.commands.executeCommand("workbench.action.files.save");
+
+        await sleep(2000); // Wait for the diagnostics to compute on this file
+
+        await testDiagnostics(docUri1, []);
       });
     });
   });

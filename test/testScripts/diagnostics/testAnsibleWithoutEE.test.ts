@@ -47,7 +47,8 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await testDiagnostics(docUri2, [
           {
             severity: 0,
-            message: "Ansible syntax check failed",
+            message:
+              "Unexpected error code 4 from execution of: ansible-playbook --syntax-check",
             range: new vscode.Range(
               new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE)
@@ -60,14 +61,14 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
 
     describe("Diagnostic test with ansible-syntax-check", () => {
       before(async () => {
-        await updateSettings("ansibleLint.enabled", false);
+        await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
       });
 
       after(async () => {
-        await updateSettings("ansibleLint.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
       });
 
       it("should return no diagnostics", async function () {
@@ -96,6 +97,28 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
             source: "Ansible",
           },
         ]);
+      });
+    });
+
+    describe("Diagnostic test for no diagnostics", () => {
+      before(async () => {
+        await updateSettings("validation.enabled", false);
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+      });
+
+      after(async () => {
+        await updateSettings("validation.enabled", true); // Revert back the setting to default
+      });
+
+      it("should return no diagnostics even when `hosts` key in missing", async function () {
+        await activate(docUri2);
+        await vscode.commands.executeCommand("workbench.action.files.save");
+
+        await sleep(2000); // Wait for the diagnostics to compute on this file
+
+        await testDiagnostics(docUri2, []);
       });
     });
   });
