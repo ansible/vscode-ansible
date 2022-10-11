@@ -42,11 +42,14 @@ noheading
 npmrc
 overridable
 ovsx
+parseable
 piptools
 pipx
 preid
 preinstall
 projectuser
+PYTHONBREAKPOINT
+PYTHONHOME
 pyparsing
 reindent
 reindented
