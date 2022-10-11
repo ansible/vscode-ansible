@@ -249,9 +249,6 @@ export class ExecutionEnvironment {
     // ensure output is parseable (no ANSI)
     containerCommand.push("-e", "ANSIBLE_FORCE_COLOR=0");
 
-    // pass temporary location for ansible to use within the container.
-    containerCommand.push("-e", "ANSIBLE_LOCAL_TEMP=./.ansible/tmp");
-
     if (this._container_engine === "podman") {
       // container namespace stuff
       containerCommand.push("--group-add=root");
@@ -447,7 +444,6 @@ export class ExecutionEnvironment {
         }
       }
       command += ` -e ANSIBLE_FORCE_COLOR=0 `; // ensure output is parseable (no ANSI)
-      command += ` -e ANSIBLE_LOCAL_TEMP=./.ansible/tmp `; // ensure temp location for ansible
       if (
         this.settingsContainerOptions &&
         this.settingsContainerOptions !== ""
