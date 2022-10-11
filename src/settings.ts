@@ -7,7 +7,7 @@ export class SettingsManager {
 
   constructor() {
     this.initialize();
-    console.log("Initialiased extension settings");
+    console.log("Initialized extension settings");
   }
 
   /**
@@ -41,7 +41,7 @@ export class SettingsManager {
 
   public reinitialize(): void {
     this.initialize();
-    console.log("Reinitialiased extension settings");
+    console.log("Reinitialized extension settings");
     return;
   }
 }
