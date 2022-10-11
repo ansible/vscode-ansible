@@ -154,11 +154,13 @@ export class AnsiblePlaybookRunProvider {
    * @param argv Arguments to the `ansible-playbook` command.
    */
   private invokeViaAnsiblePlaybook(argv: string[]) {
-    let command: string;
-    let runEnv: NodeJS.ProcessEnv | undefined;
     const runExecutable = this.ansiblePlaybookExecutablePath;
     const cmdArgs = argv.map((arg) => arg).join(" ");
-    [command, runEnv] = withInterpreter(this.settings, runExecutable, cmdArgs);
+    const [command, runEnv] = withInterpreter(
+      this.settings,
+      runExecutable,
+      cmdArgs
+    );
     this.invokeInTerminal(command, runEnv);
   }
 
@@ -167,12 +169,10 @@ export class AnsiblePlaybookRunProvider {
    * @param argv Arguments to the `ansible-navigator run` command.
    */
   private invokeViaAnsibleNavigator(argv: string[]) {
-    let command: string;
-    let runEnv: NodeJS.ProcessEnv | undefined;
     const runExecutable = this.ansibleNavigatorExecutablePath;
     const cmdArgs = argv.map((arg) => arg).join(" ");
     const runCmdArgs = `run ${cmdArgs}`;
-    [command, runEnv] = withInterpreter(
+    const [command, runEnv] = withInterpreter(
       this.settings,
       runExecutable,
       runCmdArgs
