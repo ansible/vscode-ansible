@@ -1,15 +1,24 @@
 /* "stdlib" */
 import * as vscode from "vscode";
 
+/* local */
+import { withInterpreter } from "./utils/commandRunner";
+import { ExtensionSettings } from "../interfaces/extensionSettings";
+import { getContainerEngine } from "../utils/executionEnvironment";
+
 /**
  * A set of commands and context menu items for running Ansible playbooks using
  * `ansible-navigator run` and `ansible-playbook` commands.
  */
 export class AnsiblePlaybookRunProvider {
-  private disposableTerminal: vscode.Terminal | undefined;
-  constructor(private vsCodeExtCtx: vscode.ExtensionContext) {
-    // this.disposableTerminal = this.makeTerminal();
+  private settings: ExtensionSettings;
+
+  constructor(
+    private vsCodeExtCtx: vscode.ExtensionContext,
+    settings: ExtensionSettings
+  ) {
     this.configureCommands();
+    this.settings = settings;
   }
 
   /**
@@ -45,6 +54,7 @@ export class AnsiblePlaybookRunProvider {
       ? this.invokeViaAnsibleNavigator.bind(this)
       : this.invokeViaAnsiblePlaybook.bind(this);
     return (...fileObj: vscode.Uri[] | undefined[]) => {
+      const commandLineArgs: string[] = [];
       const playbookFsPath = extractTargetFsPath(...fileObj);
       if (typeof playbookFsPath === "undefined") {
         let tool_name = "ansible-playbook";
@@ -56,14 +66,40 @@ export class AnsiblePlaybookRunProvider {
         );
         return;
       }
+      commandLineArgs.push(playbookFsPath);
+      if (useNavigator) {
+        this.addEEArgs(commandLineArgs);
+      }
       console.debug(
         `Got a request to run ansible-${
           useNavigator ? "navigator" : "playbook"
         } against`,
         playbookFsPath
       );
-      runPlaybook([playbookFsPath]);
+      runPlaybook(commandLineArgs);
     };
+  }
+
+  private addEEArgs(commandLineArgs: string[]): void {
+    const eeSettings = this.settings.executionEnvironment;
+    if (!eeSettings.enabled) {
+      return;
+    }
+    commandLineArgs.push("--ee true");
+    commandLineArgs.push(
+      `--ce ${getContainerEngine(eeSettings.containerEngine)}`
+    );
+    commandLineArgs.push(`--eei ${eeSettings.image}`);
+    if (eeSettings.containerOptions !== "") {
+      commandLineArgs.push(`--co ${eeSettings.containerOptions}`);
+    }
+    eeSettings.volumeMounts.forEach((volumeMount) => {
+      let mountPath = `${volumeMount.src}:${volumeMount.dest}`;
+      if (volumeMount.options !== undefined) {
+        mountPath += `:${volumeMount.options}`;
+      }
+      commandLineArgs.push(`--eev ${mountPath}`);
+    });
   }
 
   /**
@@ -86,29 +122,31 @@ export class AnsiblePlaybookRunProvider {
   /**
    * A property representing the target terminal for running playbooks in.
    */
-  private get terminal(): vscode.Terminal {
-    if (typeof this.disposableTerminal === "undefined") {
-      const terminal = vscode.window.createTerminal("Ansible Terminal");
-      this.vsCodeExtCtx.subscriptions.push(terminal);
-      this.vsCodeExtCtx.subscriptions.push(
-        vscode.window.onDidCloseTerminal((term: vscode.Terminal) => {
-          if (term !== terminal) {
-            return;
-          }
-          this.disposableTerminal = undefined;
-        })
-      );
-      this.disposableTerminal = terminal;
-    }
-    return this.disposableTerminal as vscode.Terminal;
+  private createTerminal(
+    runEnv: NodeJS.ProcessEnv | undefined
+  ): vscode.Terminal {
+    const terminal = vscode.window.createTerminal({
+      name: "Ansible Terminal",
+      env: runEnv,
+    });
+    this.vsCodeExtCtx.subscriptions.push(terminal);
+    this.vsCodeExtCtx.subscriptions.push(
+      vscode.window.onDidCloseTerminal((term: vscode.Terminal) => {
+        if (term !== terminal) {
+          return;
+        }
+      })
+    );
+    return terminal as vscode.Terminal;
   }
 
   /**
    * A helper method for executing commands in terminal.
    */
-  private invokeInTerminal(cmd: string) {
-    this.terminal.show();
-    this.terminal.sendText(cmd);
+  private invokeInTerminal(cmd: string, runEnv: NodeJS.ProcessEnv | undefined) {
+    const newTerminal = this.createTerminal(runEnv);
+    newTerminal.show();
+    newTerminal.sendText(cmd);
   }
 
   /**
@@ -117,8 +155,13 @@ export class AnsiblePlaybookRunProvider {
    */
   private invokeViaAnsiblePlaybook(argv: string[]) {
     const runExecutable = this.ansiblePlaybookExecutablePath;
-    const cmdArgs = argv.map((arg) => `'${arg}'`).join(" ");
-    this.invokeInTerminal(`${runExecutable} ${cmdArgs}`);
+    const cmdArgs = argv.map((arg) => arg).join(" ");
+    const [command, runEnv] = withInterpreter(
+      this.settings,
+      runExecutable,
+      cmdArgs
+    );
+    this.invokeInTerminal(command, runEnv);
   }
 
   /**
@@ -127,8 +170,14 @@ export class AnsiblePlaybookRunProvider {
    */
   private invokeViaAnsibleNavigator(argv: string[]) {
     const runExecutable = this.ansibleNavigatorExecutablePath;
-    const cmdArgs = argv.map((arg) => `'${arg}'`).join(" ");
-    this.invokeInTerminal(`${runExecutable} run ${cmdArgs}`);
+    const cmdArgs = argv.map((arg) => arg).join(" ");
+    const runCmdArgs = `run ${cmdArgs}`;
+    const [command, runEnv] = withInterpreter(
+      this.settings,
+      runExecutable,
+      runCmdArgs
+    );
+    this.invokeInTerminal(command, runEnv);
   }
 }
 

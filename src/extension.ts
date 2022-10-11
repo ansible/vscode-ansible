@@ -19,6 +19,7 @@ import {
 } from "vscode-languageclient/node";
 
 /* local */
+import { SettingsManager } from "./settings";
 import { AnsiblePlaybookRunProvider } from "./features/runner";
 import {
   getConflictingExtensions,
@@ -30,8 +31,6 @@ import { MetadataManager } from "./features/ansibleMetaData";
 let client: LanguageClient;
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  new AnsiblePlaybookRunProvider(context);
-
   // dynamically associate "ansible" language to the yaml file
   languageAssociation(context);
 
@@ -79,6 +78,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   notifyAboutConflicts();
 
+  // Initialize settings
+  const extSettings = new SettingsManager();
+
+  new AnsiblePlaybookRunProvider(context, extSettings.settings);
+
   // handle metadata status bar
   const metaData = new MetadataManager(context, client);
   metaData.updateAnsibleInfoInStatusbar();
@@ -86,6 +90,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(metaData.updateAnsibleInfoInStatusbar);
   workspace.onDidOpenTextDocument(metaData.updateAnsibleInfoInStatusbar);
+  workspace.onDidChangeConfiguration(() => extSettings.reinitialize());
 }
 
 const startClient = async () => {
