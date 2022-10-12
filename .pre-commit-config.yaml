@@ -80,6 +80,7 @@ repos:
           (?x)^(
             .vscode/settings.json|
             .yarn/.*|
+            CHANGELOG.md|
             yarn.lock
           )$
   - repo: https://github.com/adrienverge/yamllint.git
@@ -100,6 +101,8 @@ repos:
         exclude: >
           (?x)^(
             .yarn/.*|
+            .config/dictionary.txt|
+            CHANGELOG.md|
             yarn.lock
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
