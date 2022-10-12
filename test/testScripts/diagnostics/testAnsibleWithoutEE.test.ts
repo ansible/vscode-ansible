@@ -33,7 +33,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
               new vscode.Position(3, 0),
               new vscode.Position(3, integer.MAX_VALUE)
             ),
-            source: "Ansible",
+            source: "ansible-lint",
           },
         ]);
       });
@@ -53,7 +53,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
               new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE)
             ),
-            source: "Ansible",
+            source: "ansible-lint",
           },
         ]);
       });
