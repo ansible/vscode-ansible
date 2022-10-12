@@ -83,7 +83,10 @@ export class CommandRunner {
     executable: string,
   ): Promise<string> | undefined {
     try {
-      const executablePath = await this.runCommand("which", executable);
+      const executablePath = await this.runCommand(
+        "command",
+        `-v ${executable}`,
+      );
       return executablePath.stdout.trim();
     } catch (error) {
       console.log(error);

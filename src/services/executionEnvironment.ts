@@ -307,7 +307,7 @@ export class ExecutionEnvironment {
     if (this._container_engine === "auto") {
       for (const ce of ["podman", "docker"]) {
         try {
-          child_process.execSync(`which ${ce}`, {
+          child_process.execSync(`command -v ${ce}`, {
             encoding: "utf-8",
           });
         } catch (error) {
@@ -320,7 +320,7 @@ export class ExecutionEnvironment {
       }
     } else {
       try {
-        child_process.execSync(`which ${this._container_engine}`, {
+        child_process.execSync(`command -v ${this._container_engine}`, {
           encoding: "utf-8",
         });
       } catch (error) {

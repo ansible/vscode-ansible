@@ -27,7 +27,7 @@ jobs:
       JOB_NAME: ${{ matrix.name || matrix.task-name }}
     name: ${{ matrix.name || matrix.task-name }}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
@@ -35,7 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - ubuntu-22.04
+          - ubuntu-20.04
         node-version:
           - "12"
         task-name:
@@ -165,6 +165,26 @@ jobs:
       - name: task ${{ matrix.task-name }}
         run: task -v ${{ matrix.task-name }}
 
+      - name: Gather logs
+        if: ${{ always() }}
+        run: |
+          mkdir -p out/vscode
+          cp -r ../vscode-ansible/out/userdata/logs/* out/vscode || true
+
+      - name: Upload test logs
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: logs-${{ matrix.os }}-${{ matrix.task-name }}.zip
+          path: |
+            out/vscode
+            out/e2eTestReport
+            out/log
+            out/test-resources/settings/logs
+            out/userdata/logs
+          if-no-files-found: ignore
+          retention-days: 15
+
       - name: Stop services
         if: "contains(matrix.os, 'macos')"
         # Stopping podman machine is needed or caching it will fail
@@ -182,7 +202,7 @@ jobs:
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     needs:
       - test
     steps:

@@ -117,9 +117,9 @@ tasks:
     deps:
       - setup
     cmds:
-      - "{{.ENGINE}} pull quay.io/ansible/creator-ee:latest"
+      - "{{.ENGINE}} pull quay.io/ansible/creator-ee:v0.9.2"
       # Tests that container engine is functional and that we have the image:
-      - "{{.ENGINE}} run -i quay.io/ansible/creator-ee:latest ansible-lint --version"
+      - "{{.ENGINE}} run -i quay.io/ansible/creator-ee:v0.9.2 ansible-lint --version"
       - >
         source $VIRTUAL_ENV/bin/activate &&
         command -v ansible-lint &&

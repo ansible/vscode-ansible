@@ -140,7 +140,7 @@ async function getAnsibleLintInfo() {
   }
 
   const ansibleLintPathResult = await getResultsThroughCommandRunner(
-    "which",
+    "command -v",
     "ansible-lint",
   );
 

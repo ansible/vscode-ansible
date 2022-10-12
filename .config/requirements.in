@@ -1,6 +1,6 @@
 # testing and linting
-ansible-core>=2.14.0.dev0
-ansible-lint>=6.8.0.dev0
+ansible-core>=2.13.0b2
+ansible-lint>=6.8.1
 # end-of dependencies for which we allow pre-releases
 click
 lxml
