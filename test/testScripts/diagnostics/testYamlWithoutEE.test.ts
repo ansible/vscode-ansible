@@ -30,7 +30,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
               new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE)
             ),
-            source: "Ansible",
+            source: "ansible-lint",
           },
           {
             severity: 0,
