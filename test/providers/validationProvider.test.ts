@@ -90,7 +90,7 @@ function testAnsibleLintErrors(
               character: integer.MAX_VALUE,
             } as Position,
           },
-          source: "Ansible",
+          source: "ansible-lint",
         },
         {
           severity: 1,
@@ -102,7 +102,7 @@ function testAnsibleLintErrors(
               character: integer.MAX_VALUE,
             } as Position,
           },
-          source: "Ansible",
+          source: "ansible-lint",
         },
         {
           severity: 1,
@@ -114,7 +114,7 @@ function testAnsibleLintErrors(
               character: integer.MAX_VALUE,
             } as Position,
           },
-          source: "Ansible",
+          source: "ansible-lint",
         },
         {
           severity: 1,
@@ -126,7 +126,7 @@ function testAnsibleLintErrors(
               character: integer.MAX_VALUE,
             } as Position,
           },
-          source: "Ansible",
+          source: "ansible-lint",
         },
         {
           severity: 1,
@@ -138,7 +138,7 @@ function testAnsibleLintErrors(
               character: integer.MAX_VALUE,
             } as Position,
           },
-          source: "Ansible",
+          source: "ansible-lint",
         },
       ],
     },
