@@ -20,6 +20,14 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.0.1
+
+### Bugfixes
+
+- Add documentation link for violated ansible-lint rules (#461) @priyamsahoo
+- Support for FQCN with more than 3 elements (#449) @fredericgiquel
+- Replace `which` with `command -v` (#463) @priyamsahoo
+
 ## v1.0.0
 
 ### Minor Changes
