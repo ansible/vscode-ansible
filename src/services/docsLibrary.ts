@@ -164,7 +164,7 @@ export class DocsLibrary {
     contextPath: Node[] | undefined,
   ) {
     const candidateFqcns = [];
-    if (searchText.split(".").length === 3) {
+    if (searchText.split(".").length >= 3) {
       candidateFqcns.push(searchText); // try searching as-is (FQCN match)
     } else {
       candidateFqcns.push(`ansible.builtin.${searchText}`); // try searching built-in

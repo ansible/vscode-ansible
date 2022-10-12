@@ -34,8 +34,10 @@ export async function findDocumentation(
     case "collection":
       files = await globArray([
         `${dir}/ansible_collections/*/*/plugins/modules/*.py`,
+        `${dir}/ansible_collections/*/*/plugins/modules/**/*.py`,
         `!${dir}/ansible_collections/*/*/plugins/modules/_*.py`,
-      ]);
+        `!${dir}/ansible_collections/*/*/plugins/modules/**/_*.py`,
+      ]).filter((item) => !fs.lstatSync(item).isSymbolicLink());
       break;
     case "collection_doc_fragment":
       files = await globArray([
@@ -57,8 +59,16 @@ export async function findDocumentation(
       case "collection":
       case "collection_doc_fragment":
         const pathArray = file.split(path.sep);
-        namespace = pathArray[pathArray.length - 5];
-        collection = pathArray[pathArray.length - 4];
+        const pluginsDirIndex = pathArray.indexOf("plugins");
+        namespace = pathArray[pluginsDirIndex - 2];
+        collection = pathArray[pluginsDirIndex - 1];
+        if (pathArray.length > pluginsDirIndex + 3) {
+          const subCollectionArray = pathArray.slice(
+            pluginsDirIndex + 2,
+            pathArray.length - 1,
+          );
+          collection = `${collection}.${subCollectionArray.join(".")}`;
+        }
         break;
     }
 

@@ -243,6 +243,12 @@ function testModuleNames(
       triggerCharacter: "org_1.coll_4.",
       completion: "org_1.coll_4.",
     },
+    {
+      name: "list for all the modules under coll_5 in org_1 with `org_1.coll_5.`",
+      position: { line: 34, character: 19 } as Position,
+      triggerCharacter: "org_1.coll_5.",
+      completion: "org_1.coll_5.sub_coll_1.module_1",
+    },
   ];
 
   tests.forEach(({ name, position, triggerCharacter, completion }) => {
