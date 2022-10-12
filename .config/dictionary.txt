@@ -1,3 +1,4 @@
+ALS
 FQCN
 FQCNs
 OSTYPE
@@ -86,6 +87,8 @@ Sbarnea
 Schwalm
 Sorin
 Tomasz
+ajinkyau
+akira
 alefragnani
 bthornto
 dbaeumer

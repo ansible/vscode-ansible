@@ -4,6 +4,19 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.0.0
+
+### Minor Changes
+
+- Add auto-detection of Ansible files based on their content (#617) @priyamsahoo
+
+### Bugfixes
+
+- Update ALS to 0.10.3 (3 bugs) (#632) @ssbarnea
+- Bump vscode-languageclient from 7.x to 8.x (#626) @ajinkyau
+- Change extension status-bar icon (#627) @ssbarnea
+- fix hyphenation README (#611) @akira6592
+
 ## v0.14.0
 
 ### Minor Changes
