@@ -27,6 +27,7 @@ import {
 } from "./extensionConflicts";
 import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
+import { updateConfigurationChanges } from "./utils/settings";
 
 let client: LanguageClient;
 
@@ -88,9 +89,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
   metaData.updateAnsibleInfoInStatusbar();
 
   // register ansible meta data in the statusbar tooltip (client-server)
-  window.onDidChangeActiveTextEditor(metaData.updateAnsibleInfoInStatusbar);
-  workspace.onDidOpenTextDocument(metaData.updateAnsibleInfoInStatusbar);
-  workspace.onDidChangeConfiguration(() => extSettings.reinitialize());
+  window.onDidChangeActiveTextEditor(() =>
+    metaData.updateAnsibleInfoInStatusbar()
+  );
+  workspace.onDidOpenTextDocument(() =>
+    metaData.updateAnsibleInfoInStatusbar()
+  );
+  workspace.onDidChangeConfiguration(() =>
+    updateConfigurationChanges(metaData, extSettings)
+  );
 }
 
 const startClient = async () => {
