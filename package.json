@@ -290,6 +290,20 @@
             }
           },
           "order": 16
+        },
+        "ansible.completion.provideRedirectModules": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Toggle redirected module provider when completing modules.",
+          "order": 17
+        },
+        "ansible.completion.provideModuleOptionAliases": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Toggle alias provider when completing module options.",
+          "order": 18
         }
       }
     },
