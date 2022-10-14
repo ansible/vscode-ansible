@@ -189,39 +189,53 @@
           "type": "string",
           "order": 5
         },
+        "ansible.completion.provideRedirectModules": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Toggle redirected module provider when completing modules.",
+          "order": 6
+        },
+        "ansible.completion.provideModuleOptionAliases": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Toggle alias provider when completing module options.",
+          "order": 7
+        },
         "ansible.validation.enabled": {
           "type": "boolean",
           "default": true,
           "markdownDescription": "If disabled no validation will be performed.",
-          "order": 6
+          "order": 8
         },
         "ansible.validation.lint.enabled": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
           "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
-          "order": 7
+          "order": 9
         },
         "ansible.validation.lint.path": {
           "scope": "machine-overridable",
           "type": "string",
           "default": "ansible-lint",
           "markdownDescription": "Path to the ansible-lint executable.",
-          "order": 8
+          "order": 10
         },
         "ansible.validation.lint.arguments": {
           "scope": "resource",
           "type": "string",
           "default": "",
           "markdownDescription": "Command line arguments to be passed to ansible-lint.",
-          "order": 9
+          "order": 11
         },
         "ansible.executionEnvironment.enabled": {
           "scope": "resource",
           "type": "boolean",
           "default": false,
           "markdownDescription": "Enable or disable the use of an execution environment.",
-          "order": 10
+          "order": 12
         },
         "ansible.executionEnvironment.containerEngine": {
           "scope": "resource",
@@ -233,28 +247,28 @@
           ],
           "default": "auto",
           "markdownDescription": "Specify the container engine (auto=podman then docker).",
-          "order": 11
+          "order": 13
         },
         "ansible.executionEnvironment.containerOptions": {
           "scope": "resource",
           "type": "string",
           "default": "",
           "markdownDescription": "Extra parameters passed to the container engine command example: `--net=host`.",
-          "order": 12
+          "order": 14
         },
         "ansible.executionEnvironment.image": {
           "scope": "resource",
           "type": "string",
           "default": "quay.io/ansible/creator-ee:latest",
           "markdownDescription": "Specify the name of the execution environment image.",
-          "order": 13
+          "order": 15
         },
         "ansible.executionEnvironment.pull.arguments": {
           "scope": "resource",
           "type": "string",
           "default": "",
           "markdownDescription": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `–-tls-verify=false`.",
-          "order": 14
+          "order": 16
         },
         "ansible.executionEnvironment.pull.policy": {
           "scope": "resource",
@@ -267,7 +281,7 @@
           ],
           "default": "missing",
           "markdownDescription": "Specify the image pull policy.\n**always**: Always pull the image when extension is activated or reloaded\n**missing**: Pull if not locally available\n**never**: Never pull the image\n**tag**: If the image tag is `latest`, always pull the image, otherwise pull if not locally available.",
-          "order": 15
+          "order": 17
         },
         "ansible.executionEnvironment.volumeMounts": {
           "scope": "resource",
@@ -289,20 +303,6 @@
               }
             }
           },
-          "order": 16
-        },
-        "ansible.completion.provideRedirectModules": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Toggle redirected module provider when completing modules.",
-          "order": 17
-        },
-        "ansible.completion.provideModuleOptionAliases": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Toggle alias provider when completing module options.",
           "order": 18
         }
       }
