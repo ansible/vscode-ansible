@@ -1,5 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 import { MarkdownString } from "vscode";
+import * as os from "os";
+import * as path from "path";
 
 export function formatAnsibleMetaData(ansibleMetaData: any) {
   let mdString = "";
@@ -61,9 +63,11 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         value.forEach((val: any, index: any) => {
           if (val && val !== "None") {
             if (key.includes("path")) {
-              mdString += `\n       ${index + 1}. <a href='${val}'>${val}</a>`;
+              mdString += `\n       ${
+                index + 1
+              }. <a href='${val}'>${getTildePath(val)}</a>`;
             } else {
-              mdString += `\n       ${index + 1}. ${val}`;
+              mdString += `\n       ${index + 1}. ${getTildePath(val)}`;
             }
           }
           if (index === value.length - 1) {
@@ -73,6 +77,8 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
       } else {
         if (key.includes("version")) {
           mdString += `\`${value}\`\n`;
+        } else if (key.includes("path") || key.includes("location")) {
+          mdString += `${getTildePath(value)}\n`;
         } else {
           mdString += `${value}\n`;
         }
@@ -100,4 +106,23 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     ansibleLintPresent,
     eeEnabled,
   };
+}
+
+export function getTildePath(absolutePath: string) {
+  if (process.platform === "win32") {
+    return path.win32.resolve(absolutePath);
+  }
+  const home = os.homedir();
+  const dirPath = path.posix.resolve(absolutePath);
+
+  if (dirPath === home) {
+    return "~";
+  }
+  const homeWithTrailingSlash = `${home}/`;
+
+  if (dirPath.startsWith(homeWithTrailingSlash)) {
+    return dirPath.replace(homeWithTrailingSlash, "~/");
+  }
+
+  return dirPath;
 }
