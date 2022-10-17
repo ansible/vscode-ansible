@@ -1,7 +1,7 @@
 alabaster==0.7.12
 ansible-compat==2.2.1
 ansible-core==2.13.5
-ansible-lint==6.8.1
+ansible-lint==6.8.2
 ansible-pygments==0.1.1
 astroid==2.11.6
 attrs==21.4.0
@@ -18,7 +18,6 @@ cryptography==36.0.2
 dill==0.3.5.1
 distlib==0.3.4
 docutils==0.17.1
-enrich==1.2.7
 filelock==3.6.0
 flake8==4.0.1
 identify==2.4.11
@@ -59,6 +58,7 @@ requests==2.27.1
 resolvelib==0.5.4
 rich==12.0.0
 ruamel-yaml==0.17.21
+ruamel-yaml-clib==0.2.6
 setuptools-scm==6.4.2
 six==1.16.0
 snowballstemmer==2.2.0
