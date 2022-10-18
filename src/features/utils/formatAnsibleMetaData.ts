@@ -1,5 +1,5 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { MarkdownString } from "vscode";
+import { MarkdownString, workspace } from "vscode";
 import * as os from "os";
 import * as path from "path";
 
@@ -48,12 +48,22 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     : `### Ansible meta data\n`;
   mdString += `\n<hr>\n`;
 
+  // check if ansible-lint is enabled or not
+  const lintEnabled = workspace
+    .getConfiguration("ansible.validation.lint")
+    .get("enabled");
+
   Object.keys(ansibleMetaData).forEach((mainKey) => {
     if (Object.keys(ansibleMetaData[mainKey]).length === 0) {
       return;
     }
-
-    mdString += `\n- **${mainKey}:** \n`;
+    // put a marker stating ansible-lint setting is disabled
+    if (mainKey === "ansible-lint information" && !lintEnabled) {
+      mdString += `\n- **${mainKey}:** `;
+      mdString += `*<span style="color:#FFEF4A;">(disabled)*\n`;
+    } else {
+      mdString += `\n- **${mainKey}:** \n`;
+    }
 
     const valueObj = ansibleMetaData[mainKey];
     Object.keys(valueObj).forEach((key) => {
