@@ -14,8 +14,8 @@ import {
 
 function getAnsibleTestInfo() {
   const ansibleInfo = {};
-  ansibleInfo["ansible version"] = "Ansible";
-  ansibleInfo["ansible location"] = "/ansible";
+  ansibleInfo["version"] = "Ansible";
+  ansibleInfo["location"] = "/ansible";
   (ansibleInfo["config file path"] = path.resolve(
     __dirname,
     "..",
@@ -24,11 +24,11 @@ function getAnsibleTestInfo() {
     "getAnsibleMetaData",
     "ansible.cfg",
   )),
-    (ansibleInfo["ansible collections location"] = [
+    (ansibleInfo["collections location"] = [
       path.resolve(__dirname, "..", "fixtures", "common", "collections"),
     ]);
-  ansibleInfo["ansible module location"] = ["/modules"];
-  ansibleInfo["ansible default host list path"] = [
+  ansibleInfo["module location"] = ["/modules"];
+  ansibleInfo["default host list path"] = [
     path.resolve(
       __dirname,
       "..",
@@ -43,15 +43,15 @@ function getAnsibleTestInfo() {
 
 function getPythonTestInfo() {
   const pythonInfo = {};
-  pythonInfo["python version"] = "Python";
-  pythonInfo["python location"] = "/python";
+  pythonInfo["version"] = "Python";
+  pythonInfo["location"] = "/python";
   return pythonInfo;
 }
 
 function getAnsibleLintTestInfo() {
   const ansibleLintInfo = {};
-  ansibleLintInfo["ansible-lint version"] = "ansible-lint";
-  ansibleLintInfo["ansible-lint location"] = "/ansible-lint";
+  ansibleLintInfo["version"] = "ansible-lint";
+  ansibleLintInfo["location"] = "/ansible-lint";
   ansibleLintInfo["config file path"] = "/.ansible-lint"; // this key will be undefined (but the key will be present) because the value only gets updated when validation in run
   return ansibleLintInfo;
 }
@@ -136,14 +136,14 @@ describe("getAnsibleMetaData()", () => {
 
       it("should have information about ansible version used", function () {
         expect(
-          actualAnsibleMetaData["ansible information"]["ansible version"],
-        ).includes(ansibleInfoForTest["ansible version"]);
+          actualAnsibleMetaData["ansible information"]["version"],
+        ).includes(ansibleInfoForTest["version"]);
       });
 
       it("should have a valid ansible location", function () {
         expect(
-          actualAnsibleMetaData["ansible information"]["ansible location"],
-        ).include(ansibleInfoForTest["ansible location"]);
+          actualAnsibleMetaData["ansible information"]["location"],
+        ).include(ansibleInfoForTest["location"]);
       });
 
       it("should have a valid config file location", function () {
@@ -154,22 +154,16 @@ describe("getAnsibleMetaData()", () => {
 
       it("should have a valid collections location", function () {
         expect(
-          actualAnsibleMetaData["ansible information"][
-            "ansible collections location"
-          ],
-        ).to.include.members(
-          ansibleInfoForTest["ansible collections location"],
-        );
+          actualAnsibleMetaData["ansible information"]["collections location"],
+        ).to.include.members(ansibleInfoForTest["collections location"]);
       });
 
       it("should have a valid inventory file path", function () {
         expect(
           actualAnsibleMetaData["ansible information"][
-            "ansible default host list path"
+            "default host list path"
           ],
-        ).to.include.members(
-          ansibleInfoForTest["ansible default host list path"],
-        );
+        ).to.include.members(ansibleInfoForTest["default host list path"]);
       });
     });
 
@@ -180,15 +174,15 @@ describe("getAnsibleMetaData()", () => {
         );
       });
       it("should have information about python version used", function () {
-        expect(
-          actualAnsibleMetaData["python information"]["python version"],
-        ).includes(pythonInfoForTest["python version"]);
+        expect(actualAnsibleMetaData["python information"]["version"]).includes(
+          pythonInfoForTest["version"],
+        );
       });
 
       it("should have a valid python location", function () {
-        expect(
-          actualAnsibleMetaData["python information"]["python location"],
-        ).include(pythonInfoForTest["python location"]);
+        expect(actualAnsibleMetaData["python information"]["location"]).include(
+          pythonInfoForTest["location"],
+        );
       });
     });
 
@@ -200,18 +194,14 @@ describe("getAnsibleMetaData()", () => {
       });
       it("should have information about ansible-lint version used", function () {
         expect(
-          actualAnsibleMetaData["ansible-lint information"][
-            "ansible-lint version"
-          ],
-        ).includes(ansibleLintInfoForTest["ansible-lint version"]);
+          actualAnsibleMetaData["ansible-lint information"]["version"],
+        ).includes(ansibleLintInfoForTest["version"]);
       });
 
       it("should have a valid ansible-lint location", function () {
         expect(
-          actualAnsibleMetaData["ansible-lint information"][
-            "ansible-lint location"
-          ],
-        ).include(ansibleLintInfoForTest["ansible-lint location"]);
+          actualAnsibleMetaData["ansible-lint information"]["location"],
+        ).include(ansibleLintInfoForTest["location"]);
       });
     });
 
@@ -251,16 +241,6 @@ describe("getAnsibleMetaData()", () => {
             "container image"
           ],
         ).to.include(executionEnvironmentInfoForTest["container image"]);
-      });
-
-      it("should have valid container volume mount information", function () {
-        expect(
-          actualAnsibleMetaData["execution environment information"][
-            "container volume mounts"
-          ][0]["src"],
-        ).to.include(
-          executionEnvironmentInfoForTest["container volume mounts"][0]["src"],
-        );
       });
 
       after(async () => {

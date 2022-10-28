@@ -82,23 +82,21 @@ async function getAnsibleInfo() {
   } else {
     ansibleVersion = ansibleVersionObjKeys[0].split(" ");
   }
-  ansibleInfo["ansible version"] = `Ansible ${ansibleVersion[1].slice(0, -1)}`;
+  ansibleInfo["version"] = `Ansible ${ansibleVersion[1].slice(0, -1)}`;
 
-  ansibleInfo["ansible location"] = (
-    await context.ansibleConfig
-  ).ansible_location;
+  ansibleInfo["location"] = (await context.ansibleConfig).ansible_location;
 
   ansibleInfo["config file path"] = ansibleVersionObj["config file"];
 
-  ansibleInfo["ansible collections location"] = (
+  ansibleInfo["collections location"] = (
     await context.ansibleConfig
   ).collections_paths;
 
-  ansibleInfo["ansible module location"] = (
+  ansibleInfo["modules location"] = (
     await context.ansibleConfig
   ).module_locations;
 
-  ansibleInfo["ansible default host list path"] = (
+  ansibleInfo["default host list path"] = (
     await context.ansibleConfig
   ).default_host_list;
 
@@ -116,13 +114,13 @@ async function getPythonInfo() {
     return pythonInfo;
   }
 
-  pythonInfo["python version"] = pythonVersionResult.stdout.trim();
+  pythonInfo["version"] = pythonVersionResult.stdout.trim();
 
   const pythonPathResult = await getResultsThroughCommandRunner(
     "python3",
     '-c "import sys; print(sys.executable)"',
   );
-  pythonInfo["python location"] = pythonPathResult.stdout.trim();
+  pythonInfo["location"] = pythonPathResult.stdout.trim();
 
   return pythonInfo;
 }
@@ -144,11 +142,9 @@ async function getAnsibleLintInfo() {
     "ansible-lint",
   );
 
-  ansibleLintInfo["ansible-lint version"] =
-    ansibleLintVersionResult.stdout.trim();
+  ansibleLintInfo["version"] = ansibleLintVersionResult.stdout.trim();
 
-  ansibleLintInfo["ansible-lint location"] =
-    ansibleLintPathResult.stdout.trim();
+  ansibleLintInfo["location"] = ansibleLintPathResult.stdout.trim();
 
   ansibleLintInfo["config file path"] =
     context.ansibleLint.ansibleLintConfigFilePath;
@@ -165,7 +161,6 @@ async function getExecutionEnvironmentInfo() {
   eeInfo["container engine"] = basicDetails.containerEngine;
   eeInfo["container image"] = basicDetails.containerImage;
   eeInfo["container image ID"] = basicDetails.containerImageId;
-  eeInfo["container volume mounts"] = basicDetails.containerVolumeMounts;
 
   let eeServiceWorking = false;
   let inspectResult;

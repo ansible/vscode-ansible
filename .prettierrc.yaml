@@ -21,3 +21,4 @@ overrides:
       # compatibility with markdownlint
       proseWrap: always
 semi: true
+trailingComma: all # needed to force prettier 3.x to use 2.x settings and avoid conflict with eslint
