@@ -16,19 +16,17 @@ function getAnsibleTestInfo() {
   const ansibleInfo = {};
   ansibleInfo["ansible version"] = "Ansible";
   ansibleInfo["ansible location"] = "/ansible";
-  ansibleInfo["config file path"] = [
-    path.resolve(
-      __dirname,
-      "..",
-      "fixtures",
-      "utils",
-      "getAnsibleMetaData",
-      "ansible.cfg",
-    ),
-  ];
-  ansibleInfo["ansible collections location"] = [
-    path.resolve(__dirname, "..", "fixtures", "common", "collections"),
-  ];
+  (ansibleInfo["config file path"] = path.resolve(
+    __dirname,
+    "..",
+    "fixtures",
+    "utils",
+    "getAnsibleMetaData",
+    "ansible.cfg",
+  )),
+    (ansibleInfo["ansible collections location"] = [
+      path.resolve(__dirname, "..", "fixtures", "common", "collections"),
+    ]);
   ansibleInfo["ansible module location"] = ["/modules"];
   ansibleInfo["ansible default host list path"] = [
     path.resolve(
@@ -54,6 +52,7 @@ function getAnsibleLintTestInfo() {
   const ansibleLintInfo = {};
   ansibleLintInfo["ansible-lint version"] = "ansible-lint";
   ansibleLintInfo["ansible-lint location"] = "/ansible-lint";
+  ansibleLintInfo["config file path"] = "/.ansible-lint"; // this key will be undefined (but the key will be present) because the value only gets updated when validation in run
   return ansibleLintInfo;
 }
 
@@ -128,8 +127,6 @@ describe("getAnsibleMetaData()", () => {
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
     });
 
-    testCommands();
-
     describe("Verify ansible details", () => {
       it("should contain all the keys for ansible information", function () {
         expect(Object.keys(ansibleInfoForTest).length).equals(
@@ -152,7 +149,7 @@ describe("getAnsibleMetaData()", () => {
       it("should have a valid config file location", function () {
         expect(
           actualAnsibleMetaData["ansible information"]["config file path"],
-        ).to.include.members(ansibleInfoForTest["config file path"]);
+        ).to.include(ansibleInfoForTest["config file path"]);
       });
 
       it("should have a valid collections location", function () {
@@ -224,6 +221,8 @@ describe("getAnsibleMetaData()", () => {
           .undefined;
       });
     });
+
+    testCommands();
   });
 
   describe("With EE enabled @ee", () => {
@@ -236,8 +235,6 @@ describe("getAnsibleMetaData()", () => {
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
     });
-
-    testCommands();
 
     describe("Verify the presence of execution environment details", () => {
       it("should have a valid container engine", function () {
@@ -270,5 +267,7 @@ describe("getAnsibleMetaData()", () => {
         await disableExecutionEnvironmentSettings(docSettings);
       });
     });
+
+    testCommands();
   });
 });

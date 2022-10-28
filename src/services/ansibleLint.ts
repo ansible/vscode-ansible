@@ -1,5 +1,5 @@
 import { ExecException } from "child_process";
-import { promises as fs } from "fs";
+import { readFileSync } from "fs";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import {
@@ -28,6 +28,7 @@ export class AnsibleLint {
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
+  private _ansibleLintConfigFilePath: string;
 
   private configCache: Map<string, IAnsibleLintConfig> = new Map();
 
@@ -74,6 +75,7 @@ export class AnsibleLint {
         mountPaths.add(path.dirname(ansibleLintConfigPath));
       }
     }
+
     linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
 
     const docPath = URI.parse(textDocument.uri).path;
@@ -100,7 +102,7 @@ export class AnsibleLint {
     );
 
     try {
-      // get Ansible configuration
+      // get ansible-lint result on the doc
       const result = await commandRunner.runCommand(
         "ansible-lint",
         `${linterArguments} "${docPath}"`,
@@ -110,7 +112,7 @@ export class AnsibleLint {
 
       diagnostics = this.processReport(
         result.stdout,
-        await ansibleLintConfigPromise,
+        ansibleLintConfigPromise,
         workingDirectory,
       );
 
@@ -199,8 +201,8 @@ export class AnsibleLint {
             let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
             if (ansibleLintConfig) {
               const lintRuleName = (item.check_name as string).match(
-                /\[(?<name>[a-z\-]+)\].*/,
-              )?.groups?.name;
+                /(?<name>[a-z\-]+).*/,
+              )[0];
 
               if (
                 lintRuleName &&
@@ -270,29 +272,25 @@ export class AnsibleLint {
     }
   }
 
-  private async getAnsibleLintConfig(
+  private getAnsibleLintConfig(
     workingDirectory: string,
     configPath: string | undefined,
-  ): Promise<IAnsibleLintConfig | undefined> {
+  ): IAnsibleLintConfig | undefined {
     if (configPath) {
       const absConfigPath = path.resolve(workingDirectory, configPath);
-      let config = this.configCache.get(absConfigPath);
-      if (!config) {
-        config = await this.readAnsibleLintConfig(absConfigPath);
-        this.configCache.set(absConfigPath, config);
-      }
+
+      // let config = this.configCache.get(absConfigPath);
+      const config = this.readAnsibleLintConfig(absConfigPath);
       return config;
     }
   }
 
-  private async readAnsibleLintConfig(
-    configPath: string,
-  ): Promise<IAnsibleLintConfig> {
+  private readAnsibleLintConfig(configPath: string): IAnsibleLintConfig {
     const config = {
       warnList: new Set<string>(),
     };
     try {
-      const configContents = await fs.readFile(configPath, {
+      const configContents = readFileSync(configPath, {
         encoding: "utf8",
       });
       parseAllDocuments(configContents).forEach((configDoc) => {
@@ -311,6 +309,7 @@ export class AnsibleLint {
     } catch (error) {
       this.connection.window.showErrorMessage(error);
     }
+    this._ansibleLintConfigFilePath = configPath;
     return config;
   }
 
@@ -323,19 +322,27 @@ export class AnsibleLint {
 
     // Find first configuration file going up until workspace root
     for (let index = pathArray.length - 1; index >= 0; index--) {
-      const candidatePath = pathArray
+      let candidatePath = pathArray
         .slice(0, index)
         .concat(".ansible-lint")
         .join("/");
-      if (!candidatePath.startsWith(this.context.workspaceFolder.uri)) {
+
+      const workspacePath = URI.parse(this.context.workspaceFolder.uri).path;
+      candidatePath = URI.parse(candidatePath).path;
+
+      if (!candidatePath.startsWith(workspacePath)) {
         // we've gone out of the workspace folder
         break;
       }
       if (await fileExists(candidatePath)) {
-        configPath = candidatePath;
+        configPath = URI.parse(candidatePath).path;
         break;
       }
     }
     return configPath;
+  }
+
+  get ansibleLintConfigFilePath(): string {
+    return this._ansibleLintConfigFilePath;
   }
 }

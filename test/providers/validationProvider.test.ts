@@ -78,7 +78,7 @@ function testAnsibleLintErrors(
 ) {
   const tests = [
     {
-      name: "specific ansible lint errors",
+      name: "specific ansible lint errors and warnings (Warnings come from warn_list in ansible-lint config)",
       diagnosticReport: [
         {
           severity: 1,
@@ -129,12 +129,24 @@ function testAnsibleLintErrors(
           source: "ansible-lint",
         },
         {
-          severity: 1,
+          severity: 2,
           message: "Avoid using free-form",
           range: {
             start: { line: 14, character: 0 } as Position,
             end: {
               line: 14,
+              character: integer.MAX_VALUE,
+            } as Position,
+          },
+          source: "ansible-lint",
+        },
+        {
+          severity: 2,
+          message: "should not use a relative path",
+          range: {
+            start: { line: 17, character: 0 } as Position,
+            end: {
+              line: 17,
               character: integer.MAX_VALUE,
             } as Position,
           },
