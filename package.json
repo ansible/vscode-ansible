@@ -116,6 +116,13 @@
           "galaxy.yml"
         ],
         "url": "https://raw.githubusercontent.com/ansible/schemas/main/f/ansible-galaxy.json"
+      },
+      {
+        "fileMatch": [
+          "eda/rulebooks/*.yaml",
+          "eda/rulebooks/*.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
       }
     ],
     "commands": [
