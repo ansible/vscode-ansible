@@ -168,7 +168,6 @@ export class WorkspaceFolderContext {
     params: DidChangeWatchedFilesParams,
   ): void {
     this.documentMetadata.handleWatchedDocumentChange(params);
-    this.ansibleLint.handleWatchedDocumentChange(params);
     for (const fileEvent of params.changes) {
       if (fileEvent.uri.startsWith(this.workspaceFolder.uri)) {
         // in case the configuration changes for this folder, we should

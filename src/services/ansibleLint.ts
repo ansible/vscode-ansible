@@ -1,20 +1,16 @@
 import { ExecException } from "child_process";
-import { readFileSync } from "fs";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import {
   Connection,
   Diagnostic,
   DiagnosticSeverity,
-  DidChangeWatchedFilesParams,
   integer,
   Position,
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { parseAllDocuments } from "yaml";
-import { IAnsibleLintConfig } from "../interfaces/ansibleLintConfig";
-import { fileExists, hasOwnProperty } from "../utils/misc";
+import { fileExists } from "../utils/misc";
 import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 
@@ -29,8 +25,6 @@ export class AnsibleLint {
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
   private _ansibleLintConfigFilePath: string;
-
-  private configCache: Map<string, IAnsibleLintConfig> = new Map();
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -76,6 +70,7 @@ export class AnsibleLint {
       }
     }
 
+    this._ansibleLintConfigFilePath = ansibleLintConfigPath;
     linterArguments = `${linterArguments} --offline --nocolor -f codeclimate`;
 
     const docPath = URI.parse(textDocument.uri).path;
@@ -87,11 +82,6 @@ export class AnsibleLint {
           begin: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
           done: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
         };
-
-    const ansibleLintConfigPromise = this.getAnsibleLintConfig(
-      workingDirectory,
-      ansibleLintConfigPath,
-    );
 
     progressTracker.begin("ansible-lint", undefined, "Processing files...");
 
@@ -110,11 +100,7 @@ export class AnsibleLint {
         mountPaths,
       );
 
-      diagnostics = this.processReport(
-        result.stdout,
-        ansibleLintConfigPromise,
-        workingDirectory,
-      );
+      diagnostics = this.processReport(result.stdout, workingDirectory);
 
       if (result.stderr) {
         this.connection.console.info(`[ansible-lint] ${result.stderr}`);
@@ -128,11 +114,7 @@ export class AnsibleLint {
         };
 
         if (execError.stdout) {
-          diagnostics = this.processReport(
-            execError.stdout,
-            await ansibleLintConfigPromise,
-            workingDirectory,
-          );
+          diagnostics = this.processReport(execError.stdout, workingDirectory);
         } else {
           if (execError.stderr) {
             this.connection.console.info(`[ansible-lint] ${execError.stderr}`);
@@ -160,7 +142,6 @@ export class AnsibleLint {
 
   private processReport(
     result: string,
-    ansibleLintConfig: IAnsibleLintConfig | undefined,
     workingDirectory: string,
   ): Map<string, Diagnostic[]> {
     const diagnostics: Map<string, Diagnostic[]> = new Map();
@@ -199,25 +180,14 @@ export class AnsibleLint {
             };
 
             let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
-            if (ansibleLintConfig) {
-              const lintRuleName = (item.check_name as string).match(
-                /(?<name>[a-z\-]+).*/,
-              )[0];
-
-              if (
-                lintRuleName &&
-                ansibleLintConfig.warnList.has(lintRuleName)
-              ) {
+            if (item.level) {
+              if (item.level === "error") {
+                severity = DiagnosticSeverity.Error;
+              } else if (item.level === "warning") {
                 severity = DiagnosticSeverity.Warning;
               }
-
-              const categories = item.categories;
-              if (categories instanceof Array) {
-                if (categories.some((c) => ansibleLintConfig.warnList.has(c))) {
-                  severity = DiagnosticSeverity.Warning;
-                }
-              }
             }
+
             const path = `${workingDirectory}/${item.location.path}`;
             const locationUri = URI.file(path).toString();
 
@@ -261,56 +231,6 @@ export class AnsibleLint {
       );
     }
     return diagnostics;
-  }
-
-  public handleWatchedDocumentChange(
-    params: DidChangeWatchedFilesParams,
-  ): void {
-    for (const fileEvent of params.changes) {
-      // remove from cache on any change
-      this.configCache.delete(fileEvent.uri);
-    }
-  }
-
-  private getAnsibleLintConfig(
-    workingDirectory: string,
-    configPath: string | undefined,
-  ): IAnsibleLintConfig | undefined {
-    if (configPath) {
-      const absConfigPath = path.resolve(workingDirectory, configPath);
-
-      // let config = this.configCache.get(absConfigPath);
-      const config = this.readAnsibleLintConfig(absConfigPath);
-      return config;
-    }
-  }
-
-  private readAnsibleLintConfig(configPath: string): IAnsibleLintConfig {
-    const config = {
-      warnList: new Set<string>(),
-    };
-    try {
-      const configContents = readFileSync(configPath, {
-        encoding: "utf8",
-      });
-      parseAllDocuments(configContents).forEach((configDoc) => {
-        const configObject: unknown = configDoc.toJSON();
-        if (
-          hasOwnProperty(configObject, "warn_list") &&
-          configObject.warn_list instanceof Array
-        ) {
-          for (const warn_item of configObject.warn_list) {
-            if (typeof warn_item === "string") {
-              config.warnList.add(warn_item);
-            }
-          }
-        }
-      });
-    } catch (error) {
-      this.connection.window.showErrorMessage(error);
-    }
-    this._ansibleLintConfigFilePath = configPath;
-    return config;
   }
 
   private async findAnsibleLintConfigFile(
