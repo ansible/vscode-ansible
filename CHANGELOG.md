@@ -20,6 +20,14 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.0.2
+
+### Bugfixes
+
+- Avoid parsing ansible-lint config file (#478) @priyamsahoo
+- Enhance ansible meta-data (#475) @priyamsahoo
+- Add support for ansible-lint config file (#474) @priyamsahoo
+
 ## v1.0.1
 
 ### Bugfixes
