@@ -47,6 +47,8 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     ? `### Ansible meta data (in Execution Environment)\n`
     : `### Ansible meta data\n`;
   mdString += `\n<hr>\n`;
+  mdString += `<hr>\n`;
+  mdString += `<hr>\n`;
 
   // check if ansible-lint is enabled or not
   const lintEnabled = workspace
@@ -97,6 +99,8 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
       }
     });
     mdString += `\n<hr>\n`;
+    mdString += `<hr>\n`;
+    mdString += `<hr>\n`;
   });
 
   // markdown conversion
