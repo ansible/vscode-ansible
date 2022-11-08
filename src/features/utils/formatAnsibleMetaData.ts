@@ -59,10 +59,10 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     }
     // put a marker stating ansible-lint setting is disabled
     if (mainKey === "ansible-lint information" && !lintEnabled) {
-      mdString += `\n- **${mainKey}:** `;
+      mdString += `\n**${mainKey}:** `;
       mdString += `*<span style="color:#FFEF4A;">(disabled)*\n`;
     } else {
-      mdString += `\n- **${mainKey}:** \n`;
+      mdString += `\n**${mainKey}:** \n`;
     }
 
     const valueObj = ansibleMetaData[mainKey];
