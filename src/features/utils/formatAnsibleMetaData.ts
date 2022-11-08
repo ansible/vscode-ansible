@@ -1,5 +1,7 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { MarkdownString } from "vscode";
+import { MarkdownString, workspace } from "vscode";
+import * as os from "os";
+import * as path from "path";
 
 export function formatAnsibleMetaData(ansibleMetaData: any) {
   let mdString = "";
@@ -45,13 +47,25 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     ? `### Ansible meta data (in Execution Environment)\n`
     : `### Ansible meta data\n`;
   mdString += `\n<hr>\n`;
+  mdString += `<hr>\n`;
+  mdString += `<hr>\n`;
+
+  // check if ansible-lint is enabled or not
+  const lintEnabled = workspace
+    .getConfiguration("ansible.validation.lint")
+    .get("enabled");
 
   Object.keys(ansibleMetaData).forEach((mainKey) => {
     if (Object.keys(ansibleMetaData[mainKey]).length === 0) {
       return;
     }
-
-    mdString += `\n- **${mainKey}:** \n`;
+    // put a marker stating ansible-lint setting is disabled
+    if (mainKey === "ansible-lint information" && !lintEnabled) {
+      mdString += `\n**${mainKey}:** `;
+      mdString += `*<span style="color:#FFEF4A;">(disabled)*\n`;
+    } else {
+      mdString += `\n**${mainKey}:** \n`;
+    }
 
     const valueObj = ansibleMetaData[mainKey];
     Object.keys(valueObj).forEach((key) => {
@@ -61,9 +75,11 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         value.forEach((val: any, index: any) => {
           if (val && val !== "None") {
             if (key.includes("path")) {
-              mdString += `\n       ${index + 1}. <a href='${val}'>${val}</a>`;
+              mdString += `\n       ${
+                index + 1
+              }. <a href='${val}'>${getTildePath(val)}</a>`;
             } else {
-              mdString += `\n       ${index + 1}. ${val}`;
+              mdString += `\n       ${index + 1}. ${getTildePath(val)}`;
             }
           }
           if (index === value.length - 1) {
@@ -71,14 +87,20 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
           }
         });
       } else {
-        if (key.includes("version")) {
+        if (key.includes("path")) {
+          mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
+        } else if (key.includes("version")) {
           mdString += `\`${value}\`\n`;
+        } else if (key.includes("location")) {
+          mdString += `${getTildePath(value)}\n`;
         } else {
           mdString += `${value}\n`;
         }
       }
     });
     mdString += `\n<hr>\n`;
+    mdString += `<hr>\n`;
+    mdString += `<hr>\n`;
   });
 
   // markdown conversion
@@ -100,4 +122,23 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     ansibleLintPresent,
     eeEnabled,
   };
+}
+
+export function getTildePath(absolutePath: string) {
+  if (process.platform === "win32") {
+    return path.win32.resolve(absolutePath);
+  }
+  const home = os.homedir();
+  const dirPath = path.posix.resolve(absolutePath);
+
+  if (dirPath === home) {
+    return "~";
+  }
+  const homeWithTrailingSlash = `${home}/`;
+
+  if (dirPath.startsWith(homeWithTrailingSlash)) {
+    return dirPath.replace(homeWithTrailingSlash, "~/");
+  }
+
+  return dirPath;
 }
