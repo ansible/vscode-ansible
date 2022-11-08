@@ -1,0 +1,17 @@
+---
+- name: Test the vscode extension
+  hosts: all
+  tasks:
+    - name: this file is using double extension and the language is set by it
+      ansible.builtin.debug:
+        msg: Hello world!
+
+    - name: Copy the CA certificate
+      ansible.builtin.copy:
+        src: ../../files/certs/ca.crt
+        dest: /root/ca.crt
+        owner: root
+        group: root
+        mode: "0644"
+      tags:
+        - certs
