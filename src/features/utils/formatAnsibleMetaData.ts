@@ -85,9 +85,11 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
           }
         });
       } else {
-        if (key.includes("version")) {
+        if (key.includes("path")) {
+          mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
+        } else if (key.includes("version")) {
           mdString += `\`${value}\`\n`;
-        } else if (key.includes("path") || key.includes("location")) {
+        } else if (key.includes("location")) {
           mdString += `${getTildePath(value)}\n`;
         } else {
           mdString += `${value}\n`;
