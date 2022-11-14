@@ -1,0 +1,10 @@
+---
+# .ansible-lint
+use_default_rules: true
+skip_list:
+  - command-instead-of-shell
+  # - no-relative-paths
+warn_list:
+  # - no-relative-paths
+  - name[play]
+  - no-free-form
