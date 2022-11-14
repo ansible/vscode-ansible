@@ -49,7 +49,7 @@ repos:
         files: "codecov.yml"
         pass_filenames: false
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.12.0
+    rev: v6.14.0
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -85,7 +85,7 @@ repos:
         language_version: python3
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.0.0-alpha.0"
+    rev: "v3.0.0-alpha.4"
     hooks:
       - id: prettier
   - repo: https://github.com/igorshubovych/markdownlint-cli
@@ -98,7 +98,7 @@ repos:
             docs/settings.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.24.0
+    rev: v8.27.0
     hooks:
       - id: eslint
         args:
