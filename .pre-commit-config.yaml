@@ -11,15 +11,13 @@ ci:
     # https://github.com/pre-commit-ci/issues/issues/55
     - npm-ci
     - codecov
-    - shellcheck # docker not available on pre-commit.ci
 repos:
-  - repo: https://github.com/koalaman/shellcheck-precommit
-    rev: v0.8.0
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.8.0.4
     hooks:
       - id: shellcheck
-        # cspell:disable-next-line
-        entry: docker.io/koalaman/shellcheck:v0.8.0
-        args: ["--color=always"]
+        args:
+          - --color=always
   - repo: local
     hooks:
       - id: npm-ci
@@ -49,7 +47,7 @@ repos:
         files: "codecov.yml"
         pass_filenames: false
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.14.0
+    rev: v6.14.1
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -98,7 +96,7 @@ repos:
             docs/settings.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.27.0
+    rev: v8.28.0
     hooks:
       - id: eslint
         args:
@@ -108,7 +106,7 @@ repos:
         additional_dependencies:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
-          - eslint@v8.2.0
+          - eslint@v8.28.0
           - eslint-plugin-prettier
           - eslint-config-prettier
           - prettier
