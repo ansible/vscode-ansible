@@ -37,7 +37,7 @@ _default value:
 - **ansible.executionEnvironment.image**:
 Name of the execution environment to be used \
 _default value:
-`quay.io/ansible/creator-ee:latest`_
+`ghcr.io/ansible/creator-ee:latest`_
 
 - **ansible.executionEnvironment.pull.policy**:
 Image pull policy to be used. Valid values are &#x27;always&#x27;, &#x27;missing&#x27;, &#x27;never&#x27; and &#x27;tag&#x27;. always will always pull the image when extension is activated or reloaded. &#x27;missing&#x27; will pull if not locally available. &#x27;never&#x27; will never pull the image and &#x27;tag&#x27; will always pull if the image tag is &#x27;latest&#x27;, otherwise pull if not locally available. \

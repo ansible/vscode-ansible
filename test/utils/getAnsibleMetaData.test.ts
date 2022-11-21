@@ -59,7 +59,7 @@ function getAnsibleLintTestInfo() {
 function getExecutionEnvironmentTestInfo() {
   const eeInfo = {};
   eeInfo["container engine"] = ["docker", "podman"];
-  eeInfo["container image"] = "quay.io/";
+  eeInfo["container image"] = "ghcr.io/";
   eeInfo["container volume mounts"] = [
     {
       src: "/fixtures/common/collections",

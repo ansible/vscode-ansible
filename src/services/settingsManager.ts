@@ -52,7 +52,7 @@ export class SettingsManager {
         description: "Toggle usage of an execution environment",
       },
       image: {
-        default: "quay.io/ansible/creator-ee:latest",
+        default: "ghcr.io/ansible/creator-ee:latest",
         description: "Name of the execution environment to be used",
       },
       pull: {

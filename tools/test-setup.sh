@@ -5,7 +5,7 @@
 # (cspell: disable-next-line)
 set -euo pipefail
 
-IMAGE=quay.io/ansible/creator-ee:latest
+IMAGE=ghcr.io/ansible/creator-ee:latest
 PIP_LOG_FILE=out/log/pip.log
 HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
