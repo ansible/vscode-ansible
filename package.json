@@ -175,74 +175,81 @@
           "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
           "order": 2
         },
+        "ansible.ansible.reuseTerminal": {
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enabling this will cause ansible commands run through VSCode to reuse the same Ansible Terminal.",
+          "order": 3
+        },
         "ansible.python.interpreterPath": {
           "scope": "machine-overridable",
           "type": "string",
           "default": "python3",
           "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
-          "order": 3
+          "order": 4
         },
         "ansible.python.activationScript": {
           "scope": "machine-overridable",
           "type": "string",
           "default": "",
           "markdownDescription": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored.",
-          "order": 4
+          "order": 5
         },
         "ansible.ansibleNavigator.path": {
           "default": "ansible-navigator",
           "markdownDescription": "%configuration.navigate.executablePath%",
           "scope": "machine-overridable",
           "type": "string",
-          "order": 5
+          "order": 6
         },
         "ansible.completion.provideRedirectModules": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
           "markdownDescription": "Toggle redirected module provider when completing modules.",
-          "order": 6
+          "order": 7
         },
         "ansible.completion.provideModuleOptionAliases": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
           "markdownDescription": "Toggle alias provider when completing module options.",
-          "order": 7
+          "order": 8
         },
         "ansible.validation.enabled": {
           "type": "boolean",
           "default": true,
           "markdownDescription": "If disabled no validation will be performed.",
-          "order": 8
+          "order": 9
         },
         "ansible.validation.lint.enabled": {
           "scope": "resource",
           "type": "boolean",
           "default": true,
           "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
-          "order": 9
+          "order": 10
         },
         "ansible.validation.lint.path": {
           "scope": "machine-overridable",
           "type": "string",
           "default": "ansible-lint",
           "markdownDescription": "Path to the ansible-lint executable.",
-          "order": 10
+          "order": 11
         },
         "ansible.validation.lint.arguments": {
           "scope": "resource",
           "type": "string",
           "default": "",
           "markdownDescription": "Command line arguments to be passed to ansible-lint.",
-          "order": 11
+          "order": 12
         },
         "ansible.executionEnvironment.enabled": {
           "scope": "resource",
           "type": "boolean",
           "default": false,
           "markdownDescription": "Enable or disable the use of an execution environment.",
-          "order": 12
+          "order": 13
         },
         "ansible.executionEnvironment.containerEngine": {
           "scope": "resource",
@@ -254,28 +261,28 @@
           ],
           "default": "auto",
           "markdownDescription": "Specify the container engine (auto=podman then docker).",
-          "order": 13
+          "order": 14
         },
         "ansible.executionEnvironment.containerOptions": {
           "scope": "resource",
           "type": "string",
           "default": "",
           "markdownDescription": "Extra parameters passed to the container engine command example: `--net=host`.",
-          "order": 14
+          "order": 15
         },
         "ansible.executionEnvironment.image": {
           "scope": "resource",
           "type": "string",
           "default": "quay.io/ansible/creator-ee:latest",
           "markdownDescription": "Specify the name of the execution environment image.",
-          "order": 15
+          "order": 16
         },
         "ansible.executionEnvironment.pull.arguments": {
           "scope": "resource",
           "type": "string",
           "default": "",
           "markdownDescription": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `–-tls-verify=false`.",
-          "order": 16
+          "order": 17
         },
         "ansible.executionEnvironment.pull.policy": {
           "scope": "resource",
@@ -288,7 +295,7 @@
           ],
           "default": "missing",
           "markdownDescription": "Specify the image pull policy.\n**always**: Always pull the image when extension is activated or reloaded\n**missing**: Pull if not locally available\n**never**: Never pull the image\n**tag**: If the image tag is `latest`, always pull the image, otherwise pull if not locally available.",
-          "order": 17
+          "order": 18
         },
         "ansible.executionEnvironment.volumeMounts": {
           "scope": "resource",
@@ -310,7 +317,7 @@
               }
             }
           },
-          "order": 18
+          "order": 19
         }
       }
     },
