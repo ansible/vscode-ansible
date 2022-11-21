@@ -37,10 +37,9 @@ jobs:
         os:
           - ubuntu-20.04
         node-version:
-          - "12"
+          - "16"
         task-name:
           - vscode
-          - test-node12
           - test-node14
           - test-node16
         upload-artifact:

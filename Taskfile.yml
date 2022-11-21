@@ -125,11 +125,6 @@ tasks:
         command -v ansible-lint &&
         bash -c '{{ .NODE_ENV }} npm run test'
     interactive: true
-  test-node12:
-    desc: Run all tests using node 12
-    cmds:
-      - bash -c '{{ .NODE_ENV }} nvm install 12'
-      - task: test
   test-node14:
     desc: Run all tests using node 14
     cmds:
