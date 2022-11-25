@@ -26,7 +26,11 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
-        "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
+        # Keep the `cat` and the silencing of 141 error code because otherwise
+        # the called tool might fail due to premature closure of /dev/stdout
+        # made by `--head n1`
+        "${_cmd[@]}" | cat | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/' \
+            || (ec=$? ; if [ "$ec" -eq 141 ]; then exit 0; else exit "$ec"; fi)
     else
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99
