@@ -3,7 +3,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -euo pipefail
+set -exuo pipefail
 
 IMAGE=ghcr.io/ansible/creator-ee:latest
 PIP_LOG_FILE=out/log/pip.log
@@ -26,7 +26,11 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
-        "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
+        # Keep the `cat` and the silencing of 141 error code because otherwise
+        # the called tool might fail due to premature closure of /dev/stdout
+        # made by `--head n1`
+        "${_cmd[@]}" | cat | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/' \
+            || (ec=$? ; if [ "$ec" -eq 141 ]; then exit 0; else exit "$ec"; fi)
     else
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99
@@ -167,7 +171,7 @@ fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
-python3 -m pip install -q -U pip pip-tools setuptools wheel
+python3 -m pip install -q pip pip-tools setuptools wheel
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     python3 -m pip install \
@@ -260,9 +264,9 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman pull --quiet "${IMAGE}" >/dev/null
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible --version) || ERR=$?
+        podman run -i ${IMAGE} ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible-lint --version) || ERR=$?
+        podman run -i ${IMAGE} ansible-lint --version)
 fi
 
 # Create a build manifest so we can compare between builds and machines, this
