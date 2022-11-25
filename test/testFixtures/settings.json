@@ -1,5 +1,6 @@
 {
   "ansible.ansible.path": "ansible",
+  "ansible.ansible.reuseTerminal": false,
   "ansible.ansible.useFullyQualifiedCollectionNames": true,
   "ansible.validation.enabled": true,
   "ansible.validation.lint.arguments": "",

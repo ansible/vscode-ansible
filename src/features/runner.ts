@@ -125,6 +125,14 @@ export class AnsiblePlaybookRunProvider {
   private createTerminal(
     runEnv: NodeJS.ProcessEnv | undefined
   ): vscode.Terminal {
+    if (vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal) {
+      const reuse_terminal = vscode.window.terminals.find(
+        (terminal) => terminal.name === "Ansible Terminal"
+      );
+      if (reuse_terminal) {
+        return reuse_terminal as vscode.Terminal;
+      }
+    }
     const terminal = vscode.window.createTerminal({
       name: "Ansible Terminal",
       env: runEnv,
