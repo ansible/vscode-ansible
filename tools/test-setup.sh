@@ -26,6 +26,8 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
+        # Keep the `cat` because otherwise called tool might fail because
+        # /dev/stdout is closed before it finishes to write everything on it.
         "${_cmd[@]}" | cat | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
         log error "Got $? while trying to retrieve ${1:-} version"
