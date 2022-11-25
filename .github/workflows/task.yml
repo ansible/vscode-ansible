@@ -112,13 +112,20 @@ jobs:
             ~/.cache/yarn
             ~/.nvm/.cache
             ~/Library/Caches/pip
-            ~/.local/share/containers/podman/machine/qemu
           key: >
             ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles(
             'package.json',
             'package-lock.json',
             '.config/requirements.txt'
             ) }}
+
+      - name: Enable caching for podman-machine
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/share/containers
+            ~/.config/containers
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Install Task
         if: "!contains(matrix.shell, 'wsl')"
