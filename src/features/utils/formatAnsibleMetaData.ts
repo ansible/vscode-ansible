@@ -3,6 +3,8 @@ import { MarkdownString, workspace } from "vscode";
 import * as os from "os";
 import * as path from "path";
 
+const WARNING_COLOR = "#FFEF4A";
+
 export function formatAnsibleMetaData(ansibleMetaData: any) {
   let mdString = "";
   let ansiblePresent = true;
@@ -62,7 +64,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     // put a marker stating ansible-lint setting is disabled
     if (mainKey === "ansible-lint information" && !lintEnabled) {
       mdString += `\n**${mainKey}:** `;
-      mdString += `*<span style="color:#FFEF4A;">(disabled)*\n`;
+      mdString += `*<span style="color:${WARNING_COLOR};">(disabled)*\n`;
     } else {
       mdString += `\n**${mainKey}:** \n`;
     }
@@ -90,7 +92,11 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         if (key.includes("path")) {
           mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
         } else if (key.includes("version")) {
-          mdString += `\`${value}\`\n`;
+          const versionInfo = value.split(/\r?\n/); // first part of versionInfo has the version no., the second part has message (if any)
+          mdString += `\`${versionInfo[0]}\`\n`;
+          if (versionInfo[1]) {
+            mdString += `*<span style="color:${WARNING_COLOR};">${versionInfo[1]}*\n`;
+          }
         } else if (key.includes("location")) {
           mdString += `${getTildePath(value)}\n`;
         } else {
@@ -110,7 +116,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
 
   if (!ansibleLintPresent) {
     markdown.appendMarkdown(
-      `\n<p><span style="color:#FFEF4A;">$(warning) Warning(s):</p></h5>`
+      `\n<p><span style="color:${WARNING_COLOR};">$(warning) Warning(s):</p></h5>`
     );
     markdown.appendMarkdown(`Ansible lint is missing in the environment`);
   }
