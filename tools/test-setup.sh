@@ -26,7 +26,7 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
-        "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
+        "${_cmd[@]}" | cat | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99
