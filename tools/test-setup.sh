@@ -3,7 +3,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -euo pipefail
+set -exuo pipefail
 
 IMAGE=ghcr.io/ansible/creator-ee:latest
 PIP_LOG_FILE=out/log/pip.log
@@ -76,6 +76,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
 fi
+python3 --version
 
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
@@ -96,8 +97,8 @@ fi
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
         HOMEBREW_NO_ENV_HINTS=1 time brew install podman
-        time podman machine init
-        time podman machine start
+        podman machine ls --noheading | grep '\*' || time podman machine init
+        podman machine ls --noheading | grep "Currently running" || time podman machine start
         podman info
         podman run hello-world
     }
@@ -263,9 +264,9 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman pull --quiet "${IMAGE}" >/dev/null
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible --version) || ERR=$?
+        podman run -i ${IMAGE} ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible-lint --version) || ERR=$?
+        podman run -i ${IMAGE} ansible-lint --version)
 fi
 
 # Create a build manifest so we can compare between builds and machines, this
