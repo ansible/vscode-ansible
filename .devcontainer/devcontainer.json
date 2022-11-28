@@ -1,5 +1,5 @@
 {
-  "image": "quay.io/ansible/creator-ee:v0.9.2",
+  "image": "ghcr.io/ansible/creator-ee:latest",
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=remote-workspace,target=/workspace,type=volume"
 }
