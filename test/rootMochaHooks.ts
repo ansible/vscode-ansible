@@ -1,4 +1,7 @@
+import * as chai from "chai";
 import { ConsoleOutput } from "./consoleOutput";
+
+chai.config.truncateThreshold = 0; // disable truncating
 
 export const mochaHooks = (): Mocha.RootHookObject => {
   const consoleOutput = new ConsoleOutput();
