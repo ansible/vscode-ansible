@@ -107,7 +107,6 @@ toxenv
 tsbuildinfo
 unshallow
 userdata
-uuidv4
 venvs
 vscodeignore
 vsix

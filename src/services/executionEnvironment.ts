@@ -1,9 +1,9 @@
 import * as child_process from "child_process";
+import * as crypto from "crypto";
 import * as fs from "fs";
 import * as path from "path";
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
-import { v4 as uuidv4 } from "uuid";
 import { AnsibleConfig } from "./ansibleConfig";
 import { ImagePuller } from "../utils/imagePuller";
 import { asyncExec } from "../utils/misc";
@@ -273,7 +273,10 @@ export class ExecutionEnvironment {
         containerCommand.push(containerOption);
       });
     }
-    containerCommand.push(`--name ansible_language_server_${uuidv4()}`);
+    // lets minimize the container name to reduce the length of the command
+    // while keeping it legal https://stackoverflow.com/questions/27791913/
+    const id = crypto.randomBytes(4).toString("ascii");
+    containerCommand.push(`--name als_${id}`);
     containerCommand.push(this._container_image);
     containerCommand.push(command);
     const generatedCommand = containerCommand.join(" ");
