@@ -121,6 +121,7 @@ jobs:
 
       - name: Enable caching for podman-machine
         uses: actions/cache@v3
+        if: "contains(matrix.os, 'macos')"
         with:
           path: |
             ~/.local/share/containers

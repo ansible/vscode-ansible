@@ -97,8 +97,13 @@ fi
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
         HOMEBREW_NO_ENV_HINTS=1 time brew install podman
-        time podman machine init
-        time podman machine start
+        podman machine ls --noheading | grep '\*' || time podman machine init
+        podman machine ls --noheading | grep "Currently running" || {
+            # do not use full path as it varies based on architecture
+            # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
+            "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+            time podman machine start
+            }
         podman info
         podman run hello-world
     }
@@ -171,7 +176,7 @@ fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
-python3 -m pip install -q pip pip-tools setuptools wheel
+python3 -m pip install -q -U pip
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     python3 -m pip install \
