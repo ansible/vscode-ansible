@@ -140,7 +140,7 @@ html_context = {
 html_title = f"{project} Documentation"
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
-html_short_title = "ALS Documentation"
+# html_short_title =
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
