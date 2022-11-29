@@ -73,7 +73,7 @@ sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath==1.0.1
 sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
-subprocess-tee==0.3.5
+subprocess-tee==0.4.0
 toml==0.10.2
 tomli==2.0.1
 tomlkit==0.11.0
