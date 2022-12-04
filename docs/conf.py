@@ -110,7 +110,7 @@ html_show_sphinx = True
 html_theme_options = {
     "collapse_navigation": False,
     "analytics_id": "",
-    "style_nav_header_background": "#ff5850",  # #5bbdbf
+    "style_nav_header_background": "#5bbdbf",
     "style_external_links": True,
     "canonical_url": f"https://{github_repo_name}.readthedocs.io/en/latest/",
     "vcs_pageview_mode": "edit",
