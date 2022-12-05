@@ -10,20 +10,20 @@ import {
 } from "../helper";
 
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
-  describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
-    before(async () => {
-      setFixtureAnsibleCollectionPathEnv();
-      await updateSettings("trace.server", "verbose", "ansibleServer");
-    });
+  // describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
+  //   before(async () => {
+  //     setFixtureAnsibleCollectionPathEnv();
+  //     await updateSettings("trace.server", "verbose", "ansibleServer");
+  //   });
 
-    after(async () => {
-      await updateSettings("trace.server", "off", "ansibleServer"); // Revert back the default settings
-    });
+  //   after(async () => {
+  //     await updateSettings("trace.server", "off", "ansibleServer"); // Revert back the default settings
+  //   });
 
-    testHoverWithoutEE();
-    testDiagnosticsAnsibleWithoutEE();
-    testDiagnosticsYAMLWithoutEE();
-  });
+  //   testHoverWithoutEE();
+  //   testDiagnosticsAnsibleWithoutEE();
+  //   testDiagnosticsYAMLWithoutEE();
+  // });
 
   const skip_ee = process.env.SKIP_PODMAN || process.env.SKIP_DOCKER || "0";
   if (skip_ee !== "1") {
