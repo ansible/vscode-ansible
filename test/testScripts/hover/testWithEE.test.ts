@@ -1,11 +1,5 @@
 import * as vscode from "vscode";
-import {
-  getDocUri,
-  activate,
-  testHover,
-  setFixtureAnsibleCollectionPathEnv,
-  sleep,
-} from "../../helper";
+import { getDocUri, activate, testHover } from "../../helper";
 
 export function testHoverEE(): void {
   describe("TEST FOR HOVER (WITH EE)", () => {
@@ -14,7 +8,7 @@ export function testHoverEE(): void {
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
-      await sleep(10000);
+
       // setFixtureAnsibleCollectionPathEnv(
       //   "/home/runner/.ansible/collections:/usr/share/ansible/collections"
       // );
@@ -54,7 +48,7 @@ export function testHoverEE(): void {
 
     describe("Hover for builtin module name and options", () => {
       it("should hover over builtin module name", async () => {
-        await testHover(docUri1, new vscode.Position(5, 7), [
+        await testHover(docUri1, new vscode.Position(5, 17), [
           {
             contents: ["Print statements during execution"],
           },

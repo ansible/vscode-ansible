@@ -28,7 +28,7 @@ export class SettingsManager {
         enabled: eeSettings.get("enabled", false),
         containerEngine: eeSettings.get("containerEngine", "auto"),
         containerOptions: eeSettings.get("containerOptions", ""),
-        image: eeSettings.get("image", "quay.io/ansible/creator-ee:latest"),
+        image: eeSettings.get("image", "ghcr.io/ansible/creator-ee:latest"),
         pull: {
           arguments: eeSettings.get("pull.arguments", ""),
           policy: eeSettings.get("pull.policy", "missing"),

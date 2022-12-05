@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { assert } from "chai";
+import { execSync } from "child_process";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
