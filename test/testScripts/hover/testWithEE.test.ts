@@ -4,6 +4,7 @@ import {
   activate,
   testHover,
   setFixtureAnsibleCollectionPathEnv,
+  sleep,
 } from "../../helper";
 
 export function testHoverEE(): void {
@@ -13,6 +14,7 @@ export function testHoverEE(): void {
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
+      await sleep(10000);
       // setFixtureAnsibleCollectionPathEnv(
       //   "/home/runner/.ansible/collections:/usr/share/ansible/collections"
       // );
