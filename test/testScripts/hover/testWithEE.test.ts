@@ -13,9 +13,9 @@ export function testHoverEE(): void {
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
-      setFixtureAnsibleCollectionPathEnv(
-        "/home/runner/.ansible/collections:/usr/share/ansible/collections"
-      );
+      // setFixtureAnsibleCollectionPathEnv(
+      //   "/home/runner/.ansible/collections:/usr/share/ansible/collections"
+      // );
     });
 
     describe("Hover for play keywords", () => {

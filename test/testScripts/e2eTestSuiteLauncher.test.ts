@@ -12,9 +12,7 @@ import {
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
     before(async () => {
-      setFixtureAnsibleCollectionPathEnv(
-        "/home/runner/.ansible/collections:/usr/share/ansible/collections"
-      );
+      setFixtureAnsibleCollectionPathEnv();
       await updateSettings("trace.server", "verbose", "ansibleServer");
     });
 
