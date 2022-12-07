@@ -24,6 +24,7 @@ export class ExecutionEnvironment {
   private settingsVolumeMounts: string[] = [];
   private settingsContainerOptions: string;
   private _container_engine: IContainerEngine;
+  private _container_name: string;
   private _container_image: string;
   private _container_image_id: string;
   private _container_volume_mounts: Array<IVolumeMounts>;
@@ -44,6 +45,10 @@ export class ExecutionEnvironment {
         return;
       }
       this._container_image = this.settings.executionEnvironment.image;
+      // We minimize the container name to reduce the length of the command
+      // while keeping it legal https://stackoverflow.com/questions/27791913/
+      // note that both base64 and ascii do not produce valid names.
+      this._container_name = `als-${crypto.randomBytes(2).toString("hex")}`;
       this._container_engine =
         this.settings.executionEnvironment.containerEngine;
       this._container_volume_mounts =
@@ -84,10 +89,6 @@ export class ExecutionEnvironment {
       );
       return;
     }
-    const containerName = `${this._container_image.replace(
-      /[^a-z0-9]/gi,
-      "_",
-    )}`;
     let progressTracker;
 
     try {
@@ -99,10 +100,10 @@ export class ExecutionEnvironment {
         })
         .trim();
       const hostCacheBasePath = path.resolve(
-        `${process.env.HOME}/.cache/ansible-language-server/${containerName}/${this._container_image_id}`,
+        `${process.env.HOME}/.cache/ansible-language-server/${this._container_name}/${this._container_image_id}`,
       );
 
-      const isContainerRunning = this.runContainer(containerName);
+      const isContainerRunning = this.runContainer(this._container_name);
       if (!isContainerRunning) {
         return;
       }
@@ -138,7 +139,7 @@ export class ExecutionEnvironment {
         );
         ansibleConfig.collections_paths = await this.copyPluginDocFiles(
           hostCacheBasePath,
-          containerName,
+          this._container_name,
           ansibleConfig.collections_paths,
           "ansible_collections",
         );
@@ -158,7 +159,7 @@ export class ExecutionEnvironment {
         // Copy builtin plugins
         await this.copyPluginDocFiles(
           hostCacheBasePath,
-          containerName,
+          this._container_name,
           builtin_plugin_locations,
           "/",
         );
@@ -166,7 +167,7 @@ export class ExecutionEnvironment {
         // Copy builtin modules
         ansibleConfig.module_locations = await this.copyPluginDocFiles(
           hostCacheBasePath,
-          containerName,
+          this._container_name,
           ansibleConfig.module_locations,
           "/",
         );
@@ -188,7 +189,7 @@ export class ExecutionEnvironment {
       if (progressTracker) {
         progressTracker.done();
       }
-      this.cleanUpContainer(containerName);
+      this.cleanUpContainer(this._container_name);
     }
   }
 
@@ -273,10 +274,7 @@ export class ExecutionEnvironment {
         containerCommand.push(containerOption);
       });
     }
-    // lets minimize the container name to reduce the length of the command
-    // while keeping it legal https://stackoverflow.com/questions/27791913/
-    const id = crypto.randomBytes(4).toString("ascii");
-    containerCommand.push(`--name als_${id}`);
+    containerCommand.push(`--name=${this._container_name}`);
     containerCommand.push(this._container_image);
     containerCommand.push(command);
     const generatedCommand = containerCommand.join(" ");
