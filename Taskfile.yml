@@ -63,7 +63,7 @@ tasks:
       - .config/requirements.*
       - setup.cfg
       - tools/test-setup.sh
-      - .config/
+      - .config/**/*.*
     generates:
       - out/log/manifest.yml
   build:
@@ -75,7 +75,8 @@ tasks:
     sources:
       - package-lock.json
       - package.json
-      - src/
+      - src/**/*.*
+      - test/**/*.*
       - tsconfig.json
       - webpack.config.js
   deps:
@@ -101,21 +102,21 @@ tasks:
     silent: true
     sources:
       - "*.*"
-      - .config
-      - .github
-      - .vscode
-      - doc
-      - images
-      - src
-      - test
-      - tools
+      - .config/**/*.*
+      - .github/**/*.*
+      - .vscode/**/*.*
+      - doc/**/*.*
+      - images/**/*.*
+      - src/**/*.*
+      - test/**/*.*
+      - tools/**/*.*
   test:
     desc: Run all tests
     vars:
       ENGINE:
-        sh: bash -c "command -v podman docker | head -n 1"
+        sh: bash -c "command -v docker | head -n 1"
     deps:
-      - setup
+      - build
     cmds:
       - "{{.ENGINE}} pull ghcr.io/ansible/creator-ee:latest"
       # Tests that container engine is functional and that we have the image:
@@ -161,7 +162,7 @@ tasks:
       - CHANGELOG.md
       - README.md
       - package*.json
-      - out/
+      - out/**/*.*
     generates:
       - "*.vsix"
     cmds:
