@@ -1,5 +1,5 @@
 alabaster==0.7.12
-ansible-compat==2.2.5
+ansible-compat==2.2.6
 ansible-core==2.14.0
 ansible-lint==6.8.6
 ansible-pygments==0.1.1
