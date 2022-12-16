@@ -53,20 +53,23 @@ jobs:
             # instead of the one mentioned in lock file
             task-name: devel
             os: ubuntu-latest
+            env:
+              CONTAINER_ENGINE: docker
 
           - name: test (macos)
             task-name: test
             os:  macos-11
             env:
               SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
-
+              # SKIP_DOCKER: 1
+              CONTAINER_ENGINE: docker
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: debug
+        run:
+          set
+
       - name: Checkout vscode-ansible
         uses: actions/checkout@v3.1.0
 

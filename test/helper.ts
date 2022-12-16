@@ -81,6 +81,19 @@ export function unSetFixtureAnsibleCollectionPathEnv(): void {
 
 export async function enableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("trace.server", "verbose", "ansibleServer");
+
+  const engine = process.env.CONTAINER_ENGINE
+    ? process.env.CONTAINER_ENGINE
+    : "auto";
+  const old_engine = vscode.workspace
+    .getConfiguration("ansible")
+    .get("executionEnvironment.containerEngine") as string;
+  if (old_engine !== engine) {
+    await updateSettings("executionEnvironment.containerEngine", engine);
+    console.log(
+      `Overriding executionEnvironment.containerEngine from ${old_engine} to ${engine}`
+    );
+  }
   await updateSettings("executionEnvironment.enabled", true);
 
   const volumeMounts = [
