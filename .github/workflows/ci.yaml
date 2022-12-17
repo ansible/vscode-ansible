@@ -122,10 +122,7 @@ jobs:
         run: task package --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
       - name: task ${{ matrix.task-name }}
-        # xvfb needed for chrome headless tests
-        uses: coactions/setup-xvfb@v1
-        with:
-          run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+        run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
         continue-on-error: ${{ matrix.continue-on-error || false }}
 
       - name: Upload vsix artifact

@@ -145,7 +145,7 @@ tasks:
     cmds:
       - >
         source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-e2e
+        ./tools/xvfb.sh yarn run test-e2e
     interactive: true
   test-ui:
     desc: Run UI tests

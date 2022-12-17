@@ -115,6 +115,9 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     done
 fi
 
+log notice "Testing xvfb is working ..."
+./tools/xvfb.sh xrandr -q
+
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
@@ -167,7 +170,6 @@ fi
 
 # User specific environment
 if ! [[ ${PATH} == *"${HOME}/.local/bin"* ]]; then
-    # shellcheck disable=SC2088
     log warning '\~/.local/bin was not found in PATH, attempting to add it.'
     PATH="${HOME}/.local/bin:${PATH}"
     export PATH
