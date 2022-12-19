@@ -269,6 +269,8 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
         podman run -i ${IMAGE} ansible-lint --version)
 fi
 
+sudo apparmor_status || true
+
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
 #
