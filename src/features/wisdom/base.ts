@@ -123,6 +123,7 @@ export class WisdomManager {
         if (result && result.predictions.length > 0) {
           let insertText = result.predictions[0];
           if (isTaskNameMatch) {
+            // insertText = result.predictions[0];
             insertText = removePromptFromSuggestion(
               result.predictions[0],
               lineBefore,
@@ -159,5 +160,6 @@ export class WisdomManager {
 
   public async acceptSelectedSuggestionHandler(args: any): Promise<void> {
     console.log(`Suggestion accepted with args=${args}`);
+    return;
   }
 }
