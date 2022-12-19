@@ -106,7 +106,7 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         # xvfb needed for chrome headless tests
-        uses: GabrielBB/xvfb-action@v1.6
+        uses: coactions/setup-xvfb@v1
         with:
           run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
         continue-on-error: ${{ matrix.continue-on-error || false }}
