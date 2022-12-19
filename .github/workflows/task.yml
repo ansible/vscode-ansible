@@ -55,7 +55,7 @@ jobs:
             # runner does not support running container
             task-name: test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
-            os: windows-2019
+            os: windows-2022
             shell: "wsl-bash {0}"
           - name: test-without-ee (macos)
             os: macos-11
