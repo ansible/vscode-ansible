@@ -269,7 +269,9 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
         podman run -i ${IMAGE} ansible-lint --version)
 fi
 
-sudo apparmor_status || true
+if [[ -f "/usr/bin/apt-get" ]]; then
+    sudo apparmor_status || true
+fi
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
@@ -304,7 +306,7 @@ EOF
 
 log notice "Install node deps using either yarn or npm"
 if [[ -f yarn.lock ]]; then
-    yarn install
+    npx yarn install
 else
     npm ci --no-audit
 fi
