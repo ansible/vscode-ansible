@@ -31,7 +31,7 @@ tasks:
       - tools/dirty.sh
       # If we call `task devel -- <path>` we will link that path, otherwise
       # we will just update ansible-language-server to @main.
-      - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'{{end}}"
+      - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#b7dbdb4d4292681d3c9717d18a034397d9c378ac'{{end}}"
       - >
         bash -c 'git diff --quiet --exit-code || {
         git add package.json yarn.lock &&
