@@ -116,7 +116,7 @@ jobs:
             ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles(
             'package.json',
             'package-lock.json',
-            '.config/requirements.txt'
+            '.config/Containerfile'
             ) }}
 
       - name: Enable caching for podman-machine
@@ -126,7 +126,7 @@ jobs:
           path: |
             ~/.local/share/containers
             ~/.config/containers
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Install Task
         if: "!contains(matrix.shell, 'wsl')"

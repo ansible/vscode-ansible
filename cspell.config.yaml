@@ -12,8 +12,6 @@ dictionaries:
   - "!backwards-compatibility"
   - "!cryptocurrencies"
   - "!cpp"
-ignorePaths:
-  - .config/requirements.txt
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"

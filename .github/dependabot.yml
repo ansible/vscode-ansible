@@ -9,22 +9,12 @@ updates:
     labels:
       - "dependencies"
       - "skip-changelog"
-  - package-ecosystem: "pip"
-    directory: "/.config"
+  - package-ecosystem: docker
+    # We use this file to load the last known good versions of creator-ee and
+    # constraints.
+    directory: .config/
     schedule:
-      interval: "daily"
+      interval: daily
     labels:
-      - "dependencies"
-      - "skip-changelog"
-    open-pull-requests-limit: 3
-    allow:
-      # tell dependabot to update only important dependencies, not indirect ones
-      - dependency-name: ansible-compat
-      - dependency-name: ansible-core
-      - dependency-name: ansible-lint
-      - dependency-name: click
-      - dependency-name: lxml
-      - dependency-name: pre-commit
-      - dependency-name: pyparsing
-      - dependency-name: subprocess-tee
-      - dependency-name: yamllint
+      - dependencies
+      - skip-changelog

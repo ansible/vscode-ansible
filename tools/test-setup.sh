@@ -5,7 +5,7 @@
 # (cspell: disable-next-line)
 set -exuo pipefail
 
-IMAGE=ghcr.io/ansible/creator-ee:latest
+IMAGE=ghcr.io/ansible/creator-ee:$(./tools/get-image-version)
 PIP_LOG_FILE=out/log/pip.log
 HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
@@ -178,9 +178,10 @@ fi
 
 python3 -m pip install -q -U pip
 
+EE_VERSION=$(./tools/get-image-version)
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     python3 -m pip install \
-        -c .config/requirements.txt -r .config/requirements.in
+        -c "https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt" -r .config/requirements.in
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
@@ -269,9 +270,9 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman pull --quiet "${IMAGE}" >/dev/null
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible --version)
+        podman run -i "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible-lint --version)
+        podman run -i "${IMAGE}" ansible-lint --version)
 fi
 
 # Create a build manifest so we can compare between builds and machines, this
