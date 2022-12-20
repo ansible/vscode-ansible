@@ -95,12 +95,12 @@ tasks:
     deps:
       - setup
     cmds:
-      - $VIRTUAL_ENV/bin/python3 -m piptools compile -q --no-header --no-annotate .config/requirements.in --output-file .config/requirements.txt
-      - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
       # bumps some developments dependencies
-      - yarn upgrade-interactive
+      - npx yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
-      - yarn install
+      - npx yarn install
+      - $VIRTUAL_ENV/bin/python3 -m piptools compile -q --resolver=backtracking --no-header --no-annotate .config/requirements.in --output-file .config/requirements.txt
+      - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
   lint:
     desc: Lint the project
