@@ -20,6 +20,18 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.0.3
+
+### Bugfixes
+
+- Correct container name (#515) @ssbarnea
+- Add note about task vs go-task (#509) @samccann
+- Remove als acronym from docs website title (#507) @samccann
+- Isolate container caching from others (#492) @ssbarnea
+- Update docs url (#494) @ssbarnea
+- Make node 14 minimal version required (#491) @ssbarnea
+- Use ghcr.io instead of quay.io as default registry (#489) @ssbarnea
+
 ## v1.0.2
 
 ### Bugfixes
