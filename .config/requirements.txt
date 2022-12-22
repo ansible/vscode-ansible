@@ -1,4 +1,4 @@
-ansible-compat==2.2.5
+ansible-compat==2.2.7
 ansible-core==2.14.0
 ansible-lint==6.9.0
 attrs==21.4.0
