@@ -101,7 +101,6 @@ tasks:
       - npx yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
       - npx yarn install
-      - $VIRTUAL_ENV/bin/python3 -m piptools compile -q --resolver=backtracking --no-header --no-annotate .config/requirements.in --output-file .config/requirements.txt
       - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
   lint:
@@ -180,7 +179,7 @@ tasks:
       - yarn run webpack
       # --pre-release not supported until we do VS Code >=1.63
       # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
       # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
       - zipinfo -1 *.vsix
       - tools/dirty.sh

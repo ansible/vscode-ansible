@@ -6,9 +6,9 @@ name: ci
 # events but only for the main branch
 on:
   push:
-    branches: [main]
+    branches: ["main", "devel/*"]
   pull_request:
-    branches: [main]
+    branches: ["main", "devel/*"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -76,6 +76,11 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
       - name: Enable caching
         uses: actions/cache@v3
         with:
@@ -88,7 +93,7 @@ jobs:
             ~/.cache/pip
             ~/.cache/yarn
             ~/.local/share/containers/podman/machine/qemu
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
