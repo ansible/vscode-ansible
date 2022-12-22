@@ -101,7 +101,6 @@ tasks:
       - npx yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
       - npx yarn install
-      - $VIRTUAL_ENV/bin/python3 -m piptools compile -q --resolver=backtracking --no-header --no-annotate .config/requirements.in --output-file .config/requirements.txt
       - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
   lint:
