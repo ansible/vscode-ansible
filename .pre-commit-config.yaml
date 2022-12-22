@@ -12,10 +12,6 @@ ci:
     - yarn-audit-fix
     - yarn-dedupe
 minimum_pre_commit_version: 2.9.0 # types_or
-exclude: >
-  (?x)^(
-    .config/requirements.txt
-  )$
 repos:
   - repo: local
     hooks:

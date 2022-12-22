@@ -5,7 +5,8 @@
 # (cspell: disable-next-line)
 set -euo pipefail
 
-IMAGE=ghcr.io/ansible/creator-ee:$(./tools/get-image-version)
+IMAGE_VERSION=$(./tools/get-image-version)
+IMAGE=ghcr.io/ansible/creator-ee:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
@@ -178,7 +179,7 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
         nodejs gcc g++ make python3-dev
 fi
 
-log notice "Installing python venv and dependencies..."
+log notice "Installing $(python3 --version) venv and dependencies matching creator-ee:${IMAGE_VERSION} ..."
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     log notice "Creating virtualenv ..."
@@ -190,8 +191,11 @@ fi
 python3 -m pip install -q -U pip
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
+    # We used the already tested constraints file from creator-ee in order
+    # to avoid surprises. This ensures venv and creator-ee have exactly same
+    # versions.
     python3 -m pip install -q \
-        -c .config/requirements.txt -r .config/requirements.in
+        -c "https://raw.githubusercontent.com/ansible/creator-ee/${IMAGE_VERSION}/_build/requirements.txt" -r .config/requirements.in
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
@@ -248,15 +252,14 @@ command -v node >/dev/null 2>&1 || command -v nvm >/dev/null 2>&1 || {
     nvm install stable
 }
 
-# Check if npm has permissions to install packages (system installed does not)
-# Share https://stackoverflow.com/a/59227497/99834
-test -w "$(npm config get prefix)" || {
-    log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
-    npm config set prefix "${HOME}/.local/"
-}
-
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || {
+        # Check if npm has permissions to install packages (system installed does not)
+        # Share https://stackoverflow.com/a/59227497/99834
+        test -w "$(npm config get prefix)" || {
+            log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
+            npm config set prefix "${HOME}/.local/"
+        }
         log warning "Installing missing yarn"
         npm install -g yarn
         yarn --version
