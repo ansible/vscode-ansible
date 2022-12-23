@@ -7,10 +7,10 @@ env: &env
   PRE_COMMIT_COLOR: always
   # basically the same thing from .envrc file:
   VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
+    sh: echo "${VIRTUAL_ENV:-out/venvs/{{.HOSTNAME}}}"
 vars:
   HOSTNAME:
-    sh: echo ${HOSTNAME:-localhost}
+    sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
 tasks:
   default:
     vars:
@@ -58,10 +58,8 @@ tasks:
       - tools/test-setup.sh
       - package.json
       - yarn.lock
-      - Taskfile.yml
     generates:
-      - node_modules
-      - out/log/manifest.yml
+      - out/log/manifest-{{.HOSTNAME}}.yml
     run: once
     interactive: true
   build:
