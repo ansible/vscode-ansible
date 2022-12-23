@@ -1,10 +1,12 @@
 #!/bin/bash
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
 set -euo pipefail
 
+HOST=${HOST:-$(hostname)}
 IMAGE_VERSION=$(./tools/get-image-version)
 IMAGE=ghcr.io/ansible/creator-ee:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
@@ -55,12 +57,27 @@ log () {
     >&2 echo -e "${prefix}${2}${NC}"
 }
 
+if [ ! -d "$HOME/.local/bin" ] ; then
+    log warning "Creating missing ~/.local/bin"
+    mkdir -p "$HOME/.local/bin"
+fi
+
+# Detect RedHat/CentOS/Fedora:
+if [[ -f "/etc/redhat-release" ]]; then
+    RPMS=()
+    command -v xvfb-run >/dev/null 2>&1 || RPMS+=(xorg-x11-server-Xvfb)
+    if [[ ${#RPMS[@]} -ne 0 ]]; then
+        log warning "We need sudo to install some packages: ${RPMS[*]}"
+        sudo dnf install -y "${RPMS[@]}"
+    fi
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -76,7 +93,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
     if [[ "${INSTALL}" -eq 1 ]]; then
-        printf '%s\n' "We need sudo to install some packages: ${DEBS[*]}"
+        log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
         sudo apt-get -qq update -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
@@ -87,6 +104,13 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
+    # Remove undesirable packages, like cmdtest which provides another "yarn"
+    DEBS=(cmdtest)
+    for DEB in "${DEBS[@]}"; do
+        [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
+            "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
+            sudo apt-get remove -y "$DEB"
+    done
 fi
 
 # Ensure that git is configured properly to allow unattended commits, something
@@ -135,16 +159,18 @@ fi
 
 # User specific environment
 if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+    log warning '\~/.local/bin was not found in PATH, attempting to add it.'
+    PATH="${HOME}/.local/bin:${PATH}"
+    export PATH
+
     # shellcheck disable=SC2088
-    log warning "~/.local/bin was not found in PATH, attempting to add it."
-    cat >>"${HOME}/.bashrc" <<EOF
-# User specific environment
-if ! [[ "${PATH}" =~ "${HOME}/.local/bin" ]]; then
-    PATH="${HOME}/.local/bin:${PATH}"
-fi
-export PATH
-EOF
-    PATH="${HOME}/.local/bin:${PATH}"
+    if [[ -n "${GITHUB_ENV:-}" ]]; then
+        log notice "Altered GITHUB_ENV to extend PATH."
+        echo "{PATH}={$PATH}" >> "$GITHUB_ENV"
+    else
+        log error "Reconfigure your shell (${SHELL}) to include ~/.local/bin in your PATH, we need it."
+        exit 102
+    fi
 fi
 
 # fail-fast if we detect incompatible filesystem (o-w)
@@ -261,15 +287,21 @@ if [[ -f yarn.lock ]]; then
             npm config set prefix "${HOME}/.local/"
         }
         log warning "Installing missing yarn"
-        npm install -g yarn
+        node corepack enable
         yarn --version
     }
 fi
 
 log notice "Docker checks..."
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
-DOCKER_VERSION="$(get_version docker || echo null)"
+DOCKER_VERSION="$(get_version docker 2>/dev/null || echo null)"
 if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
+
+    DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
+    if [[ "${DOCKER_STDERR}" == *"Emulate Docker CLI using podman"* ]]; then
+        log error "podman-docker shim is present and we do not support it. Please remove it."
+        exit 1
+    fi
 
     if [ -n "${DOCKER_HOST:-}" ]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
@@ -332,7 +364,7 @@ fi
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
 #
-tee out/log/manifest.yml <<EOF
+tee "out/log/manifest-${HOST}.yml" <<EOF
 system:
   uname: $(uname)
 env:
@@ -360,5 +392,5 @@ creator-ee:
 EOF
 
 [[ $ERR -eq 0 ]] && level=notice || level=error
-log "${level}" "${0##*/} -> out/log/manifest.yml and returned ${ERR}"
+log "${level}" "${0##*/} -> out/log/manifest-$HOST.yml and returned ${ERR}"
 exit "${ERR}"
