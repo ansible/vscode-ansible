@@ -24,64 +24,130 @@ jobs:
     # ${{ matrix.name && matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell || 'bash' }}
     strategy:
       fail-fast: false
       matrix:
-        # Avoid letting github do the matrix multiplication and use manual
-        # includes for each job, this gives us fine control over job name.
-        continue-on-error:
-          - false
-        os:
-          - ubuntu-22.04
-        task-name:
-          - test
-        upload-artifact:
-          - false
-        name:
-          - test
+        # # Avoid letting github do the matrix multiplication and use manual
+        # # includes for each job, this gives us fine control over job name.
+        # continue-on-error:
+        #   - false
+        # os:
+        #   - ubuntu-22.04
+        # task-name:
+        #   - test
+        # upload-artifact:
+        #   - false
+        # name:
+        #   - test
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-22.04
-            upload-artifact: true
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-22.04
+          #   upload-artifact: true
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
-          - name: devel
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in lock file
-            task-name: devel
-            os: ubuntu-22.04
+          # - name: devel
+          #   # this job will install latest version of ansible-language-server
+          #   # instead of the one mentioned in lock file
+          #   task-name: devel
+          #   os: ubuntu-22.04
 
-          - name: test (macos)
+          # - name: test (macos)
+          #   task-name: test
+          #   os:  macos-12
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
+
+          - name: windows
+            os: [self-hosted, Windows, x64]
             task-name: test
-            os:  macos-12
+            # shell: "wsl-bash {0}"
+            shell: "wsl {0}"
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
             continue-on-error: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
+      - name: Disable autocrlf
+        if: "contains(matrix.os, 'windows')"
+        run: |-
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        shell: cmd # <-- keep it here to avoid using default shell
+
+      - name: Enable WSL
+        if: "contains(matrix.shell, 'wsl')"
+        shell: cmd
+        run: |
+          echo on
+          pwsh -Version
+          wsl --status
+          systeminfo.exe
+          wsl --set-default-version 2
+          :: wsl --update --web-download && exit 0
+          wsl --install --distribution Ubuntu-20.04 && exit 0
+          wsl cat /etc/os-release
+
+      # https://github.com/marketplace/actions/setup-wsl
+      # - name: Activate WSL
+      #   if: "contains(matrix.shell, 'wsl')"
+      #   uses: Vampire/setup-wsl@v1.3.4
+      #   with:
+      #     set-as-default: 'true'
+      #     # we want to load user profile
+      #     # https://github.com/Vampire/setup-wsl#wsl-shell-command
+      #     wsl-shell-command: "bash -euo pipefail"
+      #     # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
+      #     wsl-conf: |
+      #       [automount]
+      #       enabled = true
+      #       root = /
+      #       options = "metadata,umask=077"
+      #       [interop]
+      #       enabled = false
+      #       appendWindowsPath = false
+      #       [network]
+      #       hostname = wsl
+      #     additional-packages:
+      #       curl
+      #       git
+      #       make
+      #       python3-dev
+      #       python3-pip
+      #       python3-venv
+      #       qemu-user-static
+      #       xvfb
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout vscode-ansible
         uses: actions/checkout@v3.2.0
 
       - name: Install Task
+        if: "!contains(matrix.os, 'self-hosted')"
         uses: arduino/setup-task@v1
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup python
+        if: "!contains(matrix.os, 'self-hosted')"
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
       - name: Enable caching
+        if: "!contains(matrix.os, 'self-hosted')"
         uses: actions/cache@v3
         with:
           path: |
@@ -96,6 +162,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile') }}
 
       - name: Use NodeJS v16
+        if: "!contains(matrix.os, 'self-hosted')"
         uses: actions/setup-node@v3
         with:
           node-version: 16
