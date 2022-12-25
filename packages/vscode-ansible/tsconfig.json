@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "outDir": "./out/client",
+    "esModuleInterop": true,
+    "module": "commonjs"
+  },
+  "extends": "../../tsconfig.base.json",
+  "exclude": ["out"]
+}

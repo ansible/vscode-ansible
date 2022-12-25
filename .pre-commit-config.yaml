@@ -7,10 +7,17 @@ ci:
     chore: auto fixes from pre-commit.com hooks
 
     for more information, see https://pre-commit.ci
-  skip:
-    - yarn-audit
-    - yarn-audit-fix
-    - yarn-dedupe
+exclude: >
+  (?x)^(
+    .yarn/.*|
+    pnpm-lock.yaml|
+    .config/dictionary.txt|
+    packages/vscode-ansible/syntaxes/external/.*|
+    packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml|
+    packages/vscode-ansible/syntaxes/external/jinja.tmLanguage.json|
+    packages/ansible-language-server/.vscode/extensions.json|
+    packages/vscode-ansible/test/testFixtures/diagnostics/yaml/invalid_yaml.yml
+  )$
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: local
@@ -21,19 +28,6 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: yarn-audit-fix
-        name: yarn-audit-fix
-        language: system
-        pass_filenames: false
-        files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
-        entry: npx yarn run yarn-audit-fix
-  - repo: https://github.com/ScribeMD/pre-commit-hooks
-    rev: 0.15.0
-    hooks:
-      - id: yarn-dedupe
-        entry: npx yarn dedupe
-      - id: yarn-audit
-        entry: npx yarn npm audit
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.9.0.2
@@ -57,28 +51,13 @@ repos:
       - id: check-byte-order-marker
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
-      - id: check-json
-        # does not support JSON with comments
-        exclude: >
-          (?x)^(
-            .vscode/settings.json|
-            jinja-language-configuration.json|
-            ansible-language-configuration.json
-          )$
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.16.0
+    rev: v6.17.0
     hooks:
       - id: cspell
         name: Spell check with cspell
-        exclude: >
-          (?x)^(
-            .vscode/settings.json|
-            .yarn/.*|
-            CHANGELOG.md|
-            yarn.lock
-          )$
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.28.0
     hooks:
@@ -86,32 +65,12 @@ repos:
         files: \.(yaml|yml)$
         types: [file, yaml]
         entry: yamllint --strict
-        exclude: >
-          (?x)^(
-            test/testFixtures/diagnostics/yaml/invalid_yaml.yml
-          )$
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.2
-    hooks:
-      - id: codespell
-        exclude: >
-          (?x)^(
-            .yarn/.*|
-            .config/dictionary.txt|
-            CHANGELOG.md|
-            yarn.lock
-          )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
     rev: "v3.0.0-alpha.4"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
-        exclude: >
-          (?x)^(
-            jinja-language-configuration.json|
-            syntaxes/external/jinja.tmLanguage.json
-          )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.32.2
     hooks:

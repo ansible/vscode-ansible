@@ -1,0 +1,186 @@
+---
+# see https://taskfile.dev/#/
+version: "3"
+env: &env
+  # basically the same thing from .envrc file:
+  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
+    sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
+vars:
+  HOSTNAME:
+    sh: echo ${HOSTNAME:-localhost}
+  NODE_ENV: |
+    [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm";
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" --silent;
+    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh";
+  EE_VERSION:
+    sh: ./tools/get-image-version
+tasks:
+  default:
+    desc: Run most commands
+    deps:
+      - setup
+    env:
+      VERSION:
+        sh: node -p "require('./package.json').version"
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install'
+      - task: lint
+      - task: package
+      - task: docs
+      - echo Done {{.VERSION}}!
+  vscode:
+    desc: Run vscode-ansible tests using current code from ALS
+    deps:
+      - setup
+    cmds:
+      - ./tools/vscode.sh
+  docs:
+    desc: Build the documentation
+    vars:
+      sphinx_common_args: '-j auto --color -a -n -W --keep-going -T -d "../out/.doctrees" . "../out/docs_out"'
+    deps:
+      - setup
+    cmds:
+      # Retrieve possibly missing commits:
+      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
+      - git fetch --tags
+      - npm run generate-settings-readme
+      - source $VIRTUAL_ENV/bin/activate &&
+        cd docs &&
+        python -m sphinx -b html {{.sphinx_common_args}} &&
+        python -m sphinx -b linkcheck {{.sphinx_common_args}} &&
+        python ../tools/docs_summary.py
+
+  setup:
+    desc: Install dependencies
+    run: once
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
+    cmds:
+      - ./tools/test-setup.sh
+    sources:
+      - package.json
+      - .config/requirements.*
+      - setup.cfg
+      - tools/test-setup.sh
+      - .config/**/*.*
+    generates:
+      - out/log/manifest.yml
+  build:
+    desc: Build the project
+    deps:
+      - setup
+    cmds:
+      - npm run compile
+    sources:
+      - package-lock.json
+      - package.json
+      - src/**/*.*
+      - test/**/*.*
+      - tsconfig.json
+      - webpack.config.js
+  deps:
+    desc: Update dependencies
+    deps:
+      - setup
+    cmds:
+      - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
+      # bumps some developments dependencies
+      - npx ncu -u --dep dev
+      # running install after ncu is needed in order to update the lock file
+      - npm install
+  lint:
+    desc: Lint the project
+    deps:
+      - setup
+    env:
+      <<: *env
+      PRE_COMMIT_COLOR: always
+    cmds:
+      - $VIRTUAL_ENV/bin/python -m pre_commit run -a
+    silent: true
+    sources:
+      - "*.*"
+      - .config/**/*.*
+      - .github/**/*.*
+      - .vscode/**/*.*
+      - doc/**/*.*
+      - images/**/*.*
+      - src/**/*.*
+      - test/**/*.*
+      - tools/**/*.*
+  test:
+    desc: Run all tests
+    vars:
+      ENGINE:
+        sh: bash -c "command -v docker | head -n 1"
+    deps:
+      - build
+    cmds:
+      - "{{.ENGINE}} pull ghcr.io/ansible/creator-ee:{{ .EE_VERSION }}"
+      # Tests that container engine is functional and that we have the image:
+      - "{{.ENGINE}} run -i ghcr.io/ansible/creator-ee:{{ .EE_VERSION }} ansible-lint --version"
+      - >
+        source $VIRTUAL_ENV/bin/activate &&
+        command -v ansible-lint &&
+        bash -c '{{ .NODE_ENV }} npm run test'
+    interactive: true
+  test-node14:
+    desc: Run all tests using node 14
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install 14'
+      - task: test
+  test-node16:
+    desc: Run all tests using node 16
+    cmds:
+      - bash -c '{{ .NODE_ENV }} nvm install 16'
+      - task: test
+  test-with-ee:
+    desc: Run only ee tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source $VIRTUAL_ENV/bin/activate &&
+        bash -c '{{ .NODE_ENV }} npm run test-with-ee'
+    interactive: true
+  test-without-ee:
+    desc: Run only non-ee tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source $VIRTUAL_ENV/bin/activate &&
+        bash -c '{{ .NODE_ENV }} npm run test-without-ee'
+    interactive: true
+  package:
+    desc: Package extension
+    deps:
+      - build
+    sources:
+      - CHANGELOG.md
+      - README.md
+      - package*.json
+      - out/**/*.*
+    generates:
+      - "*.vsix"
+    cmds:
+      - rm -f *.tgz
+      - bash -c '{{ .NODE_ENV }} npm pack'
+    silent: false
+  pr:
+    desc: Opens a pull request using gh
+    deps:
+      - lint
+    cmds:
+      - gh pr create
+    interactive: true
+  release:
+    desc: Create a new release (used by CI)
+    deps:
+      - setup
+    cmds:
+      - ./tools/release.sh
+    interactive: true

@@ -1,0 +1,23 @@
+# testing and linting
+ansible-core>=2.13.0
+ansible-lint>=6.8.1
+# end-of dependencies for which we allow pre-releases
+click
+lxml
+pip-tools
+pre-commit
+pyparsing
+# vscode integration
+flake8  # vscode integration
+mypy  # vscode integration
+pylint  # vscode integration
+# docs
+linkify-it-py>=2.0.0  # myst-parser extra
+MarkupSafe
+myst-parser >= 0.18.0
+setuptools-scm >= 6.0.1
+Sphinx >= 5.0.2
+sphinx-ansible-theme >= 0.8.0
+sphinx-favicon >= 0.2
+sphinx-notfound-page >= 0.7.1
+sphinxcontrib-apidoc >= 0.3.0

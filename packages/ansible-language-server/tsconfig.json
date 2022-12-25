@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "outDir": "./out/server",
+    "module": "commonjs",
+    "target": "es6",
+    "alwaysStrict": true,
+    "declaration": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2016"],
+    "moduleResolution": "node",
+  },
+}

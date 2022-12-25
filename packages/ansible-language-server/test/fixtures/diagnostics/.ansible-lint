@@ -1,0 +1,7 @@
+---
+use_default_rules: true
+skip_list:
+  - yaml[new-line-at-end-of-file]
+warn_list:
+  - no-free-form
+  - no-relative-paths

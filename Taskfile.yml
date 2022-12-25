@@ -24,24 +24,6 @@ tasks:
     cmds:
       - echo {{.TASK}}
       - echo Done {{.VERSION}}!
-  devel:
-    desc: Updates the language server to latest from @main and run all tests
-    deps:
-      - setup
-    cmds:
-      - tools/dirty.sh
-      # If we call `task devel -- <path>` we will link that path, otherwise
-      # we will just update ansible-language-server to @main.
-      - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'{{end}}"
-      - >
-        bash -c 'git diff --quiet --exit-code || {
-        git add package.json yarn.lock &&
-        echo "Update ansible-language-server" |
-        git commit --file -
-        ;}'
-      - tools/dirty.sh
-      - task: test
-      - echo "Tests passed, you can now run "task pr" to create a pull request."
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
@@ -57,7 +39,6 @@ tasks:
     sources:
       - tools/test-setup.sh
       - package.json
-      - yarn.lock
     generates:
       - out/log/manifest-{{.HOSTNAME}}.yml
     run: once
@@ -69,9 +50,8 @@ tasks:
     cmds:
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
-      - yarn run clean
-      - yarn run compile
-      - npx tsc -p ./
+      - pnpm run -r clean
+      - pnpm run -r compile
     sources:
       - Taskfile.yml
       - node_modules/**/*
@@ -96,9 +76,9 @@ tasks:
       - setup
     cmds:
       # bumps some developments dependencies
-      - npx yarn upgrade-interactive
+      - pnpm -r up --latest
       # running install after upgrade is needed in order to update the lock file
-      - npx yarn install
+      - pnpm install
       - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
   lint:
@@ -138,7 +118,7 @@ tasks:
     cmds:
       - >
         source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-e2e
+        pnpm run -r test-e2e
     interactive: true
   test-ui:
     desc: Run UI tests
@@ -147,7 +127,7 @@ tasks:
     cmds:
       - >
         source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-ui-current
+        pnpm run -r test-ui-current
     interactive: true
   test-ui-old:
     desc: Run UI tests (oldest vscode)
@@ -156,12 +136,12 @@ tasks:
     cmds:
       - >
         source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-ui-oldest
+        pnpm run -r test-ui-oldest
     interactive: true
   package:
     vars:
       VERSION:
-        sh: node -p "require('./package.json').version"
+        sh: node -p "require('./packages/vscode-ansible/package.json').version"
     desc: Package extension
     deps:
       - build
@@ -174,14 +154,15 @@ tasks:
       - "*.vsix"
     cmds:
       - rm -f *.vsix
-      - yarn run webpack
+      - cd packages/vscode-ansible && pnpm run webpack
       # --pre-release not supported until we do VS Code >=1.63
       # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - cd packages/vscode-ansible && pnpm exec vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}
       # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
-      - zipinfo -1 *.vsix
+      - cd packages/vscode-ansible && zipinfo -1 *.vsix
       - tools/dirty.sh
-    silent: true
+    silent: false
+    interactive: true
   pr:
     desc: Opens a pull request using gh
     deps:

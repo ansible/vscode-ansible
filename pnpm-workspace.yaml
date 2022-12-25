@@ -1,0 +1,3 @@
+packages:
+  - packages/vscode-ansible
+  - packages/ansible-language-server

@@ -353,13 +353,11 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     sudo apparmor_status || true
 fi
 
-log notice "Install node deps using either yarn or npm"
-if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn install
-else
-    npm ci --no-audit
+log notice "Install node deps using pnpm"
+if [[ -f pnpm-lock.yaml ]] && ! command -v pnpm >/dev/null 2>&1; then
+    corepack prepare pnpm@latest --activate
 fi
+pnpm install
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.

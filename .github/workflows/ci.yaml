@@ -27,18 +27,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Avoid letting github do the matrix multiplication and use manual
-        # includes for each job, this gives us fine control over job name.
-        continue-on-error:
-          - false
-        os:
-          - ubuntu-22.04
-        task-name:
-          - test
-        upload-artifact:
-          - false
-        name:
-          - test
         include:
           - name: lint
             task-name: lint
@@ -48,21 +36,34 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
 
-          - name: devel
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in lock file
-            task-name: devel
+          - name: test-ui
             os: ubuntu-22.04
+            task-name: test-ui
+            upload-artifact: false
 
-          - name: test (macos)
-            task-name: test
+          - name: test-ui-old
+            os: ubuntu-22.04
+            task-name: test-ui-old
+            upload-artifact: false
+
+          - name: test-e2e
+            os: ubuntu-22.04
+            task-name: test-e2e
+            upload-artifact: false
+
+          - name: test-ui (macos)
+            task-name: test-ui
             os:  macos-12
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+
+          - name: test-ui-old (macos)
+            task-name: test-ui-old
+            os:  macos-12
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -99,6 +100,25 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 7
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        name: Setup pnpm cache
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
       - name: task setup
         run: task setup

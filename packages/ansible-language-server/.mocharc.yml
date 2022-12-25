@@ -1,0 +1,6 @@
+require:
+  - ts-node/register
+  - test/rootMochaHooks.ts
+reporter: tap # more flat, also the only one that mentions totals for found, skipped and passed
+spec: './test/**/*.ts'
+timeout: 60000 # same as 60 seconds. This done to ensure that we have sufficient time to run tests on the CI as each test involves loading yaml files and docs library for ansible.
