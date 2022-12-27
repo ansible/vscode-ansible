@@ -176,6 +176,12 @@ jobs:
       - name: task ${{ matrix.task-name }}
         run: task -v ${{ matrix.task-name }}
 
+      ### Uncomment to hold the runner node for debugging
+      # - uses: actions/checkout@v2
+      # - name: Setup tmate session
+      #   if: ${{ failure() }}
+      #   uses: mxschmitt/action-tmate@v3
+
       - name: Gather logs
         if: ${{ always() }}
         run: |

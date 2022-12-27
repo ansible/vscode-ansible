@@ -108,6 +108,7 @@ toxenv
 tsbuildinfo
 unshallow
 userdata
+uuidv4
 venvs
 vscodeignore
 vsix
@@ -144,6 +145,7 @@ ganeshrn
 hbenl
 kimbernator
 koalaman
+mxschmitt
 priyamsahoo
 ssbarnea
 timonwong
