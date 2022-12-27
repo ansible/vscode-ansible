@@ -95,6 +95,7 @@ export class TelemetryManager {
    * @throws if the telemetry service has not been initialized yet
    * @returns when the telemetry event has been sent
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async sendTelemetry(eventName: string, eventData: any): Promise<void> {
     if (!this.isTelemetryInit) {
       throw new Error("Telemetry has not been initialized yet");
@@ -109,6 +110,7 @@ export class TelemetryManager {
     isInitialized: boolean,
     errorMessage?: string
   ): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const startUpData: any = {
       "ansible.server.initialized": isInitialized,
     };

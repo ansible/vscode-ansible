@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace AnsibleCommands {
   export const ANSIBLE_VAULT = "extension.ansible.vault";
   export const ANSIBLE_INVENTORY_RESYNC = "extension.resync-ansible-inventory";

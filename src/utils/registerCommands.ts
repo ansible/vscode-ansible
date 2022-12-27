@@ -16,6 +16,7 @@ export async function registerCommandWithTelemetry(
   context: ExtensionContext,
   telemetry: TelemetryManager,
   commandName: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   commandAction: (thisArg?: any) => Promise<any>,
   skipSuccess?: boolean
 ): Promise<void> {
