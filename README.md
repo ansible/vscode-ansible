@@ -214,6 +214,16 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansibleServer.trace.server`: Traces the communication between VSCode and the
   ansible language server.
 
+## Data and Telemetry
+
+The `vscode-ansible` extension collects anonymous [usage data](USAGE_DATA.md)
+and sends it to Red Hat servers to help improve our products and services. Read
+our
+[privacy statement](https://developers.redhat.com/article/tool-data-collection)
+to learn more. This extension respects the `redhat.telemetry.enabled` setting,
+which you can learn more about at
+<https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting>
+
 ## Known limitations
 
 - The shorthand syntax for module options (key=value pairs) is not supported.
