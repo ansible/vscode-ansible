@@ -119,7 +119,7 @@ export class TelemetryManager {
   }
 }
 
-/* Referred from  https://github.com/redhat-developer/vscode-yaml/blob/main/src/telemetry.ts 
+/* Referred from  https://github.com/redhat-developer/vscode-yaml/blob/main/src/telemetry.ts
 and modified for Ansible extension */
 export class TelemetryErrorHandler implements ErrorHandler {
   private restarts: number[] = [];
@@ -140,7 +140,7 @@ export class TelemetryErrorHandler implements ErrorHandler {
     } else {
       action = ErrorAction.Shutdown;
     }
-    let errorResult: ErrorHandlerResult = { action: action };
+    const errorResult: ErrorHandlerResult = { action: action };
     return errorResult;
   }
 
@@ -163,7 +163,7 @@ export class TelemetryErrorHandler implements ErrorHandler {
         action = CloseAction.Restart;
       }
     }
-    let closedResult: CloseHandlerResult = { action: action };
+    const closedResult: CloseHandlerResult = { action: action };
     return closedResult;
   }
 }
