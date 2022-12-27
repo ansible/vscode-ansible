@@ -25,6 +25,8 @@ jobs:
     env:
       # to expose matrix job name to steps, which is not possible with expansions
       JOB_NAME: ${{ matrix.name || matrix.task-name }}
+      SKIP_PODMAN: ${{ matrix.skip_podman || '0' }}
+      SKIP_DOCKER: ${{ matrix.skip_docker || '0' }}
     name: ${{ matrix.name || matrix.task-name }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
@@ -61,6 +63,8 @@ jobs:
             os: macos-11
             # runner does not support running container
             task-name: test-without-ee
+            skip_docker: "1"
+            skip_podman: "1"
 
     steps:
       - name: Disable autocrlf
