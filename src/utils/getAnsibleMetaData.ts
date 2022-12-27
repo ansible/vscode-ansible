@@ -76,13 +76,17 @@ async function getAnsibleInfo() {
     return ansibleInfo;
   }
 
-  let ansibleVersion;
+  let ansibleCoreVersion;
   if (ansibleVersionObjKeys[0].includes(" [")) {
-    ansibleVersion = ansibleVersionObjKeys[0].split(" [");
+    ansibleCoreVersion = ansibleVersionObjKeys[0].split(" [");
   } else {
-    ansibleVersion = ansibleVersionObjKeys[0].split(" ");
+    ansibleCoreVersion = ansibleVersionObjKeys[0].split(" ");
   }
-  ansibleInfo["version"] = `Ansible ${ansibleVersion[1].slice(0, -1)}`;
+  ansibleInfo["core version"] = ansibleCoreVersion[1]
+    .slice(0, -1)
+    .split(" ")
+    .pop()
+    .trim();
 
   ansibleInfo["location"] = (await context.ansibleConfig).ansible_location;
 
@@ -114,7 +118,11 @@ async function getPythonInfo() {
     return pythonInfo;
   }
 
-  pythonInfo["version"] = pythonVersionResult.stdout.trim();
+  pythonInfo["version"] = pythonVersionResult.stdout
+    .trim()
+    .split(" ")
+    .pop()
+    .trim();
 
   const pythonPathResult = await getResultsThroughCommandRunner(
     "python3",
@@ -128,7 +136,7 @@ async function getPythonInfo() {
 async function getAnsibleLintInfo() {
   const ansibleLintInfo = {};
 
-  const ansibleLintVersionResult = await getResultsThroughCommandRunner(
+  let ansibleLintVersionResult = await getResultsThroughCommandRunner(
     "ansible-lint",
     "--version",
   );
@@ -142,7 +150,22 @@ async function getAnsibleLintInfo() {
     "ansible-lint",
   );
 
-  ansibleLintInfo["version"] = ansibleLintVersionResult.stdout.trim();
+  // ansible-lint version reports if a newer version of the ansible-lint is available or not
+  // along with the current version itself
+  // so the following lines of code are to segregate the two information into to keys
+  ansibleLintVersionResult = ansibleLintVersionResult.stdout.trim().split("\n");
+  const ansibleLintVersion = ansibleLintVersionResult[0];
+  const ansibleLintUpgradeStatus = ansibleLintVersionResult[1]
+    ? ansibleLintVersionResult[1]
+    : undefined;
+
+  ansibleLintInfo["version"] = ansibleLintVersion
+    .split("using")[0]
+    .trim()
+    .split(" ")
+    .pop()
+    .trim();
+  ansibleLintInfo["upgrade status"] = ansibleLintUpgradeStatus;
 
   ansibleLintInfo["location"] = ansibleLintPathResult.stdout.trim();
 

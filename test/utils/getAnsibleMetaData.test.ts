@@ -14,7 +14,7 @@ import {
 
 function getAnsibleTestInfo() {
   const ansibleInfo = {};
-  ansibleInfo["version"] = "Ansible";
+  ansibleInfo["core version"] = ".";
   ansibleInfo["location"] = "/ansible";
   (ansibleInfo["config file path"] = path.resolve(
     __dirname,
@@ -43,14 +43,15 @@ function getAnsibleTestInfo() {
 
 function getPythonTestInfo() {
   const pythonInfo = {};
-  pythonInfo["version"] = "Python";
+  pythonInfo["version"] = ".";
   pythonInfo["location"] = "/python";
   return pythonInfo;
 }
 
 function getAnsibleLintTestInfo() {
   const ansibleLintInfo = {};
-  ansibleLintInfo["version"] = "ansible-lint";
+  ansibleLintInfo["version"] = ".";
+  ansibleLintInfo["upgrade status"] = "A new version"; // this key will be undefined (but the key will be present) because the value only gets updated based on the ansible-lint version used
   ansibleLintInfo["location"] = "/ansible-lint";
   ansibleLintInfo["config file path"] = "/.ansible-lint"; // this key will be undefined (but the key will be present) because the value only gets updated when validation in run
   return ansibleLintInfo;
@@ -136,8 +137,8 @@ describe("getAnsibleMetaData()", () => {
 
       it("should have information about ansible version used", function () {
         expect(
-          actualAnsibleMetaData["ansible information"]["version"],
-        ).includes(ansibleInfoForTest["version"]);
+          actualAnsibleMetaData["ansible information"]["core version"],
+        ).includes(ansibleInfoForTest["core version"]);
       });
 
       it("should have a valid ansible location", function () {
