@@ -313,6 +313,17 @@
             }
           },
           "order": 19
+        },
+        "redhat.telemetry.enabled": {
+          "type": "boolean",
+          "default": null,
+          "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ],
+          "scope": "window",
+          "order": 23
         }
       }
     },
@@ -478,6 +489,7 @@
   },
   "dependencies": {
     "@ansible/ansible-language-server": "^1.0.2",
+    "@redhat-developer/vscode-redhat-telemetry": "^0.5.2",
     "@types/ini": "^1.3.31",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
