@@ -531,7 +531,7 @@
     "//": "node version affects only development, it does not affect vscode runtime",
     "node": ">=16.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.71.0",
+    "vscode": "^1.63.0",
     "yarn": ">=3.2.1"
   },
   "extensionDependencies": [
