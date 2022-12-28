@@ -67,7 +67,7 @@ export class MetadataManager {
         if (ansibleMetaData.ansiblePresent) {
           console.log("Ansible found in the workspace");
           this.cachedAnsibleVersion =
-            ansibleMetaData.metaData["ansible information"]["version"];
+            ansibleMetaData.metaData["ansible information"]["core version"];
           const tooltip = ansibleMetaData.markdown;
           this.metadataStatusBarItem.text = ansibleMetaData.eeEnabled
             ? `$(bracket-dot) [EE] ${this.cachedAnsibleVersion}`
