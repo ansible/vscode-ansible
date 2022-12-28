@@ -98,7 +98,7 @@ export class MetadataManager {
           this.metadataStatusBarItem.show();
           const eventData: ansibleMetadataEvent = {
             ansibleVersion:
-              ansibleMetaData.metaData["ansible information"]["version"],
+              ansibleMetaData.metaData["ansible information"]["core version"],
             eeEnabled: ansibleMetaData.eeEnabled,
           };
           if (ansibleMetaData.ansibleLintPresent) {
