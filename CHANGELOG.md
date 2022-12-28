@@ -20,6 +20,13 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.0.4
+
+### Bugfixes
+
+- Fix intermittent EE test failures (#533) @ganeshrn
+- Modify package version info in meta-data (#530) @priyamsahoo
+
 ## v1.0.3
 
 ### Bugfixes
