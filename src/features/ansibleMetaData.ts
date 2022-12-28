@@ -9,17 +9,30 @@ import {
 } from "vscode";
 import { NotificationType } from "vscode-languageclient";
 import { LanguageClient } from "vscode-languageclient/node";
+import { TelemetryManager } from "../utils/telemetryUtils";
 import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
+
+interface ansibleMetadataEvent {
+  ansibleVersion: string;
+  ansibleLintVersion?: string;
+  eeEnabled: boolean;
+}
 
 export class MetadataManager {
   private context;
   private client;
   private cachedAnsibleVersion = "";
   private metadataStatusBarItem: StatusBarItem;
+  private telemetry: TelemetryManager;
 
-  constructor(context: ExtensionContext, client: LanguageClient) {
+  constructor(
+    context: ExtensionContext,
+    client: LanguageClient,
+    telemetry: TelemetryManager
+  ) {
     this.context = context;
     this.client = client;
+    this.telemetry = telemetry;
 
     this.metadataStatusBarItem = this.initialiseStatusBar();
   }
@@ -83,6 +96,16 @@ export class MetadataManager {
           }
 
           this.metadataStatusBarItem.show();
+          const eventData: ansibleMetadataEvent = {
+            ansibleVersion:
+              ansibleMetaData.metaData["ansible information"]["version"],
+            eeEnabled: ansibleMetaData.eeEnabled,
+          };
+          if (ansibleMetaData.ansibleLintPresent) {
+            eventData["ansibleLintVersion"] =
+              ansibleMetaData.metaData["ansible-lint information"]["version"];
+          }
+          this.telemetry.sendTelemetry("ansibleMetadata", eventData);
         } else {
           console.log("Ansible not found in the workspace");
           this.metadataStatusBarItem.text = "$(error) Ansible Info";
@@ -91,6 +114,9 @@ export class MetadataManager {
             "statusBarItem.errorBackground"
           );
           this.metadataStatusBarItem.show();
+          this.telemetry.sendTelemetry("ansibleMetadata", {
+            error: "Ansible not found in the workspace",
+          });
         }
       }
     );

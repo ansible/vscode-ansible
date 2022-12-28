@@ -3,7 +3,7 @@
   "explorer.fileNesting.patterns": {
     "package.json": "package-lock.json, package.nls.json, yarn.lock, tsconfig.json, .eslintrc.json, .mocharc.yml, .ncurc.json, .yarnrc.yml, .vscodeignore, webpack.config.js",
     ".gitignore": "pyproject.toml, setup.py, tox.ini, mypy.ini, .pylintrc, .yamllint, .isort.cfg, requirements.in, requirements.txt, constraints.txt, .prettierrc.yaml, .prettierignore, .mocharc.json, .pre-commit-config.yaml, cspell.config.yaml, .config, .gitattributes, .git_archival.txt, .flake8, .darglint, .ansible-lint, .packit.yaml, pytest.ini, codecov.yml, .readthedocs.yml, .prettierrc, .pre-commit-hooks.yaml, .editorconfig, .envrc, Jenkinsfile, commitlint.config.js",
-    "README.md": "CONTRIBUTING.md, LICENSE, CHANGELOG.md",
+    "README.md": "CONTRIBUTING.md, LICENSE, CHANGELOG.md, USAGE_DATA.md",
     "Containerfile": "Dockerfile"
   },
   "editor.formatOnSave": true,
