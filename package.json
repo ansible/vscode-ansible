@@ -5,7 +5,8 @@
     "onCommand:extension.ansible.vault",
     "onLanguage:ansible",
     "onLanguage:yaml",
-    "onCommand:extension.resync-ansible-inventory"
+    "onCommand:extension.resync-ansible-inventory",
+    "editor.action.inlineSuggest.trigger"
   ],
   "badges": [
     {
@@ -139,6 +140,10 @@
         "category": "%commands.category.ansible-vault%",
         "command": "extension.ansible.vault",
         "title": "%commands.title.ansible-vault%"
+      },
+      {
+        "command": "editor.action.ansibleInlineSuggest.trigger",
+        "title": "Trigger Ansible Wisdom AI suggestions"
       }
     ],
     "configuration": {
@@ -359,6 +364,15 @@
         }
       }
     },
+    "keybindings": [
+      {
+        "key": ".",
+        "command": "editor.action.ansibleInlineSuggest.trigger",
+        "title": "Trigger Ansible Wisdom AI suggestions",
+        "when": "ansible.wisdom:enabled"
+
+      }
+    ],
     "languages": [
       {
         "id": "ansible",
@@ -601,12 +615,12 @@
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "1.0.0",
+  "version": "19.12.2022",
   "packageManager": "yarn@3.3.0",
   "vsce": {
     "dependencies": false,
     "yarn": false
   },
-  "segmentWriteKey": "<change-me>",
-  "segmentWriteKeyDebug": "<change-me>"
+  "segmentWriteKey": "DxnFa87EXSrfwoSuQBZAe2EMkb7nz5GR",
+  "segmentWriteKeyDebug": "5r1FsJAkhB1ZWnxxaMRPDav5RdVnyMLr"
 }

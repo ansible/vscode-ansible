@@ -156,4 +156,8 @@ export class WisdomManager {
     );
     return outputData;
   }
+
+  public async acceptSelectedSuggestionHandler(args: any): Promise<void> {
+    console.log(`Suggestion accepted with args=${args}`);
+  }
 }

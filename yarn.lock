@@ -332,14 +332,14 @@ __metadata:
   linkType: hard
 
 "@types/cacheable-request@npm:^6.0.1":
-  version: 6.0.2
-  resolution: "@types/cacheable-request@npm:6.0.2"
+  version: 6.0.3
+  resolution: "@types/cacheable-request@npm:6.0.3"
   dependencies:
     "@types/http-cache-semantics": "*"
-    "@types/keyv": "*"
+    "@types/keyv": ^3.1.4
     "@types/node": "*"
-    "@types/responselike": "*"
-  checksum: 667d25808dbf46fe104d6f029e0281ff56058d50c7c1b9182774b3e38bb9c1124f56e4c367ba54f92dbde2d1cc573f26eb0e9748710b2822bc0fd1e5498859c6
+    "@types/responselike": ^1.0.0
+  checksum: d9b26403fe65ce6b0cb3720b7030104c352bcb37e4fac2a7089a25a97de59c355fa08940658751f2f347a8512aa9d18fdb66ab3ade835975b2f454f2d5befbd9
   languageName: node
   linkType: hard
 
@@ -431,7 +431,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/keyv@npm:*":
+"@types/keyv@npm:^3.1.4":
   version: 3.1.4
   resolution: "@types/keyv@npm:3.1.4"
   dependencies:
@@ -450,9 +450,9 @@ __metadata:
   linkType: hard
 
 "@types/lodash@npm:*":
-  version: 4.14.188
-  resolution: "@types/lodash@npm:4.14.188"
-  checksum: 89c32f0a18e0da6ae914b430e76b3d0451c4c85b9c838b440c0c9a8d4966c8e2a76dbb30964c7126402856b2997ec56a8c36d8d6461ec14387689ec37594f09f
+  version: 4.14.191
+  resolution: "@types/lodash@npm:4.14.191"
+  checksum: ba0d5434e10690869f32d5ea49095250157cae502f10d57de0a723fd72229ce6c6a4979576f0f13e0aa9fbe3ce2457bfb9fa7d4ec3d6daba56730a51906d1491
   languageName: node
   linkType: hard
 
@@ -470,17 +470,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "@types/mocha@npm:^10.0.1":
+=======
+"@types/mocha@npm:^10.0.0":
+>>>>>>> Stashed changes
   version: 10.0.1
   resolution: "@types/mocha@npm:10.0.1"
   checksum: 224ea9fce7b1734ccdb9aa99a622d902a538ce1847bca7fd22c5fb38adcf3ed536f50f48f587085db988a4bb3c2eb68f4b98e1cd6a38bc5547bd3bbbedc54495
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "@types/node@npm:*, @types/node@npm:^18.11.17":
   version: 18.11.17
   resolution: "@types/node@npm:18.11.17"
   checksum: 1933afd068d5c75c068c6c4df6d10edb3b0b2bb6503d544e2f0496ac007c90596e6a5e284a8ef032451bc16f871b7e46719d7d2bea60e9b25d13a77d52161cac
+=======
+"@types/node@npm:*, @types/node@npm:^18.11.9":
+  version: 18.11.11
+  resolution: "@types/node@npm:18.11.11"
+  checksum: c4b1176a8f1714a3ee3fc2a5e1d568b0cd50209000282db5c68154b3c975952928dbb834ef3a0ce55bd7b345ae29f2cbf4a34635a070294d135a24254231386a
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -491,7 +502,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/responselike@npm:*, @types/responselike@npm:^1.0.0":
+"@types/responselike@npm:^1.0.0":
   version: 1.0.0
   resolution: "@types/responselike@npm:1.0.0"
   dependencies:
@@ -516,7 +527,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "@types/vscode@npm:^1.71.0":
+=======
+"@types/vscode@npm:^1.63.0":
+>>>>>>> Stashed changes
   version: 1.74.0
   resolution: "@types/vscode@npm:1.74.0"
   checksum: 25de153cc10136d32d425960c04687fdc26b79b49420d055799f01169e3141fa619d3ed6b3126c4ca4635d12aff2b77df51460e89235c71b55d570f8c08df71c
@@ -539,6 +554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "@typescript-eslint/eslint-plugin@npm:^5.47.0":
   version: 5.47.0
   resolution: "@typescript-eslint/eslint-plugin@npm:5.47.0"
@@ -546,6 +562,15 @@ __metadata:
     "@typescript-eslint/scope-manager": 5.47.0
     "@typescript-eslint/type-utils": 5.47.0
     "@typescript-eslint/utils": 5.47.0
+=======
+"@typescript-eslint/eslint-plugin@npm:^5.44.0":
+  version: 5.45.1
+  resolution: "@typescript-eslint/eslint-plugin@npm:5.45.1"
+  dependencies:
+    "@typescript-eslint/scope-manager": 5.45.1
+    "@typescript-eslint/type-utils": 5.45.1
+    "@typescript-eslint/utils": 5.45.1
+>>>>>>> Stashed changes
     debug: ^4.3.4
     ignore: ^5.2.0
     natural-compare-lite: ^1.4.0
@@ -558,6 +583,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
+<<<<<<< Updated upstream
   checksum: fd867eb2b668d1f476fd28d38c2df2a680bf510a265a6e714b28d8f77e7a37e74e32294b70262a6fd1aec99ddb2fddef0212c862b4465ca4f83bb1172476f6e7
   languageName: node
   linkType: hard
@@ -569,12 +595,26 @@ __metadata:
     "@typescript-eslint/scope-manager": 5.47.0
     "@typescript-eslint/types": 5.47.0
     "@typescript-eslint/typescript-estree": 5.47.0
+=======
+  checksum: 9fc7cc17ebd1d6f9b1321afa3dcedb936ba538f95a026035a436c4b75eb976ac61140be44be304634c8f87612e30690ce12bf3498ac59826134387d91d75d888
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/parser@npm:^5.44.0":
+  version: 5.45.1
+  resolution: "@typescript-eslint/parser@npm:5.45.1"
+  dependencies:
+    "@typescript-eslint/scope-manager": 5.45.1
+    "@typescript-eslint/types": 5.45.1
+    "@typescript-eslint/typescript-estree": 5.45.1
+>>>>>>> Stashed changes
     debug: ^4.3.4
   peerDependencies:
     eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
   peerDependenciesMeta:
     typescript:
       optional: true
+<<<<<<< Updated upstream
   checksum: 5c864ca74b86ca740c73e5b87d90d43bb832b20ba6be0a39089175435771527722a7bf0a8ef7ddbd64b85235fbb7f6dbe8ae55a8bc73c6242f5559d580a8a80c
   languageName: node
   linkType: hard
@@ -595,6 +635,28 @@ __metadata:
   dependencies:
     "@typescript-eslint/typescript-estree": 5.47.0
     "@typescript-eslint/utils": 5.47.0
+=======
+  checksum: 48704224972e67d7ecf928118d47a1eda6732afd585bb4aab6716b7d363e5d4a2e0b0f1bbb92cbef80c7dd75ede10b610e858eb0cb86a67d1866fd17d0722895
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/scope-manager@npm:5.45.1":
+  version: 5.45.1
+  resolution: "@typescript-eslint/scope-manager@npm:5.45.1"
+  dependencies:
+    "@typescript-eslint/types": 5.45.1
+    "@typescript-eslint/visitor-keys": 5.45.1
+  checksum: ee0f47ad85e6d8649a5c25cc923933e439542079929e02a7eb20332e18291674af36b25ab579f7d067745ca27c2b37e5d9be605902269968e274d26c1d2b684e
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/type-utils@npm:5.45.1":
+  version: 5.45.1
+  resolution: "@typescript-eslint/type-utils@npm:5.45.1"
+  dependencies:
+    "@typescript-eslint/typescript-estree": 5.45.1
+    "@typescript-eslint/utils": 5.45.1
+>>>>>>> Stashed changes
     debug: ^4.3.4
     tsutils: ^3.21.0
   peerDependencies:
@@ -602,6 +664,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
+<<<<<<< Updated upstream
   checksum: 504b3e883ac02cb8e69957b706e76cb79fa2192aa62702c2a658119f28f8f50f1e668efb62318e85aeda6522e1d948b59382cae4ef3300a3f4eea809a87dec26
   languageName: node
   linkType: hard
@@ -619,6 +682,25 @@ __metadata:
   dependencies:
     "@typescript-eslint/types": 5.47.0
     "@typescript-eslint/visitor-keys": 5.47.0
+=======
+  checksum: dcb9f425803b399c340ab3d72c3f7e61f2a136d4281bd710853e954c1c101064ac0bb4b768c84c1ad310ec493cd8dc6b754054d9a81cb56be37ef1f4130c2c3a
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/types@npm:5.45.1":
+  version: 5.45.1
+  resolution: "@typescript-eslint/types@npm:5.45.1"
+  checksum: 7f809d2951812ae5752c9d1617b7e6dfd662370390b0ddba72005ebc62bd5f04745567bb62cf00a9e43db9dfd222d18ea22945f5457f76ea86386ef7b98c8424
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/typescript-estree@npm:5.45.1":
+  version: 5.45.1
+  resolution: "@typescript-eslint/typescript-estree@npm:5.45.1"
+  dependencies:
+    "@typescript-eslint/types": 5.45.1
+    "@typescript-eslint/visitor-keys": 5.45.1
+>>>>>>> Stashed changes
     debug: ^4.3.4
     globby: ^11.1.0
     is-glob: ^4.0.3
@@ -627,6 +709,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
+<<<<<<< Updated upstream
   checksum: a9adfe8955b7dc9dfa9f43d450b782b83f506eaadae2a13f4e1bbe6c733be446d3edb26910954aec1bdc60d94ecc55c4e200d5b19bb24e6742f02329a4fb3e8c
   languageName: node
   linkType: hard
@@ -640,11 +723,27 @@ __metadata:
     "@typescript-eslint/scope-manager": 5.47.0
     "@typescript-eslint/types": 5.47.0
     "@typescript-eslint/typescript-estree": 5.47.0
+=======
+  checksum: 867b19ba050af7410c75e4e42b511d4299c8043d238959e9794bb65d7a9db1a875880e5dd50f112896218f3a3d163cd8ce61db94034ca628eca4f7ddccb1d348
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/utils@npm:5.45.1":
+  version: 5.45.1
+  resolution: "@typescript-eslint/utils@npm:5.45.1"
+  dependencies:
+    "@types/json-schema": ^7.0.9
+    "@types/semver": ^7.3.12
+    "@typescript-eslint/scope-manager": 5.45.1
+    "@typescript-eslint/types": 5.45.1
+    "@typescript-eslint/typescript-estree": 5.45.1
+>>>>>>> Stashed changes
     eslint-scope: ^5.1.1
     eslint-utils: ^3.0.0
     semver: ^7.3.7
   peerDependencies:
     eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
+<<<<<<< Updated upstream
   checksum: f168920eec6f77651107f190b4ecadd82951fe4e3c0321ff660ac7380f4315d5ae30a1b63b4d2818f5e6f007a3f34c5df202619c24ec3a7e2ef25b215ec7b813
   languageName: node
   linkType: hard
@@ -660,6 +759,23 @@ __metadata:
   linkType: hard
 
 "@vscode/test-electron@npm:^2.2.1":
+=======
+  checksum: 7e673b07e207a0b596b23f60e6c2d4b04fd534bd15dc326ce67d7f61637ed2c211fe5a5ffdcf6b3fa3f39000fe61de0bf7d0c7feb03dcd3d72c382ae35287ad9
+  languageName: node
+  linkType: hard
+
+"@typescript-eslint/visitor-keys@npm:5.45.1":
+  version: 5.45.1
+  resolution: "@typescript-eslint/visitor-keys@npm:5.45.1"
+  dependencies:
+    "@typescript-eslint/types": 5.45.1
+    eslint-visitor-keys: ^3.3.0
+  checksum: 725a434fb05010b6ead7e880fa1fcdb4dbc7421b80667e96ad27fcfb3c2b2b0edde64be488740577dd147547fc4a9eac52e2602eb6a8a261ee14a917d4a50c4f
+  languageName: node
+  linkType: hard
+
+"@vscode/test-electron@npm:^2.2.0":
+>>>>>>> Stashed changes
   version: 2.2.1
   resolution: "@vscode/test-electron@npm:2.2.1"
   dependencies:
@@ -668,6 +784,7 @@ __metadata:
     rimraf: ^3.0.2
     unzipper: ^0.10.11
   checksum: 25e75d0931074e1e0f954f63ef19899b1a6c61f599881089d9962326ecb273f9dc3741067aca3a2998492ae3466ae99eb860113fe7db17ce733d7fa11ac6ed4b
+<<<<<<< Updated upstream
   languageName: node
   linkType: hard
 
@@ -701,6 +818,8 @@ __metadata:
   bin:
     vsce: vsce
   checksum: dcab780b75292637d5c916f98f4e4d110e2dd8285fb7fae1d36d47cb4c5da6db2b6bc509f5b9e73ed3b8c4543ab3ba3dcb86b368404dfd15b7a474a34b7a9071
+=======
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -1072,11 +1191,16 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
+<<<<<<< Updated upstream
     "@ansible/ansible-language-server": ^1.0.4
+=======
+    "@ansible/ansible-language-server": ^1.0.2
+>>>>>>> Stashed changes
     "@redhat-developer/vscode-redhat-telemetry": ^0.5.2
     "@types/chai": ^4.3.4
     "@types/glob": ^8.0.0
     "@types/ini": ^1.3.31
+<<<<<<< Updated upstream
     "@types/mocha": ^10.0.1
     "@types/node": ^18.11.17
     "@types/vscode": ^1.71.0
@@ -1084,6 +1208,14 @@ __metadata:
     "@typescript-eslint/parser": ^5.47.0
     "@vscode/test-electron": ^2.2.1
     "@vscode/vsce": ^2.16.0
+=======
+    "@types/mocha": ^10.0.0
+    "@types/node": ^18.11.9
+    "@types/vscode": ^1.63.0
+    "@typescript-eslint/eslint-plugin": ^5.44.0
+    "@typescript-eslint/parser": ^5.44.0
+    "@vscode/test-electron": ^2.2.0
+>>>>>>> Stashed changes
     axios: ^1.2.1
     chai: ^4.3.7
     copyfiles: ^2.4.1
@@ -1110,12 +1242,12 @@ __metadata:
   linkType: soft
 
 "anymatch@npm:~3.1.2":
-  version: 3.1.2
-  resolution: "anymatch@npm:3.1.2"
+  version: 3.1.3
+  resolution: "anymatch@npm:3.1.3"
   dependencies:
     normalize-path: ^3.0.0
     picomatch: ^2.0.4
-  checksum: 985163db2292fac9e5a1e072bf99f1b5baccf196e4de25a0b0b81865ebddeb3b3eb4480734ef0a2ac8c002845396b91aa89121f5b84f93981a4658164a9ec6e9
+  checksum: 3e044fd6d1d26545f235a9fe4d7a534e2029d8e59fa7fd9f2a6eb21230f6b5380ea1eaf55136e60cbf8e613544b3b766e7a6fa2102e2a3a117505466e3025dc2
   languageName: node
   linkType: hard
 
@@ -1225,7 +1357,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "axios@npm:^1.1.3":
+=======
+"axios@npm:^1.1.3, axios@npm:^1.2.1":
+>>>>>>> Stashed changes
   version: 1.2.1
   resolution: "axios@npm:1.2.1"
   dependencies:
@@ -1236,6 +1372,7 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "axios@npm:^1.2.1":
   version: 1.2.2
   resolution: "axios@npm:1.2.2"
@@ -1247,6 +1384,8 @@ __metadata:
   languageName: node
   linkType: hard
 
+=======
+>>>>>>> Stashed changes
 "azure-devops-node-api@npm:^11.0.1":
   version: 11.2.0
   resolution: "azure-devops-node-api@npm:11.2.0"
@@ -1557,9 +1696,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001400":
-  version: 1.0.30001431
-  resolution: "caniuse-lite@npm:1.0.30001431"
-  checksum: bc8ab55cd194e240152946b54bfaff7456180cc018674fc7ed134f4f502192405f6643f422feaa0a5e7cc02b5bac564cfac7771ac6d29f5d129482fcfe335ba1
+  version: 1.0.30001439
+  resolution: "caniuse-lite@npm:1.0.30001439"
+  checksum: 3912dd536c9735713ca85e47721988bbcefb881ddb4886b0b9923fa984247fd22cba032cf268e57d158af0e8a2ae2eae042ae01942a1d6d7849fa9fa5d62fb82
   languageName: node
   linkType: hard
 
@@ -1609,9 +1748,16 @@ __metadata:
   linkType: hard
 
 "chalk@npm:^5.0.1":
-  version: 5.1.2
-  resolution: "chalk@npm:5.1.2"
-  checksum: 804d7485e33531abe45b14e91026ceb5615974a8c04259ab0806f214a7666f6ea03e39ab124f7d5a0c78a83fda89005f236db3c5f10c2abe9ae875f7aa56bcb5
+  version: 5.2.0
+  resolution: "chalk@npm:5.2.0"
+  checksum: 03d8060277de6cf2fd567dc25fcf770593eb5bb85f460ce443e49255a30ff1242edd0c90a06a03803b0466ff0687a939b41db1757bec987113e83de89a003caa
+  languageName: node
+  linkType: hard
+
+"charenc@npm:0.0.2":
+  version: 0.0.2
+  resolution: "charenc@npm:0.0.2"
+  checksum: 81dcadbe57e861d527faf6dd3855dc857395a1c4d6781f4847288ab23cffb7b3ee80d57c15bba7252ffe3e5e8019db767757ee7975663ad2ca0939bb8fcaf2e5
   languageName: node
   linkType: hard
 
@@ -1875,9 +2021,15 @@ __metadata:
   linkType: hard
 
 "compare-versions@npm:^5.0.1":
+<<<<<<< Updated upstream
   version: 5.0.3
   resolution: "compare-versions@npm:5.0.3"
   checksum: f66a4bb6ef8ff32031cc92c04dea4bbead039e72a7f6c7df7ef05f5a42ddca9202f8875b7449add54181e73b89f039662a8760c8db0ab036c4e8f653a7cd29c1
+=======
+  version: 5.0.1
+  resolution: "compare-versions@npm:5.0.1"
+  checksum: 302a4e46224b47b9280cf894c6c87d8df912671fa391dcdbf0e63438d9b0a69fe20dd747fb439e8d54c43af016ff4eaaf0a4c9d8e7ca358bcd12dadf4ad2935e
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -2292,11 +2444,11 @@ __metadata:
   linkType: hard
 
 "deep-eql@npm:^4.1.2":
-  version: 4.1.2
-  resolution: "deep-eql@npm:4.1.2"
+  version: 4.1.3
+  resolution: "deep-eql@npm:4.1.3"
   dependencies:
     type-detect: ^4.0.0
-  checksum: 1832456c5f6a59d6ef6f0b925d4c75c30ef9582bc9a884c8c2475844d31febafefc5b3ff129cf95d14a3f450b7c1dfb52e597fad849653d8a123bbbb21d9fc3e
+  checksum: 7f6d30cb41c713973dc07eaadded848b2ab0b835e518a88b91bea72f34e08c4c71d167a722a6f302d3a6108f05afd8e6d7650689a84d5d29ec7fe6220420397f
   languageName: node
   linkType: hard
 
@@ -2508,12 +2660,12 @@ __metadata:
   linkType: hard
 
 "enhanced-resolve@npm:^5.0.0, enhanced-resolve@npm:^5.10.0":
-  version: 5.10.0
-  resolution: "enhanced-resolve@npm:5.10.0"
+  version: 5.12.0
+  resolution: "enhanced-resolve@npm:5.12.0"
   dependencies:
     graceful-fs: ^4.2.4
     tapable: ^2.2.0
-  checksum: 0bb9830704db271610f900e8d79d70a740ea16f251263362b0c91af545576d09fe50103496606c1300a05e588372d6f9780a9bc2e30ce8ef9b827ec8f44687ff
+  checksum: bf3f787facaf4ce3439bef59d148646344e372bef5557f0d37ea8aa02c51f50a925cd1f07b8d338f18992c29f544ec235a8c64bcdb56030196c48832a5494174
   languageName: node
   linkType: hard
 
@@ -2661,9 +2813,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "eslint@npm:^8.30.0":
   version: 8.30.0
   resolution: "eslint@npm:8.30.0"
+=======
+"eslint@npm:^8.28.0":
+  version: 8.29.0
+  resolution: "eslint@npm:8.29.0"
+>>>>>>> Stashed changes
   dependencies:
     "@eslint/eslintrc": ^1.4.0
     "@humanwhocodes/config-array": ^0.11.8
@@ -2706,7 +2864,11 @@ __metadata:
     text-table: ^0.2.0
   bin:
     eslint: bin/eslint.js
+<<<<<<< Updated upstream
   checksum: b7525bb465b342665c3b8bab7e114d514ef1bc4e79f211c919863f9c71767e7412ec82383a22614a92d159783f91101018817000f7c61ce69a5e7015280cafaf
+=======
+  checksum: e05204b05907b82d910983995cb946e0ba62ca514eb2b6791c43f623333b143564a2eee0139909d31c10935c21877d815b1f76dd674a59cb91c471064325c4ab
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -2857,11 +3019,11 @@ __metadata:
   linkType: hard
 
 "fastq@npm:^1.6.0":
-  version: 1.13.0
-  resolution: "fastq@npm:1.13.0"
+  version: 1.14.0
+  resolution: "fastq@npm:1.14.0"
   dependencies:
     reusify: ^1.0.4
-  checksum: 32cf15c29afe622af187d12fc9cd93e160a0cb7c31a3bb6ace86b7dea3b28e7b72acde89c882663f307b2184e14782c6c664fa315973c03626c7d4bff070bb0b
+  checksum: da2c05ec1446ef77b8ba2b76619c90d483404f5087e71e77469fbee797280a1f4ef26a63be15b2377198bc20d09fdf25c7d6e1e492a1e568a29dfdd9bcb7538c
   languageName: node
   linkType: hard
 
@@ -2985,7 +3147,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "follow-redirects@npm:^1.14.6, follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.0":
+=======
+"follow-redirects@npm:^1.14.9, follow-redirects@npm:^1.15.0":
+>>>>>>> Stashed changes
   version: 1.15.2
   resolution: "follow-redirects@npm:1.15.2"
   peerDependenciesMeta:
@@ -3286,12 +3452,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "globals@npm:^13.19.0":
   version: 13.19.0
   resolution: "globals@npm:13.19.0"
   dependencies:
     type-fest: ^0.20.2
   checksum: a000dbd00bcf28f0941d8a29c3522b1c3b8e4bfe4e60e262c477a550c3cbbe8dbe2925a6905f037acd40f9a93c039242e1f7079c76b0fd184bc41dcc3b5c8e2e
+=======
+"globals@npm:^13.15.0":
+  version: 13.18.0
+  resolution: "globals@npm:13.18.0"
+  dependencies:
+    type-fest: ^0.20.2
+  checksum: 9fdaa74cfd5d4ac91319662f512c29b11d1d2deb9c8a20d3998097671deba83d195f20730b2345887de3ddab958a6fa68952feed9ae836ee4594a82ace62fdb4
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -3310,21 +3485,21 @@ __metadata:
   linkType: hard
 
 "globby@npm:^13.1.2":
-  version: 13.1.2
-  resolution: "globby@npm:13.1.2"
+  version: 13.1.3
+  resolution: "globby@npm:13.1.3"
   dependencies:
     dir-glob: ^3.0.1
     fast-glob: ^3.2.11
     ignore: ^5.2.0
     merge2: ^1.4.1
     slash: ^4.0.0
-  checksum: c148fcda0c981f00fb434bb94ca258f0a9d23cedbde6fb3f37098e1abde5b065019e2c63fe2aa2fad4daf2b54bf360b4d0423d85fb3a63d09ed75a2837d4de0f
+  checksum: 93f06e02002cdf368f7e3d55bd59e7b00784c7cc8fe92c7ee5082cc7171ff6109fda45e1c97a80bb48bc811dedaf7843c7c9186f5f84bde4883ab630e13c43df
   languageName: node
   linkType: hard
 
 "got@npm:^11.8.5":
-  version: 11.8.5
-  resolution: "got@npm:11.8.5"
+  version: 11.8.6
+  resolution: "got@npm:11.8.6"
   dependencies:
     "@sindresorhus/is": ^4.0.0
     "@szmarczak/http-timer": ^4.0.5
@@ -3337,7 +3512,7 @@ __metadata:
     lowercase-keys: ^2.0.0
     p-cancelable: ^2.0.0
     responselike: ^2.0.0
-  checksum: 2de8a1bbda4e9b6b2b72b2d2100bc055a59adc1740529e631f61feb44a8b9a1f9f8590941ed9da9df0090b6d6d0ed8ffee94cd9ac086ec3409b392b33440f7d2
+  checksum: bbc783578a8d5030c8164ef7f57ce41b5ad7db2ed13371e1944bef157eeca5a7475530e07c0aaa71610d7085474d0d96222c9f4268d41db333a17e39b463f45d
   languageName: node
   linkType: hard
 
@@ -3543,9 +3718,9 @@ __metadata:
   linkType: hard
 
 "ignore@npm:^5.2.0":
-  version: 5.2.0
-  resolution: "ignore@npm:5.2.0"
-  checksum: 6b1f926792d614f64c6c83da3a1f9c83f6196c2839aa41e1e32dd7b8d174cef2e329d75caabb62cb61ce9dc432f75e67d07d122a037312db7caa73166a1bdb77
+  version: 5.2.2
+  resolution: "ignore@npm:5.2.2"
+  checksum: 2086f12e8dca6978001b3861562272888fcf231f464696938049e0aa576d0562a8f31926630a973e302944c20c64639c14cfdd725bacd208dcda973021377420
   languageName: node
   linkType: hard
 
@@ -3674,6 +3849,7 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "is-ci@npm:^2.0.0":
   version: 2.0.0
   resolution: "is-ci@npm:2.0.0"
@@ -3685,6 +3861,8 @@ __metadata:
   languageName: node
   linkType: hard
 
+=======
+>>>>>>> Stashed changes
 "is-core-module@npm:^2.5.0, is-core-module@npm:^2.9.0":
   version: 2.11.0
   resolution: "is-core-module@npm:2.11.0"
@@ -3884,9 +4062,9 @@ __metadata:
   linkType: hard
 
 "js-sdsl@npm:^4.1.4":
-  version: 4.1.5
-  resolution: "js-sdsl@npm:4.1.5"
-  checksum: 695f657ddc5be462b97cac4e8e60f37de28d628ee0e23016baecff0bb584a18dddb5caeac537a775030f180b5afd62133ac4481e7024c8d03a62d73e4da0713e
+  version: 4.2.0
+  resolution: "js-sdsl@npm:4.2.0"
+  checksum: 2cd0885f7212afb355929d72ca105cb37de7e95ad6031e6a32619eaefa46735a7d0fb682641a0ba666e1519cb138fe76abc1eea8a34e224140c9d94c995171f1
   languageName: node
   linkType: hard
 
@@ -4465,11 +4643,19 @@ __metadata:
   linkType: hard
 
 "minimatch@npm:^5.0.1, minimatch@npm:^5.1.0":
+<<<<<<< Updated upstream
   version: 5.1.2
   resolution: "minimatch@npm:5.1.2"
   dependencies:
     brace-expansion: ^2.0.1
   checksum: 32ffda25b9fb8270a1c1beafdb7489dc0e411af553495136509a945691f63c9b6b000eeeaaf8bffe3efa609c1d6d3bc0f5a106f6c3443b5c05da649100ded964
+=======
+  version: 5.1.1
+  resolution: "minimatch@npm:5.1.1"
+  dependencies:
+    brace-expansion: ^2.0.1
+  checksum: 215edd0978320a3354188f84a537d45841f2449af4df4379f79b9b777e71aa4f5722cc9d1717eabd2a70d38ef76ab7b708d24d83ea6a6c909dfd8833de98b437
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -4543,11 +4729,20 @@ __metadata:
   linkType: hard
 
 "minipass@npm:^3.0.0, minipass@npm:^3.1.1, minipass@npm:^3.1.6":
-  version: 3.3.5
-  resolution: "minipass@npm:3.3.5"
+  version: 3.3.6
+  resolution: "minipass@npm:3.3.6"
   dependencies:
     yallist: ^4.0.0
-  checksum: f89f02bcaa0e0e4bb4c44ec796008e69fbca62db0aba6ead1bc57d25bdaefdf42102130f4f9ecb7d9c6b6cd35ff7b0c7b97d001d3435da8e629fb68af3aea57e
+  checksum: a30d083c8054cee83cdcdc97f97e4641a3f58ae743970457b1489ce38ee1167b3aaf7d815cd39ec7a99b9c40397fd4f686e83750e73e652b21cb516f6d845e48
+  languageName: node
+  linkType: hard
+
+"minipass@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "minipass@npm:4.0.0"
+  dependencies:
+    yallist: ^4.0.0
+  checksum: 7a609afbf394abfcf9c48e6c90226f471676c8f2a67f07f6838871afb03215ede431d1433feffe1b855455bcb13ef0eb89162841b9796109d6fed8d89790f381
   languageName: node
   linkType: hard
 
@@ -4670,8 +4865,13 @@ __metadata:
   linkType: hard
 
 "monaco-page-objects@npm:^3.2.0":
+<<<<<<< Updated upstream
   version: 3.2.1
   resolution: "monaco-page-objects@npm:3.2.1"
+=======
+  version: 3.2.0
+  resolution: "monaco-page-objects@npm:3.2.0"
+>>>>>>> Stashed changes
   dependencies:
     clipboardy: ^2.3.0
     clone-deep: ^4.0.1
@@ -4680,7 +4880,11 @@ __metadata:
     ts-essentials: ^9.3.0
   peerDependencies:
     selenium-webdriver: ^4.6.1
+<<<<<<< Updated upstream
   checksum: ad3c134030dfd6841fe4b24d3643550bd93a697283932823ce382aa6717df8dd0768d940649ebbac0b43b529847ca17e309391fce4ac2999163820803f52093e
+=======
+  checksum: 463f376e4f9383c9cdb8fa8fcd0798b55c7d5b2f573c012c24a43a08d0f39d2b2b3108359da5892eb46325d68024e33f749aef831eee16366b128fa2214d5592
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -4768,11 +4972,11 @@ __metadata:
   linkType: hard
 
 "node-abi@npm:^3.3.0":
-  version: 3.28.0
-  resolution: "node-abi@npm:3.28.0"
+  version: 3.30.0
+  resolution: "node-abi@npm:3.30.0"
   dependencies:
     semver: ^7.3.5
-  checksum: ed8db5e58fc9e1400a3f74d8815b6981208a4fca2031e2c5f5986f58f7e3a1f4161dae82c655f9114892b3f46c21c02feec10fbac0f8ffcfd26a3d57447093d1
+  checksum: f285efcea312e52d8763cfad7d434b31c11586e5efdf9f239c214a582557777453a8358d338442f02490d6c5289b0fc0eeed3056a740a3ebe6c79334af3b1739
   languageName: node
   linkType: hard
 
@@ -4806,9 +5010,9 @@ __metadata:
   linkType: hard
 
 "node-releases@npm:^2.0.6":
-  version: 2.0.6
-  resolution: "node-releases@npm:2.0.6"
-  checksum: e86a926dc9fbb3b41b4c4a89d998afdf140e20a4e8dbe6c0a807f7b2948b42ea97d7fd3ad4868041487b6e9ee98409829c6e4d84a734a4215dff060a7fbeb4bf
+  version: 2.0.8
+  resolution: "node-releases@npm:2.0.8"
+  checksum: b1ab02c0d5d8e081bf9537232777a7a787dc8fef07f70feabe70a344599b220fe16462f746ac30f3eed5a58549445ad69368964d12a1f8b3b764f6caab7ba34a
   languageName: node
   linkType: hard
 
@@ -4983,6 +5187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "ovsx@npm:^0.7.1":
   version: 0.7.1
   resolution: "ovsx@npm:0.7.1"
@@ -4999,6 +5204,8 @@ __metadata:
   languageName: node
   linkType: hard
 
+=======
+>>>>>>> Stashed changes
 "p-cancelable@npm:^2.0.0":
   version: 2.1.1
   resolution: "p-cancelable@npm:2.1.1"
@@ -5189,11 +5396,11 @@ __metadata:
   linkType: hard
 
 "parse5@npm:^7.0.0":
-  version: 7.1.1
-  resolution: "parse5@npm:7.1.1"
+  version: 7.1.2
+  resolution: "parse5@npm:7.1.2"
   dependencies:
     entities: ^4.4.0
-  checksum: 8f72fbfa6df83a3f29f58e1818f7bd46b47ff3e26d79c74e10b8fc7ef7ee76163f205113f1b2f6a5b8dc4e31e726f490444f04890cead6e974dbcbe8172b1321
+  checksum: 59465dd05eb4c5ec87b76173d1c596e152a10e290b7abcda1aecf0f33be49646ea74840c69af975d7887543ea45564801736356c568d6b5e71792fd0f4055713
   languageName: node
   linkType: hard
 
@@ -5802,13 +6009,22 @@ __metadata:
   linkType: hard
 
 "selenium-webdriver@npm:^4.6.1":
+<<<<<<< Updated upstream
   version: 4.7.1
   resolution: "selenium-webdriver@npm:4.7.1"
+=======
+  version: 4.7.0
+  resolution: "selenium-webdriver@npm:4.7.0"
+>>>>>>> Stashed changes
   dependencies:
     jszip: ^3.10.0
     tmp: ^0.2.1
     ws: ">=8.7.0"
+<<<<<<< Updated upstream
   checksum: e308903fd9fc715a49edea073ef11e023a99f138024777e9ec59c12520abe8669fd1fd9e42c4c49984dd4a6a69a2945018430afda04df51a89cdeff74c7e3158
+=======
+  checksum: a04230aecb7a7f6c314eec9688c339a3eb0d410f66f26effa1712444513036485e8f5141ea894e4d3b41e145059ad32391920d3f9032753f9af9a1a4b3874c16
+>>>>>>> Stashed changes
   languageName: node
   linkType: hard
 
@@ -6301,16 +6517,16 @@ __metadata:
   linkType: hard
 
 "tar@npm:^6.1.11, tar@npm:^6.1.2":
-  version: 6.1.12
-  resolution: "tar@npm:6.1.12"
+  version: 6.1.13
+  resolution: "tar@npm:6.1.13"
   dependencies:
     chownr: ^2.0.0
     fs-minipass: ^2.0.0
-    minipass: ^3.0.0
+    minipass: ^4.0.0
     minizlib: ^2.1.1
     mkdirp: ^1.0.3
     yallist: ^4.0.0
-  checksum: 49d72e4420944e7ede2782d6b0826a6ede6cdab23c7de63470917e7a78166bc4d5b1a96279d3d79a85f1ba5a17cd37c0acbb3cbff19a07447691445b8b051c55
+  checksum: 8a278bed123aa9f53549b256a36b719e317c8b96fe86a63406f3c62887f78267cea9b22dc6f7007009738509800d4a4dccc444abd71d762287c90f35b002eb1c
   languageName: node
   linkType: hard
 
@@ -6362,8 +6578,8 @@ __metadata:
   linkType: hard
 
 "terser@npm:^5.14.1":
-  version: 5.15.1
-  resolution: "terser@npm:5.15.1"
+  version: 5.16.1
+  resolution: "terser@npm:5.16.1"
   dependencies:
     "@jridgewell/source-map": ^0.3.2
     acorn: ^8.5.0
@@ -6371,7 +6587,7 @@ __metadata:
     source-map-support: ~0.5.20
   bin:
     terser: bin/terser
-  checksum: 9880a1e0956983a1ce5de204ea35121c0009fa41d582a6904ae850e1953a1a2cc021168439565280c5a8eee67c85a874175627e24989b046c7a72589b81c3979
+  checksum: cb524123504a2f0d9140c1e1a8628c83bba9cacc404c6aca79e2493a38dfdf21275617ba75b91006b3f1ff586e401ab31121160cd253699f334c6340ea2756f5
   languageName: node
   linkType: hard
 
@@ -6472,7 +6688,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "ts-loader@npm:^9.4.2":
+=======
+"ts-loader@npm:^9.4.1":
+>>>>>>> Stashed changes
   version: 9.4.2
   resolution: "ts-loader@npm:9.4.2"
   dependencies:
@@ -6839,6 +7059,7 @@ __metadata:
   linkType: hard
 
 "vscode-extension-tester-locators@npm:^3.2.0":
+<<<<<<< Updated upstream
   version: 3.2.1
   resolution: "vscode-extension-tester-locators@npm:3.2.1"
   peerDependencies:
@@ -6849,6 +7070,18 @@ __metadata:
   linkType: hard
 
 "vscode-extension-tester@npm:^5.2.0":
+=======
+  version: 3.2.0
+  resolution: "vscode-extension-tester-locators@npm:3.2.0"
+  peerDependencies:
+    monaco-page-objects: ^3.2.0
+    selenium-webdriver: ^4.6.1
+  checksum: 7dfda714492d4bf0baa800d024f7cd2cb2166dbb14179c70b9552e1f840dd45d0bfdc04884386dbe9f1f6e45e6f8627105ce5191cb7e1b01d26ef89fbe478ae0
+  languageName: node
+  linkType: hard
+
+"vscode-extension-tester@npm:^5.1.0":
+>>>>>>> Stashed changes
   version: 5.2.0
   resolution: "vscode-extension-tester@npm:5.2.0"
   dependencies:
@@ -6921,9 +7154,9 @@ __metadata:
   linkType: hard
 
 "vscode-languageserver-textdocument@npm:^1.0.4":
-  version: 1.0.7
-  resolution: "vscode-languageserver-textdocument@npm:1.0.7"
-  checksum: 6018a8b2c87aeb6441419431909e9161e9659d214814193b029ca2b30d8b097d23538e4930942ef78f1440f52c57a93f7597144736b79ba1abd9f1a53c2ffbc0
+  version: 1.0.8
+  resolution: "vscode-languageserver-textdocument@npm:1.0.8"
+  checksum: d6b685456ceca2736793d7fc1924d78a8483997c96c6ec4900d90e64115730da6c0c03e3fbc2c5d031a4592f2acd9cca2ca58a651b696c4f40b8690a48538c06
   languageName: node
   linkType: hard
 
@@ -6953,9 +7186,9 @@ __metadata:
   linkType: hard
 
 "vscode-uri@npm:^3.0.3":
-  version: 3.0.6
-  resolution: "vscode-uri@npm:3.0.6"
-  checksum: 8b6a36553d089309c09f7aa2ca8dae321a1cb7ff5dcab35f0914d5155d3110722bdb6de67dcb727df15fecd83221d11bb4ab1274a9116b9ccc05b86cefe60dfc
+  version: 3.0.7
+  resolution: "vscode-uri@npm:3.0.7"
+  checksum: c899a0334f9f6ba53021328e083f6307978c09b94407d7e5fe86fcd8fcb8f1da0cb344123a335e55769055007a46d51aff83f9ee1dfc0296ee54b78f34ef0e4f
   languageName: node
   linkType: hard
 
@@ -6969,7 +7202,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< Updated upstream
 "webpack-cli@npm:^5.0.1":
+=======
+"webpack-cli@npm:^5.0.0":
+>>>>>>> Stashed changes
   version: 5.0.1
   resolution: "webpack-cli@npm:5.0.1"
   dependencies:

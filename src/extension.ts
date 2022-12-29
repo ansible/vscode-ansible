@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
-import { AnsibleCommands } from "./definitions/constants";
+import { AnsibleCommands, WisdomCommands } from "./definitions/constants";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -76,11 +76,25 @@ export async function activate(context: ExtensionContext): Promise<void> {
   metaData.updateAnsibleInfoInStatusbar();
 
   // handle wisdom service
-  let wisdomManager = new WisdomManager(context, extSettings.settings, telemetry);
-  context.subscriptions.push(vscode.languages.registerInlineCompletionItemProvider(
-    { pattern: "**" },
-    wisdomManager.getProvider()
-  ));
+  let wisdomManager = new WisdomManager(
+    context,
+    extSettings.settings,
+    telemetry
+  );
+  context.subscriptions.push(
+    vscode.languages.registerInlineCompletionItemProvider(
+      { pattern: "**" },
+      wisdomManager.getProvider()
+    )
+  );
+
+  registerCommandWithTelemetry(
+    context,
+    telemetry,
+    WisdomCommands.WISDOM_SUGGESTION_ACCEPT,
+    wisdomManager.acceptSelectedSuggestionHandler,
+    true
+  );
 
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(() =>
