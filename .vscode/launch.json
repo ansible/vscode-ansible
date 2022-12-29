@@ -29,6 +29,9 @@
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/examples"
       ],
+      "env": {
+        "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
+      },
       "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
       "preLaunchTask": "npm: watch"
     },

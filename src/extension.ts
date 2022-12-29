@@ -1,4 +1,5 @@
 /* "stdlib" */
+import * as vscode from "vscode";
 import * as path from "path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
@@ -30,9 +31,11 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
+import { WisdomManager } from "./features/wisdom/base";
 
 let client: LanguageClient;
 const lsName = "Ansible Support";
+
 
 export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
@@ -67,9 +70,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
 
+
   // handle metadata status bar
   const metaData = new MetadataManager(context, client, telemetry);
   metaData.updateAnsibleInfoInStatusbar();
+
+  // handle wisdom service
+  let wisdomManager = new WisdomManager(context, extSettings.settings, telemetry);
+  context.subscriptions.push(vscode.languages.registerInlineCompletionItemProvider(
+    { pattern: "**" },
+    wisdomManager.getProvider()
+  ));
 
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(() =>

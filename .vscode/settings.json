@@ -33,5 +33,5 @@
     "out": true,
     ".vscode-test": true
   },
-  "redhat.telemetry.enabled": false
+  "redhat.telemetry.enabled": true
 }

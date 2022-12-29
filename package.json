@@ -323,6 +323,26 @@
             "usesOnlineServices"
           ],
           "scope": "window",
+          "order": 20
+        },
+        "ansible.wisdom.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable Ansible wisdom service to provide intelligent code suggestions.",
+          "order": 21
+        },
+        "ansible.wisdom.basePath": {
+          "scope": "resource",
+          "type": "string",
+          "markdownDescription": "Base path for wisdom service endpoints",
+          "order": 22
+        },
+        "ansible.wisdom.suggestions.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable Ansible wisdom code inline suggestions.",
           "order": 23
         }
       }
@@ -491,6 +511,7 @@
     "@ansible/ansible-language-server": "^1.0.4",
     "@redhat-developer/vscode-redhat-telemetry": "^0.5.2",
     "@types/ini": "^1.3.31",
+    "axios": "^1.2.1",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
     "vscode-languageclient": "^8.0.2"
@@ -501,7 +522,7 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.17",
-    "@types/vscode": "^1.63.0",
+    "@types/vscode": "^1.71.0",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
     "@vscode/test-electron": "^2.2.1",
@@ -531,7 +552,7 @@
     "//": "node version affects only development, it does not affect vscode runtime",
     "node": ">=16.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.63.0",
+    "vscode": "^1.71.0",
     "yarn": ">=3.2.1"
   },
   "extensionDependencies": [
@@ -562,6 +583,7 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
+    "package": "yarn run webpack && npx vsce package",
     "preinstall": "",
     "pretest": "yarn run compile",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
@@ -584,5 +606,7 @@
   "vsce": {
     "dependencies": false,
     "yarn": false
-  }
+  },
+  "segmentWriteKey": "<change-me>",
+  "segmentWriteKeyDebug": "<change-me>"
 }

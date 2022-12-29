@@ -516,10 +516,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:^1.63.0":
-  version: 1.73.1
-  resolution: "@types/vscode@npm:1.73.1"
-  checksum: cb38e85837cfd551db66652150347356f97ed09d23d9f84af5f2d479e75a818a076de868a5b6a329b9211cb81cc7dc0f7b22542c6b6af896cc2c0e2914268bc5
+"@types/vscode@npm:^1.71.0":
+  version: 1.74.0
+  resolution: "@types/vscode@npm:1.74.0"
+  checksum: 25de153cc10136d32d425960c04687fdc26b79b49420d055799f01169e3141fa619d3ed6b3126c4ca4635d12aff2b77df51460e89235c71b55d570f8c08df71c
   languageName: node
   linkType: hard
 
@@ -1079,11 +1079,12 @@ __metadata:
     "@types/ini": ^1.3.31
     "@types/mocha": ^10.0.1
     "@types/node": ^18.11.17
-    "@types/vscode": ^1.63.0
+    "@types/vscode": ^1.71.0
     "@typescript-eslint/eslint-plugin": ^5.47.0
     "@typescript-eslint/parser": ^5.47.0
     "@vscode/test-electron": ^2.2.1
     "@vscode/vsce": ^2.16.0
+    axios: ^1.2.1
     chai: ^4.3.7
     copyfiles: ^2.4.1
     eslint: ^8.30.0
@@ -1232,6 +1233,17 @@ __metadata:
     form-data: ^4.0.0
     proxy-from-env: ^1.1.0
   checksum: c4dc4e119064c9aed09a3de309bedb797a139a6fb372223aafe3e0c10a7d4a14e4d3e9c9d309467fadb9d2b490b891ee3df96ef5b55716bb971910466ff9f0c5
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.2.1":
+  version: 1.2.2
+  resolution: "axios@npm:1.2.2"
+  dependencies:
+    follow-redirects: ^1.15.0
+    form-data: ^4.0.0
+    proxy-from-env: ^1.1.0
+  checksum: 6e357491b38426c5720f7328ecbafca3c643b03952c052d787570672ce7a9365717c2d64db4ce97cfbee3f830fa405101e360e14d0857ef7f96a9f4d814c4e03
   languageName: node
   linkType: hard
 

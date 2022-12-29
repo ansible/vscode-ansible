@@ -19,6 +19,9 @@ export class SettingsManager {
     const eeSettings = vscode.workspace.getConfiguration(
       "ansible.executionEnvironment"
     );
+    const wisdomSettings = vscode.workspace.getConfiguration(
+      "ansible.wisdom"
+    );
     this.settings = {
       activationScript: ansibleSettings.get(
         "python.activationScript"
@@ -34,6 +37,13 @@ export class SettingsManager {
           policy: eeSettings.get("pull.policy", "missing"),
         },
         volumeMounts: eeSettings.get("volumeMounts", []),
+      },
+      wisdomService: {
+        enabled: wisdomSettings.get("enabled", false),
+        basePath: wisdomSettings.get("basePath", ""),
+        suggestions: {
+          enabled: eeSettings.get("wisdomService.suggestions.enabled", false),
+        },
       },
     };
     return;

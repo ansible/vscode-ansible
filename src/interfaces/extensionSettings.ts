@@ -6,6 +6,7 @@ export interface ExtensionSettings {
   activationScript: string;
   interpreterPath: string;
   executionEnvironment: ExecutionEnvironmentSettings;
+  wisdomService: WisdomServiceSettings
 }
 
 export interface IVolumeMounts {
@@ -21,4 +22,14 @@ export interface ExecutionEnvironmentSettings {
   image: string;
   pull: { arguments: string; policy: IPullPolicy };
   volumeMounts: Array<IVolumeMounts>;
+}
+
+export interface WisdomServiceSettings {
+  enabled: boolean;
+  basePath: string;
+  suggestions: WisdomSuggestionSettings;
+}
+
+export interface WisdomSuggestionSettings {
+  enabled: boolean;
 }
