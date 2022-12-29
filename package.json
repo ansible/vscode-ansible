@@ -621,6 +621,6 @@
     "dependencies": false,
     "yarn": false
   },
-  "segmentWriteKey": "DxnFa87EXSrfwoSuQBZAe2EMkb7nz5GR",
-  "segmentWriteKeyDebug": "5r1FsJAkhB1ZWnxxaMRPDav5RdVnyMLr"
+  "segmentWriteKey": "changeme",
+  "segmentWriteKeyDebug": "changeme"
 }

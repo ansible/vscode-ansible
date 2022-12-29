@@ -94,6 +94,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     WisdomCommands.WISDOM_SUGGESTION_ACCEPT,
     wisdomManager.acceptSelectedSuggestionHandler,
     true
+
   );
 
   // register ansible meta data in the statusbar tooltip (client-server)
@@ -108,6 +109,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 }
 
+function acceptSelectedSuggestionHandler(args: any) {
+  console.log(`Suggestion accepted with args=${args}`);
+}
 const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager
