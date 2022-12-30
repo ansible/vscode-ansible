@@ -4,6 +4,25 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.1
+
+### Minor Changes
+
+- Add support to run ansible-navigator with execution environment (#652)
+  @ganeshrn
+- Update the extension to support disabling diagnostics (#648) @priyamsahoo
+
+### Bugfixes
+
+- Improve description of configuration options (#649) @priyamsahoo
+- Update ALS version to 1.0.1 (#656) @priyamsahoo
+- Use creator-ee v0.9.2 to fix CI failures (#653) @priyamsahoo
+- Update ansible-lint and version and e2e-tests to support changes the changes
+  (#643) @priyamsahoo
+- More refactor for ansible metadata feature (#641) @ganeshrn
+- Refactor extension.ts (#635) @priyamsahoo
+- Switch to new location of Molecule JSON Schema (#637) @ssbarnea
+
 ## v1.0.0
 
 ### Minor Changes
