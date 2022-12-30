@@ -30,7 +30,7 @@ fi
 yarn exec prettier --loglevel error -w CHANGELOG.md
 
 # update version
-yarn version --immediate "${RELEASE_NAME}"
+yarn version --immediate "${RELEASE_NAME}.0"
 
 # commit the release
 git add package.json CHANGELOG.md
