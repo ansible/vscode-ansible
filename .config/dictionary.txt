@@ -34,6 +34,7 @@ copyfiles
 cygwin
 dbaeumer
 dedupe
+depcheck
 deps
 devel
 direnv
