@@ -18,7 +18,7 @@ tasks:
         sh: node -p "require('./package.json').version"
     desc: Run most commands
     deps:
-      - setup
+      - install
       - lint
       - package
     cmds:
@@ -27,7 +27,7 @@ tasks:
   devel:
     desc: Updates the language server to latest from @main and run all tests
     deps:
-      - setup
+      - install
     cmds:
       - tools/dirty.sh
       # If we call `task devel -- <path>` we will link that path, otherwise
@@ -56,16 +56,23 @@ tasks:
       - bash ./tools/test-setup.sh
     sources:
       - tools/test-setup.sh
-      - package.json
-      - yarn.lock
     generates:
       - out/log/manifest-{{.HOSTNAME}}.yml
     run: once
     interactive: true
+  install:
+    deps:
+      - setup
+    cmds:
+      - yarn install
+    sources:
+      - package.json
+      - yarn.lock
+    interactive: true
   build:
     desc: Build the project
     deps:
-      - setup
+      - install
     cmds:
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
@@ -93,7 +100,7 @@ tasks:
   deps:
     desc: Update dependencies
     deps:
-      - setup
+      - install
     cmds:
       # bumps some developments dependencies
       - npx yarn upgrade-interactive
@@ -104,7 +111,7 @@ tasks:
   lint:
     desc: Lint the project
     deps:
-      - setup
+      - install
     cmds:
       - $VIRTUAL_ENV/bin/python -m pre_commit run -a
       - tools/dirty.sh
@@ -170,6 +177,8 @@ tasks:
       - README.md
       - package*.json
       - out/
+      - webpack.config.js
+      - Taskfile.yml
     generates:
       - "*.vsix"
     cmds:
@@ -177,10 +186,11 @@ tasks:
       - yarn run webpack
       # --pre-release not supported until we do VS Code >=1.63
       # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - yarn run vsce package --pre-release --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}
       # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
       - zipinfo -1 *.vsix
       - tools/dirty.sh
+      - ls -la *.vsix
     silent: true
   pr:
     desc: Opens a pull request using gh
@@ -192,7 +202,7 @@ tasks:
   release:
     desc: Create a new release (used by CI)
     deps:
-      - setup
+      - install
     cmds:
       - ./tools/release.sh
     interactive: true

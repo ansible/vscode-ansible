@@ -8,6 +8,11 @@ const path = require("path");
 /** @type WebpackConfig */
 const config = {
   mode: "none",
+  stats: {
+    preset: "minimal",
+    moduleTrace: true,
+    errorDetails: true,
+  },
   target: "node", // vscode extensions run in a Node.js-context
   node: {
     __dirname: false, // leave the __dirname-behavior intact
