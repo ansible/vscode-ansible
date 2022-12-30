@@ -1,5 +1,5 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
@@ -29,11 +29,10 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
-        # Keep the `cat` and the silencing of 141 error code because otherwise
+        # Keep the `tail -n +1` and the silencing of 141 error code because otherwise
         # the called tool might fail due to premature closure of /dev/stdout
-        # made by `--head n1`
-        "${_cmd[@]}" | cat | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/' \
-            || (ec=$? ; if [ "$ec" -eq 141 ]; then exit 0; else exit "$ec"; fi)
+        # made by `--head n1`. See https://superuser.com/a/642932/3004
+        "${_cmd[@]}" | tail -n +1 | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99
@@ -132,16 +131,19 @@ fi
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
         HOMEBREW_NO_ENV_HINTS=1 time brew install podman
-        podman machine ls --noheading | grep '\*' || time podman machine init
-        podman machine ls --noheading | grep "Currently running" || {
-            # do not use full path as it varies based on architecture
-            # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
-            "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
-            time podman machine start
-            }
-        podman info
-        podman run hello-world
     }
+    podman machine ls --noheading | grep '\*' || {
+        log warning "Creating podman machine..."
+        time podman machine init --now
+    }
+    podman machine ls --format '{{.Name}} {{.Running}}' --noheading | grep podman-machine-default | grep true || {
+        # do not use full path as it varies based on architecture
+        # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
+        "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+        time podman machine start
+        }
+    podman info
+    podman run hello-world
 fi
 
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
@@ -316,7 +318,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     EE_ANSIBLE_VERSION=$(get_version \
         docker run "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        docker run "${IMAGE}" ansible-lint --version)
+        docker run "${IMAGE}" ansible-lint --nocolor --version)
     # Test podman ability to mount current folder with write access, default mount options
     docker run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
@@ -329,7 +331,13 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     if [[ "$(podman machine ls --format '{{.Running}}' --noheading || true)" \
             == "false" ]]; then
         log notice "Starting podman machine"
-        podman machine start
+        podman machine start || {
+            log error "Failed to start podman machine, trying to create it."
+            podman machine init || {
+                log error "Failed to create podman machine."
+                exit 1
+            }
+        }
         while [[ "$(podman machine ls --format '{{.Running}}' \
                 --noheading || true)" != "true" ]]; do
             sleep 1
@@ -343,7 +351,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     EE_ANSIBLE_VERSION=$(get_version \
         podman run "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        podman run "${IMAGE}" ansible-lint --version)
+        podman run "${IMAGE}" ansible-lint --nocolor --version)
     # Test podman ability to mount current folder with write access, default mount options
     podman run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
