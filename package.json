@@ -9,9 +9,14 @@
   ],
   "badges": [
     {
-      "description": "CI/CD Pipeline",
-      "href": "https://github.com/ansible/vscode-ansible/actions/workflows/ci.yaml",
-      "url": "https://img.shields.io/github/workflow/status/ansible/vscode-ansible/ci.png"
+      "description": "last-commit",
+      "href": "https://github.com/ansible/vscode-ansible",
+      "url": "https://img.shields.io/github/last-commit/ansible/vscode-ansible/main"
+    },
+    {
+      "description": "downloads",
+      "href": "https://github.com/ansible/vscode-ansible",
+      "url": "https://img.shields.io/visual-studio-marketplace/d/redhat.ansible"
     }
   ],
   "bugs": "https://github.com/ansible/vscode-ansible/issues",
