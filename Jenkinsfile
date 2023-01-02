@@ -61,9 +61,6 @@ node('rhel8') {
     withCredentials([[$class: 'StringBinding', credentialsId: 'open-vsx-access-token', variable: 'OVSX_TOKEN']]) {
       sh "yarn run ovsx publish -p $OVSX_TOKEN ${vsix[0].path}"
     }
-  }
-
-  stage('promote to stable') {
     sh "sftp -C ${UPLOAD_LOCATION}/stable/vscode-ansible/ <<< \$'put -p -r ${vsix[0].path}'"
   }
 }
