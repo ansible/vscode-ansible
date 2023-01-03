@@ -131,7 +131,7 @@ export class AnsiblePlaybookRunProvider {
 
   /**
    * A callback method for running `ansible-playbook` command.
-   * @param fileObj The file path to execute the command.
+   * @param fileObj - The file path to execute the command.
    */
   private async invokeViaAnsiblePlaybook(
     ...fileObj: vscode.Uri[] | undefined[]
@@ -159,7 +159,7 @@ export class AnsiblePlaybookRunProvider {
 
   /**
    * A callback method for running `ansible-navigator run command`.
-   * @param fileObj The file path to execute the command.
+   * @param fileObj - The file path to execute the command.
    */
   private async invokeViaAnsibleNavigator(
     ...fileObj: vscode.Uri[] | undefined[]
@@ -191,7 +191,7 @@ export class AnsiblePlaybookRunProvider {
 
 /**
  * A helper function for inferring selected file from the context.
- * @param priorityPathObjs Target file path candidates.
+ * @param priorityPathObjs - Target file path candidates.
  * @returns A path to the currently selected file.
  */
 function extractTargetFsPath(

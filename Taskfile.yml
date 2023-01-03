@@ -86,7 +86,7 @@ tasks:
       - src/**/*
       - test/**/*
       - tsconfig.json
-      - webpack.config.js
+      - webpack.config.ts
       - yarn.lock.json
   code:
     env:
@@ -177,7 +177,7 @@ tasks:
       - README.md
       - package*.json
       - out/
-      - webpack.config.js
+      - webpack.config.ts
       - Taskfile.yml
     generates:
       - "*.vsix"

@@ -7,10 +7,10 @@ import { TelemetryManager } from "./telemetryUtils";
  * Displays errors raised by the function as error messages,
  * and sends telemetry when the command succeeds or fails.
  *
- * @param context the extension context
- * @param commandName the name of the command to register
- * @param commandAction the async function to run when the command is called
- * @param skipSuccess whether the success of the command should be reported
+ * @param context - the extension context
+ * @param commandName - the name of the command to register
+ * @param commandAction - the async function to run when the command is called
+ * @param skipSuccess - whether the success of the command should be reported
  */
 export async function registerCommandWithTelemetry(
   context: ExtensionContext,

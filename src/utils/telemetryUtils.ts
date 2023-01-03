@@ -38,7 +38,7 @@ export class TelemetryManager {
   /**
    * Sends a telemetry event indicating that the given command ran successfully
    *
-   * @param commandName the command that was executed
+   * @param commandName - the command that was executed
    * @throws if the telemetry service has not been initialized yet
    * @returns when the telemetry event has been sent
    */
@@ -51,8 +51,8 @@ export class TelemetryManager {
   /**
    * Sends a telemetry event indicating that the given command failed
    *
-   * @param commandName the command that was executed
-   * @param msg the error message
+   * @param commandName - the command that was executed
+   * @param msg - the error message
    * @throws if the telemetry service has not been initialized yet
    * @returns when the telemetry event has been sent
    */
@@ -66,7 +66,7 @@ export class TelemetryManager {
   /**
    * Send a telemetry event related to a given vscode-ansible command
    *
-   * @param commandName the name of the command that was run
+   * @param commandName - the name of the command that was run
    * @throws if the telemetry service has not been initialized yet
    * @returns when the telemetry event has been sent
    */
@@ -90,8 +90,8 @@ export class TelemetryManager {
   /**
    * Send a telemetry event related to a given vscode-ansible command
    *
-   * @param eventName the name of the command that was run
-   * @param eventData the data to be sent with the event
+   * @param eventName - the name of the command that was run
+   * @param eventData - the data to be sent with the event
    * @throws if the telemetry service has not been initialized yet
    * @returns when the telemetry event has been sent
    */

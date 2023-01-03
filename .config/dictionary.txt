@@ -1,15 +1,13 @@
 ALS
+Anson
 Containerfile
+Dockal
 FQCN
 FQCNs
-OSTYPE
-TLDR
-# names and usernames:
-Anson
-Dockal
 Florian
 Launay
 Maciążek
+OSTYPE
 Ondrej
 PYTHONBREAKPOINT
 PYTHONHOME
@@ -17,6 +15,7 @@ Pinkney
 Sbarnea
 Schwalm
 Sorin
+TLDR
 Tomasz
 ajinkyau
 akira
@@ -100,8 +99,10 @@ taskfile
 testhost
 testorg
 timonwong
+tomaciazek
 towerhost
 tsbuildinfo
+tsdoc
 unstash
 untildify
 userdata
@@ -109,12 +110,11 @@ usermod
 venvs
 vscoss
 vsix
+vyos
+webknjaz
 webpacked
 whitespaces
 withserver
 xvfb
-yarnpkg
-tomaciazek
-vyos
-webknjaz
 yaegassy
+yarnpkg

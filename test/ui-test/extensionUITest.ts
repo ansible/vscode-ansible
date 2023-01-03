@@ -7,9 +7,6 @@ import {
 } from "vscode-extension-tester";
 
 config.truncateThreshold = 0;
-/**
- * @author Ondrej Dockal <odockal@redhat.com>
- */
 export function extensionUIAssetsTest(): void {
   describe("Verify base assets are available after installation", () => {
     let view: ViewControl;

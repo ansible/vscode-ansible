@@ -126,6 +126,9 @@ repos:
     hooks:
       - id: eslint
         args:
+          # default format is not vscode friendly
+          - --color
+          - --format=unix
           - --fix
           - --max-warnings
           - "0"
@@ -133,8 +136,9 @@ repos:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
           - eslint
-          - eslint-plugin-prettier
           - eslint-config-prettier
+          - eslint-plugin-prettier
+          - eslint-plugin-tsdoc
           - prettier
           - typescript
           - typescript-eslint
