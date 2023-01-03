@@ -7,9 +7,9 @@ import { ExtensionSettings } from "../../interfaces/extensionSettings";
 /**
  * A helper method to get interpreter path related settings to
  * while running the command.
- * @param settings The extension setting.
- * @param runExecutable The name of the executable to run.
- * @param runArgs The arguments to the executable.
+ * @param settings - The extension setting.
+ * @param runExecutable - The name of the executable to run.
+ * @param runArgs - The arguments to the executable.
  * @returns The complete command to be executed.
  */
 export function withInterpreter(
