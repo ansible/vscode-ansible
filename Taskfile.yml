@@ -103,9 +103,11 @@ tasks:
       - install
     cmds:
       # bumps some developments dependencies
-      - npx yarn upgrade-interactive
+      - yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
-      - npx yarn install
+      - yarn install
+      # check deps
+      - yarn dlx depcheck
       - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
   lint:

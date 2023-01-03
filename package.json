@@ -498,7 +498,8 @@
     "@types/ini": "^1.3.31",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
-    "vscode-languageclient": "^8.0.2"
+    "vscode-languageclient": "^8.0.2",
+    "yaml": "^2.2.1"
   },
   "description": "Ansible language support",
   "devDependencies": {
@@ -513,17 +514,18 @@
     "@vscode/vsce": "^2.16.0",
     "chai": "^4.3.7",
     "copyfiles": "^2.4.1",
+    "depcheck": "^1.4.3",
     "eslint": "^8.30.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-tsdoc": "^0.2.17",
+    "glob": "^8.0.3",
     "mocha": "^10.2.0",
     "mochawesome": "^7.1.3",
     "mochawesome-report-generator": "^6.2.0",
     "ovsx": "^0.7.1",
     "prettier": "^2.8.1",
     "rimraf": "^3.0.2",
-    "standard-version": "^9.5.0",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4",
@@ -545,11 +547,6 @@
     "ms-python.python",
     "redhat.vscode-yaml"
   ],
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
-  },
   "icon": "images/logo.png",
   "keywords": [
     "ansible",
