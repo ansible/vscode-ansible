@@ -4,6 +4,63 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.1
+
+### Minor Changes
+
+- Add support to run ansible-navigator with execution environment (#652)
+  @ganeshrn
+- Update the extension to support disabling diagnostics (#648) @priyamsahoo
+
+### Bugfixes
+
+- Improve description of configuration options (#649) @priyamsahoo
+- Update ALS version to 1.0.1 (#656) @priyamsahoo
+- Use creator-ee v0.9.2 to fix CI failures (#653) @priyamsahoo
+- Update ansible-lint and version and e2e-tests to support changes the changes
+  (#643) @priyamsahoo
+- More refactor for ansible metadata feature (#641) @ganeshrn
+- Refactor extension.ts (#635) @priyamsahoo
+- Switch to new location of Molecule JSON Schema (#637) @ssbarnea
+
+## v1.0.0
+
+### Minor Changes
+
+- Add auto-detection of Ansible files based on their content (#617) @priyamsahoo
+
+### Bugfixes
+
+- Update ALS to 0.10.3 (3 bugs) (#632) @ssbarnea
+- Bump vscode-languageclient from 7.x to 8.x (#626) @ajinkyau
+- Change extension status-bar icon (#627) @ssbarnea
+- fix hyphenation README (#611) @akira6592
+
+## v0.14.0
+
+### Minor Changes
+
+- Add feature to dynamically associate yaml files to `ansible` language (#600)
+  @priyamsahoo
+
+### Bugfixes
+
+- Use new location of ansible-lint config JSON Schema (#608) @ssbarnea
+- Fix the display of double `Ansible` in status-bar text (#605) @priyamsahoo
+- Disable python debugger when running external commands (#603) @ssbarnea
+
+## v0.13.0
+
+### Minor Changes
+
+- Allow jinja brace autocompletion (#593) @ganeshrn
+- Add feature to show ansible meta data (#586) @priyamsahoo
+
+### Bugfixes
+
+- Update test dependencies (#577) @ssbarnea
+- Update ansible-language-server (#574) @ssbarnea
+
 ## v0.12.0
 
 ### Minor Changes

@@ -6,7 +6,59 @@ and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging
 [ansible-language-server](https://github.com/ansible/ansible-language-server).
 
-## Activating Red Hat Ansible extension
+## Language association to yaml files
+
+The extension works only when a document is assigned `ansible` language. The
+following method is used to assign `ansible` language to the document opened by
+the extension:
+
+### Without file inspection
+
+- yaml files under `/playbooks` dir.
+- files with the following double extension: `.ansible.yml` or `.ansible.yaml`.
+- notable yaml names recognized by ansible like `site.yml` or `site.yaml`
+- yaml files having playbook in their filename: `*playbook*.yml` or
+  `*playbook*.yaml`
+
+Additionally, in vscode, you can add persistent file association for language to
+`settings.json` file like this:
+
+```json
+{
+  ...
+
+  "files.associations": {
+    "*plays.yml": "ansible",
+    "*init.yml": "yaml",
+  }
+}
+```
+
+### With file inspection
+
+#### File inspection for ansible keywords
+
+- Primary method is inspection for top level playbook keywords like hosts and
+  import_playbook in yaml files.
+
+#### Modelines (optional)
+
+- The extension also supports the usage of
+  [modelines](https://vim.fandom.com/wiki/Modeline_magic) and when used, it is
+  given highest priority and language is set according to modelines. Example and
+  syntax of modelines:
+
+```yaml
+# code: language=ansible
+or
+# code: language=yaml
+```
+
+Rest all the .yml, or .yaml files will remain yaml by default unless the user
+explicitly changes the language to ansible for which the process is mentioned
+below.
+
+## Activating Red Hat Ansible extension manually
 
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
@@ -113,6 +165,8 @@ This extension supports multi-root workspaces, and as such, can be configured on
 any level (User, Remote, Workspace and/or Folder).
 
 - `ansible.ansible.path`: Path to the `ansible` executable.
+- `ansible.ansible.reuseTerminal`: Enabling this will cause ansible commands run
+  through VSCode to reuse the same Ansible Terminal.
 - `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of fully
   qualified collection names (FQCN) when inserting a module name. Disabling it
   will only use FQCNs when necessary, that is when the collection isn't
@@ -133,7 +187,7 @@ any level (User, Remote, Workspace and/or Folder).
   environment image.
 - `ansible.executionEnvironment.pull.arguments`: Specify any additional
   parameters that should be added to the pull command when pulling an execution
-  environment from a container registry. e.g. `–-tls-verify=false`
+  environment from a container registry. e.g. `--tls-verify=false`
 - `ansible.executionEnvironment.pull.policy`: Specify the image pull policy.
   Valid values are `always`, `missing`, `never` and `tag`. Setting `always` will
   always pull the image when extension is activated or reloaded. Setting
@@ -153,8 +207,22 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
+- `ansible.completion.provideRedirectModules`: Toggle redirected module provider
+  when completing modules.
+- `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
+  completing module options.
 - `ansibleServer.trace.server`: Traces the communication between VSCode and the
   ansible language server.
+
+## Data and Telemetry
+
+The `vscode-ansible` extension collects anonymous [usage data](USAGE_DATA.md)
+and sends it to Red Hat servers to help improve our products and services. Read
+our
+[privacy statement](https://developers.redhat.com/article/tool-data-collection)
+to learn more. This extension respects the `redhat.telemetry.enabled` setting,
+which you can learn more about at
+<https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting>
 
 ## Known limitations
 

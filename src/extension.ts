@@ -1,18 +1,13 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 /* "stdlib" */
 import * as path from "path";
-import {
-  commands,
-  ExtensionContext,
-  extensions,
-  StatusBarItem,
-  window,
-  StatusBarAlignment,
-  ThemeColor,
-  MarkdownString,
-  workspace,
-} from "vscode";
+import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
+import { AnsibleCommands } from "./definitions/constants";
+import {
+  TelemetryErrorHandler,
+  TelemetryOutputChannel,
+  TelemetryManager,
+} from "./utils/telemetryUtils";
 
 /* third-party */
 import {
@@ -21,47 +16,77 @@ import {
   NotificationType,
   ServerOptions,
   TransportKind,
+  RevealOutputChannelOn,
 } from "vscode-languageclient/node";
 
 /* local */
+import { SettingsManager } from "./settings";
 import { AnsiblePlaybookRunProvider } from "./features/runner";
 import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
-import { formatAnsibleMetaData } from "./features/utils/formatAnsibleMetaData";
-import { configureModelines } from "./features/fileAssociation";
+import { languageAssociation } from "./features/fileAssociation";
+import { MetadataManager } from "./features/ansibleMetaData";
+import { updateConfigurationChanges } from "./utils/settings";
+import { registerCommandWithTelemetry } from "./utils/registerCommands";
 
 let client: LanguageClient;
-let cachedAnsibleVersion: string;
+const lsName = "Ansible Support";
 
-// status bar item
-let myStatusBarItem: StatusBarItem;
+export async function activate(context: ExtensionContext): Promise<void> {
+  // dynamically associate "ansible" language to the yaml file
+  languageAssociation(context);
 
-export function activate(context: ExtensionContext): void {
-  new AnsiblePlaybookRunProvider(context);
+  // Create Telemetry Service
+  const telemetry = new TelemetryManager(context);
+  await telemetry.initTelemetryService();
 
-  // add ability to read modelines and assign doc "ansible" language to the doc accordingly
-  configureModelines(context);
-
-  context.subscriptions.push(
-    commands.registerCommand("extension.ansible.vault", toggleEncrypt)
+  registerCommandWithTelemetry(
+    context,
+    telemetry,
+    AnsibleCommands.ANSIBLE_VAULT,
+    toggleEncrypt,
+    true
+  );
+  registerCommandWithTelemetry(
+    context,
+    telemetry,
+    AnsibleCommands.ANSIBLE_INVENTORY_RESYNC,
+    resyncAnsibleInventory,
+    true
   );
 
-  context.subscriptions.push(
-    commands.registerCommand(
-      "extension.resync-ansible-inventory",
-      resyncAnsibleInventory
-    )
+  // start the client and the server
+  await startClient(context, telemetry);
+
+  notifyAboutConflicts();
+
+  // Initialize settings
+  const extSettings = new SettingsManager();
+
+  new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
+
+  // handle metadata status bar
+  const metaData = new MetadataManager(context, client, telemetry);
+  metaData.updateAnsibleInfoInStatusbar();
+
+  // register ansible meta data in the statusbar tooltip (client-server)
+  window.onDidChangeActiveTextEditor(() =>
+    metaData.updateAnsibleInfoInStatusbar()
   );
+  workspace.onDidOpenTextDocument(() =>
+    metaData.updateAnsibleInfoInStatusbar()
+  );
+  workspace.onDidChangeConfiguration(() =>
+    updateConfigurationChanges(metaData, extSettings)
+  );
+}
 
-  // create a new status bar item that we can manage
-  myStatusBarItem = window.createStatusBarItem(StatusBarAlignment.Right, 100);
-  context.subscriptions.push(myStatusBarItem);
-
-  myStatusBarItem.text = cachedAnsibleVersion;
-  myStatusBarItem.show();
-
+const startClient = async (
+  context: ExtensionContext,
+  telemetry: TelemetryManager
+) => {
   const serverModule = context.asAbsolutePath(
     path.join("out", "server", "src", "server.js")
   );
@@ -78,9 +103,22 @@ export function activate(context: ExtensionContext): void {
     },
   };
 
+  const telemetryErrorHandler = new TelemetryErrorHandler(
+    telemetry.telemetryService,
+    lsName,
+    4
+  );
+  const outputChannel = window.createOutputChannel(lsName);
+
   const clientOptions: LanguageClientOptions = {
     // register the server for Ansible documents
     documentSelector: [{ scheme: "file", language: "ansible" }],
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    errorHandler: telemetryErrorHandler,
+    outputChannel: new TelemetryOutputChannel(
+      outputChannel,
+      telemetry.telemetryService
+    ),
   };
 
   client = new LanguageClient(
@@ -90,22 +128,31 @@ export function activate(context: ExtensionContext): void {
     clientOptions
   );
 
-  // start the client and the server
-  client.start();
+  context.subscriptions.push(
+    client.onTelemetry((e) => {
+      telemetry.telemetryService.send(e);
+    })
+  );
 
-  notifyAboutConflicts();
-  client.onReady().then(() => {
+  try {
+    await client.start();
+
     // If the extensions change, fire this notification again to pick up on any association changes
     extensions.onDidChange(() => {
       notifyAboutConflicts();
     });
-  });
-
-  // Update ansible meta data in the statusbar tooltip (client-server)
-  client.onReady().then(updateAnsibleInfo);
-  window.onDidChangeActiveTextEditor(updateAnsibleInfo);
-  workspace.onDidOpenTextDocument(updateAnsibleInfo);
-}
+    telemetry.sendStartupTelemetryEvent(true);
+  } catch (err) {
+    let errorMessage: string;
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else {
+      errorMessage = String(err);
+    }
+    console.error(`Language Client initialization failed with ${errorMessage}`);
+    telemetry.sendStartupTelemetryEvent(false, errorMessage);
+  }
+};
 
 export function deactivate(): Thenable<void> | undefined {
   if (!client) {
@@ -130,8 +177,8 @@ function notifyAboutConflicts(): void {
  * Sends notification to the server to invalidate ansible inventory service cache
  * And resync the ansible inventory
  */
-function resyncAnsibleInventory(): void {
-  client.onReady().then(() => {
+async function resyncAnsibleInventory(): Promise<void> {
+  if (client.isRunning()) {
     client.onNotification(
       new NotificationType(`resync/ansible-inventory`),
       (event) => {
@@ -139,62 +186,5 @@ function resyncAnsibleInventory(): void {
       }
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
-  });
-}
-
-/**
- * Sends notification with active file uri as param to the server
- * and receives notification from the server with ansible meta data associated with the opened file as param
- */
-function updateAnsibleInfo(): void {
-  if (window.activeTextEditor?.document.languageId !== "ansible") {
-    myStatusBarItem.hide();
-    return;
   }
-
-  client.onReady().then(() => {
-    myStatusBarItem.tooltip = new MarkdownString(
-      ` $(sync~spin) Fetching... `,
-      true
-    );
-    myStatusBarItem.show();
-    client.onNotification(
-      new NotificationType(`update/ansible-metadata`),
-      (ansibleMetaDataList: any) => {
-        const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
-        if (ansibleMetaData.ansiblePresent) {
-          console.log("ansible found");
-          cachedAnsibleVersion =
-            ansibleMetaData.metaData["ansible information"]["ansible version"];
-          const tooltip = ansibleMetaData.markdown;
-          myStatusBarItem.text = ansibleMetaData.eeEnabled
-            ? `$(pass-filled) [EE] ${cachedAnsibleVersion}`
-            : `$(pass-filled) ${cachedAnsibleVersion}`;
-          myStatusBarItem.backgroundColor = "";
-          myStatusBarItem.tooltip = tooltip;
-
-          if (!ansibleMetaData.ansibleLintPresent) {
-            myStatusBarItem.text = `$(warning) ${cachedAnsibleVersion}`;
-            myStatusBarItem.backgroundColor = new ThemeColor(
-              "statusBarItem.warningBackground"
-            );
-          }
-
-          myStatusBarItem.show();
-        } else {
-          console.log("ansible not found");
-          myStatusBarItem.text = "$(error) Ansible Info";
-          myStatusBarItem.tooltip = ansibleMetaData.markdown;
-          myStatusBarItem.backgroundColor = new ThemeColor(
-            "statusBarItem.errorBackground"
-          );
-          myStatusBarItem.show();
-        }
-      }
-    );
-    const activeFileUri = window.activeTextEditor?.document.uri.toString();
-    client.sendNotification(new NotificationType(`update/ansible-metadata`), [
-      activeFileUri,
-    ]);
-  });
 }

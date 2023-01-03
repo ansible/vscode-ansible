@@ -59,12 +59,10 @@ export async function showUninstallConflictsNotification(
   if (conflictingExts.length === 1) {
     conflictMsg = `${conflictingExts[0].packageJSON.displayName} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
   } else {
-    const extNames: string[] = conflictingExts.map(
-      (ext) => `${ext.packageJSON.displayName} (${ext.id})`
-    );
-    conflictMsg = `The ${extNames.join(
-      ", "
-    )} extensions are incompatible with redhat.ansible. Please uninstall them.`;
+    const extNames: string = conflictingExts
+      .map((ext) => `${ext.packageJSON.displayName} (${ext.id})`)
+      .join(", ");
+    conflictMsg = `The ${extNames} extensions are incompatible with redhat.ansible. Please uninstall them.`;
   }
 
   await window

@@ -1,13 +1,14 @@
-//@ts-check
-/** @typedef {import('webpack').Configuration} WebpackConfig **/
-
 "use strict";
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const path = require("path");
 
-/** @type WebpackConfig */
 const config = {
   mode: "none",
+  stats: {
+    preset: "minimal",
+    moduleTrace: true,
+    errorDetails: true,
+  },
   target: "node", // vscode extensions run in a Node.js-context
   node: {
     __dirname: false, // leave the __dirname-behavior intact
@@ -18,14 +19,14 @@ const config = {
       "./node_modules/@ansible/ansible-language-server/out/server/src/server.js",
   },
   output: {
-    filename: (pathData) => {
+    filename: (pathData: { chunk: { name: string } }) => {
       return pathData.chunk.name === "client"
         ? "[name]/src/extension.js"
         : "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
     libraryTarget: "commonjs2",
-    devtoolModuleFilenameTemplate: (info) => {
+    devtoolModuleFilenameTemplate: (info: { id: string }) => {
       return info.id === "client"
         ? "../[resource-path]"
         : "../../../[resource-path]";

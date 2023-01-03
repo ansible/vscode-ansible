@@ -114,6 +114,7 @@ export async function testDiagnostics(
         actualDiagnostic.severity,
         expectedDiagnostic.severity
       );
+      assert.strictEqual(actualDiagnostic.source, expectedDiagnostic.source);
     });
   }
 }

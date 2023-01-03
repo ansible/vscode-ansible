@@ -1,11 +1,14 @@
 #!/bin/bash
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
 set -euo pipefail
 
-IMAGE=quay.io/ansible/creator-ee:latest
+HOST=${HOST:-$(hostname)}
+IMAGE_VERSION=$(./tools/get-image-version)
+IMAGE=ghcr.io/ansible/creator-ee:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
@@ -26,7 +29,10 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
-        "${_cmd[@]}" | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
+        # Keep the `tail -n +1` and the silencing of 141 error code because otherwise
+        # the called tool might fail due to premature closure of /dev/stdout
+        # made by `--head n1`. See https://superuser.com/a/642932/3004
+        "${_cmd[@]}" | tail -n +1 | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99
@@ -50,19 +56,45 @@ log () {
     >&2 echo -e "${prefix}${2}${NC}"
 }
 
+if [ ! -d "$HOME/.local/bin" ] ; then
+    log warning "Creating missing ~/.local/bin"
+    mkdir -p "$HOME/.local/bin"
+fi
+
+# Detect RedHat/CentOS/Fedora:
+if [[ -f "/etc/redhat-release" ]]; then
+    RPMS=()
+    command -v xvfb-run >/dev/null 2>&1 || RPMS+=(xorg-x11-server-Xvfb)
+    if [[ ${#RPMS[@]} -ne 0 ]]; then
+        log warning "We need sudo to install some packages: ${RPMS[*]}"
+        sudo dnf install -y "${RPMS[@]}"
+    fi
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static)
+
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils)
+    # add nodejs to DEBS only if node is not already installed because
+    # GHA has newer versions preinstalled and installing the rpm would
+    # basically downgrade it
+    command -v node >/dev/null 2>&1 || {
+        DEBS+=(nodejs)
+    }
+    command -v npm >/dev/null 2>&1 || {
+        DEBS+=(npm)
+    }
+
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
     if [[ "${INSTALL}" -eq 1 ]]; then
-        printf '%s\n' "We need sudo to install some packages: ${DEBS[*]}"
+        log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
-        sudo apt-get update -qq -o=Dpkg::Use-Pty=0
+        sudo apt-get -qq update -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
         sudo apt-get remove -y ansible pipx || true
         # install all required packages
@@ -71,6 +103,13 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
+    # Remove undesirable packages, like cmdtest which provides another "yarn"
+    DEBS=(cmdtest)
+    for DEB in "${DEBS[@]}"; do
+        [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
+            "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
+            sudo apt-get remove -y "$DEB"
+    done
 fi
 
 # Ensure that git is configured properly to allow unattended commits, something
@@ -92,11 +131,19 @@ fi
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
         HOMEBREW_NO_ENV_HINTS=1 time brew install podman
-        time podman machine init
-        time podman machine start
-        podman info
-        podman run hello-world
     }
+    podman machine ls --noheading | grep '\*' || {
+        log warning "Creating podman machine..."
+        time podman machine init --now
+    }
+    podman machine ls --format '{{.Name}} {{.Running}}' --noheading | grep podman-machine-default | grep true || {
+        # do not use full path as it varies based on architecture
+        # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
+        "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+        time podman machine start
+        }
+    podman info
+    podman run hello-world
 fi
 
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
@@ -114,16 +161,18 @@ fi
 
 # User specific environment
 if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+    log warning '\~/.local/bin was not found in PATH, attempting to add it.'
+    PATH="${HOME}/.local/bin:${PATH}"
+    export PATH
+
     # shellcheck disable=SC2088
-    log warning "~/.local/bin was not found in PATH, attempting to add it."
-    cat >>"${HOME}/.bashrc" <<EOF
-# User specific environment
-if ! [[ "${PATH}" =~ "${HOME}/.local/bin" ]]; then
-    PATH="${HOME}/.local/bin:${PATH}"
-fi
-export PATH
-EOF
-    PATH="${HOME}/.local/bin:${PATH}"
+    if [[ -n "${GITHUB_ENV:-}" ]]; then
+        log notice "Altered GITHUB_ENV to extend PATH."
+        echo "{PATH}={$PATH}" >> "$GITHUB_ENV"
+    else
+        log error "Reconfigure your shell (${SHELL}) to include ~/.local/bin in your PATH, we need it."
+        exit 102
+    fi
 fi
 
 # fail-fast if we detect incompatible filesystem (o-w)
@@ -158,6 +207,7 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
         nodejs gcc g++ make python3-dev
 fi
 
+log notice "Installing $(python3 --version) venv and dependencies matching creator-ee:${IMAGE_VERSION} ..."
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     log notice "Creating virtualenv ..."
@@ -169,8 +219,11 @@ fi
 python3 -m pip install -q -U pip
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
+    # We used the already tested constraints file from creator-ee in order
+    # to avoid surprises. This ensures venv and creator-ee have exactly same
+    # versions.
     python3 -m pip install -q \
-        -c .config/requirements.txt -r .config/requirements.in
+        -c "https://raw.githubusercontent.com/ansible/creator-ee/${IMAGE_VERSION}/_build/requirements.txt" -r .config/requirements.in
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
@@ -208,46 +261,83 @@ for CMD in ansible ansible-lint; do
 done
 unset CMD
 
-command -v nvm >/dev/null 2>&1 || {
+command -v node >/dev/null 2>&1 || command -v nvm >/dev/null 2>&1 || {
+    log notice "Installing nvm as node was found."
     # define its location (needed)
     [[ -z "${NVM_DIR:-}" ]] && export NVM_DIR="${HOME}/.nvm";
     # install if missing
     [[ ! -s "${NVM_DIR:-}/nvm.sh" ]] && {
         log warning "Installing missing nvm"
-        curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+        curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.2/install.sh | bash
     }
     # activate nvm
     # shellcheck disable=1091
     . "${NVM_DIR:-${HOME}/.nvm}/nvm.sh"
     # shellcheck disable=1091
     [[ -s "/usr/local/opt/nvm/nvm.sh" ]] && . "/usr/local/opt/nvm/nvm.sh";
-}
-command -v npm  >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
+
+    log notice "Installing nodejs stable using nvm."
     nvm install stable
-}
-# Check if npm has permissions to install packages (system installed does not)
-# Share https://stackoverflow.com/a/59227497/99834
-test -w "$(npm config get prefix)" || {
-    log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
-    npm config set prefix "${HOME}/.local/"
 }
 
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || {
+        # Check if npm has permissions to install packages (system installed does not)
+        # Share https://stackoverflow.com/a/59227497/99834
+        test -w "$(npm config get prefix)" || {
+            log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
+            npm config set prefix "${HOME}/.local/"
+        }
         log warning "Installing missing yarn"
-        npm install -g yarn
+        node corepack enable
         yarn --version
     }
 fi
 
+log notice "Docker checks..."
+# Detect docker and ensure that it is usable (unless SKIP_DOCKER)
+DOCKER_VERSION="$(get_version docker 2>/dev/null || echo null)"
+if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
+
+    DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
+    if [[ "${DOCKER_STDERR}" == *"Emulate Docker CLI using podman"* ]]; then
+        log error "podman-docker shim is present and we do not support it. Please remove it."
+        exit 1
+    fi
+
+    if [ -n "${DOCKER_HOST:-}" ]; then
+        log error "Found DOCKER_HOST and this is not supported, please unset it."
+        exit 1
+    fi
+    log notice "Pull our test container image."
+    docker pull --quiet "${IMAGE}" >/dev/null || {
+        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it."
+        exit 1
+    }
+    # without running we will never be sure it works (no arm64 image yet)
+    EE_ANSIBLE_VERSION=$(get_version \
+        docker run "${IMAGE}" ansible --version)
+    EE_ANSIBLE_LINT_VERSION=$(get_version \
+        docker run "${IMAGE}" ansible-lint --nocolor --version)
+    # Test podman ability to mount current folder with write access, default mount options
+    docker run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
+        bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+fi
+
+log notice "Podman checks..."
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
 if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     if [[ "$(podman machine ls --format '{{.Running}}' --noheading || true)" \
             == "false" ]]; then
         log notice "Starting podman machine"
-        podman machine start
+        podman machine start || {
+            log error "Failed to start podman machine, trying to create it."
+            podman machine init || {
+                log error "Failed to create podman machine."
+                exit 1
+            }
+        }
         while [[ "$(podman machine ls --format '{{.Running}}' \
                 --noheading || true)" != "true" ]]; do
             sleep 1
@@ -259,15 +349,30 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman pull --quiet "${IMAGE}" >/dev/null
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible --version) || ERR=$?
+        podman run "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        podman run -i ${IMAGE} ansible-lint --version) || ERR=$?
+        podman run "${IMAGE}" ansible-lint --nocolor --version)
+    # Test podman ability to mount current folder with write access, default mount options
+    podman run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
+        bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+fi
+
+if [[ -f "/usr/bin/apt-get" ]]; then
+    sudo apparmor_status || true
+fi
+
+log notice "Install node deps using either yarn or npm"
+if [[ -f yarn.lock ]]; then
+    command -v yarn >/dev/null 2>&1 || npm install -g yarn
+    yarn install
+else
+    npm ci --no-audit
 fi
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
 #
-cat >out/log/manifest.yml <<EOF
+tee "out/log/manifest-${HOST}.yml" <<EOF
 system:
   uname: $(uname)
 env:
@@ -282,26 +387,18 @@ tools:
   git: $(get_version git)
   node: $(get_version node)
   npm: $(get_version npm)
-  nvm: $(get_version nvm || echo null)
   pre-commit: $(get_version pre-commit)
   python: $(get_version python)
   task: $(get_version task)
   yarn: $(get_version yarn || echo null)
 containers:
   podman: ${PODMAN_VERSION}
-  docker: $(get_version docker || echo null)
+  docker: ${DOCKER_VERSION}
 creator-ee:
   ansible: ${EE_ANSIBLE_VERSION}
   ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
 EOF
 
-log notice "Install node deps using either yarn or npm"
-if [[ -f yarn.lock ]]; then
-    yarn install
-else
-    npm ci --no-audit
-fi
-
 [[ $ERR -eq 0 ]] && level=notice || level=error
-log "${level}" "${0##*/} -> out/log/manifest.yml and returned ${ERR}"
+log "${level}" "${0##*/} -> out/log/manifest-$HOST.yml and returned ${ERR}"
 exit "${ERR}"

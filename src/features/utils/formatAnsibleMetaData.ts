@@ -1,11 +1,15 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
-import { MarkdownString } from "vscode";
+import { MarkdownString, workspace } from "vscode";
+import * as os from "os";
+import * as path from "path";
 
 export function formatAnsibleMetaData(ansibleMetaData: any) {
   let mdString = "";
   let ansiblePresent = true;
   let ansibleLintPresent = true;
   let eeEnabled = false;
+
+  const WARNING_STYLE = 'style="color:#FFEF4A;"';
 
   // check if ansible is missing
   if (Object.keys(ansibleMetaData["ansible information"]).length === 0) {
@@ -15,7 +19,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     // if python exists
     if (Object.keys(ansibleMetaData["python information"]).length !== 0) {
       const obj = ansibleMetaData["python information"];
-      mdString += `Python version used: \`${obj["python version"]}\` from \`${obj["python location"]}\``;
+      mdString += `Python version used: \`${obj["version"]}\` from \`${obj["location"]}\``;
     }
 
     const markdown = new MarkdownString(mdString, true);
@@ -45,25 +49,43 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     ? `### Ansible meta data (in Execution Environment)\n`
     : `### Ansible meta data\n`;
   mdString += `\n<hr>\n`;
+  mdString += `<hr>\n`;
+  mdString += `<hr>\n`;
+
+  // check if ansible-lint is enabled or not
+  const lintEnabled = workspace
+    .getConfiguration("ansible.validation.lint")
+    .get("enabled");
 
   Object.keys(ansibleMetaData).forEach((mainKey) => {
     if (Object.keys(ansibleMetaData[mainKey]).length === 0) {
       return;
     }
-
-    mdString += `\n- **${mainKey}:** \n`;
+    // put a marker stating ansible-lint setting is disabled
+    if (mainKey === "ansible-lint information" && !lintEnabled) {
+      mdString += `\n**${mainKey}:** `;
+      mdString += `*<span ${WARNING_STYLE}>(disabled)*\n`;
+    } else {
+      mdString += `\n**${mainKey}:** \n`;
+    }
 
     const valueObj = ansibleMetaData[mainKey];
     Object.keys(valueObj).forEach((key) => {
+      if (key === "upgrade status") {
+        mdString += ` <span ${WARNING_STYLE}>${valueObj[key]}`;
+        return;
+      }
       mdString += `\n   - ${key}: `;
       const value = valueObj[key];
       if (typeof value === "object") {
         value.forEach((val: any, index: any) => {
           if (val && val !== "None") {
             if (key.includes("path")) {
-              mdString += `\n       ${index + 1}. <a href='${val}'>${val}</a>`;
+              mdString += `\n       ${
+                index + 1
+              }. <a href='${val}'>${getTildePath(val)}</a>`;
             } else {
-              mdString += `\n       ${index + 1}. ${val}`;
+              mdString += `\n       ${index + 1}. ${getTildePath(val)}`;
             }
           }
           if (index === value.length - 1) {
@@ -71,14 +93,20 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
           }
         });
       } else {
-        if (key.includes("version")) {
+        if (key.includes("path")) {
+          mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
+        } else if (key.includes("version")) {
           mdString += `\`${value}\`\n`;
+        } else if (key.includes("location")) {
+          mdString += `${getTildePath(value)}\n`;
         } else {
           mdString += `${value}\n`;
         }
       }
     });
     mdString += `\n<hr>\n`;
+    mdString += `<hr>\n`;
+    mdString += `<hr>\n`;
   });
 
   // markdown conversion
@@ -88,7 +116,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
 
   if (!ansibleLintPresent) {
     markdown.appendMarkdown(
-      `\n<p><span style="color:#FFEF4A;">$(warning) Warning(s):</p></h5>`
+      `\n<p><span ${WARNING_STYLE}>$(warning) Warning(s):</p></h5>`
     );
     markdown.appendMarkdown(`Ansible lint is missing in the environment`);
   }
@@ -100,4 +128,23 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     ansibleLintPresent,
     eeEnabled,
   };
+}
+
+export function getTildePath(absolutePath: string) {
+  if (process.platform === "win32") {
+    return path.win32.resolve(absolutePath);
+  }
+  const home = os.homedir();
+  const dirPath = path.posix.resolve(absolutePath);
+
+  if (dirPath === home) {
+    return "~";
+  }
+  const homeWithTrailingSlash = `${home}/`;
+
+  if (dirPath.startsWith(homeWithTrailingSlash)) {
+    return dirPath.replace(homeWithTrailingSlash, "~/");
+  }
+
+  return dirPath;
 }
