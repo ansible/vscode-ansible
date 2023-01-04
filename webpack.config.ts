@@ -1,46 +1,20 @@
 "use strict";
+const WarningsToErrorsPlugin = require("warnings-to-errors-webpack-plugin");
+
 /* eslint @typescript-eslint/no-var-requires: "off" */
 const path = require("path");
 
 const config = {
-  mode: "none",
-  stats: {
-    preset: "minimal",
-    moduleTrace: true,
-    errorDetails: true,
-  },
-  target: "node", // vscode extensions run in a Node.js-context
-  node: {
-    __dirname: false, // leave the __dirname-behavior intact
-  },
+  devtool: "source-map",
   entry: {
     client: "./src/extension.ts",
     server:
       "./node_modules/@ansible/ansible-language-server/out/server/src/server.js",
   },
-  output: {
-    filename: (pathData: { chunk: { name: string } }) => {
-      return pathData.chunk.name === "client"
-        ? "[name]/src/extension.js"
-        : "[name]/src/[name].js";
-    },
-    path: path.resolve(__dirname, "out"),
-    libraryTarget: "commonjs2",
-    devtoolModuleFilenameTemplate: (info: { id: string }) => {
-      return info.id === "client"
-        ? "../[resource-path]"
-        : "../../../[resource-path]";
-    },
-  },
-  // stats: 'verbose', // doesn't help with watcher
-  devtool: "source-map",
   externals: {
     vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed
   },
-  resolve: {
-    // support reading TypeScript and JavaScript files
-    extensions: [".ts", ".js"],
-  },
+  mode: "none",
   module: {
     rules: [
       {
@@ -62,6 +36,34 @@ const config = {
       },
     ],
   },
+  node: {
+    __dirname: false, // leave the __dirname-behavior intact
+  },
+  output: {
+    filename: (pathData: { chunk: { name: string } }) => {
+      return pathData.chunk.name === "client"
+        ? "[name]/src/extension.js"
+        : "[name]/src/[name].js";
+    },
+    path: path.resolve(__dirname, "out"),
+    libraryTarget: "commonjs2",
+    devtoolModuleFilenameTemplate: (info: { id: string }) => {
+      return info.id === "client"
+        ? "../[resource-path]"
+        : "../../../[resource-path]";
+    },
+  },
+  plugins: [new WarningsToErrorsPlugin()],
+  resolve: {
+    // support reading TypeScript and JavaScript files
+    extensions: [".ts", ".js"],
+  },
+  stats: {
+    errorDetails: true,
+    moduleTrace: true,
+    preset: "minimal",
+  },
+  target: "node", // vscode extensions run in a Node.js-context
 };
 
 module.exports = config;
