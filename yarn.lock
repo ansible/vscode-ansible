@@ -362,9 +362,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redhat-developer/vscode-redhat-telemetry@npm:^0.5.2":
-  version: 0.5.2
-  resolution: "@redhat-developer/vscode-redhat-telemetry@npm:0.5.2"
+"@redhat-developer/vscode-redhat-telemetry@npm:^0.5.4":
+  version: 0.5.4
+  resolution: "@redhat-developer/vscode-redhat-telemetry@npm:0.5.4"
   dependencies:
     "@types/analytics-node": ^3.1.9
     analytics-node: ^6.2.0
@@ -375,7 +375,7 @@ __metadata:
     object-hash: ^2.2.0
     os-locale: ^5.0.0
     uuid: ^8.3.2
-  checksum: 36b007c1d779eac6731932e2dae5281e5b468cd5c05ef5484a34b65eb3e3ca8e4d61aa6200e4c0820574ff296fd5a30eac4695625c3773e898cc845fb0bee225
+  checksum: b70be214488e8b4e1ea3c7d417db7f5304a2ff1ac8ca22a4f7cbfed058af1e09e114c142a8325a3bcf74cc48ed242d42542f9153813dec9491254b31d5adebd7
   languageName: node
   linkType: hard
 
@@ -1247,7 +1247,7 @@ __metadata:
   resolution: "ansible@workspace:."
   dependencies:
     "@ansible/ansible-language-server": ^1.0.4
-    "@redhat-developer/vscode-redhat-telemetry": ^0.5.2
+    "@redhat-developer/vscode-redhat-telemetry": ^0.5.4
     "@types/chai": ^4.3.4
     "@types/glob": ^8.0.0
     "@types/ini": ^1.3.31
