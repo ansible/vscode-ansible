@@ -22,10 +22,14 @@ export function removePromptFromSuggestion(
   if (lines.length > 0) {
     const editor = vscode.window.activeTextEditor;
     const cursorLine = editor?.document.lineAt(position);
-    const spacesBeforeCursor = cursorLine?.text
-      .slice(0, position.character)
-      .match(/^ +/)?.[0].length;
-    lines[0] = lines[0].slice(spacesBeforeCursor);
+    const spacesBeforeCursor =
+      cursorLine?.text.slice(0, position.character).match(/^ +/)?.[0].length ||
+      0;
+
+    let lineStartSpaceCount = lines[0].search(/\S|$/);
+    if (lineStartSpaceCount > spacesBeforeCursor) {
+      lines[0] = lines[0].substring(spacesBeforeCursor);
+    }
   }
   return lines.join("\n");
 }

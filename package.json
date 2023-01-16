@@ -5,8 +5,7 @@
     "onCommand:extension.ansible.vault",
     "onLanguage:ansible",
     "onLanguage:yaml",
-    "onCommand:extension.resync-ansible-inventory",
-    "editor.action.inlineSuggest.trigger"
+    "onCommand:extension.resync-ansible-inventory"
   ],
   "badges": [
     {
@@ -364,15 +363,6 @@
         }
       }
     },
-    "keybindings": [
-      {
-        "key": ".",
-        "command": "editor.action.ansibleInlineSuggest.trigger",
-        "title": "Trigger Ansible Wisdom AI suggestions",
-        "when": "ansible.wisdom:enabled"
-
-      }
-    ],
     "languages": [
       {
         "id": "ansible",
@@ -528,6 +518,7 @@
     "axios": "^1.2.1",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
+    "uuid": "^8.3.2",
     "vscode-languageclient": "^8.0.2"
   },
   "description": "Ansible language support",
@@ -536,6 +527,7 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.17",
+    "@types/uuid": "^8.3.4",
     "@types/vscode": "^1.71.0",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "@typescript-eslint/parser": "^5.47.0",
@@ -615,7 +607,7 @@
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "19.12.2022",
+  "version": "2023.1.16",
   "packageManager": "yarn@3.3.0",
   "vsce": {
     "dependencies": false,

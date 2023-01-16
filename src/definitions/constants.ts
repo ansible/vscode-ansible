@@ -7,6 +7,8 @@ export namespace AnsibleCommands {
 }
 
 export namespace WisdomCommands {
-  export const WISDOM_SUGGESTION_ACCEPT = "editor.action.inlineSuggest.commit";
-  export const WISDOM_SUGGESTION_REJECT = "editor.action.inlineSuggest.hide";
+  export const WISDOM_SUGGESTION_COMMIT = "editor.action.inlineSuggest.commit";
+  export const WISDOM_SUGGESTION_HIDE = "editor.action.inlineSuggest.hide";
+  export const WISDOM_SUGGESTION_TRIGGER =
+    "editor.action.ansibleInlineSuggest.trigger";
 }

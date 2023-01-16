@@ -32,10 +32,19 @@ import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { WisdomManager } from "./features/wisdom/base";
+import {
+  inlineSuggestionProvider,
+  //inlineSuggestionActionHandler,
+  //inlineSuggestionCommitHandler,
+  //inlineSuggestionHideHandler,
+  thumbsUpOrDownHandler,
+} from "./features/wisdom/inlineSuggestions";
+
+import { removePromptFromSuggestion } from "./features/utils/wisdom";
 
 let client: LanguageClient;
+export let wisdomManager: WisdomManager;
 const lsName = "Ansible Support";
-
 
 export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
@@ -70,31 +79,48 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
 
-
   // handle metadata status bar
   const metaData = new MetadataManager(context, client, telemetry);
   metaData.updateAnsibleInfoInStatusbar();
 
   // handle wisdom service
-  let wisdomManager = new WisdomManager(
-    context,
-    extSettings.settings,
-    telemetry
-  );
+  wisdomManager = new WisdomManager(context, extSettings.settings, telemetry);
+
   context.subscriptions.push(
     vscode.languages.registerInlineCompletionItemProvider(
       { pattern: "**" },
-      wisdomManager.getProvider()
+      inlineSuggestionProvider()
     )
   );
 
-  registerCommandWithTelemetry(
-    context,
-    telemetry,
-    WisdomCommands.WISDOM_SUGGESTION_ACCEPT,
-    wisdomManager.acceptSelectedSuggestionHandler,
-    true
+  // context.subscriptions.push(
+  //   vscode.workspace.onDidChangeTextDocument(inlineSuggestionActionHandler)
+  // );
 
+  // context.subscriptions.push(
+  //   vscode.commands.registerTextEditorCommand(
+  //     WisdomCommands.WISDOM_SUGGESTION_COMMIT,
+  //     inlineSuggestionCommitHandler
+  //   )
+  // );
+
+  // vscode.commands.registerCommand(
+  //   "extension.onSuggestionAccepted",
+  //   inlineSuggestionCommitHandler
+  // );
+
+  // context.subscriptions.push(
+  //   vscode.commands.registerTextEditorCommand(
+  //     WisdomCommands.WISDOM_SUGGESTION_HIDE,
+  //     inlineSuggestionHideHandler
+  //   )
+  // );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "extension.thumbsUpOrDown",
+      await thumbsUpOrDownHandler
+    )
   );
 
   // register ansible meta data in the statusbar tooltip (client-server)
@@ -109,9 +135,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 }
 
-function acceptSelectedSuggestionHandler(args: any) {
-  console.log(`Suggestion accepted with args=${args}`);
-}
 const startClient = async (
   context: ExtensionContext,
   telemetry: TelemetryManager
