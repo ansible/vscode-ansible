@@ -92,7 +92,6 @@ setuptools
 showcontent
 showformat
 simplejson
-sphinxcontrib
 stderr
 stdout
 suboption
@@ -118,20 +117,7 @@ wordwrap
 workdir
 xvfb
 yammlint
-# sphinx:
-pathsep
-sectionauthor
-moduleauthor
-extlinks
-intersphinx
-viewcode
-pageview
-autoversion
-deflist
-smartquotes
-nitpicky
-topbar
-opensearch
+mkdocs
 
 # names and usernames:
 Ganesh

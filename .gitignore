@@ -26,3 +26,5 @@ change-notes-*.md
 .venv
 out/next.md
 out/log
+site
+.cache

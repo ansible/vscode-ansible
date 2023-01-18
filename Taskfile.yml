@@ -36,8 +36,6 @@ tasks:
       - ./tools/vscode.sh
   docs:
     desc: Build the documentation
-    vars:
-      sphinx_common_args: '-j auto --color -a -n -W --keep-going -T -d "../out/.doctrees" . "../out/docs_out"'
     deps:
       - setup
     cmds:
@@ -46,10 +44,7 @@ tasks:
       - git fetch --tags
       - npm run generate-settings-readme
       - source $VIRTUAL_ENV/bin/activate &&
-        cd docs &&
-        python -m sphinx -b html {{.sphinx_common_args}} &&
-        python -m sphinx -b linkcheck {{.sphinx_common_args}} &&
-        python ../tools/docs_summary.py
+        mkdocs build --strict
 
   setup:
     desc: Install dependencies

@@ -1,0 +1,50 @@
+# cspell: ignore pymdownx pymdown magiclink autorefs facelessuser superfences inlinehilite linenums fontawesome
+site_name: Ansible Language Server
+site_url: https://als.readthedocs.io/
+repo_url: https://github.com/ansible/ansible-language-server
+
+theme:
+  name: "material"
+  features:
+    - content.code.copy
+    - content.action.edit
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/ansible/ansible-language-server
+
+plugins:
+  - autorefs
+  - search
+  - exclude:
+      glob:
+        - changelog-fragments.d/*
+  - social
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+markdown_extensions:
+  - admonition
+  - def_list
+  - footnotes
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.magiclink:
+      repo_url_shortener: true
+      repo_url_shorthand: true
+      social_url_shorthand: true
+      social_url_shortener: true
+      user: facelessuser
+      repo: pymdown-extensions
+      normalize_issue_symbols: true
+  - markdown_include.include:
+      base_path: docs
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      # reduced to keep TOC nice under Changelog page
+      toc_depth: 2
+      permalink: true

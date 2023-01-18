@@ -1,5 +1,3 @@
 <!-- markdownlint-disable first-line-heading -->
 
-```{include} ../../.github/SECURITY.md
-
-```
+{!../.github/SECURITY.md!}

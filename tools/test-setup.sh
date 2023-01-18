@@ -3,7 +3,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -exuo pipefail
+set -euo pipefail
 
 IMAGE=ghcr.io/ansible/creator-ee:$(./tools/get-image-version)
 PIP_LOG_FILE=out/log/pip.log

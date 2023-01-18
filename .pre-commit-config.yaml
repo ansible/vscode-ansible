@@ -11,6 +11,10 @@ ci:
     # https://github.com/pre-commit-ci/issues/issues/55
     - npm-ci
     - codecov
+exclude: >
+  (?x)^(
+    .config/requirements.in
+  )$
 repos:
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.8.0.4

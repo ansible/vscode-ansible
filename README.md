@@ -1,7 +1,5 @@
 # Ansible Language Server
 
-[//]: # DO-NOT-REMOVE-README-TITLE
-
 This language server adds support for Ansible and is currently used by the
 following projects:
 

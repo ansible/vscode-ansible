@@ -29,7 +29,7 @@ The following are the default values of the settings provided by the Ansible Lan
 {{/if}}
 {{#ifValueArray valueType}}
 {{#each this.defaultValue}}
-  - **{{key}}**: {{description}} \\
+  - **{{key}}**: {{description}}
   _default value:
 {{#if defaultValue}}
 \`{{defaultValue}}\`_

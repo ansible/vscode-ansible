@@ -1,5 +1,3 @@
 <!-- markdownlint-disable first-line-heading -->
 
-```{include} ../../.github/CODE_OF_CONDUCT.md
-
-```
+{!../.github/CODE_OF_CONDUCT.md!}

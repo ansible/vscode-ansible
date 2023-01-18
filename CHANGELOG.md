@@ -5,13 +5,12 @@
 All notable changes to the Ansible VS Code extension will be documented in this
 file.
 
-[//]: # DO-NOT-REMOVE-versioning-promise-START
+!!! note
 
-```{note}
-The change notes follow [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-except for the title formatting, and this project adheres to [Semantic
-Versioning](https://semver.org/spec/v2.0.0.html).
-```
+    The change notes follow
+    [Keep a Changelog](https://keepachangelog.com), except for the title
+    formatting, and this project adheres to
+    [Semantic Versioning](https://semver.org).
 
 <!--
 Do *NOT* manually add changelog entries here! This file is updated by
@@ -140,45 +139,17 @@ No significant changes.
 ### Bugfixes
 
 - Fixed settings-doc-generator script to support array-type values -- by
-  {user}`priyamsahoo`
-
-  ({issue}`323`)
+  @priyamsahoo #323
 
 ### Features
 
-- ````md
-  Added EE settings for volume mounts, container options and pull arguments --
-  by {user}`ganeshrn`
+- Added EE settings for volume mounts, container options and pull arguments --
+  by @ganeshrn
 
-  - Add settings to allow custom volume mount path eg:
+- Add setting to pass container image pull arguments #318
 
-  ```code
-    "ansible.executionEnvironment.volumeMounts": [
-
-         {
-             "src" : "/Users/home/common/collections",
-             "dest": "/Users/home/common/collections"
-         }
-     ],
-  ```
-
-  - Add setting to pass container options
-
-  ```code
-   "ansible.executionEnvironment.containerOptions": ["--net=host"]
-  ```
-
-  - Add setting to pass container image pull arguments
-
-  ```code
-  "ansible.executionEnvironment.pull.arguments": ["–-tls-verify=false"]
-  ```
-
-  - Move `execution-environment.pull-policy` setting to
-    `execution-environment.pull.policy`
-  ````
-
-  ({issue}`318`)
+- Move `execution-environment.pull-policy` setting to
+  `execution-environment.pull.policy`
 
 ## v0.6.1 (2022-04-14)
 
@@ -189,53 +160,37 @@ No significant changes.
 ### Bugfixes
 
 - Fixed indentation issue while resolving auto-completion items to support
-  editors like vim and neovim -- by {user}`yaegassy`
-
-  ({issue}`285`)
+  editors like vim and neovim -- by @yaegassy #285
 
 - Fixed globby issue by replacing it with glob and writing utility function to
   support array of file patterns and file path exclusion patterns -- by
-  {user}`priyamsahoo`
-
-  ({issue}`295`)
+  @priyamsahoo #295
 
 ### Features
 
 - Added auto-completion for values of module options and sub-options -- by
-  {user}`tomaciazek`
-
-  ({issue}`288`)
+  @tomaciazek #288
 
 - Refactored settings structure in the code to include descriptions and added
   utility for updating the settings doc to keep in sync with it -- by
-  {user}`priyamsahoo`
-
-  ({issue}`294`)
+  @priyamsahoo #294
 
 ### Miscellaneous
 
 - Moved glob utils into a separate utils file and remove commented code -- by
-  {user}`ganeshrn`
-
-  ({issue}`299`)
+  @ganeshrn #299
 
 ## v0.5.4 (2022-03-31)
 
 ### Bugfixes
 
-- ```md
-  Fix auto-completion and hover not working with execution environment issue. --
-  by {user}`ganeshrn`
-  ```
-
-  ({issue}`279`)
+- Fix auto-completion and hover not working with execution environment issue. --
+  by @ganeshrn #279
 
 ### Features
 
 - Implemented type based resolution for module options and sub-options
-  completion -- by {user}`priyamsahoo`
-
-  ({issue}`276`)
+  completion -- by @priyamsahoo #276
 
 ## v0.5.3 (2022-03-16)
 
@@ -243,131 +198,101 @@ No significant changes.
 
 - Fixed intermittent issue with execution environment for auto-completion and
   hover by waiting for async function to copy plugins from within EE to local
-  host cache --{user}`ganeshrn`.
-
-  ({issue}`263`)
+  host cache --@ganeshrn. #263
 
 ### Features
 
 - Enhanced the logic of ansible-lint service to do the following things by
-  --{user}`priyamsahoo`:
+  --@priyamsahoo:
 
-  - Fallback to `--syntax-check` in every failure scenarios (for eg. in case of
-    wrong arguments passed, etc) and give visual feedback to the user in terms
-    of notification about what went wrong.
-  - Handle different response types sent by ansible-lint (for e.g. ansible-lint
-    sends failure reports as stdout and sometimes as errors) by making them
-    uniform in terms of structure and redirection.
-
-  ({issue}`243`)
+- Fallback to `--syntax-check` in every failure scenarios (for eg. in case of
+  wrong arguments passed, etc) and give visual feedback to the user in terms of
+  notification about what went wrong.
+- Handle different response types sent by ansible-lint (for e.g. ansible-lint
+  sends failure reports as stdout and sometimes as errors) by making them
+  uniform in terms of structure and redirection. #243
 
 - Replaced the value `2^53 - 1 (which is Number.MAX_SAFE_INTEGER)` with
   `2^31 - 1 (which is integer.MAX_VALUE)` to support extension clients that do
-  handle 64-bit floating point IEEE 754 number by --{user}`priyamsahoo`.
-
-  ({issue}`261`)
+  handle 64-bit floating point IEEE 754 number by --@priyamsahoo. #261
 
 ## v0.5.2 (2022-03-02)
 
 ### Bugfixes
 
 - Used ls instead of find for execution-environments while check if ansible
-  plugins are present in a given path -- by {user}`ganeshrn`
-
-  ({issue}`190`)
-
+  plugins are present in a given path -- by @ganeshrn #190
 - Fixed source of `INVALID_URL` type error that occurred during the search for
-  ansible-lint config file -- by {user} `priyamsahoo`
-
-  ({issue}`233`)
+  ansible-lint config file -- by {user} `priyamsahoo` #233
 
 ## v0.5.1 (2022-03-01)
 
 ### Bugfixes
 
 - Ensure that Ansible calls do not return ANSI escapes, so we can parse them.
-  [vscode-ansible#373] -- by {user}`ssbarnea`
+  [vscode-ansible#373] -- by @ssbarnea #236
 
-  [vscode-ansible#373]:
-    https://github.com/ansible/vscode-ansible/issues/373
-    "{issue}`236`"
+[vscode-ansible#373]: https://github.com/ansible/vscode-ansible/issues/373
 
 ## v0.5.0 (2022-03-01)
 
 ### Features
 
-- Emit notification about unsupported platforms -- by {user}`ssbarnea`
-
-  ({issue}`195`)
+- Emit notification about unsupported platforms -- by @ssbarnea #195
 
 ### Documentation
 
 - Dropped the brackets from the changelog titles for the release sections. We
-  now don't strictly follow the release notes format suggested by [Keep a
-  Changelog][keepachangelog] -- by {user}`webknjaz`
-
-  [keepachangelog]: https://keepachangelog.com/en/1.1.0/ "{issue}`164`"
+  now don't strictly follow the release notes format suggested by
+  [Keep a Changelog](https://keepachangelog.com)-- by @webknjaz #164
 
 - Replaced all the credits in the changelog with a dedicated Sphinx role -- by
-  {user}`webknjaz`
-
-  ({issue}`165`)
+  @webknjaz #165
 
 ### Miscellaneous
 
 - Added changelog fragment management infrastructure using
-  [Towncrier][towncrier] -- by {user}`webknjaz`
+  [Towncrier](https://github.com/twisted/towncrier) -- by @webknjaz #158 #198
+  #201 #202 #204 #208 #210
 
-  [towncrier]:
-    https://github.com/twisted/towncrier
-    "{issue}`158`, {issue}`198`, {issue}`201`, {issue}`202`,
-{issue}`204`, {issue}`208`, {issue}`210`"
-
-- Added [Sphinx][sphinx] documentation generator and set up the CI
-  infrastructure for it -- by {user}`webknjaz`
-
-  [sphinx]: https://github.com/twisted/towncrier "{issue}`161`"
+- Added Sphinx documentation generator and set up the CI infrastructure for it
+  -- by @webknjaz #161
 
 - Added docs and references to the Community Code Of Conduct, security and
-  contributing guides, and a pull request template -- by {user}`webknjaz`
-
-  ({issue}`163`)
+  contributing guides, and a pull request template -- by @webknjaz #163
 
 - Fixed a half-baked change in the GitHub Actions CI/CD workflow job that is
-  used in branch protection -- by {user}`webknjaz`
-
-  ({issue}`169`)
+  used in branch protection -- by @webknjaz #169
 
 ## v0.4.0 (2021-11-25)
 
 ### Bugfixes
 
 - Prevented throwing an unhandled exception caused by undefined linter arguments
-  settings (#142) {user}`ssbarnea`
+  settings (#142) @ssbarnea
 - Implemented opening standalone Ansible files that have no workspace associated
-  (#140) {user}`ganeshrn`
+  (#140) @ganeshrn
 
 ## v0.3.0 (2021-11-18)
 
 ### Minor Changes
 
-- Added support for nested module options (suboptions) (#116) {user}`tomaciazek`
-- Adopted use of `creator-ee` execution environment (#132) {user}`ssbarnea`
-- Updated container cleanup logic for execution environment (#111)
-  {user}`ganeshrn`
+- Added support for nested module options (suboptions) (#116) @tomaciazek
+- Adopted use of `creator-ee` execution environment (#132) @ssbarnea
+- Updated container cleanup logic for execution environment (#111) @ganeshrn
 
 ### Bugfixes
 
 - Updated plugin doc cache validate logic for execution environment (#109)
-  {user}`ganeshrn`
-- Fixed issue with container copy command (#110) {user}`ganeshrn`
+  @ganeshrn
+- Fixed issue with container copy command (#110) @ganeshrn
 
 ## v0.2.6 (2021-10-29)
 
 ### Bugfixes
 
 - Fixed auto-completion to account for the builtin modules when used with EE
-  (#94) {user}`ganeshrn`
+  (#94) @ganeshrn
 
 ## v0.2.5 (2021-10-23)
 
@@ -375,7 +300,7 @@ No significant changes.
 
 - Added a guard for linting only playbook files with the Ansible's built-in
   syntax-check when ansible-lint is unavailable. This is used for providing the
-  diagnostics information (#89) {user}`priyamsahoo`
+  diagnostics information (#89) @priyamsahoo
 
 ## v0.2.4 (2021-10-19)
 
@@ -384,43 +309,41 @@ No significant changes.
 The most notable changes that happened were:
 
 - Renaming and publishing the package under the `@ansible` scope on Npmjs. The
-  new name is `@ansible/ansible-language-server` now (#10) {user}`webknjaz`
+  new name is `@ansible/ansible-language-server` now (#10) @webknjaz
 - Deprecation of the initial `ansible-language-server` npm package that existed
-  in the global namespace prior to the rename {user}`ganeshrn`
+  in the global namespace prior to the rename @ganeshrn
 - Adding the auto-completion and diagnostics support for Ansible Execution
-  Environments {user}`ganeshrn`
+  Environments @ganeshrn
 
 ### Changes
 
 - Started falling back to checking playbooks with the Ansible's built-in
   syntax-check when `ansible-lint` is not installed or disabled (#5)
-  {user}`priyamsahoo`
+  @priyamsahoo
 - Set the minimum runtime prerequisites to `npm > 7.11.2` and `node >= 12` (#23)
-  {user}`ssbarnea`
+  @ssbarnea
 - Updated the default settings value to use fully qualified collection name
-  (FQCN) during auto-completion (#37) {user}`priyamsahoo`
+  (FQCN) during auto-completion (#37) @priyamsahoo
 - Added auto-completion support for Ansible Execution Environments (#42 #54 #55)
-  {user}`ganeshrn`
-- Added diagnostics support for Ansible Execution Environments (#53)
-  {user}`ganeshrn`
+  @ganeshrn
+- Added diagnostics support for Ansible Execution Environments (#53) @ganeshrn
 - Updated module completion return statement to support sorting as per FQCN
-  (#57) {user}`priyamsahoo`
+  (#57) @priyamsahoo
 
 ### Bugfixes
 
 - Added a fix to check that the module paths are directories before globbing
-  them during the documentation lookup (#38) {user}`kimbernator`
-- Implemented documentation fragment discovery (#40) {user}`tomaciazek`
+  them during the documentation lookup (#38) @kimbernator
+- Implemented documentation fragment discovery (#40) @tomaciazek
 - Fixed sort `slice()` exception issue in `ansibleConfig` service (#76)
-  {user}`ssbarnea`
+  @ssbarnea
 - Fixed an issue with progress handling when `ansible-lint` falls back to
-  `syntax check` (#88) {user}`yaegassy`
+  `syntax check` (#88) @yaegassy
 
 ### Misc
 
-- Replaced `decode`/`encodeURI` with a native VS Code mechanism (#8)
-  {user}`tomaciazek`
-- Implemented the release CD via `workflow_dispatch` (#65) {user}`webknjaz`
+- Replaced `decode`/`encodeURI` with a native VS Code mechanism (#8) @tomaciazek
+- Implemented the release CD via `workflow_dispatch` (#65) @webknjaz
 
 ## v0.1.0-1 (2021-07-28)
 
