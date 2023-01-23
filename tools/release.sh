@@ -16,22 +16,22 @@ gh api "repos/{owner}/{repo}/releases" --jq '.[0].body' | \
 # Remove last newline to avoid double newlines on injection
 truncate -s -1 out/next.md
 
-# inject the temp nodes into the CHANGELOG.md
+# inject the temp nodes into the docs/changelog.md
 if [[ "${OSTYPE}" == "darwin"* ]]; then
     SED_OPTION='-i \x27\x27'
 else
     SED_OPTION='-i'
 fi
-sed "${SED_OPTION}" -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' CHANGELOG.md
+sed "${SED_OPTION}" -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' docs/changelog.md
 
 # use prettier to reformat the changelog, lik rewrapping long lines
-npx prettier --loglevel error -w CHANGELOG.md
+npx prettier --loglevel error -w docs/changelog.md
 
 # update version
 npm version "${RELEASE_NAME}" --allow-same-version --no-commit-hooks --no-git-tag-version
 
 # commit the release
-git add package.json package-lock.json CHANGELOG.md
+git add package.json package-lock.json docs/changelog.md
 
 # run 'task lint' to ensure validity
 task lint --silent

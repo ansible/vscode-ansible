@@ -13,7 +13,8 @@ ci:
     - codecov
 exclude: >
   (?x)^(
-    .config/requirements.in
+    .config/requirements.in|
+    .*.svg
   )$
 repos:
   - repo: https://github.com/shellcheck-py/shellcheck-py

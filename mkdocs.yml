@@ -2,16 +2,41 @@
 site_name: Ansible Language Server
 site_url: https://als.readthedocs.io/
 repo_url: https://github.com/ansible/ansible-language-server
+edit_uri: blob/main/docs/
 
 theme:
   name: "material"
+  logo: images/logo.svg
+  favicon: images/favicon.ico
   features:
     - content.code.copy
     - content.action.edit
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      primary: teal
+      accent: blue
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 extra:
   social:
     - icon: fontawesome/brands/github-alt
       link: https://github.com/ansible/ansible-language-server
+
+nav:
+  - home: README.md
+  - changelog.md
+  - development.md
+  - settings.md
+  - Contributing: contributing.md
 
 plugins:
   - autorefs
@@ -30,7 +55,8 @@ markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      check_paths: true
   - pymdownx.superfences
   - pymdownx.magiclink:
       repo_url_shortener: true
@@ -40,8 +66,6 @@ markdown_extensions:
       user: facelessuser
       repo: pymdown-extensions
       normalize_issue_symbols: true
-  - markdown_include.include:
-      base_path: docs
   - pymdownx.tabbed:
       alternate_style: true
   - toc:

@@ -1,7 +1,7 @@
 # Set default behavior to automatically normalize line endings.
 *                 text=auto
 
-CHANGELOG.md      merge=union
+docs/changelog.md      merge=union
 
 *.lock            text -diff
 package.json      text eol=lf

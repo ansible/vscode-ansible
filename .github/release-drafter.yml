@@ -7,13 +7,13 @@ _extends: ansible-community/devtools
 # npm version prerelease --preid=next
 #
 # In our release pipeline we will create a pull-request that updates
-# CHANGELOG.md and the version number.
+# docs/changelog.md and the version number.
 #
 # When this pull request is merged, we will:
 # * publish to npm
 # * create the correct tag (already present in package.json)
 # * edit the release to point it the new tag instead of the -next.0 one
 tag-template: 'v$RESOLVED_VERSION'
-# instead of 2x# we use 3x to make the outcome ready to embed into CHANGELOG.md
+# instead of 2x# we use 3x to make the outcome ready to embed into docs/changelog.md
 category-template: '### $TITLE'
 template: '$CHANGES'
