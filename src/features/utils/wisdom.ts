@@ -26,7 +26,7 @@ export function removePromptFromSuggestion(
       cursorLine?.text.slice(0, position.character).match(/^ +/)?.[0].length ||
       0;
 
-    let lineStartSpaceCount = lines[0].search(/\S|$/);
+    const lineStartSpaceCount = lines[0].search(/\S|$/);
     if (lineStartSpaceCount > spacesBeforeCursor) {
       lines[0] = lines[0].substring(spacesBeforeCursor);
     }

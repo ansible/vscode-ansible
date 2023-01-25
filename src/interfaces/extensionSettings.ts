@@ -6,7 +6,7 @@ export interface ExtensionSettings {
   activationScript: string;
   interpreterPath: string;
   executionEnvironment: ExecutionEnvironmentSettings;
-  wisdomService: WisdomServiceSettings
+  wisdomService: WisdomServiceSettings;
 }
 
 export interface IVolumeMounts {
@@ -28,5 +28,5 @@ export interface WisdomServiceSettings {
   enabled: boolean;
   basePath: string;
   authToken: string | undefined;
-  suggestions: { enabled: boolean, userFeedback: boolean };
+  suggestions: { enabled: boolean; userFeedback: boolean };
 }

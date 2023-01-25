@@ -17,16 +17,16 @@ export class WisdomAPI {
   }
 
   public initialize(): void {
-    let settings = this.settingsManager.settings;
-    let authToken = getAuthToken(settings);
-    let headers = {
+    const settings = this.settingsManager.settings;
+    const authToken = getAuthToken(settings);
+    const headers = {
       "Content-Type": "application/json",
     };
     if (authToken !== undefined) {
       Object.assign(headers, { Authorization: `Bearer ${authToken}` });
     }
     this.axiosInstance = axios.create({
-      baseURL: settings.wisdomService.basePath + "/api/ai",
+      baseURL: `${settings.wisdomService.basePath}/api/ai`,
       headers: headers,
     });
   }

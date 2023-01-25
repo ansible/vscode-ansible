@@ -10,7 +10,7 @@ import { WisdomCommands } from "../../definitions/constants";
 import { resetKeyInput, getKeyInput } from "../../utils/keyInputUtils";
 
 let suggestionId = "";
-let currentSuggestion: string = "";
+let currentSuggestion = "";
 const commentRegexEp =
   /(?<blank>\s*)(?<comment>#\s*)(?<description>.*)(?<end>$)/;
 const taskRegexEp =
@@ -59,14 +59,15 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
         wisdomManager.wisdomStatusBar.hide();
         return [];
       }
-      let wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
+      const wisdomSetting =
+        wisdomManager.settingsManager.settings.wisdomService;
       if (!wisdomSetting.enabled && !wisdomSetting.suggestions.enabled) {
         console.debug("wisdom service is disabled");
         wisdomManager.updateWisdomStatusbar();
         return [];
       }
-      let editor = vscode.window.activeTextEditor;
-      let currentLine = editor?.document.lineAt(editor.selection.active.line);
+      const editor = vscode.window.activeTextEditor;
+      const currentLine = editor?.document.lineAt(editor.selection.active.line);
       if (!currentLine?.isEmptyOrWhitespace) {
         return [];
       }
@@ -90,14 +91,14 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
       if (token?.isCancellationRequested) {
         return [];
       }
-      let inlineSuggestionUserActionItems = await getInlineSuggestions(
+      const inlineSuggestionUserActionItems = await getInlineSuggestions(
         document,
         position,
         lineToExtractPrompt,
         prompt,
         isTaskNameMatch
       );
-      let insertText = inlineSuggestionUserActionItems[0].insertText;
+      const insertText = inlineSuggestionUserActionItems[0].insertText;
       return inlineSuggestionUserActionItems;
     },
   };
@@ -143,8 +144,8 @@ export async function inlineSuggestionTriggerHandler(
   textEditor: vscode.TextEditor,
   edit: vscode.TextEditorEdit
 ) {
-  let document = textEditor.document;
-  let wisdomSettings = wisdomManager.settingsManager.settings.wisdomService;
+  const document = textEditor.document;
+  const wisdomSettings = wisdomManager.settingsManager.settings.wisdomService;
   console.log("inlineSuggestionTriggerHandler invoked by keyboard shortcut");
   if (document.languageId !== "ansible") {
     wisdomManager.wisdomStatusBar.hide();
@@ -157,9 +158,9 @@ export async function inlineSuggestionTriggerHandler(
   }
 
   let lineToExtractPrompt: vscode.TextLine | undefined = undefined;
-  let currentLine = document.lineAt(textEditor.selection.active.line);
-  let cursorPosition = textEditor.selection.active;
-  let previousLine = textEditor.document.lineAt(cursorPosition.line - 1);
+  const currentLine = document.lineAt(textEditor.selection.active.line);
+  const cursorPosition = textEditor.selection.active;
+  const previousLine = textEditor.document.lineAt(cursorPosition.line - 1);
   if (currentLine.isEmptyOrWhitespace) {
     lineToExtractPrompt = previousLine;
   } else {
@@ -168,7 +169,7 @@ export async function inlineSuggestionTriggerHandler(
   if (lineToExtractPrompt === undefined) {
     return [];
   }
-  let taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
+  const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
   let isTaskNameMatch = false;
   let prompt: string | undefined = undefined;
   if (taskMatchedPattern) {
@@ -176,7 +177,8 @@ export async function inlineSuggestionTriggerHandler(
     prompt = taskMatchedPattern?.groups?.description;
   } else {
     // check if the line is a comment line
-    let commentMatchedPattern = lineToExtractPrompt.text.match(commentRegexEp);
+    const commentMatchedPattern =
+      lineToExtractPrompt.text.match(commentRegexEp);
     if (commentMatchedPattern) {
       prompt = commentMatchedPattern?.groups?.description;
     }
@@ -185,9 +187,9 @@ export async function inlineSuggestionTriggerHandler(
     return [];
   }
 
-  let currentPostion = textEditor.selection.active;
+  const currentPostion = textEditor.selection.active;
 
-  let inlineSuggestionUserActionItems = await getInlineSuggestions(
+  const inlineSuggestionUserActionItems = await getInlineSuggestions(
     document,
     currentPostion,
     lineToExtractPrompt,
@@ -198,7 +200,7 @@ export async function inlineSuggestionTriggerHandler(
   // textEditor.edit((editBuilder) => {
   //   editBuilder.insert(currentPostion, currentSuggestion);
   // });
-  let editor = vscode.window.activeTextEditor;
+  const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
   }
@@ -258,8 +260,8 @@ async function getInlineSuggestions(
   //       and will be rest in the user action handlers.
   // reset telemetry data
   telemetryData = {};
-  let inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
-  let insertTexts: string[] = [];
+  const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
+  const insertTexts: string[] = [];
   if (result && result.predictions.length > 0) {
     result.predictions.forEach((prediction) => {
       let insertText = prediction;
@@ -271,7 +273,7 @@ async function getInlineSuggestions(
         );
       }
       insertTexts.push(insertText);
-      let inlineSuggestionUserActionItem = new vscode.InlineCompletionItem(
+      const inlineSuggestionUserActionItem = new vscode.InlineCompletionItem(
         insertText
       );
       inlineSuggestionUserActionItem.command = {
@@ -295,7 +297,7 @@ export async function inlineSuggestionCommitHandler(
   edit: vscode.TextEditorEdit
 ) {
   console.log("inlineSuggestionCommitHandler triggered");
-  let editor = vscode.window.activeTextEditor;
+  const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
   }
@@ -332,11 +334,11 @@ export async function inlineSuggestionHideHandler(
 
 export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
-  isSuggestionAccepted: boolean = false
+  isSuggestionAccepted = false
 ) {
   console.log(`User gave feedback on suggestion with ID: ${suggestionId}`);
   telemetryData = {};
-  let extSettings = wisdomManager.settingsManager.settings;
+  const extSettings = wisdomManager.settingsManager.settings;
   // user feedback is enabled
   if (extSettings.wisdomService.suggestions.userFeedback) {
     telemetryData["userUIFeedbackEnabled"] = true;
