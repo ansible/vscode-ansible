@@ -134,12 +134,13 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     }
     podman machine ls --noheading | grep '\*' || {
         log warning "Creating podman machine..."
-        time podman machine init --now
+        time podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
     }
     podman machine ls --format '{{.Name}} {{.Running}}' --noheading | grep podman-machine-default | grep true || {
         # do not use full path as it varies based on architecture
         # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
         "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+        log warning "Trying to start podman machine again..."
         time podman machine start
         }
     podman info
