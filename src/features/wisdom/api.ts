@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import axios, { AxiosInstance, AxiosError, CancelTokenSource } from "axios";
+import axios, { AxiosInstance, AxiosError } from "axios";
 
 import { ExtensionSettings } from "../../interfaces/extensionSettings";
 import { SettingsManager } from "../../settings";
