@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 
 import { removePromptFromSuggestion } from "../utils/wisdom";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
-import { wisdomManager } from "../../extension";
+import { wisdomManager, context } from "../../extension";
 import { WisdomCommands } from "../../definitions/constants";
 import { resetKeyInput, getKeyInput } from "../../utils/keyInputUtils";
 

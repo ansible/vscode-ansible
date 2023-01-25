@@ -40,6 +40,7 @@ import {
   inlineSuggestionHideHandler,
   inlineSuggestionUserActionHandler,
 } from "./features/wisdom/inlineSuggestions";
+import exp from "constants";
 
 export let client: LanguageClient;
 export let wisdomManager: WisdomManager;
