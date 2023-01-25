@@ -1,0 +1,593 @@
+{
+  "activationEvents": [
+    "onCommand:extension.ansible-navigator.run",
+    "onCommand:extension.ansible-playbook.run",
+    "onCommand:extension.ansible.vault",
+    "onLanguage:ansible",
+    "onLanguage:yaml",
+    "onCommand:extension.resync-ansible-inventory"
+  ],
+  "badges": [
+    {
+      "description": "last-commit",
+      "href": "https://github.com/ansible/vscode-ansible",
+      "url": "https://img.shields.io/github/last-commit/ansible/vscode-ansible/main"
+    },
+    {
+      "description": "downloads",
+      "href": "https://github.com/ansible/vscode-ansible",
+      "url": "https://img.shields.io/visual-studio-marketplace/d/redhat.ansible"
+    }
+  ],
+  "bugs": "https://github.com/ansible/vscode-ansible/issues",
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "config": {
+    "//": "Oldest version known to work. Be careful updating as it is mentioned in multiple places.",
+    "min_vscode": "1.63.0"
+  },
+  "contributors": [
+    {
+      "name": "Tomasz Maciążek",
+      "email": "tomaciazek@gmail.com"
+    },
+    {
+      "email": "ssbarnea@redhat.com",
+      "name": "Sorin Sbarnea"
+    },
+    {
+      "email": "info@ansible.com",
+      "name": "Ansible DevTools Team and Community Contributors",
+      "url": "https://github.com/ansible/vscode-ansible/graphs/contributors"
+    }
+  ],
+  "contributes": {
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          ".ansible-navigator.json",
+          "ansible-navigator.json"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
+      }
+    ],
+    "yamlValidation": [
+      {
+        "fileMatch": [
+          "execution-environment.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/execution-environment.json"
+      },
+      {
+        "fileMatch": [
+          "meta/runtime.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta-runtime.json"
+      },
+      {
+        "fileMatch": [
+          ".ansible-navigator.yaml",
+          ".ansible-navigator.yml",
+          "ansible-navigator.yaml",
+          "ansible-navigator.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
+      },
+      {
+        "fileMatch": "requirements.yml",
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json"
+      },
+      {
+        "fileMatch": "meta/main.yml",
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta.json"
+      },
+      {
+        "fileMatch": [
+          "playbooks/vars/*.yml",
+          "playbooks/vars/*.yaml",
+          "vars/*.yml",
+          "vars/*.yaml",
+          "defaults/*.yml",
+          "defaults/*.yaml",
+          "host_vars/*.yml",
+          "host_vars/*.yaml",
+          "group_vars/*.yml",
+          "group_vars/*.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json"
+      },
+      {
+        "fileMatch": [
+          ".ansible-lint",
+          ".config/ansible-lint.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json"
+      },
+      {
+        "fileMatch": [
+          "molecule/*/molecule.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/molecule/main/src/molecule/data/molecule.json"
+      },
+      {
+        "fileMatch": [
+          "galaxy.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/galaxy.json"
+      },
+      {
+        "fileMatch": [
+          "eda/rulebooks/*.yaml",
+          "eda/rulebooks/*.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "extension.resync-ansible-inventory",
+        "title": "Resync Ansible Inventory"
+      },
+      {
+        "category": "%commands.category.ansible-playbook%",
+        "command": "extension.ansible-playbook.run",
+        "title": "%commands.title.ansible-playbook%"
+      },
+      {
+        "category": "%commands.category.ansible-playbook%",
+        "command": "extension.ansible-navigator.run",
+        "title": "%commands.title.ansible-navigator%"
+      },
+      {
+        "category": "%commands.category.ansible-vault%",
+        "command": "extension.ansible.vault",
+        "title": "%commands.title.ansible-vault%"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Ansible",
+      "properties": {
+        "ansibleServer.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "markdownDescription": "Traces the communication between editor and the ansible language server.",
+          "order": 0
+        },
+        "ansible.ansible.path": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "ansible",
+          "markdownDescription": "Path to the ansible executable. All subcommands are expected to have adjacent locations.",
+          "order": 1
+        },
+        "ansible.ansible.useFullyQualifiedCollectionNames": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
+          "order": 2
+        },
+        "ansible.ansible.reuseTerminal": {
+          "scope": "machine-overridable",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enabling this will cause ansible commands run through VSCode to reuse the same Ansible Terminal.",
+          "order": 3
+        },
+        "ansible.python.interpreterPath": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "python3",
+          "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
+          "order": 4
+        },
+        "ansible.python.activationScript": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored.",
+          "order": 5
+        },
+        "ansible.ansibleNavigator.path": {
+          "default": "ansible-navigator",
+          "markdownDescription": "%configuration.navigate.executablePath%",
+          "scope": "machine-overridable",
+          "type": "string",
+          "order": 6
+        },
+        "ansible.completion.provideRedirectModules": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Toggle redirected module provider when completing modules.",
+          "order": 7
+        },
+        "ansible.completion.provideModuleOptionAliases": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Toggle alias provider when completing module options.",
+          "order": 8
+        },
+        "ansible.validation.enabled": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "If disabled no validation will be performed.",
+          "order": 9
+        },
+        "ansible.validation.lint.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
+          "order": 10
+        },
+        "ansible.validation.lint.path": {
+          "scope": "machine-overridable",
+          "type": "string",
+          "default": "ansible-lint",
+          "markdownDescription": "Path to the ansible-lint executable.",
+          "order": 11
+        },
+        "ansible.validation.lint.arguments": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Command line arguments to be passed to ansible-lint.",
+          "order": 12
+        },
+        "ansible.executionEnvironment.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "Enable or disable the use of an execution environment.",
+          "order": 13
+        },
+        "ansible.executionEnvironment.containerEngine": {
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "auto",
+            "podman",
+            "docker"
+          ],
+          "default": "auto",
+          "markdownDescription": "Specify the container engine (auto=podman then docker).",
+          "order": 14
+        },
+        "ansible.executionEnvironment.containerOptions": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Extra parameters passed to the container engine command example: `--net=host`.",
+          "order": 15
+        },
+        "ansible.executionEnvironment.image": {
+          "scope": "resource",
+          "type": "string",
+          "default": "ghcr.io/ansible/creator-ee:latest",
+          "markdownDescription": "Specify the name of the execution environment image.",
+          "order": 16
+        },
+        "ansible.executionEnvironment.pull.arguments": {
+          "scope": "resource",
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `–-tls-verify=false`.",
+          "order": 17
+        },
+        "ansible.executionEnvironment.pull.policy": {
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "always",
+            "missing",
+            "never",
+            "tag"
+          ],
+          "default": "missing",
+          "markdownDescription": "Specify the image pull policy.\n**always**: Always pull the image when extension is activated or reloaded\n**missing**: Pull if not locally available\n**never**: Never pull the image\n**tag**: If the image tag is `latest`, always pull the image, otherwise pull if not locally available.",
+          "order": 18
+        },
+        "ansible.executionEnvironment.volumeMounts": {
+          "scope": "resource",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "type": "string",
+                "markdownDescription": "The name of the local volume or path to be mounted within execution environment."
+              },
+              "dest": {
+                "type": "string",
+                "markdownDescription": "The path where the file or directory are mounted in the container."
+              },
+              "options": {
+                "type": "string",
+                "markdownDescription": "The field is optional, and is a comma-separated list of options, such as `ro,Z.`"
+              }
+            }
+          },
+          "order": 19
+        },
+        "redhat.telemetry.enabled": {
+          "type": "boolean",
+          "default": null,
+          "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
+          "tags": [
+            "telemetry",
+            "usesOnlineServices"
+          ],
+          "scope": "window",
+          "order": 23
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[ansible]": {
+        "editor.detectIndentation": true,
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.quickSuggestions": {
+          "comments": true,
+          "other": true,
+          "strings": true
+        }
+      }
+    },
+    "languages": [
+      {
+        "id": "ansible",
+        "aliases": [
+          "Ansible",
+          "ansible"
+        ],
+        "extensions": [
+          ".ansible.yml",
+          ".ansible.yaml"
+        ],
+        "filenamePatterns": [
+          "**/playbooks/*.yml",
+          "**/playbooks/*.yaml",
+          "**/*playbook*.yml",
+          "**/*playbook*.yaml"
+        ],
+        "filenames": [
+          "site.yml",
+          "site.yaml"
+        ],
+        "configuration": "./ansible-language-configuration.json"
+      },
+      {
+        "comments": "unfortunately this dummy entry is necessary for embedding to work",
+        "id": "ansible-jinja",
+        "configuration": "./jinja-language-configuration.json"
+      }
+    ],
+    "menus": {
+      "ansible.playbook.run": [
+        {
+          "command": "extension.ansible-navigator.run"
+        },
+        {
+          "command": "extension.ansible-playbook.run"
+        }
+      ],
+      "editor/context": [
+        {
+          "group": "2_main@1",
+          "submenu": "ansible.playbook.run",
+          "when": "isFileSystemResource && editorLangId == ansible"
+        }
+      ],
+      "explorer/context": [
+        {
+          "group": "2_main@1",
+          "submenu": "ansible.playbook.run",
+          "when": "isFileSystemResource && resourceLangId == ansible"
+        }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "ansible.playbook.run",
+        "label": "%submenus.ansible.run-via%"
+      }
+    ],
+    "grammars": [
+      {
+        "comments": [
+          "YAML syntax as base for Ansible",
+          "scopeName changed so that we can use it as base for injections"
+        ],
+        "language": "ansible",
+        "scopeName": "source.ansible",
+        "path": "./syntaxes/external/YAML.tmLanguage"
+      },
+      {
+        "comments": [
+          "Jinja syntax as injection into Ansible YAML",
+          "This is so that we do not need to rely on the Jinja extension being installed"
+        ],
+        "language": "ansible-jinja",
+        "scopeName": "source.ansible-jinja",
+        "path": "./syntaxes/external/jinja.tmLanguage.json"
+      },
+      {
+        "comments": [
+          "Highlighting of Ansible keywords"
+        ],
+        "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
+        "scopeName": "injection.ansible.keywords",
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "Additional Jinja grammars"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-extras.tmLanguage",
+        "scopeName": "injection.ansible.jinja-extras",
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "Support for Jinja in double curly braces"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
+        "scopeName": "injection.ansible.jinja-braces",
+        "embeddedLanguages": {
+          "meta.embedded.inline.jinja": "ansible-jinja"
+        },
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "Support for Jinja in conditionals"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
+        "scopeName": "injection.ansible.jinja-conditionals",
+        "embeddedLanguages": {
+          "meta.embedded.inline.jinja": "ansible-jinja"
+        },
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
+          "Support for single quote escapes in Jinja"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
+        "scopeName": "injection.ansible.jinja-single-quote-escape",
+        "injectTo": [
+          "source.ansible"
+        ]
+      },
+      {
+        "comments": [
+          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
+          "Support for double quote escapes in Jinja"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
+        "scopeName": "injection.ansible.jinja-double-quote-escape",
+        "injectTo": [
+          "source.ansible"
+        ]
+      }
+    ]
+  },
+  "dependencies": {
+    "@ansible/ansible-language-server": "^1.0.4",
+    "@redhat-developer/vscode-redhat-telemetry": "^0.5.4",
+    "@types/ini": "^1.3.31",
+    "ini": "^3.0.1",
+    "untildify": "^4.0.0",
+    "vscode-languageclient": "^8.0.2",
+    "yaml": "^2.2.1"
+  },
+  "description": "Ansible language support",
+  "devDependencies": {
+    "@types/chai": "^4.3.4",
+    "@types/glob": "^8.0.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^18.11.18",
+    "@types/vscode": "^1.63.0",
+    "@typescript-eslint/eslint-plugin": "^5.47.1",
+    "@typescript-eslint/parser": "^5.47.1",
+    "@vscode/test-electron": "^2.2.1",
+    "@vscode/vsce": "^2.16.0",
+    "chai": "^4.3.7",
+    "copyfiles": "^2.4.1",
+    "depcheck": "^1.4.3",
+    "eslint": "^8.30.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "glob": "^8.0.3",
+    "mocha": "^10.2.0",
+    "mochawesome": "^7.1.3",
+    "mochawesome-report-generator": "^6.2.0",
+    "ovsx": "^0.7.1",
+    "prettier": "^2.8.1",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.4",
+    "vscode-extension-tester": "^5.2.1",
+    "warnings-to-errors-webpack-plugin": "^2.3.0",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1",
+    "yarn-audit-fix": "^9.3.7"
+  },
+  "displayName": "Ansible",
+  "engineStrict": true,
+  "engines": {
+    "//": "node version affects only development, it does not affect vscode runtime",
+    "node": ">=16.0",
+    "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
+    "vscode": "^1.63.0",
+    "yarn": ">=3.2.1"
+  },
+  "extensionDependencies": [
+    "ms-python.python",
+    "redhat.vscode-yaml"
+  ],
+  "icon": "images/logo.png",
+  "keywords": [
+    "ansible",
+    "yaml",
+    "autocompletion",
+    "validation"
+  ],
+  "license": "MIT",
+  "main": "./out/client/src/extension.js",
+  "name": "ansible",
+  "publisher": "redhat",
+  "qna": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ansible/vscode-ansible.git"
+  },
+  "scripts": {
+    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
+    "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
+    "preinstall": "",
+    "pretest": "yarn run compile",
+    "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
+    "test-ui-current": "extest setup-and-run -e out/ext -c 1.69.0 --code_settings test/testFixtures/settings.json -s out/test-resources out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.63.0 --code_settings test/testFixtures/settings.json -s out/test-resources-oldest -u out/client/test/ui-test/allTestsSuite.js",
+    "vscode-prepublish": "yarn run webpack",
+    "watch": "tsc -b -w",
+    "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
+    "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.ts",
+    "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.ts",
+    "webpack-watch": "webpack --mode development --config ./webpack.config.ts --watch",
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
+    "test-compile": "yarn run clean && yarn run compile && tsc -p ./",
+    "test-compile-withserver": "yarn run clean && yarn run compile-withserver && tsc -p ./",
+    "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
+    "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
+  },
+  "version": "1.1.0",
+  "packageManager": "yarn@3.3.0",
+  "vsce": {
+    "dependencies": false,
+    "yarn": false
+  }
+}
