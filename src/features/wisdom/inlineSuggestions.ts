@@ -198,7 +198,7 @@ export async function inlineSuggestionTriggerHandler(
   );
 
   // textEditor.edit((editBuilder) => {
-  //   editBuilder.insert(currentPostion, currentSuggestion);
+  //   editBuilder.insert(currentPosition, currentSuggestion);
   // });
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
