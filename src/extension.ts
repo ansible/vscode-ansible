@@ -40,17 +40,14 @@ import {
   inlineSuggestionHideHandler,
   inlineSuggestionUserActionHandler,
 } from "./features/wisdom/inlineSuggestions";
-import exp from "constants";
 
 export let client: LanguageClient;
 export let wisdomManager: WisdomManager;
-export let context: ExtensionContext;
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
   languageAssociation(context);
-  context = context;
 
   // Create Telemetry Service
   const telemetry = new TelemetryManager(context);
