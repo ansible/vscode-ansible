@@ -44,6 +44,29 @@
     }
   ],
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ansible-explorer",
+          "title": "Ansible",
+          "icon": "images/ansible.svg"
+        }
+      ]
+    },
+    "views": {
+      "ansible-explorer": [
+        {
+          "id": "wisdom-auth",
+          "name": "Wisdom Authentication"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "wisdom-auth",
+        "contents": "Hello World\n[Authenticate](command:extension.wisdom.auth)"
+      }
+    ],
     "jsonValidation": [
       {
         "fileMatch": [
@@ -144,6 +167,10 @@
         "category": "%commands.category.ansible-vault%",
         "command": "extension.ansible.vault",
         "title": "%commands.title.ansible-vault%"
+      },
+      {
+        "command": "extension.wisdom.auth",
+        "title": "Wisdom Authentication"
       }
     ],
     "configuration": {

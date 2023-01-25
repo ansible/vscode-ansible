@@ -2,7 +2,7 @@
 import * as path from "path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
-import { AnsibleCommands } from "./definitions/constants";
+import { AnsibleCommands, WisdomCommands } from "./definitions/constants";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -30,6 +30,7 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
+import { ExplorerView } from "./explorerView";
 
 let client: LanguageClient;
 const lsName = "Ansible Support";
@@ -54,6 +55,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry,
     AnsibleCommands.ANSIBLE_INVENTORY_RESYNC,
     resyncAnsibleInventory,
+    true
+  );
+  registerCommandWithTelemetry(
+    context,
+    telemetry,
+    WisdomCommands.WISDOM_AUTH_REQUEST,
+    getAuthToken,
     true
   );
 
@@ -128,10 +136,23 @@ const startClient = async (
     clientOptions
   );
 
+  // Register the explorer view
+  const explorerSidebar = ExplorerView.getInstance(context.extensionUri);
+  const explorerView = window.registerWebviewViewProvider(
+    ExplorerView.viewType,
+    explorerSidebar,
+    {
+      webviewOptions: {
+        retainContextWhenHidden: true,
+      },
+    }
+  );
+
   context.subscriptions.push(
     client.onTelemetry((e) => {
       telemetry.telemetryService.send(e);
-    })
+    }),
+    explorerView
   );
 
   try {
@@ -187,4 +208,8 @@ async function resyncAnsibleInventory(): Promise<void> {
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
   }
+}
+
+async function getAuthToken(): Promise<void> {
+  window.showInformationMessage("Request sent for auth token");
 }
