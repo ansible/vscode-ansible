@@ -119,3 +119,4 @@ withserver
 xvfb
 yaegassy
 yarnpkg
+uuidv4

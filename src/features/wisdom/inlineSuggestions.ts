@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { window, TextDocument, Position } from "vscode";
+import { window, Position } from "vscode";
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -187,11 +187,11 @@ export async function inlineSuggestionTriggerHandler(
     return [];
   }
 
-  const currentPostion = textEditor.selection.active;
+  const currentPosition = textEditor.selection.active;
 
   const inlineSuggestionUserActionItems = await getInlineSuggestions(
     document,
-    currentPostion,
+    currentPosition,
     lineToExtractPrompt,
     prompt,
     isTaskNameMatch
@@ -208,12 +208,12 @@ export async function inlineSuggestionTriggerHandler(
     text: currentSuggestion,
   });
 
-  return currentSuggestion;
+  return inlineSuggestionUserActionItems;
 }
 
 async function getInlineSuggestions(
   document: vscode.TextDocument,
-  currentPostion: vscode.Position,
+  currentPosition: vscode.Position,
   lineToExtractPrompt: vscode.TextLine,
   prompt: string,
   isTaskNameMatch: boolean
@@ -227,7 +227,7 @@ async function getInlineSuggestions(
     telemetryData["suggestionId"] = suggestionId;
     telemetryData["documentUri"] = document.uri.toString();
     const documentContext = document.getText(
-      new vscode.Range(new vscode.Position(0, 0), currentPostion)
+      new vscode.Range(new vscode.Position(0, 0), currentPosition)
     );
     telemetryData["request"] = {
       context: documentContext,
@@ -238,7 +238,7 @@ async function getInlineSuggestions(
     wisdomManager.wisdomStatusBar.text = "Processing...";
     result = await requestInlineSuggest(
       documentContext,
-      currentPostion,
+      currentPosition,
       prompt
     );
     wisdomManager.wisdomStatusBar.text = "Wisdom";
@@ -269,7 +269,7 @@ async function getInlineSuggestions(
         insertText = removePromptFromSuggestion(
           prediction,
           lineToExtractPrompt.text,
-          currentPostion
+          currentPosition
         );
       }
       insertTexts.push(insertText);
