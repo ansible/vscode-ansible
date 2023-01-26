@@ -34,5 +34,6 @@
   },
   "redhat.telemetry.enabled": false,
   "eslint.useESLintClass": true,
-  "eslint.packageManager": "yarn"
+  "eslint.packageManager": "yarn",
+  "ansible.wisdom.suggestions.userFeedback": true
 }

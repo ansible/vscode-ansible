@@ -19,9 +19,7 @@ export class SettingsManager {
     const eeSettings = vscode.workspace.getConfiguration(
       "ansible.executionEnvironment"
     );
-    const wisdomSettings = vscode.workspace.getConfiguration(
-      "ansible.wisdomService"
-    );
+    const wisdomSettings = vscode.workspace.getConfiguration("ansible.wisdom");
     this.settings = {
       activationScript: ansibleSettings.get(
         "python.activationScript"

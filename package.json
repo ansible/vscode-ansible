@@ -328,7 +328,40 @@
             "usesOnlineServices"
           ],
           "scope": "window",
+          "order": 20
+        },
+        "ansible.wisdom.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable Ansible wisdom service to provide intelligent code suggestions.",
+          "order": 21
+        },
+        "ansible.wisdom.basePath": {
+          "scope": "resource",
+          "type": "string",
+          "markdownDescription": "Base path for wisdom service endpoints",
+          "order": 22
+        },
+        "ansible.wisdom.authToken": {
+          "scope": "resource",
+          "type": "string",
+          "markdownDescription": "User Authentication token to access Ansible wisdom service",
           "order": 23
+        },
+        "ansible.wisdom.suggestions.enabled": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Enable Ansible wisdom inline suggestions.",
+          "order": 24
+        },
+        "ansible.wisdom.suggestions.userFeedback": {
+          "scope": "resource",
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Get user feedback for Ansible wisdom inline suggestions.",
+          "order": 25
         }
       }
     },
@@ -344,6 +377,27 @@
         }
       }
     },
+    "keybindings": [
+      {
+        "key": "tab",
+        "command": "ansible.wisdom.inlineSuggest.accept",
+        "when": "config.ansible.wisdom.enabled && config.ansible.wisdom.suggestions.enabled && inlineSuggestionVisible && !editorTabMovesFocus"
+      },
+      {
+        "key": "escape",
+        "command": "ansible.wisdom.inlineSuggest.hide",
+        "when": "inlineSuggestionVisible"
+      },
+      {
+        "key": "ctrl+.",
+        "command": "ansible.wisdom.inlineSuggest.trigger",
+        "when": "config.ansible.wisdom.enabled && config.ansible.wisdom.suggestions.enabled && !inlineSuggestionVisible && !editorTabMovesFocus"
+      },
+      {
+        "command": "extension.onEnter",
+        "key": "Enter"
+      }
+    ],
     "languages": [
       {
         "id": "ansible",
@@ -501,8 +555,7 @@
     "untildify": "^4.0.0",
     "uuid": "^8.3.2",
     "vscode-languageclient": "^8.0.2",
-    "yaml": "^2.2.1",
-    "yarn.lock": "^0.0.1-security"
+    "yaml": "^2.2.1"
   },
   "description": "Ansible language support",
   "devDependencies": {
@@ -589,10 +642,12 @@
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "1.1.0",
+  "version": "2023.1.25",
   "packageManager": "yarn@3.3.0",
   "vsce": {
     "dependencies": false,
     "yarn": false
-  }
+  },
+  "segmentWriteKey": "DxnFa87EXSrfwoSuQBZAe2EMkb7nz5GR",
+  "segmentWriteKeyDebug": "5r1FsJAkhB1ZWnxxaMRPDav5RdVnyMLr"
 }
