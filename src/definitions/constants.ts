@@ -6,6 +6,7 @@ export namespace AnsibleCommands {
   export const ANSIBLE_NAVIGATOR_RUN = "extension.ansible-navigator.run";
 }
 
+// eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace WisdomCommands {
   export const WISDOM_SUGGESTION_COMMIT = "ansible.wisdom.inlineSuggest.accept";
   export const WISDOM_SUGGESTION_HIDE = "ansible.wisdom.inlineSuggest.hide";
