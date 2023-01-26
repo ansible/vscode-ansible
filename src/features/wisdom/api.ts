@@ -3,6 +3,7 @@ import axios, { AxiosInstance, AxiosError } from "axios";
 
 import { ExtensionSettings } from "../../interfaces/extensionSettings";
 import { SettingsManager } from "../../settings";
+import { SuggestionResult, RequestParams } from "../../definitions/wisdom";
 
 function getAuthToken(settings: ExtensionSettings): string | undefined {
   return settings.wisdomService.authToken;
@@ -35,6 +36,7 @@ export class WisdomAPI {
     this.initialize();
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getData(urlPath: string): Promise<any> {
     if (this.axiosInstance === undefined) {
       throw new Error("Ansible wisdom service instance is not initialized");
@@ -49,7 +51,10 @@ export class WisdomAPI {
     }
   }
 
-  public async postData(urlPath: string, inputData: any): Promise<any> {
+  public async postData(
+    urlPath: string,
+    inputData: RequestParams
+  ): Promise<SuggestionResult> {
     if (this.axiosInstance === undefined) {
       throw new Error("Ansible wisdom service instance is not initialized");
     }
@@ -87,7 +92,7 @@ export class WisdomAPI {
           `Error from Ansible wisdom service: ${error}`
         );
       }
-      return [];
+      return {} as SuggestionResult;
     }
   }
 }

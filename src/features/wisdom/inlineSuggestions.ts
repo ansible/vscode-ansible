@@ -8,6 +8,11 @@ import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { wisdomManager } from "../../extension";
 import { WisdomCommands } from "../../definitions/constants";
 import { resetKeyInput, getKeyInput } from "../../utils/keyInputUtils";
+import {
+  SuggestionResult,
+  WisdomTelemetryEvent,
+  RequestParams,
+} from "../../definitions/wisdom";
 
 let suggestionId = "";
 let currentSuggestion = "";
@@ -16,28 +21,6 @@ const commentRegexEp =
 const taskRegexEp =
   /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
 
-interface SuggestionResult {
-  predictions: string[];
-}
-
-interface RequestParams {
-  context: string;
-  prompt: string;
-}
-
-interface WisdomTelemetryEvent {
-  request?: RequestParams;
-  requestDateTime?: string;
-  response?: SuggestionResult;
-  responseDateTime?: string;
-  documentUri?: string;
-  suggestionDisplayed?: string;
-  userAction?: "accept" | "ignore" | "modify";
-  suggestionId?: string;
-  feedback?: string;
-  userUIFeedbackEnabled?: boolean;
-  error?: string;
-}
 let telemetryData: WisdomTelemetryEvent = {};
 
 export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider {
@@ -118,7 +101,7 @@ async function getInlineSuggestion(
   context: string,
   prompt: string
 ): Promise<SuggestionResult> {
-  const inputData = {
+  const inputData: RequestParams = {
     context: context,
     prompt: prompt,
   };
