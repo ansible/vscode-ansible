@@ -329,39 +329,6 @@
           ],
           "scope": "window",
           "order": 20
-        },
-        "ansible.wisdom.enabled": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Enable Ansible wisdom service to provide intelligent code suggestions.",
-          "order": 21
-        },
-        "ansible.wisdom.basePath": {
-          "scope": "resource",
-          "type": "string",
-          "markdownDescription": "Base path for wisdom service endpoints",
-          "order": 22
-        },
-        "ansible.wisdom.authToken": {
-          "scope": "resource",
-          "type": "string",
-          "markdownDescription": "User Authentication token to access Ansible wisdom service",
-          "order": 23
-        },
-        "ansible.wisdom.suggestions.enabled": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Enable Ansible wisdom inline suggestions.",
-          "order": 24
-        },
-        "ansible.wisdom.suggestions.userFeedback": {
-          "scope": "resource",
-          "type": "boolean",
-          "default": true,
-          "markdownDescription": "Get user feedback for Ansible wisdom inline suggestions.",
-          "order": 25
         }
       }
     },
@@ -377,27 +344,6 @@
         }
       }
     },
-    "keybindings": [
-      {
-        "key": "tab",
-        "command": "ansible.wisdom.inlineSuggest.accept",
-        "when": "config.ansible.wisdom.enabled && config.ansible.wisdom.suggestions.enabled && inlineSuggestionVisible && !editorTabMovesFocus"
-      },
-      {
-        "key": "escape",
-        "command": "ansible.wisdom.inlineSuggest.hide",
-        "when": "inlineSuggestionVisible"
-      },
-      {
-        "key": "ctrl+.",
-        "command": "ansible.wisdom.inlineSuggest.trigger",
-        "when": "config.ansible.wisdom.enabled && config.ansible.wisdom.suggestions.enabled && !inlineSuggestionVisible && !editorTabMovesFocus"
-      },
-      {
-        "command": "extension.onEnter",
-        "key": "Enter"
-      }
-    ],
     "languages": [
       {
         "id": "ansible",
@@ -647,7 +593,5 @@
   "vsce": {
     "dependencies": false,
     "yarn": false
-  },
-  "segmentWriteKey": "DxnFa87EXSrfwoSuQBZAe2EMkb7nz5GR",
-  "segmentWriteKeyDebug": "5r1FsJAkhB1ZWnxxaMRPDav5RdVnyMLr"
+  }
 }
