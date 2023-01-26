@@ -98,7 +98,6 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
         prompt,
         isTaskNameMatch
       );
-      const insertText = inlineSuggestionUserActionItems[0].insertText;
       return inlineSuggestionUserActionItems;
     },
   };
@@ -109,7 +108,7 @@ export async function requestInlineSuggest(
   documentContext: string,
   position: Position,
   prompt: string
-): Promise<any> {
+): Promise<SuggestionResult> {
   wisdomManager.wisdomStatusBar.tooltip = "processing...";
   const result = await getInlineSuggestion(documentContext, prompt);
   wisdomManager.wisdomStatusBar.tooltip = "Done";
@@ -118,7 +117,7 @@ export async function requestInlineSuggest(
 async function getInlineSuggestion(
   context: string,
   prompt: string
-): Promise<any> {
+): Promise<SuggestionResult> {
   const inputData = {
     context: context,
     prompt: prompt,
@@ -140,8 +139,10 @@ async function getInlineSuggestion(
   return outputData;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function inlineSuggestionTriggerHandler(
   textEditor: vscode.TextEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
   const document = textEditor.document;
@@ -293,7 +294,9 @@ async function getInlineSuggestions(
 }
 
 export async function inlineSuggestionCommitHandler(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   textEditor: vscode.TextEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
   console.log("inlineSuggestionCommitHandler triggered");
@@ -318,7 +321,9 @@ export async function inlineSuggestionCommitHandler(
 }
 
 export async function inlineSuggestionHideHandler(
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   textEditor: vscode.TextEditor,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
   console.log("inlineSuggestionHideHandler triggered");
