@@ -1287,13 +1287,14 @@ __metadata:
     typescript: ^4.9.4
     untildify: ^4.0.0
     uuid: ^8.3.2
-    vscode-extension-tester: ^5.2.1
+    vscode-extension-tester: ^5.3.0
     vscode-languageclient: ^8.0.2
     warnings-to-errors-webpack-plugin: ^2.3.0
     webpack: ^5.75.0
     webpack-cli: ^5.0.1
     yaml: ^2.2.1
     yarn-audit-fix: ^9.3.7
+    yarn.lock: ^0.0.1-security
   languageName: unknown
   linkType: soft
 
@@ -6447,7 +6448,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^5.2.1":
+"vscode-extension-tester@npm:^5.3.0":
   version: 5.3.0
   resolution: "vscode-extension-tester@npm:5.3.0"
   dependencies:
@@ -6896,6 +6897,13 @@ __metadata:
   bin:
     yarn-audit-fix: target/es6/cli.js
   checksum: 3cb3bd97dd1bce18898b863cb7ff29944e55b7b6ac775386f75ab90e3170e678180eca04b2f762d2df80bf5a1696a2debad880c18612d28d69bd8ab67f7c2391
+  languageName: node
+  linkType: hard
+
+"yarn.lock@npm:^0.0.1-security":
+  version: 0.0.1-security
+  resolution: "yarn.lock@npm:0.0.1-security"
+  checksum: 247a60a82cb355617a26b49fe9097154ed3ab325116897a6bc7e6794984e96856d4a612d9e5e1854859b5338e95c0d8f53a87436f3455189e927a3679ff43bbe
   languageName: node
   linkType: hard
 

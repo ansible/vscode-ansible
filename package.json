@@ -501,7 +501,8 @@
     "untildify": "^4.0.0",
     "uuid": "^8.3.2",
     "vscode-languageclient": "^8.0.2",
-    "yaml": "^2.2.1"
+    "yaml": "^2.2.1",
+    "yarn.lock": "^0.0.1-security"
   },
   "description": "Ansible language support",
   "devDependencies": {
@@ -532,7 +533,7 @@
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4",
-    "vscode-extension-tester": "^5.2.1",
+    "vscode-extension-tester": "^5.3.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1",
@@ -570,6 +571,7 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
+    "package": "yarn run webpack && npx vsce package",
     "preinstall": "",
     "pretest": "yarn run compile",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
