@@ -181,9 +181,6 @@ export async function inlineSuggestionTriggerHandler(
     isTaskNameMatch
   );
 
-  // textEditor.edit((editBuilder) => {
-  //   editBuilder.insert(currentPosition, currentSuggestion);
-  // });
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
@@ -282,16 +279,15 @@ export async function inlineSuggestionCommitHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
+  if (window.activeTextEditor?.document.languageId !== "ansible") {
+    return [];
+  }
   console.log("inlineSuggestionCommitHandler triggered");
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
   }
-  // let selection = editor.selection;
-  // // Insert the suggestion
-  // editor.edit((editBuilder) => {
-  //   editBuilder.insert(selection.start, currentSuggestion as string);
-  // });
+
   // Commit the suggestion
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
@@ -309,6 +305,9 @@ export async function inlineSuggestionHideHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
+  if (window.activeTextEditor?.document.languageId !== "ansible") {
+    return [];
+  }
   console.log("inlineSuggestionHideHandler triggered");
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 

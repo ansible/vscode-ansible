@@ -137,62 +137,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   workspace.onDidChangeConfiguration(() =>
     updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );
-  // create a new webview panel
-  const panel = vscode.window.createWebviewPanel(
-    "feedbackForm",
-    "Feedback Form",
-    vscode.ViewColumn.One,
-    {
-      enableScripts: true,
-    }
-  );
-
-  // HTML content for the form
-  const formHTML = `
-      <form>
-          <div>
-              <label for="name">Name:</label>
-              <input type="text" id="name" name="name">
-          </div>
-          <div>
-              <label for="email">Email:</label>
-              <input type="email" id="email" name="email">
-          </div>
-          <div>
-              <label for="feedback">Feedback:</label>
-              <textarea id="feedback" name="feedback"></textarea>
-          </div>
-          <div>
-              <button type="submit">Submit</button>
-          </div>
-      </form>
-      <script>
-          // handle form submission
-          const form = document.querySelector('form');
-          form.addEventListener('submit', event => {
-              event.preventDefault();
-              const name = document.getElementById('name').value;
-              const email = document.getElementById('email').value;
-              const feedback = document.getElementById('feedback').value;
-              vscode.postMessage({ name, email, feedback });
-          });
-      </script>
-  `;
-
-  // set the webview panel's HTML content
-  panel.webview.html = formHTML;
-
-  // handle messages from the webview
-  panel.webview.onDidReceiveMessage(
-    (message) => {
-      vscode.window.showInformationMessage(
-        `Thanks for your feedback, ${message.name}!`
-      );
-      panel.dispose();
-    },
-    undefined,
-    context.subscriptions
-  );
 }
 
 const startClient = async (
