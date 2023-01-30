@@ -38,8 +38,8 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
-import { Auth0AuthenticationProvider } from "./priyam_wisdom/auth0AuthenticationProvider";
-import { TreeDataProvider } from "./priyam_wisdom/treeView";
+import { Auth0AuthenticationProvider } from "./features/wisdom/auth0AuthenticationProvider";
+import { TreeDataProvider } from "./features/wisdom/treeView";
 import { WisdomManager } from "./features/wisdom/base";
 import {
   inlineSuggestionProvider,
@@ -153,7 +153,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );
 
-  const session = authentication.getSession("auth0", [], {
+  const session = authentication.getSession("auth-wisdom", [], {
     createIfNone: false,
   });
   if (session) {
@@ -279,7 +279,7 @@ async function resyncAnsibleInventory(): Promise<void> {
 }
 
 async function getAuthToken(): Promise<void> {
-  const session = await authentication.getSession("auth0", [], {
+  const session = await authentication.getSession("auth-wisdom", [], {
     createIfNone: true,
   });
   window.registerTreeDataProvider("wisdom-auth", new TreeDataProvider(session));

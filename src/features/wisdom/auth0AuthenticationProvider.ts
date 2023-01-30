@@ -20,8 +20,8 @@ import { PromiseAdapter, promiseFromEvent } from "./utils";
 import axios from "axios";
 import { TreeDataProvider } from "./treeView";
 
-export const AUTH_TYPE = `auth0`;
-const AUTH_NAME = `Auth0`;
+export const AUTH_TYPE = `auth-wisdom`;
+const AUTH_NAME = `Ansible Wisdom`;
 const CLIENT_ID = `o4cQDouZZ7kRPyyxJnUAVGSCrM67eHwO`;
 const AUTH0_DOMAIN = `dev-wi6r27qfsm7dtlps.us.auth0.com`;
 const SESSIONS_SECRET_KEY = `${AUTH_TYPE}.sessions`;
