@@ -639,14 +639,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/uuid@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "@types/uuid@npm:9.0.0"
-  checksum: 59ae56d9547c8758588659da2a2b4c97cce79c2aae1798c892bb29452ef08e87859dea2ec3a66bfa88d0d2153147520be2b1893be920f9f0bc9c53a3207ea6aa
+"@types/uuid@npm:^8.3.4":
+  version: 8.3.4
+  resolution: "@types/uuid@npm:8.3.4"
+  checksum: 6f11f3ff70f30210edaa8071422d405e9c1d4e53abbe50fdce365150d3c698fe7bbff65c1e71ae080cbfb8fded860dbb5e174da96fdbbdfcaa3fb3daa474d20f
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:^1.63.0":
+"@types/vscode@npm:^1.71.0":
   version: 1.74.0
   resolution: "@types/vscode@npm:1.74.0"
   checksum: 25de153cc10136d32d425960c04687fdc26b79b49420d055799f01169e3141fa619d3ed6b3126c4ca4635d12aff2b77df51460e89235c71b55d570f8c08df71c
@@ -1260,13 +1260,13 @@ __metadata:
     "@types/ini": ^1.3.31
     "@types/mocha": ^10.0.1
     "@types/node": ^18.11.18
-    "@types/uuid": ^9.0.0
-    "@types/vscode": ^1.63.0
+    "@types/uuid": ^8.3.4
+    "@types/vscode": ^1.71.0
     "@typescript-eslint/eslint-plugin": ^5.47.1
     "@typescript-eslint/parser": ^5.47.1
     "@vscode/test-electron": ^2.2.1
     "@vscode/vsce": ^2.16.0
-    axios: ^1.2.5
+    axios: ^1.2.1
     chai: ^4.3.7
     copyfiles: ^2.4.1
     depcheck: ^1.4.3
@@ -1286,8 +1286,8 @@ __metadata:
     ts-node: ^10.9.1
     typescript: ^4.9.4
     untildify: ^4.0.0
-    uuid: ^9.0.0
-    vscode-extension-tester: ^5.2.1
+    uuid: ^8.3.2
+    vscode-extension-tester: ^5.3.0
     vscode-languageclient: ^8.0.2
     warnings-to-errors-webpack-plugin: ^2.3.0
     webpack: ^5.75.0
@@ -1725,9 +1725,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001400":
-  version: 1.0.30001449
-  resolution: "caniuse-lite@npm:1.0.30001449"
-  checksum: f1b395f0a5495c1931c53f58441e0db79b8b0f8ef72bb6d241d13c49b05827630efe6793d540610e0a014d8fdda330dd42f981c82951bd4bdcf635480e1a0102
+  version: 1.0.30001448
+  resolution: "caniuse-lite@npm:1.0.30001448"
+  checksum: 8d8bb7d097a9c80c01a4f8e3e1819cc7fc218114c8cc8773fe35aef898d12ff4e668b132a661a221ab56c022981c1df708fbe8efa09a3ce21dff97eee483cf90
   languageName: node
   linkType: hard
 
@@ -6456,7 +6456,11 @@ __metadata:
   languageName: node
   linkType: hard
 
+<<<<<<< HEAD
 "vscode-extension-tester@npm:^5.2.1":
+=======
+"vscode-extension-tester@npm:^5.3.0":
+>>>>>>> main
   version: 5.3.0
   resolution: "vscode-extension-tester@npm:5.3.0"
   dependencies:

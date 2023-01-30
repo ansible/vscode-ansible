@@ -1,10 +1,13 @@
 import { MetadataManager } from "../features/ansibleMetaData";
+import { WisdomManager } from "../features/wisdom/base";
 import { SettingsManager } from "../settings";
 
 export function updateConfigurationChanges(
   metaData: MetadataManager,
-  extSettings: SettingsManager
+  extSettings: SettingsManager,
+  wisdomManager: WisdomManager
 ): void {
-  metaData.updateAnsibleInfoInStatusbar();
   extSettings.reinitialize();
+  metaData.updateAnsibleInfoInStatusbar();
+  wisdomManager.reInitialize();
 }
