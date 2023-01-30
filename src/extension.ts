@@ -1,6 +1,12 @@
 /* "stdlib" */
 import * as path from "path";
-import { ExtensionContext, extensions, window, workspace } from "vscode";
+import {
+  authentication,
+  ExtensionContext,
+  extensions,
+  window,
+  workspace,
+} from "vscode";
 import { toggleEncrypt } from "./features/vault";
 import { AnsibleCommands, WisdomCommands } from "./definitions/constants";
 import {
@@ -30,7 +36,8 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
-import { ExplorerView } from "./explorerView";
+import { Auth0AuthenticationProvider } from "./priyam_wisdom/auth0AuthenticationProvider";
+import { TreeDataProvider } from "./priyam_wisdom/treeView";
 
 let client: LanguageClient;
 const lsName = "Ansible Support";
@@ -89,6 +96,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
   workspace.onDidChangeConfiguration(() =>
     updateConfigurationChanges(metaData, extSettings)
   );
+
+  const session = authentication.getSession("auth0", [], {
+    createIfNone: false,
+  });
+  if (session) {
+    window.registerTreeDataProvider(
+      "wisdom-auth",
+      new TreeDataProvider(await session)
+    );
+  }
 }
 
 const startClient = async (
@@ -136,23 +153,11 @@ const startClient = async (
     clientOptions
   );
 
-  // Register the explorer view
-  const explorerSidebar = ExplorerView.getInstance(context.extensionUri);
-  const explorerView = window.registerWebviewViewProvider(
-    ExplorerView.viewType,
-    explorerSidebar,
-    {
-      webviewOptions: {
-        retainContextWhenHidden: true,
-      },
-    }
-  );
-
   context.subscriptions.push(
     client.onTelemetry((e) => {
       telemetry.telemetryService.send(e);
     }),
-    explorerView
+    new Auth0AuthenticationProvider(context)
   );
 
   try {
@@ -211,5 +216,13 @@ async function resyncAnsibleInventory(): Promise<void> {
 }
 
 async function getAuthToken(): Promise<void> {
-  window.showInformationMessage("Request sent for auth token");
+  const session = await authentication.getSession("auth0", [], {
+    createIfNone: true,
+  });
+  window.registerTreeDataProvider("wisdom-auth", new TreeDataProvider(session));
+  console.log("session -> ", session.accessToken);
+
+  if (session) {
+    window.showInformationMessage(`Welcome back ${session.account.label}`);
+  }
 }
