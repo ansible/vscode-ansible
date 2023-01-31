@@ -64,7 +64,7 @@
     "viewsWelcome": [
       {
         "view": "wisdom-auth",
-        "contents": "Welcome to wisdom service for Visual Studio Code.\nExperience smarter automation with Wisdom's AI-assisted solutions for your playbook.\nLet's simplify your workflow by connecting VS Code with Wisdom.\n[Connect](command:extension.wisdom.auth)"
+        "contents": "Welcome to wisdom service for Visual Studio Code.\nExperience smarter automation with Wisdom's AI-assisted solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Wisdom.\n[Connect](command:extension.wisdom.auth)"
       }
     ],
     "jsonValidation": [

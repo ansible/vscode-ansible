@@ -16,14 +16,13 @@ import {
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils";
-// import fetch from "node-fetch";
 import axios from "axios";
 import { TreeDataProvider } from "./treeView";
 
 export const AUTH_TYPE = `auth-wisdom`;
-const AUTH_NAME = `Ansible Wisdom`;
-const CLIENT_ID = `o4cQDouZZ7kRPyyxJnUAVGSCrM67eHwO`;
-const AUTH0_DOMAIN = `dev-wi6r27qfsm7dtlps.us.auth0.com`;
+const AUTH_NAME = `Wisdom`;
+const CLIENT_ID = `OE4FW9tkFNetrpq5ELuKSqAQMKdUGmIv`;
+const AUTH0_DOMAIN = `dev-4u2zut0lyw1ubk08.us.auth0.com`;
 const SESSIONS_SECRET_KEY = `${AUTH_TYPE}.sessions`;
 
 class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
@@ -91,8 +90,10 @@ export class Auth0AuthenticationProvider
   public async createSession(scopes: string[]): Promise<AuthenticationSession> {
     try {
       const token = await this.login(scopes);
+      console.log("*** token -> ", token);
+
       if (!token) {
-        throw new Error(`Auth0 login failure`);
+        throw new Error(`Wisdom login failure`);
       }
 
       const userinfo: { name: string; email: string } = await this.getUserInfo(
@@ -172,7 +173,7 @@ export class Auth0AuthenticationProvider
     return await window.withProgress<string>(
       {
         location: ProgressLocation.Notification,
-        title: "Signing in to Auth0...",
+        title: "Signing in to Wisdom...",
         cancellable: true,
       },
       async (_, token) => {
@@ -203,6 +204,8 @@ export class Auth0AuthenticationProvider
         const uri = Uri.parse(
           `https://${AUTH0_DOMAIN}/authorize?${searchParams.toString()}`
         );
+        console.log("*** uri -> ", uri);
+
         await env.openExternal(uri);
 
         let codeExchangePromise = this._codeExchangePromises.get(scopeString);
