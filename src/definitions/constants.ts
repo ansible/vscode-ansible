@@ -12,6 +12,7 @@ export namespace WisdomCommands {
   export const WISDOM_SUGGESTION_HIDE = "ansible.wisdom.inlineSuggest.hide";
   export const WISDOM_SUGGESTION_TRIGGER =
     "ansible.wisdom.inlineSuggest.trigger";
+  export const WISDOM_SUGGESTION_ON_ENTER = "extension.onEnter";
   export const WISDOM_SUGGESTION_USER_ACTION =
     "extension.inlineSuggestionUserAction";
 }

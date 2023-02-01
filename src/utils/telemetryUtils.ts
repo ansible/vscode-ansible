@@ -2,6 +2,7 @@ import {
   getRedHatService,
   TelemetryService,
 } from "@redhat-developer/vscode-redhat-telemetry/lib";
+import { RedHatService } from "@redhat-developer/vscode-redhat-telemetry/lib/interfaces/redhatService";
 import { ExtensionContext } from "vscode";
 import {
   CloseAction,
@@ -19,6 +20,7 @@ const CMD_FAIL_VALUE = "failed";
 export class TelemetryManager {
   private context: ExtensionContext;
   public telemetryService!: TelemetryService;
+  public redhatService!: RedHatService;
   public isTelemetryInit = false;
 
   constructor(context: ExtensionContext) {
@@ -29,9 +31,8 @@ export class TelemetryManager {
     if (this.isTelemetryInit) {
       throw new Error("Telemetry already initialized");
     }
-    this.telemetryService = await (
-      await getRedHatService(this.context)
-    ).getTelemetryService();
+    this.redhatService = await getRedHatService(this.context);
+    this.telemetryService = await this.redhatService.getTelemetryService();
     this.telemetryService.sendStartupEvent();
     this.isTelemetryInit = true;
   }

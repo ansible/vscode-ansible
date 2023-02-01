@@ -5,6 +5,8 @@ export interface SuggestionResult {
 export interface RequestParams {
   context: string;
   prompt: string;
+  userId?: string;
+  suggestionId?: string;
 }
 
 export interface WisdomTelemetryEvent {
