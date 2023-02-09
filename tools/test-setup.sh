@@ -365,7 +365,9 @@ fi
 log notice "Install node deps using either yarn or npm"
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn install
+    yarn --version
+    yarn install --immutable
+    # --immutable-cache --check-cache
 else
     npm ci --no-audit
 fi

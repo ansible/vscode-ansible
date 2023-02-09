@@ -589,7 +589,7 @@
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
   "version": "1.1.0",
-  "packageManager": "yarn@3.3.0",
+  "packageManager": "yarn@3.4.1",
   "vsce": {
     "dependencies": false,
     "yarn": false
