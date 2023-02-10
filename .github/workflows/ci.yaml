@@ -76,6 +76,9 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup yarn
+        run: yarn set version latest
+
       - name: Setup python
         uses: actions/setup-python@v4
         with:
@@ -93,7 +96,7 @@ jobs:
             ~/.cache/pip
             ~/.cache/yarn
             ~/.local/share/containers/podman/machine/qemu
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile', '.yarnrc.yml') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
