@@ -91,7 +91,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       () => {
         vscode.commands.executeCommand("default:type", { text: "\n" });
         setKeyInput("enter");
-      }
+      },
+      { language: "ansible" }
     )
   );
 
