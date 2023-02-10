@@ -26,13 +26,11 @@ tasks:
       - echo Done {{.VERSION}}!
   devel:
     desc: Updates the language server to latest from @main and run all tests
-    deps:
-      - install
     cmds:
-      - tools/dirty.sh
-      # If we call `task devel -- <path>` we will link that path, otherwise
-      # we will just update ansible-language-server to @main.
-      - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'{{end}}"
+      - tools/clone-sibling.sh
+      - yarn link --relative ../ansible-language-server
+      - task: install
+      # - tools/dirty.sh
       - >
         bash -c 'git diff --quiet --exit-code || {
         git add package.json yarn.lock &&
