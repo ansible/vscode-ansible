@@ -1,7 +1,7 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
-output: group
+output: prefixed # do not use "group" due to impact on CI
 env: &env
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
