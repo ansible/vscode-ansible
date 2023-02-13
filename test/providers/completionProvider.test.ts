@@ -1,7 +1,10 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { expect } from "chai";
-import { Position } from "vscode-languageserver";
-import { doCompletion } from "../../src/providers/completionProvider";
+import { Position, CompletionItemKind } from "vscode-languageserver";
+import {
+  doCompletion,
+  doCompletionResolve,
+} from "../../src/providers/completionProvider";
 import {} from "../../src/providers/validationProvider";
 import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
 import {
@@ -545,6 +548,59 @@ function testHostValues(
   });
 }
 
+function testModuleKindAndDocumentation(
+  context: WorkspaceFolderContext,
+  textDoc: TextDocument,
+) {
+  const tests = [
+    {
+      moduleName: "org_1.coll_6.module_1",
+      kind: CompletionItemKind.Reference,
+      documentation:
+        "***Redirected to: org_1.coll_6.sub_coll_1.module_1***\n\n*Test module*\n\n**Description**\n\n- This is a test module 1\n\n**Notes**\n\n- This is a dummy module",
+    },
+    {
+      moduleName: "org_1.coll_6.module_2",
+      kind: CompletionItemKind.Class,
+      documentation:
+        "*Test module*\n\n**Description**\n\n- This is a test module 2\n\n**Notes**\n\n- This is a dummy module",
+    },
+    {
+      moduleName: "org_1.coll_6.sub_coll_1.module_1",
+      kind: CompletionItemKind.Class,
+      documentation:
+        "*Test module*\n\n**Description**\n\n- This is a test module 1\n\n**Notes**\n\n- This is a dummy module",
+    },
+    {
+      moduleName: "org_1.coll_6.sub_coll_1.module_2",
+      kind: CompletionItemKind.Reference,
+      documentation:
+        "**DEPRECATED**\n\nUsage of org_1.coll_6.sub_coll_1.module_2 is deprecated.\n\nRemoval date: undefined, removal version: undefined\n\n***Redirected to: org_1.coll_6.module_2***\n\n*Test module*\n\n**Description**\n\n- This is a test module 2\n\n**Notes**\n\n- This is a dummy module",
+    },
+  ];
+
+  tests.forEach(({ moduleName, kind, documentation }) => {
+    let resolvedItem;
+    const position = { line: 34, character: 19 } as Position;
+
+    before(async () => {
+      const completion = await doCompletion(textDoc, position, context);
+      const filteredCompletion = completion.filter(
+        (item) => item.label === moduleName,
+      );
+      expect(filteredCompletion.length).be.equal(1);
+      expect(filteredCompletion[0].label).be.equal(moduleName);
+      resolvedItem = await doCompletionResolve(filteredCompletion[0], context);
+    });
+    it(`should provide completion kind ${kind} for ${moduleName}`, () => {
+      expect(resolvedItem.kind).be.equal(kind);
+    });
+    it(`should provide documentation for ${moduleName}`, () => {
+      expect(resolvedItem.documentation["value"]).be.equal(documentation);
+    });
+  });
+}
+
 describe("doCompletion()", () => {
   const workspaceManager = createTestWorkspaceManager();
   let fixtureFilePath = "completion/simple_tasks.yml";
@@ -735,6 +791,33 @@ describe("doCompletion()", () => {
       });
 
       testModuleNames(context, textDoc);
+    });
+  });
+
+  describe("Check module kind and documentation of completion item", () => {
+    describe("With EE enabled @ee", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv(
+          "/home/runner/.ansible/collections:/usr/share/ansible",
+        );
+        await enableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testModuleKindAndDocumentation(context, textDoc);
+
+      after(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+    });
+
+    describe("With EE disabled", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testModuleKindAndDocumentation(context, textDoc);
     });
   });
 

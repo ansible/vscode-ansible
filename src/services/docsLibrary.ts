@@ -192,8 +192,9 @@ export class DocsLibrary {
 
   public getModuleRoute(fqcn: string): IPluginRoute | undefined {
     const fqcn_array = fqcn.split(".");
-    if (fqcn_array.length === 3) {
-      const [namespace, collection, name] = fqcn_array;
+    if (fqcn_array.length >= 3) {
+      const [namespace, collection] = fqcn_array;
+      const name = fqcn_array.slice(2).join(".");
       return this.pluginRouting
         .get(`${namespace}.${collection}`)
         ?.get("modules")
