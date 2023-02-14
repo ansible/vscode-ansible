@@ -1,5 +1,6 @@
 #!/usr/bin/env groovy
 /* groovylint-disable GStringExpressionWithinString MethodReturnTypeRequired FactoryMethodName UnnecessaryGetter */
+/* cspell:ignore nocolor, audjirka, shamishr */
 
 def installBuildRequirements() {
   def nodeHome = tool 'nodejs-lts'
@@ -28,7 +29,7 @@ node('rhel8') {
     def packageJson = readJSON file: 'package.json'
     // We always replace MAJOR.MINOR.PATCH from package.json with MAJOR.MINOR.BUILD
     def version = packageJson.version[0..packageJson.version.lastIndexOf('.') - 1] + ".${env.BUILD_NUMBER}"
-    sh "npx vsce package ${ params.publishPreRelease ? '--pre-release' : '' } --no-dependencies --no-git-tag-version --no-update-package-json ${ version }"
+    sh "yarn run vsce package ${ params.publishPreRelease ? '--pre-release' : '' } --no-dependencies --no-git-tag-version --no-update-package-json ${ version }"
   }
 
   if (params.UPLOAD_LOCATION) {
@@ -41,30 +42,25 @@ node('rhel8') {
 }
 
 node('rhel8') {
-  if (publishToMarketPlace.equals('true')) {
-    timeout(time:5, unit:'DAYS') {
-      // these are LDAP accounts
-      input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto'
-    }
+  print "DEBUG: parameter publishPreRelease=${params.publishPreRelease}"
+  timeout(time:5, unit:'DAYS') {
+    // these are LDAP accounts
+    input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto,audjirka,shamishr'
+  }
 
-    stage('publish') {
-      unstash 'vsix'
-      def vsix = findFiles(glob: '**.vsix')
-      // VS Code Marketplace
-      withCredentials([[$class: 'StringBinding', credentialsId: 'vscode_java_marketplace', variable: 'TOKEN']]) {
-        sh "vsce publish -p $TOKEN ${params.publishPreRelease ? '--pre-release' : ''} --packagePath ${vsix[0].path}"
-      }
-      archive includes:'**.vsix'
-
-      // Open-vsx Marketplace
-      sh 'npm install -g ovsx'
-      withCredentials([[$class: 'StringBinding', credentialsId: 'open-vsx-access-token', variable: 'OVSX_TOKEN']]) {
-        sh "ovsx publish -p $OVSX_TOKEN ${vsix[0].path}"
-      }
+  stage('publish') {
+    unstash 'vsix'
+    def vsix = findFiles(glob: '**.vsix')
+    // VS Code Marketplace
+    withCredentials([[$class: 'StringBinding', credentialsId: 'vscode_java_marketplace', variable: 'TOKEN']]) {
+      sh "yarn run vsce publish -p $TOKEN ${params.publishPreRelease ? '--pre-release' : ''} --packagePath ${vsix[0].path}"
     }
+    archive includes:'**.vsix'
 
-    stage('promote to stable') {
-      sh "sftp -C ${UPLOAD_LOCATION}/stable/vscode-ansible/ <<< \$'put -p -r ${vsix[0].path}'"
+    // Open-vsx Marketplace
+    withCredentials([[$class: 'StringBinding', credentialsId: 'open-vsx-access-token', variable: 'OVSX_TOKEN']]) {
+      sh "yarn run ovsx publish -p $OVSX_TOKEN ${vsix[0].path}"
     }
+    sh "sftp -C ${UPLOAD_LOCATION}/stable/vscode-ansible/ <<< \$'put -p -r ${vsix[0].path}'"
   }
 }

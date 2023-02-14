@@ -1,0 +1,10 @@
+ignores:
+  - "@ansible/ansible-language-server"
+  - "@vscode/vsce"
+  - depcheck
+  - mochawesome
+  - mochawesome-report-generator
+  - ovsx
+  - vscode
+  - webpack-cli
+  - yarn-audit-fix

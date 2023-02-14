@@ -6,9 +6,9 @@ name: ci
 # events but only for the main branch
 on:
   push:
-    branches: [main]
+    branches: ["main", "devel/*"]
   pull_request:
-    branches: [main]
+    branches: ["main", "devel/*"]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -32,7 +32,7 @@ jobs:
         continue-on-error:
           - false
         os:
-          - ubuntu-latest
+          - ubuntu-22.04
         task-name:
           - test
         upload-artifact:
@@ -42,7 +42,7 @@ jobs:
         include:
           - name: lint
             task-name: lint
-            os: ubuntu-latest
+            os: ubuntu-22.04
             upload-artifact: true
             env:
               SKIP_PODMAN: 1
@@ -52,11 +52,11 @@ jobs:
             # this job will install latest version of ansible-language-server
             # instead of the one mentioned in lock file
             task-name: devel
-            os: ubuntu-latest
+            os: ubuntu-22.04
 
           - name: test (macos)
             task-name: test
-            os:  macos-11
+            os:  macos-12
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -68,13 +68,21 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout vscode-ansible
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v3.3.0
 
       - name: Install Task
         uses: arduino/setup-task@v1
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup yarn
+        run: yarn set version latest
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
       - name: Enable caching
         uses: actions/cache@v3
@@ -87,8 +95,17 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.local/share/containers/podman/machine/qemu
+            ~/.local/share/containers
+            ~/.config/containers
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt') }}
+
+      - name: Enable caching for podman-machine
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/share/containers
+            ~/.config/containers
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
@@ -106,7 +123,7 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         # xvfb needed for chrome headless tests
-        uses: GabrielBB/xvfb-action@v1.6
+        uses: coactions/setup-xvfb@v1
         with:
           run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
         continue-on-error: ${{ matrix.continue-on-error || false }}
@@ -158,7 +175,7 @@ jobs:
     needs:
       - build
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Decide whether the needed jobs succeeded or failed

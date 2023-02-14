@@ -1,23 +1,24 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
-output: group
+output: prefixed # do not use "group" due to impact on CI
 env: &env
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
   # basically the same thing from .envrc file:
   VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
+    sh: echo "${VIRTUAL_ENV:-out/venvs/{{.HOSTNAME}}}"
 vars:
   HOSTNAME:
-    sh: echo ${HOSTNAME:-localhost}
-  VERSION:
-    sh: node -p "require('./package.json').version"
+    sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
 tasks:
   default:
+    vars:
+      VERSION:
+        sh: node -p "require('./package.json').version"
     desc: Run most commands
     deps:
-      - setup
+      - install
       - lint
       - package
     cmds:
@@ -25,13 +26,11 @@ tasks:
       - echo Done {{.VERSION}}!
   devel:
     desc: Updates the language server to latest from @main and run all tests
-    deps:
-      - setup
     cmds:
-      - tools/dirty.sh
-      # If we call `task devel -- <path>` we will link that path, otherwise
-      # we will just update ansible-language-server to @main.
-      - "{{if .CLI_ARGS}}yarn link {{.CLI_ARGS}}{{else}}yarn up '@ansible/ansible-language-server@https://github.com/ansible/ansible-language-server#main'{{end}}"
+      - tools/clone-sibling.sh
+      - yarn link --relative ../ansible-language-server
+      - task: install
+      # - tools/dirty.sh
       - >
         bash -c 'git diff --quiet --exit-code || {
         git add package.json yarn.lock &&
@@ -55,17 +54,23 @@ tasks:
       - bash ./tools/test-setup.sh
     sources:
       - tools/test-setup.sh
+    generates:
+      - out/log/manifest-{{.HOSTNAME}}.yml
+    run: once
+    interactive: true
+  install:
+    deps:
+      - setup
+    cmds:
+      - yarn install
+    sources:
       - package.json
       - yarn.lock
-      - Taskfile.yml
-    generates:
-      - node_modules
-      - out/log/manifest.yml
-    run: once
+    interactive: true
   build:
     desc: Build the project
     deps:
-      - setup
+      - install
     cmds:
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
@@ -79,7 +84,7 @@ tasks:
       - src/**/*
       - test/**/*
       - tsconfig.json
-      - webpack.config.js
+      - webpack.config.ts
       - yarn.lock.json
   code:
     env:
@@ -93,19 +98,20 @@ tasks:
   deps:
     desc: Update dependencies
     deps:
-      - setup
+      - install
     cmds:
-      - $VIRTUAL_ENV/bin/python -m piptools compile -q --no-header --no-annotate .config/requirements.txt --output-file .config/requirements.txt
-      - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
       # bumps some developments dependencies
       - yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
       - yarn install
+      # check deps
+      - yarn dlx depcheck
+      - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
   lint:
     desc: Lint the project
     deps:
-      - setup
+      - install
     cmds:
       - $VIRTUAL_ENV/bin/python -m pre_commit run -a
       - tools/dirty.sh
@@ -160,6 +166,9 @@ tasks:
         yarn run test-ui-oldest
     interactive: true
   package:
+    vars:
+      VERSION:
+        sh: node -p "require('./package.json').version"
     desc: Package extension
     deps:
       - build
@@ -168,6 +177,8 @@ tasks:
       - README.md
       - package*.json
       - out/
+      - webpack.config.ts
+      - Taskfile.yml
     generates:
       - "*.vsix"
     cmds:
@@ -175,10 +186,11 @@ tasks:
       - yarn run webpack
       # --pre-release not supported until we do VS Code >=1.63
       # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}-next-1
+      - yarn run vsce package --pre-release --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}
       # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
       - zipinfo -1 *.vsix
       - tools/dirty.sh
+      - ls -la *.vsix
     silent: true
   pr:
     desc: Opens a pull request using gh
@@ -190,7 +202,7 @@ tasks:
   release:
     desc: Create a new release (used by CI)
     deps:
-      - setup
+      - install
     cmds:
       - ./tools/release.sh
     interactive: true
