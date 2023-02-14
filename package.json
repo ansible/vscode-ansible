@@ -328,7 +328,7 @@
             "usesOnlineServices"
           ],
           "scope": "window",
-          "order": 23
+          "order": 20
         }
       }
     },
@@ -496,10 +496,12 @@
     "@ansible/ansible-language-server": "^1.0.4",
     "@redhat-developer/vscode-redhat-telemetry": "^0.5.4",
     "@types/ini": "^1.3.31",
+    "axios": "^1.2.1",
     "ini": "^3.0.1",
     "untildify": "^4.0.0",
+    "uuid": "^8.3.2",
     "vscode-languageclient": "^8.0.2",
-    "yaml": "^2.2.1"
+    "yaml": "^1.10.2"
   },
   "description": "Ansible language support",
   "devDependencies": {
@@ -507,7 +509,8 @@
     "@types/glob": "^8.0.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "^18.11.18",
-    "@types/vscode": "^1.63.0",
+    "@types/uuid": "^8.3.4",
+    "@types/vscode": "^1.71.0",
     "@typescript-eslint/eslint-plugin": "^5.47.1",
     "@typescript-eslint/parser": "^5.47.1",
     "@vscode/test-electron": "^2.2.1",
@@ -529,7 +532,7 @@
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.4",
-    "vscode-extension-tester": "^5.2.1",
+    "vscode-extension-tester": "^5.3.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1",
@@ -541,7 +544,7 @@
     "//": "node version affects only development, it does not affect vscode runtime",
     "node": ">=16.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.63.0",
+    "vscode": "^1.71.0",
     "yarn": ">=3.2.1"
   },
   "extensionDependencies": [
@@ -567,11 +570,12 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
+    "package": "yarn run webpack && npx vsce package",
     "preinstall": "",
     "pretest": "yarn run compile",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
-    "test-ui-current": "extest setup-and-run -e out/ext -c 1.69.0 --code_settings test/testFixtures/settings.json -s out/test-resources out/client/test/ui-test/allTestsSuite.js",
-    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.63.0 --code_settings test/testFixtures/settings.json -s out/test-resources-oldest -u out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-current": "extest setup-and-run -e out/ext -c 1.71.0 --code_settings test/testFixtures/settings.json -s out/test-resources out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-oldest": "extest setup-and-run -e out/ext -c 1.71.0 --code_settings test/testFixtures/settings.json -s out/test-resources-oldest -u out/client/test/ui-test/allTestsSuite.js",
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
@@ -585,7 +589,7 @@
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
   "version": "1.1.0",
-  "packageManager": "yarn@3.3.0",
+  "packageManager": "yarn@3.4.1",
   "vsce": {
     "dependencies": false,
     "yarn": false

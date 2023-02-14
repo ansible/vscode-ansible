@@ -108,6 +108,7 @@ unstash
 untildify
 userdata
 usermod
+uuidv4
 venvs
 vscoss
 vsix
@@ -119,3 +120,4 @@ withserver
 xvfb
 yaegassy
 yarnpkg
+yarnrc

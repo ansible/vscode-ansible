@@ -76,6 +76,9 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup yarn
+        run: yarn set version latest
+
       - name: Setup python
         uses: actions/setup-python@v4
         with:
@@ -92,8 +95,17 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.local/share/containers/podman/machine/qemu
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile') }}
+            ~/.local/share/containers
+            ~/.config/containers
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt') }}
+
+      - name: Enable caching for podman-machine
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/share/containers
+            ~/.config/containers
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3

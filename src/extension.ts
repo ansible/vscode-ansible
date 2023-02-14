@@ -1,13 +1,15 @@
 /* "stdlib" */
+import * as vscode from "vscode";
 import * as path from "path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
-import { AnsibleCommands } from "./definitions/constants";
+import { AnsibleCommands, WisdomCommands } from "./definitions/constants";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
   TelemetryManager,
 } from "./utils/telemetryUtils";
+import { setKeyInput } from "./utils/keyInputUtils";
 
 /* third-party */
 import {
@@ -30,8 +32,17 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
+import { WisdomManager } from "./features/wisdom/base";
+import {
+  inlineSuggestionProvider,
+  inlineSuggestionTriggerHandler,
+  inlineSuggestionCommitHandler,
+  inlineSuggestionHideHandler,
+  inlineSuggestionUserActionHandler,
+} from "./features/wisdom/inlineSuggestions";
 
-let client: LanguageClient;
+export let client: LanguageClient;
+export let wisdomManager: WisdomManager;
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
@@ -71,15 +82,64 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const metaData = new MetadataManager(context, client, telemetry);
   metaData.updateAnsibleInfoInStatusbar();
 
+  // handle wisdom service
+  wisdomManager = new WisdomManager(context, client, extSettings, telemetry);
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      WisdomCommands.WISDOM_SUGGESTION_ON_ENTER,
+      () => {
+        vscode.commands.executeCommand("default:type", { text: "\n" });
+        setKeyInput("enter");
+      },
+      { language: "ansible" }
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerInlineCompletionItemProvider(
+      { scheme: "file", language: "ansible" },
+      inlineSuggestionProvider()
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      WisdomCommands.WISDOM_SUGGESTION_COMMIT,
+      inlineSuggestionCommitHandler
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      WisdomCommands.WISDOM_SUGGESTION_HIDE,
+      inlineSuggestionHideHandler
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      WisdomCommands.WISDOM_SUGGESTION_TRIGGER,
+      inlineSuggestionTriggerHandler
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      WisdomCommands.WISDOM_SUGGESTION_USER_ACTION,
+      await inlineSuggestionUserActionHandler
+    )
+  );
+
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(() =>
-    metaData.updateAnsibleInfoInStatusbar()
+    updateAnsibleStatusBar(metaData, wisdomManager)
   );
   workspace.onDidOpenTextDocument(() =>
-    metaData.updateAnsibleInfoInStatusbar()
+    updateAnsibleStatusBar(metaData, wisdomManager)
   );
   workspace.onDidChangeConfiguration(() =>
-    updateConfigurationChanges(metaData, extSettings)
+    updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );
 }
 
@@ -161,6 +221,13 @@ export function deactivate(): Thenable<void> | undefined {
   return client.stop();
 }
 
+function updateAnsibleStatusBar(
+  metaData: MetadataManager,
+  wisdomManager: WisdomManager
+) {
+  metaData.updateAnsibleInfoInStatusbar();
+  wisdomManager.updateWisdomStatusbar();
+}
 /**
  * Finds extensions that conflict with our extension.
  * If one or more conflicts are found then show an uninstall notification

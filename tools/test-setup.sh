@@ -18,11 +18,11 @@ NC='\033[0m' # No Color
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
-:> "${PIP_LOG_FILE}"
+: >"${PIP_LOG_FILE}"
 
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
-get_version () {
+get_version() {
     if command -v "${1:-}" >/dev/null 2>&1; then
         _cmd=("${@:1}")
         # if we did not pass any arguments, we add --version ourselves:
@@ -41,19 +41,22 @@ get_version () {
 
 # Use "log [notice|warning|error] message" to  print a colored message to
 # stderr, with colors.
-log () {
+log() {
     local prefix
     if [ "$#" -ne 2 ]; then
         log error "Incorrect call ($*), use: log [notice|warning|error] 'message'."
         exit 2
     fi
     case $1 in
-        notice)   prefix='\033[0;36mNOTICE:  ';;
-        warning)  prefix='\033[0;33mWARNING: ';;
-        error)    prefix='\033[0;31mERROR:   ';;
-        *)        log error "log first argument must be 'notice', 'warning' or 'error', not $1."; exit 2;;
+        notice) prefix='\033[0;36mNOTICE:  ' ;;
+        warning) prefix='\033[0;33mWARNING: ' ;;
+        error) prefix='\033[0;31mERROR:   ' ;;
+        *)
+        log error "log first argument must be 'notice', 'warning' or 'error', not $1."
+        exit 2
+        ;;
     esac
-    >&2 echo -e "${prefix}${2}${NC}"
+    echo >&2 -e "${prefix}${2}${NC}"
 }
 
 if [ ! -d "$HOME/.local/bin" ] ; then
@@ -91,7 +94,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
-    if [[ "${INSTALL}" -eq 1 ]]; then
+    if [[ ${INSTALL} -eq 1 ]]; then
         log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
         sudo apt-get -qq update -o=Dpkg::Use-Pty=0
@@ -115,8 +118,8 @@ fi
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
-git config user.name  >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
-if [[ "${GIT_NOT_CONFIGURED:-}" == "1" ]]; then
+git config user.name >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
+if [[ ${GIT_NOT_CONFIGURED:-} == "1" ]]; then
     echo CI="${CI:-}"
     if [ -z "${CI:-}" ]; then
         log error "git config user.email or user.name are not configured."
@@ -145,11 +148,13 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
         }
     podman info
     podman run hello-world
+    du -ahc ~/.config/containers ~/.local/share/containers || true
+    podman machine inspect
 fi
 
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
-if [[ "${OS:-}" == "windows" ]]; then
+if [[ ${OS:-} == "windows" ]]; then
     log error "You cannot use Windows build tools for development, try WSL."
     exit 1
 fi
@@ -161,7 +166,8 @@ if grep -qi microsoft /proc/version >/dev/null 2>&1; then
 fi
 
 # User specific environment
-if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+if ! [[ ${PATH} == *"${HOME}/.local/bin"* ]]; then
+    # shellcheck disable=SC2088
     log warning '\~/.local/bin was not found in PATH, attempting to add it.'
     PATH="${HOME}/.local/bin:${PATH}"
     export PATH
@@ -210,7 +216,7 @@ fi
 
 log notice "Installing $(python3 --version) venv and dependencies matching creator-ee:${IMAGE_VERSION} ..."
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
-if [[ ! -d "${VIRTUAL_ENV}" ]]; then
+if [[ ! -d ${VIRTUAL_ENV} ]]; then
     log notice "Creating virtualenv ..."
     python3 -m venv "${VIRTUAL_ENV}"
 fi
@@ -229,7 +235,7 @@ fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
 # other than our own virtualenv. (test isolation)
-if [[ -n "${CI:-}" ]]; then
+if [[ -n ${CI:-} ]]; then
     command -v ansible >/dev/null 2>&1 || {
         log warning "Attempting to remove pre-installed ansible on CI ..."
         pipx uninstall --verbose ansible || true
@@ -255,7 +261,7 @@ fi
 # Fail if detected tool paths are not from inside out out/ folder
 for CMD in ansible ansible-lint; do
     CMD=$(command -v $CMD 2>/dev/null)
-    [[ "${CMD%%/out*}" == "$(pwd -P)" ]] || {
+    [[ ${CMD%%/out*} == "$(pwd -P)" ]] || {
         log error "${CMD} executable is not from our own virtualenv:\n${CMD}"
         exit 68
     }
@@ -265,7 +271,7 @@ unset CMD
 command -v node >/dev/null 2>&1 || command -v nvm >/dev/null 2>&1 || {
     log notice "Installing nvm as node was found."
     # define its location (needed)
-    [[ -z "${NVM_DIR:-}" ]] && export NVM_DIR="${HOME}/.nvm";
+    [[ -z ${NVM_DIR:-} ]] && export NVM_DIR="${HOME}/.nvm"
     # install if missing
     [[ ! -s "${NVM_DIR:-}/nvm.sh" ]] && {
         log warning "Installing missing nvm"
@@ -275,7 +281,7 @@ command -v node >/dev/null 2>&1 || command -v nvm >/dev/null 2>&1 || {
     # shellcheck disable=1091
     . "${NVM_DIR:-${HOME}/.nvm}/nvm.sh"
     # shellcheck disable=1091
-    [[ -s "/usr/local/opt/nvm/nvm.sh" ]] && . "/usr/local/opt/nvm/nvm.sh";
+    [[ -s "/usr/local/opt/nvm/nvm.sh" ]] && . "/usr/local/opt/nvm/nvm.sh"
 
     log notice "Installing nodejs stable using nvm."
     nvm install stable
@@ -340,7 +346,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
             }
         }
         while [[ "$(podman machine ls --format '{{.Running}}' \
-                --noheading || true)" != "true" ]]; do
+            --noheading || true)" != "true" ]]; do
             sleep 1
             echo -n .
         done
@@ -365,7 +371,9 @@ fi
 log notice "Install node deps using either yarn or npm"
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn install
+    yarn --version
+    yarn install --immutable
+    # --immutable-cache --check-cache
 else
     npm ci --no-audit
 fi
