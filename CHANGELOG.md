@@ -4,6 +4,31 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.2
+
+### Minor Changes
+
+- Add Red Hat telemetry gathering (#732) @ganeshrn
+- Reuse terminal setting (#689) @egnirra
+- Enhance ansible metadata and Bump ALS version from 1.0.1 to to 1.0.2 (#677)
+  @priyamsahoo
+- Add event driven schema for autocompletion and diagnostics of EDA rules (#673)
+  @ganeshrn
+
+### Bugfixes
+
+- Upgrade ALS to 1.0.4 (#733) @priyamsahoo
+- Update location of ansible schemas (#705) @ssbarnea
+- Fix broken pipe error in test-setup.sh (#693) @priyamsahoo
+- Update search paths for ansible.cfg based on the documentation (#691)
+  @priyamsahoo
+- Enables reuse of existing ansible terminals (#683) @egnirra
+- Enhance ansible metadata and Bump ALS version from 1.0.1 to to 1.0.2 (#677)
+  @priyamsahoo
+- Missing `ansible.completion.*` configuration (#663) @yaegassy
+- Refresh status-bar title and content when extension settings are changed
+  (#662) @priyamsahoo
+
 ## v1.1
 
 ### Minor Changes
