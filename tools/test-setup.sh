@@ -137,7 +137,8 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
         brew update --force
         brew config
         brew doctor || echo "Doctor failed with: $?"
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+        brew info podman
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman --HEAD
     }
     podman machine ls --noheading | grep '\*' || {
         log warning "Creating podman machine..."
