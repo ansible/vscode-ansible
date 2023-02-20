@@ -38,7 +38,7 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
-import { Auth0AuthenticationProvider } from "./features/wisdom/auth0AuthenticationProvider";
+import { WisdomAuthenticationProvider } from "./features/wisdom/wisdomAuthenticationProvider";
 import { TreeDataProvider } from "./features/wisdom/treeView";
 import { WisdomManager } from "./features/wisdom/base";
 import {
@@ -213,7 +213,7 @@ const startClient = async (
     client.onTelemetry((e) => {
       telemetry.telemetryService.send(e);
     }),
-    new Auth0AuthenticationProvider(context)
+    new WisdomAuthenticationProvider(context)
   );
 
   try {

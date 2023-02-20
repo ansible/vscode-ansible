@@ -31,7 +31,7 @@ class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
   }
 }
 
-export class Auth0AuthenticationProvider
+export class WisdomAuthenticationProvider
   implements AuthenticationProvider, Disposable
 {
   private _sessionChangeEmitter =
