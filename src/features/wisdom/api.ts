@@ -70,6 +70,8 @@ export class WisdomAPI {
           vscode.window.showErrorMessage(
             "User not authorized to access Ansible wisdom service."
           );
+        } else if (err?.response?.status === 400) {
+          vscode.window.showErrorMessage("Bad Request. Please try again...");
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
             "Too many request to Ansible wisdom service. Please try again after 30 seconds..."
