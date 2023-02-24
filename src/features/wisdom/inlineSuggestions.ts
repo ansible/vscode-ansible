@@ -71,7 +71,7 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
       if (taskMatchedPattern) {
         isTaskNameMatch = true;
         promptDescription = taskMatchedPattern?.groups?.description;
-        prompt = `${lineToExtractPrompt.text.trim()}\n`;
+        prompt = `${lineToExtractPrompt.text}\n`;
       } else {
         // check if the line is a comment line
         const commentMatchedPattern =
@@ -187,7 +187,7 @@ export async function inlineSuggestionTriggerHandler(
   if (taskMatchedPattern) {
     isTaskNameMatch = true;
     promptDescription = taskMatchedPattern?.groups?.description;
-    prompt = `${lineToExtractPrompt.text.trim()}\n`;
+    prompt = `${lineToExtractPrompt.text}\n`;
   } else {
     // check if the line is a comment line
     const commentMatchedPattern =
@@ -247,9 +247,9 @@ async function getInlineSuggestions(
     suggestionId = uuidv4();
     telemetryData["suggestionId"] = suggestionId;
     telemetryData["documentUri"] = document.uri.toString();
-    const documentContext = `${document
-      .getText(new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt))
-      .trim()}\n`;
+    const range = new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt)
+    // BOUNDARY: context shouldn't contain a newline when empty
+    let documentContext = range.isEmpty ? '' : `${document.getText(range)}\n`;
     telemetryData["request"] = {
       context: documentContext,
       prompt: prompt,
