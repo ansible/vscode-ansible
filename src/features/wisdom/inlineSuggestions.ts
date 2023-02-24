@@ -247,9 +247,9 @@ async function getInlineSuggestions(
     suggestionId = uuidv4();
     telemetryData["suggestionId"] = suggestionId;
     telemetryData["documentUri"] = document.uri.toString();
-    const range = new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt)
+    const range = new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt);
     // BOUNDARY: context shouldn't contain a newline when empty
-    let documentContext = range.isEmpty ? '' : `${document.getText(range)}\n`;
+    let documentContext = range.isEmpty ? "" : `${document.getText(range)}\n`;
     telemetryData["request"] = {
       context: documentContext,
       prompt: prompt,

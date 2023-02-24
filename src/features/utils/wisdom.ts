@@ -21,7 +21,7 @@ export function removePromptFromSuggestion(
       const newSuggestion = lines
         .map((line, index) => {
           // BOUNDARY: shouldn't extend into the string
-          if (line[position.character - 1]?.match(/\w/)) return '';
+          if (line[position.character - 1]?.match(/\w/)) return "";
 
           const newLine = line.substring(position.character);
           if (index === 0) {
@@ -30,7 +30,7 @@ export function removePromptFromSuggestion(
             return " ".repeat(spacesBeforeCursor) + newLine;
           }
         })
-        .filter(s => s)
+        .filter((s) => s)
         .join("\n");
       return newSuggestion;
     } else {
