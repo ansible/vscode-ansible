@@ -21,7 +21,10 @@ export function removePromptFromSuggestion(
       const newSuggestion = lines
         .map((line, index) => {
           // BOUNDARY: shouldn't extend into the string
-          if (line[position.character - 1]?.match(/\w/)) return "";
+          if (line[position.character - 1]?.match(/\w/)) {
+            console.error(`ignoring malformed line, indentation: '${line}'`);
+            return "";
+          }
 
           const newLine = line.substring(position.character);
           if (index === 0) {
