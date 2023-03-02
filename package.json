@@ -119,8 +119,8 @@
       },
       {
         "fileMatch": [
-          "eda/rulebooks/*.yaml",
-          "eda/rulebooks/*.yml"
+          "rulebooks/*.yaml",
+          "rulebooks/*.yml"
         ],
         "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
       }
