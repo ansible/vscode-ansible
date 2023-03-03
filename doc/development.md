@@ -63,8 +63,12 @@ task package
 ## Release and publication of extension
 
 Any push made to the `main` branch will trigger an
-[jenkins job](https://studio-jenkins-csb-codeready.apps.ocp4.prod.psi.redhat.com/job/ansible/)
+[jenkins job](https://studio-jenkins-csb-codeready.apps.ocp-c1.prod.psi.redhat.com/job/ansible/job/vscode-ansible/)
 that produces an artifact. The new version will be uploaded to
 [marketplace.visualstudio.com](https://marketplace.visualstudio.com/) and
 [open-vsx.org](https://open-vsx.org/) stores only when the pipeline is approved
 by a core developer from Jenkins interface.
+
+To be able to approve the release, you need to be login using kerberos, which is
+documented on
+[Red Hat IAM Wiki](https://source.redhat.com/groups/public/identity-access-management/identity__access_management_wiki/how_to_install_idm_client).

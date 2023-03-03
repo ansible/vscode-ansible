@@ -7,12 +7,12 @@ export function removePromptFromSuggestion(
   position: vscode.Position
 ): string {
   const lines = suggestion.split("\n");
-  const firstLine = lines[0].trim();
+  const firstLine = lines[0];
   const editor = vscode.window.activeTextEditor;
   const cursorLine = editor?.document.lineAt(position);
   const spacesBeforeCursor =
     cursorLine?.text.slice(0, position.character).match(/^ +/)?.[0].length || 0;
-  if (!firstLine.startsWith(prompt.trim())) {
+  if (!firstLine.startsWith(prompt)) {
     // if the first line doesn't start with the prompt,
     // we don't need to remove it. Adjust the indentation
     // for the rest of the lines to account for the spaces before cursor
@@ -20,12 +20,20 @@ export function removePromptFromSuggestion(
     if (spacesBeforeCursor > 0 && lines.length > 1) {
       const newSuggestion = lines
         .map((line, index) => {
+          // BOUNDARY: shouldn't extend into the string
+          if (line[position.character - 1]?.match(/\w/)) {
+            console.error(`ignoring malformed line, indentation: '${line}'`);
+            return "";
+          }
+
+          const newLine = line.substring(position.character);
           if (index === 0) {
-            return line;
+            return newLine;
           } else {
-            return " ".repeat(spacesBeforeCursor) + line;
+            return " ".repeat(spacesBeforeCursor) + newLine;
           }
         })
+        .filter((s) => s)
         .join("\n");
       return newSuggestion;
     } else {
@@ -34,7 +42,7 @@ export function removePromptFromSuggestion(
   } else {
     // if the first line starts with the prompt, remove it
     // and adjust the indentation for the rest of the lines
-    const subString = firstLine.slice(prompt.trim().length);
+    const subString = firstLine.slice(prompt.length);
     lines[0] = subString;
     if (subString === "") {
       lines.shift();
