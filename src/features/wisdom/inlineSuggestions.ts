@@ -3,7 +3,10 @@ import { window, Position } from "vscode";
 
 import { v4 as uuidv4 } from "uuid";
 
-import { removePromptFromSuggestion } from "../utils/wisdom";
+import {
+  convertToSnippetString,
+  removePromptFromSuggestion,
+} from "../utils/wisdom";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { wisdomManager } from "../../extension";
 import { WisdomCommands } from "../../definitions/constants";
@@ -71,7 +74,7 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
       if (taskMatchedPattern) {
         isTaskNameMatch = true;
         promptDescription = taskMatchedPattern?.groups?.description;
-        prompt = `${lineToExtractPrompt.text.trim()}\n`;
+        prompt = `${lineToExtractPrompt.text}`;
       } else {
         // check if the line is a comment line
         const commentMatchedPattern =
@@ -187,7 +190,7 @@ export async function inlineSuggestionTriggerHandler(
   if (taskMatchedPattern) {
     isTaskNameMatch = true;
     promptDescription = taskMatchedPattern?.groups?.description;
-    prompt = `${lineToExtractPrompt.text.trim()}\n`;
+    prompt = `${lineToExtractPrompt.text}`;
   } else {
     // check if the line is a comment line
     const commentMatchedPattern =
@@ -247,9 +250,9 @@ async function getInlineSuggestions(
     suggestionId = uuidv4();
     telemetryData["suggestionId"] = suggestionId;
     telemetryData["documentUri"] = document.uri.toString();
-    const documentContext = `${document
-      .getText(new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt))
-      .trim()}\n`;
+    const range = new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt);
+    // BOUNDARY: context shouldn't contain a newline when empty
+    const documentContext = range.isEmpty ? "" : `${document.getText(range)}\n`;
     telemetryData["request"] = {
       context: documentContext,
       prompt: prompt,
@@ -295,8 +298,11 @@ async function getInlineSuggestions(
         );
       }
       insertTexts.push(insertText);
+
+      // completion item is converted from PLAIN-TEXT to SNIPPET-STRING
+      // in order to support tab-stops for automatically placing and switching cursor positions
       const inlineSuggestionUserActionItem = new vscode.InlineCompletionItem(
-        insertText
+        new vscode.SnippetString(convertToSnippetString(insertText))
       );
       inlineSuggestionUserActionItem.command = {
         title: "Accept or Reject or Modify feedback",
