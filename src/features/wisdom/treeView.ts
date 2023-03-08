@@ -10,10 +10,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     if (!sessionData) {
       this.data = [];
     } else {
-      this.data = [
-        new TreeItem(`Name: ${sessionData.account.label}`),
-        new TreeItem(`Email: ${sessionData.account.id}`),
-      ];
+      this.data = [new TreeItem(`User successfully logged in`)];
     }
   }
 

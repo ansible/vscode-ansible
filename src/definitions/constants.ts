@@ -8,7 +8,7 @@ export namespace AnsibleCommands {
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace WisdomCommands {
-  export const WISDOM_AUTH_REQUEST = "extension.wisdom.auth";
+  export const WISDOM_AUTH_REQUEST = "ansible.wisdom.oauth";
   export const WISDOM_SUGGESTION_COMMIT = "ansible.wisdom.inlineSuggest.accept";
   export const WISDOM_SUGGESTION_HIDE = "ansible.wisdom.inlineSuggest.hide";
   export const WISDOM_SUGGESTION_TRIGGER =

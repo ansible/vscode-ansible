@@ -9,6 +9,7 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { WisdomAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
+import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
 
 export class WisdomManager {
   private context;
@@ -17,6 +18,7 @@ export class WisdomManager {
   public telemetry: TelemetryManager;
   public wisdomStatusBar: StatusBarItem;
   public apiInstance: WisdomAPI;
+  public wisdomAuthenticationProvider: WisdomAuthenticationProvider;
 
   constructor(
     context: ExtensionContext,
@@ -29,6 +31,11 @@ export class WisdomManager {
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
     this.apiInstance = new WisdomAPI(this.settingsManager);
+
+    // initiate the OAuth service for Wisdom
+    this.wisdomAuthenticationProvider = new WisdomAuthenticationProvider(
+      this.context
+    );
 
     // create a new ansible wisdom status bar item that we can manage
     this.wisdomStatusBar = this.initialiseStatusBar();
