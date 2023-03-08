@@ -3,7 +3,10 @@ import { window, Position } from "vscode";
 
 import { v4 as uuidv4 } from "uuid";
 
-import { removePromptFromSuggestion } from "../utils/wisdom";
+import {
+  convertToSnippetString,
+  removePromptFromSuggestion,
+} from "../utils/wisdom";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { wisdomManager } from "../../extension";
 import { WisdomCommands } from "../../definitions/constants";
@@ -295,8 +298,11 @@ async function getInlineSuggestions(
         );
       }
       insertTexts.push(insertText);
+
+      // completion item is converted from PLAIN-TEXT to SNIPPET-STRING
+      // in order to support tab-stops for automatically placing and switching cursor positions
       const inlineSuggestionUserActionItem = new vscode.InlineCompletionItem(
-        insertText
+        new vscode.SnippetString(convertToSnippetString(insertText))
       );
       inlineSuggestionUserActionItem.command = {
         title: "Accept or Reject or Modify feedback",
