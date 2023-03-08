@@ -4,7 +4,68 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.2
+
+### Minor Changes
+
+- Show info in status-bar if a newer version of ansible-lint is available (#692)
+  @priyamsahoo
+- Add code changes for inline suggestion [part-1] (#766) @ganeshrn
+
+### Bugfixes
+
+- Fix onEnter key bindings to work with ansible extension only (#772) @ganeshrn
+- Fix devel testing (#777) @ssbarnea
+- Add fix to remove prompt from suggestion (#770) @ganeshrn
+- Upgrade telemetry to 0.5.4 (#751) @ssbarnea
+- Add tsdoc to eslint (#747) @ssbarnea
+- Switch from quay.io to ghcr.io (#744) @ssbarnea
+
+## v1.1
+
+### Minor Changes
+
+- Add Red Hat telemetry gathering (#732) @ganeshrn
+- Reuse terminal setting (#689) @egnirra
+- Enhance ansible metadata and Bump ALS version from 1.0.1 to to 1.0.2 (#677)
+  @priyamsahoo
+- Add event driven schema for autocompletion and diagnostics of EDA rules (#673)
+  @ganeshrn
+
+### Bugfixes
+
+- Upgrade ALS to 1.0.4 (#733) @priyamsahoo
+- Update location of ansible schemas (#705) @ssbarnea
+- Fix broken pipe error in test-setup.sh (#693) @priyamsahoo
+- Update search paths for ansible.cfg based on the documentation (#691)
+  @priyamsahoo
+- Enables reuse of existing ansible terminals (#683) @egnirra
+- Enhance ansible metadata and Bump ALS version from 1.0.1 to to 1.0.2 (#677)
+  @priyamsahoo
+- Missing `ansible.completion.*` configuration (#663) @yaegassy
+- Refresh status-bar title and content when extension settings are changed
+  (#662) @priyamsahoo
+
 ## v1.0.0
+
+### Minor Changes
+
+- Add support to run ansible-navigator with execution environment (#652)
+  @ganeshrn
+- Update the extension to support disabling diagnostics (#648) @priyamsahoo
+
+### Bugfixes
+
+- Improve description of configuration options (#649) @priyamsahoo
+- Update ALS version to 1.0.1 (#656) @priyamsahoo
+- Use creator-ee v0.9.2 to fix CI failures (#653) @priyamsahoo
+- Update ansible-lint and version and e2e-tests to support changes the changes
+  (#643) @priyamsahoo
+- More refactor for ansible metadata feature (#641) @ganeshrn
+- Refactor extension.ts (#635) @priyamsahoo
+- Switch to new location of Molecule JSON Schema (#637) @ssbarnea
+
+## v0.14.0
 
 ### Minor Changes
 
@@ -17,7 +78,7 @@
 - Change extension status-bar icon (#627) @ssbarnea
 - fix hyphenation README (#611) @akira6592
 
-## v0.14.0
+## v0.13.0
 
 ### Minor Changes
 
@@ -30,7 +91,7 @@
 - Fix the display of double `Ansible` in status-bar text (#605) @priyamsahoo
 - Disable python debugger when running external commands (#603) @ssbarnea
 
-## v0.13.0
+## v0.12.0
 
 ### Minor Changes
 
@@ -41,12 +102,6 @@
 
 - Update test dependencies (#577) @ssbarnea
 - Update ansible-language-server (#574) @ssbarnea
-
-## v0.12.0
-
-### Minor Changes
-
-- Add command to re-sync ansible inventory file (#522) @priyamsahoo
 
 ### Bugfixes
 

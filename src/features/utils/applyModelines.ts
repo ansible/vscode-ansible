@@ -54,7 +54,7 @@ export async function configureModelines(
  * This function reads the modeline config and tries to assign language to the document based on it
  * credits: https://github.com/ctlajoie/vscode-modelines/blob/master/src/modelines.ts
  *
- * @param editor textEditor
+ * @param editor - textEditor
  */
 export async function applyModeLines(
   editor: vscode.TextEditor | undefined

@@ -4,12 +4,10 @@ import {
   SideBarView,
   ViewControl,
   ExtensionsViewSection,
+  Workbench,
 } from "vscode-extension-tester";
 
 config.truncateThreshold = 0;
-/**
- * @author Ondrej Dockal <odockal@redhat.com>
- */
 export function extensionUIAssetsTest(): void {
   describe("Verify base assets are available after installation", () => {
     let view: ViewControl;
@@ -36,19 +34,7 @@ export function extensionUIAssetsTest(): void {
 
     after(async function () {
       this.timeout(8000);
-      if (sideBar && (await sideBar.isDisplayed())) {
-        const viewControl = (await new ActivityBar().getViewControl(
-          "Extensions"
-        )) as ViewControl;
-        sideBar = await viewControl.openView();
-        const titlePart = sideBar.getTitlePart();
-        const actionButton = await titlePart.getAction(
-          "Clear Extensions Search Results"
-        );
-        if (await actionButton.isEnabled()) {
-          await actionButton.click();
-        }
-      }
+      await new Workbench().executeCommand("Clear Extensions Search Results");
     });
   });
 }

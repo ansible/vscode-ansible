@@ -9,7 +9,7 @@ import { configureModelines, searchModelines } from "./utils/applyModelines";
  *
  * If modelines is present, it is given priority over keyword check.
  *
- * @param context The extension context
+ * @param context - The extension context
  */
 export async function languageAssociation(
   context: vscode.ExtensionContext

@@ -68,13 +68,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout vscode-ansible
-        uses: actions/checkout@v3.2.0
+        uses: actions/checkout@v3.3.0
 
       - name: Install Task
         uses: arduino/setup-task@v1
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup yarn
+        run: yarn set version latest
 
       - name: Setup python
         uses: actions/setup-python@v4
@@ -92,8 +95,15 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.local/share/containers/podman/machine/qemu
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Containerfile') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
+
+      - name: Enable caching for podman-machine
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.local/share/containers
+            ~/.config/containers
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Use NodeJS v16
         uses: actions/setup-node@v3
@@ -111,7 +121,7 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         # xvfb needed for chrome headless tests
-        uses: GabrielBB/xvfb-action@v1.6
+        uses: coactions/setup-xvfb@v1
         with:
           run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
         continue-on-error: ${{ matrix.continue-on-error || false }}

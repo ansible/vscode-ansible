@@ -9,6 +9,9 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
   let ansibleLintPresent = true;
   let eeEnabled = false;
 
+  const WARNING_COLOR = "#FFEF4A";
+  const WARNING_STYLE = `style="color:${WARNING_COLOR};"`;
+
   // check if ansible is missing
   if (Object.keys(ansibleMetaData["ansible information"]).length === 0) {
     ansiblePresent = false;
@@ -17,7 +20,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     // if python exists
     if (Object.keys(ansibleMetaData["python information"]).length !== 0) {
       const obj = ansibleMetaData["python information"];
-      mdString += `Python version used: \`${obj["python version"]}\` from \`${obj["python location"]}\``;
+      mdString += `Python version used: \`${obj["version"]}\` from \`${obj["location"]}\``;
     }
 
     const markdown = new MarkdownString(mdString, true);
@@ -62,13 +65,17 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
     // put a marker stating ansible-lint setting is disabled
     if (mainKey === "ansible-lint information" && !lintEnabled) {
       mdString += `\n**${mainKey}:** `;
-      mdString += `*<span style="color:#FFEF4A;">(disabled)*\n`;
+      mdString += `*<span ${WARNING_STYLE}>(disabled)*\n`;
     } else {
       mdString += `\n**${mainKey}:** \n`;
     }
 
     const valueObj = ansibleMetaData[mainKey];
     Object.keys(valueObj).forEach((key) => {
+      if (key === "upgrade status") {
+        mdString += ` <span ${WARNING_STYLE}>${valueObj[key]}`;
+        return;
+      }
       mdString += `\n   - ${key}: `;
       const value = valueObj[key];
       if (typeof value === "object") {
@@ -90,7 +97,11 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
         if (key.includes("path")) {
           mdString += `<a href='${value}'>${getTildePath(value)}</a>`;
         } else if (key.includes("version")) {
-          mdString += `\`${value}\`\n`;
+          const versionInfo = value.split(/\r?\n/); // first part of versionInfo has the version no., the second part has message (if any)
+          mdString += `\`${versionInfo[0]}\`\n`;
+          if (versionInfo[1]) {
+            mdString += `*<span style="color:${WARNING_COLOR};">${versionInfo[1]}*\n`;
+          }
         } else if (key.includes("location")) {
           mdString += `${getTildePath(value)}\n`;
         } else {
@@ -110,7 +121,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
 
   if (!ansibleLintPresent) {
     markdown.appendMarkdown(
-      `\n<p><span style="color:#FFEF4A;">$(warning) Warning(s):</p></h5>`
+      `\n<p><span ${WARNING_STYLE}>$(warning) Warning(s):</p></h5>`
     );
     markdown.appendMarkdown(`Ansible lint is missing in the environment`);
   }

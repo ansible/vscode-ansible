@@ -68,7 +68,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.16.0
+    rev: v6.22.0
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -80,7 +80,7 @@ repos:
             yarn.lock
           )$
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.28.0
+    rev: v1.29.0
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -113,19 +113,22 @@ repos:
             syntaxes/external/jinja.tmLanguage.json
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.32.2
+    rev: v0.33.0
     hooks:
       - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.3.0
+    rev: v9.4.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.30.0
+    rev: v8.33.0
     hooks:
       - id: eslint
         args:
+          # default format is not vscode friendly
+          - --color
+          - --format=unix
           - --fix
           - --max-warnings
           - "0"
@@ -133,8 +136,9 @@ repos:
           - "@typescript-eslint/eslint-plugin"
           - "@typescript-eslint/parser"
           - eslint
-          - eslint-plugin-prettier
           - eslint-config-prettier
+          - eslint-plugin-prettier
+          - eslint-plugin-tsdoc
           - prettier
           - typescript
           - typescript-eslint

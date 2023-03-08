@@ -5,6 +5,9 @@ import * as vscode from "vscode";
 import { withInterpreter } from "./utils/commandRunner";
 import { ExtensionSettings } from "../interfaces/extensionSettings";
 import { getContainerEngine } from "../utils/executionEnvironment";
+import { AnsibleCommands } from "../definitions/constants";
+import { registerCommandWithTelemetry } from "../utils/registerCommands";
+import { TelemetryManager } from "../utils/telemetryUtils";
 
 /**
  * A set of commands and context menu items for running Ansible playbooks using
@@ -12,13 +15,16 @@ import { getContainerEngine } from "../utils/executionEnvironment";
  */
 export class AnsiblePlaybookRunProvider {
   private settings: ExtensionSettings;
+  private telemetry: TelemetryManager;
 
   constructor(
     private vsCodeExtCtx: vscode.ExtensionContext,
-    settings: ExtensionSettings
+    settings: ExtensionSettings,
+    telemetry: TelemetryManager
   ) {
-    this.configureCommands();
     this.settings = settings;
+    this.telemetry = telemetry;
+    this.configureCommands();
   }
 
   /**
@@ -26,58 +32,24 @@ export class AnsiblePlaybookRunProvider {
    * within VS Code.
    */
   private configureCommands() {
-    this.vsCodeExtCtx.subscriptions.push(
-      vscode.commands.registerCommand(
-        "extension.ansible-playbook.run",
-        (fileObj) => this.makeCmdRunner()(fileObj)
-      )
+    registerCommandWithTelemetry(
+      this.vsCodeExtCtx,
+      this.telemetry,
+      AnsibleCommands.ANSIBLE_PLAYBOOK_RUN,
+      (fileObj) => this.invokeViaAnsiblePlaybook(fileObj),
+      false
     );
     console.log('Added a "Run Ansible Playbook" command...');
-    this.vsCodeExtCtx.subscriptions.push(
-      vscode.commands.registerCommand(
-        "extension.ansible-navigator.run",
-        (fileObj) => this.makeCmdRunner(true)(fileObj)
-      )
-    );
-    console.log('Added a "Run with Ansible Navigator" command...');
-  }
 
-  /**
-   * A factory method for creating an Ansible playbook runner.
-   *
-   * @param useNavigator A flag for preferring `ansible-navigator run`
-   *                     over `ansible-playbook`.
-   * @returns A callable for running a supplied playbook.
-   */
-  private makeCmdRunner(useNavigator = false) {
-    const runPlaybook = useNavigator
-      ? this.invokeViaAnsibleNavigator.bind(this)
-      : this.invokeViaAnsiblePlaybook.bind(this);
-    return (...fileObj: vscode.Uri[] | undefined[]) => {
-      const commandLineArgs: string[] = [];
-      const playbookFsPath = extractTargetFsPath(...fileObj);
-      if (typeof playbookFsPath === "undefined") {
-        let tool_name = "ansible-playbook";
-        if (useNavigator) {
-          tool_name = "ansible-navigator";
-        }
-        vscode.window.showErrorMessage(
-          `No Ansible playbook file has been specified to be executed with ${tool_name}.`
-        );
-        return;
-      }
-      commandLineArgs.push(playbookFsPath);
-      if (useNavigator) {
-        this.addEEArgs(commandLineArgs);
-      }
-      console.debug(
-        `Got a request to run ansible-${
-          useNavigator ? "navigator" : "playbook"
-        } against`,
-        playbookFsPath
-      );
-      runPlaybook(commandLineArgs);
-    };
+    registerCommandWithTelemetry(
+      this.vsCodeExtCtx,
+      this.telemetry,
+      AnsibleCommands.ANSIBLE_NAVIGATOR_RUN,
+      (fileObj) => this.invokeViaAnsibleNavigator(fileObj),
+      false
+    );
+
+    console.log('Added a "Run with Ansible Navigator" command...');
   }
 
   private addEEArgs(commandLineArgs: string[]): void {
@@ -158,40 +130,68 @@ export class AnsiblePlaybookRunProvider {
   }
 
   /**
-   * A helper method for running `ansible-playbook`.
-   * @param argv Arguments to the `ansible-playbook` command.
+   * A callback method for running `ansible-playbook` command.
+   * @param fileObj - The file path to execute the command.
    */
-  private invokeViaAnsiblePlaybook(argv: string[]) {
+  private async invokeViaAnsiblePlaybook(
+    ...fileObj: vscode.Uri[] | undefined[]
+  ): Promise<void> {
     const runExecutable = this.ansiblePlaybookExecutablePath;
-    const cmdArgs = argv.map((arg) => arg).join(" ");
+    const commandLineArgs: string[] = [];
+    const playbookFsPath = extractTargetFsPath(...fileObj);
+    if (typeof playbookFsPath === "undefined") {
+      vscode.window.showErrorMessage(
+        `No Ansible playbook file has been specified to be executed with ansible-playbook.`
+      );
+      return;
+    }
+    commandLineArgs.push(playbookFsPath);
+    const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const [command, runEnv] = withInterpreter(
       this.settings,
       runExecutable,
       cmdArgs
     );
+
+    console.debug(`Running command: ${command}`);
     this.invokeInTerminal(command, runEnv);
   }
 
   /**
-   * A helper method for running `ansible-navigator run`.
-   * @param argv Arguments to the `ansible-navigator run` command.
+   * A callback method for running `ansible-navigator run command`.
+   * @param fileObj - The file path to execute the command.
    */
-  private invokeViaAnsibleNavigator(argv: string[]) {
+  private async invokeViaAnsibleNavigator(
+    ...fileObj: vscode.Uri[] | undefined[]
+  ): Promise<void> {
     const runExecutable = this.ansibleNavigatorExecutablePath;
-    const cmdArgs = argv.map((arg) => arg).join(" ");
+    const commandLineArgs: string[] = [];
+    const playbookFsPath = extractTargetFsPath(...fileObj);
+    if (typeof playbookFsPath === "undefined") {
+      vscode.window.showErrorMessage(
+        `No Ansible playbook file has been specified to be executed with ansible-navigator run.`
+      );
+      return;
+    }
+    commandLineArgs.push(playbookFsPath);
+
+    this.addEEArgs(commandLineArgs);
+
+    const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const runCmdArgs = `run ${cmdArgs}`;
     const [command, runEnv] = withInterpreter(
       this.settings,
       runExecutable,
       runCmdArgs
     );
+    console.debug(`Running command: ${command}`);
     this.invokeInTerminal(command, runEnv);
   }
 }
 
 /**
  * A helper function for inferring selected file from the context.
- * @param priorityPathObjs Target file path candidates.
+ * @param priorityPathObjs - Target file path candidates.
  * @returns A path to the currently selected file.
  */
 function extractTargetFsPath(

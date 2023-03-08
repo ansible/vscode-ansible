@@ -19,6 +19,7 @@ export class SettingsManager {
     const eeSettings = vscode.workspace.getConfiguration(
       "ansible.executionEnvironment"
     );
+    const wisdomSettings = vscode.workspace.getConfiguration("ansible.wisdom");
     this.settings = {
       activationScript: ansibleSettings.get(
         "python.activationScript"
@@ -28,12 +29,21 @@ export class SettingsManager {
         enabled: eeSettings.get("enabled", false),
         containerEngine: eeSettings.get("containerEngine", "auto"),
         containerOptions: eeSettings.get("containerOptions", ""),
-        image: eeSettings.get("image", "quay.io/ansible/creator-ee:latest"),
+        image: eeSettings.get("image", "ghcr.io/ansible/creator-ee:latest"),
         pull: {
           arguments: eeSettings.get("pull.arguments", ""),
           policy: eeSettings.get("pull.policy", "missing"),
         },
         volumeMounts: eeSettings.get("volumeMounts", []),
+      },
+      wisdomService: {
+        enabled: wisdomSettings.get("enabled", true),
+        basePath: wisdomSettings.get("basePath", ""),
+        authToken: wisdomSettings.get("authToken"),
+        suggestions: {
+          enabled: wisdomSettings.get("suggestions.enabled", true),
+          userFeedback: wisdomSettings.get("suggestions.userFeedback", true),
+        },
       },
     };
     return;
