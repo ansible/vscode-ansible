@@ -130,28 +130,6 @@ if [[ ${GIT_NOT_CONFIGURED:-} == "1" ]]; then
     fi
 fi
 
-# macos specific
-if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
-    command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
-    }
-    podman machine ls --noheading | grep '\*' || {
-        log warning "Creating podman machine..."
-        time podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
-    }
-    podman machine ls --format '{{.Name}} {{.Running}}' --noheading | grep podman-machine-default | grep true || {
-        # do not use full path as it varies based on architecture
-        # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
-        "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
-        log warning "Trying to start podman machine again..."
-        time podman machine start
-        }
-    podman info
-    podman run hello-world
-    du -ahc ~/.config/containers ~/.local/share/containers || true
-    podman machine inspect
-fi
-
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
 if [[ ${OS:-} == "windows" ]]; then
@@ -191,7 +169,7 @@ python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)"
 
 # install gh if missing
 command -v gh >/dev/null 2>&1 || {
-    log notice "Trying to install missing gh on ${OS} ..."
+    log notice "Trying to install missing gh on ${OSTYPE} ..."
     # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
     if [[ -f "/usr/bin/apt-get" ]]; then
       curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
@@ -218,7 +196,7 @@ log notice "Installing $(python3 --version) venv and dependencies matching creat
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
 if [[ ! -d ${VIRTUAL_ENV} ]]; then
     log notice "Creating virtualenv ..."
-    python3 -m venv "${VIRTUAL_ENV}"
+    python3 -m venv --system-site-packages "${VIRTUAL_ENV}"
 fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
@@ -302,6 +280,10 @@ if [[ -f yarn.lock ]]; then
 fi
 
 log notice "Docker checks..."
+if [[ -n ${DOCKER_HOST+x} ]]; then
+    log error "DOCKER_HOST is set, we do not support this setup."
+    exit 1
+fi
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
 DOCKER_VERSION="$(get_version docker 2>/dev/null || echo null)"
 if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
@@ -316,7 +298,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
         exit 1
     fi
-    log notice "Pull our test container image."
+    log notice "Pull our test container image with docker."
     docker pull --quiet "${IMAGE}" >/dev/null || {
         log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it."
         exit 1
@@ -332,27 +314,47 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
 fi
 
 log notice "Podman checks..."
+# macos specific
+if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
+    command -v podman >/dev/null 2>&1 || {
+        log notice "Installing podman..."
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+    }
+    log notice "Configuring podman machine ($MACHTYPE)..."
+    podman machine ls --noheading | grep '\*' || {
+        log warning "Podman machine not found, creating and starting one ($MACHTYPE)..."
+        time podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
+    }
+    podman machine ls --noheading
+    log notice "Checking status of podman machine ($MACHTYPE)..."
+    podman machine ls --format '{{.Name}} {{.Running}}' --noheading | grep podman-machine-default | grep true || {
+        log warning "Podman machine not running, trying to start it..."
+        # do not use full path as it varies based on architecture
+        # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
+        # MACHTYPE can look like x86_64 or x86_64-apple-darwin20.6.0
+        if [[ $MACHTYPE == x86_64* ]] ; then
+            log notice "Running on x86_64 architecture"
+        else
+            qemu-system-aarch64 -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+        fi
+        n=0
+        until [ "$n" -ge 5 ]; do
+            log warning "Trying to start podman machine again ($n)..."
+            time podman machine start && break  # substitute your command here
+            n=$((n+1))
+            sleep 15
+        done
+        }
+    # validation is done later
+    podman info
+    podman run hello-world
+    du -ahc ~/.config/containers ~/.local/share/containers || true
+    podman machine inspect
+fi
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
 if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
-    if [[ "$(podman machine ls --format '{{.Running}}' --noheading || true)" \
-            == "false" ]]; then
-        log notice "Starting podman machine"
-        podman machine start || {
-            log error "Failed to start podman machine, trying to create it."
-            podman machine init || {
-                log error "Failed to create podman machine."
-                exit 1
-            }
-        }
-        while [[ "$(podman machine ls --format '{{.Running}}' \
-            --noheading || true)" != "true" ]]; do
-            sleep 1
-            echo -n .
-        done
-        echo .
-    fi
-    log notice "Pull our test container image."
+    log notice "Pull our test container image with podman."
     podman pull --quiet "${IMAGE}" >/dev/null
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
