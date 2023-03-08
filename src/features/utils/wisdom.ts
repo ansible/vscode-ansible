@@ -59,3 +59,19 @@ export function removePromptFromSuggestion(
     return lines.join("\n");
   }
 }
+
+/* A utility function to convert plain text to snippet string */
+export function convertToSnippetString(suggestion: string): string {
+  // this regex matches all content inside {{  }}
+  // TODO: once a prefix is decided for using it in from of variable names, the regex
+  // can be changed to match it
+  const regex = /(?<=\{\{ ).+?(?= \}\})/gm;
+
+  let counter = 0;
+  const convertedSuggestion = suggestion.replace(regex, (item) => {
+    counter = counter + 1;
+    return `\${${counter}:${item}}`;
+  });
+
+  return convertedSuggestion;
+}
