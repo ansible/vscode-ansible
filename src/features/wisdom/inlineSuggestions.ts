@@ -49,36 +49,51 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
         wisdomManager.updateWisdomStatusbar();
         return [];
       }
-      const editor = vscode.window.activeTextEditor;
-      const currentLine = editor?.document.lineAt(editor.selection.active.line);
-      if (!currentLine?.isEmptyOrWhitespace) {
-        return [];
-      }
-      console.log("provideInlineCompletionItems triggered by user edits");
-      const lineToExtractPrompt = document.lineAt(position.line - 1);
-      let matchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
-      let isTaskNameMatch = false;
-
-      if (position.line <= 0) {
+      if (position.line <= 0 || token?.isCancellationRequested) {
         return;
       }
-      if (matchedPattern) {
+
+      console.log("provideInlineCompletionItems triggered by user edits");
+      const lineToExtractPrompt = document.lineAt(position.line - 1);
+      const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
+      let isTaskNameMatch = false;
+
+      // prompt is the format expected by wisdom service
+      // eg. "-name: create a new file"
+      let prompt: string | undefined = undefined;
+
+      // promptDescription is the task name or comment
+      // eg. "create a new file" and is used to identify
+      // the duplicate suggestion line from the wisdom service
+      // response and remove it from the inline suggestion list
+      let promptDescription: string | undefined = undefined;
+
+      if (taskMatchedPattern) {
         isTaskNameMatch = true;
+        promptDescription = taskMatchedPattern?.groups?.description;
+        prompt = `${lineToExtractPrompt.text}`;
       } else {
-        matchedPattern = lineToExtractPrompt.text.match(commentRegexEp);
+        // check if the line is a comment line
+        const commentMatchedPattern =
+          lineToExtractPrompt.text.match(commentRegexEp);
+        if (commentMatchedPattern) {
+          promptDescription = commentMatchedPattern?.groups?.description;
+          prompt =
+            `- name: ${commentMatchedPattern?.groups?.description}` + "\n";
+        }
       }
-      const prompt = matchedPattern?.groups?.description;
       if (!prompt) {
         return [];
       }
-      if (token?.isCancellationRequested) {
-        return [];
+      if (promptDescription === undefined) {
+        promptDescription = prompt;
       }
       const inlineSuggestionUserActionItems = await getInlineSuggestions(
         document,
         position,
         lineToExtractPrompt,
         prompt,
+        promptDescription,
         isTaskNameMatch
       );
       return inlineSuggestionUserActionItems;
@@ -104,6 +119,10 @@ async function getInlineSuggestion(
   const inputData: RequestParams = {
     context: context,
     prompt: prompt,
+    userId: await (
+      await wisdomManager.telemetry.redhatService.getIdManager()
+    ).getRedHatUUID(),
+    suggestionId: suggestionId,
   };
   console.log(
     `${getCurrentUTCDateTime()}: request data to wisdom service:\n${JSON.stringify(
@@ -155,20 +174,34 @@ export async function inlineSuggestionTriggerHandler(
   }
   const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
   let isTaskNameMatch = false;
+
+  // prompt is the format expected by wisdom service
+  // eg. "-name: create a new file"
   let prompt: string | undefined = undefined;
+
+  // promptDescription is the task name or comment
+  // eg. "create a new file" and is used to identify
+  // the duplicate suggestion line from the wisdom service
+  // response and remove it from the inline suggestion list
+  let promptDescription: string | undefined = undefined;
   if (taskMatchedPattern) {
     isTaskNameMatch = true;
-    prompt = taskMatchedPattern?.groups?.description;
+    promptDescription = taskMatchedPattern?.groups?.description;
+    prompt = `${lineToExtractPrompt.text}`;
   } else {
     // check if the line is a comment line
     const commentMatchedPattern =
       lineToExtractPrompt.text.match(commentRegexEp);
     if (commentMatchedPattern) {
-      prompt = commentMatchedPattern?.groups?.description;
+      promptDescription = commentMatchedPattern?.groups?.description;
+      prompt = `- name: ${commentMatchedPattern?.groups?.description}` + "\n";
     }
   }
   if (prompt === undefined) {
     return [];
+  }
+  if (promptDescription === undefined) {
+    promptDescription = prompt;
   }
 
   const currentPosition = textEditor.selection.active;
@@ -178,6 +211,7 @@ export async function inlineSuggestionTriggerHandler(
     currentPosition,
     lineToExtractPrompt,
     prompt,
+    promptDescription,
     isTaskNameMatch
   );
 
@@ -197,19 +231,25 @@ async function getInlineSuggestions(
   currentPosition: vscode.Position,
   lineToExtractPrompt: vscode.TextLine,
   prompt: string,
+  promptDescription: string,
   isTaskNameMatch: boolean
 ): Promise<vscode.InlineCompletionItem[]> {
   let result: SuggestionResult = {
     predictions: [],
   };
   telemetryData = {};
+  const lineBeforePrompt = currentPosition.with(
+    currentPosition.line - 1,
+    currentPosition.character
+  );
+
   try {
     suggestionId = uuidv4();
     telemetryData["suggestionId"] = suggestionId;
     telemetryData["documentUri"] = document.uri.toString();
-    const documentContext = document.getText(
-      new vscode.Range(new vscode.Position(0, 0), currentPosition)
-    );
+    const range = new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt);
+    // BOUNDARY: context shouldn't contain a newline when empty
+    const documentContext = range.isEmpty ? "" : `${document.getText(range)}\n`;
     telemetryData["request"] = {
       context: documentContext,
       prompt: prompt,
@@ -250,6 +290,7 @@ async function getInlineSuggestions(
         insertText = removePromptFromSuggestion(
           prediction,
           lineToExtractPrompt.text,
+          promptDescription,
           currentPosition
         );
       }

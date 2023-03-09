@@ -102,10 +102,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
   wisdomManager = new WisdomManager(context, client, extSettings, telemetry);
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("extension.onEnter", () => {
-      vscode.commands.executeCommand("default:type", { text: "\n" });
-      setKeyInput("enter");
-    })
+    vscode.commands.registerCommand(
+      WisdomCommands.WISDOM_SUGGESTION_ON_ENTER,
+      () => {
+        vscode.commands.executeCommand("default:type", { text: "\n" });
+        setKeyInput("enter");
+      },
+      { language: "ansible" }
+    )
   );
 
   context.subscriptions.push(
