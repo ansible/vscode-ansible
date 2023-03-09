@@ -44,29 +44,6 @@
     }
   ],
   "contributes": {
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "ansible-explorer",
-          "title": "Ansible",
-          "icon": "images/ansible.svg"
-        }
-      ]
-    },
-    "views": {
-      "ansible-explorer": [
-        {
-          "id": "wisdom-auth",
-          "name": "Wisdom Service"
-        }
-      ]
-    },
-    "viewsWelcome": [
-      {
-        "view": "wisdom-auth",
-        "contents": "Welcome to wisdom service for Visual Studio Code.\nExperience smarter automation with Wisdom's AI-assisted solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Wisdom.\n[Connect](command:extension.wisdom.auth)"
-      }
-    ],
     "jsonValidation": [
       {
         "fileMatch": [
@@ -167,10 +144,6 @@
         "category": "%commands.category.ansible-vault%",
         "command": "extension.ansible.vault",
         "title": "%commands.title.ansible-vault%"
-      },
-      {
-        "command": "extension.wisdom.auth",
-        "title": "Wisdom Authentication"
       }
     ],
     "configuration": {
