@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { window, Position } from "vscode";
+import { window } from "vscode";
 
 import { v4 as uuidv4 } from "uuid";
 
@@ -19,13 +19,10 @@ import {
 
 let suggestionId = "";
 let currentSuggestion = "";
-const commentRegexEp =
-  /(?<blank>\s*)(?<comment>#\s*)(?<description>.*)(?<end>$)/;
 const taskRegexEp =
   /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
 
 let telemetryData: WisdomTelemetryEvent = {};
-
 export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider {
   const provider: vscode.InlineCompletionItemProvider = {
     provideInlineCompletionItems: async (
@@ -37,7 +34,8 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
       if (token.isCancellationRequested) {
         return [];
       }
-      if (getKeyInput() !== "enter") {
+      const keyInput = getKeyInput();
+      if (keyInput !== "enter") {
         return [];
       }
       resetKeyInput();
@@ -45,83 +43,76 @@ export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider 
         wisdomManager.wisdomStatusBar.hide();
         return [];
       }
-      const wisdomSetting =
-        wisdomManager.settingsManager.settings.wisdomService;
-      if (!wisdomSetting.enabled && !wisdomSetting.suggestions.enabled) {
-        console.debug("wisdom service is disabled");
-        wisdomManager.updateWisdomStatusbar();
-        return [];
-      }
-      if (position.line <= 0 || token?.isCancellationRequested) {
-        return;
-      }
-
-      console.log("provideInlineCompletionItems triggered by user edits");
-      const lineToExtractPrompt = document.lineAt(position.line - 1);
-      const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
-      let isTaskNameMatch = false;
-
-      // prompt is the format expected by wisdom service
-      // eg. "-name: create a new file"
-      let prompt: string | undefined = undefined;
-
-      // promptDescription is the task name or comment
-      // eg. "create a new file" and is used to identify
-      // the duplicate suggestion line from the wisdom service
-      // response and remove it from the inline suggestion list
-      let promptDescription: string | undefined = undefined;
-
-      if (taskMatchedPattern) {
-        isTaskNameMatch = true;
-        promptDescription = taskMatchedPattern?.groups?.description;
-        prompt = `${lineToExtractPrompt.text}`;
-      } else {
-        // check if the line is a comment line
-        const commentMatchedPattern =
-          lineToExtractPrompt.text.match(commentRegexEp);
-        if (commentMatchedPattern) {
-          promptDescription = commentMatchedPattern?.groups?.description;
-          prompt =
-            `- name: ${commentMatchedPattern?.groups?.description}` + "\n";
-        }
-      }
-      if (!prompt) {
-        return [];
-      }
-      if (promptDescription === undefined) {
-        promptDescription = prompt;
-      }
-      const inlineSuggestionUserActionItems = await getInlineSuggestions(
-        document,
-        position,
-        lineToExtractPrompt,
-        prompt,
-        promptDescription,
-        isTaskNameMatch
-      );
-      return inlineSuggestionUserActionItems;
+      return getInlineSuggestionItems(document, position);
     },
   };
   return provider;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function inlineSuggestionTriggerHandler(
+  textEditor: vscode.TextEditor
+): Promise<vscode.InlineCompletionItem[]> {
+  const document = textEditor.document;
+  const position = textEditor.selection.active;
+
+  return getInlineSuggestionItems(document, position);
+}
+
+async function getInlineSuggestionItems(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): Promise<vscode.InlineCompletionItem[]> {
+  if (document.languageId !== "ansible") {
+    wisdomManager.wisdomStatusBar.hide();
+    return [];
+  }
+  const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
+  if (!wisdomSetting.enabled && !wisdomSetting.suggestions.enabled) {
+    console.debug("wisdom service is disabled");
+    wisdomManager.updateWisdomStatusbar();
+    return [];
+  }
+  console.log("provideInlineCompletionItems triggered by user edits");
+  const lineToExtractPrompt = document.lineAt(position.line - 1);
+  const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
+
+  // prompt is the format expected by wisdom service
+  // eg. "-name: create a new file"
+  let prompt: string | undefined = undefined;
+
+  // promptDescription is the task name or comment
+  // eg. "create a new file" and is used to identify
+  // the duplicate suggestion line from the wisdom service
+  // response and remove it from the inline suggestion list
+  let promptDescription: string | undefined = undefined;
+
+  if (taskMatchedPattern) {
+    promptDescription = taskMatchedPattern?.groups?.description;
+    prompt = `${lineToExtractPrompt.text}`;
+  } else {
+    return [];
+  }
+  if (!prompt) {
+    return [];
+  }
+  if (promptDescription === undefined) {
+    promptDescription = prompt;
+  }
+  const inlineSuggestionItems = await getInlineSuggestions(document, position);
+  return inlineSuggestionItems;
+}
 export async function requestInlineSuggest(
-  documentContext: string,
-  position: Position,
-  prompt: string
+  documentContent: string
 ): Promise<SuggestionResult> {
   wisdomManager.wisdomStatusBar.tooltip = "processing...";
-  const result = await getInlineSuggestion(documentContext, prompt);
+  const result = await getInlineSuggestion(documentContent);
   wisdomManager.wisdomStatusBar.tooltip = "Done";
   return result;
 }
-async function getInlineSuggestion(
-  context: string,
-  prompt: string
-): Promise<SuggestionResult> {
+async function getInlineSuggestion(content: string): Promise<SuggestionResult> {
   const inputData: RequestParams = {
-    context: context,
-    prompt: prompt,
+    prompt: content,
     userId: await (
       await wisdomManager.telemetry.redhatService.getIdManager()
     ).getRedHatUUID(),
@@ -144,138 +135,43 @@ async function getInlineSuggestion(
   return outputData;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function inlineSuggestionTriggerHandler(
-  textEditor: vscode.TextEditor,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  edit: vscode.TextEditorEdit
-) {
-  const document = textEditor.document;
-  const wisdomSettings = wisdomManager.settingsManager.settings.wisdomService;
-  console.log("inlineSuggestionTriggerHandler invoked by keyboard shortcut");
-  if (document.languageId !== "ansible") {
-    wisdomManager.wisdomStatusBar.hide();
-    return;
-  }
-  if (!wisdomSettings.enabled && !wisdomSettings.suggestions.enabled) {
-    console.debug("wisdom service is disabled");
-    wisdomManager.updateWisdomStatusbar();
-    return;
-  }
-
-  let lineToExtractPrompt: vscode.TextLine | undefined = undefined;
-  const currentLine = document.lineAt(textEditor.selection.active.line);
-  const cursorPosition = textEditor.selection.active;
-  const previousLine = textEditor.document.lineAt(cursorPosition.line - 1);
-  if (currentLine.isEmptyOrWhitespace) {
-    lineToExtractPrompt = previousLine;
-  } else {
-    lineToExtractPrompt = currentLine;
-  }
-  if (lineToExtractPrompt === undefined) {
-    return [];
-  }
-  const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
-  let isTaskNameMatch = false;
-
-  // prompt is the format expected by wisdom service
-  // eg. "-name: create a new file"
-  let prompt: string | undefined = undefined;
-
-  // promptDescription is the task name or comment
-  // eg. "create a new file" and is used to identify
-  // the duplicate suggestion line from the wisdom service
-  // response and remove it from the inline suggestion list
-  let promptDescription: string | undefined = undefined;
-  if (taskMatchedPattern) {
-    isTaskNameMatch = true;
-    promptDescription = taskMatchedPattern?.groups?.description;
-    prompt = `${lineToExtractPrompt.text}`;
-  } else {
-    // check if the line is a comment line
-    const commentMatchedPattern =
-      lineToExtractPrompt.text.match(commentRegexEp);
-    if (commentMatchedPattern) {
-      promptDescription = commentMatchedPattern?.groups?.description;
-      prompt = `- name: ${commentMatchedPattern?.groups?.description}` + "\n";
-    }
-  }
-  if (prompt === undefined) {
-    return [];
-  }
-  if (promptDescription === undefined) {
-    promptDescription = prompt;
-  }
-
-  const currentPosition = textEditor.selection.active;
-
-  const inlineSuggestionUserActionItems = await getInlineSuggestions(
-    document,
-    currentPosition,
-    lineToExtractPrompt,
-    prompt,
-    promptDescription,
-    isTaskNameMatch
-  );
-
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return;
-  }
-  vscode.commands.executeCommand("editor.action.inlineSuggest.trigger", {
-    text: currentSuggestion,
-  });
-
-  return inlineSuggestionUserActionItems;
-}
-
 async function getInlineSuggestions(
   document: vscode.TextDocument,
-  currentPosition: vscode.Position,
-  lineToExtractPrompt: vscode.TextLine,
-  prompt: string,
-  promptDescription: string,
-  isTaskNameMatch: boolean
+  currentPosition: vscode.Position
 ): Promise<vscode.InlineCompletionItem[]> {
   let result: SuggestionResult = {
     predictions: [],
   };
   telemetryData = {};
-  const lineBeforePrompt = currentPosition.with(
-    currentPosition.line - 1,
-    currentPosition.character
-  );
-
+  const requestTime = getCurrentUTCDateTime();
+  telemetryData["requestDateTime"] = requestTime.toISOString();
   try {
     suggestionId = uuidv4();
     telemetryData["suggestionId"] = suggestionId;
     telemetryData["documentUri"] = document.uri.toString();
-    const range = new vscode.Range(new vscode.Position(0, 0), lineBeforePrompt);
-    // BOUNDARY: context shouldn't contain a newline when empty
-    const documentContext = range.isEmpty ? "" : `${document.getText(range)}\n`;
+    const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
+
+    const documentContent = range.isEmpty ? "" : document.getText(range).trim();
     telemetryData["request"] = {
-      context: documentContext,
-      prompt: prompt,
+      prompt: documentContent,
     };
-    telemetryData["requestDateTime"] = getCurrentUTCDateTime();
 
     wisdomManager.wisdomStatusBar.text = "Processing...";
-    result = await requestInlineSuggest(
-      documentContext,
-      currentPosition,
-      prompt
-    );
+    result = await requestInlineSuggest(documentContent);
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   } catch (error) {
     console.error(error);
     telemetryData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
+    return [];
   } finally {
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   }
 
   telemetryData["response"] = result;
-  telemetryData["responseDateTime"] = getCurrentUTCDateTime();
+  const responseTime = getCurrentUTCDateTime();
+  telemetryData["responseDateTime"] = responseTime.toISOString();
+  telemetryData["duration"] = responseTime.getTime() - requestTime.getTime();
   wisdomManager.telemetry.sendTelemetry(
     "wisdomInlineSuggestionTriggerEvent",
     telemetryData
@@ -289,27 +185,15 @@ async function getInlineSuggestions(
   if (result && result.predictions.length > 0) {
     result.predictions.forEach((prediction) => {
       let insertText = prediction;
-      if (isTaskNameMatch) {
-        insertText = removePromptFromSuggestion(
-          prediction,
-          lineToExtractPrompt.text,
-          promptDescription,
-          currentPosition
-        );
-      }
+      insertText = removePromptFromSuggestion(prediction, currentPosition);
       insertTexts.push(insertText);
 
       // completion item is converted from PLAIN-TEXT to SNIPPET-STRING
       // in order to support tab-stops for automatically placing and switching cursor positions
-      const inlineSuggestionUserActionItem = new vscode.InlineCompletionItem(
+      const inlineSuggestionItem = new vscode.InlineCompletionItem(
         new vscode.SnippetString(convertToSnippetString(insertText))
       );
-      inlineSuggestionUserActionItem.command = {
-        title: "Accept or Reject or Modify feedback",
-        command: "extension.userInlineSuggestionAction",
-        arguments: [suggestionId],
-      };
-      inlineSuggestionUserActionItems.push(inlineSuggestionUserActionItem);
+      inlineSuggestionUserActionItems.push(inlineSuggestionItem);
     });
     // currently we only support one inline suggestion
     // currentSuggestion is used in user action handlers
@@ -339,11 +223,7 @@ export async function inlineSuggestionCommitHandler(
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // Send telemetry for accepted suggestion
-  vscode.commands.executeCommand(
-    WisdomCommands.WISDOM_SUGGESTION_USER_ACTION,
-    suggestionId,
-    true
-  );
+  await inlineSuggestionUserActionHandler(suggestionId, true);
 }
 
 export async function inlineSuggestionHideHandler(
@@ -359,61 +239,18 @@ export async function inlineSuggestionHideHandler(
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
   // Send telemetry for accepted suggestion
-  vscode.commands.executeCommand(
-    WisdomCommands.WISDOM_SUGGESTION_USER_ACTION,
-    suggestionId,
-    false
-  );
+  await inlineSuggestionUserActionHandler(suggestionId, false);
 }
-
 export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted = false
 ) {
   console.log(`User gave feedback on suggestion with ID: ${suggestionId}`);
   telemetryData = {};
-  const extSettings = wisdomManager.settingsManager.settings;
-  // user feedback is enabled
-  if (extSettings.wisdomService.suggestions.userFeedback) {
-    telemetryData["userUIFeedbackEnabled"] = true;
-    let selection = undefined;
-    try {
-      selection = await vscode.window.showInformationMessage(
-        "Accept or Ignore or Modify suggestion?",
-        "Accept",
-        "Ignore",
-        "Modify"
-      );
-      let feedback: string | undefined = undefined;
-      if (selection === "Accept") {
-        telemetryData["userAction"] = "accept";
-      } else if (selection === "Ignore") {
-        telemetryData["userAction"] = "ignore";
-        feedback = await vscode.window.showInputBox({
-          placeHolder: "Please provide feedback",
-        });
-      } else if (selection === "Modify") {
-        telemetryData["userAction"] = "modify";
-        feedback = await vscode.window.showInputBox({
-          placeHolder: "Please provide feedback",
-        });
-      }
-      if (feedback) {
-        telemetryData["feedback"] = feedback;
-      }
-    } catch (error) {
-      // handle errors
-      telemetryData["error"] = `${error}`;
-      console.error(error);
-    }
+  if (isSuggestionAccepted) {
+    telemetryData["userAction"] = "accept";
   } else {
-    // identify user action based on key pressed
-    telemetryData["userUIFeedbackEnabled"] = false;
-    if (isSuggestionAccepted) {
-      telemetryData["userAction"] = "accept";
-    } else {
-      telemetryData["userAction"] = "ignore";
-    }
+    telemetryData["userAction"] = "ignore";
   }
   telemetryData["suggestionId"] = suggestionId;
   wisdomManager.telemetry.sendTelemetry(
