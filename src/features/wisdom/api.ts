@@ -74,9 +74,9 @@ export class WisdomAPI {
           vscode.window.showErrorMessage("Bad Request. Please try again...");
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many request to Ansible wisdom service. Please try again after 30 seconds..."
+            "Too many request to Ansible wisdom service. Please try again after sometime..."
           );
-        } else if (err?.response?.status === 500) {
+        } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
             "Ansible wisdom service connection reset. Please try again after sometime..."
           );
