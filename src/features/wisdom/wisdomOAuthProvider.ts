@@ -29,9 +29,8 @@ import {
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
 } from "./oAuthUtils";
-import { SettingsManager } from "../../settings";
 
-const CLIENT_ID = `XS8by8ctrzsk8GRJUyNLgT9GyuTNTs50MPexieew`;
+const CLIENT_ID = `XS8by8ctrzsk8GRJUyNLgT9GyuTNTs50MPexieew`; // cspell:disable-line
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -361,33 +360,6 @@ export class WisdomAuthenticationProvider
 
     return account ? (account as OAuthAccount) : undefined;
   }
-
-  /* Get the user info from server */
-  // private async getUserInfo(token: string) {
-  //   try {
-  //     const { data, status } = await axios.get(
-  //       `http://${AUTH0_DOMAIN}/userinfo`,
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     console.log(JSON.stringify(data, null, 4));
-  //     console.log("response status is: ", status);
-
-  //     return data;
-  //   } catch (error) {
-  //     if (axios.isAxiosError(error)) {
-  //       console.log("error message: ", error.message);
-  //       return error.message;
-  //     } else {
-  //       console.log("unexpected error: ", error);
-  //       return "An unexpected error occurred";
-  //     }
-  //   }
-  // }
 
   /**
    * Method that returns access token to be used in API calls
