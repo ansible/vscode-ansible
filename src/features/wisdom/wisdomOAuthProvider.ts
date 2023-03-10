@@ -30,11 +30,12 @@ import {
   ACCOUNT_SECRET_KEY,
 } from "./oAuthUtils";
 
-const CLIENT_ID = `XS8by8ctrzsk8GRJUyNLgT9GyuTNTs50MPexieew`; // cspell:disable-line
+const OAUTH_BASE_PATH =
+  "https://wisdom-service-oauth.apps.wisdom-dev.4btm.p1.openshiftapps.com/";
+const CLIENT_ID = `Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy`; // cspell:disable-line
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
-const OAUTH_BASE_PATH = "http://127.0.0.1:8000";
 
 // Grace time for sending request to refresh token
 const GRACE_TIME = 10;
