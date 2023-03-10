@@ -24,6 +24,8 @@ jobs:
     # ${{ matrix.name && matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
+    # see https://github.com/containers/podman/issues/13609
+    continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     strategy:
       fail-fast: false
       matrix:
