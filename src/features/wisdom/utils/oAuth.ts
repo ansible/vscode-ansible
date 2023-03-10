@@ -11,7 +11,6 @@ export interface OAuthAccount {
   accessToken: string;
   refreshToken: string;
   expiresAtTimestampInSeconds: number;
-  // scope: string[];
 }
 
 export interface LoggedInUserInfo {
