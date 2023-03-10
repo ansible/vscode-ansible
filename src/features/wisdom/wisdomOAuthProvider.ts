@@ -272,7 +272,7 @@ export class WisdomAuthenticationProvider
       client_id: CLIENT_ID,
       code: code,
       code_verifier: CODE_VERIFIER,
-      redirect_uri: "this.redirectUri",
+      redirect_uri: this.redirectUri,
       grant_type: "authorization_code",
     };
 
