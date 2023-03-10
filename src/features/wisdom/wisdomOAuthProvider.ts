@@ -28,6 +28,7 @@ import {
   WISDOM_AUTH_NAME,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
+  LoggedInUserInfo,
 } from "./oAuthUtils";
 
 const OAUTH_BASE_PATH =
@@ -99,16 +100,16 @@ export class WisdomAuthenticationProvider
         throw new Error(`Wisdom login failure`);
       }
 
-      // const userinfo: { name: string; email: string } = await this.getUserInfo(
-      //   token
-      // );
+      const userinfo: LoggedInUserInfo = await this.getUserInfo(
+        account.accessToken
+      );
 
       const identifier = uuid();
       const session: AuthenticationSession = {
         id: identifier,
         accessToken: account.accessToken,
         account: {
-          label: "test-common",
+          label: userinfo.username,
           id: identifier,
         },
         scopes: [],
@@ -460,5 +461,29 @@ export class WisdomAuthenticationProvider
     }
 
     return tokenToBeReturned;
+  }
+
+  /* Get the user info from server */
+  private async getUserInfo(token: string) {
+    try {
+      const { status, data } = await axios.get(`${OAUTH_BASE_PATH}/api/me/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      console.log(JSON.stringify(data, null, 4));
+      console.log("response status is: ", status);
+
+      return data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.log("error message: ", error.message);
+        throw new Error(error.message);
+      } else {
+        console.log("unexpected error: ", error);
+        throw new Error("An unexpected error occurred");
+      }
+    }
   }
 }

@@ -14,6 +14,10 @@ export interface OAuthAccount {
   // scope: string[];
 }
 
+export interface LoggedInUserInfo {
+  username: string;
+}
+
 export class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
   public handleUri(uri: Uri) {
     this.fire(uri);
