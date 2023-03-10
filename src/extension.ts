@@ -212,6 +212,12 @@ const startClient = async (
     clientOptions
   );
 
+  context.subscriptions.push(
+    client.onTelemetry((e) => {
+      telemetry.telemetryService.send(e);
+    })
+  );
+
   try {
     await client.start();
 
