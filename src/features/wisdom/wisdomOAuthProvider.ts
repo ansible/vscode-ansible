@@ -184,8 +184,14 @@ export class WisdomAuthenticationProvider
       ["client_id", CLIENT_ID],
       ["redirect_uri", this.redirectUri],
     ]);
+
     const uri = Uri.parse(
-      `${OAUTH_BASE_PATH}/o/authorize?${searchParams.toString()}`
+      Uri.parse(OAUTH_BASE_PATH)
+        .with({
+          path: "/o/authorize/",
+          query: searchParams.toString(),
+        })
+        .toString(true)
     );
     console.log("[oauth] uri -> ", uri.toString());
 
