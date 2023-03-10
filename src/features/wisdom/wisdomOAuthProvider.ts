@@ -15,9 +15,9 @@ import {
   commands,
 } from "vscode";
 import { v4 as uuid } from "uuid";
-import { PromiseAdapter, promiseFromEvent } from "./utils";
+import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
 import axios from "axios";
-import { TreeDataProvider } from "./treeView";
+import { TreeDataProvider } from "../../treeView";
 import {
   generateCodeVerifier,
   generateCodeChallengeFromVerifier,
@@ -29,7 +29,7 @@ import {
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
-} from "./oAuthUtils";
+} from "./utils/oAuth";
 
 const OAUTH_BASE_PATH =
   "https://wisdom-service-oauth.apps.wisdom-dev.4btm.p1.openshiftapps.com/";

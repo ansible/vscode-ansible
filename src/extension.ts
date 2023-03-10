@@ -38,7 +38,7 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
-import { TreeDataProvider } from "./features/wisdom/treeView";
+import { TreeDataProvider } from "./treeView";
 import { WisdomManager } from "./features/wisdom/base";
 import {
   inlineSuggestionProvider,
