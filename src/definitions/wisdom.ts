@@ -3,7 +3,6 @@ export interface SuggestionResult {
 }
 
 export interface RequestParams {
-  context: string;
   prompt: string;
   userId?: string;
   suggestionId?: string;
@@ -14,11 +13,10 @@ export interface WisdomTelemetryEvent {
   requestDateTime?: string;
   response?: SuggestionResult;
   responseDateTime?: string;
+  duration?: number;
   documentUri?: string;
   suggestionDisplayed?: string;
-  userAction?: "accept" | "ignore" | "modify";
+  userAction?: "accept" | "ignore";
   suggestionId?: string;
-  feedback?: string;
-  userUIFeedbackEnabled?: boolean;
   error?: string;
 }
