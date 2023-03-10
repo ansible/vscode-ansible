@@ -465,15 +465,14 @@ export class WisdomAuthenticationProvider
 
   /* Get the user info from server */
   private async getUserInfo(token: string) {
+    console.log("[oauth] Sending request for logged-in user info...");
+
     try {
-      const { status, data } = await axios.get(`${OAUTH_BASE_PATH}/api/me/`, {
+      const { data } = await axios.get(`${OAUTH_BASE_PATH}/api/me/`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-
-      console.log(JSON.stringify(data, null, 4));
-      console.log("response status is: ", status);
 
       return data;
     } catch (error) {
