@@ -97,7 +97,7 @@ export class WisdomAuthenticationProvider
       const account = await this.login(scopes);
 
       if (!account) {
-        throw new Error(`Wisdom login failure`);
+        throw new Error(`Ansible wisdom login failure`);
       }
 
       const userinfo: LoggedInUserInfo = await this.getUserInfo(
@@ -131,7 +131,7 @@ export class WisdomAuthenticationProvider
 
       return session;
     } catch (e) {
-      window.showErrorMessage(`Sign in failed: ${e}`);
+      window.showErrorMessage(`Ansible wisdom sign in failed: ${e}`);
       throw e;
     }
   }
@@ -205,7 +205,8 @@ export class WisdomAuthenticationProvider
 
     const account = await window.withProgress(
       {
-        title: "Waiting for OAuth redirect from Wisdom Service",
+        title:
+          "Waiting for authentication redirect from Ansible wisdom service",
         location: ProgressLocation.Notification,
         cancellable: true,
       },
