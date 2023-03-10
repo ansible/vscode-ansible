@@ -119,7 +119,7 @@ async function getInlineSuggestion(content: string): Promise<SuggestionResult> {
     suggestionId: suggestionId,
   };
   console.log(
-    `${getCurrentUTCDateTime()}: request data to wisdom service:\n${JSON.stringify(
+    `${getCurrentUTCDateTime().toISOString()}: request data to wisdom service:\n${JSON.stringify(
       inputData
     )}`
   );
@@ -128,7 +128,7 @@ async function getInlineSuggestion(content: string): Promise<SuggestionResult> {
     inputData
   );
   console.log(
-    `${getCurrentUTCDateTime()}: response data from wisdom service:\n${JSON.stringify(
+    `${getCurrentUTCDateTime().toISOString()}: response data from wisdom service:\n${JSON.stringify(
       outputData
     )}`
   );
@@ -220,7 +220,7 @@ export async function inlineSuggestionCommitHandler(
   }
 
   // Commit the suggestion
-  vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
+  vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_COMMIT);
 
   // Send telemetry for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, true);
@@ -236,7 +236,7 @@ export async function inlineSuggestionHideHandler(
     return [];
   }
   console.log("inlineSuggestionHideHandler triggered");
-  vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
+  vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
 
   // Send telemetry for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, false);
