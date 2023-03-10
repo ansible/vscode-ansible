@@ -72,7 +72,7 @@ export class WisdomAPI {
           );
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many request to the Ansible wisdom service. Please try again after sometime..."
+            "Too many requests to the Ansible wisdom service. Please try again after sometime..."
           );
         } else if (err?.response?.status === 400) {
           vscode.window.showErrorMessage(
