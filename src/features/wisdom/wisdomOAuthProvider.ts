@@ -302,11 +302,10 @@ export class WisdomAuthenticationProvider
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log("error message: ", error.message);
-
-        return;
+        throw new Error("An unexpected error occurred");
       } else {
         console.log("unexpected error: ", error);
-        return;
+        throw new Error("An unexpected error occurred");
       }
     }
   }
