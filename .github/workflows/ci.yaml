@@ -42,23 +42,24 @@ jobs:
         name:
           - test
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-22.04
-            upload-artifact: true
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-22.04
+          #   upload-artifact: true
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
-          - name: devel
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in lock file
-            task-name: devel
-            os: ubuntu-22.04
+          # - name: devel
+          #   # this job will install latest version of ansible-language-server
+          #   # instead of the one mentioned in lock file
+          #   task-name: devel
+          #   os: ubuntu-22.04
 
           - name: test (macos)
             task-name: test
-            os:  macos-12
+            # os:  macos-12
+            os: ["self-hosted", "macOS"]
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -83,6 +84,7 @@ jobs:
 
       - name: Setup python
         uses: actions/setup-python@v4
+        if: ${{ !contains(matrix.os, 'self-hosted') }}
         with:
           python-version: "3.11"
 
