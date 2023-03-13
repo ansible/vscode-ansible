@@ -45,7 +45,6 @@ import {
   inlineSuggestionTriggerHandler,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
-  inlineSuggestionUserActionHandler,
 } from "./features/wisdom/inlineSuggestions";
 
 export let client: LanguageClient;
@@ -137,13 +136,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerTextEditorCommand(
       WisdomCommands.WISDOM_SUGGESTION_TRIGGER,
       inlineSuggestionTriggerHandler
-    )
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_SUGGESTION_USER_ACTION,
-      await inlineSuggestionUserActionHandler
     )
   );
 

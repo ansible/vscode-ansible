@@ -52,6 +52,7 @@ export class WisdomManager {
       StatusBarAlignment.Right,
       100
     );
+    wisdomStatusBarItem.text = "Wisdom";
     this.context.subscriptions.push(wisdomStatusBarItem);
     return wisdomStatusBarItem;
   }
@@ -60,8 +61,6 @@ export class WisdomManager {
     if (!this.client.isRunning()) {
       return;
     }
-    //wisdomStatusBar.command = await window.showInputBox("Enable Wisdom")
-    this.wisdomStatusBar.text = "Wisdom";
     if (
       this.settingsManager.settings.wisdomService.enabled &&
       this.settingsManager.settings.wisdomService.suggestions.enabled
@@ -78,7 +77,10 @@ export class WisdomManager {
   }
 
   public updateWisdomStatusbar(): void {
-    if (window.activeTextEditor?.document.languageId !== "ansible") {
+    if (
+      window.activeTextEditor?.document.languageId !== "ansible" ||
+      !this.settingsManager.settings.wisdomService.enabled
+    ) {
       this.wisdomStatusBar.hide();
       return;
     }
