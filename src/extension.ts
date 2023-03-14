@@ -41,11 +41,12 @@ import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
 import { WisdomManager } from "./features/wisdom/base";
 import {
-  inlineSuggestionProvider,
+  WisdomInlineSuggestionProvider,
   inlineSuggestionTriggerHandler,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
 } from "./features/wisdom/inlineSuggestions";
+import { AnsibleContentUploadTrigger } from "./definitions/wisdom";
 
 export let client: LanguageClient;
 export let wisdomManager: WisdomManager;
@@ -112,9 +113,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand(
+      WisdomCommands.WISDOM_STATUS_BAR_CLICK,
+      wisdomManager.wisdomStatusBarClickHandler
+    )
+  );
+
+  const wisdomSuggestionProvider = new WisdomInlineSuggestionProvider();
+  context.subscriptions.push(
     vscode.languages.registerInlineCompletionItemProvider(
       { scheme: "file", language: "ansible" },
-      inlineSuggestionProvider()
+      wisdomSuggestionProvider
     )
   );
 
@@ -140,12 +149,30 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // register ansible meta data in the statusbar tooltip (client-server)
-  window.onDidChangeActiveTextEditor(() =>
-    updateAnsibleStatusBar(metaData, wisdomManager)
+  window.onDidChangeActiveTextEditor(
+    (editor: vscode.TextEditor | undefined) => {
+      updateAnsibleStatusBar(metaData, wisdomManager);
+      if (editor) {
+        wisdomManager.ansibleContentFeedback(
+          editor.document,
+          AnsibleContentUploadTrigger.TAB_CHANGE
+        );
+      }
+    }
   );
-  workspace.onDidOpenTextDocument(() =>
-    updateAnsibleStatusBar(metaData, wisdomManager)
-  );
+  workspace.onDidOpenTextDocument((document: vscode.TextDocument) => {
+    updateAnsibleStatusBar(metaData, wisdomManager);
+    wisdomManager.ansibleContentFeedback(
+      document,
+      AnsibleContentUploadTrigger.FILE_OPEN
+    );
+  });
+  workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
+    wisdomManager.ansibleContentFeedback(
+      document,
+      AnsibleContentUploadTrigger.FILE_CLOSE
+    );
+  });
   workspace.onDidChangeConfiguration(() =>
     updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );

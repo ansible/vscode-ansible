@@ -1,20 +1,17 @@
 import * as vscode from "vscode";
-import { window } from "vscode";
 
 import { v4 as uuidv4 } from "uuid";
 
-import {
-  convertToSnippetString,
-  removePromptFromSuggestion,
-} from "../utils/wisdom";
+import { adjustInlineSuggestionIndent } from "../utils/wisdom";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { wisdomManager } from "../../extension";
 import { WisdomCommands } from "../../definitions/constants";
 import { resetKeyInput, getKeyInput } from "../../utils/keyInputUtils";
 import {
-  SuggestionResult,
-  WisdomTelemetryEvent,
-  RequestParams,
+  CompletionResponseParams,
+  InlineSuggestionEvent,
+  CompletionRequestParams,
+  UserAction,
 } from "../../definitions/wisdom";
 
 let suggestionId = "";
@@ -22,31 +19,43 @@ let currentSuggestion = "";
 const taskRegexEp =
   /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
 
-let telemetryData: WisdomTelemetryEvent = {};
-export function inlineSuggestionProvider(): vscode.InlineCompletionItemProvider {
-  const provider: vscode.InlineCompletionItemProvider = {
-    provideInlineCompletionItems: async (
-      document,
-      position,
-      context,
-      token
-    ) => {
-      if (token.isCancellationRequested) {
-        return [];
-      }
-      const keyInput = getKeyInput();
-      if (keyInput !== "enter") {
-        return [];
-      }
-      resetKeyInput();
-      if (window.activeTextEditor?.document.languageId !== "ansible") {
-        wisdomManager.wisdomStatusBar.hide();
-        return [];
-      }
-      return getInlineSuggestionItems(document, position);
-    },
-  };
-  return provider;
+let inlineSuggestionData: InlineSuggestionEvent = {};
+let inlineSuggestionDisplayed = false;
+let inlineSuggestionDisplayTime: Date;
+
+export class WisdomInlineSuggestionProvider
+  implements vscode.InlineCompletionItemProvider
+{
+  provideInlineCompletionItems(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    context: vscode.InlineCompletionContext,
+    token: vscode.CancellationToken
+  ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
+    if (token.isCancellationRequested) {
+      return [];
+    }
+    // If users continue to without pressing configured keys to
+    // either accept or reject the suggestion, we will consider it as ignored.
+    if (inlineSuggestionDisplayed) {
+      vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
+      inlineSuggestionDisplayed = false;
+    }
+    const keyInput = getKeyInput();
+    if (keyInput !== "enter") {
+      return [];
+    }
+    resetKeyInput();
+    // reset the feedback data
+    inlineSuggestionData = {};
+    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+      wisdomManager.wisdomStatusBar.hide();
+      return [];
+    }
+    inlineSuggestionDisplayed = true;
+    inlineSuggestionDisplayTime = getCurrentUTCDateTime();
+    return getInlineSuggestionItems(document, position);
+  }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -104,29 +113,26 @@ async function getInlineSuggestionItems(
 }
 export async function requestInlineSuggest(
   documentContent: string
-): Promise<SuggestionResult> {
+): Promise<CompletionResponseParams> {
   wisdomManager.wisdomStatusBar.tooltip = "processing...";
   const result = await getInlineSuggestion(documentContent);
   wisdomManager.wisdomStatusBar.tooltip = "Done";
   return result;
 }
-async function getInlineSuggestion(content: string): Promise<SuggestionResult> {
-  const inputData: RequestParams = {
+async function getInlineSuggestion(
+  content: string
+): Promise<CompletionResponseParams> {
+  const completionData: CompletionRequestParams = {
     prompt: content,
-    userId: await (
-      await wisdomManager.telemetry.redhatService.getIdManager()
-    ).getRedHatUUID(),
     suggestionId: suggestionId,
   };
   console.log(
     `${getCurrentUTCDateTime().toISOString()}: request data to wisdom service:\n${JSON.stringify(
-      inputData
+      completionData
     )}`
   );
-  const outputData: SuggestionResult = await wisdomManager.apiInstance.postData(
-    "/completions/",
-    inputData
-  );
+  const outputData: CompletionResponseParams =
+    await wisdomManager.apiInstance.completionRequest(completionData);
   console.log(
     `${getCurrentUTCDateTime().toISOString()}: response data from wisdom service:\n${JSON.stringify(
       outputData
@@ -139,60 +145,45 @@ async function getInlineSuggestions(
   document: vscode.TextDocument,
   currentPosition: vscode.Position
 ): Promise<vscode.InlineCompletionItem[]> {
-  let result: SuggestionResult = {
+  let result: CompletionResponseParams = {
     predictions: [],
   };
-  telemetryData = {};
+  inlineSuggestionData = {};
+  suggestionId = "";
   const requestTime = getCurrentUTCDateTime();
-  telemetryData["requestDateTime"] = requestTime.toISOString();
   try {
     suggestionId = uuidv4();
-    telemetryData["suggestionId"] = suggestionId;
-    telemetryData["documentUri"] = document.uri.toString();
+    inlineSuggestionData["suggestionId"] = suggestionId;
+    inlineSuggestionData["documentUri"] = document.uri.toString();
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
 
     const documentContent = range.isEmpty ? "" : document.getText(range).trim();
-    telemetryData["request"] = {
-      prompt: documentContent,
-    };
 
     wisdomManager.wisdomStatusBar.text = "Processing...";
     result = await requestInlineSuggest(documentContent);
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   } catch (error) {
     console.error(error);
-    telemetryData["error"] = `${error}`;
+    inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
   } finally {
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   }
 
-  telemetryData["response"] = result;
   const responseTime = getCurrentUTCDateTime();
-  telemetryData["responseDateTime"] = responseTime.toISOString();
-  telemetryData["duration"] = responseTime.getTime() - requestTime.getTime();
-  wisdomManager.telemetry.sendTelemetry(
-    "wisdomInlineSuggestionTriggerEvent",
-    telemetryData
-  );
-  // Note: Do not reset suggestionId here as it is used to track user action
-  //       and will be rest in the user action handlers.
-  // reset telemetry data
-  telemetryData = {};
+  inlineSuggestionData["latency"] =
+    responseTime.getTime() - requestTime.getTime();
+
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   const insertTexts: string[] = [];
   if (result && result.predictions.length > 0) {
     result.predictions.forEach((prediction) => {
       let insertText = prediction;
-      insertText = removePromptFromSuggestion(prediction, currentPosition);
+      insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
       insertTexts.push(insertText);
 
-      // completion item is converted from PLAIN-TEXT to SNIPPET-STRING
-      // in order to support tab-stops for automatically placing and switching cursor positions
-      const inlineSuggestionItem = new vscode.InlineCompletionItem(
-        new vscode.SnippetString(convertToSnippetString(insertText))
-      );
+      const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
       inlineSuggestionUserActionItems.push(inlineSuggestionItem);
     });
     // currently we only support one inline suggestion
@@ -210,7 +201,7 @@ export async function inlineSuggestionCommitHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
-  if (window.activeTextEditor?.document.languageId !== "ansible") {
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
     return [];
   }
   console.log("inlineSuggestionCommitHandler triggered");
@@ -218,11 +209,10 @@ export async function inlineSuggestionCommitHandler(
   if (!editor) {
     return;
   }
-
   // Commit the suggestion
-  vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_COMMIT);
+  vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
-  // Send telemetry for accepted suggestion
+  // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, true);
 }
 
@@ -232,13 +222,14 @@ export async function inlineSuggestionHideHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   edit: vscode.TextEditorEdit
 ) {
-  if (window.activeTextEditor?.document.languageId !== "ansible") {
+  console.log("inlineSuggestionHideHandler triggered");
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
     return [];
   }
-  console.log("inlineSuggestionHideHandler triggered");
-  vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
 
-  // Send telemetry for accepted suggestion
+  vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
+
+  // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, false);
 }
 export async function inlineSuggestionUserActionHandler(
@@ -246,21 +237,27 @@ export async function inlineSuggestionUserActionHandler(
   isSuggestionAccepted = false
 ) {
   console.log(`User gave feedback on suggestion with ID: ${suggestionId}`);
-  telemetryData = {};
+  inlineSuggestionData["userActionTime"] =
+    getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
+
+  // since user has either accepted or ignored the suggestion
+  // inline suggestion is no longer displayed and we can reset the
+  // the flag here
+  inlineSuggestionDisplayed = false;
   if (isSuggestionAccepted) {
-    telemetryData["userAction"] = "accept";
+    inlineSuggestionData["action"] = UserAction.ACCEPT;
   } else {
-    telemetryData["userAction"] = "ignore";
+    inlineSuggestionData["action"] = UserAction.IGNORE;
   }
-  telemetryData["suggestionId"] = suggestionId;
-  wisdomManager.telemetry.sendTelemetry(
-    "wisdomInlineSuggestionUserActionEvent",
-    telemetryData
-  );
+  inlineSuggestionData["suggestionId"] = suggestionId;
+  const inlineSuggestionFeedbackPayload = {
+    inlineSuggestion: inlineSuggestionData,
+  };
+  wisdomManager.apiInstance.feedbackRequest(inlineSuggestionFeedbackPayload);
   console.debug(
-    `Sent wisdomInlineSuggestionUserActionEvent telemetry event data: ${JSON.stringify(
-      telemetryData
+    `Sent wisdomInlineSuggestionFeedbackEvent data: ${JSON.stringify(
+      inlineSuggestionFeedbackPayload
     )}`
   );
-  telemetryData = {};
+  inlineSuggestionData = {};
 }

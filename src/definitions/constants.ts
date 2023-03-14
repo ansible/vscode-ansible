@@ -15,6 +15,13 @@ export namespace WisdomCommands {
     "ansible.wisdom.inlineSuggest.trigger";
   export const WISDOM_SUGGESTION_ON_ENTER =
     "ansible.wisdom.inlineSuggest.triggerOnEnter";
-  export const WISDOM_SUGGESTION_USER_ACTION =
-    "extension.inlineSuggestionUserAction";
+  export const WISDOM_STATUS_BAR_CLICK = "ansible.wisdom.statusBar.click";
 }
+
+export const WISDOM_SUGGESTION_COMPLETION_URL = "/ai/completions/";
+export const WISDOM_SUGGESTION_FEEDBACK_URL = "/ai/feedback/";
+
+export const WISDOM_FEEDBACK_FORM_URL =
+  "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
+
+export const WISDOM_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";

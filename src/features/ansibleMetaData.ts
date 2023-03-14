@@ -11,12 +11,18 @@ import { NotificationType } from "vscode-languageclient";
 import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
+import { compareObjects } from "./utils/data";
 
 interface ansibleMetadataEvent {
   ansibleVersion: string;
   ansibleLintVersion?: string;
   eeEnabled: boolean;
 }
+
+let prevEventData: ansibleMetadataEvent = {
+  ansibleVersion: "",
+  eeEnabled: false,
+};
 
 export class MetadataManager {
   private context;
@@ -105,7 +111,11 @@ export class MetadataManager {
             eventData["ansibleLintVersion"] =
               ansibleMetaData.metaData["ansible-lint information"]["version"];
           }
-          this.telemetry.sendTelemetry("ansibleMetadata", eventData);
+          // send telemetry event only when ansible metadata changes
+          if (!compareObjects(eventData, prevEventData)) {
+            this.telemetry.sendTelemetry("ansibleMetadata", eventData);
+            prevEventData = eventData;
+          }
         } else {
           console.log("Ansible not found in the workspace");
           this.metadataStatusBarItem.text = "$(error) Ansible Info";
