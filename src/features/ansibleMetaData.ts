@@ -111,7 +111,7 @@ export class MetadataManager {
             eventData["ansibleLintVersion"] =
               ansibleMetaData.metaData["ansible-lint information"]["version"];
           }
-          // send telemtry event only when ansible metadata changes
+          // send telemetry event only when ansible metadata changes
           if (!compareObjects(eventData, prevEventData)) {
             this.telemetry.sendTelemetry("ansibleMetadata", eventData);
             prevEventData = eventData;

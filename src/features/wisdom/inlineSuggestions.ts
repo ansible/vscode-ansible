@@ -35,7 +35,7 @@ export class WisdomInlineSuggestionProvider
     if (token.isCancellationRequested) {
       return [];
     }
-    // If users continue to without pressing configured keystroes to
+    // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
     if (inlineSuggestionDisplayed) {
       vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
