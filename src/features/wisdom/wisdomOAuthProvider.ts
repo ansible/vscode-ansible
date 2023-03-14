@@ -18,6 +18,7 @@ import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
 import axios from "axios";
 import { TreeDataProvider } from "../../treeView";
+import { SettingsManager } from "../../settings";
 import {
   generateCodeVerifier,
   generateCodeChallengeFromVerifier,
@@ -30,10 +31,11 @@ import {
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
 } from "./utils/oAuth";
-
-const OAUTH_BASE_PATH =
-  "https://wisdom-service-oauth.apps.wisdom-dev.4btm.p1.openshiftapps.com/";
-const CLIENT_ID = `Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy`; // cspell:disable-line
+import {
+  WisdomCommands,
+  WISDOM_CLIENT_ID,
+  WISDOM_SERVICE_LOGIN_TIMEOUT,
+} from "../../definitions/constants";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -44,12 +46,17 @@ const GRACE_TIME = 10;
 export class WisdomAuthenticationProvider
   implements AuthenticationProvider, Disposable
 {
+  public settingsManager: SettingsManager;
   private _sessionChangeEmitter =
     new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>();
   private _disposable: Disposable;
   private _uriHandler = new UriEventHandler();
 
-  constructor(private readonly context: ExtensionContext) {
+  constructor(
+    private readonly context: ExtensionContext,
+    settingsManager: SettingsManager
+  ) {
+    this.settingsManager = settingsManager;
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
         WISDOM_AUTH_ID,
@@ -160,7 +167,7 @@ export class WisdomAuthenticationProvider
           changed: [],
         });
         window.registerTreeDataProvider(
-          "wisdom",
+          "wisdom-explorer-treeview",
           new TreeDataProvider(undefined)
         );
       }
@@ -182,12 +189,12 @@ export class WisdomAuthenticationProvider
       ["response_type", "code"],
       ["code_challenge", CODE_CHALLENGE],
       ["code_challenge_method", "S256"],
-      ["client_id", CLIENT_ID],
+      ["client_id", WISDOM_CLIENT_ID],
       ["redirect_uri", this.redirectUri],
     ]);
 
     const uri = Uri.parse(
-      Uri.parse(OAUTH_BASE_PATH)
+      Uri.parse(this.settingsManager.settings.wisdomService.basePath)
         .with({
           path: "/o/authorize/",
           query: searchParams.toString(),
@@ -221,7 +228,7 @@ export class WisdomAuthenticationProvider
                     "Cancelling the Wisdom OAuth login after 60s. Try again."
                   )
                 ),
-              60000
+              WISDOM_SERVICE_LOGIN_TIMEOUT
             );
           }),
           promiseFromEvent<any, any>(
@@ -271,7 +278,7 @@ export class WisdomAuthenticationProvider
     };
 
     const postData = {
-      client_id: CLIENT_ID,
+      client_id: WISDOM_CLIENT_ID,
       code: code,
       code_verifier: CODE_VERIFIER,
       redirect_uri: this.redirectUri,
@@ -282,7 +289,7 @@ export class WisdomAuthenticationProvider
 
     try {
       const { data } = await axios.post(
-        `${OAUTH_BASE_PATH}/o/token/`,
+        `${this.settingsManager.settings.wisdomService.basePath}/o/token/`,
         postData,
         {
           headers: headers,
@@ -296,7 +303,6 @@ export class WisdomAuthenticationProvider
         expiresAtTimestampInSeconds: calculateTokenExpiryTime(data.expires_in),
         // scope: data.scope,
       };
-
       // store the account info
       this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
 
@@ -322,7 +328,7 @@ export class WisdomAuthenticationProvider
     };
 
     const postData = {
-      client_id: CLIENT_ID,
+      client_id: WISDOM_CLIENT_ID,
       refresh_token: currentAccount.refreshToken,
       grant_type: "refresh_token",
     };
@@ -336,9 +342,13 @@ export class WisdomAuthenticationProvider
       },
       async () => {
         return axios
-          .post(`${OAUTH_BASE_PATH}/o/token/`, postData, {
-            headers: headers,
-          })
+          .post(
+            `${this.settingsManager.settings.wisdomService.basePath}/o/token/`,
+            postData,
+            {
+              headers: headers,
+            }
+          )
           .then((response) => {
             const data = response.data;
             const account: OAuthAccount = {
@@ -389,7 +399,7 @@ export class WisdomAuthenticationProvider
         "Login"
       );
       if (selection === "Login") {
-        commands.executeCommand("extension.wisdom.auth");
+        commands.executeCommand(WisdomCommands.WISDOM_AUTH_REQUEST);
       }
       return;
     }
@@ -412,9 +422,10 @@ export class WisdomAuthenticationProvider
     const timeNow = Math.floor(new Date().getTime() / 1000);
     if (timeNow >= currentAccount["expiresAtTimestampInSeconds"] - GRACE_TIME) {
       // get new token
-      console.log("[oauth] Token expired. Getting new token...");
+      console.log("[oauth] Ansible wisdom token expired. Getting new token...");
 
       const result = await this.requestTokenAfterExpiry(currentAccount);
+      console.log(`[oauth] New Ansible wisdom  token received ${result}`);
 
       if (!result) {
         // handle error
@@ -425,7 +436,7 @@ export class WisdomAuthenticationProvider
         return;
       }
 
-      window.showInformationMessage("Token refreshed!");
+      window.showInformationMessage("Ansible wisdom token refreshed!");
 
       const newAccount: OAuthAccount = result;
 
@@ -469,11 +480,14 @@ export class WisdomAuthenticationProvider
     console.log("[oauth] Sending request for logged-in user info...");
 
     try {
-      const { data } = await axios.get(`${OAUTH_BASE_PATH}/api/me/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const { data } = await axios.get(
+        `${this.settingsManager.settings.wisdomService.basePath}/api/me/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       return data;
     } catch (error) {

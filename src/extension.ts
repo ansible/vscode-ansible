@@ -75,14 +75,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
     true
   );
 
-  // TODO: uncomment this once we have wisdom server for oauth ready
-  // registerCommandWithTelemetry(
-  //   context,
-  //   telemetry,
-  //   WisdomCommands.WISDOM_AUTH_REQUEST,
-  //   getAuthToken,
-  //   true
-  // );
+  registerCommandWithTelemetry(
+    context,
+    telemetry,
+    WisdomCommands.WISDOM_AUTH_REQUEST,
+    getAuthToken,
+    true
+  );
 
   // start the client and the server
   await startClient(context, telemetry);
@@ -177,13 +176,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );
 
-  // TODO: uncomment this once we have wisdom server for oauth ready
-  // const session = await authentication.getSession("auth-wisdom", [], {
-  //   createIfNone: false,
-  // });
-  // if (session) {
-  //   window.registerTreeDataProvider("wisdom", new TreeDataProvider(session));
-  // }
+  const session = await authentication.getSession("auth-wisdom", [], {
+    createIfNone: false,
+  });
+  if (session) {
+    window.registerTreeDataProvider(
+      "wisdom-explorer-treeview",
+      new TreeDataProvider(session)
+    );
+  }
 }
 
 const startClient = async (
@@ -304,7 +305,10 @@ async function getAuthToken(): Promise<void> {
   const session = await authentication.getSession("auth-wisdom", [], {
     createIfNone: true,
   });
-  window.registerTreeDataProvider("wisdom", new TreeDataProvider(session));
+  window.registerTreeDataProvider(
+    "wisdom-explorer-treeview",
+    new TreeDataProvider(session)
+  );
 
   if (session) {
     window.showInformationMessage(`Welcome back ${session.account.label}`);
