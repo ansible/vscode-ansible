@@ -27,6 +27,5 @@ export interface ExecutionEnvironmentSettings {
 export interface WisdomServiceSettings {
   enabled: boolean;
   basePath: string;
-  authToken: string | undefined;
-  suggestions: { enabled: boolean; userFeedback: boolean };
+  suggestions: { enabled: boolean };
 }

@@ -37,12 +37,10 @@ export class SettingsManager {
         volumeMounts: eeSettings.get("volumeMounts", []),
       },
       wisdomService: {
-        enabled: wisdomSettings.get("enabled", true),
+        enabled: wisdomSettings.get("enabled", false),
         basePath: wisdomSettings.get("basePath", ""),
-        authToken: wisdomSettings.get("authToken"),
         suggestions: {
-          enabled: wisdomSettings.get("suggestions.enabled", true),
-          userFeedback: wisdomSettings.get("suggestions.userFeedback", true),
+          enabled: wisdomSettings.get("suggestions.enabled", false),
         },
       },
     };
