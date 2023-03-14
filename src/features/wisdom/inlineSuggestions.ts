@@ -157,7 +157,9 @@ async function getInlineSuggestions(
     inlineSuggestionData["documentUri"] = document.uri.toString();
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
 
-    const documentContent = range.isEmpty ? "" : document.getText(range).trim();
+    const documentContent = range.isEmpty
+      ? ""
+      : document.getText(range).trimEnd();
 
     wisdomManager.wisdomStatusBar.text = "Processing...";
     result = await requestInlineSuggest(documentContent);
