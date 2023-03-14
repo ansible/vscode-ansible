@@ -1,7 +1,13 @@
 /* "stdlib" */
 import * as vscode from "vscode";
 import * as path from "path";
-import { ExtensionContext, extensions, window, workspace } from "vscode";
+import {
+  authentication,
+  ExtensionContext,
+  extensions,
+  window,
+  workspace,
+} from "vscode";
 import { toggleEncrypt } from "./features/vault";
 import { AnsibleCommands, WisdomCommands } from "./definitions/constants";
 import {
@@ -32,6 +38,7 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
+import { TreeDataProvider } from "./treeView";
 import { WisdomManager } from "./features/wisdom/base";
 import {
   inlineSuggestionProvider,
@@ -66,6 +73,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     resyncAnsibleInventory,
     true
   );
+
+  // TODO: uncomment this once we have wisdom server for oauth ready
+  // registerCommandWithTelemetry(
+  //   context,
+  //   telemetry,
+  //   WisdomCommands.WISDOM_AUTH_REQUEST,
+  //   getAuthToken,
+  //   true
+  // );
 
   // start the client and the server
   await startClient(context, telemetry);
@@ -133,6 +149,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
   workspace.onDidChangeConfiguration(() =>
     updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );
+
+  // TODO: uncomment this once we have wisdom server for oauth ready
+  // const session = await authentication.getSession("auth-wisdom", [], {
+  //   createIfNone: false,
+  // });
+  // if (session) {
+  //   window.registerTreeDataProvider("wisdom", new TreeDataProvider(session));
+  // }
 }
 
 const startClient = async (
@@ -245,5 +269,17 @@ async function resyncAnsibleInventory(): Promise<void> {
       }
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function getAuthToken(): Promise<void> {
+  const session = await authentication.getSession("auth-wisdom", [], {
+    createIfNone: true,
+  });
+  window.registerTreeDataProvider("wisdom", new TreeDataProvider(session));
+
+  if (session) {
+    window.showInformationMessage(`Welcome back ${session.account.label}`);
   }
 }

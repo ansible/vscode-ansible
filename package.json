@@ -515,6 +515,7 @@
     "@typescript-eslint/parser": "^5.47.1",
     "@vscode/test-electron": "^2.2.1",
     "@vscode/vsce": "^2.16.0",
+    "axios": "^1.2.5",
     "chai": "^4.3.7",
     "copyfiles": "^2.4.1",
     "depcheck": "^1.4.3",
