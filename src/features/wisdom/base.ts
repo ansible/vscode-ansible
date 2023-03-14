@@ -33,11 +33,14 @@ export class WisdomManager {
     this.client = client;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
-    this.apiInstance = new WisdomAPI(this.settingsManager);
-
     // initiate the OAuth service for Wisdom
     this.wisdomAuthenticationProvider = new WisdomAuthenticationProvider(
-      this.context
+      this.context,
+      this.settingsManager
+    );
+    this.apiInstance = new WisdomAPI(
+      this.settingsManager,
+      this.wisdomAuthenticationProvider
     );
 
     // create a new ansible wisdom status bar item that we can manage
@@ -47,8 +50,8 @@ export class WisdomManager {
 
   public reInitialize(): void {
     this.updateWisdomStatusbar();
-    this.apiInstance.reInitialize();
   }
+
   private initialiseStatusBar(): vscode.StatusBarItem {
     // create a new status bar item that we can manage
     const wisdomStatusBarItem = vscode.window.createStatusBarItem(

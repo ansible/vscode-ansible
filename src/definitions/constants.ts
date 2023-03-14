@@ -25,3 +25,11 @@ export const WISDOM_FEEDBACK_FORM_URL =
   "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
 
 export const WISDOM_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
+export const WISDOM_STATUS_BAR_CLICK_HANDLER =
+  "ansible.wisdom.statusBar.clickHandler";
+
+export const WISDOM_FEEDBACK_URL =
+  "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
+
+export const WISDOM_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
+export const WISDOM_SERVICE_LOGIN_TIMEOUT = 120000;

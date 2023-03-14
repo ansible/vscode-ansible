@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import axios, { AxiosInstance, AxiosError } from "axios";
 
-import { ExtensionSettings } from "../../interfaces/extensionSettings";
 import { SettingsManager } from "../../settings";
 import {
   CompletionResponseParams,
@@ -13,22 +12,27 @@ import {
   WISDOM_SUGGESTION_COMPLETION_URL,
   WISDOM_SUGGESTION_FEEDBACK_URL,
 } from "../../definitions/constants";
+import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
 
-function getAuthToken(settings: ExtensionSettings): string | undefined {
-  return settings.wisdomService.authToken;
-}
 export class WisdomAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
+  private wisdomAuthProvider: WisdomAuthenticationProvider;
 
-  constructor(settingsManager: SettingsManager) {
+  constructor(
+    settingsManager: SettingsManager,
+    wisdomAuthProvider: WisdomAuthenticationProvider
+  ) {
     this.settingsManager = settingsManager;
-    this.initialize();
+    this.wisdomAuthProvider = wisdomAuthProvider;
   }
 
-  public initialize(): void {
-    const settings = this.settingsManager.settings;
-    const authToken = getAuthToken(settings);
+  private async getApiInstance(): Promise<AxiosInstance | undefined> {
+    const authToken = await this.wisdomAuthProvider.grantAccessToken();
+    if (authToken === undefined) {
+      console.log("Ansible wisdom service authentication failed");
+      return;
+    }
     const headers = {
       "Content-Type": "application/json",
     };
@@ -36,22 +40,21 @@ export class WisdomAPI {
       Object.assign(headers, { Authorization: `Bearer ${authToken}` });
     }
     this.axiosInstance = axios.create({
-      baseURL: `${settings.wisdomService.basePath}/api`,
+      baseURL: `${this.settingsManager.settings.wisdomService.basePath}/api`,
       headers: headers,
     });
-  }
-
-  public reInitialize(): void {
-    this.initialize();
+    return this.axiosInstance;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getData(urlPath: string): Promise<any> {
-    if (this.axiosInstance === undefined) {
-      throw new Error("Ansible wisdom service instance is not initialized");
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.log("Ansible wisdom service instance is not initialized");
+      return;
     }
     try {
-      const response = await this.axiosInstance.get(urlPath, {
+      const response = await axiosInstance.get(urlPath, {
         timeout: 20000,
       });
       return response.data;
@@ -63,11 +66,13 @@ export class WisdomAPI {
   public async completionRequest(
     inputData: CompletionRequestParams
   ): Promise<CompletionResponseParams> {
-    if (this.axiosInstance === undefined) {
-      throw new Error("Ansible wisdom service instance is not initialized");
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.log("Ansible wisdom service instance is not initialized");
+      return {} as CompletionResponseParams;
     }
     try {
-      const response = await this.axiosInstance.post(
+      const response = await axiosInstance.post(
         WISDOM_SUGGESTION_COMPLETION_URL,
         inputData,
         {
@@ -115,11 +120,13 @@ export class WisdomAPI {
   public async feedbackRequest(
     inputData: FeedbackRequestParams
   ): Promise<FeedbackResponseParams> {
-    if (this.axiosInstance === undefined) {
-      throw new Error("Ansible wisdom service instance is not initialized");
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.log("Ansible wisdom service instance is not initialized");
+      return {} as FeedbackResponseParams;
     }
     try {
-      const response = await this.axiosInstance.post(
+      const response = await axiosInstance.post(
         WISDOM_SUGGESTION_FEEDBACK_URL,
         inputData,
         {
