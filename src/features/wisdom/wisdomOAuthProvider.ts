@@ -254,7 +254,7 @@ export class WisdomAuthenticationProvider
       const code = query.get("code");
 
       if (!code) {
-        reject(new Error("No code receiver from the Wisdom OAuth Server"));
+        reject(new Error("No code received from the Wisdom OAuth Server"));
         return;
       }
 
