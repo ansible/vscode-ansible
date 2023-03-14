@@ -1,16 +1,16 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function compareObjects(obj1: any, obj2: any): boolean {
+export function compareObjects(baseObject: any, newObject: any): boolean {
   // compare the number of keys
-  const obj1Keys = Object.keys(obj1);
-  const obj2Keys = Object.keys(obj2);
+  const baseObjectKeys = Object.keys(baseObject);
+  const newObjectKeys = Object.keys(newObject);
 
-  if (obj1Keys.length !== obj2Keys.length) {
+  if (baseObjectKeys.length !== newObjectKeys.length) {
     return false;
   }
 
   // compare the values for each key
-  for (const key of obj1Keys) {
-    if (obj1[key] !== obj2[key]) {
+  for (const key of baseObjectKeys) {
+    if (baseObject[key] !== newObject[key]) {
       return false;
     }
   }
