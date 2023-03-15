@@ -4,6 +4,23 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.3
+
+### Minor Changes
+
+- Show info in status-bar if a newer version of ansible-lint is available (#692)
+  @priyamsahoo
+- Add code changes for inline suggestion [part-1] (#766) @ganeshrn
+
+### Bugfixes
+
+- Fix onEnter key bindings to work with ansible extension only (#772) @ganeshrn
+- Fix devel testing (#777) @ssbarnea
+- Add fix to remove prompt from suggestion (#770) @ganeshrn
+- Upgrade telemetry to 0.5.4 (#751) @ssbarnea
+- Add tsdoc to eslint (#747) @ssbarnea
+- Switch from quay.io to ghcr.io (#744) @ssbarnea
+
 ## v1.2
 
 ### Minor Changes
