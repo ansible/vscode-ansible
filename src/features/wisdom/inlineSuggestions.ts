@@ -232,7 +232,7 @@ export async function inlineSuggestionCommitHandler(
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // Send feedback for accepted suggestion
-  await inlineSuggestionUserActionHandler(suggestionId, true);
+  await inlineSuggestionUserActionHandler(document, suggestionId, true);
 }
 
 export async function inlineSuggestionHideHandler(
