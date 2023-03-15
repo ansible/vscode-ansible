@@ -383,15 +383,13 @@ export class WisdomAuthenticationProvider
   public async grantAccessToken() {
     console.log("[oauth] Granting access token...");
 
-    // check if user the user has the wisdom setting active
-    const session = await authentication.getSession("auth-wisdom", [], {
-      createIfNone: false,
-    });
+    // check if the user is authenticated or not
+    const session = await this.isAuthenticated();
 
     if (!session) {
       console.log("[oauth] Session not found. Returning...");
       const selection = await window.showWarningMessage(
-        "You must be logged in to use this feature.\n",
+        "You must be logged in to use the wisdom inline suggestion feature.\n",
         "Login"
       );
       if (selection === "Login") {
@@ -495,5 +493,15 @@ export class WisdomAuthenticationProvider
         throw new Error("An unexpected error occurred");
       }
     }
+  }
+
+  /* Return session info if user is authenticated, else undefined */
+  public async isAuthenticated(): Promise<AuthenticationSession | undefined> {
+    // check if the user is authenticated
+    const userAuth = await authentication.getSession("auth-wisdom", [], {
+      createIfNone: false,
+    });
+
+    return userAuth;
   }
 }
