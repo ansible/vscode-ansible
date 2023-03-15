@@ -30,6 +30,7 @@ import {
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
+  getBaseUri,
 } from "./utils/oAuth";
 import {
   WisdomCommands,
@@ -194,7 +195,7 @@ export class WisdomAuthenticationProvider
     ]);
 
     const uri = Uri.parse(
-      Uri.parse(this.getBaseUri())
+      Uri.parse(getBaseUri(this.settingsManager))
         .with({
           path: "/o/authorize/",
           query: searchParams.toString(),
@@ -288,7 +289,7 @@ export class WisdomAuthenticationProvider
 
     try {
       const { data } = await axios.post(
-        `${this.getBaseUri()}/o/token/`,
+        `${getBaseUri(this.settingsManager)}/o/token/`,
         postData,
         {
           headers: headers,
@@ -341,7 +342,7 @@ export class WisdomAuthenticationProvider
       },
       async () => {
         return axios
-          .post(`${this.getBaseUri()}/o/token/`, postData, {
+          .post(`${getBaseUri(this.settingsManager)}/o/token/`, postData, {
             headers: headers,
           })
           .then((response) => {
@@ -475,11 +476,14 @@ export class WisdomAuthenticationProvider
     console.log("[oauth] Sending request for logged-in user info...");
 
     try {
-      const { data } = await axios.get(`${this.getBaseUri()}/api/me/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const { data } = await axios.get(
+        `${getBaseUri(this.settingsManager)}/api/me/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       return data;
     } catch (error) {
@@ -491,11 +495,5 @@ export class WisdomAuthenticationProvider
         throw new Error("An unexpected error occurred");
       }
     }
-  }
-
-  /* Get base uri in a correct formatted way */
-  public getBaseUri() {
-    const baseUri = this.settingsManager.settings.wisdomService.basePath;
-    return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
   }
 }
