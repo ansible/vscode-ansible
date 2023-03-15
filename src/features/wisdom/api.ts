@@ -13,7 +13,7 @@ import {
   WISDOM_SUGGESTION_FEEDBACK_URL,
 } from "../../definitions/constants";
 import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
-import { getBaseUri } from "./utils/oAuth";
+import { getBaseUri } from "./utils/webUtils";
 
 export class WisdomAPI {
   private axiosInstance: AxiosInstance | undefined;

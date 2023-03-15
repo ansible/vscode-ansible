@@ -31,7 +31,7 @@ import {
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
   getBaseUri,
-} from "./utils/oAuth";
+} from "./utils/webUtils";
 import {
   WisdomCommands,
   WISDOM_CLIENT_ID,
