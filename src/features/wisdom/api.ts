@@ -121,6 +121,11 @@ export class WisdomAPI {
   public async feedbackRequest(
     inputData: FeedbackRequestParams
   ): Promise<FeedbackResponseParams> {
+    // return early if the user is not authenticated
+    if (!(await this.wisdomAuthProvider.isAuthenticated())) {
+      return {} as FeedbackResponseParams;
+    }
+
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
       console.log("Ansible wisdom service instance is not initialized");
