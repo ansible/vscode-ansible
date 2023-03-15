@@ -111,28 +111,31 @@ async function getInlineSuggestionItems(
   const inlineSuggestionItems = await getInlineSuggestions(document, position);
   return inlineSuggestionItems;
 }
-export async function requestInlineSuggest(
-  documentContent: string
-): Promise<CompletionResponseParams> {
-  wisdomManager.wisdomStatusBar.tooltip = "processing...";
-  const result = await getInlineSuggestion(documentContent);
-  wisdomManager.wisdomStatusBar.tooltip = "Done";
-  return result;
-}
-async function getInlineSuggestion(
-  content: string
+
+async function requestInlineSuggest(
+  content: string,
+  documentUri: string,
+  activityId: string
 ): Promise<CompletionResponseParams> {
   const completionData: CompletionRequestParams = {
     prompt: content,
     suggestionId: suggestionId,
+    metadata: {
+      documentUri: documentUri,
+      activityId: activityId,
+    },
   };
   console.log(
     `${getCurrentUTCDateTime().toISOString()}: request data to wisdom service:\n${JSON.stringify(
       completionData
     )}`
   );
+
+  wisdomManager.wisdomStatusBar.tooltip = "processing...";
   const outputData: CompletionResponseParams =
     await wisdomManager.apiInstance.completionRequest(completionData);
+  wisdomManager.wisdomStatusBar.tooltip = "Done";
+
   console.log(
     `${getCurrentUTCDateTime().toISOString()}: response data from wisdom service:\n${JSON.stringify(
       outputData
@@ -153,8 +156,18 @@ async function getInlineSuggestions(
   const requestTime = getCurrentUTCDateTime();
   try {
     suggestionId = uuidv4();
+    const documentUri = document.uri.toString();
+    let activityId: string | undefined = undefined;
     inlineSuggestionData["suggestionId"] = suggestionId;
-    inlineSuggestionData["documentUri"] = document.uri.toString();
+    inlineSuggestionData["documentUri"] = documentUri;
+
+    if (!(documentUri in wisdomManager.wisdomActivityTracker)) {
+      activityId = uuidv4();
+      wisdomManager.wisdomActivityTracker[documentUri] = activityId;
+    } else {
+      activityId = wisdomManager.wisdomActivityTracker[documentUri];
+    }
+    inlineSuggestionData["activityId"] = activityId;
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
 
     const documentContent = range.isEmpty
@@ -162,7 +175,11 @@ async function getInlineSuggestions(
       : document.getText(range).trimEnd();
 
     wisdomManager.wisdomStatusBar.text = "Processing...";
-    result = await requestInlineSuggest(documentContent);
+    result = await requestInlineSuggest(
+      documentContent,
+      documentUri,
+      activityId
+    );
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   } catch (error) {
     console.error(error);

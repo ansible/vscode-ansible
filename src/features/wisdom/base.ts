@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
+import { v4 as uuidv4 } from "uuid";
 import { WisdomAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
@@ -7,6 +8,7 @@ import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
 import {
   AnsibleContentUploadTrigger,
   FeedbackRequestParams,
+  IDocumentTracker,
 } from "../../definitions/wisdom";
 import {
   WisdomCommands,
@@ -22,6 +24,7 @@ export class WisdomManager {
   public wisdomStatusBar: vscode.StatusBarItem;
   public apiInstance: WisdomAPI;
   public wisdomAuthenticationProvider: WisdomAuthenticationProvider;
+  public wisdomActivityTracker: IDocumentTracker;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -33,6 +36,7 @@ export class WisdomManager {
     this.client = client;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
+    this.wisdomActivityTracker = {};
     // initiate the OAuth service for Wisdom
     this.wisdomAuthenticationProvider = new WisdomAuthenticationProvider(
       this.context,
@@ -105,11 +109,30 @@ export class WisdomManager {
     ) {
       return;
     }
+    const documentUri = document.uri.toString();
+    let activityId: string | undefined = undefined;
+    if (trigger === AnsibleContentUploadTrigger.FILE_OPEN) {
+      activityId = uuidv4();
+      this.wisdomActivityTracker[documentUri] = uuidv4();
+    } else if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
+      // retrieve previous activity tracker
+      activityId = this.wisdomActivityTracker[documentUri];
+
+      // start a new activity tracker
+      this.wisdomActivityTracker[documentUri] = uuidv4();
+    } else if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
+      // retrieve previous activity tracker
+      activityId = this.wisdomActivityTracker[documentUri];
+
+      // end previous activity tracker
+      delete this.wisdomActivityTracker[documentUri];
+    }
     const inputData: FeedbackRequestParams = {
       ansibleContent: {
         content: document.getText(),
-        documentUri: document.uri.toString(),
+        documentUri: documentUri,
         trigger: trigger,
+        activityId: activityId,
       },
     };
     console.log("Sending ansible content feedback event: ", inputData);
