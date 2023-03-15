@@ -30,7 +30,8 @@ import {
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
-} from "./utils/oAuth";
+  getBaseUri,
+} from "./utils/webUtils";
 import {
   WisdomCommands,
   WISDOM_CLIENT_ID,
@@ -194,14 +195,13 @@ export class WisdomAuthenticationProvider
     ]);
 
     const uri = Uri.parse(
-      Uri.parse(this.settingsManager.settings.wisdomService.basePath)
+      Uri.parse(getBaseUri(this.settingsManager))
         .with({
           path: "/o/authorize/",
           query: searchParams.toString(),
         })
         .toString(true)
     );
-    console.log("[oauth] uri -> ", uri.toString());
 
     const {
       promise: receivedRedirectUrl,
@@ -289,7 +289,7 @@ export class WisdomAuthenticationProvider
 
     try {
       const { data } = await axios.post(
-        `${this.settingsManager.settings.wisdomService.basePath}/o/token/`,
+        `${getBaseUri(this.settingsManager)}/o/token/`,
         postData,
         {
           headers: headers,
@@ -342,13 +342,9 @@ export class WisdomAuthenticationProvider
       },
       async () => {
         return axios
-          .post(
-            `${this.settingsManager.settings.wisdomService.basePath}/o/token/`,
-            postData,
-            {
-              headers: headers,
-            }
-          )
+          .post(`${getBaseUri(this.settingsManager)}/o/token/`, postData, {
+            headers: headers,
+          })
           .then((response) => {
             const data = response.data;
             const account: OAuthAccount = {
@@ -481,7 +477,7 @@ export class WisdomAuthenticationProvider
 
     try {
       const { data } = await axios.get(
-        `${this.settingsManager.settings.wisdomService.basePath}/api/me/`,
+        `${getBaseUri(this.settingsManager)}/api/me/`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
