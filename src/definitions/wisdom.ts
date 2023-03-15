@@ -2,9 +2,14 @@ export interface CompletionResponseParams {
   predictions: string[];
 }
 
+export interface MetadataParams {
+  documentUri: string;
+  activityId: string;
+}
 export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
+  metadata?: MetadataParams;
 }
 
 export enum UserAction {
@@ -29,14 +34,20 @@ export interface InlineSuggestionEvent {
   action?: UserAction;
   error?: string;
   suggestionId?: string;
+  activityId?: string;
 }
 
 export interface AnsibleContentEvent {
   content: string;
   documentUri: string;
   trigger: AnsibleContentUploadTrigger;
+  activityId: string | undefined;
 }
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   ansibleContent?: AnsibleContentEvent;
+}
+
+export interface IDocumentTracker {
+  [key: string]: string;
 }
