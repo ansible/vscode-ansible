@@ -42,6 +42,7 @@ direnv
 dpkg
 eamodio
 endgroup
+endregion
 envrc
 eqeqeq
 esbenp
