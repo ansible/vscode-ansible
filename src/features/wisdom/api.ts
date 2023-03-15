@@ -13,6 +13,7 @@ import {
   WISDOM_SUGGESTION_FEEDBACK_URL,
 } from "../../definitions/constants";
 import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
+import { getBaseUri } from "./utils/webUtils";
 
 export class WisdomAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -40,7 +41,7 @@ export class WisdomAPI {
       Object.assign(headers, { Authorization: `Bearer ${authToken}` });
     }
     this.axiosInstance = axios.create({
-      baseURL: `${this.settingsManager.settings.wisdomService.basePath}/api`,
+      baseURL: `${getBaseUri(this.settingsManager)}/api`,
       headers: headers,
     });
     return this.axiosInstance;

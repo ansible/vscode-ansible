@@ -1,5 +1,6 @@
 import { EventEmitter, Uri, UriHandler } from "vscode";
 import crypto from "crypto";
+import { SettingsManager } from "../../../settings";
 
 export const WISDOM_AUTH_ID = `auth-wisdom`;
 export const WISDOM_AUTH_NAME = `Wisdom`;
@@ -50,4 +51,10 @@ export const generateCodeChallengeFromVerifier = (v: string) => {
 export function calculateTokenExpiryTime(expiresIn: number) {
   const now = Math.floor(new Date().getTime() / 1000);
   return now + expiresIn;
+}
+
+/* Get base uri in a correct formatted way */
+export function getBaseUri(settingsManager: SettingsManager) {
+  const baseUri = settingsManager.settings.wisdomService.basePath;
+  return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
