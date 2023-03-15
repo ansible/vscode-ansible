@@ -194,14 +194,13 @@ export class WisdomAuthenticationProvider
     ]);
 
     const uri = Uri.parse(
-      Uri.parse(this.settingsManager.settings.wisdomService.basePath)
+      Uri.parse(this.getBaseUri())
         .with({
           path: "/o/authorize/",
           query: searchParams.toString(),
         })
         .toString(true)
     );
-    console.log("[oauth] uri -> ", uri.toString());
 
     const {
       promise: receivedRedirectUrl,
@@ -289,7 +288,7 @@ export class WisdomAuthenticationProvider
 
     try {
       const { data } = await axios.post(
-        `${this.settingsManager.settings.wisdomService.basePath}/o/token/`,
+        `${this.getBaseUri()}/o/token/`,
         postData,
         {
           headers: headers,
@@ -342,13 +341,9 @@ export class WisdomAuthenticationProvider
       },
       async () => {
         return axios
-          .post(
-            `${this.settingsManager.settings.wisdomService.basePath}/o/token/`,
-            postData,
-            {
-              headers: headers,
-            }
-          )
+          .post(`${this.getBaseUri()}/o/token/`, postData, {
+            headers: headers,
+          })
           .then((response) => {
             const data = response.data;
             const account: OAuthAccount = {
@@ -480,14 +475,11 @@ export class WisdomAuthenticationProvider
     console.log("[oauth] Sending request for logged-in user info...");
 
     try {
-      const { data } = await axios.get(
-        `${this.settingsManager.settings.wisdomService.basePath}/api/me/`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const { data } = await axios.get(`${this.getBaseUri()}/api/me/`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       return data;
     } catch (error) {
@@ -499,5 +491,11 @@ export class WisdomAuthenticationProvider
         throw new Error("An unexpected error occurred");
       }
     }
+  }
+
+  /* Get base uri in a correct formatted way */
+  public getBaseUri() {
+    const baseUri = this.settingsManager.settings.wisdomService.basePath;
+    return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
   }
 }

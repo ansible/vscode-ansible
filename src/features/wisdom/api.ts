@@ -40,7 +40,7 @@ export class WisdomAPI {
       Object.assign(headers, { Authorization: `Bearer ${authToken}` });
     }
     this.axiosInstance = axios.create({
-      baseURL: `${this.settingsManager.settings.wisdomService.basePath}/api`,
+      baseURL: `${this.wisdomAuthProvider.getBaseUri()}/api`,
       headers: headers,
     });
     return this.axiosInstance;
