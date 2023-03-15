@@ -1,5 +1,6 @@
 // Imported from:
-// https://github.com/samuelcolvin/jinjahtml-vscode/blob/b8fe444cbd838afb4962bb2446e67c85e0443675/language-configuration.json
+// 1. https://github.com/samuelcolvin/jinjahtml-vscode/blob/b8fe444cbd838afb4962bb2446e67c85e0443675/language-configuration.json
+// 2. https://github.com/redhat-developer/vscode-yaml/blob/main/language-configuration.json
 {
   "comments": {
     // symbols used for start and end a block comment. Remove this entry if your language does not support block comments
@@ -33,6 +34,19 @@
     ["(", ")"],
     ["\"", "\""],
     ["'", "'"],
+    ["`", "`"],
     [" ", " "] // for spacing Jinja (and other) expressions; this setting might be a bit controversial ;)
-  ]
+  ],
+  "folding": {
+    "offSide": true,
+    "markers": {
+      "start": "^\\s*#\\s*region\\b",
+      "end": "^\\s*#\\s*endregion\\b"
+    }
+  },
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?(\\{[^}\"']*|\\([^)\"']*)?$",
+    "decreaseIndentPattern": "^\\s+\\}$"
+  },
+  "wordPattern": "(^.?[^\\s]+)+|([^\\s\n={[][\\w\\-\\./$%&*:\"']+)"
 }
