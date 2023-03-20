@@ -100,6 +100,8 @@ tasks:
     deps:
       - install
     cmds:
+      # upgrade yarn itself
+      - yarn set version latest
       # bumps some developments dependencies
       - yarn upgrade-interactive
       # running install after upgrade is needed in order to update the lock file
