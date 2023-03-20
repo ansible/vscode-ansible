@@ -98,7 +98,7 @@ export class WisdomAPI {
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "Ansible wisdom service connection reset. Please try again after sometime..."
+            "The Ansible Wisdom service encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
@@ -107,7 +107,7 @@ export class WisdomAPI {
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "Ansible wisdom service connection timeout. Please try again after sometime..."
+          "The Ansible wisdom service connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
@@ -148,26 +148,12 @@ export class WisdomAPI {
             "User not authorized to access Ansible wisdom service."
           );
         } else if (err?.response?.status === 400) {
-          vscode.window.showErrorMessage(
-            "Bad Request response. Please try again..."
-          );
-        } else if (err?.response?.status.toString().startsWith("5")) {
-          vscode.window.showErrorMessage(
-            "Ansible wisdom service connection reset. Please try again after sometime..."
-          );
+          console.error(`Bad Request response. Failed with error: ${error}`);
         } else {
-          vscode.window.showErrorMessage(
-            `Error from Ansible wisdom service: ${error}`
-          );
+          console.error(`Error from Ansible wisdom service: ${error}`);
         }
-      } else if (err.code === AxiosError.ECONNABORTED) {
-        vscode.window.showErrorMessage(
-          "Ansible wisdom service connection timeout. Please try again after sometime..."
-        );
       } else {
-        vscode.window.showErrorMessage(
-          `Error from Ansible wisdom service: ${error}`
-        );
+        console.error(`Error from Ansible wisdom service: ${error}`);
       }
       return {} as FeedbackResponseParams;
     }
