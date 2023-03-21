@@ -18,7 +18,7 @@ export namespace WisdomCommands {
   export const WISDOM_STATUS_BAR_CLICK = "ansible.wisdom.statusBar.click";
 }
 
-export const WISDOM_SUGGESTION_COMPLETION_URL = "/ai/completions/";
+export const WISDOM_SUGGESTION_COMPLETION_URL = "v0/ai/completions/";
 export const WISDOM_SUGGESTION_FEEDBACK_URL = "/ai/feedback/";
 
 export const WISDOM_FEEDBACK_FORM_URL =
