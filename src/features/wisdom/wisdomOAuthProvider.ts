@@ -36,6 +36,7 @@ import {
   WisdomCommands,
   WISDOM_CLIENT_ID,
   WISDOM_SERVICE_LOGIN_TIMEOUT,
+  WISDOM_ME_AUTH_URL,
 } from "../../definitions/constants";
 
 const CODE_VERIFIER = generateCodeVerifier();
@@ -482,7 +483,7 @@ export class WisdomAuthenticationProvider
 
     try {
       const { data } = await axios.get(
-        `${getBaseUri(this.settingsManager)}/api/me/`,
+        `${getBaseUri(this.settingsManager)}${WISDOM_ME_AUTH_URL}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
