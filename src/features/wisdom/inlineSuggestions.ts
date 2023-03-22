@@ -18,6 +18,7 @@ let suggestionId = "";
 let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
+let inlineSuggestionDisplayed = false; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 export class WisdomInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
@@ -37,6 +38,7 @@ export class WisdomInlineSuggestionProvider
       return [];
     }
 
+    inlineSuggestionDisplayed = true;
     inlineSuggestionData = {};
     inlineSuggestionDisplayTime = getCurrentUTCDateTime();
     return getInlineSuggestionItems(document, position);
@@ -188,7 +190,7 @@ export async function inlineSuggestionTriggerHandler() {
 
   // Trigger the suggestion explicitly
   console.log("inlineSuggestion Handler triggered Explicitly");
-  vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
+  vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
 }
 
 export async function inlineSuggestionCommitHandler() {
@@ -232,6 +234,7 @@ export async function inlineSuggestionUserActionHandler(
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
+  inlineSuggestionDisplayed = false;
   if (isSuggestionAccepted) {
     inlineSuggestionData["action"] = UserAction.ACCEPT;
   } else {
