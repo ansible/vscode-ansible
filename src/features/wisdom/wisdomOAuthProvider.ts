@@ -194,8 +194,15 @@ export class WisdomAuthenticationProvider
       ["redirect_uri", this.redirectUri],
     ]);
 
+    const base_uri = getBaseUri(this.settingsManager);
+    if (!base_uri) {
+      throw new Error(
+        "Please enter the Ansible Wisdom Base Path under the Ansible Wisdom settings!"
+      );
+    }
+
     const uri = Uri.parse(
-      Uri.parse(getBaseUri(this.settingsManager))
+      Uri.parse(base_uri)
         .with({
           path: "/o/authorize/",
           query: searchParams.toString(),

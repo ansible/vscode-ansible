@@ -70,7 +70,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout vscode-ansible
-        uses: actions/checkout@v3.3.0
+        uses: actions/checkout@v3.4.0
 
       - name: Install Task
         uses: arduino/setup-task@v1
@@ -100,6 +100,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       - name: Enable caching for podman-machine
+        if: "contains(matrix.os, 'macos')"
         uses: actions/cache@v3
         with:
           path: |

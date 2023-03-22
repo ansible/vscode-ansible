@@ -31,7 +31,7 @@ export class WisdomAPI {
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
     const authToken = await this.wisdomAuthProvider.grantAccessToken();
     if (authToken === undefined) {
-      console.log("Ansible wisdom service authentication failed");
+      console.error("Ansible Wisdom service authentication failed.");
       return;
     }
     const headers = {
@@ -51,7 +51,7 @@ export class WisdomAPI {
   public async getData(urlPath: string): Promise<any> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.log("Ansible wisdom service instance is not initialized");
+      console.error("Ansible Wisdom service instance is not initialized.");
       return;
     }
     try {
@@ -69,7 +69,7 @@ export class WisdomAPI {
   ): Promise<CompletionResponseParams> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.log("Ansible wisdom service instance is not initialized");
+      console.error("Ansible Wisdom service instance is not initialized.");
       return {} as CompletionResponseParams;
     }
     try {
@@ -86,32 +86,32 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible wisdom service."
+            "User not authorized to access Ansible Wisdom service."
           );
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many requests to the Ansible wisdom service. Please try again after sometime..."
+            "Too many requests to the Ansible Wisdom service. Please try again after sometime."
           );
         } else if (err?.response?.status === 400) {
           vscode.window.showErrorMessage(
-            "Bad Request response. Please try again..."
+            "Bad Request response. Please try again."
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "Ansible wisdom service connection reset. Please try again after sometime..."
+            "The Ansible Wisdom service encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
-            `Error from Ansible wisdom service: ${error}`
+            `Failed to fetch inline suggestion from the Ansible Wisdom service with status code: ${err?.response?.status}. Try again after some time.`
           );
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "Ansible wisdom service connection timeout. Please try again after sometime..."
+          "The Ansible Wisdom service connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
-          `Error from Ansible wisdom service: ${error}`
+          "Failed to fetch inline suggestion from the Ansible wisdom service. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
@@ -128,7 +128,7 @@ export class WisdomAPI {
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.log("Ansible wisdom service instance is not initialized");
+      console.error("Ansible Wisdom service instance is not initialized.");
       return {} as FeedbackResponseParams;
     }
     try {
@@ -145,29 +145,17 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible wisdom service."
+            "User not authorized to access Ansible Wisdom service."
           );
         } else if (err?.response?.status === 400) {
-          vscode.window.showErrorMessage(
-            "Bad Request response. Please try again..."
-          );
-        } else if (err?.response?.status.toString().startsWith("5")) {
-          vscode.window.showErrorMessage(
-            "Ansible wisdom service connection reset. Please try again after sometime..."
-          );
+          console.error(`Bad Request response. Please open an Github issue.`);
         } else {
-          vscode.window.showErrorMessage(
-            `Error from Ansible wisdom service: ${error}`
+          console.error(
+            "The Ansible Wisdom service encountered an error while sending feedback."
           );
         }
-      } else if (err.code === AxiosError.ECONNABORTED) {
-        vscode.window.showErrorMessage(
-          "Ansible wisdom service connection timeout. Please try again after sometime..."
-        );
       } else {
-        vscode.window.showErrorMessage(
-          `Error from Ansible wisdom service: ${error}`
-        );
+        console.error("Failed to send feedback to Ansible Wisdom service.");
       }
       return {} as FeedbackResponseParams;
     }
