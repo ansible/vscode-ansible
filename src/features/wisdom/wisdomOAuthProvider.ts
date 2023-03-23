@@ -106,7 +106,7 @@ export class WisdomAuthenticationProvider
       const account = await this.login(scopes);
 
       if (!account) {
-        throw new Error(`Ansible wisdom login failure`);
+        throw new Error(`Project Wisdom login failure`);
       }
 
       const userinfo: LoggedInUserInfo = await this.getUserInfo(
@@ -140,7 +140,7 @@ export class WisdomAuthenticationProvider
 
       return session;
     } catch (e) {
-      window.showErrorMessage(`Ansible wisdom sign in failed: ${e}`);
+      console.error(`Project Wisdom sign in failed: ${e}`);
       throw e;
     }
   }
@@ -221,7 +221,7 @@ export class WisdomAuthenticationProvider
     const account = await window.withProgress(
       {
         title:
-          "Waiting for authentication redirect from Ansible wisdom service",
+          "Waiting for authentication redirect from Project Wisdom service",
         location: ProgressLocation.Notification,
         cancellable: true,
       },
@@ -397,7 +397,7 @@ export class WisdomAuthenticationProvider
     if (!session) {
       console.log("[oauth] Session not found. Returning...");
       const selection = await window.showWarningMessage(
-        "You must be logged in to use the wisdom inline suggestion feature.\n",
+        "You must be logged in to use the Project Wisdom inline suggestion feature.\n",
         "Login"
       );
       if (selection === "Login") {
@@ -424,10 +424,10 @@ export class WisdomAuthenticationProvider
     const timeNow = Math.floor(new Date().getTime() / 1000);
     if (timeNow >= currentAccount["expiresAtTimestampInSeconds"] - GRACE_TIME) {
       // get new token
-      console.log("[oauth] Ansible wisdom token expired. Getting new token...");
+      console.log("[oauth] Project Wisdom token expired. Getting new token...");
 
       const result = await this.requestTokenAfterExpiry(currentAccount);
-      console.log(`[oauth] New Ansible wisdom  token received ${result}`);
+      console.log(`[oauth] New Project Wisdom token received ${result}`);
 
       if (!result) {
         // handle error
@@ -437,8 +437,6 @@ export class WisdomAuthenticationProvider
         );
         return;
       }
-
-      window.showInformationMessage("Ansible wisdom token refreshed!");
 
       const newAccount: OAuthAccount = result;
 

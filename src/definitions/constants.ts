@@ -13,9 +13,11 @@ export namespace WisdomCommands {
   export const WISDOM_SUGGESTION_HIDE = "ansible.wisdom.inlineSuggest.hide";
   export const WISDOM_SUGGESTION_TRIGGER =
     "ansible.wisdom.inlineSuggest.trigger";
-  export const WISDOM_SUGGESTION_ON_ENTER =
-    "ansible.wisdom.inlineSuggest.triggerOnEnter";
   export const WISDOM_STATUS_BAR_CLICK = "ansible.wisdom.statusBar.click";
+  export const WISDOM_FETCH_TRAINING_MATCHES =
+    "ansible.wisdom.fetchTrainingMatches";
+  export const WISDOM_CLEAR_TRAINING_MATCHES =
+    "ansible.wisdom.clearTrainingMatches";
 }
 
 export const WISDOM_API_VERSION = "v0/";
@@ -26,6 +28,8 @@ export const WISDOM_SUGGESTION_FEEDBACK_URL =
 export const WISDOM_ME_AUTH_URL = "/api/"
   .concat(WISDOM_API_VERSION)
   .concat("me/");
+export const WISDOM_SUGGESTION_ATTRIBUTIONS_URL = `${WISDOM_API_VERSION}/ai/attributions/`;
+
 
 export const WISDOM_FEEDBACK_FORM_URL =
   "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";

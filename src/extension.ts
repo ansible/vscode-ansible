@@ -15,7 +15,6 @@ import {
   TelemetryOutputChannel,
   TelemetryManager,
 } from "./utils/telemetryUtils";
-import { setKeyInput } from "./utils/keyInputUtils";
 
 /* third-party */
 import {
@@ -47,6 +46,7 @@ import {
   inlineSuggestionHideHandler,
 } from "./features/wisdom/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/wisdom";
+import { AttributionsWebview } from "./features/wisdom/attributionsWebview";
 
 export let client: LanguageClient;
 export let wisdomManager: WisdomManager;
@@ -102,19 +102,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_SUGGESTION_ON_ENTER,
-      () => {
-        vscode.commands.executeCommand("default:type", { text: "\n" });
-        setKeyInput("enter");
-      },
-      { language: "ansible" }
+      WisdomCommands.WISDOM_STATUS_BAR_CLICK,
+      wisdomManager.wisdomStatusBarClickHandler
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(
+      AttributionsWebview.viewType,
+      wisdomManager.attributionsProvider
     )
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_STATUS_BAR_CLICK,
-      wisdomManager.wisdomStatusBarClickHandler
+      WisdomCommands.WISDOM_FETCH_TRAINING_MATCHES,
+      () => {
+        wisdomManager.attributionsProvider.showAttributions();
+      }
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      WisdomCommands.WISDOM_CLEAR_TRAINING_MATCHES,
+      () => {
+        wisdomManager.attributionsProvider.clearAttributions();
+      }
     )
   );
 
@@ -179,6 +193,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const session = await authentication.getSession("auth-wisdom", [], {
     createIfNone: false,
   });
+
   if (session) {
     window.registerTreeDataProvider(
       "wisdom-explorer-treeview",

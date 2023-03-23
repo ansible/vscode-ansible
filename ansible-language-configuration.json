@@ -45,7 +45,7 @@
     }
   },
   "indentationRules": {
-    "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?(\\{[^}\"']*|\\([^)\"']*)?$",
+    "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?\\{[^}\"']*|\\([^)\"']*)?$",
     "decreaseIndentPattern": "^\\s+\\}$"
   },
   "wordPattern": "(^.?[^\\s]+)+|([^\\s\n={[][\\w\\-\\./$%&*:\"']+)"

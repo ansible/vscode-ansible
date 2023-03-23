@@ -15,6 +15,7 @@ import {
   WISDOM_FEEDBACK_FORM_URL,
   WISDOM_REPORT_EMAIL_ADDRESS,
 } from "../../definitions/constants";
+import { AttributionsWebview } from "./attributionsWebview";
 
 export class WisdomManager {
   private context;
@@ -25,6 +26,7 @@ export class WisdomManager {
   public apiInstance: WisdomAPI;
   public wisdomAuthenticationProvider: WisdomAuthenticationProvider;
   public wisdomActivityTracker: IDocumentTracker;
+  public attributionsProvider: AttributionsWebview;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -45,6 +47,12 @@ export class WisdomManager {
     this.apiInstance = new WisdomAPI(
       this.settingsManager,
       this.wisdomAuthenticationProvider
+    );
+    this.attributionsProvider = new AttributionsWebview(
+      this.context,
+      this.client,
+      this.settingsManager,
+      this.apiInstance
     );
 
     // create a new ansible wisdom status bar item that we can manage
@@ -105,10 +113,12 @@ export class WisdomManager {
   ): void {
     if (
       document.languageId !== "ansible" ||
-      !this.settingsManager.settings.wisdomService.enabled
+      !this.settingsManager.settings.wisdomService.enabled ||
+      !this.settingsManager.settings.wisdomService.basePath
     ) {
       return;
     }
+
     const documentUri = document.uri.toString();
     let activityId: string | undefined = undefined;
     if (trigger === AnsibleContentUploadTrigger.FILE_OPEN) {
@@ -144,7 +154,7 @@ export class WisdomManager {
     const contactButton = `Contact Us`;
     const feedbackButton = "Take Survey";
     const inputButton = await vscode.window.showInformationMessage(
-      "Ansible wisdom feedback",
+      "Project Wisdom feedback",
       //{ modal: true },
       feedbackButton,
       contactButton

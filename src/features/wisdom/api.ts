@@ -7,8 +7,11 @@ import {
   CompletionRequestParams,
   FeedbackRequestParams,
   FeedbackResponseParams,
+  AttributionsRequestParams,
+  AttributionsResponseParams,
 } from "../../definitions/wisdom";
 import {
+  WISDOM_SUGGESTION_ATTRIBUTIONS_URL,
   WISDOM_SUGGESTION_COMPLETION_URL,
   WISDOM_SUGGESTION_FEEDBACK_URL,
 } from "../../definitions/constants";
@@ -111,7 +114,7 @@ export class WisdomAPI {
         );
       } else {
         vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from the Ansible wisdom service. Try again after some time."
+          "Failed to fetch inline suggestion from the Project Wisdom service. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
@@ -158,6 +161,54 @@ export class WisdomAPI {
         console.error("Failed to send feedback to Ansible Wisdom service.");
       }
       return {} as FeedbackResponseParams;
+    }
+  }
+
+  public async attributionsRequest(
+    inputData: AttributionsRequestParams
+  ): Promise<AttributionsResponseParams> {
+    // return early if the user is not authenticated
+    if (!(await this.wisdomAuthProvider.isAuthenticated())) {
+      vscode.window.showErrorMessage(
+        "User not authenticated to use Wisdom service."
+      );
+      return {} as AttributionsResponseParams;
+    }
+
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.error("Ansible Wisdom service instance is not initialized.");
+      return {} as AttributionsResponseParams;
+    }
+    try {
+      const response = await axiosInstance.post(
+        WISDOM_SUGGESTION_ATTRIBUTIONS_URL,
+        inputData,
+        {
+          timeout: 20000,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      const err = error as AxiosError;
+      if (err && "response" in err) {
+        if (err?.response?.status === 401) {
+          vscode.window.showErrorMessage(
+            "User not authorized to access Ansible Wisdom service."
+          );
+        } else if (err?.response?.status === 400) {
+          console.error(`Bad Request response. Please open an Github issue.`);
+        } else {
+          console.error(
+            "The Ansible Wisdom service encountered an error while fetching attributions."
+          );
+        }
+      } else {
+        console.error(
+          "Failed to fetch attribution from Ansible Wisdom service."
+        );
+      }
+      return {} as AttributionsResponseParams;
     }
   }
 }
