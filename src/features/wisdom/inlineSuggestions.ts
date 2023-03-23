@@ -95,6 +95,14 @@ async function getInlineSuggestionItems(
     inlineSuggestionDisplayed = false;
     return [];
   }
+
+  if (!wisdomSetting.basePath) {
+    vscode.window.showErrorMessage(
+      "Base path for Project Wisdom service is empty. Please provide a base path"
+    );
+    return [];
+  }
+
   console.log("provideInlineCompletionItems triggered by user edits");
   const lineToExtractPrompt = document.lineAt(position.line - 1);
   const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
@@ -126,7 +134,7 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `${getCurrentUTCDateTime().toISOString()}: request data to wisdom service:\n${JSON.stringify(
+    `${getCurrentUTCDateTime().toISOString()}: request data to Project Wisdom service:\n${JSON.stringify(
       completionData
     )}`
   );
@@ -137,7 +145,7 @@ async function requestInlineSuggest(
   wisdomManager.wisdomStatusBar.tooltip = "Done";
 
   console.log(
-    `${getCurrentUTCDateTime().toISOString()}: response data from wisdom service:\n${JSON.stringify(
+    `${getCurrentUTCDateTime().toISOString()}: response data from Project Wisdom service:\n${JSON.stringify(
       outputData
     )}`
   );

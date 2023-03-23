@@ -113,10 +113,12 @@ export class WisdomManager {
   ): void {
     if (
       document.languageId !== "ansible" ||
-      !this.settingsManager.settings.wisdomService.enabled
+      !this.settingsManager.settings.wisdomService.enabled ||
+      !this.settingsManager.settings.wisdomService.basePath
     ) {
       return;
     }
+
     const documentUri = document.uri.toString();
     let activityId: string | undefined = undefined;
     if (trigger === AnsibleContentUploadTrigger.FILE_OPEN) {
@@ -152,7 +154,7 @@ export class WisdomManager {
     const contactButton = `Contact Us`;
     const feedbackButton = "Take Survey";
     const inputButton = await vscode.window.showInformationMessage(
-      "Ansible wisdom feedback",
+      "Project Wisdom feedback",
       //{ modal: true },
       feedbackButton,
       contactButton

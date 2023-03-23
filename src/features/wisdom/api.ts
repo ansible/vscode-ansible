@@ -114,7 +114,7 @@ export class WisdomAPI {
         );
       } else {
         vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from the Ansible wisdom service. Try again after some time."
+          "Failed to fetch inline suggestion from the Project Wisdom service. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
