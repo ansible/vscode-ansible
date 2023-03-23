@@ -23,7 +23,7 @@ export const WISDOM_SUGGESTION_COMPLETION_URL =
   WISDOM_API_VERSION.concat("ai/completions/");
 export const WISDOM_SUGGESTION_FEEDBACK_URL =
   WISDOM_API_VERSION.concat("ai/feedback/");
-export const WISDOM_ME_AUTH_URL = "/api"
+export const WISDOM_ME_AUTH_URL = "/api/"
   .concat(WISDOM_API_VERSION)
   .concat("me/");
 
