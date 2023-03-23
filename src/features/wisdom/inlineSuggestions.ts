@@ -94,6 +94,14 @@ async function getInlineSuggestionItems(
     inlineSuggestionDisplayed = false;
     return [];
   }
+
+  if (!wisdomSetting.basePath) {
+    vscode.window.showErrorMessage(
+      "Base path for wisdom service is empty. Please provide a base path"
+    );
+    return [];
+  }
+
   console.log("provideInlineCompletionItems triggered by user edits");
   const lineToExtractPrompt = document.lineAt(position.line - 1);
   const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
