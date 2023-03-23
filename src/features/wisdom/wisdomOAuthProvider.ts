@@ -139,7 +139,7 @@ export class WisdomAuthenticationProvider
 
       return session;
     } catch (e) {
-      window.showErrorMessage(`Ansible wisdom sign in failed: ${e}`);
+      console.error(`Project Wisdom sign in failed: ${e}`);
       throw e;
     }
   }
@@ -436,8 +436,6 @@ export class WisdomAuthenticationProvider
         );
         return;
       }
-
-      window.showInformationMessage("Ansible wisdom token refreshed!");
 
       const newAccount: OAuthAccount = result;
 
