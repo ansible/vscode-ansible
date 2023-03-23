@@ -59,7 +59,7 @@ export class WisdomInlineSuggestionProvider
        * position remains unchanged, thus avoiding the disappearance of the current suggestion.
        *
        * It is important to note that the entire flow is triggered whenever the user makes any changes.
-       * As a result, we always make a new request for inline suggestion whenever ane changes are made
+       * As a result, we always make a new request for inline suggestion whenever any changes are made
        * in the editor.
        */
 
