@@ -15,6 +15,7 @@ import {
   WISDOM_FEEDBACK_FORM_URL,
   WISDOM_REPORT_EMAIL_ADDRESS,
 } from "../../definitions/constants";
+import { AttributionsWebview } from "./attributionsWebview";
 
 export class WisdomManager {
   private context;
@@ -25,6 +26,7 @@ export class WisdomManager {
   public apiInstance: WisdomAPI;
   public wisdomAuthenticationProvider: WisdomAuthenticationProvider;
   public wisdomActivityTracker: IDocumentTracker;
+  public attributionsProvider: AttributionsWebview;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -45,6 +47,12 @@ export class WisdomManager {
     this.apiInstance = new WisdomAPI(
       this.settingsManager,
       this.wisdomAuthenticationProvider
+    );
+    this.attributionsProvider = new AttributionsWebview(
+      this.context,
+      this.client,
+      this.settingsManager,
+      this.apiInstance
     );
 
     // create a new ansible wisdom status bar item that we can manage

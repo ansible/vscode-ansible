@@ -14,10 +14,15 @@ export namespace WisdomCommands {
   export const WISDOM_SUGGESTION_TRIGGER =
     "ansible.wisdom.inlineSuggest.trigger";
   export const WISDOM_STATUS_BAR_CLICK = "ansible.wisdom.statusBar.click";
+  export const WISDOM_FETCH_TRAINING_MATCHES =
+    "ansible.wisdom.fetchTrainingMatches";
+  export const WISDOM_CLEAR_TRAINING_MATCHES =
+    "ansible.wisdom.clearTrainingMatches";
 }
 
 export const WISDOM_SUGGESTION_COMPLETION_URL = "/ai/completions/";
 export const WISDOM_SUGGESTION_FEEDBACK_URL = "/ai/feedback/";
+export const WISDOM_SUGGESTION_ATTRIBUTIONS_URL = "/ai/attributions/";
 
 export const WISDOM_FEEDBACK_FORM_URL =
   "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
