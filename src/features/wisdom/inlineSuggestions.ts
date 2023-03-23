@@ -204,19 +204,27 @@ async function getInlineSuggestions(
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   const insertTexts: string[] = [];
-  if (result && result.predictions.length > 0) {
-    result.predictions.forEach((prediction) => {
-      let insertText = prediction;
-      insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
-      insertTexts.push(insertText);
+  if (result) {
+    if (result.predictions.length === 0) {
+      vscode.window.showInformationMessage(
+        "Project Wisdom does not have any suggestion based on your input."
+      );
+    } else {
+      result.predictions.forEach((prediction) => {
+        let insertText = prediction;
+        insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
+        insertTexts.push(insertText);
 
-      const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
-      inlineSuggestionUserActionItems.push(inlineSuggestionItem);
-    });
-    // currently we only support one inline suggestion
-    // currentSuggestion is used in user action handlers
-    // to track the suggestion that user is currently working on
-    currentSuggestion = insertTexts[0];
+        const inlineSuggestionItem = new vscode.InlineCompletionItem(
+          insertText
+        );
+        inlineSuggestionUserActionItems.push(inlineSuggestionItem);
+      });
+      // currently we only support one inline suggestion
+      // currentSuggestion is used in user action handlers
+      // to track the suggestion that user is currently working on
+      currentSuggestion = insertTexts[0];
+    }
   }
   console.log(currentSuggestion);
   cachedCompletionItem = inlineSuggestionUserActionItems;
