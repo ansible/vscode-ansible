@@ -146,7 +146,7 @@ export class WisdomManager {
     const contactButton = `Contact Us`;
     const feedbackButton = "Take Survey";
     const inputButton = await vscode.window.showInformationMessage(
-      "Ansible wisdom feedback",
+      "Project Wisdom feedback",
       //{ modal: true },
       feedbackButton,
       contactButton
