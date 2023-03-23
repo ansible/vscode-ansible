@@ -97,7 +97,7 @@ async function getInlineSuggestionItems(
 
   if (!wisdomSetting.basePath) {
     vscode.window.showErrorMessage(
-      "Base path for wisdom service is empty. Please provide a base path"
+      "Base path for Project Wisdom service is empty. Please provide a base path"
     );
     return [];
   }

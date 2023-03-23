@@ -139,7 +139,7 @@ export class WisdomAuthenticationProvider
 
       return session;
     } catch (e) {
-      console.error(`Ansible wisdom sign in failed: ${e}`);
+      console.error(`Project Wisdom sign in failed: ${e}`);
       throw e;
     }
   }
