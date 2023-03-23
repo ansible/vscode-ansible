@@ -38,7 +38,10 @@ export class SettingsManager {
       },
       wisdomService: {
         enabled: wisdomSettings.get("enabled", false),
-        basePath: wisdomSettings.get("basePath", ""),
+        basePath: wisdomSettings.get(
+          "basePath",
+          "https://c.ai.ansible.redhat.com"
+        ),
         suggestions: {
           enabled: wisdomSettings.get("suggestions.enabled", false),
         },
