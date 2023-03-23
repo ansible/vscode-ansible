@@ -437,8 +437,6 @@ export class WisdomAuthenticationProvider
         return;
       }
 
-      window.showInformationMessage("Ansible wisdom token refreshed!");
-
       const newAccount: OAuthAccount = result;
 
       await this.context.secrets.store(
