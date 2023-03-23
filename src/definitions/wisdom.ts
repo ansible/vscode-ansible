@@ -51,3 +51,27 @@ export interface FeedbackRequestParams {
 export interface IDocumentTracker {
   [key: string]: string;
 }
+
+export interface AttributionsRequestParams {
+  suggestion: string;
+  suggestionId: string;
+}
+
+export interface IAttributionsParams {
+  repo_name: string;
+  repo_url: string;
+  path: string;
+  license: string;
+  data_source: string;
+  ansible_type: string;
+  score: number;
+}
+
+export interface AttributionsResponseParams {
+  attributions: IAttributionsParams[];
+}
+
+export interface ISuggestionDetails {
+  suggestion: string;
+  suggestionId: string;
+}

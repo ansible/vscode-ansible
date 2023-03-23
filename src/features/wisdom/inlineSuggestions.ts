@@ -74,7 +74,8 @@ export class WisdomInlineSuggestionProvider
     inlineSuggestionData = {};
     inlineSuggestionDisplayTime = getCurrentUTCDateTime();
     inlineSuggestionDisplayed = true;
-    return getInlineSuggestionItems(document, position);
+    const suggestionItems = getInlineSuggestionItems(document, position);
+    return suggestionItems;
   }
 }
 
@@ -219,6 +220,12 @@ async function getInlineSuggestions(
   }
   console.log(currentSuggestion);
   cachedCompletionItem = inlineSuggestionUserActionItems;
+  wisdomManager.attributionsProvider.suggestionDetails = [
+    {
+      suggestionId: suggestionId,
+      suggestion: currentSuggestion,
+    },
+  ];
   return inlineSuggestionUserActionItems;
 }
 
@@ -251,6 +258,8 @@ export async function inlineSuggestionCommitHandler() {
   // Commit the suggestion
   console.log("inlineSuggestion Commit Handler triggered");
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
+
+  vscode.commands.executeCommand(WisdomCommands.WISDOM_FETCH_TRAINING_MATCHES);
 
   // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, true);
