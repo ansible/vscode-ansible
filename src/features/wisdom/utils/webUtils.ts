@@ -3,7 +3,7 @@ import crypto from "crypto";
 import { SettingsManager } from "../../../settings";
 
 export const WISDOM_AUTH_ID = `auth-wisdom`;
-export const WISDOM_AUTH_NAME = `Wisdom`;
+export const WISDOM_AUTH_NAME = `Project Wisdom`;
 export const SESSIONS_SECRET_KEY = `${WISDOM_AUTH_ID}.sessions`;
 export const ACCOUNT_SECRET_KEY = `${WISDOM_AUTH_ID}.account`;
 

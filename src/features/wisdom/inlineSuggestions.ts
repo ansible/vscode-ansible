@@ -133,7 +133,7 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `${getCurrentUTCDateTime().toISOString()}: request data to wisdom service:\n${JSON.stringify(
+    `${getCurrentUTCDateTime().toISOString()}: request data to Project Wisdom service:\n${JSON.stringify(
       completionData
     )}`
   );
@@ -144,7 +144,7 @@ async function requestInlineSuggest(
   wisdomManager.wisdomStatusBar.tooltip = "Done";
 
   console.log(
-    `${getCurrentUTCDateTime().toISOString()}: response data from wisdom service:\n${JSON.stringify(
+    `${getCurrentUTCDateTime().toISOString()}: response data from Project Wisdom service:\n${JSON.stringify(
       outputData
     )}`
   );
