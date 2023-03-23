@@ -35,7 +35,7 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
 
   public async resolveWebviewView(
     webviewView: vscode.WebviewView,
-    webViewResolvecontext: vscode.WebviewViewResolveContext,
+    webviewResolveContext: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken
   ) {
     this._view = webviewView;
