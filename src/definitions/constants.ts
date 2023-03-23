@@ -13,8 +13,6 @@ export namespace WisdomCommands {
   export const WISDOM_SUGGESTION_HIDE = "ansible.wisdom.inlineSuggest.hide";
   export const WISDOM_SUGGESTION_TRIGGER =
     "ansible.wisdom.inlineSuggest.trigger";
-  export const WISDOM_SUGGESTION_ON_ENTER =
-    "ansible.wisdom.inlineSuggest.triggerOnEnter";
   export const WISDOM_STATUS_BAR_CLICK = "ansible.wisdom.statusBar.click";
 }
 

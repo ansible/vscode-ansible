@@ -1,27 +1,28 @@
 import * as vscode from "vscode";
-
 import { v4 as uuidv4 } from "uuid";
+import _ from "lodash";
 
 import { adjustInlineSuggestionIndent } from "../utils/wisdom";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { wisdomManager } from "../../extension";
-import { WisdomCommands } from "../../definitions/constants";
-import { resetKeyInput, getKeyInput } from "../../utils/keyInputUtils";
 import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
   UserAction,
 } from "../../definitions/wisdom";
+import { WisdomCommands } from "../../definitions/constants";
+
+const TASK_REGEX_EP =
+  /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
 
 let suggestionId = "";
 let currentSuggestion = "";
-const taskRegexEp =
-  /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
-
 let inlineSuggestionData: InlineSuggestionEvent = {};
-let inlineSuggestionDisplayed = false;
 let inlineSuggestionDisplayTime: Date;
+let inlineSuggestionDisplayed = false;
+let previousTriggerPosition: vscode.Position;
+let cachedCompletionItem: vscode.InlineCompletionItem[];
 
 export class WisdomInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
@@ -32,40 +33,49 @@ export class WisdomInlineSuggestionProvider
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
-    if (token.isCancellationRequested) {
+    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+      wisdomManager.wisdomStatusBar.hide();
+      inlineSuggestionDisplayed = false;
       return [];
     }
+
+    if (token.isCancellationRequested) {
+      inlineSuggestionDisplayed = false;
+      return [];
+    }
+
     // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
     if (inlineSuggestionDisplayed) {
+      /* The following approach is implemented to address a specific issue related to the
+       * behavior of inline suggestion in the 'automated' trigger scenario:
+       *
+       * Whenever the toolbar appears on the suggestion, the method provideInlineCompletionItems
+       * is called again with trigger kind as 'invoke'. This results in a new request for inline
+       * suggestion, causing the current suggestion to disappear.
+       *
+       * To resolve this issue, we have implemented a mechanism to keep track of the previous and current
+       * cursor position of the trigger. We cache and return the same completion item when the cursor
+       * position remains unchanged, thus avoiding the disappearance of the current suggestion.
+       *
+       * It is important to note that the entire flow is triggered whenever the user makes any changes.
+       * As a result, we always make a new request for inline suggestion whenever any changes are made
+       * in the editor.
+       */
+
+      if (_.isEqual(position, previousTriggerPosition)) {
+        return cachedCompletionItem;
+      }
+
       vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
-      inlineSuggestionDisplayed = false;
-    }
-    const keyInput = getKeyInput();
-    if (keyInput !== "enter") {
       return [];
     }
-    resetKeyInput();
-    // reset the feedback data
+
     inlineSuggestionData = {};
-    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-      wisdomManager.wisdomStatusBar.hide();
-      return [];
-    }
-    inlineSuggestionDisplayed = true;
     inlineSuggestionDisplayTime = getCurrentUTCDateTime();
+    inlineSuggestionDisplayed = true;
     return getInlineSuggestionItems(document, position);
   }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function inlineSuggestionTriggerHandler(
-  textEditor: vscode.TextEditor
-): Promise<vscode.InlineCompletionItem[]> {
-  const document = textEditor.document;
-  const position = textEditor.selection.active;
-
-  return getInlineSuggestionItems(document, position);
 }
 
 async function getInlineSuggestionItems(
@@ -74,41 +84,30 @@ async function getInlineSuggestionItems(
 ): Promise<vscode.InlineCompletionItem[]> {
   if (document.languageId !== "ansible") {
     wisdomManager.wisdomStatusBar.hide();
+    inlineSuggestionDisplayed = false;
     return [];
   }
   const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
-  if (!wisdomSetting.enabled && !wisdomSetting.suggestions.enabled) {
+  if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
     console.debug("wisdom service is disabled");
     wisdomManager.updateWisdomStatusbar();
+    inlineSuggestionDisplayed = false;
     return [];
   }
   console.log("provideInlineCompletionItems triggered by user edits");
   const lineToExtractPrompt = document.lineAt(position.line - 1);
-  const taskMatchedPattern = lineToExtractPrompt.text.match(taskRegexEp);
+  const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
 
-  // prompt is the format expected by wisdom service
-  // eg. "-name: create a new file"
-  let prompt: string | undefined = undefined;
+  const currentLineText = document.lineAt(position);
 
-  // promptDescription is the task name or comment
-  // eg. "create a new file" and is used to identify
-  // the duplicate suggestion line from the wisdom service
-  // response and remove it from the inline suggestion list
-  let promptDescription: string | undefined = undefined;
-
-  if (taskMatchedPattern) {
-    promptDescription = taskMatchedPattern?.groups?.description;
-    prompt = `${lineToExtractPrompt.text}`;
-  } else {
+  if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+    inlineSuggestionDisplayed = false;
     return [];
   }
-  if (!prompt) {
-    return [];
-  }
-  if (promptDescription === undefined) {
-    promptDescription = prompt;
-  }
+
+  // trigger wisdom service for task suggestions
   const inlineSuggestionItems = await getInlineSuggestions(document, position);
+  previousTriggerPosition = position;
   return inlineSuggestionItems;
 }
 
@@ -174,7 +173,7 @@ async function getInlineSuggestions(
       ? ""
       : document.getText(range).trimEnd();
 
-    wisdomManager.wisdomStatusBar.text = "Processing...";
+    wisdomManager.wisdomStatusBar.text = "$(loading~spin) Wisdom";
     result = await requestInlineSuggest(
       documentContent,
       documentUri,
@@ -211,46 +210,57 @@ async function getInlineSuggestions(
     currentSuggestion = insertTexts[0];
   }
   console.log(currentSuggestion);
+  cachedCompletionItem = inlineSuggestionUserActionItems;
   return inlineSuggestionUserActionItems;
 }
 
-export async function inlineSuggestionCommitHandler(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  textEditor: vscode.TextEditor,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  edit: vscode.TextEditorEdit
-) {
+// Handlers
+
+export async function inlineSuggestionTriggerHandler() {
+  // This trigger handler is called when the user explicitly triggers inline suggestion through command
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-    return [];
+    return;
   }
-  console.log("inlineSuggestionCommitHandler triggered");
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     return;
   }
+
+  // Trigger the suggestion explicitly
+  console.log("inlineSuggestion Handler triggered Explicitly");
+  vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
+}
+
+export async function inlineSuggestionCommitHandler() {
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    return;
+  }
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return;
+  }
+
   // Commit the suggestion
+  console.log("inlineSuggestion Commit Handler triggered");
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, true);
 }
 
-export async function inlineSuggestionHideHandler(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  textEditor: vscode.TextEditor,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  edit: vscode.TextEditorEdit
-) {
-  console.log("inlineSuggestionHideHandler triggered");
+export async function inlineSuggestionHideHandler() {
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-    return [];
+    return;
   }
 
+  // Hide the suggestion
+  console.log("inlineSuggestion Hide Handler triggered");
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
   // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, false);
 }
+
 export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted = false

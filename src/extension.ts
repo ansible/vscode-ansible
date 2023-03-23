@@ -15,7 +15,6 @@ import {
   TelemetryOutputChannel,
   TelemetryManager,
 } from "./utils/telemetryUtils";
-import { setKeyInput } from "./utils/keyInputUtils";
 
 /* third-party */
 import {
@@ -99,17 +98,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // handle wisdom service
   wisdomManager = new WisdomManager(context, client, extSettings, telemetry);
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_SUGGESTION_ON_ENTER,
-      () => {
-        vscode.commands.executeCommand("default:type", { text: "\n" });
-        setKeyInput("enter");
-      },
-      { language: "ansible" }
-    )
-  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
