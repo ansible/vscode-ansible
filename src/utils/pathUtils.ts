@@ -1,4 +1,4 @@
-import { glob } from "glob";
+import { sync } from "glob";
 
 /**
  * A glob utility function that that accepts array of patterns and also
@@ -19,7 +19,7 @@ export function globArray(arrayOfPatterns: string[]): string[] {
 
   let matchFiles = [];
   matchPatterns.forEach((pattern) => {
-    const matchedFiles = glob.sync(pattern);
+    const matchedFiles = sync(pattern);
     matchFiles = matchFiles.concat(matchedFiles);
   });
   const matchFilesSet = new Set(matchFiles);
@@ -29,7 +29,7 @@ export function globArray(arrayOfPatterns: string[]): string[] {
   } else {
     let matchFilesAfterExclusion = [];
     matchPatterns.forEach((pattern) => {
-      const ignoredFiles = glob.sync(pattern, {
+      const ignoredFiles = sync(pattern, {
         ignore: ignorePatterns,
       });
       matchFilesAfterExclusion = matchFilesAfterExclusion.concat(ignoredFiles);
