@@ -198,7 +198,7 @@ export class WisdomAuthenticationProvider
     const base_uri = getBaseUri(this.settingsManager);
     if (!base_uri) {
       throw new Error(
-        "Please enter the Ansible Wisdom Base Path under the Ansible Wisdom settings!"
+        "Please enter the Project Wisdom Base Path under the Project Wisdom settings!"
       );
     }
 
