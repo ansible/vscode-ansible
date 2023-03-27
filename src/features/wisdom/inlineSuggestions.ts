@@ -43,6 +43,26 @@ export class WisdomInlineSuggestionProvider
       inlineSuggestionDisplayed = false;
       return [];
     }
+    if (document.languageId !== "ansible") {
+      wisdomManager.wisdomStatusBar.hide();
+      inlineSuggestionDisplayed = false;
+      return [];
+    }
+    const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
+    if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
+      console.debug("wisdom service is disabled");
+      wisdomManager.updateWisdomStatusbar();
+      inlineSuggestionDisplayed = false;
+      return [];
+    }
+
+    if (!wisdomSetting.basePath) {
+      vscode.window.showErrorMessage(
+        "Base path for Project Wisdom service is empty. Please provide a base path"
+      );
+      inlineSuggestionDisplayed = false;
+      return [];
+    }
 
     // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
@@ -70,89 +90,23 @@ export class WisdomInlineSuggestionProvider
       vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
       return [];
     }
+    const lineToExtractPrompt = document.lineAt(position.line - 1);
+    const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
 
+    const currentLineText = document.lineAt(position);
+
+    if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+      inlineSuggestionDisplayed = false;
+      return [];
+    }
     inlineSuggestionData = {};
     inlineSuggestionDisplayTime = getCurrentUTCDateTime();
-    inlineSuggestionDisplayed = true;
     const suggestionItems = getInlineSuggestionItems(document, position);
     return suggestionItems;
   }
 }
 
 async function getInlineSuggestionItems(
-  document: vscode.TextDocument,
-  position: vscode.Position
-): Promise<vscode.InlineCompletionItem[]> {
-  if (document.languageId !== "ansible") {
-    wisdomManager.wisdomStatusBar.hide();
-    inlineSuggestionDisplayed = false;
-    return [];
-  }
-  const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
-  if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
-    console.debug("wisdom service is disabled");
-    wisdomManager.updateWisdomStatusbar();
-    inlineSuggestionDisplayed = false;
-    return [];
-  }
-
-  if (!wisdomSetting.basePath) {
-    vscode.window.showErrorMessage(
-      "Base path for Project Wisdom service is empty. Please provide a base path"
-    );
-    return [];
-  }
-
-  console.log("provideInlineCompletionItems triggered by user edits");
-  const lineToExtractPrompt = document.lineAt(position.line - 1);
-  const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
-
-  const currentLineText = document.lineAt(position);
-
-  if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
-    inlineSuggestionDisplayed = false;
-    return [];
-  }
-
-  // trigger wisdom service for task suggestions
-  const inlineSuggestionItems = await getInlineSuggestions(document, position);
-  previousTriggerPosition = position;
-  return inlineSuggestionItems;
-}
-
-async function requestInlineSuggest(
-  content: string,
-  documentUri: string,
-  activityId: string
-): Promise<CompletionResponseParams> {
-  const completionData: CompletionRequestParams = {
-    prompt: content,
-    suggestionId: suggestionId,
-    metadata: {
-      documentUri: documentUri,
-      activityId: activityId,
-    },
-  };
-  console.log(
-    `${getCurrentUTCDateTime().toISOString()}: request data to Project Wisdom service:\n${JSON.stringify(
-      completionData
-    )}`
-  );
-
-  wisdomManager.wisdomStatusBar.tooltip = "processing...";
-  const outputData: CompletionResponseParams =
-    await wisdomManager.apiInstance.completionRequest(completionData);
-  wisdomManager.wisdomStatusBar.tooltip = "Done";
-
-  console.log(
-    `${getCurrentUTCDateTime().toISOString()}: response data from Project Wisdom service:\n${JSON.stringify(
-      outputData
-    )}`
-  );
-  return outputData;
-}
-
-async function getInlineSuggestions(
   document: vscode.TextDocument,
   currentPosition: vscode.Position
 ): Promise<vscode.InlineCompletionItem[]> {
@@ -162,6 +116,7 @@ async function getInlineSuggestions(
   inlineSuggestionData = {};
   suggestionId = "";
   const requestTime = getCurrentUTCDateTime();
+  console.log("provideInlineCompletionItems triggered by user edits");
   try {
     suggestionId = uuidv4();
     const documentUri = document.uri.toString();
@@ -197,6 +152,18 @@ async function getInlineSuggestions(
   } finally {
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   }
+  if (!result || !result.predictions) {
+    console.error("Error while fetching inline suggestions");
+    return [];
+  }
+
+  // currently we only support one inline suggestion
+  if (result.predictions.length === 0 || !result.predictions[0]) {
+    vscode.window.showInformationMessage(
+      "Project Wisdom does not have any suggestion based on your input."
+    );
+    return [];
+  }
 
   const responseTime = getCurrentUTCDateTime();
   inlineSuggestionData["latency"] =
@@ -204,28 +171,22 @@ async function getInlineSuggestions(
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   const insertTexts: string[] = [];
-  if (result) {
-    if (result.predictions.length === 0) {
-      vscode.window.showInformationMessage(
-        "Project Wisdom does not have any suggestion based on your input."
-      );
-    } else {
-      result.predictions.forEach((prediction) => {
-        let insertText = prediction;
-        insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
-        insertTexts.push(insertText);
+  result.predictions.forEach((prediction) => {
+    let insertText = prediction;
+    insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
+    insertTexts.push(insertText);
 
-        const inlineSuggestionItem = new vscode.InlineCompletionItem(
-          insertText
-        );
-        inlineSuggestionUserActionItems.push(inlineSuggestionItem);
-      });
-      // currently we only support one inline suggestion
-      // currentSuggestion is used in user action handlers
-      // to track the suggestion that user is currently working on
-      currentSuggestion = insertTexts[0];
-    }
-  }
+    const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
+    inlineSuggestionUserActionItems.push(inlineSuggestionItem);
+  });
+  // currentSuggestion is used in user action handlers
+  // to track the suggestion that user is currently working on
+  currentSuggestion = insertTexts[0];
+
+  // previousTriggerPosition is used to track the cursor position
+  // on hover when the suggestion is displayed
+  previousTriggerPosition = currentPosition;
+
   console.log(currentSuggestion);
   cachedCompletionItem = inlineSuggestionUserActionItems;
   wisdomManager.attributionsProvider.suggestionDetails = [
@@ -234,11 +195,47 @@ async function getInlineSuggestions(
       suggestion: currentSuggestion,
     },
   ];
+  // if the suggestion is not empty then we set the flag to true
+  // indicating that the suggestion is displayed and will be used
+  // to track the user action on the suggestion in scenario where
+  // the user continued to type without accepting or rejecting the suggestion
+  inlineSuggestionDisplayed = true;
   return inlineSuggestionUserActionItems;
 }
 
-// Handlers
+async function requestInlineSuggest(
+  content: string,
+  documentUri: string,
+  activityId: string
+): Promise<CompletionResponseParams> {
+  const completionData: CompletionRequestParams = {
+    prompt: content,
+    suggestionId: suggestionId,
+    metadata: {
+      documentUri: documentUri,
+      activityId: activityId,
+    },
+  };
+  console.log(
+    `${getCurrentUTCDateTime().toISOString()}: request data to Project Wisdom service:\n${JSON.stringify(
+      completionData
+    )}`
+  );
 
+  wisdomManager.wisdomStatusBar.tooltip = "processing...";
+  const outputData: CompletionResponseParams =
+    await wisdomManager.apiInstance.completionRequest(completionData);
+  wisdomManager.wisdomStatusBar.tooltip = "Done";
+
+  console.log(
+    `${getCurrentUTCDateTime().toISOString()}: response data from Project Wisdom service:\n${JSON.stringify(
+      outputData
+    )}`
+  );
+  return outputData;
+}
+
+// Handlers
 export async function inlineSuggestionTriggerHandler() {
   // This trigger handler is called when the user explicitly triggers inline suggestion through command
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
