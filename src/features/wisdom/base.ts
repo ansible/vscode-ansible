@@ -55,7 +55,7 @@ export class WisdomManager {
       this.apiInstance
     );
 
-    // create a new ansible wisdom status bar item that we can manage
+    // create a new project wisdom status bar item that we can manage
     this.wisdomStatusBar = this.initialiseStatusBar();
     this.updateWisdomStatusbar();
   }
