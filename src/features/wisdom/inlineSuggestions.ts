@@ -152,16 +152,8 @@ async function getInlineSuggestionItems(
   } finally {
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   }
-  if (!result || !result.predictions) {
-    console.error("Error while fetching inline suggestions");
-    return [];
-  }
-
-  // currently we only support one inline suggestion
-  if (result.predictions.length === 0 || !result.predictions[0]) {
-    vscode.window.showInformationMessage(
-      "Project Wisdom does not have any suggestion based on your input."
-    );
+  if (!result || !result.predictions || result.predictions.length === 0) {
+    console.error("inline suggestions not found");
     return [];
   }
 
