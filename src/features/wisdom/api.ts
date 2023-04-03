@@ -83,6 +83,18 @@ export class WisdomAPI {
           timeout: 20000,
         }
       );
+
+      if (
+        response.status === 204 ||
+        response.data.predictions.length === 0 ||
+        // currently we only support one inline suggestion
+        !response.data.predictions[0]
+      ) {
+        vscode.window.showInformationMessage(
+          "Project Wisdom does not have any suggestion based on your input."
+        );
+        return {} as CompletionResponseParams;
+      }
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
