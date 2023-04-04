@@ -51,7 +51,7 @@ export class WisdomInlineSuggestionProvider
     }
     const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
     if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
-      console.debug("wisdom service is disabled");
+      console.debug("[project-wisdom] Project Wisdom service is disabled.");
       wisdomManager.updateWisdomStatusbar();
       inlineSuggestionDisplayed = false;
       return [];
@@ -117,7 +117,9 @@ async function getInlineSuggestionItems(
   inlineSuggestionData = {};
   suggestionId = "";
   const requestTime = getCurrentUTCDateTime();
-  console.log("provideInlineCompletionItems triggered by user edits");
+  console.log(
+    "[inline-suggestions] Inline suggestions triggered by user edits."
+  );
   try {
     suggestionId = uuidv4();
     const documentUri = document.uri.toString();
@@ -149,7 +151,6 @@ async function getInlineSuggestionItems(
     );
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   } catch (error) {
-    console.error(error);
     inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
@@ -157,7 +158,7 @@ async function getInlineSuggestionItems(
     wisdomManager.wisdomStatusBar.text = "Wisdom";
   }
   if (!result || !result.predictions || result.predictions.length === 0) {
-    console.error("inline suggestions not found");
+    console.error("[inline-suggestions] Inline suggestions not found.");
     return [];
   }
 
@@ -183,7 +184,9 @@ async function getInlineSuggestionItems(
   // on hover when the suggestion is displayed
   previousTriggerPosition = currentPosition;
 
-  console.log(currentSuggestion);
+  console.log(
+    `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
+  );
   cachedCompletionItem = inlineSuggestionUserActionItems;
   wisdomManager.attributionsProvider.suggestionDetails = [
     {
@@ -213,9 +216,7 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `${getCurrentUTCDateTime().toISOString()}: request data to Project Wisdom service:\n${JSON.stringify(
-      completionData
-    )}`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request send to Project Wisdom service.`
   );
 
   wisdomManager.wisdomStatusBar.tooltip = "processing...";
@@ -224,9 +225,7 @@ async function requestInlineSuggest(
   wisdomManager.wisdomStatusBar.tooltip = "Done";
 
   console.log(
-    `${getCurrentUTCDateTime().toISOString()}: response data from Project Wisdom service:\n${JSON.stringify(
-      outputData
-    )}`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Project Wisdom service.`
   );
   return outputData;
 }
@@ -243,7 +242,9 @@ export async function inlineSuggestionTriggerHandler() {
   }
 
   // Trigger the suggestion explicitly
-  console.log("inlineSuggestion Handler triggered Explicitly");
+  console.log(
+    "[inline-suggestions] Inline Suggestion Handler triggered using command."
+  );
   vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
 }
 
@@ -257,7 +258,7 @@ export async function inlineSuggestionCommitHandler() {
   }
 
   // Commit the suggestion
-  console.log("inlineSuggestion Commit Handler triggered");
+  console.log("[inline-suggestions] User accepted the inline suggestion.");
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   vscode.commands.executeCommand(WisdomCommands.WISDOM_FETCH_TRAINING_MATCHES);
@@ -272,7 +273,7 @@ export async function inlineSuggestionHideHandler() {
   }
 
   // Hide the suggestion
-  console.log("inlineSuggestion Hide Handler triggered");
+  console.log("[inline-suggestions] User ignored the inline suggestion.");
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
   // Send feedback for accepted suggestion
@@ -283,7 +284,6 @@ export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted = false
 ) {
-  console.log(`User gave feedback on suggestion with ID: ${suggestionId}`);
   inlineSuggestionData["userActionTime"] =
     getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
 
@@ -302,9 +302,7 @@ export async function inlineSuggestionUserActionHandler(
   };
   wisdomManager.apiInstance.feedbackRequest(inlineSuggestionFeedbackPayload);
   console.debug(
-    `Sent wisdomInlineSuggestionFeedbackEvent data: ${JSON.stringify(
-      inlineSuggestionFeedbackPayload
-    )}`
+    `[project-wisdom-feedback] User action event wisdomInlineSuggestionFeedbackEvent sent.`
   );
   inlineSuggestionData = {};
 }

@@ -136,11 +136,13 @@ export class WisdomAuthenticationProvider
         changed: [],
       });
 
-      console.log("[oauth] Session created...");
+      console.log("[project-wisdom-oauth] Session created...");
 
       return session;
     } catch (e) {
-      console.error(`Project Wisdom sign in failed: ${e}`);
+      console.error(
+        `[project-wisdom-oauth] Project Wisdom sign in failed: ${e}`
+      );
       throw e;
     }
   }
@@ -185,7 +187,7 @@ export class WisdomAuthenticationProvider
 
   /* Log in to wisdom auth service*/
   private async login(scopes: string[] = []) {
-    console.log("[oauth] Logging in...");
+    console.log("[project-wisdom-oauth] Logging in...");
 
     const searchParams = new URLSearchParams([
       ["response_type", "code"],
@@ -293,7 +295,7 @@ export class WisdomAuthenticationProvider
       grant_type: "authorization_code",
     };
 
-    console.log("[oauth] Sending request for access token...");
+    console.log("[project-wisdom-oauth] Sending request for access token...");
 
     try {
       const { data } = await axios.post(
@@ -317,10 +319,10 @@ export class WisdomAuthenticationProvider
       return account;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log("error message: ", error.message);
+        console.error("[project-wisdom-oauth] error message: ", error.message);
         throw new Error("An unexpected error occurred");
       } else {
-        console.log("unexpected error: ", error);
+        console.error("[project-wisdom-oauth] unexpected error: ", error);
         throw new Error("An unexpected error occurred");
       }
     }
@@ -341,7 +343,9 @@ export class WisdomAuthenticationProvider
       grant_type: "refresh_token",
     };
 
-    console.log("[oauth] Sending request for a new access token...");
+    console.log(
+      "[project-wisdom-oauth] Sending request for a new access token..."
+    );
 
     const account = await window.withProgress(
       {
@@ -374,7 +378,9 @@ export class WisdomAuthenticationProvider
             return account;
           })
           .catch((error) => {
-            console.error(error);
+            console.error(
+              `[project-wisdom-oauth] Request token failed with error: ${error}`
+            );
             return;
           });
       }
@@ -389,13 +395,13 @@ export class WisdomAuthenticationProvider
    * it requests for a new token and updates the secret store
    */
   public async grantAccessToken() {
-    console.log("[oauth] Granting access token...");
+    console.log("[project-wisdom-oauth] Granting access token...");
 
     // check if the user is authenticated or not
     const session = await this.isAuthenticated();
 
     if (!session) {
-      console.log("[oauth] Session not found. Returning...");
+      console.log("[project-wisdom-oauth] Session not found. Returning...");
       const selection = await window.showWarningMessage(
         "You must be logged in to use the Project Wisdom inline suggestion feature.\n",
         "Login"
@@ -406,7 +412,7 @@ export class WisdomAuthenticationProvider
       return;
     }
 
-    console.log("[oauth] Session found");
+    console.log("[project-wisdom-oauth] Session found");
 
     const sessionId = session.id;
 
@@ -415,7 +421,7 @@ export class WisdomAuthenticationProvider
       throw new Error(`Unable to fetch account`);
     }
 
-    console.log("[oauth] Account found");
+    console.log("[project-wisdom-oauth] Account found");
 
     const currentAccount: OAuthAccount = JSON.parse(account);
     let tokenToBeReturned = currentAccount.accessToken;
@@ -424,14 +430,14 @@ export class WisdomAuthenticationProvider
     const timeNow = Math.floor(new Date().getTime() / 1000);
     if (timeNow >= currentAccount["expiresAtTimestampInSeconds"] - GRACE_TIME) {
       // get new token
-      console.log("[oauth] Project Wisdom token expired. Getting new token...");
+      console.log(
+        "[project-wisdom-oauth] Project Wisdom token expired. Getting new token..."
+      );
 
       const result = await this.requestTokenAfterExpiry(currentAccount);
-      console.log(`[oauth] New Project Wisdom token received ${result}`);
+      console.log("[project-wisdom-oauth] New Project Wisdom token received.");
 
       if (!result) {
-        // handle error
-        console.log("Failed to refresh token.");
         window.showErrorMessage(
           "Failed to refresh token. Please log out and log in again"
         );
@@ -477,7 +483,9 @@ export class WisdomAuthenticationProvider
 
   /* Get the user info from server */
   private async getUserInfo(token: string) {
-    console.log("[oauth] Sending request for logged-in user info...");
+    console.log(
+      "[project-wisdom-oauth] Sending request for logged-in user info..."
+    );
 
     try {
       const { data } = await axios.get(
@@ -492,10 +500,10 @@ export class WisdomAuthenticationProvider
       return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log("error message: ", error.message);
+        console.error("[project-wisdom-oauth] error message: ", error.message);
         throw new Error(error.message);
       } else {
-        console.log("unexpected error: ", error);
+        console.error("[project-wisdom-oauth] unexpected error: ", error);
         throw new Error("An unexpected error occurred");
       }
     }
