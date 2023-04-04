@@ -146,7 +146,7 @@ export class WisdomManager {
       },
     };
     console.log(
-      "[project-wisdom-feedback] Event wisdomServiceAnsibleContentFedbackEvent sent."
+      "[project-wisdom-feedback] Event wisdomServiceAnsibleContentFeedbackEvent sent."
     );
     this.apiInstance.feedbackRequest(inputData);
   }
