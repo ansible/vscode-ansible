@@ -9,7 +9,7 @@ export function shouldRequestInlineSuggestions(
     parsedAnsibleDocument = yaml.parse(documentContent, { keepCstNodes: true });
   } catch (err) {
     vscode.window.showErrorMessage(
-      `Project Wisdom expects valid YAML synatax to provide inline suggestions. Error: ${err}`
+      `Project Wisdom expects valid YAML syntax to provide inline suggestions. Error: ${err}`
     );
     return false;
   }
