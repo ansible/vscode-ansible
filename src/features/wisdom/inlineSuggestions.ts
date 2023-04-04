@@ -12,6 +12,7 @@ import {
   UserAction,
 } from "../../definitions/wisdom";
 import { WisdomCommands } from "../../definitions/constants";
+import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
   /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
@@ -137,6 +138,9 @@ async function getInlineSuggestionItems(
       ? ""
       : document.getText(range).trimEnd();
 
+    if (!shouldRequestInlineSuggestions(documentContent)) {
+      return [];
+    }
     wisdomManager.wisdomStatusBar.text = "$(loading~spin) Wisdom";
     result = await requestInlineSuggest(
       documentContent,
