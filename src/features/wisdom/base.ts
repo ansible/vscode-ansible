@@ -114,7 +114,7 @@ export class WisdomManager {
     if (
       document.languageId !== "ansible" ||
       !this.settingsManager.settings.wisdomService.enabled ||
-      !this.settingsManager.settings.wisdomService.basePath
+      !this.settingsManager.settings.wisdomService.basePath.trim()
     ) {
       return;
     }

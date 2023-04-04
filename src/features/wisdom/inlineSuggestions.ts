@@ -57,7 +57,7 @@ export class WisdomInlineSuggestionProvider
       return [];
     }
 
-    if (!wisdomSetting.basePath) {
+    if (!wisdomSetting.basePath.trim()) {
       vscode.window.showErrorMessage(
         "Base path for Project Wisdom service is empty. Please provide a base path"
       );
