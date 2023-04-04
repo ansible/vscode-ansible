@@ -145,7 +145,9 @@ export class WisdomManager {
         activityId: activityId,
       },
     };
-    console.log("Sending ansible content feedback event: ", inputData);
+    console.log(
+      "[project-wisdom-feedback] Event wisdomServiceAnsibleContentFedbackEvent sent."
+    );
     this.apiInstance.feedbackRequest(inputData);
   }
 

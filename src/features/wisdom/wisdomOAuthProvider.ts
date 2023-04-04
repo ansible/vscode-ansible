@@ -140,7 +140,7 @@ export class WisdomAuthenticationProvider
 
       return session;
     } catch (e) {
-      console.error(`Project Wisdom sign in failed: ${e}`);
+      console.error(`[oauth] Project Wisdom sign in failed: ${e}`);
       throw e;
     }
   }
@@ -317,10 +317,10 @@ export class WisdomAuthenticationProvider
       return account;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log("error message: ", error.message);
+        console.error("[oauth] error message: ", error.message);
         throw new Error("An unexpected error occurred");
       } else {
-        console.log("unexpected error: ", error);
+        console.error("[oauth] unexpected error: ", error);
         throw new Error("An unexpected error occurred");
       }
     }
@@ -374,7 +374,7 @@ export class WisdomAuthenticationProvider
             return account;
           })
           .catch((error) => {
-            console.error(error);
+            console.error(`[oauth] Request token failed with error: ${error}`);
             return;
           });
       }
@@ -427,11 +427,9 @@ export class WisdomAuthenticationProvider
       console.log("[oauth] Project Wisdom token expired. Getting new token...");
 
       const result = await this.requestTokenAfterExpiry(currentAccount);
-      console.log(`[oauth] New Project Wisdom token received ${result}`);
+      console.log("[oauth] New Project Wisdom token received.");
 
       if (!result) {
-        // handle error
-        console.log("Failed to refresh token.");
         window.showErrorMessage(
           "Failed to refresh token. Please log out and log in again"
         );
@@ -492,10 +490,10 @@ export class WisdomAuthenticationProvider
       return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log("error message: ", error.message);
+        console.error("[oauth] error message: ", error.message);
         throw new Error(error.message);
       } else {
-        console.log("unexpected error: ", error);
+        console.error("[oauth] unexpected error: ", error);
         throw new Error("An unexpected error occurred");
       }
     }
