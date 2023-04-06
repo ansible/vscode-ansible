@@ -25,8 +25,6 @@ import {
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
-  WISDOM_AUTH_ID,
-  WISDOM_AUTH_NAME,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
@@ -53,16 +51,22 @@ export class WisdomAuthenticationProvider
     new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>();
   private _disposable: Disposable;
   private _uriHandler = new UriEventHandler();
+  private _authId: string;
+  private _authName: string;
 
   constructor(
     private readonly context: ExtensionContext,
-    settingsManager: SettingsManager
+    settingsManager: SettingsManager,
+    authId: string,
+    authName: string
   ) {
     this.settingsManager = settingsManager;
+    this._authId = authId;
+    this._authName = authName;
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
-        WISDOM_AUTH_ID,
-        WISDOM_AUTH_NAME,
+        this._authId,
+        this._authName,
         this,
         { supportsMultipleAccounts: false }
       ),
@@ -390,6 +394,11 @@ export class WisdomAuthenticationProvider
    */
   public async grantAccessToken() {
     console.log("[oauth] Granting access token...");
+
+    if (process.env.TEST_WISDOM_ACCESS_TOKEN) {
+      console.log("[oauth] Test access token returned");
+      return process.env.TEST_WISDOM_ACCESS_TOKEN;
+    }
 
     // check if the user is authenticated or not
     const session = await this.isAuthenticated();

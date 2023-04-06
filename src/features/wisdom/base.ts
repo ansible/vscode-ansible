@@ -16,6 +16,7 @@ import {
   WISDOM_REPORT_EMAIL_ADDRESS,
 } from "../../definitions/constants";
 import { AttributionsWebview } from "./attributionsWebview";
+import { WISDOM_AUTH_ID, WISDOM_AUTH_NAME } from "./utils/webUtils";
 
 export class WisdomManager {
   private context;
@@ -42,7 +43,9 @@ export class WisdomManager {
     // initiate the OAuth service for Wisdom
     this.wisdomAuthenticationProvider = new WisdomAuthenticationProvider(
       this.context,
-      this.settingsManager
+      this.settingsManager,
+      WISDOM_AUTH_ID,
+      WISDOM_AUTH_NAME
     );
     this.apiInstance = new WisdomAPI(
       this.settingsManager,
