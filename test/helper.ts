@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { assert } from "chai";
+import { WisdomCommands } from "../src/definitions/constants";
+import { integer } from "vscode-languageclient";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -97,6 +99,19 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.enabled", false);
 }
 
+export async function enableWisdomSettings(): Promise<void> {
+  await updateSettings("wisdom.enabled", true);
+  await updateSettings("wisdom.suggestions.enabled", true);
+
+  // disable lint validation
+  await updateSettings("validation.lint.enabled", false);
+}
+
+export async function disableWisdomSettings(): Promise<void> {
+  await updateSettings("wisdom.enabled", false);
+  await updateSettings("wisdom.suggestions.enabled", false);
+}
+
 export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[]
@@ -141,4 +156,54 @@ export async function testHover(
       );
     });
   }
+}
+
+export async function testInlineSuggestion(
+  prompt: string,
+  expectedModule: string
+): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    throw new Error("No active editor found");
+  }
+
+  // this is the position where we have placeholder for the task name in the test fixture
+  // i.e., <insert task name for project wisdom suggestion here>
+  const writePosition = new vscode.Position(4, 4);
+
+  // replace the placeholder with valid task name for suggestions
+  await editor.edit(async (edit) => {
+    const replaceRange = new vscode.Range(
+      writePosition,
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    );
+    edit.replace(replaceRange, `- name: ${prompt}\n`);
+  });
+
+  // set cursor position to the next line of the task name
+  const newPosition = new vscode.Position(
+    writePosition.line + 1,
+    writePosition.character
+  );
+  const newSelection = new vscode.Selection(newPosition, newPosition);
+  editor.selection = newSelection;
+
+  await vscode.commands.executeCommand(
+    WisdomCommands.WISDOM_SUGGESTION_TRIGGER
+  );
+  await sleep(15000);
+  await vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_COMMIT);
+  await sleep(2000);
+
+  // get the committed suggestion
+  const suggestionRange = new vscode.Range(
+    newPosition,
+    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+  );
+
+  const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
+
+  // assert
+  assert.include(docContentAfterSuggestion, expectedModule);
 }
