@@ -55,6 +55,6 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 
 /* Get base uri in a correct formatted way */
 export function getBaseUri(settingsManager: SettingsManager) {
-  const baseUri = settingsManager.settings.wisdomService.basePath;
+  const baseUri = settingsManager.settings.wisdomService.basePath.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }

@@ -34,7 +34,7 @@ export class WisdomAPI {
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
     const authToken = await this.wisdomAuthProvider.grantAccessToken();
     if (authToken === undefined) {
-      console.error("Ansible Wisdom service authentication failed.");
+      console.error("Project Wisdom service authentication failed.");
       return;
     }
     const headers = {
@@ -54,7 +54,7 @@ export class WisdomAPI {
   public async getData(urlPath: string): Promise<any> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Wisdom service instance is not initialized.");
+      console.error("Project Wisdom service instance is not initialized.");
       return;
     }
     try {
@@ -72,7 +72,7 @@ export class WisdomAPI {
   ): Promise<CompletionResponseParams> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Wisdom service instance is not initialized.");
+      console.error("Project Wisdom service instance is not initialized.");
       return {} as CompletionResponseParams;
     }
     try {
@@ -83,17 +83,29 @@ export class WisdomAPI {
           timeout: 20000,
         }
       );
+
+      if (
+        response.status === 204 ||
+        response.data.predictions.length === 0 ||
+        // currently we only support one inline suggestion
+        !response.data.predictions[0]
+      ) {
+        vscode.window.showInformationMessage(
+          "Project Wisdom does not have any suggestion based on your input."
+        );
+        return {} as CompletionResponseParams;
+      }
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Wisdom service."
+            "User not authorized to access Project Wisdom service."
           );
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many requests to the Ansible Wisdom service. Please try again after sometime."
+            "Too many requests to the Project Wisdom service. Please try again after sometime."
           );
         } else if (err?.response?.status === 400) {
           vscode.window.showErrorMessage(
@@ -101,16 +113,16 @@ export class WisdomAPI {
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "The Ansible Wisdom service encountered an error. Try again after some time."
+            "The Project Wisdom service encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
-            `Failed to fetch inline suggestion from the Ansible Wisdom service with status code: ${err?.response?.status}. Try again after some time.`
+            `Failed to fetch inline suggestion from the Project Wisdom service with status code: ${err?.response?.status}. Try again after some time.`
           );
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "The Ansible Wisdom service connection timeout. Try again after some time."
+          "The Project Wisdom service connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
@@ -131,7 +143,7 @@ export class WisdomAPI {
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Wisdom service instance is not initialized.");
+      console.error("Project Wisdom service instance is not initialized.");
       return {} as FeedbackResponseParams;
     }
     try {
@@ -148,17 +160,17 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Wisdom service."
+            "User not authorized to access Project Wisdom service."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Ansible Wisdom service encountered an error while sending feedback."
+            "The Project Wisdom service encountered an error while sending feedback."
           );
         }
       } else {
-        console.error("Failed to send feedback to Ansible Wisdom service.");
+        console.error("Failed to send feedback to Project Wisdom service.");
       }
       return {} as FeedbackResponseParams;
     }
@@ -177,7 +189,7 @@ export class WisdomAPI {
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Wisdom service instance is not initialized.");
+      console.error("Project Wisdom service instance is not initialized.");
       return {} as AttributionsResponseParams;
     }
     try {
@@ -194,18 +206,18 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Wisdom service."
+            "User not authorized to access Project Wisdom service."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Ansible Wisdom service encountered an error while fetching attributions."
+            "The Project Wisdom service encountered an error while fetching attributions."
           );
         }
       } else {
         console.error(
-          "Failed to fetch attribution from Ansible Wisdom service."
+          "Failed to fetch attribution from Project Wisdom service."
         );
       }
       return {} as AttributionsResponseParams;

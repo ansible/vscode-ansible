@@ -26,8 +26,7 @@ export const WISDOM_SUGGESTION_FEEDBACK_URL = `${WISDOM_API_VERSION}/ai/feedback
 export const WISDOM_SUGGESTION_ATTRIBUTIONS_URL = `${WISDOM_API_VERSION}/ai/attributions/`;
 export const WISDOM_ME_AUTH_URL = `/api/${WISDOM_API_VERSION}/me/`;
 
-export const WISDOM_FEEDBACK_FORM_URL =
-  "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
+export const WISDOM_FEEDBACK_FORM_URL = "https://red.ht/ansible-ai-feedback";
 
 export const WISDOM_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
 export const WISDOM_STATUS_BAR_CLICK_HANDLER =

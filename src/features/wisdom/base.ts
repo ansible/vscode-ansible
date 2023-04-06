@@ -58,7 +58,7 @@ export class WisdomManager {
       this.apiInstance
     );
 
-    // create a new ansible wisdom status bar item that we can manage
+    // create a new project wisdom status bar item that we can manage
     this.wisdomStatusBar = this.initialiseStatusBar();
     this.updateWisdomStatusbar();
   }
@@ -117,7 +117,7 @@ export class WisdomManager {
     if (
       document.languageId !== "ansible" ||
       !this.settingsManager.settings.wisdomService.enabled ||
-      !this.settingsManager.settings.wisdomService.basePath
+      !this.settingsManager.settings.wisdomService.basePath.trim()
     ) {
       return;
     }
@@ -148,7 +148,9 @@ export class WisdomManager {
         activityId: activityId,
       },
     };
-    console.log("Sending ansible content feedback event: ", inputData);
+    console.log(
+      "[project-wisdom-feedback] Event wisdomServiceAnsibleContentFeedbackEvent sent."
+    );
     this.apiInstance.feedbackRequest(inputData);
   }
 
