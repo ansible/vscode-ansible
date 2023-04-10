@@ -93,7 +93,7 @@ export function wisdomUIAssetsTest(): void {
       const wisdomStatusBarItem = await statusBar.getItem("Wisdom");
       expect(wisdomStatusBarItem).not.to.be.undefined;
 
-      // getAttribute('style') returns a string with "background-color" incase of different color, else returns nothing
+      // getAttribute('style') returns a string with "background-color" in case of different color, else returns nothing
       expect(await wisdomStatusBarItem?.getAttribute("style")).to.include(
         "background-color"
       );
@@ -111,7 +111,7 @@ export function wisdomUIAssetsTest(): void {
       const wisdomStatusBarItem = await statusBar.getItem("Wisdom");
       expect(wisdomStatusBarItem).not.to.be.undefined;
 
-      // getAttribute('style') returns a string with "background-color" incase of different color, else returns nothing
+      // getAttribute('style') returns a string with "background-color" in case of different color, else returns nothing
       expect(await wisdomStatusBarItem?.getAttribute("style")).to.be.empty;
     });
   });
