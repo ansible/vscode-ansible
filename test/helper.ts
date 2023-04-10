@@ -236,13 +236,9 @@ export async function testInlineSuggestion(
     edit.replace(replaceRange, `- name: ${prompt}\n`);
   });
 
-  // set cursor position to the next line of the task name
-  const newPosition = new vscode.Position(
-    writePosition.line + 1,
-    writePosition.character
-  );
-  const newSelection = new vscode.Selection(newPosition, newPosition);
-  editor.selection = newSelection;
+  await vscode.commands.executeCommand("cursorMove", {
+    to: "nextBlankLine",
+  });
 
   await vscode.commands.executeCommand(
     WisdomCommands.WISDOM_SUGGESTION_TRIGGER
@@ -253,7 +249,7 @@ export async function testInlineSuggestion(
 
   // get the committed suggestion
   const suggestionRange = new vscode.Range(
-    newPosition,
+    new vscode.Position(writePosition.line + 1, writePosition.character),
     new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
   );
 
