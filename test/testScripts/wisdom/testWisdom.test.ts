@@ -5,6 +5,7 @@ import {
   testInlineSuggestion,
   enableWisdomSettings,
   disableWisdomSettings,
+  canRunWisdomTests,
 } from "../../helper";
 
 function testSuggestionPrompts() {
@@ -25,11 +26,8 @@ function testSuggestionPrompts() {
 export function testWisdom(): void {
   describe("TEST PROJECT WISDOM", function () {
     before(async function () {
-      // if env variable with test token is not loaded, skip the wisdom tests
-      if (!process.env.TEST_WISDOM_ACCESS_TOKEN) {
-        console.warn(
-          "Skipping wisdom tests because TEST_WISDOM_ACCESS_TOKEN variable is not set."
-        );
+      // check if we can run wisdom tests or not> If not, skip the tests
+      if (!(await canRunWisdomTests())) {
         this.skip();
       }
     });

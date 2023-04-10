@@ -3,6 +3,8 @@ import * as path from "path";
 import { assert } from "chai";
 import { WisdomCommands } from "../src/definitions/constants";
 import { integer } from "vscode-languageclient";
+import axios from "axios";
+import { WISDOM_ME_AUTH_URL } from "../src/definitions/constants";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -110,6 +112,59 @@ export async function enableWisdomSettings(): Promise<void> {
 export async function disableWisdomSettings(): Promise<void> {
   await updateSettings("wisdom.enabled", false);
   await updateSettings("wisdom.suggestions.enabled", false);
+}
+
+export async function canRunWisdomTests(): Promise<boolean> {
+  // first check if environment variable is set or not
+  if (!process.env.TEST_WISDOM_ACCESS_TOKEN) {
+    console.warn(
+      "Skipping wisdom tests because TEST_WISDOM_ACCESS_TOKEN variable is not set."
+    );
+    return false;
+  }
+
+  // next, check if the access token is valid or not
+  const projectWisdomBasePath: string | undefined = vscode.workspace
+    .getConfiguration("ansible")
+    .get("wisdom.basePath");
+
+  const token = process.env.TEST_WISDOM_ACCESS_TOKEN;
+
+  if (!projectWisdomBasePath) {
+    console.warn(
+      "Skipping wisdom tests because project wisdom path path not set."
+    );
+    return false;
+  }
+
+  let result: number;
+  try {
+    const { status } = await axios.get(
+      `${projectWisdomBasePath}${WISDOM_ME_AUTH_URL}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    result = status;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Skipping wisdom tests because of the following error message: ",
+        error.message
+      );
+    } else {
+      console.error(
+        "Skipping wisdom tests because of unexpected error: ",
+        error
+      );
+    }
+    return false;
+  }
+
+  // finally, check if status code is not 200
+  return result === 200;
 }
 
 export async function testDiagnostics(
