@@ -124,11 +124,11 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         env:
-          WISDOM_ACCESS_TOKEN: ${{ secrets.TEST_WISDOM_ACCESS_TOKEN }}
+          TEST_WISDOM_ACCESS_TOKEN: ${{ secrets.TEST_WISDOM_ACCESS_TOKEN }}
         # xvfb needed for chrome headless tests
         uses: coactions/setup-xvfb@v1
         with:
-          run: TEST_WISDOM_ACCESS_TOKEN=$WISDOM_ACCESS_TOKEN task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+          run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
         continue-on-error: ${{ matrix.continue-on-error || false }}
 
       - name: Upload vsix artifact
