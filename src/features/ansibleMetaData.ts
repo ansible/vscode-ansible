@@ -14,20 +14,20 @@ import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
 import { compareObjects } from "./utils/data";
 
 interface ansibleMetadataEvent {
-  ansibleVersion: string;
+  ansibleVersion: string | undefined;
   ansibleLintVersion?: string;
   eeEnabled: boolean;
 }
 
 let prevEventData: ansibleMetadataEvent = {
-  ansibleVersion: "",
+  ansibleVersion: undefined,
   eeEnabled: false,
 };
 
 export class MetadataManager {
   private context;
   private client;
-  private cachedAnsibleVersion = "";
+  private cachedAnsibleVersion = undefined;
   private metadataStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
 
@@ -91,7 +91,7 @@ export class MetadataManager {
           this.metadataStatusBarItem.text = ansibleMetaData.eeEnabled
             ? `$(bracket-dot) [EE] ${this.cachedAnsibleVersion}`
             : `$(bracket-dot) ${this.cachedAnsibleVersion}`;
-          this.metadataStatusBarItem.backgroundColor = "";
+          this.metadataStatusBarItem.backgroundColor = undefined;
           this.metadataStatusBarItem.tooltip = tooltip;
 
           if (!ansibleMetaData.ansibleLintPresent) {

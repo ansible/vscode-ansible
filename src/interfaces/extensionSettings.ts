@@ -18,9 +18,9 @@ export interface IVolumeMounts {
 export interface ExecutionEnvironmentSettings {
   enabled: boolean;
   containerEngine: IContainerEngine;
-  containerOptions: string;
+  containerOptions: string | undefined;
   image: string;
-  pull: { arguments: string; policy: IPullPolicy };
+  pull: { arguments: string | undefined; policy: IPullPolicy };
   volumeMounts: Array<IVolumeMounts>;
 }
 

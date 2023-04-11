@@ -62,7 +62,7 @@ export class AnsiblePlaybookRunProvider {
       `--ce ${getContainerEngine(eeSettings.containerEngine)}`
     );
     commandLineArgs.push(`--eei ${eeSettings.image}`);
-    if (eeSettings.containerOptions !== "") {
+    if (eeSettings.containerOptions) {
       commandLineArgs.push(`--co ${eeSettings.containerOptions}`);
     }
     eeSettings.volumeMounts.forEach((volumeMount) => {

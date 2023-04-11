@@ -28,10 +28,10 @@ export class SettingsManager {
       executionEnvironment: {
         enabled: eeSettings.get("enabled", false),
         containerEngine: eeSettings.get("containerEngine", "auto"),
-        containerOptions: eeSettings.get("containerOptions", ""),
+        containerOptions: eeSettings.get("containerOptions", undefined),
         image: eeSettings.get("image", "ghcr.io/ansible/creator-ee:latest"),
         pull: {
-          arguments: eeSettings.get("pull.arguments", ""),
+          arguments: eeSettings.get("pull.arguments", undefined),
           policy: eeSettings.get("pull.policy", "missing"),
         },
         volumeMounts: eeSettings.get("volumeMounts", []),
