@@ -21,9 +21,9 @@ let suggestionId = "";
 let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
-let inlineSuggestionDisplayed = false;
+let _inlineSuggestionDisplayed = false;
 let previousTriggerPosition: vscode.Position;
-let cachedCompletionItem: vscode.InlineCompletionItem[];
+let _cachedCompletionItem: vscode.InlineCompletionItem[];
 
 export class WisdomInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
@@ -34,26 +34,31 @@ export class WisdomInlineSuggestionProvider
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
-    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (!activeTextEditor) {
+      resetInlineSuggestionDisplayed();
+      return [];
+    }
+    if (activeTextEditor.document.languageId !== "ansible") {
       wisdomManager.wisdomStatusBar.hide();
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
 
     if (token.isCancellationRequested) {
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
     if (document.languageId !== "ansible") {
       wisdomManager.wisdomStatusBar.hide();
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
     const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
     if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
       console.debug("[project-wisdom] Project Wisdom service is disabled.");
       wisdomManager.updateWisdomStatusbar();
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
 
@@ -61,13 +66,12 @@ export class WisdomInlineSuggestionProvider
       vscode.window.showErrorMessage(
         "Base path for Project Wisdom service is empty. Please provide a base path"
       );
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
-
     // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
-    if (inlineSuggestionDisplayed) {
+    if (getInlineSuggestionDisplayed()) {
       /* The following approach is implemented to address a specific issue related to the
        * behavior of inline suggestion in the 'automated' trigger scenario:
        *
@@ -83,9 +87,8 @@ export class WisdomInlineSuggestionProvider
        * As a result, we always make a new request for inline suggestion whenever any changes are made
        * in the editor.
        */
-
       if (_.isEqual(position, previousTriggerPosition)) {
-        return cachedCompletionItem;
+        return _cachedCompletionItem;
       }
 
       vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
@@ -97,7 +100,7 @@ export class WisdomInlineSuggestionProvider
     const currentLineText = document.lineAt(position);
 
     if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
     inlineSuggestionData = {};
@@ -187,7 +190,6 @@ async function getInlineSuggestionItems(
   console.log(
     `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
   );
-  cachedCompletionItem = inlineSuggestionUserActionItems;
   wisdomManager.attributionsProvider.suggestionDetails = [
     {
       suggestionId: suggestionId,
@@ -198,7 +200,7 @@ async function getInlineSuggestionItems(
   // indicating that the suggestion is displayed and will be used
   // to track the user action on the suggestion in scenario where
   // the user continued to type without accepting or rejecting the suggestion
-  inlineSuggestionDisplayed = true;
+  setInlineSuggestionDisplayed(inlineSuggestionUserActionItems);
   return inlineSuggestionUserActionItems;
 }
 
@@ -290,7 +292,7 @@ export async function inlineSuggestionUserActionHandler(
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
-  inlineSuggestionDisplayed = false;
+  resetInlineSuggestionDisplayed();
   if (isSuggestionAccepted) {
     inlineSuggestionData["action"] = UserAction.ACCEPT;
   } else {
@@ -305,4 +307,20 @@ export async function inlineSuggestionUserActionHandler(
     `[project-wisdom-feedback] User action event wisdomInlineSuggestionFeedbackEvent sent.`
   );
   inlineSuggestionData = {};
+}
+
+export function resetInlineSuggestionDisplayed() {
+  _inlineSuggestionDisplayed = false;
+  _cachedCompletionItem = [];
+}
+
+function setInlineSuggestionDisplayed(
+  inlineCompletionItem: vscode.InlineCompletionItem[]
+) {
+  _inlineSuggestionDisplayed = true;
+  _cachedCompletionItem = inlineCompletionItem;
+}
+
+export function getInlineSuggestionDisplayed() {
+  return _inlineSuggestionDisplayed;
 }
