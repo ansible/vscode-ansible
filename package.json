@@ -395,14 +395,14 @@
           "scope": "resource",
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Enable Ansible Lightspeed with Watson Code Assistant service to provide intelligent code suggestions.",
+          "markdownDescription": "Enable Ansible Lightspeed service.",
           "order": 21
         },
         "ansible.lightspeed.basePath": {
           "scope": "resource",
           "type": "string",
           "default": "https://c.ai.ansible.redhat.com",
-          "markdownDescription": "Base path for Ansible Lightspeed service endpoints",
+          "markdownDescription": "Base path for Ansible Lightspeed service.",
           "order": 22
         },
         "ansible.lightspeed.suggestions.enabled": {

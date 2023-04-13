@@ -213,6 +213,9 @@ any level (User, Remote, Workspace and/or Folder).
   completing module options.
 - `ansibleServer.trace.server`: Traces the communication between VSCode and the
   ansible language server.
+- `ansible.lightspeed.enabled`: Enable Ansible Lightspeed service.
+- `ansible.lightspeed.basePath`: Base path for Ansible Lightspeed service.
+- `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with Watson Code Assistant inline suggestions.
 
 ## Data and Telemetry
 
