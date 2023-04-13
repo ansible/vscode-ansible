@@ -44,6 +44,8 @@ import {
   inlineSuggestionTriggerHandler,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
+  getInlineSuggestionDisplayed,
+  resetInlineSuggestionDisplayed,
 } from "./features/wisdom/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/wisdom";
 import { AttributionsWebview } from "./features/wisdom/attributionsWebview";
@@ -161,6 +163,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
     )
   );
 
+  // Listen for text selection changes
+  context.subscriptions.push(
+    vscode.window.onDidChangeTextEditorSelection(() => {
+      const wisdomSettings =
+        wisdomManager.settingsManager.settings.wisdomService;
+      if (
+        getInlineSuggestionDisplayed() &&
+        wisdomSettings.enabled &&
+        wisdomSettings.suggestions.enabled
+      ) {
+        resetInlineSuggestionDisplayed();
+      }
+    })
+  );
+
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(
     (editor: vscode.TextEditor | undefined) => {
@@ -186,6 +203,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       AnsibleContentUploadTrigger.FILE_CLOSE
     );
   });
+
   workspace.onDidChangeConfiguration(() =>
     updateConfigurationChanges(metaData, extSettings, wisdomManager)
   );
