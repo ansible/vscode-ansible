@@ -2,16 +2,16 @@ import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 
-import { adjustInlineSuggestionIndent } from "../utils/wisdom";
+import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
-import { wisdomManager } from "../../extension";
+import { lightSpeedManager } from "../../extension";
 import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
   UserAction,
-} from "../../definitions/wisdom";
-import { WisdomCommands } from "../../definitions/constants";
+} from "../../definitions/lightspeed";
+import { LightSpeedCommands } from "../../definitions/constants";
 import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
@@ -25,7 +25,7 @@ let _inlineSuggestionDisplayed = false;
 let previousTriggerPosition: vscode.Position;
 let _cachedCompletionItem: vscode.InlineCompletionItem[];
 
-export class WisdomInlineSuggestionProvider
+export class LightSpeedInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
 {
   provideInlineCompletionItems(
@@ -40,7 +40,7 @@ export class WisdomInlineSuggestionProvider
       return [];
     }
     if (activeTextEditor.document.languageId !== "ansible") {
-      wisdomManager.wisdomStatusBar.hide();
+      lightSpeedManager.lightSpeedStatusBar.hide();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -50,21 +50,24 @@ export class WisdomInlineSuggestionProvider
       return [];
     }
     if (document.languageId !== "ansible") {
-      wisdomManager.wisdomStatusBar.hide();
+      lightSpeedManager.lightSpeedStatusBar.hide();
       resetInlineSuggestionDisplayed();
       return [];
     }
-    const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
-    if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
-      console.debug("[project-wisdom] Project Wisdom service is disabled.");
-      wisdomManager.updateWisdomStatusbar();
+    const lightSpeedSetting =
+      lightSpeedManager.settingsManager.settings.lightSpeedService;
+    if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
+      console.debug(
+        "[ansible-lightspeed] Ansible Lightspeed service is disabled."
+      );
+      lightSpeedManager.updateLightSpeedStatusbar();
       resetInlineSuggestionDisplayed();
       return [];
     }
 
-    if (!wisdomSetting.basePath.trim()) {
+    if (!lightSpeedSetting.basePath.trim()) {
       vscode.window.showErrorMessage(
-        "Base path for Project Wisdom service is empty. Please provide a base path"
+        "Base path for Ansible lightspeed service is empty. Please provide a base path"
       );
       resetInlineSuggestionDisplayed();
       return [];
@@ -91,7 +94,9 @@ export class WisdomInlineSuggestionProvider
         return _cachedCompletionItem;
       }
 
-      vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
+      vscode.commands.executeCommand(
+        LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE
+      );
       return [];
     }
     const lineToExtractPrompt = document.lineAt(position.line - 1);
@@ -130,11 +135,11 @@ async function getInlineSuggestionItems(
     inlineSuggestionData["suggestionId"] = suggestionId;
     inlineSuggestionData["documentUri"] = documentUri;
 
-    if (!(documentUri in wisdomManager.wisdomActivityTracker)) {
+    if (!(documentUri in lightSpeedManager.lightSpeedActivityTracker)) {
       activityId = uuidv4();
-      wisdomManager.wisdomActivityTracker[documentUri] = activityId;
+      lightSpeedManager.lightSpeedActivityTracker[documentUri] = activityId;
     } else {
-      activityId = wisdomManager.wisdomActivityTracker[documentUri];
+      activityId = lightSpeedManager.lightSpeedActivityTracker[documentUri];
     }
     inlineSuggestionData["activityId"] = activityId;
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
@@ -146,19 +151,19 @@ async function getInlineSuggestionItems(
     if (!shouldRequestInlineSuggestions(documentContent)) {
       return [];
     }
-    wisdomManager.wisdomStatusBar.text = "$(loading~spin) Wisdom";
+    lightSpeedManager.lightSpeedStatusBar.text = "$(loading~spin) Lightspeed";
     result = await requestInlineSuggest(
       documentContent,
       documentUri,
       activityId
     );
-    wisdomManager.wisdomStatusBar.text = "Wisdom";
+    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
   } catch (error) {
     inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
   } finally {
-    wisdomManager.wisdomStatusBar.text = "Wisdom";
+    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
   }
   if (!result || !result.predictions || result.predictions.length === 0) {
     console.error("[inline-suggestions] Inline suggestions not found.");
@@ -190,7 +195,7 @@ async function getInlineSuggestionItems(
   console.log(
     `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
   );
-  wisdomManager.attributionsProvider.suggestionDetails = [
+  lightSpeedManager.attributionsProvider.suggestionDetails = [
     {
       suggestionId: suggestionId,
       suggestion: currentSuggestion,
@@ -218,16 +223,16 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request send to Project Wisdom service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request send to Ansible lightspeed service.`
   );
 
-  wisdomManager.wisdomStatusBar.tooltip = "processing...";
+  lightSpeedManager.lightSpeedStatusBar.tooltip = "processing...";
   const outputData: CompletionResponseParams =
-    await wisdomManager.apiInstance.completionRequest(completionData);
-  wisdomManager.wisdomStatusBar.tooltip = "Done";
+    await lightSpeedManager.apiInstance.completionRequest(completionData);
+  lightSpeedManager.lightSpeedStatusBar.tooltip = "Done";
 
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Project Wisdom service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible lightspeed service.`
   );
   return outputData;
 }
@@ -263,7 +268,9 @@ export async function inlineSuggestionCommitHandler() {
   console.log("[inline-suggestions] User accepted the inline suggestion.");
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
-  vscode.commands.executeCommand(WisdomCommands.WISDOM_FETCH_TRAINING_MATCHES);
+  vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
+  );
 
   // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, true);
@@ -302,9 +309,11 @@ export async function inlineSuggestionUserActionHandler(
   const inlineSuggestionFeedbackPayload = {
     inlineSuggestion: inlineSuggestionData,
   };
-  wisdomManager.apiInstance.feedbackRequest(inlineSuggestionFeedbackPayload);
+  lightSpeedManager.apiInstance.feedbackRequest(
+    inlineSuggestionFeedbackPayload
+  );
   console.debug(
-    `[project-wisdom-feedback] User action event wisdomInlineSuggestionFeedbackEvent sent.`
+    `[ansible-lightspeed-feedback] User action event lightSpeedInlineSuggestionFeedbackEvent sent.`
   );
   inlineSuggestionData = {};
 }

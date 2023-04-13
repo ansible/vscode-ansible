@@ -9,7 +9,7 @@ import {
   workspace,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
-import { AnsibleCommands, WisdomCommands } from "./definitions/constants";
+import { AnsibleCommands, LightSpeedCommands } from "./definitions/constants";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -38,20 +38,21 @@ import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
-import { WisdomManager } from "./features/wisdom/base";
+import { LightSpeedManager } from "./features/lightspeed/base";
 import {
-  WisdomInlineSuggestionProvider,
+  LightSpeedInlineSuggestionProvider,
   inlineSuggestionTriggerHandler,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
   getInlineSuggestionDisplayed,
   resetInlineSuggestionDisplayed,
-} from "./features/wisdom/inlineSuggestions";
-import { AnsibleContentUploadTrigger } from "./definitions/wisdom";
-import { AttributionsWebview } from "./features/wisdom/attributionsWebview";
+} from "./features/lightspeed/inlineSuggestions";
+import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
+import { AttributionsWebview } from "./features/lightspeed/attributionsWebview";
+import { ANISBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
 
 export let client: LanguageClient;
-export let wisdomManager: WisdomManager;
+export let lightSpeedManager: LightSpeedManager;
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
@@ -80,7 +81,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   registerCommandWithTelemetry(
     context,
     telemetry,
-    WisdomCommands.WISDOM_AUTH_REQUEST,
+    LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
     getAuthToken,
     true
   );
@@ -99,66 +100,71 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const metaData = new MetadataManager(context, client, telemetry);
   metaData.updateAnsibleInfoInStatusbar();
 
-  // handle wisdom service
-  wisdomManager = new WisdomManager(context, client, extSettings, telemetry);
+  // handle lightspeed service
+  lightSpeedManager = new LightSpeedManager(
+    context,
+    client,
+    extSettings,
+    telemetry
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_STATUS_BAR_CLICK,
-      wisdomManager.wisdomStatusBarClickHandler
+      LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK,
+      lightSpeedManager.lightSpeedStatusBarClickHandler
     )
   );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       AttributionsWebview.viewType,
-      wisdomManager.attributionsProvider
+      lightSpeedManager.attributionsProvider
     )
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_FETCH_TRAINING_MATCHES,
+      LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
-        wisdomManager.attributionsProvider.showAttributions();
+        lightSpeedManager.attributionsProvider.showAttributions();
       }
     )
   );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      WisdomCommands.WISDOM_CLEAR_TRAINING_MATCHES,
+      LightSpeedCommands.LIGHTSPEED_CLEAR_TRAINING_MATCHES,
       () => {
-        wisdomManager.attributionsProvider.clearAttributions();
+        lightSpeedManager.attributionsProvider.clearAttributions();
       }
     )
   );
 
-  const wisdomSuggestionProvider = new WisdomInlineSuggestionProvider();
+  const lightSpeedSuggestionProvider = new LightSpeedInlineSuggestionProvider();
   context.subscriptions.push(
     vscode.languages.registerInlineCompletionItemProvider(
       { scheme: "file", language: "ansible" },
-      wisdomSuggestionProvider
+      lightSpeedSuggestionProvider
     )
   );
 
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
-      WisdomCommands.WISDOM_SUGGESTION_COMMIT,
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
       inlineSuggestionCommitHandler
     )
   );
 
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
-      WisdomCommands.WISDOM_SUGGESTION_HIDE,
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
       inlineSuggestionHideHandler
     )
   );
 
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
-      WisdomCommands.WISDOM_SUGGESTION_TRIGGER,
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
       inlineSuggestionTriggerHandler
     )
   );
@@ -166,12 +172,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(() => {
-      const wisdomSettings =
-        wisdomManager.settingsManager.settings.wisdomService;
+      const lightSpeedSettings =
+        lightSpeedManager.settingsManager.settings.lightSpeedService;
       if (
         getInlineSuggestionDisplayed() &&
-        wisdomSettings.enabled &&
-        wisdomSettings.suggestions.enabled
+        lightSpeedSettings.enabled &&
+        lightSpeedSettings.suggestions.enabled
       ) {
         resetInlineSuggestionDisplayed();
       }
@@ -181,9 +187,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(
     (editor: vscode.TextEditor | undefined) => {
-      updateAnsibleStatusBar(metaData, wisdomManager);
+      updateAnsibleStatusBar(metaData, lightSpeedManager);
       if (editor) {
-        wisdomManager.ansibleContentFeedback(
+        lightSpeedManager.ansibleContentFeedback(
           editor.document,
           AnsibleContentUploadTrigger.TAB_CHANGE
         );
@@ -191,30 +197,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }
   );
   workspace.onDidOpenTextDocument((document: vscode.TextDocument) => {
-    updateAnsibleStatusBar(metaData, wisdomManager);
-    wisdomManager.ansibleContentFeedback(
+    updateAnsibleStatusBar(metaData, lightSpeedManager);
+    lightSpeedManager.ansibleContentFeedback(
       document,
       AnsibleContentUploadTrigger.FILE_OPEN
     );
   });
   workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
-    wisdomManager.ansibleContentFeedback(
+    lightSpeedManager.ansibleContentFeedback(
       document,
       AnsibleContentUploadTrigger.FILE_CLOSE
     );
   });
 
   workspace.onDidChangeConfiguration(() =>
-    updateConfigurationChanges(metaData, extSettings, wisdomManager)
+    updateConfigurationChanges(metaData, extSettings, lightSpeedManager)
   );
 
-  const session = await authentication.getSession("auth-wisdom", [], {
-    createIfNone: false,
-  });
+  const session = await authentication.getSession(
+    ANISBLE_LIGHTSPEED_AUTH_ID,
+    [],
+    {
+      createIfNone: false,
+    }
+  );
 
   if (session) {
     window.registerTreeDataProvider(
-      "wisdom-explorer-treeview",
+      "lightspeed-explorer-treeview",
       new TreeDataProvider(session)
     );
   }
@@ -300,10 +310,10 @@ export function deactivate(): Thenable<void> | undefined {
 
 function updateAnsibleStatusBar(
   metaData: MetadataManager,
-  wisdomManager: WisdomManager
+  lightSpeedManager: LightSpeedManager
 ) {
   metaData.updateAnsibleInfoInStatusbar();
-  wisdomManager.updateWisdomStatusbar();
+  lightSpeedManager.updateLightSpeedStatusbar();
 }
 /**
  * Finds extensions that conflict with our extension.
@@ -335,11 +345,15 @@ async function resyncAnsibleInventory(): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getAuthToken(): Promise<void> {
-  const session = await authentication.getSession("auth-wisdom", [], {
-    createIfNone: true,
-  });
+  const session = await authentication.getSession(
+    ANISBLE_LIGHTSPEED_AUTH_ID,
+    [],
+    {
+      createIfNone: true,
+    }
+  );
   window.registerTreeDataProvider(
-    "wisdom-explorer-treeview",
+    "lightspeed-explorer-treeview",
     new TreeDataProvider(session)
   );
 

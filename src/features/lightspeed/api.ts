@@ -9,32 +9,32 @@ import {
   FeedbackResponseParams,
   AttributionsRequestParams,
   AttributionsResponseParams,
-} from "../../definitions/wisdom";
+} from "../../definitions/lightspeed";
 import {
-  WISDOM_SUGGESTION_ATTRIBUTIONS_URL,
-  WISDOM_SUGGESTION_COMPLETION_URL,
-  WISDOM_SUGGESTION_FEEDBACK_URL,
+  LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL,
+  LIGHTSPEED_SUGGESTION_COMPLETION_URL,
+  LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
 } from "../../definitions/constants";
-import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
+import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
 
-export class WisdomAPI {
+export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
-  private wisdomAuthProvider: WisdomAuthenticationProvider;
+  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
 
   constructor(
     settingsManager: SettingsManager,
-    wisdomAuthProvider: WisdomAuthenticationProvider
+    lightSpeedAuthProvider: LightSpeedAuthenticationProvider
   ) {
     this.settingsManager = settingsManager;
-    this.wisdomAuthProvider = wisdomAuthProvider;
+    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
-    const authToken = await this.wisdomAuthProvider.grantAccessToken();
+    const authToken = await this.lightSpeedAuthProvider.grantAccessToken();
     if (authToken === undefined) {
-      console.error("Project Wisdom service authentication failed.");
+      console.error("Ansible Lightspeed service authentication failed.");
       return;
     }
     const headers = {
@@ -54,7 +54,7 @@ export class WisdomAPI {
   public async getData(urlPath: string): Promise<any> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Project Wisdom service instance is not initialized.");
+      console.error("Anisble Lightspeed service instance is not initialized.");
       return;
     }
     try {
@@ -72,12 +72,12 @@ export class WisdomAPI {
   ): Promise<CompletionResponseParams> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Project Wisdom service instance is not initialized.");
+      console.error("Anisble Lightspeed service instance is not initialized.");
       return {} as CompletionResponseParams;
     }
     try {
       const response = await axiosInstance.post(
-        WISDOM_SUGGESTION_COMPLETION_URL,
+        LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         inputData,
         {
           timeout: 20000,
@@ -91,7 +91,7 @@ export class WisdomAPI {
         !response.data.predictions[0]
       ) {
         vscode.window.showInformationMessage(
-          "Project Wisdom does not have any suggestion based on your input."
+          "Ansible Lightspeed with Watson Code Assistant does not have any suggestion based on your input."
         );
         return {} as CompletionResponseParams;
       }
@@ -101,11 +101,11 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Project Wisdom service."
+            "User not authorized to access Ansible Lightspeed service."
           );
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many requests to the Project Wisdom service. Please try again after sometime."
+            "Too many requests to the Ansible Lightspeed service. Please try again after sometime."
           );
         } else if (err?.response?.status === 400) {
           vscode.window.showErrorMessage(
@@ -113,20 +113,20 @@ export class WisdomAPI {
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "The Project Wisdom service encountered an error. Try again after some time."
+            "The Ansible Lightspeed with Watson Code Assistant service encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
-            `Failed to fetch inline suggestion from the Project Wisdom service with status code: ${err?.response?.status}. Try again after some time.`
+            `Failed to fetch inline suggestion from the Ansible Lightspeed with Watson Code Assistant service with status code: ${err?.response?.status}. Try again after some time.`
           );
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "The Project Wisdom service connection timeout. Try again after some time."
+          "The Ansible Lightspeed with Watson Code Assistant service connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from the Project Wisdom service. Try again after some time."
+          "Failed to fetch inline suggestion from the Ansible Lightspeed with Watson Code Assistant service. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
@@ -137,18 +137,18 @@ export class WisdomAPI {
     inputData: FeedbackRequestParams
   ): Promise<FeedbackResponseParams> {
     // return early if the user is not authenticated
-    if (!(await this.wisdomAuthProvider.isAuthenticated())) {
+    if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
       return {} as FeedbackResponseParams;
     }
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Project Wisdom service instance is not initialized.");
+      console.error("Ansible Lightspeed service instance is not initialized.");
       return {} as FeedbackResponseParams;
     }
     try {
       const response = await axiosInstance.post(
-        WISDOM_SUGGESTION_FEEDBACK_URL,
+        LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
         inputData,
         {
           timeout: 20000,
@@ -160,17 +160,17 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Project Wisdom service."
+            "User not authorized to access Ansible Lightspeed service."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Project Wisdom service encountered an error while sending feedback."
+            "The Ansible Lightspeed service encountered an error while sending feedback."
           );
         }
       } else {
-        console.error("Failed to send feedback to Project Wisdom service.");
+        console.error("Failed to send feedback to Ansible Lightspeed service.");
       }
       return {} as FeedbackResponseParams;
     }
@@ -180,21 +180,21 @@ export class WisdomAPI {
     inputData: AttributionsRequestParams
   ): Promise<AttributionsResponseParams> {
     // return early if the user is not authenticated
-    if (!(await this.wisdomAuthProvider.isAuthenticated())) {
+    if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
       vscode.window.showErrorMessage(
-        "User not authenticated to use Wisdom service."
+        "User not authenticated to use Ansible Lightspeed service."
       );
       return {} as AttributionsResponseParams;
     }
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Project Wisdom service instance is not initialized.");
+      console.error("Ansible Lightspeed service instance is not initialized.");
       return {} as AttributionsResponseParams;
     }
     try {
       const response = await axiosInstance.post(
-        WISDOM_SUGGESTION_ATTRIBUTIONS_URL,
+        LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL,
         inputData,
         {
           timeout: 20000,
@@ -206,18 +206,18 @@ export class WisdomAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Project Wisdom service."
+            "User not authorized to access Ansible Lightspeed service."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Project Wisdom service encountered an error while fetching attributions."
+            "The Ansible Lightspeed service encountered an error while fetching attributions."
           );
         }
       } else {
         console.error(
-          "Failed to fetch attribution from Project Wisdom service."
+          "Failed to fetch attribution from Ansible Lightspeed service."
         );
       }
       return {} as AttributionsResponseParams;
