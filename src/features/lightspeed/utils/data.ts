@@ -9,7 +9,7 @@ export function shouldRequestInlineSuggestions(
     parsedAnsibleDocument = yaml.parse(documentContent, { keepCstNodes: true });
   } catch (err) {
     vscode.window.showErrorMessage(
-      `Ansible Lightspeed with Watson Code Assistant expects valid YAML syntax to provide inline suggestions. Error: ${err}`
+      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
     );
     return false;
   }

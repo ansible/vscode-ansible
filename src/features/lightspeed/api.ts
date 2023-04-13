@@ -91,7 +91,7 @@ export class LightSpeedAPI {
         !response.data.predictions[0]
       ) {
         vscode.window.showInformationMessage(
-          "Ansible Lightspeed with Watson Code Assistant does not have any suggestion based on your input."
+          "Ansible Lightspeed does not have any suggestion based on your input."
         );
         return {} as CompletionResponseParams;
       }
@@ -113,20 +113,20 @@ export class LightSpeedAPI {
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "The Ansible Lightspeed with Watson Code Assistant service encountered an error. Try again after some time."
+            "The Ansible Lightspeed service encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
-            `Failed to fetch inline suggestion from the Ansible Lightspeed with Watson Code Assistant service with status code: ${err?.response?.status}. Try again after some time.`
+            `Failed to fetch inline suggestion from the Ansible Lightspeed service with status code: ${err?.response?.status}. Try again after some time.`
           );
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "The Ansible Lightspeed with Watson Code Assistant service connection timeout. Try again after some time."
+          "The Ansible Lightspeed service connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from the Ansible Lightspeed with Watson Code Assistant service. Try again after some time."
+          "Failed to fetch inline suggestion from the Ansible Lightspeed service. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
