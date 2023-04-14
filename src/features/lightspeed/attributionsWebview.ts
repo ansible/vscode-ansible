@@ -61,7 +61,7 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
       suggestionId: suggestionId,
     };
     console.log(
-      `${getCurrentUTCDateTime().toISOString()}: request attributions from lightspeed service:\n${JSON.stringify(
+      `${getCurrentUTCDateTime().toISOString()}: request attributions from Ansible Lightspeed:\n${JSON.stringify(
         attributionsRequestData
       )}`
     );
@@ -70,7 +70,7 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
       await this.apiInstance.attributionsRequest(attributionsRequestData);
 
     console.log(
-      `${getCurrentUTCDateTime().toISOString()}: response data from lightspeed service:\n${JSON.stringify(
+      `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
         outputData
       )}`
     );

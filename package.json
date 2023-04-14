@@ -64,7 +64,7 @@
       "ansible-lightspeed-explorer": [
         {
           "id": "lightspeed-explorer-treeview",
-          "name": "Ansible Lightspeed Service"
+          "name": "Ansible Lightspeed"
         }
       ],
       "lightspeed-training-match-panel": [
@@ -398,7 +398,7 @@
           "markdownDescription": "Enable Ansible Lightspeed.",
           "order": 21
         },
-        "ansible.lightspeed.url": {
+        "ansible.lightspeed.URL": {
           "scope": "resource",
           "type": "string",
           "default": "https://c.ai.ansible.redhat.com",

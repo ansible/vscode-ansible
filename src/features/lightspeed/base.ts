@@ -113,7 +113,7 @@ export class LightSpeedManager {
     if (
       document.languageId !== "ansible" ||
       !this.settingsManager.settings.lightSpeedService.enabled ||
-      !this.settingsManager.settings.lightSpeedService.url.trim()
+      !this.settingsManager.settings.lightSpeedService.URL.trim()
     ) {
       return;
     }

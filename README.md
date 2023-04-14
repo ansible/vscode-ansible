@@ -214,7 +214,7 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansibleServer.trace.server`: Traces the communication between VSCode and the
   ansible language server.
 - `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
-- `ansible.lightspeed.basePath`: URL for Ansible Lightspeed.
+- `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
   Watson Code Assistant inline suggestions.
 

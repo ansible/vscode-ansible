@@ -100,7 +100,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const metaData = new MetadataManager(context, client, telemetry);
   metaData.updateAnsibleInfoInStatusbar();
 
-  // handle lightspeed service
+  // handle Ansible Lightspeed
   lightSpeedManager = new LightSpeedManager(
     context,
     client,

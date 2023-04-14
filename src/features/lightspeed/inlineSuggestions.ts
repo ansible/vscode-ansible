@@ -63,7 +63,7 @@ export class LightSpeedInlineSuggestionProvider
       return [];
     }
 
-    if (!lightSpeedSetting.url.trim()) {
+    if (!lightSpeedSetting.URL.trim()) {
       vscode.window.showErrorMessage(
         "Ansible Lightspeed URL is empty. Please provide a URL."
       );
@@ -221,7 +221,7 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
   );
 
   lightSpeedManager.lightSpeedStatusBar.tooltip = "processing...";
@@ -230,7 +230,7 @@ async function requestInlineSuggest(
   lightSpeedManager.lightSpeedStatusBar.tooltip = "Done";
 
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
   );
   return outputData;
 }

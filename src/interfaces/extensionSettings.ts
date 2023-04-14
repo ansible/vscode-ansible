@@ -26,6 +26,6 @@ export interface ExecutionEnvironmentSettings {
 
 export interface LightSpeedServiceSettings {
   enabled: boolean;
-  url: string;
+  URL: string;
   suggestions: { enabled: boolean };
 }

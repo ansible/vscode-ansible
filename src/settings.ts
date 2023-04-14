@@ -39,7 +39,7 @@ export class SettingsManager {
       },
       lightSpeedService: {
         enabled: lightSpeedSettings.get("enabled", false),
-        url: lightSpeedSettings.get("url", "https://c.ai.ansible.redhat.com"),
+        URL: lightSpeedSettings.get("URL", "https://c.ai.ansible.redhat.com"),
         suggestions: {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
