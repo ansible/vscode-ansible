@@ -49,7 +49,7 @@ import {
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { AttributionsWebview } from "./features/lightspeed/attributionsWebview";
-import { ANISBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
+import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -215,7 +215,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   const session = await authentication.getSession(
-    ANISBLE_LIGHTSPEED_AUTH_ID,
+    ANSIBLE_LIGHTSPEED_AUTH_ID,
     [],
     {
       createIfNone: false,
@@ -346,7 +346,7 @@ async function resyncAnsibleInventory(): Promise<void> {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getAuthToken(): Promise<void> {
   const session = await authentication.getSession(
-    ANISBLE_LIGHTSPEED_AUTH_ID,
+    ANSIBLE_LIGHTSPEED_AUTH_ID,
     [],
     {
       createIfNone: true,

@@ -25,8 +25,8 @@ import {
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
-  ANISBLE_LIGHTSPEED_AUTH_ID,
-  ANISBLE_LIGHTSPEED_AUTH_NAME,
+  ANSIBLE_LIGHTSPEED_AUTH_ID,
+  ANSIBLE_LIGHTSPEED_AUTH_NAME,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
@@ -61,8 +61,8 @@ export class LightSpeedAuthenticationProvider
     this.settingsManager = settingsManager;
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
-        ANISBLE_LIGHTSPEED_AUTH_ID,
-        ANISBLE_LIGHTSPEED_AUTH_NAME,
+        ANSIBLE_LIGHTSPEED_AUTH_ID,
+        ANSIBLE_LIGHTSPEED_AUTH_NAME,
         this,
         { supportsMultipleAccounts: false }
       ),
@@ -200,7 +200,7 @@ export class LightSpeedAuthenticationProvider
     const base_uri = getBaseUri(this.settingsManager);
     if (!base_uri) {
       throw new Error(
-        "Please enter the Ansible Lightspeed servive Base Path under the Ansible Lightspeed settings!"
+        "Please enter the Ansible Lightspeed service Base Path under the Ansible Lightspeed settings!"
       );
     }
 
@@ -525,7 +525,7 @@ export class LightSpeedAuthenticationProvider
   public async isAuthenticated(): Promise<AuthenticationSession | undefined> {
     // check if the user is authenticated
     const userAuth = await authentication.getSession(
-      ANISBLE_LIGHTSPEED_AUTH_ID,
+      ANSIBLE_LIGHTSPEED_AUTH_ID,
       [],
       {
         createIfNone: false,
