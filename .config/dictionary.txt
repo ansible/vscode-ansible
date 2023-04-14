@@ -79,6 +79,7 @@ ovsx
 parseable
 piptools
 pipx
+precheck
 preid
 preinstall
 priyamsahoo
