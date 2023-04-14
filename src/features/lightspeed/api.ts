@@ -54,7 +54,7 @@ export class LightSpeedAPI {
   public async getData(urlPath: string): Promise<any> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Anisble Lightspeed service instance is not initialized.");
+      console.error("Ansible Lightspeed service instance is not initialized.");
       return;
     }
     try {
@@ -72,7 +72,7 @@ export class LightSpeedAPI {
   ): Promise<CompletionResponseParams> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Anisble Lightspeed service instance is not initialized.");
+      console.error("Ansible Lightspeed service instance is not initialized.");
       return {} as CompletionResponseParams;
     }
     try {

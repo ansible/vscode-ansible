@@ -54,7 +54,7 @@
       ],
       "panel": [
         {
-          "id": "lightspeed-traning-match-panel",
+          "id": "lightspeed-training-match-panel",
           "title": "Ansible",
           "icon": "images/ansible.svg"
         }
@@ -67,10 +67,10 @@
           "name": "Ansible Lightspeed Service"
         }
       ],
-      "lightspeed-traning-match-panel": [
+      "lightspeed-training-match-panel": [
         {
           "id": "ansible.lightspeed.trainingMatchPanel",
-          "name": "Anisble Lightspeed Training Matches",
+          "name": "Ansible Lightspeed Training Matches",
           "type": "webview",
           "contextualTitle": "Ansible",
           "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled",
@@ -82,7 +82,7 @@
     "viewsWelcome": [
       {
         "view": "lightspeed-explorer-treeview",
-        "contents": "Welcome to Anisble Lightspeed service for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with Watson Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
+        "contents": "Welcome to Ansible Lightspeed service for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with Watson Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
       }
     ],
     "jsonValidation": [
