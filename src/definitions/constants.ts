@@ -7,33 +7,37 @@ export namespace AnsibleCommands {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
-export namespace WisdomCommands {
-  export const WISDOM_AUTH_REQUEST = "ansible.wisdom.oauth";
-  export const WISDOM_SUGGESTION_COMMIT = "ansible.wisdom.inlineSuggest.accept";
-  export const WISDOM_SUGGESTION_HIDE = "ansible.wisdom.inlineSuggest.hide";
-  export const WISDOM_SUGGESTION_TRIGGER =
-    "ansible.wisdom.inlineSuggest.trigger";
-  export const WISDOM_STATUS_BAR_CLICK = "ansible.wisdom.statusBar.click";
-  export const WISDOM_FETCH_TRAINING_MATCHES =
-    "ansible.wisdom.fetchTrainingMatches";
-  export const WISDOM_CLEAR_TRAINING_MATCHES =
-    "ansible.wisdom.clearTrainingMatches";
+export namespace LightSpeedCommands {
+  export const LIGHTSPEED_AUTH_REQUEST = "ansible.lightspeed.oauth";
+  export const LIGHTSPEED_SUGGESTION_COMMIT =
+    "ansible.lightspeed.inlineSuggest.accept";
+  export const LIGHTSPEED_SUGGESTION_HIDE =
+    "ansible.lightspeed.inlineSuggest.hide";
+  export const LIGHTSPEED_SUGGESTION_TRIGGER =
+    "ansible.lightspeed.inlineSuggest.trigger";
+  export const LIGHTSPEED_STATUS_BAR_CLICK =
+    "ansible.lightspeed.statusBar.click";
+  export const LIGHTSPEED_FETCH_TRAINING_MATCHES =
+    "ansible.lightspeed.fetchTrainingMatches";
+  export const LIGHTSPEED_CLEAR_TRAINING_MATCHES =
+    "ansible.lightspeed.clearTrainingMatches";
 }
 
-export const WISDOM_API_VERSION = "v0";
-export const WISDOM_SUGGESTION_COMPLETION_URL = `${WISDOM_API_VERSION}/ai/completions/`;
-export const WISDOM_SUGGESTION_FEEDBACK_URL = `${WISDOM_API_VERSION}/ai/feedback/`;
-export const WISDOM_SUGGESTION_ATTRIBUTIONS_URL = `${WISDOM_API_VERSION}/ai/attributions/`;
-export const WISDOM_ME_AUTH_URL = `/api/${WISDOM_API_VERSION}/me/`;
+export const LIGHTSPEED_API_VERSION = "v0";
+export const LIGHTSPEED_SUGGESTION_COMPLETION_URL = `${LIGHTSPEED_API_VERSION}/ai/completions/`;
+export const LIGHTSPEED_SUGGESTION_FEEDBACK_URL = `${LIGHTSPEED_API_VERSION}/ai/feedback/`;
+export const LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL = `${LIGHTSPEED_API_VERSION}/ai/attributions/`;
+export const LIGHTSPEED_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/`;
 
-export const WISDOM_FEEDBACK_FORM_URL = "https://red.ht/ansible-ai-feedback";
+export const LIGHTSPEED_FEEDBACK_FORM_URL =
+  "https://red.ht/ansible-ai-feedback";
 
-export const WISDOM_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
-export const WISDOM_STATUS_BAR_CLICK_HANDLER =
-  "ansible.wisdom.statusBar.clickHandler";
+export const LIGHTSPEED_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
+export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
+  "ansible.lightspeed.statusBar.clickHandler";
 
-export const WISDOM_FEEDBACK_URL =
+export const LIGHTSPEED_FEEDBACK_URL =
   "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
 
-export const WISDOM_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
-export const WISDOM_SERVICE_LOGIN_TIMEOUT = 120000;
+export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
+export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;

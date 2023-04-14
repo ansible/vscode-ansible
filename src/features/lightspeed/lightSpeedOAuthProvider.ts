@@ -25,18 +25,18 @@ import {
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
-  WISDOM_AUTH_ID,
-  WISDOM_AUTH_NAME,
+  ANSIBLE_LIGHTSPEED_AUTH_ID,
+  ANSIBLE_LIGHTSPEED_AUTH_NAME,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
   getBaseUri,
 } from "./utils/webUtils";
 import {
-  WisdomCommands,
-  WISDOM_CLIENT_ID,
-  WISDOM_SERVICE_LOGIN_TIMEOUT,
-  WISDOM_ME_AUTH_URL,
+  LightSpeedCommands,
+  LIGHTSPEED_CLIENT_ID,
+  LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
+  LIGHTSPEED_ME_AUTH_URL,
 } from "../../definitions/constants";
 
 const CODE_VERIFIER = generateCodeVerifier();
@@ -45,7 +45,7 @@ const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
 // Grace time for sending request to refresh token
 const GRACE_TIME = 10;
 
-export class WisdomAuthenticationProvider
+export class LightSpeedAuthenticationProvider
   implements AuthenticationProvider, Disposable
 {
   public settingsManager: SettingsManager;
@@ -61,8 +61,8 @@ export class WisdomAuthenticationProvider
     this.settingsManager = settingsManager;
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
-        WISDOM_AUTH_ID,
-        WISDOM_AUTH_NAME,
+        ANSIBLE_LIGHTSPEED_AUTH_ID,
+        ANSIBLE_LIGHTSPEED_AUTH_NAME,
         this,
         { supportsMultipleAccounts: false }
       ),
@@ -106,7 +106,7 @@ export class WisdomAuthenticationProvider
       const account = await this.login(scopes);
 
       if (!account) {
-        throw new Error(`Project Wisdom login failure`);
+        throw new Error(`Ansible Lightspeed login failure`);
       }
 
       const userinfo: LoggedInUserInfo = await this.getUserInfo(
@@ -136,12 +136,12 @@ export class WisdomAuthenticationProvider
         changed: [],
       });
 
-      console.log("[project-wisdom-oauth] Session created...");
+      console.log("[ansible-lightspeed-oauth] Session created...");
 
       return session;
     } catch (e) {
       console.error(
-        `[project-wisdom-oauth] Project Wisdom sign in failed: ${e}`
+        `[ansible-lightspeed-oauth] Ansible Lightspeed sign in failed: ${e}`
       );
       throw e;
     }
@@ -171,7 +171,7 @@ export class WisdomAuthenticationProvider
           changed: [],
         });
         window.registerTreeDataProvider(
-          "wisdom-explorer-treeview",
+          "lightspeed-explorer-treeview",
           new TreeDataProvider(undefined)
         );
       }
@@ -185,22 +185,22 @@ export class WisdomAuthenticationProvider
     this._disposable.dispose();
   }
 
-  /* Log in to wisdom auth service*/
+  /* Log in to the Ansible Lightspeed auth service */
   private async login(scopes: string[] = []) {
-    console.log("[project-wisdom-oauth] Logging in...");
+    console.log("[ansible-lightspeed-oauth] Logging in...");
 
     const searchParams = new URLSearchParams([
       ["response_type", "code"],
       ["code_challenge", CODE_CHALLENGE],
       ["code_challenge_method", "S256"],
-      ["client_id", WISDOM_CLIENT_ID],
+      ["client_id", LIGHTSPEED_CLIENT_ID],
       ["redirect_uri", this.redirectUri],
     ]);
 
     const base_uri = getBaseUri(this.settingsManager);
     if (!base_uri) {
       throw new Error(
-        "Please enter the Project Wisdom Base Path under the Project Wisdom settings!"
+        "Please enter the Ansible Lightspeed URL under the Ansible Lightspeed settings!"
       );
     }
 
@@ -222,8 +222,7 @@ export class WisdomAuthenticationProvider
 
     const account = await window.withProgress(
       {
-        title:
-          "Waiting for authentication redirect from Project Wisdom service",
+        title: "Waiting for authentication redirect from Ansible Lightspeed",
         location: ProgressLocation.Notification,
         cancellable: true,
       },
@@ -235,10 +234,10 @@ export class WisdomAuthenticationProvider
               () =>
                 reject(
                   new Error(
-                    "Cancelling the Wisdom OAuth login after 60s. Try again."
+                    "Cancelling the Ansible Lightspeed login after 60s. Try again."
                   )
                 ),
-              WISDOM_SERVICE_LOGIN_TIMEOUT
+              LIGHTSPEED_SERVICE_LOGIN_TIMEOUT
             );
           }),
           promiseFromEvent<any, any>(
@@ -255,7 +254,7 @@ export class WisdomAuthenticationProvider
     return account;
   }
 
-  /* Handle the redirect to VS Code (after sign in from wisdom auth service) */
+  /* Handle the redirect to VS Code (after sign in from the Ansible Lightspeed auth service) */
   private handleUriForCode: (
     scopes: readonly string[]
   ) => PromiseAdapter<Uri, OAuthAccount> =
@@ -264,7 +263,9 @@ export class WisdomAuthenticationProvider
       const code = query.get("code");
 
       if (!code) {
-        reject(new Error("No code received from the Wisdom OAuth Server"));
+        reject(
+          new Error("No code received from the Ansible Lightspeed OAuth Server")
+        );
         return;
       }
 
@@ -288,14 +289,16 @@ export class WisdomAuthenticationProvider
     };
 
     const postData = {
-      client_id: WISDOM_CLIENT_ID,
+      client_id: LIGHTSPEED_CLIENT_ID,
       code: code,
       code_verifier: CODE_VERIFIER,
       redirect_uri: this.redirectUri,
       grant_type: "authorization_code",
     };
 
-    console.log("[project-wisdom-oauth] Sending request for access token...");
+    console.log(
+      "[ansible-lightspeed-oauth] Sending request for access token..."
+    );
 
     try {
       const { data } = await axios.post(
@@ -319,10 +322,13 @@ export class WisdomAuthenticationProvider
       return account;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("[project-wisdom-oauth] error message: ", error.message);
+        console.error(
+          "[ansible-lightspeed-oauth] error message: ",
+          error.message
+        );
         throw new Error("An unexpected error occurred");
       } else {
-        console.error("[project-wisdom-oauth] unexpected error: ", error);
+        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
         throw new Error("An unexpected error occurred");
       }
     }
@@ -338,13 +344,13 @@ export class WisdomAuthenticationProvider
     };
 
     const postData = {
-      client_id: WISDOM_CLIENT_ID,
+      client_id: LIGHTSPEED_CLIENT_ID,
       refresh_token: currentAccount.refreshToken,
       grant_type: "refresh_token",
     };
 
     console.log(
-      "[project-wisdom-oauth] Sending request for a new access token..."
+      "[ansible-lightspeed-oauth] Sending request for a new access token..."
     );
 
     const account = await window.withProgress(
@@ -379,7 +385,7 @@ export class WisdomAuthenticationProvider
           })
           .catch((error) => {
             console.error(
-              `[project-wisdom-oauth] Request token failed with error: ${error}`
+              `[ansible-lightspeed-oauth] Request token failed with error: ${error}`
             );
             return;
           });
@@ -395,24 +401,24 @@ export class WisdomAuthenticationProvider
    * it requests for a new token and updates the secret store
    */
   public async grantAccessToken() {
-    console.log("[project-wisdom-oauth] Granting access token...");
+    console.log("[ansible-lightspeed-oauth] Granting access token...");
 
     // check if the user is authenticated or not
     const session = await this.isAuthenticated();
 
     if (!session) {
-      console.log("[project-wisdom-oauth] Session not found. Returning...");
+      console.log("[ansible-lightspeed-oauth] Session not found. Returning...");
       const selection = await window.showWarningMessage(
-        "You must be logged in to use the Project Wisdom inline suggestion feature.\n",
+        "You must be logged in to use the Ansible Lightspeed inline suggestion feature.\n",
         "Login"
       );
       if (selection === "Login") {
-        commands.executeCommand(WisdomCommands.WISDOM_AUTH_REQUEST);
+        commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
       }
       return;
     }
 
-    console.log("[project-wisdom-oauth] Session found");
+    console.log("[ansible-lightspeed-oauth] Session found");
 
     const sessionId = session.id;
 
@@ -421,7 +427,7 @@ export class WisdomAuthenticationProvider
       throw new Error(`Unable to fetch account`);
     }
 
-    console.log("[project-wisdom-oauth] Account found");
+    console.log("[ansible-lightspeed-oauth] Account found");
 
     const currentAccount: OAuthAccount = JSON.parse(account);
     let tokenToBeReturned = currentAccount.accessToken;
@@ -431,11 +437,13 @@ export class WisdomAuthenticationProvider
     if (timeNow >= currentAccount["expiresAtTimestampInSeconds"] - GRACE_TIME) {
       // get new token
       console.log(
-        "[project-wisdom-oauth] Project Wisdom token expired. Getting new token..."
+        "[ansible-lightspeed-oauth] Ansible Lightspeed token expired. Getting new token..."
       );
 
       const result = await this.requestTokenAfterExpiry(currentAccount);
-      console.log("[project-wisdom-oauth] New Project Wisdom token received.");
+      console.log(
+        "[ansible-lightspeed-oauth] New Ansible Lightspeed token received."
+      );
 
       if (!result) {
         window.showErrorMessage(
@@ -484,12 +492,12 @@ export class WisdomAuthenticationProvider
   /* Get the user info from server */
   private async getUserInfo(token: string) {
     console.log(
-      "[project-wisdom-oauth] Sending request for logged-in user info..."
+      "[ansible-lightspeed-oauth] Sending request for logged-in user info..."
     );
 
     try {
       const { data } = await axios.get(
-        `${getBaseUri(this.settingsManager)}${WISDOM_ME_AUTH_URL}`,
+        `${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -500,10 +508,13 @@ export class WisdomAuthenticationProvider
       return data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error("[project-wisdom-oauth] error message: ", error.message);
+        console.error(
+          "[ansible-lightspeed-oauth] error message: ",
+          error.message
+        );
         throw new Error(error.message);
       } else {
-        console.error("[project-wisdom-oauth] unexpected error: ", error);
+        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
         throw new Error("An unexpected error occurred");
       }
     }
@@ -512,9 +523,13 @@ export class WisdomAuthenticationProvider
   /* Return session info if user is authenticated, else undefined */
   public async isAuthenticated(): Promise<AuthenticationSession | undefined> {
     // check if the user is authenticated
-    const userAuth = await authentication.getSession("auth-wisdom", [], {
-      createIfNone: false,
-    });
+    const userAuth = await authentication.getSession(
+      ANSIBLE_LIGHTSPEED_AUTH_ID,
+      [],
+      {
+        createIfNone: false,
+      }
+    );
 
     return userAuth;
   }

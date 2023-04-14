@@ -63,6 +63,7 @@ keyfile
 keyrings
 lextudio
 libyaml
+lightspeed
 liveserver
 loglevel
 lxml

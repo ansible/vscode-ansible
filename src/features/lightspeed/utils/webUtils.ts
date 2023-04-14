@@ -2,10 +2,10 @@ import { EventEmitter, Uri, UriHandler } from "vscode";
 import crypto from "crypto";
 import { SettingsManager } from "../../../settings";
 
-export const WISDOM_AUTH_ID = `auth-wisdom`;
-export const WISDOM_AUTH_NAME = `Project Wisdom`;
-export const SESSIONS_SECRET_KEY = `${WISDOM_AUTH_ID}.sessions`;
-export const ACCOUNT_SECRET_KEY = `${WISDOM_AUTH_ID}.account`;
+export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
+export const ANSIBLE_LIGHTSPEED_AUTH_NAME = `Ansible Lightspeed`;
+export const SESSIONS_SECRET_KEY = `${ANSIBLE_LIGHTSPEED_AUTH_ID}.sessions`;
+export const ACCOUNT_SECRET_KEY = `${ANSIBLE_LIGHTSPEED_AUTH_NAME}.account`;
 
 export interface OAuthAccount {
   type: "oauth";
@@ -55,6 +55,6 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 
 /* Get base uri in a correct formatted way */
 export function getBaseUri(settingsManager: SettingsManager) {
-  const baseUri = settingsManager.settings.wisdomService.basePath.trim();
+  const baseUri = settingsManager.settings.lightSpeedService.URL.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }

@@ -1,30 +1,30 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { WisdomAPI } from "./api";
+import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
 import {
   AttributionsRequestParams,
   AttributionsResponseParams,
   IAttributionsParams,
   ISuggestionDetails,
-} from "../../definitions/wisdom";
+} from "../../definitions/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 
 export class AttributionsWebview implements vscode.WebviewViewProvider {
-  public static readonly viewType = "ansible.wisdom.trainingMatchPanel";
+  public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
   private _view?: vscode.WebviewView;
   private _extensionUri: vscode.Uri;
   private context;
   public client;
   public settingsManager: SettingsManager;
-  public apiInstance: WisdomAPI;
+  public apiInstance: LightSpeedAPI;
   public suggestionDetails: ISuggestionDetails[] = [];
 
   constructor(
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager,
-    apiInstance: WisdomAPI
+    apiInstance: LightSpeedAPI
   ) {
     this.context = context;
     this.client = client;
@@ -61,7 +61,7 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
       suggestionId: suggestionId,
     };
     console.log(
-      `${getCurrentUTCDateTime().toISOString()}: request attributions from wisdom service:\n${JSON.stringify(
+      `${getCurrentUTCDateTime().toISOString()}: request attributions from Ansible Lightspeed:\n${JSON.stringify(
         attributionsRequestData
       )}`
     );
@@ -70,7 +70,7 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
       await this.apiInstance.attributionsRequest(attributionsRequestData);
 
     console.log(
-      `${getCurrentUTCDateTime().toISOString()}: response data from wisdom service:\n${JSON.stringify(
+      `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
         outputData
       )}`
     );

@@ -19,7 +19,8 @@ export class SettingsManager {
     const eeSettings = vscode.workspace.getConfiguration(
       "ansible.executionEnvironment"
     );
-    const wisdomSettings = vscode.workspace.getConfiguration("ansible.wisdom");
+    const lightSpeedSettings =
+      vscode.workspace.getConfiguration("ansible.lightspeed");
     this.settings = {
       activationScript: ansibleSettings.get(
         "python.activationScript"
@@ -36,14 +37,11 @@ export class SettingsManager {
         },
         volumeMounts: eeSettings.get("volumeMounts", []),
       },
-      wisdomService: {
-        enabled: wisdomSettings.get("enabled", false),
-        basePath: wisdomSettings.get(
-          "basePath",
-          "https://c.ai.ansible.redhat.com"
-        ),
+      lightSpeedService: {
+        enabled: lightSpeedSettings.get("enabled", false),
+        URL: lightSpeedSettings.get("URL", "https://c.ai.ansible.redhat.com"),
         suggestions: {
-          enabled: wisdomSettings.get("suggestions.enabled", false),
+          enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
       },
     };
