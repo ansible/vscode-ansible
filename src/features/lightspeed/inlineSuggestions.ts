@@ -57,9 +57,7 @@ export class LightSpeedInlineSuggestionProvider
     const lightSpeedSetting =
       lightSpeedManager.settingsManager.settings.lightSpeedService;
     if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
-      console.debug(
-        "[ansible-lightspeed] Ansible Lightspeed service is disabled."
-      );
+      console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
       lightSpeedManager.updateLightSpeedStatusbar();
       resetInlineSuggestionDisplayed();
       return [];
@@ -67,7 +65,7 @@ export class LightSpeedInlineSuggestionProvider
 
     if (!lightSpeedSetting.basePath.trim()) {
       vscode.window.showErrorMessage(
-        "Base path for Ansible lightspeed service is empty. Please provide a base path"
+        "Ansible Lightspeed URL is empty. Please provide a URL."
       );
       resetInlineSuggestionDisplayed();
       return [];
@@ -223,7 +221,7 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request send to Ansible lightspeed service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed service.`
   );
 
   lightSpeedManager.lightSpeedStatusBar.tooltip = "processing...";
@@ -232,7 +230,7 @@ async function requestInlineSuggest(
   lightSpeedManager.lightSpeedStatusBar.tooltip = "Done";
 
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible lightspeed service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed service.`
   );
   return outputData;
 }

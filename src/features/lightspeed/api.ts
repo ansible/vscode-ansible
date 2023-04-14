@@ -34,7 +34,7 @@ export class LightSpeedAPI {
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
     const authToken = await this.lightSpeedAuthProvider.grantAccessToken();
     if (authToken === undefined) {
-      console.error("Ansible Lightspeed service authentication failed.");
+      console.error("Ansible Lightspeed authentication failed.");
       return;
     }
     const headers = {
@@ -54,7 +54,7 @@ export class LightSpeedAPI {
   public async getData(urlPath: string): Promise<any> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Lightspeed service instance is not initialized.");
+      console.error("Ansible Lightspeed instance is not initialized.");
       return;
     }
     try {
@@ -72,7 +72,7 @@ export class LightSpeedAPI {
   ): Promise<CompletionResponseParams> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Lightspeed service instance is not initialized.");
+      console.error("Ansible Lightspeed instance is not initialized.");
       return {} as CompletionResponseParams;
     }
     try {
@@ -91,7 +91,7 @@ export class LightSpeedAPI {
         !response.data.predictions[0]
       ) {
         vscode.window.showInformationMessage(
-          "Ansible Lightspeed does not have any suggestion based on your input."
+          "Ansible Lightspeed does not have a suggestion based on your input."
         );
         return {} as CompletionResponseParams;
       }
@@ -101,11 +101,11 @@ export class LightSpeedAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Lightspeed service."
+            "User not authorized to access Ansible Lightspeed."
           );
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many requests to the Ansible Lightspeed service. Please try again after sometime."
+            "Too many requests to the Ansible Lightspeed. Please try again after sometime."
           );
         } else if (err?.response?.status === 400) {
           vscode.window.showErrorMessage(
@@ -113,20 +113,20 @@ export class LightSpeedAPI {
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "The Ansible Lightspeed service encountered an error. Try again after some time."
+            "The Ansible Lightspeed encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
-            `Failed to fetch inline suggestion from the Ansible Lightspeed service with status code: ${err?.response?.status}. Try again after some time.`
+            `Failed to fetch inline suggestion from the Ansible Lightspeed with status code: ${err?.response?.status}. Try again after some time.`
           );
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "The Ansible Lightspeed service connection timeout. Try again after some time."
+          "The Ansible Lightspeed connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from the Ansible Lightspeed service. Try again after some time."
+          "Failed to fetch inline suggestion from the Ansible Lightspeed. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
@@ -143,7 +143,7 @@ export class LightSpeedAPI {
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Lightspeed service instance is not initialized.");
+      console.error("Ansible Lightspeed instance is not initialized.");
       return {} as FeedbackResponseParams;
     }
     try {
@@ -160,17 +160,17 @@ export class LightSpeedAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Lightspeed service."
+            "User not authorized to access Ansible Lightspeed."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Ansible Lightspeed service encountered an error while sending feedback."
+            "The Ansible Lightspeed encountered an error while sending feedback."
           );
         }
       } else {
-        console.error("Failed to send feedback to Ansible Lightspeed service.");
+        console.error("Failed to send feedback to Ansible Lightspeed.");
       }
       return {} as FeedbackResponseParams;
     }
@@ -182,14 +182,14 @@ export class LightSpeedAPI {
     // return early if the user is not authenticated
     if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
       vscode.window.showErrorMessage(
-        "User not authenticated to use Ansible Lightspeed service."
+        "User not authenticated to use Ansible Lightspeed."
       );
       return {} as AttributionsResponseParams;
     }
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
-      console.error("Ansible Lightspeed service instance is not initialized.");
+      console.error("Ansible Lightspeed instance is not initialized.");
       return {} as AttributionsResponseParams;
     }
     try {
@@ -206,19 +206,17 @@ export class LightSpeedAPI {
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Lightspeed service."
+            "User not authorized to access Ansible Lightspeed."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Ansible Lightspeed service encountered an error while fetching attributions."
+            "The Ansible Lightspeed encountered an error while fetching attributions."
           );
         }
       } else {
-        console.error(
-          "Failed to fetch attribution from Ansible Lightspeed service."
-        );
+        console.error("Failed to fetch attribution from Ansible Lightspeed.");
       }
       return {} as AttributionsResponseParams;
     }

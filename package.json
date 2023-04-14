@@ -70,7 +70,7 @@
       "lightspeed-training-match-panel": [
         {
           "id": "ansible.lightspeed.trainingMatchPanel",
-          "name": "Ansible Lightspeed Training Matches",
+          "name": "Lightspeed Training Matches",
           "type": "webview",
           "contextualTitle": "Ansible",
           "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled",
@@ -82,7 +82,7 @@
     "viewsWelcome": [
       {
         "view": "lightspeed-explorer-treeview",
-        "contents": "Welcome to Ansible Lightspeed service for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with Watson Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
+        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with Watson Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
       }
     ],
     "jsonValidation": [
@@ -188,15 +188,15 @@
       },
       {
         "command": "ansible.lightspeed.inlineSuggest.accept",
-        "title": "Ansible Lightspeed: Ansible Lightspeed inline suggestion accept"
+        "title": "Ansible Lightspeed: Inline suggestion accept"
       },
       {
         "command": "ansible.lightspeed.inlineSuggest.hide",
-        "title": "Ansible Lightspeed: Ansible lightspeed inline suggestion hide"
+        "title": "Ansible Lightspeed: Inline suggestion hide"
       },
       {
         "command": "ansible.lightspeed.inlineSuggest.trigger",
-        "title": "Ansible Lightspeed: Ansible inline suggestion trigger"
+        "title": "Ansible Lightspeed: Inline suggestion trigger"
       },
       {
         "command": "ansible.lightspeed.fetchTrainingMatches",
@@ -395,14 +395,14 @@
           "scope": "resource",
           "type": "boolean",
           "default": false,
-          "markdownDescription": "Enable Ansible Lightspeed service.",
+          "markdownDescription": "Enable Ansible Lightspeed.",
           "order": 21
         },
         "ansible.lightspeed.basePath": {
           "scope": "resource",
           "type": "string",
           "default": "https://c.ai.ansible.redhat.com",
-          "markdownDescription": "Base path for Ansible Lightspeed service.",
+          "markdownDescription": "URL for Ansible Lightspeed.",
           "order": 22
         },
         "ansible.lightspeed.suggestions.enabled": {

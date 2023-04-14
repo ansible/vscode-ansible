@@ -11,7 +11,7 @@ import {
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 
 export class AttributionsWebview implements vscode.WebviewViewProvider {
-  public static readonly viewType = "ansible.lightSpeed.trainingMatchPanel";
+  public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
   private _view?: vscode.WebviewView;
   private _extensionUri: vscode.Uri;
   private context;

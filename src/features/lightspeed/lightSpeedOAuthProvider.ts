@@ -200,7 +200,7 @@ export class LightSpeedAuthenticationProvider
     const base_uri = getBaseUri(this.settingsManager);
     if (!base_uri) {
       throw new Error(
-        "Please enter the Ansible Lightspeed service Base Path under the Ansible Lightspeed settings!"
+        "Please enter the Ansible Lightspeed URL under the Ansible Lightspeed settings!"
       );
     }
 
@@ -222,8 +222,7 @@ export class LightSpeedAuthenticationProvider
 
     const account = await window.withProgress(
       {
-        title:
-          "Waiting for authentication redirect from Ansible Lightspeed service",
+        title: "Waiting for authentication redirect from Ansible Lightspeed",
         location: ProgressLocation.Notification,
         cancellable: true,
       },
@@ -235,7 +234,7 @@ export class LightSpeedAuthenticationProvider
               () =>
                 reject(
                   new Error(
-                    "Cancelling the Ansible Lightspeed OAuth login after 60s. Try again."
+                    "Cancelling the Ansible Lightspeed login after 60s. Try again."
                   )
                 ),
               LIGHTSPEED_SERVICE_LOGIN_TIMEOUT
