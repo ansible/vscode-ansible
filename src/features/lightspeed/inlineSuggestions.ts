@@ -63,7 +63,7 @@ export class LightSpeedInlineSuggestionProvider
       return [];
     }
 
-    if (!lightSpeedSetting.basePath.trim()) {
+    if (!lightSpeedSetting.url.trim()) {
       vscode.window.showErrorMessage(
         "Ansible Lightspeed URL is empty. Please provide a URL."
       );

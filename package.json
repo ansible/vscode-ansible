@@ -398,7 +398,7 @@
           "markdownDescription": "Enable Ansible Lightspeed.",
           "order": 21
         },
-        "ansible.lightspeed.basePath": {
+        "ansible.lightspeed.url": {
           "scope": "resource",
           "type": "string",
           "default": "https://c.ai.ansible.redhat.com",

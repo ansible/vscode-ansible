@@ -105,7 +105,7 @@ export class LightSpeedAPI {
           );
         } else if (err?.response?.status === 429) {
           vscode.window.showErrorMessage(
-            "Too many requests to the Ansible Lightspeed. Please try again after sometime."
+            "Too many requests to Ansible Lightspeed. Please try again after some time."
           );
         } else if (err?.response?.status === 400) {
           vscode.window.showErrorMessage(
@@ -113,20 +113,20 @@ export class LightSpeedAPI {
           );
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
-            "The Ansible Lightspeed encountered an error. Try again after some time."
+            "Ansible Lightspeed encountered an error. Try again after some time."
           );
         } else {
           vscode.window.showErrorMessage(
-            `Failed to fetch inline suggestion from the Ansible Lightspeed with status code: ${err?.response?.status}. Try again after some time.`
+            `Failed to fetch inline suggestion from Ansible Lightspeed with status code: ${err?.response?.status}. Try again after some time.`
           );
         }
       } else if (err.code === AxiosError.ECONNABORTED) {
         vscode.window.showErrorMessage(
-          "The Ansible Lightspeed connection timeout. Try again after some time."
+          "Ansible Lightspeed connection timeout. Try again after some time."
         );
       } else {
         vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from the Ansible Lightspeed. Try again after some time."
+          "Failed to fetch inline suggestion from Ansible Lightspeed. Try again after some time."
         );
       }
       return {} as CompletionResponseParams;
@@ -166,7 +166,7 @@ export class LightSpeedAPI {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Ansible Lightspeed encountered an error while sending feedback."
+            "Ansible Lightspeed encountered an error while sending feedback."
           );
         }
       } else {
@@ -212,7 +212,7 @@ export class LightSpeedAPI {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "The Ansible Lightspeed encountered an error while fetching attributions."
+            "Ansible Lightspeed encountered an error while fetching attributions."
           );
         }
       } else {
