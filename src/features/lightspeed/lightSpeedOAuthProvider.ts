@@ -185,7 +185,7 @@ export class LightSpeedAuthenticationProvider
     this._disposable.dispose();
   }
 
-  /* Log in to lightspeed auth service*/
+  /* Log in to the Ansible Lightspeed auth service */
   private async login(scopes: string[] = []) {
     console.log("[ansible-lightspeed-oauth] Logging in...");
 
@@ -254,7 +254,7 @@ export class LightSpeedAuthenticationProvider
     return account;
   }
 
-  /* Handle the redirect to VS Code (after sign in from lightspeed auth service) */
+  /* Handle the redirect to VS Code (after sign in from the Ansible Lightspeed auth service) */
   private handleUriForCode: (
     scopes: readonly string[]
   ) => PromiseAdapter<Uri, OAuthAccount> =
