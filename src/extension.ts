@@ -97,7 +97,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
 
   // handle metadata status bar
-  const metaData = new MetadataManager(context, client, telemetry);
+  const metaData = new MetadataManager(context, client, telemetry, extSettings);
   metaData.updateAnsibleInfoInStatusbar();
 
   // handle Ansible Lightspeed

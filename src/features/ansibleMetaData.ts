@@ -12,16 +12,21 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
 import { compareObjects } from "./utils/data";
+import { SettingsManager } from "../settings";
 
 interface ansibleMetadataEvent {
   ansibleVersion: string;
   ansibleLintVersion?: string;
   eeEnabled: boolean;
+  lightSpeedEnabled: boolean;
+  lightSpeedCodeAssistEnabled: boolean;
 }
 
 let prevEventData: ansibleMetadataEvent = {
   ansibleVersion: "",
   eeEnabled: false,
+  lightSpeedEnabled: false,
+  lightSpeedCodeAssistEnabled: false,
 };
 
 export class MetadataManager {
@@ -30,15 +35,18 @@ export class MetadataManager {
   private cachedAnsibleVersion = "";
   private metadataStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
+  private extenstionSettings: SettingsManager;
 
   constructor(
     context: ExtensionContext,
     client: LanguageClient,
-    telemetry: TelemetryManager
+    telemetry: TelemetryManager,
+    extenstionSettings: SettingsManager
   ) {
     this.context = context;
     this.client = client;
     this.telemetry = telemetry;
+    this.extenstionSettings = extenstionSettings;
 
     this.metadataStatusBarItem = this.initialiseStatusBar();
   }
@@ -105,7 +113,13 @@ export class MetadataManager {
           const eventData: ansibleMetadataEvent = {
             ansibleVersion:
               ansibleMetaData.metaData["ansible information"]["core version"],
-            eeEnabled: ansibleMetaData.eeEnabled,
+            eeEnabled:
+              this.extenstionSettings.settings.executionEnvironment.enabled,
+            lightSpeedEnabled:
+              this.extenstionSettings.settings.lightSpeedService.enabled,
+            lightSpeedCodeAssistEnabled:
+              this.extenstionSettings.settings.lightSpeedService.suggestions
+                .enabled,
           };
           if (ansibleMetaData.ansibleLintPresent) {
             eventData["ansibleLintVersion"] =
