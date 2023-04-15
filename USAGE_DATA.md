@@ -14,6 +14,9 @@ vscode-ansible has opt-in telemetry collection, provided by
 - ansible-navigator run command runs successfully or fails.
 - Ansible vault (ansible-vault) command run in case it fails.
 - Resync Ansible inventory (ansible-inventory) command run in case it fails.
+- Execution environment enabled or disabled
+- Ansible Lightspeed enabled or disabled
+- Ansible Lightspeed code assist enabled or disabled
 
 ## What's included in the general telemetry data
 
