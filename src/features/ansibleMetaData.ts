@@ -35,18 +35,18 @@ export class MetadataManager {
   private cachedAnsibleVersion = "";
   private metadataStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
-  private extenstionSettings: SettingsManager;
+  private extensionSettings: SettingsManager;
 
   constructor(
     context: ExtensionContext,
     client: LanguageClient,
     telemetry: TelemetryManager,
-    extenstionSettings: SettingsManager
+    extensionSettings: SettingsManager
   ) {
     this.context = context;
     this.client = client;
     this.telemetry = telemetry;
-    this.extenstionSettings = extenstionSettings;
+    this.extensionSettings = extensionSettings;
 
     this.metadataStatusBarItem = this.initialiseStatusBar();
   }
@@ -114,11 +114,11 @@ export class MetadataManager {
             ansibleVersion:
               ansibleMetaData.metaData["ansible information"]["core version"],
             eeEnabled:
-              this.extenstionSettings.settings.executionEnvironment.enabled,
+              this.extensionSettings.settings.executionEnvironment.enabled,
             lightSpeedEnabled:
-              this.extenstionSettings.settings.lightSpeedService.enabled,
+              this.extensionSettings.settings.lightSpeedService.enabled,
             lightSpeedCodeAssistEnabled:
-              this.extenstionSettings.settings.lightSpeedService.suggestions
+              this.extensionSettings.settings.lightSpeedService.suggestions
                 .enabled,
           };
           if (ansibleMetaData.ansibleLintPresent) {
