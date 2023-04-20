@@ -1,11 +1,12 @@
 import * as _ from "lodash";
-import { Position, TextDocument } from "vscode-languageserver-textdocument";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import { Document, Options, parseCST } from "yaml";
 import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from "yaml/types";
 import { IModuleMetadata, IOption } from "../interfaces/module";
 import { DocsLibrary } from "../services/docsLibrary";
 import { isTaskKeyword, playExclusiveKeywords } from "./ansible";
 import { playKeywords, taskKeywords } from "../utils/ansible";
+import { Range, Position } from "vscode-languageserver";
 
 /**
  * A helper class used for building YAML path assertions and retrieving parent
@@ -571,4 +572,70 @@ export function isPlaybook(textDocument: TextDocument): boolean {
   );
 
   return isPlaybookValue;
+}
+
+/**
+ * A function to check if the cursor is present inside valid jinja inline brackets in a yaml file
+ * @param document text document on which the function is to be checked
+ * @param position current cursor position
+ * @param path array of nodes leading to that position
+ * @returns boolean true if the cursor is inside valid jinja inline brackets, else false
+ */
+export function isCursorInsideJinjaBrackets(
+  document: TextDocument,
+  position: Position,
+  path: Node[],
+): boolean {
+  const node = path[path.length - 1];
+  let nodeObject: string | string[];
+
+  try {
+    nodeObject = node.toJSON();
+  } catch (error) {
+    // return early if invalid yaml syntax
+    return false;
+  }
+
+  if (!nodeObject.includes("{{ ")) {
+    // this handles the case that if a value starts with {{ foo }}, the whole expression must be quoted
+    // to create a valid syntax
+    // refer: https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_variables.html#when-to-quote-variables-a-yaml-gotcha
+    return false;
+  }
+
+  // get text from the beginning of current line till the cursor
+  const lineText = document.getText(
+    Range.create(position.line, 0, position.line, position.character),
+  );
+
+  const jinjaInlineBracketStartIndex = lineText.lastIndexOf("{{ ");
+  const lineAfterCursor = document.getText(
+    Range.create(
+      position,
+      document.positionAt(document.offsetAt(position) + lineText.length),
+    ),
+  );
+
+  // this is a safety check incase of multiple jinja inline brackets in a single line
+  let jinjaInlineBracketEndIndex = lineAfterCursor.indexOf(" }}");
+  if (
+    lineAfterCursor.indexOf("{{ ") !== -1 &&
+    lineAfterCursor.indexOf("{{ ") < jinjaInlineBracketEndIndex
+  ) {
+    jinjaInlineBracketEndIndex = -1;
+  }
+
+  if (
+    jinjaInlineBracketStartIndex > -1 &&
+    jinjaInlineBracketEndIndex > -1 &&
+    position.character > jinjaInlineBracketStartIndex &&
+    position.character <=
+      jinjaInlineBracketEndIndex +
+        jinjaInlineBracketStartIndex +
+        lineText.length
+  ) {
+    return true;
+  }
+
+  return false;
 }

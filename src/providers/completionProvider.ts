@@ -33,7 +33,9 @@ import {
   isTaskParam,
   parseAllDocuments,
   getPossibleOptionsForPath,
+  isCursorInsideJinjaBrackets,
 } from "../utils/yaml";
+import { getVarsCompletion } from "./completionProviderUtils";
 
 const priorityMap = {
   nameKeyword: 1,
@@ -192,6 +194,15 @@ export async function doCompletion(
           completionItems.push(...moduleCompletionItems);
         }
         return completionItems;
+      }
+
+      // Provide variable auto-completion if the cursor is inside valid jinja inline brackets
+      if (isCursorInsideJinjaBrackets(document, position, path)) {
+        const varCompletion: CompletionItem[] = getVarsCompletion(
+          document.uri,
+          path,
+        );
+        return varCompletion;
       }
 
       // Check if we're looking for module options or sub-options

@@ -548,6 +548,67 @@ function testHostValues(
   });
 }
 
+function testVarsCompletionInsideJinja(
+  context: WorkspaceFolderContext,
+  textDoc: TextDocument,
+) {
+  const tests = [
+    {
+      name: "variables defined at task level",
+      position: { line: 36, character: 17 } as Position,
+      triggerCharacter: "",
+      completion: ["url", "home", "os", "password", "username"],
+    },
+    {
+      name: "variables defined at block level",
+      position: { line: 30, character: 47 } as Position,
+      triggerCharacter: "var",
+      completion: ["task_var", "block_var_1", "block_var_2"],
+    },
+    {
+      name: "variables defined at play level",
+      position: { line: 14, character: 35 } as Position,
+      triggerCharacter: "",
+      completion: ["home", "os", "password", "username"],
+    },
+    {
+      name: "variables defined inside a vars file",
+      position: { line: 51, character: 33 } as Position,
+      triggerCharacter: "",
+      completion: [
+        "filepath",
+        "mode",
+        "default_var_1",
+        "default_var_2",
+        "default_var_3",
+      ],
+    },
+  ];
+
+  tests.forEach(({ name, position, triggerCharacter, completion }) => {
+    it(`should provide completion for ${name}`, async function () {
+      const actualCompletion = await doCompletion(textDoc, position, context);
+
+      const filteredCompletion = smartFilter(
+        actualCompletion,
+        triggerCharacter,
+      ).map((completion) => {
+        if (!completion.item) {
+          return completion.label;
+        } else {
+          return completion.item.label;
+        }
+      });
+
+      if (!completion) {
+        expect(filteredCompletion.length).be.equal(0);
+      } else {
+        expect(filteredCompletion).be.deep.equal(completion);
+      }
+    });
+  });
+}
+
 function testModuleKindAndDocumentation(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
@@ -905,6 +966,39 @@ describe("doCompletion()", () => {
       });
 
       testModuleNamesWithoutFQCN(context, textDoc);
+    });
+  });
+
+  describe("Completion for variables inside jinja inline brackets", () => {
+    fixtureFilePath = "completion/playbook_with_vars.yml";
+    fixtureFileUri = resolveDocUri(fixtureFilePath);
+    context = workspaceManager.getContext(fixtureFileUri);
+    textDoc = getDoc(fixtureFilePath);
+    docSettings = context.documentSettings.get(textDoc.uri);
+
+    describe("With EE enabled @ee", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv(
+          "/home/runner/.ansible/collections:/usr/share/ansible",
+        );
+        await enableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testVarsCompletionInsideJinja(context, textDoc);
+
+      after(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+    });
+
+    describe("With EE disabled", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testVarsCompletionInsideJinja(context, textDoc);
     });
   });
 });
