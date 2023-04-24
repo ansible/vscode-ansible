@@ -50,12 +50,20 @@ import {
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { AttributionsWebview } from "./features/lightspeed/attributionsWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
+import { getInterpreterDetails } from "./python";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
+  // **************************************************************************************
+  // test python interpreter
+  const pythonExtensionDetails = await getInterpreterDetails();
+  console.log("python extension active: ", pythonExtensionDetails);
+
+  // **************************************************************************************
+
   // dynamically associate "ansible" language to the yaml file
   languageAssociation(context);
 
@@ -93,6 +101,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initialize settings
   const extSettings = new SettingsManager();
+
+  const pythonSettings = workspace.getConfiguration("ansible.python");
+  if (pythonExtensionDetails.path) {
+    await pythonSettings.update(
+      "interpreterPath",
+      pythonExtensionDetails.path[0]
+    );
+  }
 
   new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
 
