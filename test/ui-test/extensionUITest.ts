@@ -29,7 +29,7 @@ export function extensionUIAssetsTest(): void {
         .getSection("Installed")) as ExtensionsViewSection;
       const item = await section.findItem("@installed Ansible");
       expect(item, "Failed to find Ansible extension").not.undefined;
-      expect(await item?.getText()).to.contain("Red Hat");
+      expect(await item?.getText()).to.contain("redhat");
     });
 
     after(async function () {
