@@ -407,9 +407,9 @@ export class LightSpeedAuthenticationProvider
   public async grantAccessToken() {
     console.log("[ansible-lightspeed-oauth] Granting access token...");
 
-    if (process.env.TEST_WISDOM_ACCESS_TOKEN) {
+    if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
       console.log("[oauth] Test access token returned");
-      return process.env.TEST_WISDOM_ACCESS_TOKEN;
+      return process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
     }
 
     // check if the user is authenticated or not

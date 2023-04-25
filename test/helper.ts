@@ -116,9 +116,9 @@ export async function disableLightspeedSettings(): Promise<void> {
 
 export async function canRunLightspeedTests(): Promise<boolean> {
   // first check if environment variable is set or not
-  if (!process.env.TEST_WISDOM_ACCESS_TOKEN) {
+  if (!process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
     console.warn(
-      "Skipping lightspeed tests because TEST_WISDOM_ACCESS_TOKEN variable is not set."
+      "Skipping lightspeed tests because TEST_LIGHTSPEED_ACCESS_TOKEN variable is not set."
     );
     return false;
   }
@@ -128,7 +128,7 @@ export async function canRunLightspeedTests(): Promise<boolean> {
     .getConfiguration("ansible")
     .get("lightspeed.URL");
 
-  const token = process.env.TEST_WISDOM_ACCESS_TOKEN;
+  const token = process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
 
   if (!ansibleLightspeedURL) {
     console.warn(
