@@ -3,9 +3,9 @@ import {
   getDocUri,
   activate,
   testInlineSuggestion,
-  enableWisdomSettings,
-  disableWisdomSettings,
-  canRunWisdomTests,
+  enableLightspeedSettings,
+  disableLightspeedSettings,
+  canRunLightspeedTests,
 } from "../../helper";
 
 function testSuggestionPrompts() {
@@ -23,23 +23,23 @@ function testSuggestionPrompts() {
   return tests;
 }
 
-export function testWisdom(): void {
-  describe("TEST PROJECT WISDOM", function () {
+export function testLightspeed(): void {
+  describe("TEST ANSIBLE LIGHTSPEED", function () {
     before(async function () {
-      // check if we can run wisdom tests or not> If not, skip the tests
-      if (!(await canRunWisdomTests())) {
+      // check if we can run lightspeed tests or not> If not, skip the tests
+      if (!(await canRunLightspeedTests())) {
         this.skip();
       }
     });
 
-    describe("Test Project Wisdom inline completion suggestions", function () {
-      const docUri1 = getDocUri("wisdom/playbook_1.yml");
+    describe("Test Ansible Lightspeed inline completion suggestions", function () {
+      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
       before(async function () {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
-        await enableWisdomSettings();
+        await enableLightspeedSettings();
         await activate(docUri1);
       });
 
@@ -53,7 +53,7 @@ export function testWisdom(): void {
     });
 
     after(async function () {
-      disableWisdomSettings();
+      disableLightspeedSettings();
     });
   });
 }

@@ -43,7 +43,7 @@ export class LightSpeedManager {
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
-    // initiate the OAuth service for Wisdom
+    // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
         this.context,

@@ -1,10 +1,10 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { assert } from "chai";
-import { WisdomCommands } from "../src/definitions/constants";
+import { LightSpeedCommands } from "../src/definitions/constants";
 import { integer } from "vscode-languageclient";
 import axios from "axios";
-import { WISDOM_ME_AUTH_URL } from "../src/definitions/constants";
+import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/constants";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -101,38 +101,38 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.enabled", false);
 }
 
-export async function enableWisdomSettings(): Promise<void> {
-  await updateSettings("wisdom.enabled", true);
-  await updateSettings("wisdom.suggestions.enabled", true);
+export async function enableLightspeedSettings(): Promise<void> {
+  await updateSettings("lightspeed.enabled", true);
+  await updateSettings("lightspeed.suggestions.enabled", true);
 
   // disable lint validation
   await updateSettings("validation.lint.enabled", false);
 }
 
-export async function disableWisdomSettings(): Promise<void> {
-  await updateSettings("wisdom.enabled", false);
-  await updateSettings("wisdom.suggestions.enabled", false);
+export async function disableLightspeedSettings(): Promise<void> {
+  await updateSettings("lightspeed.enabled", false);
+  await updateSettings("lightspeed.suggestions.enabled", false);
 }
 
-export async function canRunWisdomTests(): Promise<boolean> {
+export async function canRunLightspeedTests(): Promise<boolean> {
   // first check if environment variable is set or not
   if (!process.env.TEST_WISDOM_ACCESS_TOKEN) {
     console.warn(
-      "Skipping wisdom tests because TEST_WISDOM_ACCESS_TOKEN variable is not set."
+      "Skipping lightspeed tests because TEST_WISDOM_ACCESS_TOKEN variable is not set."
     );
     return false;
   }
 
   // next, check if the access token is valid or not
-  const projectWisdomBasePath: string | undefined = vscode.workspace
+  const ansibleLightspeedURL: string | undefined = vscode.workspace
     .getConfiguration("ansible")
-    .get("wisdom.basePath");
+    .get("lightspeed.URL");
 
   const token = process.env.TEST_WISDOM_ACCESS_TOKEN;
 
-  if (!projectWisdomBasePath) {
+  if (!ansibleLightspeedURL) {
     console.warn(
-      "Skipping wisdom tests because project wisdom path path not set."
+      "Skipping lightspeed tests because project lightspeed path path not set."
     );
     return false;
   }
@@ -140,7 +140,7 @@ export async function canRunWisdomTests(): Promise<boolean> {
   let result: number;
   try {
     const { status } = await axios.get(
-      `${projectWisdomBasePath}${WISDOM_ME_AUTH_URL}`,
+      `${ansibleLightspeedURL}${LIGHTSPEED_ME_AUTH_URL}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -151,12 +151,12 @@ export async function canRunWisdomTests(): Promise<boolean> {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error(
-        "Skipping wisdom tests because of the following error message: ",
+        "Skipping lightspeed tests because of the following error message: ",
         error.message
       );
     } else {
       console.error(
-        "Skipping wisdom tests because of unexpected error: ",
+        "Skipping lightspeed tests because of unexpected error: ",
         error
       );
     }
@@ -224,7 +224,7 @@ export async function testInlineSuggestion(
   }
 
   // this is the position where we have placeholder for the task name in the test fixture
-  // i.e., <insert task name for project wisdom suggestion here>
+  // i.e., <insert task name for ansible lightspeed suggestion here>
   const writePosition = new vscode.Position(4, 4);
 
   // replace the placeholder with valid task name for suggestions
@@ -241,10 +241,12 @@ export async function testInlineSuggestion(
   });
 
   await vscode.commands.executeCommand(
-    WisdomCommands.WISDOM_SUGGESTION_TRIGGER
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
   );
   await sleep(15000);
-  await vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_COMMIT);
+  await vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+  );
   await sleep(2000);
 
   // get the committed suggestion

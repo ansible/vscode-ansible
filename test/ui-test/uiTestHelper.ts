@@ -5,7 +5,16 @@ import { SettingsEditor } from "vscode-extension-tester";
 export function getFilePath(file: string): string {
   return path.resolve(
     __dirname,
-    path.join("..", "..", "..", "..", "test", "testFixtures", "wisdom", file)
+    path.join(
+      "..",
+      "..",
+      "..",
+      "..",
+      "test",
+      "testFixtures",
+      "lightspeed",
+      file
+    )
   );
 }
 
