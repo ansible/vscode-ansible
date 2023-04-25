@@ -4,6 +4,52 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.0
+
+### Major Changes
+
+- Add support for Ansible Lightspeed settings to enable/disable the service,
+  configure base URL and enable/disable Watson code assistant @ganeshrn
+- Add support to authenticate with the Ansible Lightspeed service @priyamsahoo
+- Add support for inline suggestion for Ansible tasks using Ansible Lightspeed
+  with Watson code Assistant @ganeshrn
+- Ansible Lightspeed panel support for displaying training matches for Watson
+  Code Assistant @ganeshrn
+- Ansible Lightspeed status bar support with link to survey @ganeshrn
+- Add support to gather Ansible content data and sent it to Ansible Lightspeed
+  service as feedback to improve the service @ganeshrn
+
+### Minor Changes
+
+- Update Ansible metadata event for enable/disable settings of Ansible
+  Lightspeed (#853) @ganeshrn
+- Update inline suggestion service name (#851) @ganeshrn
+- Check for valid YAML for wisdom (#841) @ganeshrn
+- Update wisdom survey link (#838) @ganeshrn
+- To add the support for Ansible Lightspeed API versioning (#823) @justjais
+- Add support for training source matches for inline suggestions (#827)
+  @ganeshrn
+
+### Bugfixes
+
+- Fix to provide inline suggestions on click (#849) @ganeshrn
+- Fix wisdom basePath empty/leading and trailing space issue (#843) @ganeshrn
+- Improve message handling for status code 204 (#839) @ganeshrn
+- More Project Wisdom renaming (#835) @elyezer
+- Fix unnecessary call to feedback API (#834) @ganeshrn
+- Add versioning for match API (#830) @ganeshrn
+- Update wisdom base path (#829) @ganeshrn
+- Show informational message when inline suggestion is empty (#828) @ganeshrn
+- Update Project Wisdom Name (#826) @elyezer
+- Minor OAuth fixes (#824) @priyamsahoo
+- Downgrade Redhat telemetry package because of ES module incompatibility (#825)
+  @priyamsahoo
+- Inline suggestion improvements (#820)Co-authored-by: Ganesh Nalawade
+  <ganesh634@gmail.com> (#820) @priyamsahoo
+- Fix improper indentation while copying (#821) @priyamsahoo
+- To fix Ansible wisdom basepath empty url issue (#816) @justjais
+- Ignore errors from feedback API (#810) @ganeshrn
+
 ## v1.3
 
 ### Minor Changes

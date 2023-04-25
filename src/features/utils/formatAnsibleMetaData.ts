@@ -32,7 +32,6 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
       markdown,
       ansiblePresent,
       ansibleLintPresent,
-      eeEnabled,
     };
   }
 

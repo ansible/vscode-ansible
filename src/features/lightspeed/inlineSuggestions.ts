@@ -2,16 +2,16 @@ import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 
-import { adjustInlineSuggestionIndent } from "../utils/wisdom";
+import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
-import { wisdomManager } from "../../extension";
+import { lightSpeedManager } from "../../extension";
 import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
   UserAction,
-} from "../../definitions/wisdom";
-import { WisdomCommands } from "../../definitions/constants";
+} from "../../definitions/lightspeed";
+import { LightSpeedCommands } from "../../definitions/constants";
 import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
@@ -21,11 +21,11 @@ let suggestionId = "";
 let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
-let inlineSuggestionDisplayed = false;
+let _inlineSuggestionDisplayed = false;
 let previousTriggerPosition: vscode.Position;
-let cachedCompletionItem: vscode.InlineCompletionItem[];
+let _cachedCompletionItem: vscode.InlineCompletionItem[];
 
-export class WisdomInlineSuggestionProvider
+export class LightSpeedInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
 {
   provideInlineCompletionItems(
@@ -34,40 +34,45 @@ export class WisdomInlineSuggestionProvider
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
-    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-      wisdomManager.wisdomStatusBar.hide();
-      inlineSuggestionDisplayed = false;
+    const activeTextEditor = vscode.window.activeTextEditor;
+    if (!activeTextEditor) {
+      resetInlineSuggestionDisplayed();
+      return [];
+    }
+    if (activeTextEditor.document.languageId !== "ansible") {
+      lightSpeedManager.lightSpeedStatusBar.hide();
+      resetInlineSuggestionDisplayed();
       return [];
     }
 
     if (token.isCancellationRequested) {
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
     if (document.languageId !== "ansible") {
-      wisdomManager.wisdomStatusBar.hide();
-      inlineSuggestionDisplayed = false;
+      lightSpeedManager.lightSpeedStatusBar.hide();
+      resetInlineSuggestionDisplayed();
       return [];
     }
-    const wisdomSetting = wisdomManager.settingsManager.settings.wisdomService;
-    if (!wisdomSetting.enabled || !wisdomSetting.suggestions.enabled) {
-      console.debug("[project-wisdom] Project Wisdom service is disabled.");
-      wisdomManager.updateWisdomStatusbar();
-      inlineSuggestionDisplayed = false;
+    const lightSpeedSetting =
+      lightSpeedManager.settingsManager.settings.lightSpeedService;
+    if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
+      console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
+      lightSpeedManager.updateLightSpeedStatusbar();
+      resetInlineSuggestionDisplayed();
       return [];
     }
 
-    if (!wisdomSetting.basePath.trim()) {
+    if (!lightSpeedSetting.URL.trim()) {
       vscode.window.showErrorMessage(
-        "Base path for Project Wisdom service is empty. Please provide a base path"
+        "Ansible Lightspeed URL is empty. Please provide a URL."
       );
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
-
     // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
-    if (inlineSuggestionDisplayed) {
+    if (getInlineSuggestionDisplayed()) {
       /* The following approach is implemented to address a specific issue related to the
        * behavior of inline suggestion in the 'automated' trigger scenario:
        *
@@ -83,12 +88,13 @@ export class WisdomInlineSuggestionProvider
        * As a result, we always make a new request for inline suggestion whenever any changes are made
        * in the editor.
        */
-
       if (_.isEqual(position, previousTriggerPosition)) {
-        return cachedCompletionItem;
+        return _cachedCompletionItem;
       }
 
-      vscode.commands.executeCommand(WisdomCommands.WISDOM_SUGGESTION_HIDE);
+      vscode.commands.executeCommand(
+        LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE
+      );
       return [];
     }
     const lineToExtractPrompt = document.lineAt(position.line - 1);
@@ -97,7 +103,7 @@ export class WisdomInlineSuggestionProvider
     const currentLineText = document.lineAt(position);
 
     if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
-      inlineSuggestionDisplayed = false;
+      resetInlineSuggestionDisplayed();
       return [];
     }
     inlineSuggestionData = {};
@@ -127,11 +133,11 @@ async function getInlineSuggestionItems(
     inlineSuggestionData["suggestionId"] = suggestionId;
     inlineSuggestionData["documentUri"] = documentUri;
 
-    if (!(documentUri in wisdomManager.wisdomActivityTracker)) {
+    if (!(documentUri in lightSpeedManager.lightSpeedActivityTracker)) {
       activityId = uuidv4();
-      wisdomManager.wisdomActivityTracker[documentUri] = activityId;
+      lightSpeedManager.lightSpeedActivityTracker[documentUri] = activityId;
     } else {
-      activityId = wisdomManager.wisdomActivityTracker[documentUri];
+      activityId = lightSpeedManager.lightSpeedActivityTracker[documentUri];
     }
     inlineSuggestionData["activityId"] = activityId;
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
@@ -143,19 +149,19 @@ async function getInlineSuggestionItems(
     if (!shouldRequestInlineSuggestions(documentContent)) {
       return [];
     }
-    wisdomManager.wisdomStatusBar.text = "$(loading~spin) Wisdom";
+    lightSpeedManager.lightSpeedStatusBar.text = "$(loading~spin) Lightspeed";
     result = await requestInlineSuggest(
       documentContent,
       documentUri,
       activityId
     );
-    wisdomManager.wisdomStatusBar.text = "Wisdom";
+    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
   } catch (error) {
     inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
   } finally {
-    wisdomManager.wisdomStatusBar.text = "Wisdom";
+    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
   }
   if (!result || !result.predictions || result.predictions.length === 0) {
     console.error("[inline-suggestions] Inline suggestions not found.");
@@ -187,8 +193,7 @@ async function getInlineSuggestionItems(
   console.log(
     `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
   );
-  cachedCompletionItem = inlineSuggestionUserActionItems;
-  wisdomManager.attributionsProvider.suggestionDetails = [
+  lightSpeedManager.attributionsProvider.suggestionDetails = [
     {
       suggestionId: suggestionId,
       suggestion: currentSuggestion,
@@ -198,7 +203,7 @@ async function getInlineSuggestionItems(
   // indicating that the suggestion is displayed and will be used
   // to track the user action on the suggestion in scenario where
   // the user continued to type without accepting or rejecting the suggestion
-  inlineSuggestionDisplayed = true;
+  setInlineSuggestionDisplayed(inlineSuggestionUserActionItems);
   return inlineSuggestionUserActionItems;
 }
 
@@ -216,16 +221,16 @@ async function requestInlineSuggest(
     },
   };
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request send to Project Wisdom service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
   );
 
-  wisdomManager.wisdomStatusBar.tooltip = "processing...";
+  lightSpeedManager.lightSpeedStatusBar.tooltip = "processing...";
   const outputData: CompletionResponseParams =
-    await wisdomManager.apiInstance.completionRequest(completionData);
-  wisdomManager.wisdomStatusBar.tooltip = "Done";
+    await lightSpeedManager.apiInstance.completionRequest(completionData);
+  lightSpeedManager.lightSpeedStatusBar.tooltip = "Done";
 
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Project Wisdom service.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
   );
   return outputData;
 }
@@ -261,7 +266,9 @@ export async function inlineSuggestionCommitHandler() {
   console.log("[inline-suggestions] User accepted the inline suggestion.");
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
-  vscode.commands.executeCommand(WisdomCommands.WISDOM_FETCH_TRAINING_MATCHES);
+  vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
+  );
 
   // Send feedback for accepted suggestion
   await inlineSuggestionUserActionHandler(suggestionId, true);
@@ -290,7 +297,7 @@ export async function inlineSuggestionUserActionHandler(
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
-  inlineSuggestionDisplayed = false;
+  resetInlineSuggestionDisplayed();
   if (isSuggestionAccepted) {
     inlineSuggestionData["action"] = UserAction.ACCEPT;
   } else {
@@ -300,9 +307,27 @@ export async function inlineSuggestionUserActionHandler(
   const inlineSuggestionFeedbackPayload = {
     inlineSuggestion: inlineSuggestionData,
   };
-  wisdomManager.apiInstance.feedbackRequest(inlineSuggestionFeedbackPayload);
+  lightSpeedManager.apiInstance.feedbackRequest(
+    inlineSuggestionFeedbackPayload
+  );
   console.debug(
-    `[project-wisdom-feedback] User action event wisdomInlineSuggestionFeedbackEvent sent.`
+    `[ansible-lightspeed-feedback] User action event lightSpeedInlineSuggestionFeedbackEvent sent.`
   );
   inlineSuggestionData = {};
+}
+
+export function resetInlineSuggestionDisplayed() {
+  _inlineSuggestionDisplayed = false;
+  _cachedCompletionItem = [];
+}
+
+function setInlineSuggestionDisplayed(
+  inlineCompletionItem: vscode.InlineCompletionItem[]
+) {
+  _inlineSuggestionDisplayed = true;
+  _cachedCompletionItem = inlineCompletionItem;
+}
+
+export function getInlineSuggestionDisplayed() {
+  return _inlineSuggestionDisplayed;
 }

@@ -6,7 +6,7 @@ export interface ExtensionSettings {
   activationScript: string;
   interpreterPath: string;
   executionEnvironment: ExecutionEnvironmentSettings;
-  wisdomService: WisdomServiceSettings;
+  lightSpeedService: LightSpeedServiceSettings;
 }
 
 export interface IVolumeMounts {
@@ -24,8 +24,8 @@ export interface ExecutionEnvironmentSettings {
   volumeMounts: Array<IVolumeMounts>;
 }
 
-export interface WisdomServiceSettings {
+export interface LightSpeedServiceSettings {
   enabled: boolean;
-  basePath: string;
+  URL: string;
   suggestions: { enabled: boolean };
 }

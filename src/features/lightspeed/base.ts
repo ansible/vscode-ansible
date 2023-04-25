@@ -1,32 +1,35 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { v4 as uuidv4 } from "uuid";
-import { WisdomAPI } from "./api";
+import { LightSpeedAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
-import { WisdomAuthenticationProvider } from "./wisdomOAuthProvider";
+import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import {
   AnsibleContentUploadTrigger,
   FeedbackRequestParams,
   IDocumentTracker,
-} from "../../definitions/wisdom";
+} from "../../definitions/lightspeed";
 import {
-  WisdomCommands,
-  WISDOM_FEEDBACK_FORM_URL,
-  WISDOM_REPORT_EMAIL_ADDRESS,
+  LightSpeedCommands,
+  LIGHTSPEED_FEEDBACK_FORM_URL,
+  LIGHTSPEED_REPORT_EMAIL_ADDRESS,
 } from "../../definitions/constants";
 import { AttributionsWebview } from "./attributionsWebview";
-import { WISDOM_AUTH_ID, WISDOM_AUTH_NAME } from "./utils/webUtils";
+import {
+  ANSIBLE_LIGHTSPEED_AUTH_ID,
+  ANSIBLE_LIGHTSPEED_AUTH_NAME,
+} from "./utils/webUtils";
 
-export class WisdomManager {
+export class LightSpeedManager {
   private context;
   public client;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
-  public wisdomStatusBar: vscode.StatusBarItem;
-  public apiInstance: WisdomAPI;
-  public wisdomAuthenticationProvider: WisdomAuthenticationProvider;
-  public wisdomActivityTracker: IDocumentTracker;
+  public lightSpeedStatusBar: vscode.StatusBarItem;
+  public apiInstance: LightSpeedAPI;
+  public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
+  public lightSpeedActivityTracker: IDocumentTracker;
   public attributionsProvider: AttributionsWebview;
 
   constructor(
@@ -39,17 +42,18 @@ export class WisdomManager {
     this.client = client;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
-    this.wisdomActivityTracker = {};
+    this.lightSpeedActivityTracker = {};
     // initiate the OAuth service for Wisdom
-    this.wisdomAuthenticationProvider = new WisdomAuthenticationProvider(
-      this.context,
+    this.lightSpeedAuthenticationProvider =
+      new LightSpeedAuthenticationProvider(
+        this.context,
+        this.settingsManager,
+        ANSIBLE_LIGHTSPEED_AUTH_ID,
+        ANSIBLE_LIGHTSPEED_AUTH_NAME
+      );
+    this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
-      WISDOM_AUTH_ID,
-      WISDOM_AUTH_NAME
-    );
-    this.apiInstance = new WisdomAPI(
-      this.settingsManager,
-      this.wisdomAuthenticationProvider
+      this.lightSpeedAuthenticationProvider
     );
     this.attributionsProvider = new AttributionsWebview(
       this.context,
@@ -58,25 +62,26 @@ export class WisdomManager {
       this.apiInstance
     );
 
-    // create a new project wisdom status bar item that we can manage
-    this.wisdomStatusBar = this.initialiseStatusBar();
-    this.updateWisdomStatusbar();
+    // create a new project lightspeed status bar item that we can manage
+    this.lightSpeedStatusBar = this.initialiseStatusBar();
+    this.updateLightSpeedStatusbar();
   }
 
   public reInitialize(): void {
-    this.updateWisdomStatusbar();
+    this.updateLightSpeedStatusbar();
   }
 
   private initialiseStatusBar(): vscode.StatusBarItem {
     // create a new status bar item that we can manage
-    const wisdomStatusBarItem = vscode.window.createStatusBarItem(
+    const lightSpeedStatusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
       100
     );
-    wisdomStatusBarItem.command = WisdomCommands.WISDOM_STATUS_BAR_CLICK;
-    wisdomStatusBarItem.text = "Wisdom";
-    this.context.subscriptions.push(wisdomStatusBarItem);
-    return wisdomStatusBarItem;
+    lightSpeedStatusBarItem.command =
+      LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
+    lightSpeedStatusBarItem.text = "Lightspeed";
+    this.context.subscriptions.push(lightSpeedStatusBarItem);
+    return lightSpeedStatusBarItem;
   }
 
   private handleStatusBar() {
@@ -84,26 +89,26 @@ export class WisdomManager {
       return;
     }
     if (
-      this.settingsManager.settings.wisdomService.enabled &&
-      this.settingsManager.settings.wisdomService.suggestions.enabled
+      this.settingsManager.settings.lightSpeedService.enabled &&
+      this.settingsManager.settings.lightSpeedService.suggestions.enabled
     ) {
-      this.wisdomStatusBar.backgroundColor = new vscode.ThemeColor(
+      this.lightSpeedStatusBar.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.prominentForeground"
       );
     } else {
-      this.wisdomStatusBar.backgroundColor = new vscode.ThemeColor(
+      this.lightSpeedStatusBar.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.warningBackground"
       );
     }
-    this.wisdomStatusBar.show();
+    this.lightSpeedStatusBar.show();
   }
 
-  public updateWisdomStatusbar(): void {
+  public updateLightSpeedStatusbar(): void {
     if (
       vscode.window.activeTextEditor?.document.languageId !== "ansible" ||
-      !this.settingsManager.settings.wisdomService.enabled
+      !this.settingsManager.settings.lightSpeedService.enabled
     ) {
-      this.wisdomStatusBar.hide();
+      this.lightSpeedStatusBar.hide();
       return;
     }
 
@@ -116,8 +121,8 @@ export class WisdomManager {
   ): void {
     if (
       document.languageId !== "ansible" ||
-      !this.settingsManager.settings.wisdomService.enabled ||
-      !this.settingsManager.settings.wisdomService.basePath.trim()
+      !this.settingsManager.settings.lightSpeedService.enabled ||
+      !this.settingsManager.settings.lightSpeedService.URL.trim()
     ) {
       return;
     }
@@ -126,19 +131,19 @@ export class WisdomManager {
     let activityId: string | undefined = undefined;
     if (trigger === AnsibleContentUploadTrigger.FILE_OPEN) {
       activityId = uuidv4();
-      this.wisdomActivityTracker[documentUri] = uuidv4();
+      this.lightSpeedActivityTracker[documentUri] = uuidv4();
     } else if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
       // retrieve previous activity tracker
-      activityId = this.wisdomActivityTracker[documentUri];
+      activityId = this.lightSpeedActivityTracker[documentUri];
 
       // start a new activity tracker
-      this.wisdomActivityTracker[documentUri] = uuidv4();
+      this.lightSpeedActivityTracker[documentUri] = uuidv4();
     } else if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
       // retrieve previous activity tracker
-      activityId = this.wisdomActivityTracker[documentUri];
+      activityId = this.lightSpeedActivityTracker[documentUri];
 
       // end previous activity tracker
-      delete this.wisdomActivityTracker[documentUri];
+      delete this.lightSpeedActivityTracker[documentUri];
     }
     const inputData: FeedbackRequestParams = {
       ansibleContent: {
@@ -149,27 +154,27 @@ export class WisdomManager {
       },
     };
     console.log(
-      "[project-wisdom-feedback] Event wisdomServiceAnsibleContentFeedbackEvent sent."
+      "[ansible-lightspeed-feedback] Event lightSpeedServiceAnsibleContentFeedbackEvent sent."
     );
     this.apiInstance.feedbackRequest(inputData);
   }
 
-  public async wisdomStatusBarClickHandler() {
+  public async lightSpeedStatusBarClickHandler() {
     // show an information message feedback buttons
     const contactButton = `Contact Us`;
     const feedbackButton = "Take Survey";
     const inputButton = await vscode.window.showInformationMessage(
-      "Project Wisdom feedback",
+      "Ansible Lightspeed with Watson Code Assistant feedback",
       //{ modal: true },
       feedbackButton,
       contactButton
     );
     if (inputButton === feedbackButton) {
       // open a URL in the default browser
-      vscode.env.openExternal(vscode.Uri.parse(WISDOM_FEEDBACK_FORM_URL));
+      vscode.env.openExternal(vscode.Uri.parse(LIGHTSPEED_FEEDBACK_FORM_URL));
     } else if (inputButton === contactButton) {
       // open the user's default email client
-      const mailtoUrl = encodeURI(`mailto:${WISDOM_REPORT_EMAIL_ADDRESS}`);
+      const mailtoUrl = encodeURI(`mailto:${LIGHTSPEED_REPORT_EMAIL_ADDRESS}`);
       vscode.env.openExternal(vscode.Uri.parse(mailtoUrl));
     }
   }

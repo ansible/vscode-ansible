@@ -63,6 +63,7 @@ keyfile
 keyrings
 lextudio
 libyaml
+lightspeed
 liveserver
 loglevel
 lxml
@@ -79,6 +80,7 @@ ovsx
 parseable
 piptools
 pipx
+precheck
 preid
 preinstall
 priyamsahoo

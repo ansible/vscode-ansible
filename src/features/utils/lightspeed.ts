@@ -12,7 +12,7 @@ export function adjustInlineSuggestionIndent(
 
   let newSuggestion = suggestion;
   // adjust the spaces in suggestion line with respect to cursor position
-  if (spacesBeforeCursor > 0 && lines.length > 1) {
+  if (spacesBeforeCursor > 0 && lines.length > 0) {
     newSuggestion = lines
       .map((line, index) => {
         // BOUNDARY: shouldn't extend into the string
