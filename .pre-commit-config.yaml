@@ -80,7 +80,7 @@ repos:
             yarn.lock
           )$
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.30.0
+    rev: v1.31.0
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -103,7 +103,7 @@ repos:
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.0.0-alpha.6"
+    rev: "v3.0.0-alpha.9-for-vscode"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
@@ -122,7 +122,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.38.0
+    rev: v8.39.0
     hooks:
       - id: eslint
         args:
