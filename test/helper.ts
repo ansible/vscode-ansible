@@ -137,8 +137,6 @@ export async function canRunLightspeedTests(): Promise<boolean> {
     .getConfiguration("ansible")
     .get("lightspeed.URL");
 
-  console.log("lightspeed url: ", ansibleLightspeedURL);
-
   const token = process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
 
   if (!ansibleLightspeedURL) {
