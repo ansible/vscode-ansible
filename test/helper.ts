@@ -133,11 +133,12 @@ export async function canRunLightspeedTests(): Promise<boolean> {
   }
 
   // next, check if the access token is valid or not
-  const ansibleLightspeedURL: string | undefined = vscode.workspace
+  const lightspeedBaseURL: string | undefined = vscode.workspace
     .getConfiguration("ansible")
     .get("lightspeed.URL");
 
   const token = process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
+  const ansibleLightspeedURL = lightspeedBaseURL?.trim();
 
   if (!ansibleLightspeedURL) {
     console.warn(
