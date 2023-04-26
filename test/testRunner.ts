@@ -130,6 +130,7 @@ async function main(): Promise<void> {
       extensionTestsEnv: {
         SKIP_PODMAN: process.env.SKIP_PODMAN ?? "0",
         SKIP_DOCKER: process.env.SKIP_DOCKER ?? "0",
+        TEST_LIGHTSPEED_ACCESS_TOKEN: process.env.TEST_LIGHTSPEED_ACCESS_TOKEN,
       },
     });
   } catch (err) {

@@ -17,6 +17,9 @@
   "ansible.python.activationScript": "",
   "ansible.python.interpreterPath": "python3",
   "ansibleServer.trace.server": "verbose",
+  "ansible.lightspeed.enabled": false,
+  "ansible.lightspeed.URL": "https://wisdom-service.apps.wisdom-staging.vc79.p1.openshiftapps.com/",
+  "ansible.lightspeed.suggestions.enabled": false,
 
   "extensions.autoUpdate": false,
   "extensions.autoCheckUpdates": false,

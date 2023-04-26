@@ -16,6 +16,10 @@ import {
   LIGHTSPEED_REPORT_EMAIL_ADDRESS,
 } from "../../definitions/constants";
 import { AttributionsWebview } from "./attributionsWebview";
+import {
+  ANSIBLE_LIGHTSPEED_AUTH_ID,
+  ANSIBLE_LIGHTSPEED_AUTH_NAME,
+} from "./utils/webUtils";
 
 export class LightSpeedManager {
   private context;
@@ -41,7 +45,12 @@ export class LightSpeedManager {
     this.lightSpeedActivityTracker = {};
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
-      new LightSpeedAuthenticationProvider(this.context, this.settingsManager);
+      new LightSpeedAuthenticationProvider(
+        this.context,
+        this.settingsManager,
+        ANSIBLE_LIGHTSPEED_AUTH_ID,
+        ANSIBLE_LIGHTSPEED_AUTH_NAME
+      );
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider

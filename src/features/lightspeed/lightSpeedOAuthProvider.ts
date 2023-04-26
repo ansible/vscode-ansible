@@ -25,8 +25,6 @@ import {
   UriEventHandler,
   OAuthAccount,
   calculateTokenExpiryTime,
-  ANSIBLE_LIGHTSPEED_AUTH_ID,
-  ANSIBLE_LIGHTSPEED_AUTH_NAME,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
@@ -53,16 +51,22 @@ export class LightSpeedAuthenticationProvider
     new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>();
   private _disposable: Disposable;
   private _uriHandler = new UriEventHandler();
+  private _authId: string;
+  private _authName: string;
 
   constructor(
     private readonly context: ExtensionContext,
-    settingsManager: SettingsManager
+    settingsManager: SettingsManager,
+    authId: string,
+    authName: string
   ) {
     this.settingsManager = settingsManager;
+    this._authId = authId;
+    this._authName = authName;
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
-        ANSIBLE_LIGHTSPEED_AUTH_ID,
-        ANSIBLE_LIGHTSPEED_AUTH_NAME,
+        this._authId,
+        this._authName,
         this,
         { supportsMultipleAccounts: false }
       ),
@@ -403,6 +407,11 @@ export class LightSpeedAuthenticationProvider
   public async grantAccessToken() {
     console.log("[ansible-lightspeed-oauth] Granting access token...");
 
+    if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
+      console.log("[oauth] Test access token returned");
+      return process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
+    }
+
     // check if the user is authenticated or not
     const session = await this.isAuthenticated();
 
@@ -523,13 +532,9 @@ export class LightSpeedAuthenticationProvider
   /* Return session info if user is authenticated, else undefined */
   public async isAuthenticated(): Promise<AuthenticationSession | undefined> {
     // check if the user is authenticated
-    const userAuth = await authentication.getSession(
-      ANSIBLE_LIGHTSPEED_AUTH_ID,
-      [],
-      {
-        createIfNone: false,
-      }
-    );
+    const userAuth = await authentication.getSession(this._authId, [], {
+      createIfNone: false,
+    });
 
     return userAuth;
   }
