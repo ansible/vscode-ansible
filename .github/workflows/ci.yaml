@@ -125,6 +125,7 @@ jobs:
       - name: task ${{ matrix.task-name }}
         env:
           TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+          TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
         # xvfb needed for chrome headless tests
         uses: coactions/setup-xvfb@v1
         with:
