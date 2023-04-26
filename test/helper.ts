@@ -104,6 +104,7 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
 export async function enableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", true);
   await updateSettings("lightspeed.suggestions.enabled", true);
+  await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
 
   // disable lint validation
   await updateSettings("validation.lint.enabled", false);
@@ -112,6 +113,7 @@ export async function enableLightspeedSettings(): Promise<void> {
 export async function disableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", false);
   await updateSettings("lightspeed.suggestions.enabled", false);
+  await updateSettings("lightspeed.URL", "");
 }
 
 export async function canRunLightspeedTests(): Promise<boolean> {
@@ -119,6 +121,13 @@ export async function canRunLightspeedTests(): Promise<boolean> {
   if (!process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
     console.warn(
       "Skipping lightspeed tests because TEST_LIGHTSPEED_ACCESS_TOKEN variable is not set."
+    );
+    return false;
+  }
+
+  if (!process.env.TEST_LIGHTSPEED_URL) {
+    console.warn(
+      "Skipping lightspeed tests because TEST_LIGHTSPEED_URL variable is not set."
     );
     return false;
   }

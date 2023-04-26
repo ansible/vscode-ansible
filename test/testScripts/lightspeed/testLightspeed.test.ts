@@ -26,6 +26,8 @@ function testSuggestionPrompts() {
 export function testLightspeed(): void {
   describe("TEST ANSIBLE LIGHTSPEED", function () {
     before(async function () {
+      await enableLightspeedSettings();
+
       // check if we can run lightspeed tests or not> If not, skip the tests
       if (!(await canRunLightspeedTests())) {
         this.skip();
@@ -39,7 +41,6 @@ export function testLightspeed(): void {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
-        await enableLightspeedSettings();
         await activate(docUri1);
       });
 
