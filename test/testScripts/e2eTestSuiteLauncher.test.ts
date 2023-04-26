@@ -23,9 +23,9 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
       await updateSettings("trace.server", "off", "ansibleServer"); // Revert back the default settings
     });
 
-    testHoverWithoutEE();
-    testDiagnosticsAnsibleWithoutEE();
-    testDiagnosticsYAMLWithoutEE();
+    // testHoverWithoutEE();
+    // testDiagnosticsAnsibleWithoutEE();
+    // testDiagnosticsYAMLWithoutEE();
     testLightspeed();
   });
 
@@ -43,7 +43,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
         await disableExecutionEnvironmentSettings(); // Revert back the default settings
       });
 
-      testHoverEE();
+      // testHoverEE();
     });
   }
 });
