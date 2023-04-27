@@ -8,6 +8,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
 } from "../helper";
+import { testLightspeed } from "./lightspeed/testLightspeed.test";
 
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
@@ -25,6 +26,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
     testHoverWithoutEE();
     testDiagnosticsAnsibleWithoutEE();
     testDiagnosticsYAMLWithoutEE();
+    testLightspeed();
   });
 
   const skip_ee = process.env.SKIP_PODMAN || process.env.SKIP_DOCKER || "0";
