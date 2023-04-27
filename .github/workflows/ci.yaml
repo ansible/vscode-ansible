@@ -70,7 +70,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout vscode-ansible
-        uses: actions/checkout@v3.4.0
+        uses: actions/checkout@v3.5.2
 
       - name: Install Task
         uses: arduino/setup-task@v1
@@ -123,6 +123,9 @@ jobs:
         run: task package --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
       - name: task ${{ matrix.task-name }}
+        env:
+          TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+          TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
         # xvfb needed for chrome headless tests
         uses: coactions/setup-xvfb@v1
         with:
