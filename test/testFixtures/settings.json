@@ -17,6 +17,8 @@
   "ansible.python.activationScript": "",
   "ansible.python.interpreterPath": "python3",
   "ansibleServer.trace.server": "verbose",
+  "ansible.lightspeed.enabled": false,
+  "ansible.lightspeed.suggestions.enabled": false,
 
   "extensions.autoUpdate": false,
   "extensions.autoCheckUpdates": false,
