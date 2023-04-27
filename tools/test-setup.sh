@@ -198,10 +198,13 @@ if [[ ! -d ${VIRTUAL_ENV} ]]; then
     log notice "Creating virtualenv ..."
     python3 -m venv "${VIRTUAL_ENV}"
 fi
+log notice "Activating virtualenv from ${VIRTUAL_ENV} ..."
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
 python3 -m pip install -q -U pip
+# Fail fast if user has broken dependencies
+python3 -m pip check
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from creator-ee in order
