@@ -246,7 +246,7 @@
         "ansible.python.interpreterPath": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "python3",
+          "default": "",
           "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
           "order": 4
         },

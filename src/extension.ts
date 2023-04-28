@@ -50,7 +50,7 @@ import {
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { AttributionsWebview } from "./features/lightspeed/attributionsWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
-import { getInterpreterDetails } from "./python";
+// import { getInterpreterDetails } from "./python";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -59,8 +59,12 @@ const lsName = "Ansible Support";
 export async function activate(context: ExtensionContext): Promise<void> {
   // **************************************************************************************
   // test python interpreter
-  const pythonExtensionDetails = await getInterpreterDetails();
-  console.log("python extension active: ", pythonExtensionDetails);
+  // const pythonExtensionDetails = await getInterpreterDetails();
+  // if (pythonExtensionDetails.path) {
+  //   console.log("python extension active: ", pythonExtensionDetails.path[0]);
+  // } else {
+  //   console.log("No python path found");
+  // }
 
   // **************************************************************************************
 
@@ -102,13 +106,30 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // Initialize settings
   const extSettings = new SettingsManager();
 
-  const pythonSettings = workspace.getConfiguration("ansible.python");
-  if (pythonExtensionDetails.path) {
-    await pythonSettings.update(
-      "interpreterPath",
-      pythonExtensionDetails.path[0]
-    );
-  }
+  // const pythonSettings = workspace.getConfiguration("ansible.python");
+  // console.log(
+  //   "[existing] python interpreter path: ",
+  //   extSettings.settings.interpreterPath
+  // );
+
+  // console.log(
+  //   "[from python] python interpreter path: ",
+  //   pythonExtensionDetails.path
+  // );
+
+  // if (
+  //   pythonExtensionDetails.path &&
+  //   pythonExtensionDetails.path[0] !== extSettings.settings.interpreterPath
+  // ) {
+  //   await pythonSettings.update(
+  //     "interpreterPath",
+  //     pythonExtensionDetails.path[0],
+  //     true
+  //   );
+  //   console.log("updated python path to: ", pythonExtensionDetails.path);
+  // } else {
+  //   console.log("python path not changed");
+  // }
 
   new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
 
