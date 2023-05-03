@@ -12,6 +12,7 @@ bashate
 bitness
 bthornto
 cfgs
+chromedriver
 cmds
 codespell
 commitlint

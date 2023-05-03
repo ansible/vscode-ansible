@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { assert } from "chai";
+import { LightSpeedCommands } from "../src/definitions/constants";
+import { integer } from "vscode-languageclient";
+import axios from "axios";
+import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/constants";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -97,6 +101,82 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.enabled", false);
 }
 
+export async function enableLightspeedSettings(): Promise<void> {
+  await updateSettings("lightspeed.enabled", true);
+  await updateSettings("lightspeed.suggestions.enabled", true);
+  await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
+
+  // disable lint validation
+  await updateSettings("validation.lint.enabled", false);
+}
+
+export async function disableLightspeedSettings(): Promise<void> {
+  await updateSettings("lightspeed.enabled", false);
+  await updateSettings("lightspeed.suggestions.enabled", false);
+  await updateSettings("lightspeed.URL", "");
+}
+
+export async function canRunLightspeedTests(): Promise<boolean> {
+  // first check if environment variable is set or not
+  if (!process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
+    console.warn(
+      "Skipping lightspeed tests because TEST_LIGHTSPEED_ACCESS_TOKEN variable is not set."
+    );
+    return false;
+  }
+
+  if (!process.env.TEST_LIGHTSPEED_URL) {
+    console.warn(
+      "Skipping lightspeed tests because TEST_LIGHTSPEED_URL variable is not set."
+    );
+    return false;
+  }
+
+  // next, check if the access token is valid or not
+  const lightspeedBaseURL: string | undefined = vscode.workspace
+    .getConfiguration("ansible")
+    .get("lightspeed.URL");
+
+  const token = process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
+  const ansibleLightspeedURL = lightspeedBaseURL?.trim();
+
+  if (!ansibleLightspeedURL) {
+    console.warn(
+      "Skipping lightspeed tests because project lightspeed path path not set."
+    );
+    return false;
+  }
+
+  let result: number;
+  try {
+    const { status } = await axios.get(
+      `${ansibleLightspeedURL}${LIGHTSPEED_ME_AUTH_URL}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    result = status;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error(
+        "Skipping lightspeed tests because of the following error message: ",
+        error.message
+      );
+    } else {
+      console.error(
+        "Skipping lightspeed tests because of unexpected error: ",
+        error
+      );
+    }
+    return false;
+  }
+
+  // finally, check if status code is not 200
+  return result === 200;
+}
+
 export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[]
@@ -141,4 +221,52 @@ export async function testHover(
       );
     });
   }
+}
+
+export async function testInlineSuggestion(
+  prompt: string,
+  expectedModule: string
+): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    throw new Error("No active editor found");
+  }
+
+  // this is the position where we have placeholder for the task name in the test fixture
+  // i.e., <insert task name for ansible lightspeed suggestion here>
+  const writePosition = new vscode.Position(4, 4);
+
+  // replace the placeholder with valid task name for suggestions
+  await editor.edit(async (edit) => {
+    const replaceRange = new vscode.Range(
+      writePosition,
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    );
+    edit.replace(replaceRange, `- name: ${prompt}\n`);
+  });
+
+  await vscode.commands.executeCommand("cursorMove", {
+    to: "nextBlankLine",
+  });
+
+  await vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
+  );
+  await sleep(15000);
+  await vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+  );
+  await sleep(2000);
+
+  // get the committed suggestion
+  const suggestionRange = new vscode.Range(
+    new vscode.Position(writePosition.line + 1, writePosition.character),
+    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+  );
+
+  const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
+
+  // assert
+  assert.include(docContentAfterSuggestion, expectedModule);
 }
