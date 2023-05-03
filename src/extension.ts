@@ -50,23 +50,19 @@ import {
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { AttributionsWebview } from "./features/lightspeed/attributionsWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
-// import { getInterpreterDetails } from "./python";
+import {
+  setPythonInterpreter,
+  setPythonInterpreterWithCommand,
+} from "./setPythonInterpreter";
+import { PythonInterpreterManager } from "./features/pythonMetadata";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  // **************************************************************************************
-  // test python interpreter
-  // const pythonExtensionDetails = await getInterpreterDetails();
-  // if (pythonExtensionDetails.path) {
-  //   console.log("python extension active: ", pythonExtensionDetails.path[0]);
-  // } else {
-  //   console.log("No python path found");
-  // }
-
-  // **************************************************************************************
+  // set correct python interpreter
+  await setPythonInterpreter();
 
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
@@ -93,6 +89,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
   await registerCommandWithTelemetry(
     context,
     telemetry,
+    AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER,
+    setPythonInterpreterWithCommand,
+    true
+  );
+
+  await registerCommandWithTelemetry(
+    context,
+    telemetry,
     LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
     getAuthToken,
     true
@@ -113,6 +117,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const metaData = new MetadataManager(context, client, telemetry, extSettings);
   await metaData.updateAnsibleInfoInStatusbar();
 
+  // handle python status bar
+  const pythonInterpreterManager = new PythonInterpreterManager(
+    context,
+    client,
+    telemetry,
+    extSettings
+  );
+  await pythonInterpreterManager.updatePythonInfoInStatusbar();
 
   // handle Ansible Lightspeed
   lightSpeedManager = new LightSpeedManager(
@@ -200,8 +212,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(
-    (editor: vscode.TextEditor | undefined) => {
-      updateAnsibleStatusBar(metaData, lightSpeedManager);
+    async (editor: vscode.TextEditor | undefined) => {
+      await updateAnsibleStatusBar(
+        metaData,
+        lightSpeedManager,
+        pythonInterpreterManager
+      );
       if (editor) {
         lightSpeedManager.ansibleContentFeedback(
           editor.document,
@@ -210,8 +226,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
       }
     }
   );
-  workspace.onDidOpenTextDocument((document: vscode.TextDocument) => {
-    updateAnsibleStatusBar(metaData, lightSpeedManager);
+  workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
+    await updateAnsibleStatusBar(
+      metaData,
+      lightSpeedManager,
+      pythonInterpreterManager
+    );
     lightSpeedManager.ansibleContentFeedback(
       document,
       AnsibleContentUploadTrigger.FILE_OPEN
@@ -224,8 +244,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
     );
   });
 
-  workspace.onDidChangeConfiguration(() =>
-    updateConfigurationChanges(metaData, extSettings, lightSpeedManager)
+  workspace.onDidChangeConfiguration(
+    async () =>
+      await updateConfigurationChanges(
+        metaData,
+        pythonInterpreterManager,
+        extSettings,
+        lightSpeedManager
+      )
   );
 
   const session = await authentication.getSession(
@@ -322,12 +348,14 @@ export function deactivate(): Thenable<void> | undefined {
   return client.stop();
 }
 
-function updateAnsibleStatusBar(
+async function updateAnsibleStatusBar(
   metaData: MetadataManager,
-  lightSpeedManager: LightSpeedManager
+  lightSpeedManager: LightSpeedManager,
+  pythonInterpreterManager: PythonInterpreterManager
 ) {
-  metaData.updateAnsibleInfoInStatusbar();
+  await metaData.updateAnsibleInfoInStatusbar();
   lightSpeedManager.updateLightSpeedStatusbar();
+  await pythonInterpreterManager.updatePythonInfoInStatusbar();
 }
 /**
  * Finds extensions that conflict with our extension.

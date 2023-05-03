@@ -25,12 +25,12 @@ export async function registerCommandWithTelemetry(
       try {
         await commandAction();
         if (!skipSuccess) {
-          telemetry.sendCommandSucceededTelemetry(commandName);
+          await telemetry.sendCommandSucceededTelemetry(commandName);
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : (e as string);
-        window.showErrorMessage(msg);
-        telemetry.sendCommandFailedTelemetry(commandName, msg);
+        await window.showErrorMessage(msg);
+        await telemetry.sendCommandFailedTelemetry(commandName, msg);
       }
     })
   );

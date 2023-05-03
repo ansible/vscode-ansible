@@ -187,6 +187,10 @@
         "title": "%commands.title.ansible-vault%"
       },
       {
+        "command": "ansible.python.set.interpreter",
+        "title": "Ansible: Set Python Interpreter"
+      },
+      {
         "command": "ansible.lightspeed.inlineSuggest.accept",
         "title": "Ansible Lightspeed: Inline suggestion accept"
       },

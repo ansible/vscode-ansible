@@ -4,6 +4,8 @@ export namespace AnsibleCommands {
   export const ANSIBLE_INVENTORY_RESYNC = "extension.resync-ansible-inventory";
   export const ANSIBLE_PLAYBOOK_RUN = "extension.ansible-playbook.run";
   export const ANSIBLE_NAVIGATOR_RUN = "extension.ansible-navigator.run";
+  export const ANSIBLE_PYTHON_SET_INTERPRETER =
+    "ansible.python.set.interpreter";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace

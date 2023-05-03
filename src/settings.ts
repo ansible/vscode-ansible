@@ -5,11 +5,6 @@ import { ExtensionSettings } from "./interfaces/extensionSettings";
 export class SettingsManager {
   public settings = {} as ExtensionSettings;
 
-  constructor() {
-    this.initialize();
-    console.log("Initialized extension settings");
-  }
-
   /**
    * Initialize the extension settings required at the client
    * side

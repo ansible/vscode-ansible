@@ -191,7 +191,7 @@ type ResolvedVersionInfo = {
   readonly release: PythonVersionRelease;
 };
 
-interface IExtensionApi {
+export interface IExtensionApi {
   ready: Promise<void>;
   debug: {
     getRemoteLauncherCommand(
@@ -211,22 +211,24 @@ interface IExtensionApi {
 }
 
 export interface IInterpreterDetails {
-  path?: string[];
+  path?: string;
   resource?: Uri;
+  environment?: string;
+  version?: string;
 }
 
-async function activateExtension() {
+export async function activatePythonExtension() {
   const extension = extensions.getExtension("ms-python.python");
-  // if (extension) {
-  //   if (!extension.isActive) {
-  //     await extension.activate();
-  //   }
-  // }
+  if (extension) {
+    if (!extension.isActive) {
+      await extension.activate();
+    }
+  }
   return extension;
 }
 
 async function getPythonExtensionAPI(): Promise<IExtensionApi | undefined> {
-  const extension = await activateExtension();
+  const extension = await activatePythonExtension();
   return extension?.exports as IExtensionApi;
 }
 
@@ -238,9 +240,19 @@ export async function getInterpreterDetails(
     api?.environments.getActiveEnvironmentPath(resource)
   );
   if (environment?.executable.uri && checkVersion(environment)) {
-    return { path: [environment?.executable.uri.fsPath], resource };
+    return {
+      path: environment?.executable.uri.fsPath,
+      resource,
+      environment: environment.environment?.name,
+      version: `${environment.version.major}.${environment.version.minor}.${environment.version.micro}`,
+    };
   }
-  return { path: undefined, resource };
+  return {
+    path: undefined,
+    resource,
+    environment: undefined,
+    version: undefined,
+  };
 }
 
 export function checkVersion(
