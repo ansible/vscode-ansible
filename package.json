@@ -641,7 +641,7 @@
     "rimraf": "^4.4.1",
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.2",
+    "typescript": "^5.0.4",
     "vscode-extension-tester": "^5.3.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.76.2",
