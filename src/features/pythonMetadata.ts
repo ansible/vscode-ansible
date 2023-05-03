@@ -5,11 +5,11 @@ import {
   MarkdownString,
   StatusBarItem,
   StatusBarAlignment,
+  ThemeColor,
 } from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
-import { IInterpreterDetails, getInterpreterDetails } from "../python";
 import { AnsibleCommands } from "../definitions/constants";
 import { execSync } from "child_process";
 
@@ -77,17 +77,13 @@ export class PythonInterpreterManager {
       const label = this.makeLabelFromPath(interpreterPath);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;
+        this.pythonInterpreterStatusBarItem.backgroundColor = "";
       }
     } else {
-      const pythonExtensionDetails = await getInterpreterDetails();
-      if (pythonExtensionDetails.path) {
-        const label = this.makeLabelFromInterpreterDetails(
-          pythonExtensionDetails
-        );
-        if (label) {
-          this.pythonInterpreterStatusBarItem.text = label;
-        }
-      }
+      this.pythonInterpreterStatusBarItem.text = "Select python environment";
+      this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+        "statusBarItem.warningBackground"
+      );
     }
 
     // add action to change the interpreter
@@ -95,13 +91,6 @@ export class PythonInterpreterManager {
       AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER;
 
     return;
-  }
-
-  public makeLabelFromInterpreterDetails(
-    pythonInterpreterDetails: IInterpreterDetails
-  ): string | undefined {
-    const envLabel = `Python ${pythonInterpreterDetails.version} (${pythonInterpreterDetails.environment})`;
-    return envLabel;
   }
 
   public makeLabelFromPath(interpreterPath: string): string | undefined {

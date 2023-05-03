@@ -2,9 +2,9 @@ import { commands, window, workspace } from "vscode";
 import { getInterpreterDetails } from "./python";
 
 export async function setPythonInterpreter() {
-  const pythonSettings = workspace.getConfiguration("ansible.python");
-  const pythonExistingInterpreterPath = await pythonSettings.get(
-    "interpreterPath"
+  const ansibleSettings = workspace.getConfiguration("ansible");
+  const pythonExistingInterpreterPath = await ansibleSettings.get(
+    "python.interpreterPath"
   );
 
   // initially identify the correct python interpreter if the interpreter path
@@ -15,12 +15,16 @@ export async function setPythonInterpreter() {
 
     if (pythonExtensionDetails.path) {
       const interpreter = pythonExtensionDetails.path;
-      await window.showInformationMessage(
+      window.showInformationMessage(
         `Python interpreter set: ${interpreter}. \n
         You  can change it by selecting a different interpreter anytime.`
       );
 
-      await pythonSettings.update("interpreterPath", interpreter, false);
+      await ansibleSettings.update(
+        "python.interpreterPath",
+        interpreter,
+        false
+      );
     }
   }
 }
@@ -37,16 +41,16 @@ export async function setPythonInterpreterWithCommand() {
   // python interpreter from settings
   const ansibleSettings = workspace.getConfiguration("ansible");
 
+  // update setting
+  await ansibleSettings.update(
+    "python.interpreterPath",
+    currentPythonExtensionDetails.path,
+    false
+  );
+
   if (
     previousPythonExtensionDetails.path !== currentPythonExtensionDetails.path
   ) {
-    // update setting
-    await ansibleSettings.update(
-      "python.interpreterPath",
-      currentPythonExtensionDetails.path,
-      false
-    );
-
     // reload window to load the selected python interpreter properly
     await commands.executeCommand("workbench.action.reloadWindow");
   }
