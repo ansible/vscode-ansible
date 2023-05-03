@@ -69,20 +69,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // **************************************************************************************
 
   // dynamically associate "ansible" language to the yaml file
-  languageAssociation(context);
+  await languageAssociation(context);
 
   // Create Telemetry Service
   const telemetry = new TelemetryManager(context);
   await telemetry.initTelemetryService();
 
-  registerCommandWithTelemetry(
+  await registerCommandWithTelemetry(
     context,
     telemetry,
     AnsibleCommands.ANSIBLE_VAULT,
     toggleEncrypt,
     true
   );
-  registerCommandWithTelemetry(
+  await registerCommandWithTelemetry(
     context,
     telemetry,
     AnsibleCommands.ANSIBLE_INVENTORY_RESYNC,
@@ -90,7 +90,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     true
   );
 
-  registerCommandWithTelemetry(
+  await registerCommandWithTelemetry(
     context,
     telemetry,
     LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
@@ -105,37 +105,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Initialize settings
   const extSettings = new SettingsManager();
-
-  // const pythonSettings = workspace.getConfiguration("ansible.python");
-  // console.log(
-  //   "[existing] python interpreter path: ",
-  //   extSettings.settings.interpreterPath
-  // );
-
-  // console.log(
-  //   "[from python] python interpreter path: ",
-  //   pythonExtensionDetails.path
-  // );
-
-  // if (
-  //   pythonExtensionDetails.path &&
-  //   pythonExtensionDetails.path[0] !== extSettings.settings.interpreterPath
-  // ) {
-  //   await pythonSettings.update(
-  //     "interpreterPath",
-  //     pythonExtensionDetails.path[0],
-  //     true
-  //   );
-  //   console.log("updated python path to: ", pythonExtensionDetails.path);
-  // } else {
-  //   console.log("python path not changed");
-  // }
+  await extSettings.initialize();
 
   new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
 
   // handle metadata status bar
   const metaData = new MetadataManager(context, client, telemetry, extSettings);
-  metaData.updateAnsibleInfoInStatusbar();
+  await metaData.updateAnsibleInfoInStatusbar();
+
 
   // handle Ansible Lightspeed
   lightSpeedManager = new LightSpeedManager(

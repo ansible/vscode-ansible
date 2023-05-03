@@ -14,7 +14,7 @@ export class SettingsManager {
    * Initialize the extension settings required at the client
    * side
    */
-  public initialize(): void {
+  public async initialize(): Promise<void> {
     const ansibleSettings = vscode.workspace.getConfiguration("ansible");
     const eeSettings = vscode.workspace.getConfiguration(
       "ansible.executionEnvironment"
@@ -22,10 +22,12 @@ export class SettingsManager {
     const lightSpeedSettings =
       vscode.workspace.getConfiguration("ansible.lightspeed");
     this.settings = {
-      activationScript: ansibleSettings.get(
+      activationScript: (await ansibleSettings.get(
         "python.activationScript"
-      ) as string,
-      interpreterPath: ansibleSettings.get("python.interpreterPath") as string,
+      )) as string,
+      interpreterPath: (await ansibleSettings.get(
+        "python.interpreterPath"
+      )) as string,
       executionEnvironment: {
         enabled: eeSettings.get("enabled", false),
         containerEngine: eeSettings.get("containerEngine", "auto"),
@@ -48,8 +50,8 @@ export class SettingsManager {
     return;
   }
 
-  public reinitialize(): void {
-    this.initialize();
+  public async reinitialize(): Promise<void> {
+    await this.initialize();
     console.log("Reinitialized extension settings");
     return;
   }
