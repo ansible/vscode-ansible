@@ -53,7 +53,7 @@ import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils
 import {
   setPythonInterpreter,
   setPythonInterpreterWithCommand,
-} from "./setPythonInterpreter";
+} from "./features/utils/setPythonInterpreter";
 import { PythonInterpreterManager } from "./features/pythonMetadata";
 
 export let client: LanguageClient;
