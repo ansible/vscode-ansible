@@ -114,9 +114,6 @@ export class PythonInterpreterManager {
       .trim();
 
     const envLabel = `${version} (${sysPrefix})`;
-    console.log("Label -> ", envLabel);
-
-    // return `${version} (${pythonEnv})`;
     return envLabel;
   }
 }

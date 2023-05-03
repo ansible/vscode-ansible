@@ -26,22 +26,28 @@ export async function setPythonInterpreter() {
 }
 
 export async function setPythonInterpreterWithCommand() {
+  const previousPythonExtensionDetails = await getInterpreterDetails();
+
   // open selection pane to select the interpreter
   await commands.executeCommand("python.setInterpreter");
 
   // python interpreter after selection
-  const pythonExtensionDetails = await getInterpreterDetails();
+  const currentPythonExtensionDetails = await getInterpreterDetails();
 
   // python interpreter from settings
   const ansibleSettings = workspace.getConfiguration("ansible");
 
-  // update setting
-  await ansibleSettings.update(
-    "python.interpreterPath",
-    pythonExtensionDetails.path,
-    false
-  );
+  if (
+    previousPythonExtensionDetails.path !== currentPythonExtensionDetails.path
+  ) {
+    // update setting
+    await ansibleSettings.update(
+      "python.interpreterPath",
+      currentPythonExtensionDetails.path,
+      false
+    );
 
-  // reload window to load the selected python interpreter properly
-  await commands.executeCommand("workbench.action.reloadWindow");
+    // reload window to load the selected python interpreter properly
+    await commands.executeCommand("workbench.action.reloadWindow");
+  }
 }
