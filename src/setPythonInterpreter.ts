@@ -1,10 +1,5 @@
 import { commands, window, workspace } from "vscode";
-import {
-  IExtensionApi,
-  activatePythonExtension,
-  getInterpreterDetails,
-} from "./python";
-import { AnsibleCommands } from "./definitions/constants";
+import { getInterpreterDetails } from "./python";
 
 export async function setPythonInterpreter() {
   const pythonSettings = workspace.getConfiguration("ansible.python");

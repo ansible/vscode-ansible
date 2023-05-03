@@ -95,16 +95,6 @@ type ResolvedEnvironment = Environment & {
   };
 };
 
-type EnvironmentsChangeEvent = {
-  readonly env: Environment;
-  /**
-   * * "add": New environment is added.
-   * * "remove": Existing environment in the list is removed.
-   * * "update": New information found about existing environment.
-   */
-  readonly type: "add" | "remove" | "update";
-};
-
 type ActiveEnvironmentPathChangeEvent = EnvironmentPath & {
   /**
    * Workspace folder the environment changed for.

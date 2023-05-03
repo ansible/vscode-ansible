@@ -3,15 +3,11 @@ import {
   ExtensionContext,
   window,
   MarkdownString,
-  ThemeColor,
   StatusBarItem,
   StatusBarAlignment,
 } from "vscode";
-import { NotificationType } from "vscode-languageclient";
 import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager } from "../utils/telemetryUtils";
-import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
-import { compareObjects } from "./utils/data";
 import { SettingsManager } from "../settings";
 import { IInterpreterDetails, getInterpreterDetails } from "../python";
 import { AnsibleCommands } from "../definitions/constants";
