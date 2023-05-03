@@ -1,3 +1,5 @@
+/* credits: https://github.com/microsoft/vscode-python-tools-extension-template/blob/main/src/common/python.ts */
+
 import { Uri, WorkspaceFolder, extensions, Event } from "vscode";
 
 type Environment = EnvironmentPath & {
