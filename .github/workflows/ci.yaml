@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FORCE_COLOR: "1"  # make mocha output colorful
+  FORCE_COLOR: "1" # make mocha output colorful
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -58,7 +58,7 @@ jobs:
 
           - name: test (macos)
             task-name: test
-            os:  macos-12
+            os: macos-12
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -108,10 +108,10 @@ jobs:
             ~/.config/containers
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
-      - name: Use NodeJS v16
+      - name: Use NodeJS v18
         uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
 
       - name: task setup
         run: task setup
@@ -123,6 +123,9 @@ jobs:
         run: task package --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
       - name: task ${{ matrix.task-name }}
+        env:
+          TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+          TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
         # xvfb needed for chrome headless tests
         uses: coactions/setup-xvfb@v1
         with:
