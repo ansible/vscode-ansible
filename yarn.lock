@@ -1332,7 +1332,7 @@ __metadata:
     typescript: ^5.0.4
     untildify: ^4.0.0
     uuid: ^9.0.0
-    vscode-extension-tester: ^5.3.0
+    vscode-extension-tester: ^5.5.3
     vscode-languageclient: ^8.1.0
     warnings-to-errors-webpack-plugin: ^2.3.0
     webpack: ^5.81.0
@@ -6460,7 +6460,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^5.3.0":
+"vscode-extension-tester@npm:^5.5.3":
   version: 5.5.3
   resolution: "vscode-extension-tester@npm:5.5.3"
   dependencies:
