@@ -187,6 +187,10 @@
         "title": "%commands.title.ansible-vault%"
       },
       {
+        "command": "ansible.python.set.interpreter",
+        "title": "Ansible: Set Python Interpreter"
+      },
+      {
         "command": "ansible.lightspeed.inlineSuggest.accept",
         "title": "Ansible Lightspeed: Inline suggestion accept"
       },
@@ -246,7 +250,7 @@
         "ansible.python.interpreterPath": {
           "scope": "machine-overridable",
           "type": "string",
-          "default": "python3",
+          "default": "",
           "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
           "order": 4
         },
@@ -638,7 +642,7 @@
     "ts-loader": "^9.4.2",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4",
-    "vscode-extension-tester": "^5.3.0",
+    "vscode-extension-tester": "^5.5.3",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.81.0",
     "webpack-cli": "^5.0.2",
@@ -680,8 +684,8 @@
     "preinstall": "",
     "pretest": "yarn run compile",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
-    "test-ui-current": "extest get-vscode -c 1.77.0 -s out/test-resources && extest get-chromedriver -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
-    "test-ui-oldest": "extest get-vscode -c 1.71.0 -s out/test-resources && extest get-chromedriver -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-current": "extest get-vscode -c 1.77.0 -s out/test-resources && extest get-chromedriver -c 1.77.0 -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
+    "test-ui-oldest": "extest get-vscode -c 1.71.0 -s out/test-resources && extest get-chromedriver -c 1.71.0 -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",

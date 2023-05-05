@@ -3,8 +3,8 @@ export type IPullPolicy = "always" | "missing" | "never" | "tag";
 export type IContainerEngine = "auto" | "podman" | "docker";
 
 export interface ExtensionSettings {
-  activationScript: string;
-  interpreterPath: string;
+  activationScript: string | undefined;
+  interpreterPath: string | undefined;
   executionEnvironment: ExecutionEnvironmentSettings;
   lightSpeedService: LightSpeedServiceSettings;
 }

@@ -9,6 +9,7 @@ autofix
 autoupdate
 backticks
 bashate
+bitness
 bthornto
 cfgs
 chromedriver
@@ -80,6 +81,7 @@ preinstall
 priyamsahoo
 projectuser
 prsahoo
+Pyenv
 pyparsing
 PYTHONBREAKPOINT
 PYTHONHOME
