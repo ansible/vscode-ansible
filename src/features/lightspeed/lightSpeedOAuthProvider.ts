@@ -204,10 +204,7 @@ export class LightSpeedAuthenticationProvider
         this.removeSession(sessionId);
       }
 
-      console.log(
-        "[ansible-lightspeed-oauth] Disposing auth provider",
-        this._disposable.toString()
-      );
+      console.log("[ansible-lightspeed-oauth] Disposing auth provider");
       await this._disposable.dispose();
       this._disposable = undefined;
     }
