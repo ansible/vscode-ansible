@@ -49,7 +49,7 @@ export class LightSpeedAuthenticationProvider
   public settingsManager: SettingsManager;
   private _sessionChangeEmitter =
     new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>();
-  private _disposable: Disposable;
+  private _disposable: Disposable | undefined;
   private _uriHandler = new UriEventHandler();
   private _authId: string;
   private _authName: string;
@@ -63,6 +63,16 @@ export class LightSpeedAuthenticationProvider
     this.settingsManager = settingsManager;
     this._authId = authId;
     this._authName = authName;
+  }
+
+  public initialize() {
+    if (this._disposable) {
+      console.log(
+        "[ansible-lightspeed-oauth] Auth provider already registered"
+      );
+      return;
+    }
+
     this._disposable = Disposable.from(
       authentication.registerAuthenticationProvider(
         this._authId,
@@ -186,7 +196,21 @@ export class LightSpeedAuthenticationProvider
    * Dispose the registered services
    */
   public async dispose() {
-    this._disposable.dispose();
+    if (this._disposable) {
+      const account = await this.isAuthenticated();
+
+      if (account) {
+        const sessionId = account.id;
+        this.removeSession(sessionId);
+      }
+
+      console.log(
+        "[ansible-lightspeed-oauth] Disposing auth provider",
+        this._disposable.toString()
+      );
+      await this._disposable.dispose();
+      this._disposable = undefined;
+    }
   }
 
   /* Log in to the Ansible Lightspeed auth service */
