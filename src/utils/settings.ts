@@ -1,13 +1,17 @@
 import { MetadataManager } from "../features/ansibleMetaData";
 import { LightSpeedManager } from "../features/lightspeed/base";
+import { PythonInterpreterManager } from "../features/pythonMetadata";
 import { SettingsManager } from "../settings";
 
-export function updateConfigurationChanges(
+export async function updateConfigurationChanges(
   metaData: MetadataManager,
+  pythonInterpreter: PythonInterpreterManager,
   extSettings: SettingsManager,
   lightSpeedManager: LightSpeedManager
-): void {
-  extSettings.reinitialize();
-  metaData.updateAnsibleInfoInStatusbar();
+): Promise<void> {
+  await metaData.updateAnsibleInfoInStatusbar();
   lightSpeedManager.reInitialize();
+  await pythonInterpreter.updatePythonInfoInStatusbar();
+
+  await extSettings.reinitialize();
 }
