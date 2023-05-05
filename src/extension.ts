@@ -254,13 +254,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
       )
   );
 
-  const session = await authentication.getSession(
-    ANSIBLE_LIGHTSPEED_AUTH_ID,
-    [],
-    {
+  let session: vscode.AuthenticationSession | undefined;
+
+  if (await workspace.getConfiguration("ansible").get("lightspeed.enabled")) {
+    session = await authentication.getSession(ANSIBLE_LIGHTSPEED_AUTH_ID, [], {
       createIfNone: false,
-    }
-  );
+    });
+  }
 
   if (session) {
     window.registerTreeDataProvider(
@@ -387,6 +387,15 @@ async function resyncAnsibleInventory(): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getAuthToken(): Promise<void> {
+  if (
+    !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
+  ) {
+    await window.showErrorMessage(
+      "Enable lightspeed services from settings to use the feature."
+    );
+    return;
+  }
+
   const session = await authentication.getSession(
     ANSIBLE_LIGHTSPEED_AUTH_ID,
     [],

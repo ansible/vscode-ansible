@@ -51,6 +51,7 @@ export class LightSpeedManager {
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME
       );
+    this.lightSpeedAuthenticationProvider.initialize();
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider
@@ -67,7 +68,19 @@ export class LightSpeedManager {
     this.updateLightSpeedStatusbar();
   }
 
-  public reInitialize(): void {
+  public async reInitialize(): Promise<void> {
+    const lightspeedEnabled = await vscode.workspace
+      .getConfiguration("ansible")
+      .get("lightspeed.enabled");
+
+    if (!lightspeedEnabled) {
+      await this.lightSpeedAuthenticationProvider.dispose();
+      this.lightSpeedStatusBar.hide();
+      return;
+    } else {
+      this.lightSpeedAuthenticationProvider.initialize();
+    }
+
     this.updateLightSpeedStatusbar();
   }
 
