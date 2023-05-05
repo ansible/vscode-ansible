@@ -6,6 +6,7 @@ import {
   enableLightspeedSettings,
   disableLightspeedSettings,
   canRunLightspeedTests,
+  testInlineSuggestionNotTriggered,
 } from "../../helper";
 
 function testSuggestionPrompts() {
@@ -20,6 +21,16 @@ function testSuggestionPrompts() {
     },
   ];
 
+  return tests;
+}
+
+function testInvalidPrompts() {
+  const tests = [
+    "-name: Print hello world",
+    "--name: Print hello world",
+    "- -name: Print hello world",
+    "-- name: Print hello world",
+  ];
   return tests;
 }
 
@@ -53,6 +64,24 @@ export function testLightspeed(): void {
       });
     });
 
+    describe("Test Ansible prompt not triggered", function () {
+      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
+
+      before(async function () {
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+        await activate(docUri1);
+      });
+
+      const tests = testInvalidPrompts();
+
+      tests.forEach((promptName) => {
+        it(`Should not give inline suggestion for task prompt '${promptName}'`, async function () {
+          await testInlineSuggestionNotTriggered(promptName);
+        });
+      });
+    });
     after(async function () {
       disableLightspeedSettings();
     });
