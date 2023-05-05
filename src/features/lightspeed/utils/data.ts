@@ -23,6 +23,9 @@ export function shouldRequestInlineSuggestions(
     typeof parsedAnsibleDocument === "object" &&
     !Array.isArray(parsedAnsibleDocument)
   ) {
+    vscode.window.showErrorMessage(
+      "Ansible Lightspeed expects valid Ansible syntax. For playbook files it should be a list of plays and for tasks files it should be list of tasks."
+    );
     return false;
   }
 
