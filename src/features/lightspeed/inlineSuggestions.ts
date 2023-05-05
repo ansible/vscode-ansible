@@ -15,7 +15,7 @@ import { LightSpeedCommands } from "../../definitions/constants";
 import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
-  /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
+  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>.*)(?<end>$)/;
 
 let suggestionId = "";
 let currentSuggestion = "";
@@ -113,7 +113,7 @@ export class LightSpeedInlineSuggestionProvider
   }
 }
 
-async function getInlineSuggestionItems(
+export async function getInlineSuggestionItems(
   document: vscode.TextDocument,
   currentPosition: vscode.Position
 ): Promise<vscode.InlineCompletionItem[]> {
