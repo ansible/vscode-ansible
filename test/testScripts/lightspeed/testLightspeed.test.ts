@@ -7,6 +7,7 @@ import {
   disableLightspeedSettings,
   canRunLightspeedTests,
   testInlineSuggestionNotTriggered,
+  testInlineSuggestionCursorPositions,
 } from "../../helper";
 
 function testSuggestionPrompts() {
@@ -30,6 +31,20 @@ function testInvalidPrompts() {
     "--name: Print hello world",
     "- -name: Print hello world",
     "-- name: Print hello world",
+  ];
+  return tests;
+}
+
+function testInvalidCursorPosition() {
+  const tests = [
+    {
+      taskName: "- name: Print hello world 1",
+      newLineSpaces: 2,
+    },
+    {
+      taskName: "- name: Print hello world 2",
+      newLineSpaces: 6,
+    },
   ];
   return tests;
 }
@@ -81,9 +96,19 @@ export function testLightspeed(): void {
           await testInlineSuggestionNotTriggered(promptName);
         });
       });
-    });
-    after(async function () {
-      disableLightspeedSettings();
+
+      const invalidCursorPosTest = testInvalidCursorPosition();
+      invalidCursorPosTest.forEach(({ taskName, newLineSpaces }) => {
+        it(`Should not give inline suggestion for task prompt '${taskName}' with new line spaces ${newLineSpaces}`, async function () {
+          await testInlineSuggestionCursorPositions(
+            taskName,
+            newLineSpaces as number
+          );
+        });
+      });
+      after(async function () {
+        disableLightspeedSettings();
+      });
     });
   });
 }
