@@ -99,10 +99,18 @@ export class LightSpeedInlineSuggestionProvider
     }
     const lineToExtractPrompt = document.lineAt(position.line - 1);
     const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
-
     const currentLineText = document.lineAt(position);
+    const spacesBeforeTaskNameStart =
+      lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
+    const spacesBeforeCursor =
+      currentLineText?.text.slice(0, position.character).match(/^ +/)?.[0]
+        .length || 0;
 
-    if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+    if (
+      !taskMatchedPattern ||
+      !currentLineText.isEmptyOrWhitespace ||
+      spacesBeforeTaskNameStart !== spacesBeforeCursor
+    ) {
       resetInlineSuggestionDisplayed();
       return [];
     }
