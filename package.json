@@ -700,7 +700,7 @@
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
-  "version": "2.0.0",
+  "version": "2.1.0",
   "packageManager": "yarn@3.5.1",
   "vsce": {
     "dependencies": false,
