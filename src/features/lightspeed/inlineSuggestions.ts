@@ -112,6 +112,24 @@ export class LightSpeedInlineSuggestionProvider
       spacesBeforeTaskNameStart !== spacesBeforeCursor
     ) {
       resetInlineSuggestionDisplayed();
+      // If the user has triggered the inline suggestion by pressing the configured keys,
+      // we will show an information message to the user to help them understand the
+      // correct cursor position to trigger the inline suggestion.
+      if (context.triggerKind === vscode.InlineCompletionTriggerKind.Invoke) {
+        if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+          vscode.window.showInformationMessage(
+            "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
+          );
+        } else if (
+          taskMatchedPattern &&
+          currentLineText.isEmptyOrWhitespace &&
+          spacesBeforeTaskNameStart !== spacesBeforeCursor
+        ) {
+          vscode.window.showInformationMessage(
+            `Cursor must be in column ${spacesBeforeTaskNameStart} to trigger an inline suggestion.`
+          );
+        }
+      }
       return [];
     }
     inlineSuggestionData = {};
