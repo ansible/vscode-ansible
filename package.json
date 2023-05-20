@@ -5,7 +5,8 @@
     "onCommand:extension.ansible.vault",
     "onLanguage:ansible",
     "onLanguage:yaml",
-    "onCommand:extension.resync-ansible-inventory"
+    "onCommand:extension.resync-ansible-inventory",
+    "workspaceContains:tox-ansible.ini"
   ],
   "badges": [
     {
@@ -598,6 +599,17 @@
         "injectTo": [
           "source.ansible"
         ]
+      }
+    ],
+    "taskDefinitions": [
+      {
+        "type": "Ansible Tox",
+        "properties": {
+          "ansible": {
+            "type": "string",
+            "description": "The testenv to execute"
+          }
+        }
       }
     ]
   },
