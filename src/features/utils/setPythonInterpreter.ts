@@ -2,6 +2,14 @@ import { commands, window, workspace } from "vscode";
 import { getInterpreterDetails } from "./python";
 
 export async function setPythonInterpreter() {
+  // set interpreter only when a doc with ansible language id is found
+  const activeDocument = window.activeTextEditor?.document;
+  if (activeDocument?.languageId !== "ansible") {
+    return;
+  }
+
+  console.log("Language ID: ", activeDocument.languageId);
+
   const ansibleSettings = workspace.getConfiguration("ansible");
   const pythonExistingInterpreterPath = await ansibleSettings.get(
     "python.interpreterPath"
@@ -15,15 +23,16 @@ export async function setPythonInterpreter() {
 
     if (pythonExtensionDetails.path) {
       const interpreter = pythonExtensionDetails.path;
-      window.showInformationMessage(
-        `Python interpreter set: ${interpreter}. \n
-        You  can change it by selecting a different interpreter anytime.`
-      );
 
       await ansibleSettings.update(
         "python.interpreterPath",
         interpreter,
         false
+      );
+
+      window.showInformationMessage(
+        `Python interpreter set: ${interpreter} at User level \n
+        You  can change it by selecting a different interpreter anytime.`
       );
     }
   }
