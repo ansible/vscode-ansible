@@ -38,7 +38,7 @@ export function testExtensionForFilesOutsideWorkspace() {
       });
 
       it("should hover over builtin module name", async () => {
-        await testHover(docUri, new Position(4, 10), [
+        await testHover(docUri, new Position(3, 10), [
           {
             contents: ["Print statements during execution"],
           },
@@ -54,7 +54,7 @@ export function testExtensionForFilesOutsideWorkspace() {
         await testDiagnostics(docUri, [
           {
             severity: 0,
-            message: "All names should start with an uppercase letter.",
+            message: "All tasks should be named.",
             range: new Range(
               new Position(3, 0),
               new Position(3, integer.MAX_VALUE)

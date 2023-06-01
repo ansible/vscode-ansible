@@ -1,6 +1,5 @@
 - name: A playbook outside workspace
   hosts: localhost
   tasks:
-    - name: print hello world
-      ansible.builtin.debug:
+    - ansible.builtin.debug:
         msg: Hello world!
