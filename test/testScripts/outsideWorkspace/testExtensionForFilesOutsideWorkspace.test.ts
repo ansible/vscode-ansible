@@ -64,5 +64,9 @@ export function testExtensionForFilesOutsideWorkspace() {
         ]);
       });
     });
+
+    after(async function () {
+      await commands.executeCommand("workbench.action.closeAllEditors");
+    });
   });
 }

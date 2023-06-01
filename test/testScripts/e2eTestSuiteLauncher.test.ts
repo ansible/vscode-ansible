@@ -12,6 +12,12 @@ import { testLightspeed } from "./lightspeed/testLightspeed.test";
 import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
 
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
+  // First we test the functionalities for files outside workspace.
+  // This is because we do not try to change any default settings in these cases.
+  describe("TEST EXTENSION FOR FILES OUTSIDE WORKSPACE", function () {
+    testExtensionForFilesOutsideWorkspace();
+  });
+
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
     before(async () => {
       setFixtureAnsibleCollectionPathEnv(
@@ -47,8 +53,4 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
       testHoverEE();
     });
   }
-
-  describe("TEST EXTENSION FOR FILES OUTSIDE WORKSPACE", function () {
-    testExtensionForFilesOutsideWorkspace();
-  });
 });
