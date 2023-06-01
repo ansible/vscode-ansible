@@ -57,6 +57,13 @@ export const getDocPath = (p: string): string => {
   );
 };
 
+export const getDocUriOutsideWorkspace = (fileName: string): string => {
+  return path.resolve(
+    __dirname,
+    path.join("..", "..", "..", "test", "testFixtureOutsideWorkspace", fileName)
+  );
+};
+
 export const getDocUri = (p: string): vscode.Uri => {
   return vscode.Uri.file(getDocPath(p));
 };
