@@ -8,8 +8,6 @@ export async function setPythonInterpreter() {
     return;
   }
 
-  console.log("Language ID: ", activeDocument.languageId);
-
   const ansibleSettings = workspace.getConfiguration("ansible");
   const pythonExistingInterpreterPath = await ansibleSettings.get(
     "python.interpreterPath"
