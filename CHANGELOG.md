@@ -10,6 +10,12 @@
 
 - Update attributionsWebview.ts (#901) @robinbobbitt
 
+## v2.2
+
+### Bugfixes
+
+- Update attributionsWebview.ts (#901) @robinbobbitt
+
 ## v2.1
 
 ### Minor Changes
