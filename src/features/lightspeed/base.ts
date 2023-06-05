@@ -77,8 +77,6 @@ export class LightSpeedManager {
 
     if (!lightspeedEnabled) {
       await this.lightSpeedAuthenticationProvider.dispose();
-      // reload the window to remove the login notification
-      await vscode.commands.executeCommand("workbench.action.reloadWindow");
       this.lightSpeedStatusBar.hide();
       return;
     } else {
