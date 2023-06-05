@@ -9,6 +9,7 @@ import {
   disableExecutionEnvironmentSettings,
 } from "../helper";
 import { testLightspeed } from "./lightspeed/testLightspeed.test";
+import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
 
 describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
@@ -46,4 +47,8 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
       testHoverEE();
     });
   }
+
+  describe("TEST EXTENSION FOR FILES OUTSIDE WORKSPACE", function () {
+    testExtensionForFilesOutsideWorkspace();
+  });
 });

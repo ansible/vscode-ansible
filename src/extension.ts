@@ -64,11 +64,14 @@ export let lightSpeedManager: LightSpeedManager;
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  // set correct python interpreter
-  await setPythonInterpreter();
-
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
+
+  // set correct python interpreter
+  const workspaceFolders = workspace.workspaceFolders;
+  if (workspaceFolders) {
+    await setPythonInterpreter();
+  }
 
   // Create Telemetry Service
   const telemetry = new TelemetryManager(context);
