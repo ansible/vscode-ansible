@@ -55,6 +55,9 @@ import {
   setPythonInterpreterWithCommand,
 } from "./features/utils/setPythonInterpreter";
 import { PythonInterpreterManager } from "./features/pythonMetadata";
+import { AnsibleToxController } from "./features/ansibleTox/controller";
+import { AnsibleToxProvider } from "./features/ansibleTox/provider";
+import { findProjectDir } from "./features/ansibleTox/utils";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -266,6 +269,22 @@ export async function activate(context: ExtensionContext): Promise<void> {
     window.registerTreeDataProvider(
       "lightspeed-explorer-treeview",
       new TreeDataProvider(session)
+    );
+  }
+
+  // handle Ansible Tox
+  const ansibleToxController = new AnsibleToxController();
+  context.subscriptions.push(await ansibleToxController.create());
+
+  const workspaceTox = findProjectDir();
+
+  if (workspaceTox) {
+    const testProvider = new AnsibleToxProvider(workspaceTox);
+    context.subscriptions.push(
+      vscode.tasks.registerTaskProvider(
+        AnsibleToxProvider.toxType,
+        testProvider
+      )
     );
   }
 }

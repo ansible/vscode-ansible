@@ -132,7 +132,7 @@ export class MetadataManager {
           }
         } else {
           console.log("Ansible not found in the workspace");
-          this.metadataStatusBarItem.text = "$(error) Ansible Info";
+          this.metadataStatusBarItem.text = "$(error) Ansible";
           this.metadataStatusBarItem.tooltip = ansibleMetaData.markdown;
           this.metadataStatusBarItem.backgroundColor = new ThemeColor(
             "statusBarItem.errorBackground"
