@@ -115,18 +115,12 @@ export async function enableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", true);
   await updateSettings("lightspeed.suggestions.enabled", true);
   await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
-
-  // disable lint validation
-  await updateSettings("validation.lint.enabled", false);
 }
 
 export async function disableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", false);
   await updateSettings("lightspeed.suggestions.enabled", false);
   await updateSettings("lightspeed.URL", "");
-
-  // enable lint validation (default)
-  await updateSettings("validation.lint.enabled", true);
 }
 
 export async function canRunLightspeedTests(): Promise<boolean> {
