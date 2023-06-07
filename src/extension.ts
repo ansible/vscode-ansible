@@ -143,7 +143,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK,
-      lightSpeedManager.lightSpeedStatusBarClickHandler
+      () =>
+        lightSpeedManager.statusBarProvider.lightSpeedStatusBarClickHandler()
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_FEEDBACK,
+      () => lightSpeedManager.statusBarProvider.lightSpeedFeedbackHandler()
     )
   );
 
@@ -376,7 +384,7 @@ async function updateAnsibleStatusBar(
   pythonInterpreterManager: PythonInterpreterManager
 ) {
   await metaData.updateAnsibleInfoInStatusbar();
-  lightSpeedManager.updateLightSpeedStatusbar();
+  lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
   await pythonInterpreterManager.updatePythonInfoInStatusbar();
 }
 /**

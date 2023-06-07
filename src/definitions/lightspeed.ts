@@ -43,9 +43,24 @@ export interface AnsibleContentEvent {
   trigger: AnsibleContentUploadTrigger;
   activityId: string | undefined;
 }
+
+export interface SentimentEvent {
+  value: number;
+  feedback: string;
+}
+
+export interface SuggestionQualityEvent {
+  prompt: string;
+  providedSuggestion: string;
+  expectedSuggestion: string;
+  additionalComment: string | undefined;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   ansibleContent?: AnsibleContentEvent;
+  sentimentFeedback?: SentimentEvent;
+  suggestionQualityFeedback?: SuggestionQualityEvent;
 }
 
 export interface IDocumentTracker {

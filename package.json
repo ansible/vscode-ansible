@@ -210,6 +210,10 @@
       {
         "command": "ansible.lightspeed.clearTrainingMatches",
         "title": "Ansible Lightspeed: Clear Training Matches"
+      },
+      {
+        "command": "ansible.lightspeed.feedback",
+        "title": "Ansible Lightspeed: Feedback"
       }
     ],
     "configuration": {
