@@ -1,0 +1,6 @@
+{
+    "ansible.lightspeed.URL": "http://wisdom.res.ibm.com",
+    "ansible.lightspeed.enabled": true,
+    "ansible.lightspeed.suggestions.enabled": true,
+    "ansible.python.interpreterPath": "/opt/homebrew/bin/python3"
+}

@@ -7,6 +7,7 @@ import {
   extensions,
   window,
   workspace,
+  TextEditorSelectionChangeEvent
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 import { AnsibleCommands, LightSpeedCommands } from "./definitions/constants";
@@ -38,6 +39,7 @@ import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
+import { DocsViewProvider } from "./docsView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
   LightSpeedInlineSuggestionProvider,
@@ -58,6 +60,8 @@ import { PythonInterpreterManager } from "./features/pythonMetadata";
 import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
+
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -155,6 +159,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
+        let moduleName = getModuleName(lightSpeedManager.attributionsProvider.suggestionDetails?.[0]);
+        getDocumentationInfo(moduleName, docsViewProvider);
         lightSpeedManager.attributionsProvider.showAttributions();
       }
     )
@@ -170,6 +176,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   const lightSpeedSuggestionProvider = new LightSpeedInlineSuggestionProvider();
+
+  const docsViewProvider = new DocsViewProvider(context.extensionUri)
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(DocsViewProvider.viewType, docsViewProvider)
+  );
+
   context.subscriptions.push(
     vscode.languages.registerInlineCompletionItemProvider(
       { scheme: "file", language: "ansible" },
@@ -430,4 +443,24 @@ async function getAuthToken(): Promise<void> {
   if (session) {
     window.showInformationMessage(`Welcome back ${session.account.label}`);
   }
+}
+
+function getModuleName(suggestions: Record<string, any>): string {
+  console.log(suggestions)
+  if (suggestions) {
+    const suggestion = suggestions.suggestion;
+    return suggestion.substring(0, suggestion.indexOf(":")).trim()
+  }
+  else return "";
+}
+
+function getDocumentationInfo(moduleName: string, document: any) {
+  axios.get("http://localhost:5000/" + moduleName)
+    .then((response: AxiosResponse) => {
+      //console.log('Response:', response.data);
+      document.setHTMLDoc(("<div class=\"title\">" + moduleName + "</div><br/>" + response.data.documentation + "<br/><div class=\"title2\">Example:</div>" + response.data.examples).replace(/\n/g, '<br/>'))
+    })
+    .catch((error) => {
+      console.error('Error:', error.message);
+    });
 }

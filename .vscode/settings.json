@@ -7,7 +7,7 @@
   },
   "editor.formatOnSave": true,
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[shellscript]": {
     "editor.tabSize": 4
@@ -34,5 +34,9 @@
   },
   "redhat.telemetry.enabled": false,
   "eslint.useESLintClass": true,
-  "eslint.packageManager": "yarn"
+  "eslint.packageManager": "yarn",
+  "ansible.lightspeed.URL": "http://wisdom.res.ibm.com",
+  "ansible.lightspeed.enabled": true,
+  "ansible.lightspeed.suggestions.enabled": true,
+  "ansible.python.interpreterPath": "/opt/homebrew/bin/python3"
 }
