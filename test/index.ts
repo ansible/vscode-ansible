@@ -13,9 +13,14 @@ if (isWindows()) {
   process.exit(PRETEST_ERR_RC);
 }
 
+// We don't require colors in the stdout of the command results.
+process.env["NO_COLOR"] = "1";
+
 const command = "ansible-lint --version";
+const env = process.env;
+
 try {
-  const result = execSync(command);
+  const result = execSync(command, { env: env });
   console.info(`Detected: ${result}`);
 } catch (e) {
   console.error(`error: test requisites not met, '${command}' returned ${e}`);

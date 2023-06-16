@@ -50,6 +50,7 @@ export function withInterpreter(
   let command = `${executable} ${args}`; // base case
 
   const newEnv = Object.assign({}, process.env, {
+    NO_COLOR: "1", // ensure none of the output produce color characters
     ANSIBLE_FORCE_COLOR: "0", // ensure output is parseable (no ANSI)
     PYTHONBREAKPOINT: "0", // We want to be sure that python debugger is never
     // triggered, even if we mistakenly left a breakpoint() there while
