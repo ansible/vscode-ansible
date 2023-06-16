@@ -5,82 +5,82 @@
 The following are the default values of the settings provided by the Ansible Language Server:
 
 - **ansible.ansible.path**:
-Path to the ansible executable
+Path to the ansible executable \
 _default value:
 `ansible`_
 
 - **ansible.ansible.useFullyQualifiedCollectionNames**:
-Toggle usage of fully qualified collection names (FQCN) when inserting module names
+Toggle usage of fully qualified collection names (FQCN) when inserting module names \
 _default value:
 `true`_
 
 - **ansible.python.interpreterPath**:
-Path to the python/python3 executable. This settings may be used to make the extension work with ansible and ansible-lint installations in a python virtual environment
+Path to the python/python3 executable. This settings may be used to make the extension work with ansible and ansible-lint installations in a python virtual environment \
 _default value:
 `""`_
 
 - **ansible.python.activationScript**:
-Path to a custom activation script, which is to be used instead of the settings above to run in a python virtual environment
+Path to a custom activation script, which is to be used instead of te settings above to run in a python virtual environment \
 _default value:
 `""`_
 
 - **ansible.executionEnvironment.containerEngine**:
-Container engine to be used while running with execution environment. valid values are `auto`, `podman`, and `docker`;. For `auto`, it will look for `podman`; and then for `docker`;
+Container engine to be used while running with execution environment. valid values are &#x27;auto&#x27;, &#x27;podman&#x27; and &#x27;docker&#x27;. For &#x27;auto&#x27;, it will look for &#x27;podman&#x27; and then for &#x27;docker&#x27; \
 _default value:
 `auto`_
 
 - **ansible.executionEnvironment.enabled**:
-Toggle usage of an execution environment
+Toggle usage of an execution environment \
 _default value:
 `false`_
 
 - **ansible.executionEnvironment.image**:
-Name of the execution environment to be used
+Name of the execution environment to be used \
 _default value:
 `ghcr.io/ansible/creator-ee:latest`_
 
 - **ansible.executionEnvironment.pull.policy**:
-Image pull policy to be used. Valid values are `always`, `missing`, `never` and `tag`. always will always pull the image when extension is activated or reloaded. `missing` will pull if not locally available. `never` will never pull the image and `tag` will always pull if the image tag is `latest`, otherwise pull if not locally available.
+Image pull policy to be used. Valid values are &#x27;always&#x27;, &#x27;missing&#x27;, &#x27;never&#x27; and &#x27;tag&#x27;. always will always pull the image when extension is activated or reloaded. &#x27;missing&#x27; will pull if not locally available. &#x27;never&#x27; will never pull the image and &#x27;tag&#x27; will always pull if the image tag is &#x27;latest&#x27;, otherwise pull if not locally available. \
 _default value:
 `missing`_
 
 - **ansible.executionEnvironment.pull.arguments**:
-Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `-–tls-verify=false`
+Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. &#x27;-–tls-verify&#x3D;false&#x27; \
 _default value:
 `""`_
 
 - **ansible.executionEnvironment.containerOptions**:
-Extra parameters passed to the container engine command example: `--net=host`
+Extra parameters passed to the container engine command example: &#x27;--net&#x3D;host&#x27; \
 _default value:
 `""`_
 
 - **ansible.completion.provideRedirectModules**:
-Toggle redirected module provider when completing modules
+Toggle redirected module provider when completing modules \
 _default value:
 `true`_
 
 - **ansible.completion.provideModuleOptionAliases**:
-Toggle alias provider when completing module options
+Toggle alias provider when completing module options \
 _default value:
 `true`_
 
 - **ansible.validation.enabled**:
-Toggle validation provider. If enabled and ansible-lint is disabled, validation falls back to ansible-playbook --syntax-check
+Toggle validation provider. If enabled and ansible-lint is disabled, validation falls back to ansible-playbook --syntax-check \
 _default value:
 `true`_
 
 - **ansible.validation.lint.enabled**:
-Toggle usage of ansible-lint
+Toggle usage of ansible-lint \
 _default value:
 `true`_
 
 - **ansible.validation.lint.path**:
-Path to the ansible-lint executable
+Path to the ansible-lint executable \
 _default value:
 `ansible-lint`_
 
 - **ansible.validation.lint.arguments**:
-Optional command line arguments to be appended to ansible-lint invocation
+Optional command line arguments to be appended to ansible-lint invocation \
 _default value:
 `""`_
 

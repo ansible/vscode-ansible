@@ -176,12 +176,14 @@ fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
+log notice "Upgrading pip ..."
 python3 -m pip install -q -U pip
 
 EE_VERSION=$(./tools/get-image-version)
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    python3 -m pip install \
-        -c "https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt" -r .config/requirements.in
+    URL="https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt"
+    log notice "Installing dependencies from .config/requirements.in and ${URL} loaded from .config/Containerfile ..."
+    python3 -m pip install -r "${URL}" -r .config/requirements.in
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
