@@ -1,7 +1,7 @@
-.component-row {
+/* .component-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-}
+} */
 
 #data-grid-row,
 #panels-row {
@@ -9,15 +9,15 @@
   grid-template-columns: 1fr;
 }
 
+#feedback-form {
+  margin: 1rem;
+}
+
 .component-container {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  margin: 1rem;
-  padding: 1rem;
-  border: 2px dashed #7b61ff;
-  border-radius: 5px;
 }
 
 .component-container > * {
@@ -25,12 +25,8 @@
 }
 
 .component-example {
-  margin-bottom: 100px;
+  margin-bottom: 10px;
   width: auto;
-}
-
-.component-example > p {
-  margin-bottom: 100px;
 }
 
 vscode-data-grid,
@@ -40,26 +36,19 @@ vscode-panels {
 }
 
 .sentiment-button {
-  display: inline-block;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  background-color: #007acc;
   color: #fff;
   text-align: center;
-  line-height: 100px;
   cursor: pointer;
 }
 
-#issue-type-dropdown {
+/* #issue-type-dropdown {
   min-width: 30px;
   width: 100%;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
-}
+} */
 
 #source-dropdown {
   min-width: 30px;
-  width: 100%;
   margin-top: 0.5rem;
 }
