@@ -54,7 +54,6 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
       "webview.js",
     ]);
     const styleUri = getUri(webview, extensionUri, ["media", "style.css"]);
-    const codiconUri = getUri(webview, extensionUri, ["media", "codicon.css"]);
     const nonce = getNonce();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
@@ -65,17 +64,8 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="${styleUri}">
-        <link rel="stylesheet" href="${codiconUri}">
         <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}';">
         <title>Ansible Lightspeed Feedback!</title>
-        <style>
-          #issue-type-dropdown {
-            min-width: 30px;
-            width: 100%;
-            margin-top: 0.5rem;
-            margin-bottom: 1rem;
-          }
-        </style>
       </head>
       <body>
         <form id="feedback-form">
