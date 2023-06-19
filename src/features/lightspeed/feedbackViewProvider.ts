@@ -56,7 +56,6 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
     const styleUri = getUri(webview, extensionUri, ["media", "style.css"]);
     const nonce = getNonce();
 
-    // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return /*html*/ `
     <!DOCTYPE html>
     <html lang="en">
@@ -81,10 +80,10 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
           </section>
           <section class="component-example">
               <p>Tell us why?</p>
-              <vscode-text-area maxlength="512" cols="29" resize="both"></vscode-text-area>
+              <vscode-text-area maxlength="512" cols="29" resize="both" id="sentiment-comment"></vscode-text-area>
           </section>
           <section class="component-example">
-              <vscode-button>Send</vscode-button>
+              <vscode-button id="sentiment-submit">Send</vscode-button>
           </section>
       <vscode-divider></vscode-divider>
       <section class="component-container">
@@ -107,17 +106,8 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
   private _setWebviewMessageListener(webviewView: WebviewView) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webviewView.webview.onDidReceiveMessage((message: any) => {
-      const command = message.command;
-      const text = message.text;
-
-      switch (command) {
-        case "hello":
-          // Code that should run in response to the hello message command
-          window.showInformationMessage(text);
-          return;
-        // Add more switch case statements here as more webview message commands
-        // are created within the webview context (i.e. inside src/webview/main.ts)
-      }
+      window.showInformationMessage(message);
+      console.log("-----message------", message);
     });
   }
 }
