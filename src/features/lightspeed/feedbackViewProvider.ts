@@ -78,17 +78,17 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
               <vscode-button appearance="icon" id="very-positive">😀</vscode-button>
             </section>
           </section>
-          <section class="component-example">
+          <section class="component-section">
               <p>Tell us why?</p>
               <vscode-text-area maxlength="512" cols="29" resize="both" id="sentiment-comment"></vscode-text-area>
           </section>
-          <section class="component-example">
+          <section class="component-section">
               <vscode-button id="sentiment-submit">Send</vscode-button>
           </section>
       <vscode-divider></vscode-divider>
       <section class="component-container">
           <h3>Tell us more</h3>
-            <section class="component-example">
+            <section class="component-section">
               <vscode-dropdown id="issue-type-dropdown" class="issue-dropdown">
                 <vscode-option selected value="select-issue-type">Select Issue type</vscode-option>
                 <vscode-option value="bug-report">Bug report</vscode-option>
@@ -106,6 +106,11 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
   private _setWebviewMessageListener(webviewView: WebviewView) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     webviewView.webview.onDidReceiveMessage((message: any) => {
+      const error = message.error;
+      if (error) {
+        window.showErrorMessage(error);
+        return;
+      }
       window.showInformationMessage(message);
       console.log("-----message------", message);
     });

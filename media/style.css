@@ -28,7 +28,7 @@
   margin: 0.25rem 0;
 }
 
-.component-example {
+.component-section {
   margin-bottom: 10px;
   width: auto;
 }
@@ -57,7 +57,7 @@ vscode-panels {
   margin-top: 0.5rem;
 }
 
-.component-example > p {
+.component-section > p {
   margin: 5px 0;
 }
 
