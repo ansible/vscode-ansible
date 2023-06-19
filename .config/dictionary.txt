@@ -15,6 +15,7 @@ cfgs
 chromedriver
 cmds
 codespell
+codicon
 commitlint
 Containerfile
 copyfiles
@@ -60,6 +61,7 @@ loglevel
 lxml
 Maciążek
 markdownlint
+maxlength
 mochawesome
 modeline
 modelines
@@ -122,6 +124,7 @@ venvs
 vscoss
 vsix
 vyos
+Webviews
 webknjaz
 webpacked
 whitespaces

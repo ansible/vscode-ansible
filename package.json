@@ -65,7 +65,12 @@
       "ansible-lightspeed-explorer": [
         {
           "id": "lightspeed-explorer-treeview",
-          "name": "Ansible Lightspeed"
+          "name": "Ansible Lightspeed Login"
+        },
+        {
+          "id": "lightspeed-feedback-webview",
+          "name": "Ansible Lightspeed Feedback",
+          "type": "webview"
         }
       ],
       "lightspeed-training-match-panel": [
@@ -210,6 +215,10 @@
       {
         "command": "ansible.lightspeed.clearTrainingMatches",
         "title": "Ansible Lightspeed: Clear Training Matches"
+      },
+      {
+        "command": "ansible.lightspeed.feedback",
+        "title": "Ansible Lightspeed: Feedback"
       }
     ],
     "configuration": {
@@ -617,6 +626,7 @@
     "@ansible/ansible-language-server": "^1.0.4",
     "@redhat-developer/vscode-redhat-telemetry": "^0.5.4",
     "@types/ini": "^1.3.31",
+    "@vscode/webview-ui-toolkit": "^1.2.2",
     "axios": "^1.3.4",
     "ini": "^4.0.0",
     "untildify": "^4.0.0",
@@ -633,6 +643,7 @@
     "@types/sinon": "^10.0.14",
     "@types/uuid": "^9.0.1",
     "@types/vscode": "^1.71.0",
+    "@types/vscode-webview": "^1.57.1",
     "@typescript-eslint/eslint-plugin": "^5.56.0",
     "@typescript-eslint/parser": "^5.56.0",
     "@vscode/test-electron": "^2.3.0",
@@ -660,7 +671,7 @@
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.81.0",
     "webpack-cli": "^5.0.2",
-    "yarn-audit-fix": "^9.3.10"
+    "yarn-audit-fix": "^9.3.12"
   },
   "displayName": "Ansible",
   "engineStrict": true,
@@ -704,7 +715,7 @@
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
     "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.ts",
+    "webpack-dev": "yarn run clean && yarn run compile && webpack --mode development --config ./webpack.config.ts",
     "webpack-watch": "webpack --mode development --config ./webpack.config.ts --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
     "test-compile": "yarn run clean && yarn run compile && tsc -p ./",

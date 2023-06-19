@@ -1,4 +1,8 @@
 /* eslint-disable @typescript-eslint/no-namespace */
+
+export const ANSIBLE_EXTENSION_REPOSITORY_URL =
+  "https://github.com/ansible/vscode-ansible";
+
 export namespace AnsibleCommands {
   export const ANSIBLE_VAULT = "extension.ansible.vault";
   export const ANSIBLE_INVENTORY_RESYNC = "extension.resync-ansible-inventory";
@@ -23,6 +27,7 @@ export namespace LightSpeedCommands {
     "ansible.lightspeed.fetchTrainingMatches";
   export const LIGHTSPEED_CLEAR_TRAINING_MATCHES =
     "ansible.lightspeed.clearTrainingMatches";
+  export const LIGHTSPEED_FEEDBACK = "ansible.lightspeed.feedback";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";
@@ -37,9 +42,6 @@ export const LIGHTSPEED_FEEDBACK_FORM_URL =
 export const LIGHTSPEED_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
 export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
   "ansible.lightspeed.statusBar.clickHandler";
-
-export const LIGHTSPEED_FEEDBACK_URL =
-  "https://redhatdg.co1.qualtrics.com/jfe/form/SV_e99JvA2DHp5UlWC";
 
 export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
 export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
