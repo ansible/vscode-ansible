@@ -72,15 +72,15 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
             <h3>How was your experience?</h3>
             <section class="sentiment-button">
               <div class="sentiment-selector">
-                  <input id="very-negative" type="radio" name="sentiment" aria-checked value="very-negative" />
+                  <input id="very-negative" type="radio" name="sentiment" value="very-negative" />
                   <label class="sentiment very-negative" for="very-negative"></label>
-                  <input id="negative" type="radio" name="sentiment" aria-checked value="negative" />
+                  <input id="negative" type="radio" name="sentiment" value="negative" />
                   <label class="sentiment negative"for="negative"></label>
-                  <input id="neutral" type="radio" name="sentiment" aria-checked value="neutral" />
+                  <input id="neutral" type="radio" name="sentiment" value="neutral" />
                   <label class="sentiment neutral"for="neutral"></label>
-                  <input id="positive" type="radio" name="sentiment" aria-checked value="positive" />
+                  <input id="positive" type="radio" name="sentiment" value="positive" />
                   <label class="sentiment positive"for="positive"></label>
-                  <input id="very-positive" type="radio" name="sentiment" aria-checked value="very-positive" />
+                  <input id="very-positive" type="radio" name="sentiment" value="very-positive" />
                   <label class="sentiment very-positive"for="very-positive"></label>
               </div>
             </section>

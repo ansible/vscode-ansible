@@ -8,6 +8,9 @@ import {
 
 provideVSCodeDesignSystem().register(allComponents);
 
+// Get access to the VS Code API from within the webview context
+const vscode = acquireVsCodeApi();
+
 // Just like a regular webpage we need to wait for the webview
 // DOM to load before we can reference any of the HTML elements
 // or toolkit components
@@ -128,7 +131,17 @@ function handleSentimentFeedback() {
   ) as Button;
 
   sentimentSendButton.addEventListener("click", () => {
-    if (sentimentCommentTextArea.textContent === "") {
+    let selectedSentiment = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    document.getElementsByName("sentiment-selector").forEach((elm: any) => {
+      console.log(elm.checked, elm.value);
+      if (elm.checked) {
+        selectedSentiment = elm.value;
+        return;
+      }
+    });
+    console.log({ selectedSentiment });
+    if (sentimentCommentTextArea.textContent === undefined) {
       vscode.postMessage({
         error: "Please tell us the reason for your rating.",
       });
