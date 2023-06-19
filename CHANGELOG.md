@@ -12,7 +12,8 @@
 
 ### Bugfixes
 
-- Fix notification for lightspeed login after the setting is disabled (#911) @ganeshrn
+- Fix notification for lightspeed login after the setting is disabled (#911)
+  @ganeshrn
 - [Lightspeed] Fix connect button working (#908) @priyamsahoo
 
 ## v2.2
