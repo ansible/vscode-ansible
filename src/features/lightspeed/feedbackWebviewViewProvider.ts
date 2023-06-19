@@ -10,7 +10,9 @@ import {
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 
-export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
+export class LightspeedFeedbackWebviewViewProvider
+  implements WebviewViewProvider
+{
   public static readonly viewType = "lightspeed-feedback-webview";
 
   constructor(private readonly _extensionUri: Uri) {}
@@ -72,21 +74,21 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
             <h3>How was your experience?</h3>
             <section class="sentiment-button">
               <div class="sentiment-selector">
-                  <input id="very-negative" type="radio" name="sentiment" value="very-negative" />
+                  <input id="very-negative" value=1 type="radio" name="sentiment" value="very-negative" />
                   <label class="sentiment very-negative" for="very-negative"></label>
-                  <input id="negative" type="radio" name="sentiment" value="negative" />
+                  <input id="negative" value=2 type="radio" name="sentiment" value="negative" />
                   <label class="sentiment negative"for="negative"></label>
-                  <input id="neutral" type="radio" name="sentiment" value="neutral" />
+                  <input id="neutral" value=3 type="radio" name="sentiment" value="neutral" />
                   <label class="sentiment neutral"for="neutral"></label>
-                  <input id="positive" type="radio" name="sentiment" value="positive" />
+                  <input id="positive" value=4 type="radio" name="sentiment" value="positive" />
                   <label class="sentiment positive"for="positive"></label>
-                  <input id="very-positive" type="radio" name="sentiment" value="very-positive" />
+                  <input id="very-positive" value=5 type="radio" name="sentiment" value="very-positive" />
                   <label class="sentiment very-positive"for="very-positive"></label>
               </div>
             </section>
           </section>
           <section class="component-section">
-              <p>Tell us why?</p>
+              <p class="required">Tell us why?</p>
               <vscode-text-area maxlength="512" cols="29" resize="both" id="sentiment-comment"></vscode-text-area>
           </section>
           <section class="component-section">

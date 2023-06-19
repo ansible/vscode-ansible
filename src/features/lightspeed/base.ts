@@ -15,7 +15,7 @@ import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
 } from "./utils/webUtils";
-import { LightspeedStatusBar } from "./feedbackStatusBar";
+import { LightspeedStatusBar } from "./statusBar";
 
 export class LightSpeedManager {
   private context;

@@ -297,6 +297,7 @@ export class LightspeedStatusBar {
   }
 
   public async lightSpeedStatusBarClickHandler() {
-    await this.lightSpeedFeedbackHandler();
+    //await this.lightSpeedFeedbackHandler();
+    vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
   }
 }

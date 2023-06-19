@@ -4,6 +4,7 @@ import {
   Button,
   Dropdown,
   TextArea,
+  TextField,
 } from "@vscode/webview-ui-toolkit";
 
 provideVSCodeDesignSystem().register(allComponents);
@@ -99,28 +100,13 @@ function main() {
       featureRequestSection.remove();
       suggestionFeedbackSection.remove();
     }
+    handleIssueFeedback();
   });
-
   handleSentimentFeedback();
-  handleIssueFeedback();
 }
 
 function handleSentimentFeedback() {
   let sentimentValue: string | undefined = undefined;
-
-  const sentimentButtons = document.querySelectorAll(
-    ".sentiment-button > vscode-button"
-  );
-
-  sentimentButtons.forEach((button) => {
-    button.addEventListener("click", () => {
-      sentimentButtons.forEach((button) => {
-        button.classList.remove("selected");
-      });
-      button.classList.add("selected");
-      sentimentValue = button.textContent ?? undefined;
-    });
-  });
 
   const sentimentCommentTextArea = document.getElementById(
     "sentiment-comment"
@@ -131,17 +117,22 @@ function handleSentimentFeedback() {
   ) as Button;
 
   sentimentSendButton.addEventListener("click", () => {
-    let selectedSentiment = null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    document.getElementsByName("sentiment-selector").forEach((elm: any) => {
-      console.log(elm.checked, elm.value);
-      if (elm.checked) {
-        selectedSentiment = elm.value;
-        return;
-      }
-    });
-    console.log({ selectedSentiment });
-    if (sentimentCommentTextArea.textContent === undefined) {
+    const sentimentSelector = document.querySelector(
+      ".sentiment-selector"
+    ) as HTMLDivElement;
+    const selectedOption = sentimentSelector.querySelector(
+      "input[type=radio]:checked"
+    ) as HTMLInputElement;
+
+    if (selectedOption) {
+      sentimentValue = selectedOption.value;
+    } else {
+      vscode.postMessage({
+        error: "Please select sentiment rating.",
+      });
+      return;
+    }
+    if (sentimentCommentTextArea.value === "") {
       vscode.postMessage({
         error: "Please tell us the reason for your rating.",
       });
@@ -150,11 +141,13 @@ function handleSentimentFeedback() {
     const userFeedbackData = {
       sentiment: {
         value: sentimentValue,
-        comment: sentimentCommentTextArea.textContent,
+        comment: sentimentCommentTextArea.value,
       },
     };
+    console.log(`Sentiment value: ${sentimentValue}`);
+    console.log(`Sentiment comment: ${sentimentCommentTextArea.value}`);
     vscode.postMessage(userFeedbackData);
-    sentimentCommentTextArea.textContent = "";
+    sentimentCommentTextArea.value = "";
   });
 }
 
@@ -167,26 +160,29 @@ function handleIssueFeedback() {
     "issue-type-dropdown"
   ) as Dropdown;
 
-  const issueTitleTextArea = document.getElementById("issue-title") as TextArea;
+  const issueTitleTextArea = document.getElementById(
+    "issue-title"
+  ) as TextField;
 
   const issueDescriptionTextArea = document.getElementById(
     "issue-description"
   ) as TextArea;
 
   issueSubmitButton.addEventListener("click", () => {
+    console.log(`Issue type: ${issueTypeDropdown.value}`);
     if (
       issueTypeDropdown.value === "bug-report" ||
       issueTypeDropdown.value === "feature-request"
     ) {
-      if (issueTitleTextArea.textContent === "") {
+      if (issueTitleTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter a title",
+          error: "Please enter an issue title.",
         });
         return;
       }
-      if (issueDescriptionTextArea.textContent === "") {
+      if (issueDescriptionTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter a description",
+          error: "Please enter an issue description.",
         });
         return;
       }
@@ -194,13 +190,13 @@ function handleIssueFeedback() {
       const userFeedbackData = {
         issue: {
           type: issueTypeDropdown.value,
-          title: issueTitleTextArea.textContent,
-          description: issueDescriptionTextArea.textContent,
+          title: issueTitleTextArea.value,
+          description: issueDescriptionTextArea.value,
         },
       };
       vscode.postMessage(userFeedbackData);
-      issueTitleTextArea.textContent = "";
-      issueDescriptionTextArea.textContent = "";
+      issueTitleTextArea.value = "";
+      issueDescriptionTextArea.value = "";
     } else if (issueTypeDropdown.value === "suggestion-feedback") {
       const suggestionPromptTextArea = document.getElementById(
         "suggestion-prompt"
@@ -218,27 +214,27 @@ function handleIssueFeedback() {
         "suggestion-additional-comment"
       ) as TextArea;
 
-      if (suggestionPromptTextArea.textContent === "") {
+      if (suggestionPromptTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter a prompt",
+          error: "Please enter a prompt for suggestion.",
         });
         return;
       }
-      if (suggestionProvidedTextArea.textContent === "") {
+      if (suggestionProvidedTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter a provided suggestion",
+          error: "Please enter a provided suggestion.",
         });
         return;
       }
-      if (suggestionExpectedTextArea.textContent === "") {
+      if (suggestionExpectedTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter an expected suggestion",
+          error: "Please enter an expected suggestion.",
         });
         return;
       }
-      if (suggestionAdditionalCommentTextArea.textContent === "") {
+      if (suggestionAdditionalCommentTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter details for modification",
+          error: "Please enter details for modification.",
         });
         return;
       }
@@ -246,17 +242,17 @@ function handleIssueFeedback() {
       const userFeedbackData = {
         issue: {
           type: issueTypeDropdown.value,
-          prompt: suggestionPromptTextArea.textContent,
-          provided: suggestionProvidedTextArea.textContent,
-          expected: suggestionExpectedTextArea.textContent,
-          additionalComment: suggestionAdditionalCommentTextArea.textContent,
+          prompt: suggestionPromptTextArea.value,
+          provided: suggestionProvidedTextArea.value,
+          expected: suggestionExpectedTextArea.value,
+          additionalComment: suggestionAdditionalCommentTextArea.value,
         },
       };
       vscode.postMessage(userFeedbackData);
-      suggestionPromptTextArea.textContent = "";
-      suggestionProvidedTextArea.textContent = "";
-      suggestionExpectedTextArea.textContent = "";
-      suggestionAdditionalCommentTextArea.textContent = "";
+      suggestionPromptTextArea.value = "";
+      suggestionProvidedTextArea.value = "";
+      suggestionExpectedTextArea.value = "";
+      suggestionAdditionalCommentTextArea.value = "";
     }
   });
 }

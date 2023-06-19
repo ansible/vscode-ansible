@@ -58,7 +58,8 @@ import { PythonInterpreterManager } from "./features/pythonMetadata";
 import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
-import { LightspeedFeedbackViewProvider } from "./features/lightspeed/feedbackViewProvider";
+import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
+import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -146,13 +147,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK,
       () =>
         lightSpeedManager.statusBarProvider.lightSpeedStatusBarClickHandler()
-    )
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      LightSpeedCommands.LIGHTSPEED_FEEDBACK,
-      () => lightSpeedManager.statusBarProvider.lightSpeedFeedbackHandler()
     )
   );
 
@@ -285,17 +279,26 @@ export async function activate(context: ExtensionContext): Promise<void> {
   }
 
   // handle lightSpeed feedback
-  const lightspeedFeedbackProvider = new LightspeedFeedbackViewProvider(
+  const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
     context.extensionUri
   );
 
   // Register the provider for a Webview View
   const lightspeedFeedbackDisposable = window.registerWebviewViewProvider(
-    LightspeedFeedbackViewProvider.viewType,
+    LightspeedFeedbackWebviewViewProvider.viewType,
     lightspeedFeedbackProvider
   );
 
   context.subscriptions.push(lightspeedFeedbackDisposable);
+
+  const lightspeedFeedbackCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_FEEDBACK,
+    () => {
+      LightspeedFeedbackWebviewProvider.render(context.extensionUri);
+    }
+  );
+
+  context.subscriptions.push(lightspeedFeedbackCommand);
 
   // handle Ansible Tox
   const ansibleToxController = new AnsibleToxController();
