@@ -70,3 +70,36 @@ vscode-panels {
   content: ' *';
   display:inline;
 }
+
+.sentiment-selector input{
+  margin:0;padding:0;
+  position: absolute;
+  left: -9999px;
+}
+
+.sentiment-selector input:active +.sentiment{opacity: .9;}
+
+.sentiment{
+  cursor:pointer;
+  background-size:contain;
+  background-repeat:no-repeat;
+  display:inline-block;
+  width:32px;height:32px;
+  font-size:24px;
+}
+
+.very-negative::after, .negative::after,
+.neutral::after, .positive::after,
+.very-positive::after {
+  padding: 4px;
+}
+
+.very-negative::after{ content: "😞"; }
+.negative::after{ content: "🙁"; }
+.neutral::after { content: "😐"; }
+.positive::after { content: "🙂"; }
+.very-positive::after { content: "😀"; }
+
+input[type=radio]:checked + label {
+  border: 1px solid var(--vscode-inputOption-activeBorder);
+}

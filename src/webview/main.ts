@@ -8,9 +8,6 @@ import {
 
 provideVSCodeDesignSystem().register(allComponents);
 
-// Get access to the VS Code API from within the webview context
-const vscode = acquireVsCodeApi();
-
 // Just like a regular webpage we need to wait for the webview
 // DOM to load before we can reference any of the HTML elements
 // or toolkit components

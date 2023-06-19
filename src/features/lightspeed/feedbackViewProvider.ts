@@ -71,11 +71,18 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
           <section class="component-container">
             <h3>How was your experience?</h3>
             <section class="sentiment-button">
-              <vscode-button appearance="icon" id="very-negative">😞</vscode-button>
-              <vscode-button appearance="icon" id="negative">🙁</vscode-button>
-              <vscode-button appearance="icon" id="neutral">😐</vscode-button>
-              <vscode-button appearance="icon" id="positive">🙂</vscode-button>
-              <vscode-button appearance="icon" id="very-positive">😀</vscode-button>
+              <div class="sentiment-selector">
+                  <input id="very-negative" type="radio" name="sentiment" aria-checked value="very-negative" />
+                  <label class="sentiment very-negative" for="very-negative"></label>
+                  <input id="negative" type="radio" name="sentiment" aria-checked value="negative" />
+                  <label class="sentiment negative"for="negative"></label>
+                  <input id="neutral" type="radio" name="sentiment" aria-checked value="neutral" />
+                  <label class="sentiment neutral"for="neutral"></label>
+                  <input id="positive" type="radio" name="sentiment" aria-checked value="positive" />
+                  <label class="sentiment positive"for="positive"></label>
+                  <input id="very-positive" type="radio" name="sentiment" aria-checked value="very-positive" />
+                  <label class="sentiment very-positive"for="very-positive"></label>
+              </div>
             </section>
           </section>
           <section class="component-section">
