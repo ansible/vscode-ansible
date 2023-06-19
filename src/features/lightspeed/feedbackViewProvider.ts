@@ -72,24 +72,25 @@ export class LightspeedFeedbackViewProvider implements WebviewViewProvider {
           <section class="component-container">
             <h3>How was your experience?</h3>
             <section class="sentiment-button">
-                <vscode-button id="very-positive">😀</vscode-button>
-                <vscode-button id="positive">🙂</vscode-button>
-                <vscode-button id="neutral">😐</vscode-button>
-                <vscode-button id="negative">🙁</vscode-button>
-                <vscode-button id="very-negative">😞</vscode-button>
+              <vscode-button appearance="icon" id="very-negative">😞</vscode-button>
+              <vscode-button appearance="icon" id="negative">🙁</vscode-button>
+              <vscode-button appearance="icon" id="neutral">😐</vscode-button>
+              <vscode-button appearance="icon" id="positive">🙂</vscode-button>
+              <vscode-button appearance="icon" id="very-positive">😀</vscode-button>
             </section>
           </section>
           <section class="component-example">
               <p>Tell us why?</p>
-              <vscode-text-area maxlength="512" resize="both"></vscode-text-area>
+              <vscode-text-area maxlength="512" cols="29" resize="both"></vscode-text-area>
           </section>
           <section class="component-example">
               <vscode-button>Send</vscode-button>
           </section>
+      <vscode-divider></vscode-divider>
       <section class="component-container">
           <h3>Tell us more</h3>
             <section class="component-example">
-              <vscode-dropdown id="issue-type-dropdown">
+              <vscode-dropdown id="issue-type-dropdown" class="issue-dropdown">
                 <vscode-option selected value="select-issue-type">Select Issue type</vscode-option>
                 <vscode-option value="bug-report">Bug report</vscode-option>
                 <vscode-option value="feature-request">Feature request</vscode-option>

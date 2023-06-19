@@ -51,17 +51,19 @@ function main() {
     if (selectedValue === "bug-report") {
       bugReportSection.innerHTML = `
           <section class="component-example">
-            <vscode-dropdown id="source-dropdown">
+            <vscode-dropdown id="source-dropdown" class="issue-dropdown">
               <vscode-option selected value="select-source">Select source</vscode-option>
               <vscode-option value="ansible-extension">Extension</vscode-option>
               <vscode-option value="ansible-lightspeed">Lightspeed</vscode-option>
             </vscode-dropdown>
           </section>
           <section class="component-example">
-            <vscode-text-field size="100" id="issue-title" placeholder="Please enter a title">Title</vscode-text-field>
+            <p class="required">Title</p>
+            <vscode-text-field size="30" id="issue-title" placeholder="Please enter a title" />
           </section>
           <section class="component-example">
-            <vscode-text-area id="steps-to-reproduce" required maxlength="4096" placeholder="Please enter details" resize="both">Steps to reproduce</vscode-text-area>
+            <p class="required">Steps to reproduce</p>
+            <vscode-text-area id="steps-to-reproduce" cols="29" maxlength="4096" placeholder="Please enter details" resize="both"/>
           </section>
           <section class="component-example">
             <vscode-button id="issue-submit-button">Submit</vscode-button>
@@ -71,17 +73,19 @@ function main() {
     } else if (selectedValue === "feature-request") {
       featureRequestSection.innerHTML = `
         <section class="component-example">
-          <vscode-dropdown id="source-dropdown">
+          <vscode-dropdown id="source-dropdown" class="issue-dropdown">
             <vscode-option selected value="select-source">Select source</vscode-option>
             <vscode-option value="ansible-extension">Extension</vscode-option>
             <vscode-option value="ansible-lightspeed">Lightspeed</vscode-option>
           </vscode-dropdown>
         </section>
         <section class="component-example">
-          <vscode-text-field size="100" id="issue-title" placeholder="Please enter a title">Title</vscode-text-field>
+          <p class="required">Title</p>
+          <vscode-text-field size="30" id="issue-title" placeholder="Please enter a title" />
         </section>
         <section class="component-example">
-          <vscode-text-area id="steps-to-reproduce" required maxlength="4096" placeholder="Please enter details" resize="both">Description</vscode-text-area>
+          <p class="required">Description</p>
+          <vscode-text-area id="steps-to-reproduce" cols="29" maxlength="4096" placeholder="Please enter details" resize="both" />
         </section>
         <section class="component-example">
           <vscode-button id="issue-submit-button">Submit</vscode-button>
@@ -90,21 +94,25 @@ function main() {
       feedbackForm.appendChild(featureRequestSection);
     } else if (selectedValue === "suggestion-feedback") {
       suggestionFeedbackSection.innerHTML = `
-        <section class="component-example">
-          <vscode-text-area id="suggestion-prompt" required placeholder="Copy and Paste the file content till the end of task name description" resize="both">Prompt</vscode-text-area>
+        <section class="component-example" class="issue-dropdown">
+          <p class="required">Prompt</p>
+          <vscode-text-area id="suggestion-prompt" cols="29" class="m-b-10" placeholder="Copy and Paste the file content till the end of task name description" resize="both" />
         </section>
         <section class="component-example">
-          <vscode-text-area id="suggestion-provided" required placeholder="Provided Suggestion by Ansible Lightspeed" resize="both">Provided Suggestion</vscode-text-area>
+          <p class="required">Provided Suggestion</p>
+          <vscode-text-area id="suggestion-provided" cols="29" class="m-b-10" placeholder="Provided Suggestion by Ansible Lightspeed" resize="both" />
         </section>
         <section class="component-example">
-          <vscode-text-area id="suggestion-expected" required placeholder="Your Expected Suggestion" resize="both">Expected Suggestion</vscode-text-area>
+          <p class="required">Expected Suggestion</p>
+          <vscode-text-area id="suggestion-expected" cols="29" class="m-b-10" placeholder="Your Expected Suggestion" resize="both" />
         </section>
         <section class="component-example">
-          <vscode-text-area id="suggestion-additional-comment" required placeholder="Please enter details" resize="both">Why was modification required?</vscode-text-area>
+          <p class="required">Why was modification required?</p>
+          <vscode-text-area id="suggestion-additional-comment" cols="29" class="m-b-10" placeholder="Please enter details" resize="both" />
         </section>
         <section class="sentiment-button">
-            <vscode-button id="suggestion-thumbs-up">👍</vscode-button>
-            <vscode-button id="suggestion-thumbs-down">👎</vscode-button>
+            <vscode-button appearance="icon" id="suggestion-thumbs-up">👍</vscode-button>
+            <vscode-button appearance="icon" id="suggestion-thumbs-down">👎</vscode-button>
         </section>
         <section class="component-example">
             <vscode-button id="issue-submit-button">Submit</vscode-button>

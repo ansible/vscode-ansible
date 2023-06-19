@@ -13,6 +13,10 @@
   margin: 1rem;
 }
 
+.label {
+  margin-bottom: 10px !important;
+}
+
 .component-container {
   display: flex;
   flex-direction: column;
@@ -37,18 +41,32 @@ vscode-panels {
 
 .sentiment-button {
   color: #fff;
-  text-align: center;
   cursor: pointer;
+  margin-bottom: 10px;
 }
 
-/* #issue-type-dropdown {
-  min-width: 30px;
-  width: 100%;
+.issue-dropdown {
+  width: 200px;
+  /* width: 100%;
   margin-top: 0.5rem;
-  margin-bottom: 1rem;
-} */
+  margin-bottom: 1rem; */
+}
 
 #source-dropdown {
   min-width: 30px;
   margin-top: 0.5rem;
+}
+
+.component-example > p {
+  margin: 5px 0;
+}
+
+#issue-submit-button {
+  margin-top: 10px;
+}
+
+.required:after {
+  color: #e32;
+  content: ' *';
+  display:inline;
 }
