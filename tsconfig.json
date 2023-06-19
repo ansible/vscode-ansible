@@ -8,7 +8,8 @@
     "outDir": "out/client",
     "sourceMap": true,
     "strict": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true
   },
   "include": ["src", "test"],
   "exclude": ["node_modules", "test-resources"]
