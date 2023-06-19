@@ -82,7 +82,7 @@ function testAnsibleLintErrors(
       diagnosticReport: [
         {
           severity: 1,
-          message: "violates variable naming standards",
+          message: "Variables names",
           range: {
             start: { line: 4, character: 0 } as Position,
             end: {
@@ -99,6 +99,18 @@ function testAnsibleLintErrors(
             start: { line: 6, character: 0 } as Position,
             end: {
               line: 6,
+              character: integer.MAX_VALUE,
+            } as Position,
+          },
+          source: "ansible-lint",
+        },
+        {
+          severity: 1,
+          message: "Unsupported parameters",
+          range: {
+            start: { line: 14, character: 0 } as Position,
+            end: {
+              line: 14,
               character: integer.MAX_VALUE,
             } as Position,
           },

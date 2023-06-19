@@ -180,10 +180,10 @@ export class AnsibleLint {
             };
 
             let severity: DiagnosticSeverity = DiagnosticSeverity.Error;
-            if (item.level) {
-              if (item.level === "error") {
+            if (item.severity) {
+              if (item.severity === "major") {
                 severity = DiagnosticSeverity.Error;
-              } else if (item.level === "warning") {
+              } else if (item.severity === "minor") {
                 severity = DiagnosticSeverity.Warning;
               }
             }
