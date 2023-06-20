@@ -14,7 +14,7 @@ export function extensionUIAssetsTest(): void {
     let sideBar: SideBarView;
 
     before(async function () {
-      this.timeout(30000);
+      this.timeout(10000);
       view = (await new ActivityBar().getViewControl(
         "Extensions"
       )) as ViewControl;
@@ -23,7 +23,7 @@ export function extensionUIAssetsTest(): void {
 
     it("VSCode Ansible extension is installed", async function () {
       this.retries(3);
-      this.timeout(30000); // even 18s failed
+      this.timeout(20000); // even 18s failed
       const section = (await sideBar
         .getContent()
         .getSection("Installed")) as ExtensionsViewSection;
@@ -33,7 +33,7 @@ export function extensionUIAssetsTest(): void {
     });
 
     after(async function () {
-      this.timeout(30000);
+      this.timeout(8000);
       await new Workbench().executeCommand("Clear Extensions Search Results");
     });
   });
