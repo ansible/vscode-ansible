@@ -29,15 +29,15 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
                 <h3>How was your experience?</h3>
                 <section class="sentiment-button">
                   <div class="sentiment-selector">
-                      <input id="very-negative" value=1 type="radio" name="sentiment" value="very-negative" />
+                      <input id="very-negative" value=1 type="radio" name="sentiment" />
                       <label class="sentiment very-negative" for="very-negative"></label>
-                      <input id="negative" value=2 type="radio" name="sentiment" value="negative" />
+                      <input id="negative" value=2 type="radio" name="sentiment" />
                       <label class="sentiment negative"for="negative"></label>
-                      <input id="neutral" value=3 type="radio" name="sentiment" value="neutral" />
+                      <input id="neutral" value=3 type="radio" name="sentiment" />
                       <label class="sentiment neutral"for="neutral"></label>
-                      <input id="positive" value=4 type="radio" name="sentiment" value="positive" />
+                      <input id="positive" value=4 type="radio" name="sentiment" />
                       <label class="sentiment positive"for="positive"></label>
-                      <input id="very-positive" value=5 type="radio" name="sentiment" value="very-positive" />
+                      <input id="very-positive" value=5 type="radio" name="sentiment" />
                       <label class="sentiment very-positive"for="very-positive"></label>
                   </div>
                 </section>
