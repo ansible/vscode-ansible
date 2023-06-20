@@ -68,11 +68,11 @@ const config = {
 const webviewConfig = {
   ...config,
   target: ["web", "es2020"],
-  entry: "./src/webview/main.ts",
+  entry: "./src/webview/apps/lightspeed/main.ts",
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview.js",
+    filename: "./client/webview/apps/lightspeed/main.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },

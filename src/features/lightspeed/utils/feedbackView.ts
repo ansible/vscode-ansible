@@ -8,7 +8,10 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
   const webviewUri = getUri(webview, extensionUri, [
     "out",
     "client",
-    "webview.js",
+    "webview",
+    "apps",
+    "lightspeed",
+    "main.js",
   ]);
   const styleUri = getUri(webview, extensionUri, ["media", "style.css"]);
   const nonce = getNonce();
