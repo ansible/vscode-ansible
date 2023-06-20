@@ -4,6 +4,17 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.3
+
+### Minor Changes
+
+- Add support for tox-ansible plugin test discovery (#902) @ganeshrn
+
+### Bugfixes
+
+- Fix notification for lightspeed login after the setting is disabled (#911) @ganeshrn
+- [Lightspeed] Fix connect button working (#908) @priyamsahoo
+
 ## v2.2
 
 ### Bugfixes

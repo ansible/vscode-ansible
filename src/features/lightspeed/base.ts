@@ -51,7 +51,9 @@ export class LightSpeedManager {
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME
       );
-    this.lightSpeedAuthenticationProvider.initialize();
+    if (this.settingsManager.settings.lightSpeedService.enabled) {
+      this.lightSpeedAuthenticationProvider.initialize();
+    }
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider

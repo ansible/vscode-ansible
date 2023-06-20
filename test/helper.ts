@@ -57,6 +57,13 @@ export const getDocPath = (p: string): string => {
   );
 };
 
+export const getDocUriOutsideWorkspace = (fileName: string): string => {
+  return path.resolve(
+    __dirname,
+    path.join("..", "..", "..", "test", "testFixtureOutsideWorkspace", fileName)
+  );
+};
+
 export const getDocUri = (p: string): vscode.Uri => {
   return vscode.Uri.file(getDocPath(p));
 };
@@ -108,9 +115,6 @@ export async function enableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", true);
   await updateSettings("lightspeed.suggestions.enabled", true);
   await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
-
-  // disable lint validation
-  await updateSettings("validation.lint.enabled", false);
 }
 
 export async function disableLightspeedSettings(): Promise<void> {
