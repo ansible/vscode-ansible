@@ -52,7 +52,12 @@ export interface SuggestionQualityEvent {
   prompt: string;
   providedSuggestion: string;
   expectedSuggestion: string;
-  additionalComment: string | undefined;
+  additionalComment: string;
+}
+export interface IssueFeedbackEvent {
+  type: "bug-report" | "feature-request";
+  title: string;
+  description: string;
 }
 
 export interface FeedbackRequestParams {
@@ -60,6 +65,7 @@ export interface FeedbackRequestParams {
   ansibleContent?: AnsibleContentEvent;
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
+  issueFeedback?: IssueFeedbackEvent;
 }
 
 export interface IDocumentTracker {

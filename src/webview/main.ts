@@ -141,7 +141,7 @@ function handleSentimentFeedback() {
     const userFeedbackData = {
       sentiment: {
         value: sentimentValue,
-        comment: sentimentCommentTextArea.value,
+        feedback: sentimentCommentTextArea.value,
       },
     };
     console.log(`Sentiment value: ${sentimentValue}`);

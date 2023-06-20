@@ -439,7 +439,7 @@ export class LightSpeedAuthenticationProvider
     if (!session) {
       console.log("[ansible-lightspeed-oauth] Session not found. Returning...");
       const selection = await window.showWarningMessage(
-        "You must be logged in to use the Ansible Lightspeed inline suggestion feature.\n",
+        "You must be logged in to use the Ansible Lightspeed.\n",
         "Login"
       );
       if (selection === "Login") {
