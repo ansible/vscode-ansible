@@ -15,7 +15,6 @@ cfgs
 chromedriver
 cmds
 codespell
-codicon
 commitlint
 Containerfile
 copyfiles
