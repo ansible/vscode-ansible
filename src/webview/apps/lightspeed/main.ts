@@ -45,11 +45,11 @@ function main() {
       bugReportSection.innerHTML = `
           <section class="component-section">
             <p class="required">Title</p>
-            <vscode-text-field size="30" id="issue-title" placeholder="Please enter a title" />
+            <vscode-text-field size="30" id="issue-title" placeholder="Enter a title." />
           </section>
           <section class="component-section">
             <p class="required">Steps to reproduce</p>
-            <vscode-text-area id="issue-description" cols="29" maxlength="4096" placeholder="Please enter details" resize="both"/>
+            <vscode-text-area id="issue-description" cols="29" maxlength="4096" placeholder="Enter details." resize="both"/>
           </section>
           <section class="component-section">
             <vscode-button id="issue-submit-button">Submit</vscode-button>
@@ -60,11 +60,11 @@ function main() {
       featureRequestSection.innerHTML = `
         <section class="component-section">
           <p class="required">Title</p>
-          <vscode-text-field size="30" id="issue-title" placeholder="Please enter a title" />
+          <vscode-text-field size="30" id="issue-title" placeholder="Enter a title." />
         </section>
         <section class="component-section">
           <p class="required">Description</p>
-          <vscode-text-area id="issue-description" cols="29" maxlength="4096" placeholder="Please enter details" resize="both" />
+          <vscode-text-area id="issue-description" cols="29" maxlength="4096" placeholder="Enter details." resize="both" />
         </section>
         <section class="component-section">
           <vscode-button id="issue-submit-button">Submit</vscode-button>
@@ -75,19 +75,19 @@ function main() {
       suggestionFeedbackSection.innerHTML = `
         <section class="component-section" class="issue-dropdown">
           <p class="required">Prompt</p>
-          <vscode-text-area id="suggestion-prompt" cols="29" class="m-b-10" placeholder="Copy and Paste the file content till the end of task name description" resize="both" />
+          <vscode-text-area id="suggestion-prompt" cols="29" class="m-b-10" placeholder="The contents of the playbook until the name of the task used for a recommendation." resize="both" />
         </section>
         <section class="component-section">
-          <p class="required">Provided Suggestion</p>
-          <vscode-text-area id="suggestion-provided" cols="29" class="m-b-10" placeholder="Provided Suggestion by Ansible Lightspeed" resize="both" />
+          <p class="required">Provided Recommendation</p>
+          <vscode-text-area id="suggestion-provided" cols="29" class="m-b-10" placeholder="The recommendation content provided by Ansible Lightspeed." resize="both" />
         </section>
         <section class="component-section">
-          <p class="required">Expected Suggestion</p>
-          <vscode-text-area id="suggestion-expected" cols="29" class="m-b-10" placeholder="Your Expected Suggestion" resize="both" />
+          <p class="required">Expected Recommendation</p>
+          <vscode-text-area id="suggestion-expected" cols="29" class="m-b-10" placeholder="The recommendation that you expected -- edit the response with what you expected the result to be." resize="both" />
         </section>
         <section class="component-section">
           <p class="required">Why was modification required?</p>
-          <vscode-text-area id="suggestion-additional-comment" cols="29" class="m-b-10" placeholder="Please enter details" resize="both" />
+          <vscode-text-area id="suggestion-additional-comment" cols="29" class="m-b-10" placeholder="Enter details." resize="both" />
         </section>
         <section class="component-section">
             <vscode-button id="issue-submit-button">Submit</vscode-button>
@@ -128,13 +128,13 @@ function handleSentimentFeedback() {
       sentimentValue = selectedOption.value;
     } else {
       vscode.postMessage({
-        error: "Please select sentiment rating.",
+        error: "Select sentiment rating.",
       });
       return;
     }
     if (sentimentCommentTextArea.value === "") {
       vscode.postMessage({
-        error: "Please tell us the reason for your rating.",
+        error: "Tell us the reason for your rating.",
       });
       return;
     }
@@ -176,13 +176,13 @@ function handleIssueFeedback() {
     ) {
       if (issueTitleTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter an issue title.",
+          error: "Enter an issue title.",
         });
         return;
       }
       if (issueDescriptionTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter an issue description.",
+          error: "Enter an issue description.",
         });
         return;
       }
@@ -216,25 +216,25 @@ function handleIssueFeedback() {
 
       if (suggestionPromptTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter a prompt for suggestion.",
+          error: "Enter details about prompt used for recommendation.",
         });
         return;
       }
       if (suggestionProvidedTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter a provided suggestion.",
+          error: "Enter details about recommendation provided.",
         });
         return;
       }
       if (suggestionExpectedTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter an expected suggestion.",
+          error: "Enter details about expected recommendation.",
         });
         return;
       }
       if (suggestionAdditionalCommentTextArea.value === "") {
         vscode.postMessage({
-          error: "Please enter details for modification.",
+          error: "Enter details on why the modification was required.",
         });
         return;
       }
