@@ -253,11 +253,7 @@ function testAnsibleSyntaxCheckNoHost(
   );
 }
 
-function testInvalidYamlFile(
-  context: WorkspaceFolderContext,
-  validationManager: ValidationManager,
-  textDoc: TextDocument,
-) {
+function testInvalidYamlFile(textDoc: TextDocument) {
   const tests = [
     {
       name: "invalid YAML",
@@ -270,19 +266,43 @@ function testInvalidYamlFile(
             start: { line: 6, character: 13 } as Position,
             end: {
               line: 6,
-              character: 13,
+              character: 14,
             } as Position,
           },
           source: "Ansible [YAML]",
         },
         {
           severity: 1,
-          message: "Document contains trailing content",
+          message: "Unexpected scalar at node end",
           range: {
             start: { line: 7, character: 0 } as Position,
             end: {
-              line: 8,
-              character: 0,
+              line: 7,
+              character: 6,
+            } as Position,
+          },
+          source: "Ansible [YAML]",
+        },
+        {
+          severity: 1,
+          message: "Unexpected map-value-ind",
+          range: {
+            start: { line: 7, character: 6 } as Position,
+            end: {
+              line: 7,
+              character: 7,
+            } as Position,
+          },
+          source: "Ansible [YAML]",
+        },
+        {
+          severity: 1,
+          message: "Unexpected scalar token in YAML stream",
+          range: {
+            start: { line: 7, character: 8 } as Position,
+            end: {
+              line: 7,
+              character: 12,
             } as Position,
           },
           source: "Ansible [YAML]",
@@ -668,7 +688,7 @@ describe("doValidate()", () => {
         await enableExecutionEnvironmentSettings(docSettings);
       });
 
-      testInvalidYamlFile(context, validationManager, textDoc);
+      testInvalidYamlFile(textDoc);
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
@@ -682,7 +702,7 @@ describe("doValidate()", () => {
         await disableExecutionEnvironmentSettings(docSettings);
       });
 
-      testInvalidYamlFile(context, validationManager, textDoc);
+      testInvalidYamlFile(textDoc);
     });
   });
 });

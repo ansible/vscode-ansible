@@ -1,11 +1,8 @@
 import IntervalTree from "@flatten-js/interval-tree";
-import * as _ from "lodash";
 import {
   Connection,
   Diagnostic,
-  DiagnosticRelatedInformation,
   DiagnosticSeverity,
-  Location,
   Range,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
@@ -105,32 +102,25 @@ export async function doValidate(
 
 export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
-  const yDocuments = parseAllDocuments(textDocument.getText(), {
-    prettyErrors: false,
-  });
+  const yDocuments = parseAllDocuments(textDocument.getText());
   const rangeTree = new IntervalTree<Diagnostic>();
   yDocuments.forEach((yDoc) => {
     yDoc.errors.forEach((error) => {
-      const errorRange = error.range || error.source?.range;
-      let range;
-      if (errorRange) {
+      const [errStart, errEnd] = error.pos;
+      if (errStart) {
         const start = textDocument.positionAt(
-          errorRange.origStart !== undefined
-            ? errorRange.origStart
-            : errorRange.start,
+          errStart !== undefined ? errStart : null,
         );
-        const end = textDocument.positionAt(
-          errorRange.origEnd !== undefined
-            ? errorRange.origEnd
-            : errorRange.end,
-        );
-        range = Range.create(start, end);
 
-        let severity;
+        const end = textDocument.positionAt(
+          errEnd !== undefined ? errEnd : null,
+        );
+
+        const range = Range.create(start, end);
+
+        let severity: DiagnosticSeverity;
         switch (error.name) {
-          case "YAMLReferenceError":
-          case "YAMLSemanticError":
-          case "YAMLSyntaxError":
+          case "YAMLParseError":
             severity = DiagnosticSeverity.Error;
             break;
           case "YAMLWarning":
@@ -140,7 +130,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
             severity = DiagnosticSeverity.Information;
             break;
         }
-        rangeTree.insert([errorRange.start, errorRange.end], {
+        rangeTree.insert([error.linePos[0].line, error.linePos[1].line], {
           message: error.message,
           range: range || Range.create(0, 0, 0, 0),
           severity: severity,
@@ -150,35 +140,6 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
     });
   });
   rangeTree.forEach((range, diag) => {
-    const searchResult = rangeTree.search(range);
-    if (searchResult) {
-      const allRangesAreEqual = searchResult.every((foundDiag: Diagnostic) => {
-        // (range start == range end) in case it has already been collapsed
-        return (
-          foundDiag.range.start === foundDiag.range.end ||
-          _.isEqual(foundDiag.range, diag.range)
-        );
-      });
-      if (!allRangesAreEqual) {
-        // Prevent large error scopes hiding/obscuring other error scopes
-        // In YAML this is very common in case of syntax errors
-        const range = diag.range;
-        diag.relatedInformation = [
-          DiagnosticRelatedInformation.create(
-            Location.create(textDocument.uri, {
-              start: range.end,
-              end: range.end,
-            }),
-            "the scope of this error ends here",
-          ),
-        ];
-        // collapse the range
-        diag.range = {
-          start: range.start,
-          end: range.start,
-        };
-      }
-    }
     diagnostics.push(diag);
   });
 

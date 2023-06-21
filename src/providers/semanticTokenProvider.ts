@@ -5,7 +5,16 @@ import {
   SemanticTokenTypes,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { Node, Pair, Scalar, YAMLMap, YAMLSeq } from "yaml/types";
+import {
+  isMap,
+  isNode,
+  isPair,
+  isScalar,
+  isSeq,
+  Node,
+  Scalar,
+  YAMLMap,
+} from "yaml";
 import { IOption } from "../interfaces/module";
 import { DocsLibrary } from "../services/docsLibrary";
 import {
@@ -62,32 +71,32 @@ async function markSemanticTokens(
   docsLibrary: DocsLibrary,
 ): Promise<void> {
   const node = path[path.length - 1];
-  if (node instanceof YAMLMap) {
+  if (isMap(node)) {
     for (const pair of node.items) {
-      if (pair.key instanceof Scalar) {
-        const keyPath = path.concat(pair, pair.key);
+      if (isScalar(pair.key)) {
+        const keyPath = path.concat(<Scalar>(<unknown>pair), pair.key);
         if (isPlayParam(keyPath)) {
-          if (playKeywords.has(pair.key.value))
+          if (playKeywords.has(pair.key.value.toString()))
             markKeyword(pair.key, builder, document);
           else markOrdinaryKey(pair.key, builder, document);
         } else if (isBlockParam(keyPath)) {
-          if (blockKeywords.has(pair.key.value))
+          if (blockKeywords.has(pair.key.value.toString()))
             markKeyword(pair.key, builder, document);
           else markOrdinaryKey(pair.key, builder, document);
         } else if (isRoleParam(keyPath)) {
-          if (roleKeywords.has(pair.key.value))
+          if (roleKeywords.has(pair.key.value.toString()))
             markKeyword(pair.key, builder, document);
           else markOrdinaryKey(pair.key, builder, document);
         } else if (isTaskParam(keyPath)) {
-          if (isTaskKeyword(pair.key.value)) {
+          if (isTaskKeyword(pair.key.value.toString())) {
             markKeyword(pair.key, builder, document);
             if (pair.key.value === "args") {
               const module = await findProvidedModule(
-                path.concat(pair, pair.key),
+                path.concat(pair as unknown as Node, pair.key),
                 document,
                 docsLibrary,
               );
-              if (module && pair.value instanceof YAMLMap) {
+              if (module && isMap(pair.value)) {
                 // highlight module parameters
                 markModuleParameters(
                   pair.value,
@@ -99,7 +108,7 @@ async function markSemanticTokens(
             }
           } else {
             const [module] = await docsLibrary.findModule(
-              pair.key.value,
+              pair.key.value.toString(),
               keyPath,
               document.uri,
             );
@@ -112,7 +121,7 @@ async function markSemanticTokens(
                 builder,
                 document,
               );
-              if (pair.value instanceof YAMLMap) {
+              if (isMap(pair.value)) {
                 // highlight module parameters
                 markModuleParameters(
                   pair.value,
@@ -122,7 +131,11 @@ async function markSemanticTokens(
                 );
               }
             } else {
-              markAllNestedKeysAsOrdinary(pair, builder, document);
+              markAllNestedKeysAsOrdinary(
+                <Scalar>(<unknown>pair),
+                builder,
+                document,
+              );
             }
           }
 
@@ -130,24 +143,28 @@ async function markSemanticTokens(
           // tasks don't have any deeper structure
           continue;
         } else {
-          markAllNestedKeysAsOrdinary(pair, builder, document);
+          markAllNestedKeysAsOrdinary(
+            <Scalar>(<unknown>pair),
+            builder,
+            document,
+          );
           // this pair has been completely processed
           continue;
         }
       }
 
-      if (pair.value instanceof Node) {
+      if (isNode(pair.value)) {
         await markSemanticTokens(
-          path.concat(pair, pair.value),
+          path.concat(pair as unknown as Scalar, pair.value),
           builder,
           document,
           docsLibrary,
         );
       }
     }
-  } else if (node instanceof YAMLSeq) {
+  } else if (isSeq(node)) {
     for (const item of node.items) {
-      if (item instanceof Node) {
+      if (isNode(item)) {
         // the builder does not support out-of-order inserts yet, hence awaiting
         // on each individual promise instead of using Promise.all
         await markSemanticTokens(
@@ -168,8 +185,8 @@ function markModuleParameters(
   document: TextDocument,
 ) {
   for (const moduleParamPair of moduleParamMap.items) {
-    if (moduleParamPair.key instanceof Scalar) {
-      const option = options?.get(moduleParamPair.key.value);
+    if (isScalar(moduleParamPair.key)) {
+      const option = options?.get(moduleParamPair.key.value.toString());
       if (option) {
         markNode(
           moduleParamPair.key,
@@ -178,10 +195,7 @@ function markModuleParameters(
           builder,
           document,
         );
-        if (
-          option.type === "dict" &&
-          moduleParamPair.value instanceof YAMLMap
-        ) {
+        if (option.type === "dict" && isMap(moduleParamPair.value)) {
           // highlight sub-parameters
           markModuleParameters(
             moduleParamPair.value,
@@ -189,25 +203,30 @@ function markModuleParameters(
             builder,
             document,
           );
-        } else if (
-          option.type === "list" &&
-          moduleParamPair.value instanceof YAMLSeq
-        ) {
+        } else if (option.type === "list" && isSeq(moduleParamPair.value)) {
           // highlight list of sub-parameters
           for (const item of moduleParamPair.value.items) {
-            if (item instanceof YAMLMap) {
+            if (isMap(item)) {
               markModuleParameters(item, option.suboptions, builder, document);
             } else {
-              markAllNestedKeysAsOrdinary(item, builder, document);
+              markAllNestedKeysAsOrdinary(item as Node, builder, document);
             }
           }
         } else {
-          markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
+          markAllNestedKeysAsOrdinary(
+            moduleParamPair.value as Node,
+            builder,
+            document,
+          );
         }
       } else {
-        markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
+        markAllNestedKeysAsOrdinary(
+          moduleParamPair.value as Node,
+          builder,
+          document,
+        );
       }
-    } else if (moduleParamPair.value instanceof Node) {
+    } else if (isNode(moduleParamPair.value)) {
       markAllNestedKeysAsOrdinary(moduleParamPair.value, builder, document);
     }
   }
@@ -218,20 +237,20 @@ function markAllNestedKeysAsOrdinary(
   builder: SemanticTokensBuilder,
   document: TextDocument,
 ) {
-  if (node instanceof Pair) {
-    if (node.key instanceof Scalar) {
+  if (isPair(node)) {
+    if (isScalar(node.key)) {
       markOrdinaryKey(node.key, builder, document);
     }
-    if (node.value instanceof Node) {
+    if (isNode(node.value)) {
       markAllNestedKeysAsOrdinary(node.value, builder, document);
     }
-  } else if (node instanceof YAMLMap) {
+  } else if (isMap(node)) {
     for (const pair of node.items) {
-      markAllNestedKeysAsOrdinary(pair, builder, document);
+      markAllNestedKeysAsOrdinary(pair as unknown as Scalar, builder, document);
     }
-  } else if (node instanceof YAMLSeq) {
+  } else if (isSeq(node)) {
     for (const item of node.items) {
-      if (item instanceof Node) {
+      if (isNode(item)) {
         markAllNestedKeysAsOrdinary(item, builder, document);
       }
     }

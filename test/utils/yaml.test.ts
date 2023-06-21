@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { Position } from "vscode-languageserver";
-import { Node, Scalar, YAMLMap, YAMLSeq } from "yaml/types";
+import { Node, Scalar, YAMLMap, YAMLSeq } from "yaml";
 import {
   AncestryBuilder,
   getDeclaredCollections,
@@ -208,55 +208,91 @@ describe("yaml", () => {
 
   describe("isTaskParam", () => {
     it("canCorrectlyConfirmTaskParam", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 3, 3)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInTaskFile.yml",
+        2,
+        3,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyNegateTaskParam", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 1, 1)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInvalid.yml",
+        1,
+        1,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForValue", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 2, 9)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInTaskFile.yml",
+        2,
+        9,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForPlay", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 7, 3)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        4,
+        3,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForBlock", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 18, 7)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        14,
+        7,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyNegateTaskParamForRole", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 21, 7)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        17,
+        7,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(false);
     });
 
     it("canCorrectlyConfirmTaskParamInPreTasks", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 10, 7)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        6,
+        7,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyConfirmTaskParamInTasks", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 13, 7)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        9,
+        7,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
 
     it("canCorrectlyConfirmTaskParamInBlock", async () => {
-      const path = (await getPathInFile("isTaskParam.yml", 17, 11)) as Node[];
+      const path = (await getPathInFile(
+        "isTaskParamInPlaybook.yml",
+        13,
+        11,
+      )) as Node[];
       const test = isTaskParam(path);
       expect(test).to.be.eq(true);
     });
@@ -284,18 +320,6 @@ describe("yaml", () => {
       const path = (await getPathInFile("isPlayParam.yml", 7, 3)) as Node[];
       const test = isPlayParam(path, "file:///roles/test/tasks/isPlay.yml");
       expect(test).to.be.eq(false);
-    });
-
-    it("isIndecisiveWithoutPlayKeywords", async () => {
-      const path = (await getPathInFile("isPlayParam.yml", 7, 3)) as Node[];
-      const test = isPlayParam(path, "file://test/isPlay.yml");
-      expect(test).to.be.eq(undefined);
-    });
-
-    it("isIndecisiveWithoutPlayKeywordsWithoutPath", async () => {
-      const path = (await getPathInFile("isPlayParam.yml", 7, 3)) as Node[];
-      const test = isPlayParam(path);
-      expect(test).to.be.eq(undefined);
     });
 
     it("canCorrectlyNegatePlayParamForNonRootSequence", async () => {

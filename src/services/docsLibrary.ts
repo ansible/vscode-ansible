@@ -1,5 +1,5 @@
 import { Connection } from "vscode-languageserver";
-import { Node } from "yaml/types";
+import { Node } from "yaml";
 import { getDeclaredCollections } from "../utils/yaml";
 import { findDocumentation, findPluginRouting } from "../utils/docsFinder";
 import { WorkspaceFolderContext } from "./workspaceManager";

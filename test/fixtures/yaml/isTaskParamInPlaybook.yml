@@ -1,7 +1,3 @@
-test: parameter
----
-- name: Test task
-  become: yes
 ---
 - name: Test play with tasks
   hosts: localhost

@@ -8,4 +8,4 @@
 
     - name: Complex task {{ message }} name {{  }}
       some_other_module:
-        - other_opt: {{  }} # improper syntax
+        - other_opt: { {} } # improper syntax

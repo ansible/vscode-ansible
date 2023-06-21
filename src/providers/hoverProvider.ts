@@ -1,6 +1,6 @@
 import { Hover, MarkupContent, MarkupKind } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
-import { Scalar } from "yaml/types";
+import { isScalar, Scalar } from "yaml";
 import { DocsLibrary } from "../services/docsLibrary";
 import {
   blockKeywords,
@@ -37,7 +37,7 @@ export async function doHover(
   if (path) {
     const node = path[path.length - 1];
     if (
-      node instanceof Scalar &&
+      isScalar(node) &&
       new AncestryBuilder(path).parentOfKey().get() // ensure we look at a key, not value of a Pair
     ) {
       if (isPlayParam(path)) {
@@ -53,11 +53,11 @@ export async function doHover(
       }
 
       if (isTaskParam(path)) {
-        if (isTaskKeyword(node.value)) {
+        if (isTaskKeyword(node.value as string)) {
           return getKeywordHover(document, node, taskKeywords);
         } else {
           const [module, hitFqcn] = await docsLibrary.findModule(
-            node.value,
+            node.value as string,
             path,
             document.uri,
           );
@@ -66,7 +66,7 @@ export async function doHover(
             return {
               contents: formatModule(
                 module.documentation,
-                docsLibrary.getModuleRoute(hitFqcn || node.value),
+                docsLibrary.getModuleRoute(hitFqcn || (node.value as string)),
               ),
               range: range ? toLspRange(range, document) : undefined,
             };
@@ -91,7 +91,7 @@ export async function doHover(
       );
 
       if (options) {
-        const option = options.get(node.value);
+        const option = options.get(node.value as string);
         if (option) {
           return {
             contents: formatOption(option, true),
@@ -108,7 +108,7 @@ function getKeywordHover(
   node: Scalar,
   keywords: Map<string, string | MarkupContent>,
 ): Hover | null {
-  const keywordDocumentation = keywords.get(node.value);
+  const keywordDocumentation = keywords.get(node.value as string);
   const markupDoc =
     typeof keywordDocumentation === "string"
       ? {
