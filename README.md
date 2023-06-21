@@ -147,6 +147,14 @@ You may also open the implementation of any module using the standard _Go to
 Definition_ operation, for instance, by clicking on the module name while
 holding `ctrl`/`cmd`.
 
+### Ansible Lightspeed with Watson Code Assistant
+
+AI based Ansible code recommendations
+
+- [Getting started](https://docs.ai.ansible.redhat.com/vscode_guide/installing_vs/#configuring-the-ansible-vs-code-extension)
+
+- [Contact](https://matrix.to/#/%23ansible-lightspeed:ansible.im)
+
 ## Requirements
 
 - [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
@@ -236,6 +244,10 @@ which you can learn more about at
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
+
+## Contact
+
+- [Ansible Developer Tools matrix channel](https://matrix.to/#/#devtools:ansible.im)
 
 ## Credit
 

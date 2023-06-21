@@ -9,6 +9,7 @@ autofix
 autoupdate
 backticks
 bashate
+bitness
 bthornto
 cfgs
 chromedriver
@@ -59,6 +60,7 @@ loglevel
 lxml
 Maciążek
 markdownlint
+maxlength
 mochawesome
 modeline
 modelines
@@ -80,6 +82,7 @@ preinstall
 priyamsahoo
 projectuser
 prsahoo
+Pyenv
 pyparsing
 PYTHONBREAKPOINT
 PYTHONHOME
@@ -100,6 +103,8 @@ stopendy
 suboptions
 sysninja
 taskfile
+Testenvs
+testenv
 testhost
 testorg
 timonwong
@@ -118,6 +123,7 @@ venvs
 vscoss
 vsix
 vyos
+Webviews
 webknjaz
 webpacked
 whitespaces

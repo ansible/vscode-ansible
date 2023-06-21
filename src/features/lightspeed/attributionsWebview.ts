@@ -92,7 +92,7 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
   }
 
   private async getWebviewContent(): Promise<string> {
-    const noAttributionsFoundHtml = `<html><body>No attributions found for the latest accepted suggestion.</body></html>`;
+    const noAttributionsFoundHtml = `<html><body>No training matches found for the latest accepted suggestion.</body></html>`;
     if (
       this.suggestionDetails.length === 0 ||
       !this.suggestionDetails[0].suggestion

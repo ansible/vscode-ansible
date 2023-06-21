@@ -15,7 +15,7 @@ import { LightSpeedCommands } from "../../definitions/constants";
 import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
-  /(?<blank>\s*)(?<list>-\s*name\s*:\s*)(?<description>.*)(?<end>$)/;
+  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>.*)(?<end>$)/;
 
 let suggestionId = "";
 let currentSuggestion = "";
@@ -40,7 +40,7 @@ export class LightSpeedInlineSuggestionProvider
       return [];
     }
     if (activeTextEditor.document.languageId !== "ansible") {
-      lightSpeedManager.lightSpeedStatusBar.hide();
+      lightSpeedManager.statusBarProvider.statusBar.hide();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -50,7 +50,7 @@ export class LightSpeedInlineSuggestionProvider
       return [];
     }
     if (document.languageId !== "ansible") {
-      lightSpeedManager.lightSpeedStatusBar.hide();
+      lightSpeedManager.statusBarProvider.statusBar.hide();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -58,7 +58,7 @@ export class LightSpeedInlineSuggestionProvider
       lightSpeedManager.settingsManager.settings.lightSpeedService;
     if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
       console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
-      lightSpeedManager.updateLightSpeedStatusbar();
+      lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -99,11 +99,37 @@ export class LightSpeedInlineSuggestionProvider
     }
     const lineToExtractPrompt = document.lineAt(position.line - 1);
     const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
-
     const currentLineText = document.lineAt(position);
+    const spacesBeforeTaskNameStart =
+      lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
+    const spacesBeforeCursor =
+      currentLineText?.text.slice(0, position.character).match(/^ +/)?.[0]
+        .length || 0;
 
-    if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+    if (
+      !taskMatchedPattern ||
+      !currentLineText.isEmptyOrWhitespace ||
+      spacesBeforeTaskNameStart !== spacesBeforeCursor
+    ) {
       resetInlineSuggestionDisplayed();
+      // If the user has triggered the inline suggestion by pressing the configured keys,
+      // we will show an information message to the user to help them understand the
+      // correct cursor position to trigger the inline suggestion.
+      if (context.triggerKind === vscode.InlineCompletionTriggerKind.Invoke) {
+        if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+          vscode.window.showInformationMessage(
+            "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
+          );
+        } else if (
+          taskMatchedPattern &&
+          currentLineText.isEmptyOrWhitespace &&
+          spacesBeforeTaskNameStart !== spacesBeforeCursor
+        ) {
+          vscode.window.showInformationMessage(
+            `Cursor must be in column ${spacesBeforeTaskNameStart} to trigger an inline suggestion.`
+          );
+        }
+      }
       return [];
     }
     inlineSuggestionData = {};
@@ -113,7 +139,7 @@ export class LightSpeedInlineSuggestionProvider
   }
 }
 
-async function getInlineSuggestionItems(
+export async function getInlineSuggestionItems(
   document: vscode.TextDocument,
   currentPosition: vscode.Position
 ): Promise<vscode.InlineCompletionItem[]> {
@@ -149,19 +175,20 @@ async function getInlineSuggestionItems(
     if (!shouldRequestInlineSuggestions(documentContent)) {
       return [];
     }
-    lightSpeedManager.lightSpeedStatusBar.text = "$(loading~spin) Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      "$(loading~spin) Lightspeed";
     result = await requestInlineSuggest(
       documentContent,
       documentUri,
       activityId
     );
-    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
   } catch (error) {
     inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
   } finally {
-    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
   }
   if (!result || !result.predictions || result.predictions.length === 0) {
     console.error("[inline-suggestions] Inline suggestions not found.");
@@ -224,10 +251,11 @@ async function requestInlineSuggest(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
   );
 
-  lightSpeedManager.lightSpeedStatusBar.tooltip = "processing...";
+  lightSpeedManager.statusBarProvider.statusBar.show();
+  lightSpeedManager.statusBarProvider.statusBar.tooltip = "processing...";
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
-  lightSpeedManager.lightSpeedStatusBar.tooltip = "Done";
+  lightSpeedManager.statusBarProvider.statusBar.tooltip = "Done";
 
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`

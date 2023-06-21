@@ -6,7 +6,9 @@ export function shouldRequestInlineSuggestions(
 ): boolean {
   let parsedAnsibleDocument = undefined;
   try {
-    parsedAnsibleDocument = yaml.parse(documentContent, { keepCstNodes: true });
+    parsedAnsibleDocument = yaml.parse(documentContent, {
+      keepSourceTokens: true,
+    });
   } catch (err) {
     vscode.window.showErrorMessage(
       `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
@@ -23,6 +25,9 @@ export function shouldRequestInlineSuggestions(
     typeof parsedAnsibleDocument === "object" &&
     !Array.isArray(parsedAnsibleDocument)
   ) {
+    vscode.window.showErrorMessage(
+      "Ansible Lightspeed expects valid Ansible syntax. For playbook files it should be a list of plays and for tasks files it should be list of tasks."
+    );
     return false;
   }
 

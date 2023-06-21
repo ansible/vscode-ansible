@@ -4,6 +4,52 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.4
+
+### Minor Changes
+
+- Lightspeed UI feedback and sentiment (#924) @ganeshrn
+
+### Bugfixes
+
+- Update readme with lightspeed section (#926) @ganeshrn
+
+## v2.3
+
+### Minor Changes
+
+- Add support for tox-ansible plugin test discovery (#902) @ganeshrn
+
+### Bugfixes
+
+- Fix notification for lightspeed login after the setting is disabled (#911)
+  @ganeshrn
+- [Lightspeed] Fix connect button working (#908) @priyamsahoo
+
+## v2.2
+
+### Bugfixes
+
+- Update attributionsWebview.ts (#901) @robinbobbitt
+
+## v2.1
+
+### Minor Changes
+
+- Easy discovery of Python interpreter and Ansible executables (#871)
+  @priyamsahoo
+
+### Bugfixes
+
+- Add information message for inline suggestion trigger command (#896) @ganeshrn
+- Update status-bar items (#891) @priyamsahoo
+- Update inline suggestion trigger condition (#892) @ganeshrn
+- Add ability to select and set cursor on vars (#883) @priyamsahoo
+- Add logic for conditional Authentication Provider registration (#877)
+  @ganeshrn
+- Fix regex to match trigger for lightspeed suggestion (#875) @ganeshrn
+- Update dependencies (#872) @ssbarnea
+
 ## v2.0
 
 ### Major Changes

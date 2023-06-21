@@ -65,20 +65,20 @@ export class MetadataManager {
    * Calls the 'updateAnsibleInfo' function to update the ansible metadata
    * in the statusbar hovering action
    */
-  public updateAnsibleInfoInStatusbar(): void {
+  public async updateAnsibleInfoInStatusbar(): Promise<void> {
     if (window.activeTextEditor?.document.languageId !== "ansible") {
       this.metadataStatusBarItem.hide();
       return;
     }
 
-    this.updateAnsibleInfo();
+    await this.updateAnsibleInfo();
   }
 
   /**
    * Sends notification with active file uri as param to the server
    * and receives notification from the server with ansible meta data associated with the opened file as param
    */
-  public updateAnsibleInfo(): void {
+  public async updateAnsibleInfo(): Promise<void> {
     if (!this.client.isRunning()) {
       return;
     }
@@ -132,7 +132,7 @@ export class MetadataManager {
           }
         } else {
           console.log("Ansible not found in the workspace");
-          this.metadataStatusBarItem.text = "$(error) Ansible Info";
+          this.metadataStatusBarItem.text = "$(error) Ansible";
           this.metadataStatusBarItem.tooltip = ansibleMetaData.markdown;
           this.metadataStatusBarItem.backgroundColor = new ThemeColor(
             "statusBarItem.errorBackground"
