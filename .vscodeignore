@@ -13,7 +13,7 @@
 !jinja-language-configuration.json
 !media/style.css
 !out/client/src/extension.js
-!out/client/webview.js
+!out/client/webview/apps/lightspeed/main.js
 !out/server/src/server.js
 !package.json
 !package.nls.json
