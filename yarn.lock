@@ -1456,7 +1456,7 @@ __metadata:
     warnings-to-errors-webpack-plugin: ^2.3.0
     webpack: ^5.81.0
     webpack-cli: ^5.0.2
-    yaml: ^1.10.2
+    yaml: ^2.2.2
     yarn-audit-fix: ^9.3.10
   languageName: unknown
   linkType: soft
@@ -7116,10 +7116,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^1.10.0, yaml@npm:^1.10.2, yaml@npm:^1.10.2 <2.0":
+"yaml@npm:^1.10.0, yaml@npm:^1.10.2 <2.0":
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: ce4ada136e8a78a0b08dc10b4b900936912d15de59905b2bf415b4d33c63df1d555d23acb2a41b23cf9fb5da41c256441afca3d6509de7247daa062fd2c5ea5f
+  languageName: node
+  linkType: hard
+
+"yaml@npm:^2.2.2":
+  version: 2.3.1
+  resolution: "yaml@npm:2.3.1"
+  checksum: 2c7bc9a7cd4c9f40d3b0b0a98e370781b68b8b7c4515720869aced2b00d92f5da1762b4ffa947f9e795d6cd6b19f410bd4d15fdd38aca7bd96df59bd9486fb54
   languageName: node
   linkType: hard
 

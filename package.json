@@ -632,7 +632,7 @@
     "untildify": "^4.0.0",
     "uuid": "^9.0.0",
     "vscode-languageclient": "^8.1.0",
-    "yaml": "^1.10.2"
+    "yaml": "^2.2.2"
   },
   "description": "Ansible language support",
   "devDependencies": {
