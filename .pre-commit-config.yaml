@@ -36,7 +36,7 @@ repos:
       #   entry: npx yarn npm audit
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.2
+    rev: v0.9.0.5
     hooks:
       - id: shellcheck
         args:
@@ -80,7 +80,7 @@ repos:
             yarn.lock
           )$
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.31.0
+    rev: v1.32.0
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -122,7 +122,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.39.0
+    rev: v8.42.0
     hooks:
       - id: eslint
         args:
