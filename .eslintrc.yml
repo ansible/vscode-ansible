@@ -10,6 +10,7 @@ extends:
   - prettier
 ignorePatterns:
   - out
+  - media
 parser: "@typescript-eslint/parser"
 parserOptions:
   ecmaVersion: 2021

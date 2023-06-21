@@ -58,6 +58,8 @@ import { PythonInterpreterManager } from "./features/pythonMetadata";
 import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
+import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
+import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -143,7 +145,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK,
-      lightSpeedManager.lightSpeedStatusBarClickHandler
+      () =>
+        lightSpeedManager.statusBarProvider.lightSpeedStatusBarClickHandler()
     )
   );
 
@@ -275,6 +278,29 @@ export async function activate(context: ExtensionContext): Promise<void> {
     );
   }
 
+  // handle lightSpeed feedback
+  const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
+    context.extensionUri
+  );
+
+  // Register the Lightspeed provider for a Webview View
+  const lightspeedFeedbackDisposable = window.registerWebviewViewProvider(
+    LightspeedFeedbackWebviewViewProvider.viewType,
+    lightspeedFeedbackProvider
+  );
+
+  context.subscriptions.push(lightspeedFeedbackDisposable);
+
+  // Register the Lightspeed provider for a Webview
+  const lightspeedFeedbackCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_FEEDBACK,
+    () => {
+      LightspeedFeedbackWebviewProvider.render(context.extensionUri);
+    }
+  );
+
+  context.subscriptions.push(lightspeedFeedbackCommand);
+
   // handle Ansible Tox
   const ansibleToxController = new AnsibleToxController();
   context.subscriptions.push(await ansibleToxController.create());
@@ -376,7 +402,7 @@ async function updateAnsibleStatusBar(
   pythonInterpreterManager: PythonInterpreterManager
 ) {
   await metaData.updateAnsibleInfoInStatusbar();
-  lightSpeedManager.updateLightSpeedStatusbar();
+  lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
   await pythonInterpreterManager.updatePythonInfoInStatusbar();
 }
 /**
