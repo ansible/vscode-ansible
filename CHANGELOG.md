@@ -4,6 +4,16 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.4
+
+### Minor Changes
+
+- Lightspeed UI feedback and sentiment (#924) @ganeshrn
+
+### Bugfixes
+
+- Update readme with lightspeed section (#926) @ganeshrn
+
 ## v2.3
 
 ### Minor Changes
