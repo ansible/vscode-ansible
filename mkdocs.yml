@@ -63,8 +63,8 @@ markdown_extensions:
       repo_url_shorthand: true
       social_url_shorthand: true
       social_url_shortener: true
-      user: facelessuser
-      repo: pymdown-extensions
+      user: ansible
+      repo: ansible-language-server
       normalize_issue_symbols: true
   - pymdownx.tabbed:
       alternate_style: true
