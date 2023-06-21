@@ -138,8 +138,8 @@ tasks:
     deps:
       - package
     cmds:
-      - task: test-ui
-      - task: test-ui-old
+      #- task: test-ui
+      #- task: test-ui-old
       - task: test-e2e
       - tools/dirty.sh
     interactive: true

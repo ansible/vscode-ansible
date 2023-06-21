@@ -134,10 +134,15 @@ export class LightSpeedAPI {
   }
 
   public async feedbackRequest(
-    inputData: FeedbackRequestParams
+    inputData: FeedbackRequestParams,
+    showAuthErrorMessage = false,
+    showInfoMessage = false
   ): Promise<FeedbackResponseParams> {
     // return early if the user is not authenticated
-    if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
+    if (
+      !(await this.lightSpeedAuthProvider.isAuthenticated()) &&
+      !showAuthErrorMessage
+    ) {
       return {} as FeedbackResponseParams;
     }
 
@@ -154,6 +159,10 @@ export class LightSpeedAPI {
           timeout: 20000,
         }
       );
+      if (showInfoMessage) {
+        vscode.window.showInformationMessage("Thanks for your feedback!");
+      }
+      console.log(`Event sent to lightspeed: ${JSON.stringify(inputData)}}`);
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
