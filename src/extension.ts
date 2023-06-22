@@ -164,8 +164,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
-        let moduleName = getModuleName(lightSpeedManager.attributionsProvider.suggestionDetails?.[0]);
-        getDocumentationInfo(moduleName, docsViewProvider, examplesViewProvider);
+        const moduleName = getModuleName(
+          lightSpeedManager.attributionsProvider.suggestionDetails?.[0]
+        );
+        getDocumentationInfo(
+          moduleName,
+          docsViewProvider,
+          examplesViewProvider
+        );
         lightSpeedManager.attributionsProvider.showAttributions();
       }
     )
@@ -180,14 +186,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
     )
   );
 
-  const docsViewProvider = new DocsViewProvider(context.extensionUri)
+  const docsViewProvider = new DocsViewProvider(context.extensionUri);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(DocsViewProvider.viewType, docsViewProvider)
+    vscode.window.registerWebviewViewProvider(
+      DocsViewProvider.viewType,
+      docsViewProvider
+    )
   );
-  
-  const examplesViewProvider = new ExamplesViewProvider(context.extensionUri)
+
+  const examplesViewProvider = new ExamplesViewProvider(context.extensionUri);
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(ExamplesViewProvider.viewType, examplesViewProvider)
+    vscode.window.registerWebviewViewProvider(
+      ExamplesViewProvider.viewType,
+      examplesViewProvider
+    )
   );
 
   const lightSpeedSuggestionProvider = new LightSpeedInlineSuggestionProvider();
@@ -477,23 +489,25 @@ async function getAuthToken(): Promise<void> {
 }
 
 function getModuleName(suggestions: Record<string, any>): string {
-  console.log(suggestions)
+  console.log(suggestions);
   if (suggestions) {
     const suggestion = suggestions.suggestion;
-    return suggestion.substring(0, suggestion.indexOf(":")).trim()
-  }
-  else return "";
+    return suggestion.substring(0, suggestion.indexOf(":")).trim();
+  } else return "";
 }
 
 function getDocumentationInfo(moduleName: string, docs: any, examples: any) {
-  axios.get("http://localhost:5000/" + moduleName)
+  axios
+    .get(`http://localhost:5000/${moduleName}`)
     .then((response: AxiosResponse) => {
-      docs.setHTMLDoc(("<div class=\"title\">" + moduleName + "</div><pre>" + response.data.documentation + "<pre>"));
-      examples.setHTMLDoc(("<pre>" + response.data.examples + "<pre>"));
+      docs.setHTMLDoc(
+        `<div class="title">${moduleName}</div><pre>${response.data.documentation}<pre>`
+      );
+      examples.setHTMLDoc(`<pre>${response.data.examples}<pre>`);
     })
     .catch((error) => {
-      console.error('Error:', error.message);
-      docs.setHTMLDoc("<br/>No information was found for " + moduleName);
+      console.error("Error:", error.message);
+      docs.setHTMLDoc(`<br/>No information was found for ${moduleName}`);
       examples.setHTMLDoc("");
     });
 }
