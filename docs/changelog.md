@@ -19,6 +19,25 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.1.0
+
+### Minor Changes
+
+- Update yaml to 2.x (#566) @priyamsahoo
+- Add variable auto-completion feature when cursor inside jinja inline brackets
+  (#552) @priyamsahoo
+
+### Bugfixes
+
+- Get module route for FQCN with more than 3 elements (#538) @fredericgiquel
+- Replace sphinx with mkdocs (#544) @ssbarnea
+- Modify package version info in meta-data (#530) @priyamsahoo
+- Fix intermittent EE test failures (#533) @ganeshrn
+- Fix github issue links in docs (#573) @antdking
+- Fix ansible lint config parsing (#577) @priyamsahoo
+- Add env variable to remove color from command result stdout (#579)
+  @priyamsahoo
+
 ## v1.0.4
 
 ### Bugfixes
