@@ -68,6 +68,16 @@
           "name": "Ansible Lightspeed Login"
         },
         {
+          "id": "lightspeed-docs-webview",
+          "name": "Documentation",
+          "type": "webview"
+        },
+        {
+          "id": "lightspeed-examples-webview",
+          "name": "Examples",
+          "type": "webview"
+        },
+        {
           "id": "lightspeed-feedback-webview",
           "name": "Ansible Lightspeed Feedback",
           "type": "webview"

@@ -38,6 +38,8 @@ import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
+import { DocsViewProvider } from "./docsView";
+import { ExamplesViewProvider } from "./examplesView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
   LightSpeedInlineSuggestionProvider,
@@ -60,6 +62,7 @@ import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
+import axios, { AxiosInstance, AxiosResponse, AxiosError } from "axios";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -161,6 +164,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
+        let moduleName = getModuleName(lightSpeedManager.attributionsProvider.suggestionDetails?.[0]);
+        getDocumentationInfo(moduleName, docsViewProvider, examplesViewProvider);
         lightSpeedManager.attributionsProvider.showAttributions();
       }
     )
@@ -173,6 +178,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager.attributionsProvider.clearAttributions();
       }
     )
+  );
+
+  const docsViewProvider = new DocsViewProvider(context.extensionUri)
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(DocsViewProvider.viewType, docsViewProvider)
+  );
+  
+  const examplesViewProvider = new ExamplesViewProvider(context.extensionUri)
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(ExamplesViewProvider.viewType, examplesViewProvider)
   );
 
   const lightSpeedSuggestionProvider = new LightSpeedInlineSuggestionProvider();
@@ -459,4 +474,26 @@ async function getAuthToken(): Promise<void> {
   if (session) {
     window.showInformationMessage(`Welcome back ${session.account.label}`);
   }
+}
+
+function getModuleName(suggestions: Record<string, any>): string {
+  console.log(suggestions)
+  if (suggestions) {
+    const suggestion = suggestions.suggestion;
+    return suggestion.substring(0, suggestion.indexOf(":")).trim()
+  }
+  else return "";
+}
+
+function getDocumentationInfo(moduleName: string, docs: any, examples: any) {
+  axios.get("http://localhost:5000/" + moduleName)
+    .then((response: AxiosResponse) => {
+      docs.setHTMLDoc(("<div class=\"title\">" + moduleName + "</div><pre>" + response.data.documentation + "<pre>"));
+      examples.setHTMLDoc(("<pre>" + response.data.examples + "<pre>"));
+    })
+    .catch((error) => {
+      console.error('Error:', error.message);
+      docs.setHTMLDoc("<br/>No information was found for " + moduleName);
+      examples.setHTMLDoc("");
+    });
 }
