@@ -457,10 +457,11 @@ function getModuleName(suggestions: Record<string, any>): string {
 function getDocumentationInfo(moduleName: string, document: any) {
   axios.get("http://localhost:5000/" + moduleName)
     .then((response: AxiosResponse) => {
-      //console.log('Response:', response.data);
-      document.setHTMLDoc(("<div class=\"title\">" + moduleName + "</div><br/>" + response.data.documentation + "<br/><div class=\"title2\">Example:</div>" + response.data.examples).replace(/\n/g, '<br/>'))
+      //console.log('Response:', response.data); //.replace(/\n/g, '<br/>')
+      document.setHTMLDoc(("<div class=\"title\">" + moduleName + "</div><pre>" + response.data.documentation + "<pre><br/><div class=\"title\">Example:</div><pre>" + response.data.examples + "<pre>"))
     })
     .catch((error) => {
       console.error('Error:', error.message);
+      document.setHTMLDoc("<br/>No information was found for " + moduleName);
     });
 }
