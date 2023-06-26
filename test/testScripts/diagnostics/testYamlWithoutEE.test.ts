@@ -37,17 +37,34 @@ export function testDiagnosticsYAMLWithoutEE(): void {
             message: "Nested mappings are not allowed in compact mappings",
             range: new vscode.Range(
               new vscode.Position(6, 13),
-              new vscode.Position(6, 13)
+              new vscode.Position(6, 14)
             ),
             source: "Ansible [YAML]",
           },
           {
             severity: 0,
-            message:
-              "Document contains trailing content not separated by a ... or --- line",
+            message: "Unexpected scalar at node end",
             range: new vscode.Range(
               new vscode.Position(7, 0),
-              new vscode.Position(8, 0)
+              new vscode.Position(7, 6)
+            ),
+            source: "Ansible [YAML]",
+          },
+          {
+            severity: 0,
+            message: "Unexpected map-value-ind token in YAML stream",
+            range: new vscode.Range(
+              new vscode.Position(7, 6),
+              new vscode.Position(7, 7)
+            ),
+            source: "Ansible [YAML]",
+          },
+          {
+            severity: 0,
+            message: "Unexpected scalar token in YAML stream",
+            range: new vscode.Range(
+              new vscode.Position(7, 8),
+              new vscode.Position(7, 12)
             ),
             source: "Ansible [YAML]",
           },
@@ -90,17 +107,34 @@ export function testDiagnosticsYAMLWithoutEE(): void {
             message: "Nested mappings are not allowed in compact mappings",
             range: new vscode.Range(
               new vscode.Position(6, 13),
-              new vscode.Position(6, 13)
+              new vscode.Position(6, 14)
             ),
             source: "Ansible [YAML]",
           },
           {
             severity: 0,
-            message:
-              "Document contains trailing content not separated by a ... or --- line",
+            message: "Unexpected scalar at node end",
             range: new vscode.Range(
               new vscode.Position(7, 0),
-              new vscode.Position(8, 0)
+              new vscode.Position(7, 6)
+            ),
+            source: "Ansible [YAML]",
+          },
+          {
+            severity: 0,
+            message: "Unexpected map-value-ind token in YAML stream",
+            range: new vscode.Range(
+              new vscode.Position(7, 6),
+              new vscode.Position(7, 7)
+            ),
+            source: "Ansible [YAML]",
+          },
+          {
+            severity: 0,
+            message: "Unexpected scalar token in YAML stream",
+            range: new vscode.Range(
+              new vscode.Position(7, 8),
+              new vscode.Position(7, 12)
             ),
             source: "Ansible [YAML]",
           },

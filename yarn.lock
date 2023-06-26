@@ -5,22 +5,22 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@ansible/ansible-language-server@npm:^1.0.4":
-  version: 1.0.4
-  resolution: "@ansible/ansible-language-server@npm:1.0.4"
+"@ansible/ansible-language-server@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@ansible/ansible-language-server@npm:1.1.0"
   dependencies:
-    "@flatten-js/interval-tree": ^1.0.18
-    glob: ^8.0.1
-    ini: ^3.0.0
+    "@flatten-js/interval-tree": ^1.0.20
+    glob: ^9.3.2
+    ini: ^4.0.0
     lodash: ^4.17.21
-    uuid: ^8.3.2
-    vscode-languageserver: ^7.0.0
-    vscode-languageserver-textdocument: ^1.0.4
-    vscode-uri: ^3.0.3
-    yaml: ^1.10.2 <2.0
+    uuid: ^9.0.0
+    vscode-languageserver: ^8.1.0
+    vscode-languageserver-textdocument: ^1.0.8
+    vscode-uri: ^3.0.7
+    yaml: ^2.2.2
   bin:
     ansible-language-server: bin/ansible-language-server
-  checksum: cc7499af2163b302d02e926fa84e3e0e413492218148fe20fb641a71a71bce69667c10c06cc2e80c227be5749432145526006862b7735e1ed11deaa3eceb1eb8
+  checksum: 3c160d3419ff387b6f7fb9873406e59219f66fc1a26029da77dc21ba1dd616c5ab920edd709852f05ba2d9ade028df0a9a09e367267492300aab9e5b5b0a5344
   languageName: node
   linkType: hard
 
@@ -221,7 +221,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@flatten-js/interval-tree@npm:^1.0.18":
+"@flatten-js/interval-tree@npm:^1.0.20":
   version: 1.0.20
   resolution: "@flatten-js/interval-tree@npm:1.0.20"
   checksum: 581c156facec5847d59deb9265222a9b00afe5e7408a221b6fbcd4b54ec6f8374ccd22d831fb149534c4eb5f79bbaa7587e3871622c92e58688276ca8ff966df
@@ -1413,7 +1413,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
-    "@ansible/ansible-language-server": ^1.0.4
+    "@ansible/ansible-language-server": ^1.1.0
     "@redhat-developer/vscode-redhat-telemetry": ^0.5.4
     "@types/chai": ^4.3.5
     "@types/glob": ^8.1.0
@@ -1448,7 +1448,7 @@ __metadata:
     sinon: ^15.0.4
     ts-loader: ^9.4.2
     ts-node: ^10.9.1
-    typescript: ^5.0.4
+    typescript: ^5.1.3
     untildify: ^4.0.0
     uuid: ^9.0.0
     vscode-extension-tester: ^5.5.3
@@ -3373,7 +3373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^8.0.1, glob@npm:^8.1.0":
+"glob@npm:^8.1.0":
   version: 8.1.0
   resolution: "glob@npm:8.1.0"
   dependencies:
@@ -3386,7 +3386,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^9.2.0, glob@npm:^9.3.5":
+"glob@npm:^9.2.0, glob@npm:^9.3.2, glob@npm:^9.3.5":
   version: 9.3.5
   resolution: "glob@npm:9.3.5"
   dependencies:
@@ -3721,13 +3721,6 @@ __metadata:
   version: 2.0.4
   resolution: "inherits@npm:2.0.4"
   checksum: 4a48a733847879d6cf6691860a6b1e3f0f4754176e4d71494c41f3475553768b10f84b5ce1d40fbd0e34e6bfbb864ee35858ad4dd2cf31e02fc4a154b724d7f1
-  languageName: node
-  linkType: hard
-
-"ini@npm:^3.0.0":
-  version: 3.0.1
-  resolution: "ini@npm:3.0.1"
-  checksum: 947b582a822f06df3c22c75c90aec217d604ea11f7a20249530ee5c1cf8f508288439abe17b0e1d9b421bda5f4fae5e7aae0b18cb3ded5ac9d68f607df82f10f
   languageName: node
   linkType: hard
 
@@ -6588,7 +6581,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.0.4":
+"typescript@npm:^5.1.3":
   version: 5.1.3
   resolution: "typescript@npm:5.1.3"
   bin:
@@ -6598,7 +6591,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@^5.0.4#~builtin<compat/typescript>":
+"typescript@patch:typescript@^5.1.3#~builtin<compat/typescript>":
   version: 5.1.3
   resolution: "typescript@patch:typescript@npm%3A5.1.3#~builtin<compat/typescript>::version=5.1.3&hash=5da071"
   bin:
@@ -6786,13 +6779,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-jsonrpc@npm:6.0.0":
-  version: 6.0.0
-  resolution: "vscode-jsonrpc@npm:6.0.0"
-  checksum: 3a67a56f287e8c449f2d9752eedf91e704dc7b9a326f47fb56ac07667631deb45ca52192e9bccb2ab108764e48409d70fa64b930d46fc3822f75270b111c5f53
-  languageName: node
-  linkType: hard
-
 "vscode-jsonrpc@npm:8.1.0":
   version: 8.1.0
   resolution: "vscode-jsonrpc@npm:8.1.0"
@@ -6811,16 +6797,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-languageserver-protocol@npm:3.16.0":
-  version: 3.16.0
-  resolution: "vscode-languageserver-protocol@npm:3.16.0"
-  dependencies:
-    vscode-jsonrpc: 6.0.0
-    vscode-languageserver-types: 3.16.0
-  checksum: ac30cbe4b778344f7b93defbaa1332dcb5a5a3a0afda6b88618a9ed44093c1ae1d2f11548bdcff42a73bb46943df025d4fe721559144dd7bf25ae60663aabe06
-  languageName: node
-  linkType: hard
-
 "vscode-languageserver-protocol@npm:3.17.3":
   version: 3.17.3
   resolution: "vscode-languageserver-protocol@npm:3.17.3"
@@ -6831,17 +6807,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-languageserver-textdocument@npm:^1.0.4":
+"vscode-languageserver-textdocument@npm:^1.0.8":
   version: 1.0.10
   resolution: "vscode-languageserver-textdocument@npm:1.0.10"
   checksum: 605ff0662535088567a145b48d28f0c41844d28269fa0b3fca3a1e179dd14baf7181150b274bf3840ef2a043ed8474a9227aaf169a6fae574516349a1b371a18
-  languageName: node
-  linkType: hard
-
-"vscode-languageserver-types@npm:3.16.0":
-  version: 3.16.0
-  resolution: "vscode-languageserver-types@npm:3.16.0"
-  checksum: 7a44fb10b9fbeb9529f832337b7f0430fc6275d62945b86851d425a950e22da3917ef5f6c552688191769dd1eae047c6ee9ec3d9f2280498353007c2dfe0725c
   languageName: node
   linkType: hard
 
@@ -6852,18 +6821,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-languageserver@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "vscode-languageserver@npm:7.0.0"
+"vscode-languageserver@npm:^8.1.0":
+  version: 8.1.0
+  resolution: "vscode-languageserver@npm:8.1.0"
   dependencies:
-    vscode-languageserver-protocol: 3.16.0
+    vscode-languageserver-protocol: 3.17.3
   bin:
     installServerIntoExtension: bin/installServerIntoExtension
-  checksum: 80cfbd5f8f0869c5369d1a61fe86b3210ee941cb646eb31b672045670ef3ce213dc1fd3bcd4cef6ef8bc7c5025f98e4a70dad645d97a0bd4708962bbd921683a
+  checksum: 38810619d0a7c587e7e84fc55d9897a0ac235b80a0a8c0ab1faf4283ec6ca1c25f80c0116bcc54aa99d0d9f202f69119fd8cb1264ffb5825eabf45af9bd6793d
   languageName: node
   linkType: hard
 
-"vscode-uri@npm:^3.0.3":
+"vscode-uri@npm:^3.0.7":
   version: 3.0.7
   resolution: "vscode-uri@npm:3.0.7"
   checksum: c899a0334f9f6ba53021328e083f6307978c09b94407d7e5fe86fcd8fcb8f1da0cb344123a335e55769055007a46d51aff83f9ee1dfc0296ee54b78f34ef0e4f
@@ -7116,7 +7085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^1.10.0, yaml@npm:^1.10.2 <2.0":
+"yaml@npm:^1.10.0":
   version: 1.10.2
   resolution: "yaml@npm:1.10.2"
   checksum: ce4ada136e8a78a0b08dc10b4b900936912d15de59905b2bf415b4d33c63df1d555d23acb2a41b23cf9fb5da41c256441afca3d6509de7247daa062fd2c5ea5f
