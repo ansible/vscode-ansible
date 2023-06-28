@@ -75,7 +75,7 @@ export function testHoverWithoutEE(): void {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
             contents: [
-              "The customized message that is printed. If omitted, prints a generic message.",
+              "The customized message that is printed\\. If omitted\\, prints a generic message\\.",
             ],
           },
         ]);
