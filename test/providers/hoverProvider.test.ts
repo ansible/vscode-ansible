@@ -131,7 +131,7 @@ function testModuleNames(
     {
       word: "ansible.builtin.debug -> msg",
       position: { line: 5, character: 10 } as Position,
-      doc: "The customized message that is printed. If omitted, prints a generic message.",
+      doc: "The customized message that is printed\\. If omitted\\, prints a generic message\\.",
     },
   ];
 

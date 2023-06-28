@@ -1,5 +1,6 @@
 import { format } from "util";
 import { MarkupContent, MarkupKind } from "vscode-languageserver";
+import { parse, toMD } from "antsibull-docs";
 import {
   IDescription,
   IModuleDocumentation,
@@ -135,16 +136,6 @@ export function getDetails(option: IOption): string | undefined {
 }
 
 // TODO: do something with links
-const macroPatterns = {
-  link: /L\((.*?),(.*?)\)/g,
-  url: /U\((.*?)\)/g,
-  reference: /R\((.*?),(.*?)\)/g,
-  module: /M\((.*?)\)/g,
-  monospace: /C\((.*?)\)/g,
-  italics: /I\((.*?)\)/g,
-  bold: /B\((.*?)\)/g,
-  hr: /\bHORIZONTALLINE\b/,
-};
 function replaceMacros(text: unknown): string {
   let safeText;
   if (typeof text === "string") {
@@ -152,13 +143,5 @@ function replaceMacros(text: unknown): string {
   } else {
     safeText = JSON.stringify(text);
   }
-  return safeText
-    .replace(macroPatterns.link, "[$1]($2)")
-    .replace(macroPatterns.url, "$1")
-    .replace(macroPatterns.reference, "[$1]($2)")
-    .replace(macroPatterns.module, "*`$1`*")
-    .replace(macroPatterns.monospace, "`$1`")
-    .replace(macroPatterns.italics, "_$1_")
-    .replace(macroPatterns.bold, "**$1**")
-    .replace(macroPatterns.hr, "<hr>");
+  return toMD(parse(safeText));
 }

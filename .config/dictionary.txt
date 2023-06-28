@@ -17,6 +17,7 @@ YOLO
 alphanums
 ansible
 ansiblefest
+antsibull
 apidoc
 autocrlf
 autofix

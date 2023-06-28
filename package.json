@@ -49,6 +49,7 @@
   ],
   "dependencies": {
     "@flatten-js/interval-tree": "^1.0.20",
+    "antsibull-docs": "^1.0.0",
     "glob": "^9.3.2",
     "ini": "^4.0.0",
     "lodash": "^4.17.21",
