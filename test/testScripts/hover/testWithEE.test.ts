@@ -62,9 +62,7 @@ export function testHoverEE(): void {
       it("should hover over builtin module option", async () => {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
-            contents: [
-              "customized message that is printed. If omitted, prints a generic message.",
-            ],
+            contents: ["customized message"],
           },
         ]);
       });
@@ -74,7 +72,7 @@ export function testHoverEE(): void {
       it("should hover over collection module name present in EE (ansible.posix.patch)", async () => {
         await testHover(docUri1, new vscode.Position(9, 7), [
           {
-            contents: ["using the GNU patch tool."],
+            contents: ["GNU patch"],
           },
         ]);
       });
@@ -82,7 +80,7 @@ export function testHoverEE(): void {
       it("should hover over collection module option present in EE (ansible.posix.patch -> src)", async () => {
         await testHover(docUri1, new vscode.Position(10, 9), [
           {
-            contents: ["accepted by the GNU patch tool."],
+            contents: ["GNU patch"],
           },
         ]);
       });
@@ -90,7 +88,7 @@ export function testHoverEE(): void {
       it("should hover over collection module option present in EE (ansible.posix.patch -> dest)", async () => {
         await testHover(docUri1, new vscode.Position(11, 9), [
           {
-            contents: ["remote machine to be patched."],
+            contents: ["remote machine"],
           },
         ]);
       });

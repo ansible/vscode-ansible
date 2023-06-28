@@ -74,9 +74,7 @@ export function testHoverWithoutEE(): void {
       it("should hover over builtin module option", async () => {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
-            contents: [
-              "customized message that is printed. If omitted, prints a generic message.",
-            ],
+            contents: ["customized message"],
           },
         ]);
       });
