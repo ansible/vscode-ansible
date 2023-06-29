@@ -1,5 +1,6 @@
 import { DefinitionLink, Range } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
+import { URI } from "vscode-uri";
 import { isScalar } from "yaml";
 import { DocsLibrary } from "../services/docsLibrary";
 import { toLspRange } from "../utils/misc";
@@ -34,7 +35,7 @@ export async function getDefinition(
           const range = getOrigRange(node);
           return [
             {
-              targetUri: module.source,
+              targetUri: URI.file(module.source).toString(),
               originSelectionRange: range
                 ? toLspRange(range, document)
                 : undefined,
