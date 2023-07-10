@@ -96,24 +96,46 @@ export class LightSpeedManager {
       return;
     }
 
+    const currentFileContent = document.getText();
     const documentUri = document.uri.toString();
-    let activityId: string | undefined = undefined;
-    if (trigger === AnsibleContentUploadTrigger.FILE_OPEN) {
+    let activityId: string;
+
+    if (this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
+      activityId = this.lightSpeedActivityTracker[documentUri].activityId;
+      const previousFileContent =
+        this.lightSpeedActivityTracker[documentUri].content;
+
+      if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
+        // end previous activity tracker
+        delete this.lightSpeedActivityTracker[documentUri];
+      }
+
+      if (previousFileContent === currentFileContent) {
+        console.log(
+          `[ansible-lightspeed-feedback] Event ansibleContent not sent as the content of file ${documentUri} is same as previous event.`
+        );
+        return;
+      }
+
+      if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
+        // start a new activity tracker
+        this.lightSpeedActivityTracker[documentUri].activityId = uuidv4();
+      }
+    } else {
       activityId = uuidv4();
-      this.lightSpeedActivityTracker[documentUri] = uuidv4();
-    } else if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
-      // retrieve previous activity tracker
-      activityId = this.lightSpeedActivityTracker[documentUri];
-
-      // start a new activity tracker
-      this.lightSpeedActivityTracker[documentUri] = uuidv4();
-    } else if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
-      // retrieve previous activity tracker
-      activityId = this.lightSpeedActivityTracker[documentUri];
-
-      // end previous activity tracker
-      delete this.lightSpeedActivityTracker[documentUri];
+      this.lightSpeedActivityTracker[documentUri] = {
+        activityId: activityId,
+        content: currentFileContent,
+      };
     }
+
+    if (!currentFileContent.trim()) {
+      console.log(
+        `[ansible-lightspeed-feedback] Event ansibleContent is not sent as the content of file ${documentUri} is empty.`
+      );
+      return;
+    }
+
     const inputData: FeedbackRequestParams = {
       ansibleContent: {
         content: document.getText(),
@@ -122,9 +144,7 @@ export class LightSpeedManager {
         activityId: activityId,
       },
     };
-    console.log(
-      "[ansible-lightspeed-feedback] Event lightSpeedServiceAnsibleContentFeedbackEvent sent."
-    );
+    console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
     this.apiInstance.feedbackRequest(inputData);
   }
 }

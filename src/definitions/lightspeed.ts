@@ -68,8 +68,12 @@ export interface FeedbackRequestParams {
   issueFeedback?: IssueFeedbackEvent;
 }
 
+export interface IDocumentTrackerFields {
+  activityId: string;
+  content: string;
+}
 export interface IDocumentTracker {
-  [key: string]: string;
+  [key: string]: IDocumentTrackerFields;
 }
 
 export interface AttributionsRequestParams {
