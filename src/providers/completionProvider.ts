@@ -34,6 +34,7 @@ import {
   parseAllDocuments,
   getPossibleOptionsForPath,
   isCursorInsideJinjaBrackets,
+  isPlaybook,
 } from "../utils/yaml";
 import { getVarsCompletion } from "./completionProviderUtils";
 
@@ -51,13 +52,16 @@ const priorityMap = {
   choice: 2,
 };
 
-let DUMMY_MAPPING_CHARACTERS;
+let dummyMappingCharacter: string;
+let isAnsiblePlaybook: boolean;
 
 export async function doCompletion(
   document: TextDocument,
   position: Position,
   context: WorkspaceFolderContext,
 ): Promise<CompletionItem[] | null> {
+  isAnsiblePlaybook = isPlaybook(document);
+
   let preparedText = document.getText();
   const offset = document.offsetAt(position);
 
@@ -70,7 +74,7 @@ export async function doCompletion(
   // 2. When we are at the value level, we use `__`. We do this because based on the above hack, the
   // use of `_:` at the value level creates invalid YAML as `: ` is an incorrect token in yaml string scalar
 
-  DUMMY_MAPPING_CHARACTERS = "_:";
+  dummyMappingCharacter = "_:";
 
   const previousCharactersOfCurrentLine = document.getText({
     start: { line: position.line, character: 0 },
@@ -80,10 +84,10 @@ export async function doCompletion(
   if (previousCharactersOfCurrentLine.includes(": ")) {
     // this means we have encountered ": " previously in the same line and thus we are
     // at the value level
-    DUMMY_MAPPING_CHARACTERS = "__";
+    dummyMappingCharacter = "__";
   }
 
-  preparedText = insert(preparedText, offset, DUMMY_MAPPING_CHARACTERS);
+  preparedText = insert(preparedText, offset, dummyMappingCharacter);
   const yamlDocs = parseAllDocuments(preparedText);
 
   const extensionSettings = await context.documentSettings.get(document.uri);
@@ -187,6 +191,7 @@ export async function doCompletion(
                 ? `${insertName}:${resolveSuffix(
                     "dict", // since a module is always a dictionary
                     cursorAtFirstElementOfList,
+                    isAnsiblePlaybook,
                   )}`
                 : insertName;
               return {
@@ -217,8 +222,11 @@ export async function doCompletion(
         return completionItems;
       }
 
-      // Provide variable auto-completion if the cursor is inside valid jinja inline brackets
-      if (isCursorInsideJinjaBrackets(document, position, path)) {
+      // Provide variable auto-completion if the cursor is inside valid jinja inline brackets in a playbook
+      if (
+        isAnsiblePlaybook &&
+        isCursorInsideJinjaBrackets(document, position, path)
+      ) {
         const varCompletion: CompletionItem[] = getVarsCompletion(
           document.uri,
           path,
@@ -491,7 +499,7 @@ function getNodeRange(node: Node, document: TextDocument): Range | undefined {
     const start = range[0];
     let end = range[1];
     // compensate for DUMMY MAPPING
-    if (node.value.includes(DUMMY_MAPPING_CHARACTERS)) {
+    if (node.value.includes(dummyMappingCharacter)) {
       end -= 2;
     } else {
       // colon, being at the end of the line, was excluded from the node
@@ -550,6 +558,7 @@ export async function doCompletionResolve(
         ? `${insertName}:${resolveSuffix(
             "dict", // since a module is always a dictionary
             completionItem.data.firstElementOfList,
+            isAnsiblePlaybook,
           )}`
         : insertName;
 
@@ -575,6 +584,7 @@ export async function doCompletionResolve(
       ? `${completionItem.label}:${resolveSuffix(
           completionItem.data.type,
           completionItem.data.firstElementOfList,
+          isAnsiblePlaybook,
         )}`
       : `${completionItem.label}`;
 
@@ -614,19 +624,40 @@ function firstElementOfList(document: TextDocument, nodeRange: Range): boolean {
   return elementsBeforeKey === "-";
 }
 
-function resolveSuffix(optionType: string, firstElementOfList: boolean) {
+export function resolveSuffix(
+  optionType: string,
+  firstElementOfList: boolean,
+  isDocPlaybook: boolean,
+) {
   let returnSuffix: string;
 
-  switch (optionType) {
-    case "list":
-      returnSuffix = firstElementOfList ? `${EOL}\t\t- ` : `${EOL}\t- `;
-      break;
-    case "dict":
-      returnSuffix = firstElementOfList ? `${EOL}\t\t` : `${EOL}\t`;
-      break;
-    default:
-      returnSuffix = " ";
-      break;
+  if (isDocPlaybook) {
+    // if doc is a playbook, indentation will shift one tab since a play is a list
+    switch (optionType) {
+      case "list":
+        returnSuffix = firstElementOfList ? `${EOL}\t\t- ` : `${EOL}\t- `;
+        break;
+      case "dict":
+        returnSuffix = firstElementOfList ? `${EOL}\t\t` : `${EOL}\t`;
+        break;
+      default:
+        returnSuffix = " ";
+        break;
+    }
+  } else {
+    // if doc is not a playbook (any other ansible file like task file, etc.) indentation will not
+    // include that extra tab
+    switch (optionType) {
+      case "list":
+        returnSuffix = `${EOL}\t- `;
+        break;
+      case "dict":
+        returnSuffix = `${EOL}\t`;
+        break;
+      default:
+        returnSuffix = " ";
+        break;
+    }
   }
 
   return returnSuffix;

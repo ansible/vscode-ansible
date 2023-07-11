@@ -31,33 +31,41 @@ function testFQCNEnabled(context: WorkspaceFolderContext) {
           firstElementOfList: false,
         },
       },
-      completionText: "org_1.coll_3.module_3",
+      completionTextAtLineEnd: `org_1.coll_3.module_3:${EOL}\t`,
+      completionTextInBetween: "org_1.coll_3.module_3",
     },
   ];
 
-  tests.forEach(({ name, completionItem, completionText }) => {
-    it(`should resolve completion for ${name}`, async function () {
-      const actualCompletionResolveAtLineEnd = await doCompletionResolve(
-        completionItem,
-        context,
-      );
+  tests.forEach(
+    ({
+      name,
+      completionItem,
+      completionTextAtLineEnd,
+      completionTextInBetween,
+    }) => {
+      it(`should resolve completion for ${name}`, async function () {
+        const actualCompletionResolveAtLineEnd = await doCompletionResolve(
+          completionItem,
+          context,
+        );
 
-      expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
-        `${completionText}:${EOL}\t`,
-      );
+        expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
+          completionTextAtLineEnd,
+        );
 
-      // Check for completion resolution when asked in between of lines
-      completionItem.data.atEndOfLine = false;
-      const actualCompletionResolveAtInBetween = await doCompletionResolve(
-        completionItem,
-        context,
-      );
+        // Check for completion resolution when asked in between of lines
+        completionItem.data.atEndOfLine = false;
+        const actualCompletionResolveAtInBetween = await doCompletionResolve(
+          completionItem,
+          context,
+        );
 
-      expect(actualCompletionResolveAtInBetween.insertText).be.equal(
-        `${completionText}`,
-      );
-    });
-  });
+        expect(actualCompletionResolveAtInBetween.insertText).be.equal(
+          completionTextInBetween,
+        );
+      });
+    },
+  );
 }
 
 function testFQCNDisabled(context: WorkspaceFolderContext) {
@@ -74,7 +82,8 @@ function testFQCNDisabled(context: WorkspaceFolderContext) {
           firstElementOfList: false,
         },
       },
-      completionText: "module_3",
+      completionTextAtLineEnd: `module_3:${EOL}\t`,
+      completionTextInBetween: "module_3",
     },
     {
       name: "module name with full FQCN since it is not present in declared collections in playbook",
@@ -88,32 +97,40 @@ function testFQCNDisabled(context: WorkspaceFolderContext) {
           firstElementOfList: false,
         },
       },
-      completionText: "org_1.coll_1.module_1",
+      completionTextAtLineEnd: `org_1.coll_1.module_1:${EOL}\t`,
+      completionTextInBetween: "org_1.coll_1.module_1",
     },
   ];
-  tests.forEach(({ name, completionItem, completionText }) => {
-    it(`should resolve completion for ${name}`, async function () {
-      const actualCompletionResolveAtLineEnd = await doCompletionResolve(
-        completionItem,
-        context,
-      );
+  tests.forEach(
+    ({
+      name,
+      completionItem,
+      completionTextAtLineEnd,
+      completionTextInBetween,
+    }) => {
+      it(`should resolve completion for ${name}`, async function () {
+        const actualCompletionResolveAtLineEnd = await doCompletionResolve(
+          completionItem,
+          context,
+        );
 
-      expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
-        `${completionText}:${EOL}\t`,
-      );
+        expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
+          completionTextAtLineEnd,
+        );
 
-      // Check for completion resolution when asked in between of lines
-      completionItem.data.atEndOfLine = false;
-      const actualCompletionResolveAtInBetween = await doCompletionResolve(
-        completionItem,
-        context,
-      );
+        // Check for completion resolution when asked in between of lines
+        completionItem.data.atEndOfLine = false;
+        const actualCompletionResolveAtInBetween = await doCompletionResolve(
+          completionItem,
+          context,
+        );
 
-      expect(actualCompletionResolveAtInBetween.insertText).be.equal(
-        `${completionText}`,
-      );
-    });
-  });
+        expect(actualCompletionResolveAtInBetween.insertText).be.equal(
+          completionTextInBetween,
+        );
+      });
+    },
+  );
 }
 
 function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
@@ -129,7 +146,8 @@ function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
           firstElementOfList: true,
         },
       },
-      completionText: "opt_1",
+      completionTextAtLineEnd: `opt_1:${EOL}\t\t`,
+      completionTextInBetween: "opt_1",
     },
     {
       name: "sub option expecting list with `sub_option: ${EOL}\\t- `",
@@ -141,7 +159,8 @@ function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
           atEndOfLine: true,
         },
       },
-      completionText: "sub_opt_2",
+      completionTextAtLineEnd: `sub_opt_2:${EOL}\t- `,
+      completionTextInBetween: "sub_opt_2",
     },
     {
       name: "sub option expecting string or number or boolean with `sub_option: `",
@@ -153,49 +172,41 @@ function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
           atEndOfLine: true,
         },
       },
-      completionText: "sub_opt_1",
+      completionTextAtLineEnd: "sub_opt_1: ",
+      completionTextInBetween: "sub_opt_1",
     },
   ];
 
-  tests.forEach(({ name, completionItem, completionText }) => {
-    it(`should resolve completion for ${name}`, async function () {
-      const actualCompletionResolveAtLineEnd = await doCompletionResolve(
-        completionItem,
-        context,
-      );
+  tests.forEach(
+    ({
+      name,
+      completionItem,
+      completionTextAtLineEnd,
+      completionTextInBetween,
+    }) => {
+      it(`should resolve completion for ${name}`, async function () {
+        const actualCompletionResolveAtLineEnd = await doCompletionResolve(
+          completionItem,
+          context,
+        );
 
-      let returnSuffix: string;
-      switch (completionItem.data.type) {
-        case "list":
-          returnSuffix = completionItem.data.firstElementOfList
-            ? `${EOL}\t\t- `
-            : `${EOL}\t- `;
-          break;
-        case "dict":
-          returnSuffix = completionItem.data.firstElementOfList
-            ? `${EOL}\t\t`
-            : `${EOL}\t`;
-          break;
-        default:
-          returnSuffix = " ";
-          break;
-      }
-      expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
-        `${completionText}:${returnSuffix}`,
-      );
+        expect(actualCompletionResolveAtLineEnd.insertText).be.equal(
+          completionTextAtLineEnd,
+        );
 
-      // Check for completion resolution when asked in between of lines
-      completionItem.data.atEndOfLine = false;
-      const actualCompletionResolveAtInBetween = await doCompletionResolve(
-        completionItem,
-        context,
-      );
+        // Check for completion resolution when asked in between of lines
+        completionItem.data.atEndOfLine = false;
+        const actualCompletionResolveAtInBetween = await doCompletionResolve(
+          completionItem,
+          context,
+        );
 
-      expect(actualCompletionResolveAtInBetween.insertText).be.equal(
-        `${completionText}`,
-      );
-    });
-  });
+        expect(actualCompletionResolveAtInBetween.insertText).be.equal(
+          completionTextInBetween,
+        );
+      });
+    },
+  );
 }
 
 describe("doCompletionResolve()", () => {
@@ -208,57 +219,61 @@ describe("doCompletionResolve()", () => {
   const docSettings = context.documentSettings.get(textDoc.uri);
 
   describe("Resolve completion for module names", () => {
-    describe("With useFQCN enabled and with EE enabled @ee", () => {
-      before(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
-        );
-        await enableExecutionEnvironmentSettings(docSettings);
-      });
-      testFQCNEnabled(context);
+    describe("Resolve completion for module names when FQCN is enabled", function () {
+      describe("with EE enabled @ee", () => {
+        before(async () => {
+          setFixtureAnsibleCollectionPathEnv(
+            "/home/runner/.ansible/collections:/usr/share/ansible",
+          );
+          await enableExecutionEnvironmentSettings(docSettings);
+        });
+        testFQCNEnabled(context);
 
-      after(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        after(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          await disableExecutionEnvironmentSettings(docSettings);
+        });
       });
-    });
 
-    describe("With useFQCN enabled and with EE disabled", () => {
-      before(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
-      });
-      testFQCNEnabled(context);
-    });
-
-    describe("With useFQCN disabled and with EE enabled @ee", () => {
-      before(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
-        );
-        await enableExecutionEnvironmentSettings(docSettings);
-        (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
-      });
-      testFQCNDisabled(context);
-
-      after(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
-        (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
+      describe("with EE disabled", () => {
+        before(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          await disableExecutionEnvironmentSettings(docSettings);
+        });
+        testFQCNEnabled(context);
       });
     });
 
-    describe("With useFQCN disabled and with EE disabled", () => {
-      before(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
-        (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
-      });
-      testFQCNDisabled(context);
+    describe("Resolve completion for module names when FQCN is disabled", function () {
+      describe("with EE enabled @ee", () => {
+        before(async () => {
+          setFixtureAnsibleCollectionPathEnv(
+            "/home/runner/.ansible/collections:/usr/share/ansible",
+          );
+          await enableExecutionEnvironmentSettings(docSettings);
+          (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
+        });
+        testFQCNDisabled(context);
 
-      after(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
+        after(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          await disableExecutionEnvironmentSettings(docSettings);
+          (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
+        });
+      });
+
+      describe("with EE disabled", () => {
+        before(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          await disableExecutionEnvironmentSettings(docSettings);
+          (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
+        });
+        testFQCNDisabled(context);
+
+        after(async () => {
+          setFixtureAnsibleCollectionPathEnv();
+          (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
+        });
       });
     });
   });
