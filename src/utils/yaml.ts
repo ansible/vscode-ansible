@@ -569,7 +569,11 @@ export function isPlaybook(textDocument: TextDocument): boolean {
   const playbookJSON = path[0].toJSON();
 
   Object.keys(playbookJSON).forEach(function (key) {
-    Object.keys(playbookJSON[key]).forEach((item) => playbookKeysSet.add(item));
+    if (playbookJSON[key]) {
+      Object.keys(playbookJSON[key]).forEach((item) =>
+        playbookKeysSet.add(item),
+      );
+    }
   });
 
   const playbookKeys = [...playbookKeysSet];
