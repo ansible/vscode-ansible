@@ -15,6 +15,10 @@ export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   "common",
   "collections",
 );
+export const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
+  "playbook_adjacent_collection",
+  "collections",
+);
 export const ANSIBLE_CONFIG_FILE = path.resolve(
   FIXTURES_BASE_PATH,
   "completion",
@@ -50,6 +54,11 @@ export async function enableExecutionEnvironmentSettings(
     {
       src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
       dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
+      options: undefined,
+    },
+    {
+      src: ANSIBLE_ADJACENT_COLLECTIONS__PATH,
+      dest: ANSIBLE_ADJACENT_COLLECTIONS__PATH,
       options: undefined,
     },
   ];

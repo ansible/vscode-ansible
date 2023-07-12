@@ -1,0 +1,8 @@
+- name: Test playbook
+  gather_facts: false
+  hosts: localhost
+  tasks:
+    - name: Playbook adjacent collection
+      adjacent_org.adjacent_coll.module_1:
+        opt_1:
+          - sub_opt_1: choice_2

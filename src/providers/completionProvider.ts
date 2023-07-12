@@ -170,7 +170,9 @@ export async function doCompletion(
           );
 
           // offer modules
-          const moduleCompletionItems = [...docsLibrary.moduleFqcns]
+          const moduleCompletionItems = [
+            ...(await docsLibrary.getModuleFqcns(document.uri)),
+          ]
             .filter(
               (moduleFqcn) =>
                 provideRedirectModulesCompletion ||

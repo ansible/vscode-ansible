@@ -13,6 +13,14 @@ import {
   processRawDocumentation,
 } from "../utils/docsParser";
 import { IModuleMetadata } from "../interfaces/module";
+import * as path from "path";
+import { existsSync, lstatSync } from "fs";
+import { URI } from "vscode-uri";
+import {
+  findModulesUtils,
+  getModuleFqcnsUtils,
+} from "./docsLibraryUtilsForPAC";
+import { globArray } from "../utils/pathUtils";
 export class DocsLibrary {
   private connection: Connection;
   private modules = new Map<string, IModuleMetadata>();
@@ -41,16 +49,7 @@ export class DocsLibrary {
         await executionEnvironment.fetchPluginDocs(ansibleConfig);
       }
       for (const modulesPath of ansibleConfig.module_locations) {
-        (await findDocumentation(modulesPath, "builtin")).forEach((doc) => {
-          this.modules.set(doc.fqcn, doc);
-          this.moduleFqcns.add(doc.fqcn);
-        });
-
-        (await findDocumentation(modulesPath, "builtin_doc_fragment")).forEach(
-          (doc) => {
-            this.docFragments.set(doc.fqcn, doc);
-          },
-        );
+        await this.findDocumentationInModulesPath(modulesPath);
       }
 
       (
@@ -58,31 +57,7 @@ export class DocsLibrary {
       ).forEach((r, collection) => this.pluginRouting.set(collection, r));
 
       for (const collectionsPath of ansibleConfig.collections_paths) {
-        (await findDocumentation(collectionsPath, "collection")).forEach(
-          (doc) => {
-            this.modules.set(doc.fqcn, doc);
-            this.moduleFqcns.add(doc.fqcn);
-          },
-        );
-
-        (
-          await findDocumentation(collectionsPath, "collection_doc_fragment")
-        ).forEach((doc) => {
-          this.docFragments.set(doc.fqcn, doc);
-        });
-
-        (await findPluginRouting(collectionsPath, "collection")).forEach(
-          (r, collection) => this.pluginRouting.set(collection, r),
-        );
-
-        // add all valid redirect routes as possible FQCNs
-        for (const [collection, routesByType] of this.pluginRouting) {
-          for (const [name, route] of routesByType.get("modules") || []) {
-            if (route.redirect && !route.tombstone) {
-              this.moduleFqcns.add(`${collection}.${name}`);
-            }
-          }
-        }
+        await this.findDocumentationInCollectionsPath(collectionsPath);
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -110,6 +85,40 @@ export class DocsLibrary {
     contextPath?: Node[],
     documentUri?: string,
   ): Promise<[IModuleMetadata | undefined, string | undefined]> {
+    // support playbook adjacent collections
+    const playbookDirectory = URI.parse(documentUri).path.split(path.sep);
+    playbookDirectory.pop();
+    playbookDirectory.push("collections");
+
+    const playbookAdjacentCollectionsPath = playbookDirectory.join(path.sep);
+
+    const isAdjacentCollectionAvailable = existsSync(
+      playbookAdjacentCollectionsPath,
+    );
+
+    // check if a module code is actually present or not
+    const moduleFiles = globArray([
+      `${playbookAdjacentCollectionsPath}/ansible_collections/*/*/plugins/modules/*.py`,
+      `${playbookAdjacentCollectionsPath}/ansible_collections/*/*/plugins/modules/**/*.py`,
+      `!${playbookAdjacentCollectionsPath}/ansible_collections/*/*/plugins/modules/_*.py`,
+      `!${playbookAdjacentCollectionsPath}/ansible_collections/*/*/plugins/modules/**/_*.py`,
+    ]).filter((item) => !lstatSync(item).isSymbolicLink());
+
+    if (isAdjacentCollectionAvailable && moduleFiles.length !== 0) {
+      const [PAModule, PAHitFqcn] = await findModulesUtils(
+        playbookAdjacentCollectionsPath,
+        searchText,
+        this.context,
+        contextPath,
+        documentUri,
+      );
+      if (PAModule) {
+        // return early if module found in playbook adjacent collection
+        return [PAModule, PAHitFqcn];
+      }
+    }
+
+    // Now, start finding the module
     let hitFqcn;
     const candidateFqcns = await this.getCandidateFqcns(
       searchText,
@@ -158,6 +167,45 @@ export class DocsLibrary {
     return [module, hitFqcn];
   }
 
+  private async findDocumentationInModulesPath(modulesPath) {
+    (await findDocumentation(modulesPath, "builtin")).forEach((doc) => {
+      this.modules.set(doc.fqcn, doc);
+      this._moduleFqcns.add(doc.fqcn);
+    });
+
+    (await findDocumentation(modulesPath, "builtin_doc_fragment")).forEach(
+      (doc) => {
+        this.docFragments.set(doc.fqcn, doc);
+      },
+    );
+  }
+
+  private async findDocumentationInCollectionsPath(collectionsPath) {
+    (await findDocumentation(collectionsPath, "collection")).forEach((doc) => {
+      this.modules.set(doc.fqcn, doc);
+      this._moduleFqcns.add(doc.fqcn);
+    });
+
+    (
+      await findDocumentation(collectionsPath, "collection_doc_fragment")
+    ).forEach((doc) => {
+      this.docFragments.set(doc.fqcn, doc);
+    });
+
+    (await findPluginRouting(collectionsPath, "collection")).forEach(
+      (r, collection) => this.pluginRouting.set(collection, r),
+    );
+
+    // add all valid redirect routes as possible FQCNs
+    for (const [collection, routesByType] of this.pluginRouting) {
+      for (const [name, route] of routesByType.get("modules") || []) {
+        if (route.redirect && !route.tombstone) {
+          this._moduleFqcns.add(`${collection}.${name}`);
+        }
+      }
+    }
+  }
+
   private async getCandidateFqcns(
     searchText: string,
     documentUri: string | undefined,
@@ -202,7 +250,26 @@ export class DocsLibrary {
     }
   }
 
-  get moduleFqcns(): Set<string> {
+  public async getModuleFqcns(documentUri: string): Promise<Set<string>> {
+    // support playbook adjacent collections
+    const playbookDirectory = URI.parse(documentUri).path.split(path.sep);
+    playbookDirectory.pop();
+    playbookDirectory.push("collections");
+
+    const playbookAdjacentCollectionsPath = playbookDirectory.join(path.sep);
+
+    const isAdjacentCollectionAvailable = existsSync(
+      playbookAdjacentCollectionsPath,
+    );
+
+    if (isAdjacentCollectionAvailable) {
+      const paModuleFqcns = await getModuleFqcnsUtils(
+        playbookAdjacentCollectionsPath,
+      );
+      // return early if appended list
+      return new Set([...this._moduleFqcns, ...paModuleFqcns]);
+    }
+
     return this._moduleFqcns;
   }
 }

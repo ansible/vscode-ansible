@@ -176,6 +176,76 @@ function testNoHover(context: WorkspaceFolderContext, textDoc: TextDocument) {
   });
 }
 
+function testPlaybookAdjacentCollection(
+  context: WorkspaceFolderContext,
+  textDoc: TextDocument,
+) {
+  const tests = [
+    {
+      word: "playbook adjacent module name",
+      position: { line: 5, character: 19 } as Position,
+      doc: "This is a test module for playbook adjacent collection",
+    },
+    {
+      word: "playbook adjacent module option",
+      position: { line: 6, character: 11 } as Position,
+      doc: "Option 1",
+    },
+    {
+      word: "playbook adjacent module sub option",
+      position: { line: 7, character: 19 } as Position,
+      doc: "Sub option 1",
+    },
+  ];
+
+  tests.forEach(({ word, position, doc }) => {
+    it(`should provide hovering for '${word}'`, async function () {
+      const actualHover = await doHover(
+        textDoc,
+        position,
+        await context.docsLibrary,
+      );
+      expect(actualHover.contents["value"]).includes(doc);
+    });
+  });
+}
+
+function testNonPlaybookAdjacentCollection(
+  context: WorkspaceFolderContext,
+  textDoc: TextDocument,
+) {
+  const tests = [
+    {
+      word: "non playbook adjacent module name",
+      position: { line: 5, character: 19 } as Position,
+      doc: "",
+    },
+    {
+      word: "non playbook adjacent module option",
+      position: { line: 6, character: 11 } as Position,
+      doc: "",
+    },
+  ];
+
+  tests.forEach(({ word, position, doc }) => {
+    it(`should not provide hovering for '${word}'`, async function () {
+      const actualHover = await doHover(
+        textDoc,
+        position,
+        await context.docsLibrary,
+      );
+
+      if (!doc) {
+        expect(actualHover).to.be.null;
+      } else {
+        console.log("actual hover -> ", actualHover);
+
+        expect(actualHover.contents["value"]).includes(doc);
+      }
+    });
+  });
+}
+
 describe("doHover()", () => {
   const workspaceManager = createTestWorkspaceManager();
   let fixtureFilePath = "hover/tasks.yml";
@@ -266,14 +336,14 @@ describe("doHover()", () => {
     });
   });
 
+  fixtureFilePath = "hover/roles.yml";
+  fixtureFileUri = resolveDocUri(fixtureFilePath);
+  context = workspaceManager.getContext(fixtureFileUri);
+
+  textDoc = getDoc(fixtureFilePath);
+  docSettings = context.documentSettings.get(textDoc.uri);
+
   describe("Role keywords hover", () => {
-    fixtureFilePath = "hover/roles.yml";
-    fixtureFileUri = resolveDocUri(fixtureFilePath);
-    context = workspaceManager.getContext(fixtureFileUri);
-
-    textDoc = getDoc(fixtureFilePath);
-    docSettings = context.documentSettings.get(textDoc.uri);
-
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
@@ -300,13 +370,14 @@ describe("doHover()", () => {
     });
   });
 
-  describe("Module name and options hover", () => {
-    fixtureFilePath = "hover/tasks.yml";
-    fixtureFileUri = resolveDocUri(fixtureFilePath);
-    context = workspaceManager.getContext(fixtureFileUri);
+  fixtureFilePath = "hover/tasks.yml";
+  fixtureFileUri = resolveDocUri(fixtureFilePath);
+  context = workspaceManager.getContext(fixtureFileUri);
 
-    textDoc = getDoc(fixtureFilePath);
-    docSettings = context.documentSettings.get(textDoc.uri);
+  textDoc = getDoc(fixtureFilePath);
+  docSettings = context.documentSettings.get(textDoc.uri);
+
+  describe("Module name and options hover", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
@@ -357,6 +428,73 @@ describe("doHover()", () => {
       });
 
       testNoHover(context, textDoc);
+    });
+  });
+
+  fixtureFilePath = "playbook_adjacent_collection/playbook.yml";
+  fixtureFileUri = resolveDocUri(fixtureFilePath);
+  context = workspaceManager.getContext(fixtureFileUri);
+  textDoc = getDoc(fixtureFilePath);
+  docSettings = context.documentSettings.get(textDoc.uri);
+
+  describe("Hover for playbook adjacent collection", () => {
+    describe("With EE enabled @ee", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv(
+          "/home/runner/.ansible/collections:/usr/share/ansible",
+        );
+        await enableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testPlaybookAdjacentCollection(context, textDoc);
+
+      after(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+    });
+
+    describe("With EE disabled", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testPlaybookAdjacentCollection(context, textDoc);
+    });
+  });
+
+  fixtureFilePath =
+    "playbook_adjacent_collection/non_adjacent_playbooks/playbook2.yml";
+  fixtureFileUri = resolveDocUri(fixtureFilePath);
+  context = workspaceManager.getContext(fixtureFileUri);
+  textDoc = getDoc(fixtureFilePath);
+  docSettings = context.documentSettings.get(textDoc.uri);
+
+  describe("Negate hover for non playbook adjacent collection", () => {
+    describe("With EE enabled @ee", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv(
+          "/home/runner/.ansible/collections:/usr/share/ansible",
+        );
+        await enableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testNonPlaybookAdjacentCollection(context, textDoc);
+
+      after(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+    });
+
+    describe("With EE disabled", () => {
+      before(async () => {
+        setFixtureAnsibleCollectionPathEnv();
+        await disableExecutionEnvironmentSettings(docSettings);
+      });
+
+      testNonPlaybookAdjacentCollection(context, textDoc);
     });
   });
 });
