@@ -680,7 +680,7 @@
     "node": ">=16.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
     "vscode": "^1.71.0",
-    "yarn": "^3.6.1"
+    "yarn": "^3.6.0"
   },
   "extensionDependencies": [
     "ms-python.python",
