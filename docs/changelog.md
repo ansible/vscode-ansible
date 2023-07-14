@@ -19,6 +19,19 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.2.0
+
+### Minor Changes
+
+- Add support for playbook adjacent collections (#511) @priyamsahoo
+- Use antsibull-docs-ts to render semantic markup (#563) @felixfontein
+
+### Bugfixes
+
+- Fix isPlaybook method (#590) @priyamsahoo
+- Fix vars completion in task files (#589) @priyamsahoo
+- Return URI instead of filepath (#560) @ajinkyau
+
 ## v1.1.0
 
 ### Minor Changes
