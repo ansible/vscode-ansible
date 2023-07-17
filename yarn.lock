@@ -5,11 +5,12 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@ansible/ansible-language-server@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "@ansible/ansible-language-server@npm:1.1.0"
+"@ansible/ansible-language-server@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@ansible/ansible-language-server@npm:1.2.0"
   dependencies:
     "@flatten-js/interval-tree": ^1.0.20
+    antsibull-docs: ^1.0.0
     glob: ^9.3.2
     ini: ^4.0.0
     lodash: ^4.17.21
@@ -20,7 +21,7 @@ __metadata:
     yaml: ^2.2.2
   bin:
     ansible-language-server: bin/ansible-language-server
-  checksum: 3c160d3419ff387b6f7fb9873406e59219f66fc1a26029da77dc21ba1dd616c5ab920edd709852f05ba2d9ade028df0a9a09e367267492300aab9e5b5b0a5344
+  checksum: dac88489cd85026b0bf373d0f53b2f4481908594fe65be40a76da3fd6796f9afcc5d6faeebcfc9021fcb407478e01821d6fb8deea2cd515553c87753cf735a42
   languageName: node
   linkType: hard
 
@@ -1413,7 +1414,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
-    "@ansible/ansible-language-server": ^1.1.0
+    "@ansible/ansible-language-server": ^1.2.0
     "@redhat-developer/vscode-redhat-telemetry": ^0.5.4
     "@types/chai": ^4.3.5
     "@types/glob": ^8.1.0
@@ -1460,6 +1461,13 @@ __metadata:
     yarn-audit-fix: ^9.3.10
   languageName: unknown
   linkType: soft
+
+"antsibull-docs@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "antsibull-docs@npm:1.0.0"
+  checksum: f2a6605e4ff92c045b37528152fc84cfe3f7a541870ec7d117602bbd1688926e0176d68937a751ce25ad85400141223c6bb6d9e6d4d6da6b84ba000e0d87a851
+  languageName: node
+  linkType: hard
 
 "anymatch@npm:~3.1.2":
   version: 3.1.3
