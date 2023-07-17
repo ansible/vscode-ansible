@@ -18,7 +18,7 @@ exclude: >
   )$
 repos:
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.2
+    rev: v0.9.0.5
     hooks:
       - id: shellcheck
         args:
@@ -52,7 +52,7 @@ repos:
         files: "codecov.yml"
         pass_filenames: false
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.22.0
+    rev: v6.31.0
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -88,11 +88,11 @@ repos:
         language_version: python3
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.0.0-alpha.4"
+    rev: "v3.0.0-alpha.9-for-vscode"
     hooks:
       - id: prettier
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.33.0
+    rev: v0.35.0
     hooks:
       - id: markdownlint
         exclude: >
@@ -101,7 +101,7 @@ repos:
             docs/settings.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.33.0
+    rev: v8.44.0
     hooks:
       - id: eslint
         args:
