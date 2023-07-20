@@ -10,27 +10,23 @@ import {
   FeedbackRequestParams,
   IDocumentTracker,
 } from "../../definitions/lightspeed";
-import {
-  LightSpeedCommands,
-  LIGHTSPEED_FEEDBACK_FORM_URL,
-  LIGHTSPEED_REPORT_EMAIL_ADDRESS,
-} from "../../definitions/constants";
 import { AttributionsWebview } from "./attributionsWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
 } from "./utils/webUtils";
+import { LightspeedStatusBar } from "./statusBar";
 
 export class LightSpeedManager {
   private context;
   public client;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
-  public lightSpeedStatusBar: vscode.StatusBarItem;
   public apiInstance: LightSpeedAPI;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   public lightSpeedActivityTracker: IDocumentTracker;
   public attributionsProvider: AttributionsWebview;
+  public statusBarProvider: LightspeedStatusBar;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -51,7 +47,9 @@ export class LightSpeedManager {
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME
       );
-    this.lightSpeedAuthenticationProvider.initialize();
+    if (this.settingsManager.settings.lightSpeedService.enabled) {
+      this.lightSpeedAuthenticationProvider.initialize();
+    }
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider
@@ -64,8 +62,12 @@ export class LightSpeedManager {
     );
 
     // create a new project lightspeed status bar item that we can manage
-    this.lightSpeedStatusBar = this.initialiseStatusBar();
-    this.updateLightSpeedStatusbar();
+    this.statusBarProvider = new LightspeedStatusBar(
+      this.apiInstance,
+      context,
+      client,
+      settingsManager
+    );
   }
 
   public async reInitialize(): Promise<void> {
@@ -75,57 +77,11 @@ export class LightSpeedManager {
 
     if (!lightspeedEnabled) {
       await this.lightSpeedAuthenticationProvider.dispose();
-      this.lightSpeedStatusBar.hide();
+      this.statusBarProvider.statusBar.hide();
       return;
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
     }
-
-    this.updateLightSpeedStatusbar();
-  }
-
-  private initialiseStatusBar(): vscode.StatusBarItem {
-    // create a new status bar item that we can manage
-    const lightSpeedStatusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Right,
-      100
-    );
-    lightSpeedStatusBarItem.command =
-      LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
-    lightSpeedStatusBarItem.text = "Lightspeed";
-    this.context.subscriptions.push(lightSpeedStatusBarItem);
-    return lightSpeedStatusBarItem;
-  }
-
-  private handleStatusBar() {
-    if (!this.client.isRunning()) {
-      return;
-    }
-    if (
-      this.settingsManager.settings.lightSpeedService.enabled &&
-      this.settingsManager.settings.lightSpeedService.suggestions.enabled
-    ) {
-      this.lightSpeedStatusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.prominentForeground"
-      );
-    } else {
-      this.lightSpeedStatusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.warningBackground"
-      );
-    }
-    this.lightSpeedStatusBar.show();
-  }
-
-  public updateLightSpeedStatusbar(): void {
-    if (
-      vscode.window.activeTextEditor?.document.languageId !== "ansible" ||
-      !this.settingsManager.settings.lightSpeedService.enabled
-    ) {
-      this.lightSpeedStatusBar.hide();
-      return;
-    }
-
-    this.handleStatusBar();
   }
 
   public ansibleContentFeedback(
@@ -170,25 +126,5 @@ export class LightSpeedManager {
       "[ansible-lightspeed-feedback] Event lightSpeedServiceAnsibleContentFeedbackEvent sent."
     );
     this.apiInstance.feedbackRequest(inputData);
-  }
-
-  public async lightSpeedStatusBarClickHandler() {
-    // show an information message feedback buttons
-    const contactButton = `Contact Us`;
-    const feedbackButton = "Take Survey";
-    const inputButton = await vscode.window.showInformationMessage(
-      "Ansible Lightspeed with Watson Code Assistant feedback",
-      //{ modal: true },
-      feedbackButton,
-      contactButton
-    );
-    if (inputButton === feedbackButton) {
-      // open a URL in the default browser
-      vscode.env.openExternal(vscode.Uri.parse(LIGHTSPEED_FEEDBACK_FORM_URL));
-    } else if (inputButton === contactButton) {
-      // open the user's default email client
-      const mailtoUrl = encodeURI(`mailto:${LIGHTSPEED_REPORT_EMAIL_ADDRESS}`);
-      vscode.env.openExternal(vscode.Uri.parse(mailtoUrl));
-    }
   }
 }

@@ -1,8 +1,7 @@
 "use strict";
-const WarningsToErrorsPlugin = require("warnings-to-errors-webpack-plugin");
+import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
 
-/* eslint @typescript-eslint/no-var-requires: "off" */
-const path = require("path");
+import path from "path";
 
 const config = {
   devtool: "source-map",
@@ -39,6 +38,7 @@ const config = {
   node: {
     __dirname: false, // leave the __dirname-behavior intact
   },
+  plugins: [new WarningsToErrorsPlugin()],
   output: {
     filename: (pathData: { chunk: { name: string } }) => {
       return pathData.chunk.name === "client"
@@ -53,7 +53,6 @@ const config = {
         : "../../../[resource-path]";
     },
   },
-  plugins: [new WarningsToErrorsPlugin()],
   resolve: {
     // support reading TypeScript and JavaScript files
     extensions: [".ts", ".js"],
@@ -66,4 +65,17 @@ const config = {
   target: "node", // vscode extensions run in a Node.js-context
 };
 
-module.exports = config;
+const webviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+module.exports = [config, webviewConfig];

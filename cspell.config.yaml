@@ -14,3 +14,4 @@ dictionaries:
   - "!cpp"
 ignorePaths:
   - syntaxes/external/*.*
+  - media

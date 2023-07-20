@@ -23,13 +23,11 @@
     "editor.formatOnSave": false
   },
   "files.exclude": {
-    "out": true,
     ".task": true,
     ".yarn": true,
     ".vscode-test": true
   },
   "search.exclude": {
-    "out": true,
     ".vscode-test": true
   },
   "redhat.telemetry.enabled": false,

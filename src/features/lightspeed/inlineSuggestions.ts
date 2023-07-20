@@ -43,7 +43,7 @@ export class LightSpeedInlineSuggestionProvider
       return [];
     }
     if (activeTextEditor.document.languageId !== "ansible") {
-      lightSpeedManager.lightSpeedStatusBar.hide();
+      lightSpeedManager.statusBarProvider.statusBar.hide();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -53,7 +53,7 @@ export class LightSpeedInlineSuggestionProvider
       return [];
     }
     if (document.languageId !== "ansible") {
-      lightSpeedManager.lightSpeedStatusBar.hide();
+      lightSpeedManager.statusBarProvider.statusBar.hide();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -61,7 +61,7 @@ export class LightSpeedInlineSuggestionProvider
       lightSpeedManager.settingsManager.settings.lightSpeedService;
     if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
       console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
-      lightSpeedManager.updateLightSpeedStatusbar();
+      lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
       resetInlineSuggestionDisplayed();
       return [];
     }
@@ -178,19 +178,20 @@ export async function getInlineSuggestionItems(
     if (!shouldRequestInlineSuggestions(documentContent)) {
       return [];
     }
-    lightSpeedManager.lightSpeedStatusBar.text = "$(loading~spin) Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      "$(loading~spin) Lightspeed";
     result = await requestInlineSuggest(
       documentContent,
       documentUri,
       activityId
     );
-    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
   } catch (error) {
     inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
   } finally {
-    lightSpeedManager.lightSpeedStatusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
   }
   if (!result || !result.predictions || result.predictions.length === 0) {
     console.error("[inline-suggestions] Inline suggestions not found.");
@@ -260,10 +261,11 @@ async function requestInlineSuggest(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
   );
 
-  lightSpeedManager.lightSpeedStatusBar.tooltip = "processing...";
+  lightSpeedManager.statusBarProvider.statusBar.show();
+  lightSpeedManager.statusBarProvider.statusBar.tooltip = "processing...";
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
-  lightSpeedManager.lightSpeedStatusBar.tooltip = "Done";
+  lightSpeedManager.statusBarProvider.statusBar.tooltip = "Done";
 
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`

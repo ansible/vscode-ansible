@@ -6,7 +6,9 @@ export function shouldRequestInlineSuggestions(
 ): boolean {
   let parsedAnsibleDocument = undefined;
   try {
-    parsedAnsibleDocument = yaml.parse(documentContent, { keepCstNodes: true });
+    parsedAnsibleDocument = yaml.parse(documentContent, {
+      keepSourceTokens: true,
+    });
   } catch (err) {
     vscode.window.showErrorMessage(
       `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`

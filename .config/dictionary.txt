@@ -60,6 +60,7 @@ loglevel
 lxml
 Maciążek
 markdownlint
+maxlength
 mochawesome
 modeline
 modelines
@@ -122,6 +123,7 @@ venvs
 vscoss
 vsix
 vyos
+Webviews
 webknjaz
 webpacked
 whitespaces
