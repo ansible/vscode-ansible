@@ -18,7 +18,7 @@ function testSuggestionPrompts() {
     },
     {
       taskName: "Create a file foo.txt",
-      expectedModule: "ansible.builtin.copy",
+      expectedModule: "ansible.builtin.file",
     },
   ];
 
