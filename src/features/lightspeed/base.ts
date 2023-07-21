@@ -99,7 +99,10 @@ export class LightSpeedManager {
     const currentFileContent = document.getText();
     const documentUri = document.uri.toString();
     let activityId: string;
-
+    if (!this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
+      // Inline suggestion not yet triggered, return without sending event.
+      return;
+    }
     if (this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
       activityId = this.lightSpeedActivityTracker[documentUri].activityId;
       const previousFileContent =
