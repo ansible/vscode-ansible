@@ -18,7 +18,7 @@ import { LightSpeedCommands } from "../../definitions/constants";
 import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
-  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>.*)(?<end>$)/;
+  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
 
 let suggestionId = "";
 let currentSuggestion = "";
