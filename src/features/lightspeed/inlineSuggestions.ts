@@ -164,9 +164,13 @@ export async function getInlineSuggestionItems(
 
     if (!(documentUri in lightSpeedManager.lightSpeedActivityTracker)) {
       activityId = uuidv4();
-      lightSpeedManager.lightSpeedActivityTracker[documentUri] = activityId;
+      lightSpeedManager.lightSpeedActivityTracker[documentUri] = {
+        activityId: activityId,
+        content: document.getText(),
+      };
     } else {
-      activityId = lightSpeedManager.lightSpeedActivityTracker[documentUri];
+      activityId =
+        lightSpeedManager.lightSpeedActivityTracker[documentUri].activityId;
     }
     inlineSuggestionData["activityId"] = activityId;
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
