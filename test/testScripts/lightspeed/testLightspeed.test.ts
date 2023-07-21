@@ -31,6 +31,8 @@ function testInvalidPrompts() {
     "--name: Print hello world",
     "- -name: Print hello world",
     "-- name: Print hello world",
+    "- name:",
+    "- name: ",
   ];
   return tests;
 }
