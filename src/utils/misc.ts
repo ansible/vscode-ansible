@@ -67,10 +67,8 @@ export function withInterpreter(
 
     const pathEntry = path.join(virtualEnv, "bin");
     if (path.isAbsolute(executable)) {
-      // if both interpreter path and absolute command path are provided, we can
-      // bolster the chances of success by letting the interpreter execute the
-      // command
-      command = `${interpreterPath} ${executable} ${args}`;
+      // if the user provided a path to the executable, we directly execute the app.
+      command = `${executable} ${args}`;
     }
 
     // emulating virtual environment activation script
