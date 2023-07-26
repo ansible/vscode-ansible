@@ -12,7 +12,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ansible/ansible-language-server@npm:^1.1.0":
+"@ansible/ansible-language-server@npm:^1.2.0":
   version: 1.2.0
   resolution: "@ansible/ansible-language-server@npm:1.2.0"
   dependencies:
@@ -1437,7 +1437,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
-    "@ansible/ansible-language-server": ^1.1.0
+    "@ansible/ansible-language-server": ^1.2.0
     "@redhat-developer/vscode-redhat-telemetry": ^0.5.4
     "@types/chai": ^4.3.5
     "@types/glob": ^8.1.0
