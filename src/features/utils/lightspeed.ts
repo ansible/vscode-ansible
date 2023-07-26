@@ -36,10 +36,10 @@ export function adjustInlineSuggestionIndent(
 
 /* A utility function to convert plain text to snippet string */
 export function convertToSnippetString(suggestion: string): string {
-  // this regex matches all content inside {{  }}
+  // this regex matches the content inside {{  }} with decided vars, i.e., {{ _var_ }}
   // TODO: once a prefix is decided for using it in from of variable names, the regex
   // can be changed to match it
-  const regex = /(?<=\{\{ ).+?(?= \}\})/gm;
+  const regex = /(?:^|)[^@#\s_]*(_([^_]+)_)/gm;
 
   let counter = 0;
   const convertedSuggestion = suggestion.replace(regex, (item) => {

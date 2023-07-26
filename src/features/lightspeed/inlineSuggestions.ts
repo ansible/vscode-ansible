@@ -2,7 +2,10 @@ import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 
-import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
+import {
+  adjustInlineSuggestionIndent,
+  convertToSnippetString,
+} from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { lightSpeedManager } from "../../extension";
 import {
@@ -15,7 +18,7 @@ import { LightSpeedCommands } from "../../definitions/constants";
 import { shouldRequestInlineSuggestions } from "./utils/data";
 
 const TASK_REGEX_EP =
-  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>.*)(?<end>$)/;
+  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
 
 let suggestionId = "";
 let currentSuggestion = "";
@@ -161,9 +164,13 @@ export async function getInlineSuggestionItems(
 
     if (!(documentUri in lightSpeedManager.lightSpeedActivityTracker)) {
       activityId = uuidv4();
-      lightSpeedManager.lightSpeedActivityTracker[documentUri] = activityId;
+      lightSpeedManager.lightSpeedActivityTracker[documentUri] = {
+        activityId: activityId,
+        content: document.getText(),
+      };
     } else {
-      activityId = lightSpeedManager.lightSpeedActivityTracker[documentUri];
+      activityId =
+        lightSpeedManager.lightSpeedActivityTracker[documentUri].activityId;
     }
     inlineSuggestionData["activityId"] = activityId;
     const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
@@ -206,7 +213,14 @@ export async function getInlineSuggestionItems(
     insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
     insertTexts.push(insertText);
 
-    const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
+    // convert into snippet string to move cursor on jinja variables directly
+    const insertTextSnippetString = new vscode.SnippetString(
+      convertToSnippetString(insertText)
+    );
+
+    const inlineSuggestionItem = new vscode.InlineCompletionItem(
+      insertTextSnippetString
+    );
     inlineSuggestionUserActionItems.push(inlineSuggestionItem);
   });
   // currentSuggestion is used in user action handlers
