@@ -19,6 +19,12 @@ Do *NOT* manually add changelog entries here! This file is updated by
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v1.2.1
+
+### Bugfixes
+
+- Fix `withInterpreter` issue (#594) @priyamsahoo
+
 ## v1.2.0
 
 ### Minor Changes
