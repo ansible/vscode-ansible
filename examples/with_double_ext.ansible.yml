@@ -1,4 +1,4 @@
-- hosts: all
+- hosts: localhost
   tasks:
     - name: This file is using double extension and the language is set by it
       ansible.builtin.debug:
