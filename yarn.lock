@@ -12,9 +12,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ansible/ansible-language-server@npm:^1.2.0":
-  version: 1.2.0
-  resolution: "@ansible/ansible-language-server@npm:1.2.0"
+"@ansible/ansible-language-server@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "@ansible/ansible-language-server@npm:1.2.1"
   dependencies:
     "@flatten-js/interval-tree": ^1.0.20
     antsibull-docs: ^1.0.0
@@ -28,7 +28,7 @@ __metadata:
     yaml: ^2.2.2
   bin:
     ansible-language-server: bin/ansible-language-server
-  checksum: dac88489cd85026b0bf373d0f53b2f4481908594fe65be40a76da3fd6796f9afcc5d6faeebcfc9021fcb407478e01821d6fb8deea2cd515553c87753cf735a42
+  checksum: 094f3af1d2d7b40b19ad6dbcb1fcdd156d33e5a2d2db0bbf51b30ff33ca3d805f13423aecd7ff718f759fa38ed8ebd1c8c0a6074ee3cc521651d09677fd53d79
   languageName: node
   linkType: hard
 
@@ -1437,7 +1437,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "ansible@workspace:."
   dependencies:
-    "@ansible/ansible-language-server": ^1.2.0
+    "@ansible/ansible-language-server": ^1.2.1
     "@redhat-developer/vscode-redhat-telemetry": ^0.5.4
     "@types/chai": ^4.3.5
     "@types/glob": ^8.1.0
