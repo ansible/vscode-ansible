@@ -9,7 +9,8 @@
 ### Minor Changes
 
 - Upgrade als to v1.2.1 (#950) @priyamsahoo
-- Add ability to select and set cursor on vars following `_var_` pattern (#884) @priyamsahoo
+- Add ability to select and set cursor on vars following `_var_` pattern (#884)
+  @priyamsahoo
 - Upgrade ALS to v1.1.0 (#932) @priyamsahoo
 - Upgrade yaml package to 2.x (#925) @priyamsahoo
 
@@ -17,7 +18,7 @@
 
 - Upgrade als to v1.2.1 (#950) @priyamsahoo
 - Fix command runner (#949) @priyamsahoo
-- Update lightspeed task name regex match condition  (#947) (#948) @ganeshrn
+- Update lightspeed task name regex match condition (#947) (#948) @ganeshrn
 - Fix ansibleContent feedback event trigger (#940) @ganeshrn
 - Update runner.ts to correctly get the path of ansible (#945) @priyamsahoo
 - Make hover e2e tests fixture messages more generic (#934) @priyamsahoo
