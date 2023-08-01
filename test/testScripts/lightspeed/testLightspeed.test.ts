@@ -8,6 +8,7 @@ import {
   canRunLightspeedTests,
   testInlineSuggestionNotTriggered,
   testInlineSuggestionCursorPositions,
+  testValidJinjaBrackets,
 } from "../../helper";
 
 function testSuggestionPrompts() {
@@ -48,6 +49,17 @@ function testInvalidCursorPosition() {
       newLineSpaces: 6,
     },
   ];
+  return tests;
+}
+
+function testSuggestionWithValidJinjaBrackets() {
+  const tests = [
+    {
+      taskName: "Run container with podman using foo_app var",
+      expectedValidJinjaInlineVar: "{{ foo_app.name }}",
+    },
+  ];
+
   return tests;
 }
 
@@ -108,9 +120,30 @@ export function testLightspeed(): void {
           );
         });
       });
-      after(async function () {
-        disableLightspeedSettings();
+    });
+
+    describe("Test Ansible Lightspeed inline completion suggestions", function () {
+      const docUri1 = getDocUri("lightspeed/playbook_with_vars.yml");
+
+      before(async function () {
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+        await activate(docUri1);
       });
+
+      const tests = testSuggestionWithValidJinjaBrackets();
+
+      tests.forEach(({ taskName, expectedValidJinjaInlineVar }) => {
+        it(`Should provide suggestion with valid jinja brackets for task prompt '${taskName}'`, async function () {
+          // await testInlineSuggestion(taskName, expectedValidJinjaInlineVar);
+          await testValidJinjaBrackets(taskName, expectedValidJinjaInlineVar);
+        });
+      });
+    });
+
+    after(async function () {
+      disableLightspeedSettings();
     });
   });
 }
