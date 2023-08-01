@@ -4,6 +4,12 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.6
+
+### Bugfixes
+
+- Fix var capturing regex (#955) @priyamsahoo
+
 ## v2.5
 
 ### Minor Changes
