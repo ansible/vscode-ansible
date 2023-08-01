@@ -223,7 +223,7 @@
     ],
     "configuration": [
       {
-        "title": "Server",
+        "title": "Language Server",
         "properties": {
           "ansibleServer.trace.server": {
             "type": "string",
@@ -234,7 +234,7 @@
             ],
             "default": "off",
             "markdownDescription": "Traces the communication between editor and the ansible language server.",
-            "scope": "Server"
+            "order": 0
           }
         }
       },
@@ -245,19 +245,22 @@
             "scope": "machine-overridable",
             "type": "string",
             "default": "ansible",
-            "markdownDescription": "Path to the ansible executable. All subcommands are expected to have adjacent locations."
+            "markdownDescription": "Path to the ansible executable. All subcommands are expected to have adjacent locations.",
+            "order": 0
           },
           "ansible.ansible.useFullyQualifiedCollectionNames": {
             "scope": "resource",
             "type": "boolean",
             "default": true,
-            "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary."
+            "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
+            "order": 1
           },
           "ansible.ansible.reuseTerminal": {
             "scope": "machine-overridable",
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Enabling this will cause ansible commands run through VSCode to reuse the same Ansible Terminal."
+            "markdownDescription": "Enabling this will cause ansible commands run through VSCode to reuse the same Ansible Terminal.",
+            "order": 2
           }
         }
       },
@@ -268,22 +271,25 @@
             "scope": "machine-overridable",
             "type": "string",
             "default": "",
-            "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH."
+            "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
+            "order": 0
           },
           "ansible.python.activationScript": {
             "scope": "machine-overridable",
             "type": "string",
             "default": "",
-            "markdownDescription": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored."
+            "markdownDescription": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored.",
+            "order": 1
           }
         }
       },
       {
-        "title": "Navigator",
+        "title": "Ansible Navigator",
         "properties": {
           "ansible.ansibleNavigator.path": {
             "default": "ansible-navigator",
             "markdownDescription": "%configuration.navigate.executablePath%",
+            "order": 0,
             "scope": "machine-overridable",
             "type": "string"
           }
@@ -296,13 +302,15 @@
             "scope": "resource",
             "type": "boolean",
             "default": true,
-            "markdownDescription": "Toggle redirected module provider when completing modules."
+            "markdownDescription": "Toggle redirected module provider when completing modules.",
+            "order": 0
           },
           "ansible.completion.provideModuleOptionAliases": {
             "scope": "resource",
             "type": "boolean",
             "default": true,
-            "markdownDescription": "Toggle alias provider when completing module options."
+            "markdownDescription": "Toggle alias provider when completing module options.",
+            "order": 1
           }
         }
       },
@@ -312,36 +320,41 @@
           "ansible.validation.enabled": {
             "type": "boolean",
             "default": true,
-            "markdownDescription": "If disabled no validation will be performed."
+            "markdownDescription": "If disabled no validation will be performed.",
+            "order": 0
           },
           "ansible.validation.lint.enabled": {
             "scope": "resource",
             "type": "boolean",
             "default": true,
-            "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled."
+            "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
+            "order": 1
           },
           "ansible.validation.lint.path": {
             "scope": "machine-overridable",
             "type": "string",
             "default": "ansible-lint",
-            "markdownDescription": "Path to the ansible-lint executable."
+            "markdownDescription": "Path to the ansible-lint executable.",
+            "order": 2
           },
           "ansible.validation.lint.arguments": {
             "scope": "resource",
             "type": "string",
             "default": "",
-            "markdownDescription": "Command line arguments to be passed to ansible-lint."
+            "markdownDescription": "Command line arguments to be passed to ansible-lint.",
+            "order": 3
           }
         }
       },
       {
-        "title": "ExecutionEnvironment",
+        "title": "Execution Environment",
         "properties": {
           "ansible.executionEnvironment.enabled": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Enable or disable the use of an execution environment."
+            "markdownDescription": "Enable or disable the use of an execution environment.",
+            "order": 0
           },
           "ansible.executionEnvironment.containerEngine": {
             "scope": "resource",
@@ -352,25 +365,29 @@
               "docker"
             ],
             "default": "auto",
-            "markdownDescription": "Specify the container engine (auto=podman then docker)."
+            "markdownDescription": "Specify the container engine (auto=podman then docker).",
+            "order": 1
           },
           "ansible.executionEnvironment.containerOptions": {
             "scope": "resource",
             "type": "string",
             "default": "",
-            "markdownDescription": "Extra parameters passed to the container engine command example: `--net=host`."
+            "markdownDescription": "Extra parameters passed to the container engine command example: `--net=host`.",
+            "order": 2
           },
           "ansible.executionEnvironment.image": {
             "scope": "resource",
             "type": "string",
             "default": "ghcr.io/ansible/creator-ee:latest",
-            "markdownDescription": "Specify the name of the execution environment image."
+            "markdownDescription": "Specify the name of the execution environment image.",
+            "order": 3
           },
           "ansible.executionEnvironment.pull.arguments": {
             "scope": "resource",
             "type": "string",
             "default": "",
-            "markdownDescription": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `–-tls-verify=false`."
+            "markdownDescription": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `–-tls-verify=false`.",
+            "order": 4
           },
           "ansible.executionEnvironment.pull.policy": {
             "scope": "resource",
@@ -382,7 +399,8 @@
               "tag"
             ],
             "default": "missing",
-            "markdownDescription": "Specify the image pull policy.\n**always**: Always pull the image when extension is activated or reloaded\n**missing**: Pull if not locally available\n**never**: Never pull the image\n**tag**: If the image tag is `latest`, always pull the image, otherwise pull if not locally available."
+            "markdownDescription": "Specify the image pull policy.\n**always**: Always pull the image when extension is activated or reloaded\n**missing**: Pull if not locally available\n**never**: Never pull the image\n**tag**: If the image tag is `latest`, always pull the image, otherwise pull if not locally available.",
+            "order": 5
           },
           "ansible.executionEnvironment.volumeMounts": {
             "scope": "resource",
@@ -392,15 +410,18 @@
               "properties": {
                 "src": {
                   "type": "string",
-                  "markdownDescription": "The name of the local volume or path to be mounted within execution environment."
+                  "markdownDescription": "The name of the local volume or path to be mounted within execution environment.",
+                  "order": 6
                 },
                 "dest": {
                   "type": "string",
-                  "markdownDescription": "The path where the file or directory are mounted in the container."
+                  "markdownDescription": "The path where the file or directory are mounted in the container.",
+                  "order": 7
                 },
                 "options": {
                   "type": "string",
-                  "markdownDescription": "The field is optional, and is a comma-separated list of options, such as `ro,Z.`"
+                  "markdownDescription": "The field is optional, and is a comma-separated list of options, such as `ro,Z.`",
+                  "order": 8
                 }
               }
             }
@@ -414,6 +435,7 @@
             "type": "boolean",
             "default": null,
             "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
+            "order": 0,
             "tags": [
               "telemetry",
               "usesOnlineServices"
@@ -423,25 +445,28 @@
         }
       },
       {
-        "title": "Lightspeed",
+        "title": "Ansible Lightspeed",
         "properties": {
           "ansible.lightspeed.enabled": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Enable Ansible Lightspeed."
+            "markdownDescription": "Enable Ansible Lightspeed.",
+            "order": 0
           },
           "ansible.lightspeed.URL": {
             "scope": "resource",
             "type": "string",
             "default": "https://c.ai.ansible.redhat.com",
-            "markdownDescription": "URL for Ansible Lightspeed."
+            "markdownDescription": "URL for Ansible Lightspeed.",
+            "order": 1
           },
           "ansible.lightspeed.suggestions.enabled": {
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Enable Ansible Lightspeed with Watson Code Assistant inline suggestions."
+            "markdownDescription": "Enable Ansible Lightspeed with Watson Code Assistant inline suggestions.",
+            "order": 2
           }
         }
       }
