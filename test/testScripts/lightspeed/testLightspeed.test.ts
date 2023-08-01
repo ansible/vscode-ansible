@@ -56,7 +56,7 @@ function testSuggestionWithValidJinjaBrackets() {
   const tests = [
     {
       taskName: "Run container with podman using foo_app var",
-      expectedValidJinjaInlineVar: "{{ foo_app.name }}",
+      expectedValidJinjaInlineVar: "{{ foo_app.image }}",
     },
   ];
 
