@@ -242,6 +242,7 @@ export async function testInlineSuggestion(
 
   // this is the position where we have placeholder for the task name in the test fixture
   // i.e., <insert task name for ansible lightspeed suggestion here>
+  // playbook used: lightspeed/playbook_1.yml
   const writePosition = new vscode.Position(4, 4);
 
   // replace the placeholder with valid task name for suggestions
@@ -421,4 +422,68 @@ export async function testInlineSuggestionCursorPositions(
     getInlineSuggestionItemsSpy.called,
     "getInlineSuggestionItems should not be called"
   );
+}
+
+export async function testValidJinjaBrackets(
+  prompt: string,
+  expectedValidJinjaInlineVar: string
+): Promise<void> {
+  let editor = vscode.window.activeTextEditor;
+
+  if (!editor) {
+    throw new Error("No active editor found");
+  }
+
+  // this is the position where we have placeholder for the task name in the test fixture
+  // i.e., <insert task name for ansible lightspeed suggestion here>
+  // playbook used: lightspeed/playbook_with_vars.yml
+  const writePosition = new vscode.Position(17, 4);
+
+  // replace the placeholder with valid task name for suggestions
+  await editor.edit(async (edit) => {
+    const replaceRange = new vscode.Range(
+      writePosition,
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    );
+    edit.replace(replaceRange, `- name: ${prompt}\n`);
+  });
+
+  await vscode.commands.executeCommand("cursorMove", {
+    to: "nextBlankLine",
+  });
+
+  editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const currentPosition = editor.selection.active;
+    const newLine = currentPosition.line + 1;
+    const newColumn = currentPosition.character + 4;
+
+    const newPosition = new vscode.Position(newLine, newColumn);
+
+    await editor.edit((editBuilder) => {
+      editBuilder.insert(newPosition, "    ");
+    });
+
+    editor.selection = new vscode.Selection(newPosition, newPosition);
+    editor.revealRange(new vscode.Range(newPosition, newPosition));
+  }
+  await vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
+  );
+  await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
+  await vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+  );
+  await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
+
+  // get the committed suggestion
+  const suggestionRange = new vscode.Range(
+    new vscode.Position(writePosition.line + 1, writePosition.character),
+    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+  );
+
+  const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
+
+  // assert
+  assert.include(docContentAfterSuggestion, expectedValidJinjaInlineVar);
 }
