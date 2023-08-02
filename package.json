@@ -223,7 +223,7 @@
     ],
     "configuration": [
       {
-        "title": "Ansible",
+        "title": "Basic Configurations",
         "properties": {
           "ansible.ansible.path": {
             "scope": "machine-overridable",
