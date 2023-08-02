@@ -223,22 +223,6 @@
     ],
     "configuration": [
       {
-        "title": "Language Server",
-        "properties": {
-          "ansibleServer.trace.server": {
-            "type": "string",
-            "enum": [
-              "off",
-              "messages",
-              "verbose"
-            ],
-            "default": "off",
-            "markdownDescription": "Traces the communication between editor and the ansible language server.",
-            "order": 0
-          }
-        }
-      },
-      {
         "title": "Ansible",
         "properties": {
           "ansible.ansible.path": {
@@ -467,6 +451,22 @@
             "default": false,
             "markdownDescription": "Enable Ansible Lightspeed with Watson Code Assistant inline suggestions.",
             "order": 2
+          }
+        }
+      },
+      {
+        "title": "Language Server",
+        "properties": {
+          "ansibleServer.trace.server": {
+            "type": "string",
+            "enum": [
+              "off",
+              "messages",
+              "verbose"
+            ],
+            "default": "off",
+            "markdownDescription": "Traces the communication between editor and the ansible language server.",
+            "order": 0
           }
         }
       }
