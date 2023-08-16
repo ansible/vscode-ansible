@@ -104,7 +104,7 @@ is provided instantaneously.
 On opening and saving a document, `ansible-lint` is executed in the background
 and any findings are presented as errors. You might find it useful that
 rules/tags added to `warn_list` (see
-[Ansible Lint Documentation](https://ansible-lint.readthedocs.io/en/latest/configuring.html))
+[Ansible Lint Documentation](https://ansible.readthedocs.io/projects/lint/configuring/))
 are shown as warnings instead.
 
 ### Smart autocompletion
