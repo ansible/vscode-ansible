@@ -480,7 +480,8 @@
           "comments": true,
           "other": true,
           "strings": true
-        }
+        },
+        "editor.autoIndent": "advanced"
       }
     },
     "keybindings": [
