@@ -51,7 +51,7 @@ export function convertToSnippetString(suggestion: string): string {
     modifiedSuggestion = modifiedSuggestion.replace(
       exactMatch,
       `\$\{${counter}:${exactMatch}\}`
-    ); // replace the exact match in the modified suggestion with tab stop syntax according to vscode snippet srings
+    ); // replace the exact match in the modified suggestion with tab stop syntax according to vscode snippet string
   });
 
   return modifiedSuggestion;
