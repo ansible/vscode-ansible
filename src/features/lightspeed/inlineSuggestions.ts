@@ -2,10 +2,7 @@ import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
 
-import {
-  adjustInlineSuggestionIndent,
-  convertToSnippetString,
-} from "../utils/lightspeed";
+import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { lightSpeedManager } from "../../extension";
 import {
@@ -213,14 +210,7 @@ export async function getInlineSuggestionItems(
     insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
     insertTexts.push(insertText);
 
-    // convert into snippet string to move cursor on jinja variables directly
-    const insertTextSnippetString = new vscode.SnippetString(
-      convertToSnippetString(insertText)
-    );
-
-    const inlineSuggestionItem = new vscode.InlineCompletionItem(
-      insertTextSnippetString
-    );
+    const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
     inlineSuggestionUserActionItems.push(inlineSuggestionItem);
   });
   // currentSuggestion is used in user action handlers
