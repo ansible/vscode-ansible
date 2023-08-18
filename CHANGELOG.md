@@ -10,12 +10,14 @@
 
 ### Minor Changes
 
-- Categorise extension settings and fix ansible language configurations (#961) @priyamsahoo
+- Categorise extension settings and fix ansible language configurations (#961)
+  @priyamsahoo
 
 ### Bugfixes
 
 - Unchange insertText to snippetstring (#962) @priyamsahoo
-- Categorise extension settings and fix ansible language configurations (#961) @priyamsahoo
+- Categorise extension settings and fix ansible language configurations (#961)
+  @priyamsahoo
 
 ## v2.6
 
