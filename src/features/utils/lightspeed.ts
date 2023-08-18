@@ -39,13 +39,20 @@ export function convertToSnippetString(suggestion: string): string {
   // this regex matches the content inside {{  }} with decided vars, i.e., {{ _var_ }}
   // TODO: once a prefix is decided for using it in from of variable names, the regex
   // can be changed to match it
-  const regex = /{{ (_[a-zA-Z_]\w*_) }}/gm;
+  const regex = /({{ )(_[a-zA-Z_]\w*_)( }})/gm;
+  const matches = [...suggestion.matchAll(regex)];
+
+  let modifiedSuggestion = suggestion;
 
   let counter = 0;
-  const convertedSuggestion = suggestion.replace(regex, (item) => {
+  matches.forEach((matchArray) => {
+    const exactMatch = matchArray[2]; // get only the variable , without the braces
     counter = counter + 1;
-    return `\${${counter}:${item}}`;
+    modifiedSuggestion = modifiedSuggestion.replace(
+      exactMatch,
+      `\$\{${counter}:${exactMatch}\}`
+    ); // replace the exact match in the modified suggestion with tab stop syntax according to vscode snippet string
   });
 
-  return convertedSuggestion;
+  return modifiedSuggestion;
 }
