@@ -6,9 +6,16 @@
 
 ## v2.7
 
+- Fix broken Ansible Lint docs link (#959) @ElijahLynn
+
+### Minor Changes
+
+- Categorise extension settings and fix ansible language configurations (#961) @priyamsahoo
+
 ### Bugfixes
 
-- Fix var capturing regex (#955) @priyamsahoo
+- Unchange insertText to snippetstring (#962) @priyamsahoo
+- Categorise extension settings and fix ansible language configurations (#961) @priyamsahoo
 
 ## v2.6
 
