@@ -6,16 +6,21 @@ import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import {
-  AnsibleContentUploadTrigger,
   FeedbackRequestParams,
   IDocumentTracker,
-} from "../../definitions/lightspeed";
+  IIncludeVarsContext,
+  IWorkSpaceRolesContext,
+} from "../../interfaces/lightspeed";
+import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
 import { AttributionsWebview } from "./attributionsWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
+import { IVarsFileContext } from "../../interfaces/lightspeed";
+import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
+import { watchRolesDirectory } from "./utils/watchers";
 
 export class LightSpeedManager {
   private context;
@@ -27,6 +32,9 @@ export class LightSpeedManager {
   public lightSpeedActivityTracker: IDocumentTracker;
   public attributionsProvider: AttributionsWebview;
   public statusBarProvider: LightspeedStatusBar;
+  public ansibleVarFilesCache: IVarsFileContext = {};
+  public ansibleRolesCache: IWorkSpaceRolesContext = {};
+  public ansibleIncludeVarsCache: IIncludeVarsContext = {};
 
   constructor(
     context: vscode.ExtensionContext,
@@ -68,6 +76,9 @@ export class LightSpeedManager {
       client,
       settingsManager
     );
+
+    // create workspace context for ansible roles
+    this.setContext();
   }
 
   public async reInitialize(): Promise<void> {
@@ -76,14 +87,37 @@ export class LightSpeedManager {
       .get("lightspeed.enabled");
 
     if (!lightspeedEnabled) {
+      await this.resetContext();
       await this.lightSpeedAuthenticationProvider.dispose();
       this.statusBarProvider.statusBar.hide();
       return;
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
+      this.setContext();
     }
   }
 
+  private async resetContext(): Promise<void> {
+    this.ansibleVarFilesCache = {};
+    this.ansibleRolesCache = {};
+  }
+
+  private setContext(): void {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+      for (const workspaceFolder of workspaceFolders) {
+        const workSpaceRoot = workspaceFolder.uri.fsPath;
+        const rolesPath = getCustomRolePaths(workSpaceRoot);
+        for (const rolePath of rolesPath) {
+          watchRolesDirectory(this, rolePath, workSpaceRoot);
+        }
+      }
+    }
+    const commonRolesPath = getCommonRoles() || [];
+    for (const rolePath of commonRolesPath) {
+      watchRolesDirectory(this, rolePath);
+    }
+  }
   public ansibleContentFeedback(
     document: vscode.TextDocument,
     trigger: AnsibleContentUploadTrigger

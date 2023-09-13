@@ -2,10 +2,10 @@ import * as vscode from "vscode";
 import * as path from "path";
 import sinon from "sinon";
 import { assert } from "chai";
-import { LightSpeedCommands } from "../src/definitions/constants";
+import { LightSpeedCommands } from "../src/definitions/lightspeed";
 import { integer } from "vscode-languageclient";
 import axios from "axios";
-import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/constants";
+import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
 import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
 
 export let doc: vscode.TextDocument;
