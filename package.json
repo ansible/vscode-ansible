@@ -88,7 +88,7 @@
     "viewsWelcome": [
       {
         "view": "lightspeed-explorer-treeview",
-        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with Watson Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
+        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
       }
     ],
     "jsonValidation": [
@@ -449,8 +449,15 @@
             "scope": "resource",
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Enable Ansible Lightspeed with Watson Code Assistant inline suggestions.",
+            "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
             "order": 2
+          },
+          "ansible.lightspeed.modelId": {
+            "scope": "resource",
+            "type": "string",
+            "markdownDescription": "The model to be used for inline suggestions. This setting applies only to subscribed users.",
+            "hidden": true,
+            "order": 3
           }
         }
       },

@@ -97,49 +97,17 @@ export class LightSpeedInlineSuggestionProvider
       );
       return [];
     }
-    const lineToExtractPrompt = document.lineAt(position.line - 1);
-    const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
-    const currentLineText = document.lineAt(position);
-    const spacesBeforeTaskNameStart =
-      lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
-    const spacesBeforeCursor =
-      currentLineText?.text.slice(0, position.character).match(/^ +/)?.[0]
-        .length || 0;
-
-    if (
-      !taskMatchedPattern ||
-      !currentLineText.isEmptyOrWhitespace ||
-      spacesBeforeTaskNameStart !== spacesBeforeCursor
-    ) {
-      resetInlineSuggestionDisplayed();
-      // If the user has triggered the inline suggestion by pressing the configured keys,
-      // we will show an information message to the user to help them understand the
-      // correct cursor position to trigger the inline suggestion.
-      if (context.triggerKind === vscode.InlineCompletionTriggerKind.Invoke) {
-        if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
-          vscode.window.showInformationMessage(
-            "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
-          );
-        } else if (
-          taskMatchedPattern &&
-          currentLineText.isEmptyOrWhitespace &&
-          spacesBeforeTaskNameStart !== spacesBeforeCursor
-        ) {
-          vscode.window.showInformationMessage(
-            `Cursor must be in column ${spacesBeforeTaskNameStart} to trigger an inline suggestion.`
-          );
-        }
-      }
-      return [];
-    }
-    inlineSuggestionData = {};
-    inlineSuggestionDisplayTime = getCurrentUTCDateTime();
-    const suggestionItems = getInlineSuggestionItems(document, position);
+    const suggestionItems = getInlineSuggestionItems(
+      context,
+      document,
+      position
+    );
     return suggestionItems;
   }
 }
 
 export async function getInlineSuggestionItems(
+  context: vscode.InlineCompletionContext,
   document: vscode.TextDocument,
   currentPosition: vscode.Position
 ): Promise<vscode.InlineCompletionItem[]> {
@@ -148,6 +116,50 @@ export async function getInlineSuggestionItems(
   };
   inlineSuggestionData = {};
   suggestionId = "";
+
+  let rhUserHasSeat =
+    await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
+  if (rhUserHasSeat === undefined) {
+    rhUserHasSeat = false;
+  }
+
+  const lineToExtractPrompt = document.lineAt(currentPosition.line - 1);
+  const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
+  const currentLineText = document.lineAt(currentPosition);
+  const spacesBeforeTaskNameStart =
+    lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
+  const spacesBeforeCursor =
+    currentLineText?.text.slice(0, currentPosition.character).match(/^ +/)?.[0]
+      .length || 0;
+
+  if (
+    !taskMatchedPattern ||
+    !currentLineText.isEmptyOrWhitespace ||
+    spacesBeforeTaskNameStart !== spacesBeforeCursor
+  ) {
+    resetInlineSuggestionDisplayed();
+    // If the user has triggered the inline suggestion by pressing the configured keys,
+    // we will show an information message to the user to help them understand the
+    // correct cursor position to trigger the inline suggestion.
+    if (context.triggerKind === vscode.InlineCompletionTriggerKind.Invoke) {
+      if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+        vscode.window.showInformationMessage(
+          "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
+        );
+      } else if (
+        taskMatchedPattern &&
+        currentLineText.isEmptyOrWhitespace &&
+        spacesBeforeTaskNameStart !== spacesBeforeCursor
+      ) {
+        vscode.window.showInformationMessage(
+          `Cursor must be in column ${spacesBeforeTaskNameStart} to trigger an inline suggestion.`
+        );
+      }
+    }
+    return [];
+  }
+  inlineSuggestionData = {};
+  inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
     "[inline-suggestions] Inline suggestions triggered by user edits."
@@ -184,7 +196,8 @@ export async function getInlineSuggestionItems(
     result = await requestInlineSuggest(
       documentContent,
       documentUri,
-      activityId
+      activityId,
+      rhUserHasSeat
     );
     lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
   } catch (error) {
@@ -241,7 +254,8 @@ export async function getInlineSuggestionItems(
 async function requestInlineSuggest(
   content: string,
   documentUri: string,
-  activityId: string
+  activityId: string,
+  rhUserHasSeat: boolean
 ): Promise<CompletionResponseParams> {
   const completionData: CompletionRequestParams = {
     prompt: content,
@@ -251,6 +265,13 @@ async function requestInlineSuggest(
       activityId: activityId,
     },
   };
+  if (rhUserHasSeat) {
+    const modelId =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.modelId;
+    if (modelId && modelId !== "") {
+      completionData.modelId = modelId;
+    }
+  }
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
   );
