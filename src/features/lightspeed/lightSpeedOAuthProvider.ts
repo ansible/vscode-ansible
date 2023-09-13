@@ -35,7 +35,7 @@ import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
-} from "../../definitions/constants";
+} from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 
 const CODE_VERIFIER = generateCodeVerifier();

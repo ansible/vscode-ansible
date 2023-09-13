@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
-import { LightSpeedCommands } from "../../definitions/constants";
+import { LightSpeedCommands } from "../../definitions/lightspeed";
 
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;

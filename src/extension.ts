@@ -9,7 +9,8 @@ import {
   workspace,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
-import { AnsibleCommands, LightSpeedCommands } from "./definitions/constants";
+import { AnsibleCommands } from "./definitions/constants";
+import { LightSpeedCommands } from "./definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -60,9 +61,12 @@ import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
+import { IFileSystemWatchers } from "./interfaces/watchers";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
+export const globalFileSystemWatcher: IFileSystemWatchers = {};
+
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {

@@ -9,12 +9,12 @@ import {
   FeedbackResponseParams,
   AttributionsRequestParams,
   AttributionsResponseParams,
-} from "../../definitions/lightspeed";
+} from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
-} from "../../definitions/constants";
+} from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
 
