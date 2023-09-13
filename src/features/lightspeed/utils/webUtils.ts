@@ -15,7 +15,9 @@ export interface OAuthAccount {
 }
 
 export interface LoggedInUserInfo {
-  username: string;
+  username?: string;
+  external_username: string;
+  rh_user_has_seat: boolean;
 }
 
 export class UriEventHandler extends EventEmitter<Uri> implements UriHandler {

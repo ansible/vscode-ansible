@@ -123,6 +123,7 @@ venvs
 vscoss
 vsix
 vyos
+watsonx
 Webviews
 webknjaz
 webpacked

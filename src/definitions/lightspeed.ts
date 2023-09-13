@@ -10,6 +10,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
+  modelId?: string;
 }
 
 export enum UserAction {

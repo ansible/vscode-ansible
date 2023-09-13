@@ -147,7 +147,7 @@ You may also open the implementation of any module using the standard _Go to
 Definition_ operation, for instance, by clicking on the module name while
 holding `ctrl`/`cmd`.
 
-### Ansible Lightspeed with Watson Code Assistant
+### Ansible Lightspeed with watsonx Code Assistant
 
 AI based Ansible code recommendations
 
@@ -224,7 +224,9 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
-  Watson Code Assistant inline suggestions.
+  watsonx Code Assistant inline suggestions.
+- `ansible.lightspeed.modelId`: The model to be used for inline suggestions.
+  This setting applies only to subscribed users.
 
 ## Data and Telemetry
 
