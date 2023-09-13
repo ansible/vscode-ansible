@@ -7,7 +7,7 @@ import {
   AttributionsResponseParams,
   IAttributionsParams,
   ISuggestionDetails,
-} from "../../definitions/lightspeed";
+} from "../../interfaces/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 
 export class AttributionsWebview implements vscode.WebviewViewProvider {

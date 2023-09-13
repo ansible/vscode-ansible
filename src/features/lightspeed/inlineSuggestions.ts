@@ -1,7 +1,10 @@
+import * as pathUri from "path";
+import crypto from "crypto";
+import { URI } from "vscode-uri";
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import _ from "lodash";
-
+import * as yaml from "yaml";
 import { adjustInlineSuggestionIndent } from "../utils/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { lightSpeedManager } from "../../extension";
@@ -9,10 +12,26 @@ import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
-  UserAction,
-} from "../../definitions/lightspeed";
-import { LightSpeedCommands } from "../../definitions/constants";
-import { shouldRequestInlineSuggestions } from "./utils/data";
+  IRolesContext,
+  IRoleContext,
+  IStandaloneTaskContext,
+} from "../../interfaces/lightspeed";
+import { UserAction } from "../../definitions/lightspeed";
+import { LightSpeedCommands } from "../../definitions/lightspeed";
+import {
+  getIncludeVarsContext,
+  getRelativePath,
+  getRolePathFromPathWithinRole,
+  shouldRequestInlineSuggestions,
+} from "./utils/data";
+import { getVarsFilesContext } from "./utils/data";
+import {
+  IAdditionalContext,
+  IAnsibleFileType,
+  IPlaybookContext,
+} from "../../interfaces/lightspeed";
+import { getAnsibleFileType, getCustomRolePaths } from "../utils/ansible";
+import { watchRolesDirectory } from "./utils/watchers";
 
 const TASK_REGEX_EP =
   /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
@@ -70,6 +89,7 @@ export class LightSpeedInlineSuggestionProvider
       resetInlineSuggestionDisplayed();
       return [];
     }
+
     // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
     if (getInlineSuggestionDisplayed()) {
@@ -161,6 +181,7 @@ export async function getInlineSuggestionItems(
   inlineSuggestionData = {};
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
+
   console.log(
     "[inline-suggestions] Inline suggestions triggered by user edits."
   );
@@ -188,13 +209,39 @@ export async function getInlineSuggestionItems(
       ? ""
       : document.getText(range).trimEnd();
 
-    if (!shouldRequestInlineSuggestions(documentContent)) {
+    let parsedAnsibleDocument = undefined;
+    try {
+      parsedAnsibleDocument = yaml.parse(documentContent, {
+        keepSourceTokens: true,
+      });
+      if (!parsedAnsibleDocument) {
+        return [];
+      }
+      // check if YAML is a list, if not it is not a valid Ansible document
+      if (
+        typeof parsedAnsibleDocument === "object" &&
+        !Array.isArray(parsedAnsibleDocument)
+      ) {
+        vscode.window.showErrorMessage(
+          "Ansible Lightspeed expects valid Ansible syntax. For playbook files it should be a list of plays and for tasks files it should be list of tasks."
+        );
+        return [];
+      }
+    } catch (err) {
+      vscode.window.showErrorMessage(
+        `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
+      );
+      return [];
+    }
+
+    if (!shouldRequestInlineSuggestions(parsedAnsibleDocument)) {
       return [];
     }
     lightSpeedManager.statusBarProvider.statusBar.text =
       "$(loading~spin) Lightspeed";
     result = await requestInlineSuggest(
       documentContent,
+      parsedAnsibleDocument,
       documentUri,
       activityId,
       rhUserHasSeat
@@ -253,15 +300,26 @@ export async function getInlineSuggestionItems(
 
 async function requestInlineSuggest(
   content: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  parsedAnsibleDocument: any,
   documentUri: string,
   activityId: string,
   rhUserHasSeat: boolean
 ): Promise<CompletionResponseParams> {
+  const documentDirPath = pathUri.dirname(URI.parse(documentUri).path);
+  const documentFilePath = URI.parse(documentUri).path;
+  const ansibleFileType: IAnsibleFileType = getAnsibleFileType(
+    documentFilePath,
+    parsedAnsibleDocument
+  );
+
+  const hash = crypto.createHash("sha256").update(documentUri).digest("hex");
   const completionData: CompletionRequestParams = {
     prompt: content,
     suggestionId: suggestionId,
     metadata: {
-      documentUri: documentUri,
+      documentUri: `document-${hash}`,
+      ansibleFileType: ansibleFileType,
       activityId: activityId,
     },
   };
@@ -271,6 +329,16 @@ async function requestInlineSuggest(
     if (modelId && modelId !== "") {
       completionData.modelId = modelId;
     }
+
+    const additionalContext = getAdditionalContext(
+      parsedAnsibleDocument,
+      documentDirPath,
+      documentFilePath,
+      ansibleFileType
+    );
+    if (completionData.metadata) {
+      completionData.metadata.additionalContext = additionalContext;
+    }
   }
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
@@ -278,6 +346,9 @@ async function requestInlineSuggest(
 
   lightSpeedManager.statusBarProvider.statusBar.show();
   lightSpeedManager.statusBarProvider.statusBar.tooltip = "processing...";
+  console.log(
+    `[inline-suggestions] completionData: \n${yaml.stringify(completionData)}\n`
+  );
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
   lightSpeedManager.statusBarProvider.statusBar.tooltip = "Done";
@@ -286,6 +357,92 @@ async function requestInlineSuggest(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
   );
   return outputData;
+}
+
+export function getAdditionalContext(
+  parsedAnsibleDocument: yaml.YAMLMap[],
+  documentDirPath: string,
+  documentFilePath: string,
+  ansibleFileType: IAnsibleFileType
+): IAdditionalContext {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  let workSpaceRoot = undefined;
+  const playbookContext: IPlaybookContext = {};
+  let roleContext: IRoleContext = {};
+  const standaloneTaskContext: IStandaloneTaskContext = {};
+  if (workspaceFolders) {
+    workSpaceRoot = workspaceFolders[0].uri.fsPath;
+  }
+  if (ansibleFileType === "playbook") {
+    const varsFilesContext = getVarsFilesContext(
+      lightSpeedManager,
+      parsedAnsibleDocument,
+      documentDirPath
+    );
+    playbookContext["varInfiles"] = varsFilesContext || {};
+    const rolesCache: IRolesContext = {};
+    if (workSpaceRoot) {
+      // check if roles are installed in the workspace
+      if (!(workSpaceRoot in lightSpeedManager.ansibleRolesCache)) {
+        const rolesPath = getCustomRolePaths(workSpaceRoot);
+        for (const rolePath of rolesPath) {
+          watchRolesDirectory(lightSpeedManager, rolePath, workSpaceRoot);
+        }
+      }
+      // if roles are installed in the workspace, then get the relative path w.r.t. the workspace root
+      if (workSpaceRoot in lightSpeedManager.ansibleRolesCache) {
+        const workspaceRolesCache =
+          lightSpeedManager.ansibleRolesCache[workSpaceRoot];
+        for (const absRolePath in workspaceRolesCache) {
+          const relativeRolePath = getRelativePath(
+            documentDirPath,
+            workSpaceRoot,
+            absRolePath
+          );
+          rolesCache[relativeRolePath] = workspaceRolesCache[absRolePath];
+        }
+      }
+    }
+    if ("common" in lightSpeedManager.ansibleRolesCache) {
+      for (const commonRolePath in lightSpeedManager.ansibleRolesCache) {
+        rolesCache[commonRolePath] =
+          lightSpeedManager.ansibleRolesCache["common"][commonRolePath];
+      }
+    }
+    playbookContext["roles"] = rolesCache;
+  } else if (ansibleFileType === "tasks_in_role") {
+    const roleCache = lightSpeedManager.ansibleRolesCache;
+    const absRolePath = getRolePathFromPathWithinRole(documentFilePath);
+    if (
+      workSpaceRoot &&
+      workSpaceRoot in roleCache &&
+      absRolePath in roleCache[workSpaceRoot]
+    ) {
+      roleContext = roleCache[workSpaceRoot][absRolePath];
+    }
+  }
+  const includeVarsContext =
+    getIncludeVarsContext(
+      lightSpeedManager,
+      parsedAnsibleDocument,
+      documentDirPath,
+      ansibleFileType
+    ) || {};
+
+  if (ansibleFileType === "playbook") {
+    playbookContext.includeVars = includeVarsContext;
+  } else if (ansibleFileType === "tasks_in_role") {
+    roleContext.includeVars = includeVarsContext;
+  } else if (ansibleFileType === "tasks") {
+    standaloneTaskContext.includeVars = includeVarsContext;
+  }
+
+  const additionalContext: IAdditionalContext = {
+    playbookContext: playbookContext,
+    roleContext: roleContext,
+    standaloneTaskContext: standaloneTaskContext,
+  };
+  return additionalContext;
 }
 
 // Handlers

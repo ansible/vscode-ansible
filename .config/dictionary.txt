@@ -119,6 +119,7 @@ untildify
 userdata
 usermod
 uuidv4
+varInfiles
 venvs
 vscoss
 vsix
