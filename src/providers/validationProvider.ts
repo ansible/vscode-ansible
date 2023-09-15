@@ -52,9 +52,8 @@ export async function doValidate(
       const lintExecutable = settings.executionEnvironment.enabled
         ? "ansible-lint"
         : settings.validation.lint.path;
-      const lintAvailability = await commandRunner.getExecutablePath(
-        lintExecutable,
-      );
+      const lintAvailability =
+        await commandRunner.getExecutablePath(lintExecutable);
       console.debug("Path for lint: ", lintAvailability);
 
       if (lintAvailability) {
@@ -73,9 +72,8 @@ export async function doValidate(
 
       if (isPlaybook(textDocument)) {
         console.debug("playbook file");
-        diagnosticsByFile = await context.ansiblePlaybook.doValidate(
-          textDocument,
-        );
+        diagnosticsByFile =
+          await context.ansiblePlaybook.doValidate(textDocument);
       } else {
         console.debug("non-playbook file");
         diagnosticsByFile = new Map<string, Diagnostic[]>();
