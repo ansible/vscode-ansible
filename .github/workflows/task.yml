@@ -74,7 +74,7 @@ jobs:
           git config --global core.eol lf
         shell: bash # <-- keep it here to avoid using default shell
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
