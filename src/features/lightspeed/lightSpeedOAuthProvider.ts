@@ -35,7 +35,8 @@ import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
-} from "../../definitions/constants";
+} from "../../definitions/lightspeed";
+import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -100,11 +101,11 @@ export class LightSpeedAuthenticationProvider
    * @param scopes
    * @returns
    */
-  public async getSessions(): Promise<readonly AuthenticationSession[]> {
+  public async getSessions(): Promise<readonly LightspeedAuthSession[]> {
     const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
 
     if (allSessions) {
-      return JSON.parse(allSessions) as AuthenticationSession[];
+      return JSON.parse(allSessions) as LightspeedAuthSession[];
     }
 
     return [];
@@ -115,7 +116,7 @@ export class LightSpeedAuthenticationProvider
    * @param scopes
    * @returns
    */
-  public async createSession(scopes: string[]): Promise<AuthenticationSession> {
+  public async createSession(scopes: string[]): Promise<LightspeedAuthSession> {
     try {
       const account = await this.login(scopes);
 
@@ -128,17 +129,21 @@ export class LightSpeedAuthenticationProvider
       );
 
       const identifier = uuid();
-      const session: AuthenticationSession = {
+      const userName = userinfo.external_username || userinfo.username;
+
+      const session: LightspeedAuthSession = {
         id: identifier,
         accessToken: account.accessToken,
         account: {
-          label: userinfo.username,
+          label: userName || "",
           id: identifier,
         },
-        scopes: [],
         // scopes: account.scope,
+        scopes: [],
+        rhUserHasSeat: userinfo.rh_user_has_seat
+          ? userinfo.rh_user_has_seat
+          : false,
       };
-
       await this.context.secrets.store(
         SESSIONS_SECRET_KEY,
         JSON.stringify([session])
@@ -168,7 +173,7 @@ export class LightSpeedAuthenticationProvider
   public async removeSession(sessionId: string): Promise<void> {
     const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
     if (allSessions) {
-      const sessions = JSON.parse(allSessions) as AuthenticationSession[];
+      const sessions = JSON.parse(allSessions) as LightspeedAuthSession[];
       const sessionIdx = sessions.findIndex((s) => s.id === sessionId);
       const session = sessions[sessionIdx];
       sessions.splice(sessionIdx, 1);
@@ -494,10 +499,10 @@ export class LightSpeedAuthenticationProvider
       // change the session id of the existing session
       const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
       if (allSessions) {
-        const sessions = JSON.parse(allSessions) as AuthenticationSession[];
+        const sessions = JSON.parse(allSessions) as LightspeedAuthSession[];
         const sessionIdx = sessions.findIndex((s) => s.id === sessionId);
         const session = sessions[sessionIdx];
-        const freshSession: AuthenticationSession = {
+        const freshSession: LightspeedAuthSession = {
           ...session,
           accessToken: tokenToBeReturned,
         };
@@ -517,6 +522,25 @@ export class LightSpeedAuthenticationProvider
     }
 
     return tokenToBeReturned;
+  }
+
+  public async getLightSpeedAuthSession(): Promise<
+    LightspeedAuthSession | undefined
+  > {
+    let lightSpeedAuthSession = undefined;
+    const session = await this.isAuthenticated();
+    // change the session id of the existing session
+    const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
+    if (allSessions) {
+      const lightspeedSessions = JSON.parse(
+        allSessions
+      ) as LightspeedAuthSession[];
+      const sessionIdx = lightspeedSessions.findIndex(
+        (s) => s.id === session?.id
+      );
+      lightSpeedAuthSession = lightspeedSessions[sessionIdx];
+    }
+    return lightSpeedAuthSession;
   }
 
   /* Get the user info from server */
@@ -558,5 +582,13 @@ export class LightSpeedAuthenticationProvider
     });
 
     return userAuth;
+  }
+
+  public async rhUserHasSeat(): Promise<boolean> {
+    const authSession = await this.getLightSpeedAuthSession();
+    if (authSession?.rhUserHasSeat) {
+      return true;
+    }
+    return false;
   }
 }

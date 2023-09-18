@@ -119,10 +119,12 @@ untildify
 userdata
 usermod
 uuidv4
+varInfiles
 venvs
 vscoss
 vsix
 vyos
+watsonx
 Webviews
 webknjaz
 webpacked

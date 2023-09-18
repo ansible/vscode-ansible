@@ -2,7 +2,7 @@ import { Disposable, Webview, window, Uri } from "vscode";
 import { getUri } from "../../utils/getUri";
 import { getNonce } from "../../utils/getNonce";
 import { lightSpeedManager } from "../../../extension";
-import { FeedbackRequestParams } from "../../../definitions/lightspeed";
+import { FeedbackRequestParams } from "../../../interfaces/lightspeed";
 
 export function getWebviewContent(webview: Webview, extensionUri: Uri) {
   const webviewUri = getUri(webview, extensionUri, [
