@@ -16,7 +16,6 @@ import { execSync } from "child_process";
 export class PythonInterpreterManager {
   private context;
   private client;
-  private cachedAnsibleVersion = "";
   private pythonInterpreterStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
   private extensionSettings: SettingsManager;
@@ -77,6 +76,10 @@ export class PythonInterpreterManager {
       const label = this.makeLabelFromPath(interpreterPath);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;
+        this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
+          `#### Change environment\nCurrent python path: ${interpreterPath}`,
+          true
+        );
         this.pythonInterpreterStatusBarItem.backgroundColor = "";
       }
     } else {
@@ -96,13 +99,26 @@ export class PythonInterpreterManager {
   public makeLabelFromPath(interpreterPath: string): string | undefined {
     const version = execSync(`${interpreterPath} -V`).toString().trim();
 
-    const sysPrefix = execSync(
-      `${interpreterPath} -c "import sys;print(sys.prefix.split('/').pop())"`
+    let envLabel: string = version;
+
+    const pythonInVenv = execSync(
+      `${interpreterPath} -c "import sys;in_venv = sys.prefix != sys.base_prefix;print(in_venv)"`
     )
       .toString()
       .trim();
 
-    const envLabel = `${version} (${sysPrefix})`;
+    const inVenv = pythonInVenv === "True";
+
+    if (inVenv) {
+      const sysPrefix = execSync(
+        `${interpreterPath} -c "import sys;print(sys.prefix.split('/').pop())"`
+      )
+        .toString()
+        .trim();
+
+      envLabel = `${version} (${sysPrefix})`;
+    }
+
     return envLabel;
   }
 }

@@ -9,7 +9,8 @@ import {
   workspace,
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
-import { AnsibleCommands, LightSpeedCommands } from "./definitions/constants";
+import { AnsibleCommands } from "./definitions/constants";
+import { LightSpeedCommands } from "./definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -55,17 +56,28 @@ import {
   setPythonInterpreterWithCommand,
 } from "./features/utils/setPythonInterpreter";
 import { PythonInterpreterManager } from "./features/pythonMetadata";
+import { AnsibleToxController } from "./features/ansibleTox/controller";
+import { AnsibleToxProvider } from "./features/ansibleTox/provider";
+import { findProjectDir } from "./features/ansibleTox/utils";
+import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
+import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
+import { IFileSystemWatchers } from "./interfaces/watchers";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
+export const globalFileSystemWatcher: IFileSystemWatchers = {};
+
 const lsName = "Ansible Support";
 
 export async function activate(context: ExtensionContext): Promise<void> {
-  // set correct python interpreter
-  await setPythonInterpreter();
-
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
+
+  // set correct python interpreter
+  const workspaceFolders = workspace.workspaceFolders;
+  if (workspaceFolders) {
+    await setPythonInterpreter();
+  }
 
   // Create Telemetry Service
   const telemetry = new TelemetryManager(context);
@@ -137,7 +149,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK,
-      lightSpeedManager.lightSpeedStatusBarClickHandler
+      () =>
+        lightSpeedManager.statusBarProvider.lightSpeedStatusBarClickHandler()
     )
   );
 
@@ -254,18 +267,57 @@ export async function activate(context: ExtensionContext): Promise<void> {
       )
   );
 
-  const session = await authentication.getSession(
-    ANSIBLE_LIGHTSPEED_AUTH_ID,
-    [],
-    {
+  let session: vscode.AuthenticationSession | undefined;
+
+  if (await workspace.getConfiguration("ansible").get("lightspeed.enabled")) {
+    session = await authentication.getSession(ANSIBLE_LIGHTSPEED_AUTH_ID, [], {
       createIfNone: false,
-    }
-  );
+    });
+  }
 
   if (session) {
     window.registerTreeDataProvider(
       "lightspeed-explorer-treeview",
       new TreeDataProvider(session)
+    );
+  }
+
+  // handle lightSpeed feedback
+  const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
+    context.extensionUri
+  );
+
+  // Register the Lightspeed provider for a Webview View
+  const lightspeedFeedbackDisposable = window.registerWebviewViewProvider(
+    LightspeedFeedbackWebviewViewProvider.viewType,
+    lightspeedFeedbackProvider
+  );
+
+  context.subscriptions.push(lightspeedFeedbackDisposable);
+
+  // Register the Lightspeed provider for a Webview
+  const lightspeedFeedbackCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_FEEDBACK,
+    () => {
+      LightspeedFeedbackWebviewProvider.render(context.extensionUri);
+    }
+  );
+
+  context.subscriptions.push(lightspeedFeedbackCommand);
+
+  // handle Ansible Tox
+  const ansibleToxController = new AnsibleToxController();
+  context.subscriptions.push(await ansibleToxController.create());
+
+  const workspaceTox = findProjectDir();
+
+  if (workspaceTox) {
+    const testProvider = new AnsibleToxProvider(workspaceTox);
+    context.subscriptions.push(
+      vscode.tasks.registerTaskProvider(
+        AnsibleToxProvider.toxType,
+        testProvider
+      )
     );
   }
 }
@@ -354,7 +406,7 @@ async function updateAnsibleStatusBar(
   pythonInterpreterManager: PythonInterpreterManager
 ) {
   await metaData.updateAnsibleInfoInStatusbar();
-  lightSpeedManager.updateLightSpeedStatusbar();
+  lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
   await pythonInterpreterManager.updatePythonInfoInStatusbar();
 }
 /**
@@ -387,6 +439,15 @@ async function resyncAnsibleInventory(): Promise<void> {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getAuthToken(): Promise<void> {
+  if (
+    !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
+  ) {
+    await window.showErrorMessage(
+      "Enable lightspeed services from settings to use the feature."
+    );
+    return;
+  }
+
   const session = await authentication.getSession(
     ANSIBLE_LIGHTSPEED_AUTH_ID,
     [],

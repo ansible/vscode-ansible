@@ -60,6 +60,7 @@ loglevel
 lxml
 Maciążek
 markdownlint
+maxlength
 mochawesome
 modeline
 modelines
@@ -102,6 +103,8 @@ stopendy
 suboptions
 sysninja
 taskfile
+Testenvs
+testenv
 testhost
 testorg
 timonwong
@@ -116,10 +119,13 @@ untildify
 userdata
 usermod
 uuidv4
+varInfiles
 venvs
 vscoss
 vsix
 vyos
+watsonx
+Webviews
 webknjaz
 webpacked
 whitespaces

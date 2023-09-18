@@ -6,31 +6,35 @@ import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import {
-  AnsibleContentUploadTrigger,
   FeedbackRequestParams,
   IDocumentTracker,
-} from "../../definitions/lightspeed";
-import {
-  LightSpeedCommands,
-  LIGHTSPEED_FEEDBACK_FORM_URL,
-  LIGHTSPEED_REPORT_EMAIL_ADDRESS,
-} from "../../definitions/constants";
+  IIncludeVarsContext,
+  IWorkSpaceRolesContext,
+} from "../../interfaces/lightspeed";
+import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
 import { AttributionsWebview } from "./attributionsWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
 } from "./utils/webUtils";
+import { LightspeedStatusBar } from "./statusBar";
+import { IVarsFileContext } from "../../interfaces/lightspeed";
+import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
+import { watchRolesDirectory } from "./utils/watchers";
 
 export class LightSpeedManager {
   private context;
   public client;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
-  public lightSpeedStatusBar: vscode.StatusBarItem;
   public apiInstance: LightSpeedAPI;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   public lightSpeedActivityTracker: IDocumentTracker;
   public attributionsProvider: AttributionsWebview;
+  public statusBarProvider: LightspeedStatusBar;
+  public ansibleVarFilesCache: IVarsFileContext = {};
+  public ansibleRolesCache: IWorkSpaceRolesContext = {};
+  public ansibleIncludeVarsCache: IIncludeVarsContext = {};
 
   constructor(
     context: vscode.ExtensionContext,
@@ -51,6 +55,9 @@ export class LightSpeedManager {
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME
       );
+    if (this.settingsManager.settings.lightSpeedService.enabled) {
+      this.lightSpeedAuthenticationProvider.initialize();
+    }
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider
@@ -63,58 +70,54 @@ export class LightSpeedManager {
     );
 
     // create a new project lightspeed status bar item that we can manage
-    this.lightSpeedStatusBar = this.initialiseStatusBar();
-    this.updateLightSpeedStatusbar();
-  }
-
-  public reInitialize(): void {
-    this.updateLightSpeedStatusbar();
-  }
-
-  private initialiseStatusBar(): vscode.StatusBarItem {
-    // create a new status bar item that we can manage
-    const lightSpeedStatusBarItem = vscode.window.createStatusBarItem(
-      vscode.StatusBarAlignment.Right,
-      100
+    this.statusBarProvider = new LightspeedStatusBar(
+      this.apiInstance,
+      context,
+      client,
+      settingsManager
     );
-    lightSpeedStatusBarItem.command =
-      LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
-    lightSpeedStatusBarItem.text = "Lightspeed";
-    this.context.subscriptions.push(lightSpeedStatusBarItem);
-    return lightSpeedStatusBarItem;
+
+    // create workspace context for ansible roles
+    this.setContext();
   }
 
-  private handleStatusBar() {
-    if (!this.client.isRunning()) {
+  public async reInitialize(): Promise<void> {
+    const lightspeedEnabled = await vscode.workspace
+      .getConfiguration("ansible")
+      .get("lightspeed.enabled");
+
+    if (!lightspeedEnabled) {
+      await this.resetContext();
+      await this.lightSpeedAuthenticationProvider.dispose();
+      this.statusBarProvider.statusBar.hide();
       return;
-    }
-    if (
-      this.settingsManager.settings.lightSpeedService.enabled &&
-      this.settingsManager.settings.lightSpeedService.suggestions.enabled
-    ) {
-      this.lightSpeedStatusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.prominentForeground"
-      );
     } else {
-      this.lightSpeedStatusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.warningBackground"
-      );
+      this.lightSpeedAuthenticationProvider.initialize();
+      this.setContext();
     }
-    this.lightSpeedStatusBar.show();
   }
 
-  public updateLightSpeedStatusbar(): void {
-    if (
-      vscode.window.activeTextEditor?.document.languageId !== "ansible" ||
-      !this.settingsManager.settings.lightSpeedService.enabled
-    ) {
-      this.lightSpeedStatusBar.hide();
-      return;
-    }
-
-    this.handleStatusBar();
+  private async resetContext(): Promise<void> {
+    this.ansibleVarFilesCache = {};
+    this.ansibleRolesCache = {};
   }
 
+  private setContext(): void {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders) {
+      for (const workspaceFolder of workspaceFolders) {
+        const workSpaceRoot = workspaceFolder.uri.fsPath;
+        const rolesPath = getCustomRolePaths(workSpaceRoot);
+        for (const rolePath of rolesPath) {
+          watchRolesDirectory(this, rolePath, workSpaceRoot);
+        }
+      }
+    }
+    const commonRolesPath = getCommonRoles() || [];
+    for (const rolePath of commonRolesPath) {
+      watchRolesDirectory(this, rolePath);
+    }
+  }
   public ansibleContentFeedback(
     document: vscode.TextDocument,
     trigger: AnsibleContentUploadTrigger
@@ -127,24 +130,49 @@ export class LightSpeedManager {
       return;
     }
 
+    const currentFileContent = document.getText();
     const documentUri = document.uri.toString();
-    let activityId: string | undefined = undefined;
-    if (trigger === AnsibleContentUploadTrigger.FILE_OPEN) {
-      activityId = uuidv4();
-      this.lightSpeedActivityTracker[documentUri] = uuidv4();
-    } else if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
-      // retrieve previous activity tracker
-      activityId = this.lightSpeedActivityTracker[documentUri];
-
-      // start a new activity tracker
-      this.lightSpeedActivityTracker[documentUri] = uuidv4();
-    } else if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
-      // retrieve previous activity tracker
-      activityId = this.lightSpeedActivityTracker[documentUri];
-
-      // end previous activity tracker
-      delete this.lightSpeedActivityTracker[documentUri];
+    let activityId: string;
+    if (!this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
+      // Inline suggestion not yet triggered, return without sending event.
+      return;
     }
+    if (this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
+      activityId = this.lightSpeedActivityTracker[documentUri].activityId;
+      const previousFileContent =
+        this.lightSpeedActivityTracker[documentUri].content;
+
+      if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
+        // end previous activity tracker
+        delete this.lightSpeedActivityTracker[documentUri];
+      }
+
+      if (previousFileContent === currentFileContent) {
+        console.log(
+          `[ansible-lightspeed-feedback] Event ansibleContent not sent as the content of file ${documentUri} is same as previous event.`
+        );
+        return;
+      }
+
+      if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
+        // start a new activity tracker
+        this.lightSpeedActivityTracker[documentUri].activityId = uuidv4();
+      }
+    } else {
+      activityId = uuidv4();
+      this.lightSpeedActivityTracker[documentUri] = {
+        activityId: activityId,
+        content: currentFileContent,
+      };
+    }
+
+    if (!currentFileContent.trim()) {
+      console.log(
+        `[ansible-lightspeed-feedback] Event ansibleContent is not sent as the content of file ${documentUri} is empty.`
+      );
+      return;
+    }
+
     const inputData: FeedbackRequestParams = {
       ansibleContent: {
         content: document.getText(),
@@ -153,29 +181,7 @@ export class LightSpeedManager {
         activityId: activityId,
       },
     };
-    console.log(
-      "[ansible-lightspeed-feedback] Event lightSpeedServiceAnsibleContentFeedbackEvent sent."
-    );
+    console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
     this.apiInstance.feedbackRequest(inputData);
-  }
-
-  public async lightSpeedStatusBarClickHandler() {
-    // show an information message feedback buttons
-    const contactButton = `Contact Us`;
-    const feedbackButton = "Take Survey";
-    const inputButton = await vscode.window.showInformationMessage(
-      "Ansible Lightspeed with Watson Code Assistant feedback",
-      //{ modal: true },
-      feedbackButton,
-      contactButton
-    );
-    if (inputButton === feedbackButton) {
-      // open a URL in the default browser
-      vscode.env.openExternal(vscode.Uri.parse(LIGHTSPEED_FEEDBACK_FORM_URL));
-    } else if (inputButton === contactButton) {
-      // open the user's default email client
-      const mailtoUrl = encodeURI(`mailto:${LIGHTSPEED_REPORT_EMAIL_ADDRESS}`);
-      vscode.env.openExternal(vscode.Uri.parse(mailtoUrl));
-    }
   }
 }

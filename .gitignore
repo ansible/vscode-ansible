@@ -18,3 +18,4 @@ CHANGELOG.html
 !.yarn/sdks
 !.yarn/versions
 .DS_Store
+.direnv

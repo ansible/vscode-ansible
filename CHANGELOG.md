@@ -4,6 +4,92 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.7
+
+- Fix broken Ansible Lint docs link (#959) @ElijahLynn
+
+### Minor Changes
+
+- Categorise extension settings and fix ansible language configurations (#961)
+  @priyamsahoo
+
+### Bugfixes
+
+- Unchange insertText to snippetstring (#962) @priyamsahoo
+- Categorise extension settings and fix ansible language configurations (#961)
+  @priyamsahoo
+
+## v2.6
+
+### Bugfixes
+
+- Fix var capturing regex (#955) @priyamsahoo
+
+## v2.5
+
+### Minor Changes
+
+- Upgrade als to v1.2.1 (#950) @priyamsahoo
+- Add ability to select and set cursor on vars following `_var_` pattern (#884)
+  @priyamsahoo
+- Upgrade ALS to v1.1.0 (#932) @priyamsahoo
+- Upgrade yaml package to 2.x (#925) @priyamsahoo
+
+### Bugfixes
+
+- Upgrade als to v1.2.1 (#950) @priyamsahoo
+- Fix command runner (#949) @priyamsahoo
+- Update lightspeed task name regex match condition (#947) (#948) @ganeshrn
+- Fix ansibleContent feedback event trigger (#940) @ganeshrn
+- Update runner.ts to correctly get the path of ansible (#945) @priyamsahoo
+- Make hover e2e tests fixture messages more generic (#934) @priyamsahoo
+
+## v2.4
+
+### Minor Changes
+
+- Lightspeed UI feedback and sentiment (#924) @ganeshrn
+
+### Bugfixes
+
+- Update readme with lightspeed section (#926) @ganeshrn
+
+## v2.3
+
+### Minor Changes
+
+- Add support for tox-ansible plugin test discovery (#902) @ganeshrn
+
+### Bugfixes
+
+- Fix notification for lightspeed login after the setting is disabled (#911)
+  @ganeshrn
+- [Lightspeed] Fix connect button working (#908) @priyamsahoo
+
+## v2.2
+
+### Bugfixes
+
+- Update attributionsWebview.ts (#901) @robinbobbitt
+
+## v2.1
+
+### Minor Changes
+
+- Easy discovery of Python interpreter and Ansible executables (#871)
+  @priyamsahoo
+
+### Bugfixes
+
+- Add information message for inline suggestion trigger command (#896) @ganeshrn
+- Update status-bar items (#891) @priyamsahoo
+- Update inline suggestion trigger condition (#892) @ganeshrn
+- Add ability to select and set cursor on vars (#883) @priyamsahoo
+- Add logic for conditional Authentication Provider registration (#877)
+  @ganeshrn
+- Fix regex to match trigger for lightspeed suggestion (#875) @ganeshrn
+- Update dependencies (#872) @ssbarnea
+
 ## v2.0
 
 ### Major Changes

@@ -104,7 +104,7 @@ is provided instantaneously.
 On opening and saving a document, `ansible-lint` is executed in the background
 and any findings are presented as errors. You might find it useful that
 rules/tags added to `warn_list` (see
-[Ansible Lint Documentation](https://ansible-lint.readthedocs.io/en/latest/configuring.html))
+[Ansible Lint Documentation](https://ansible.readthedocs.io/projects/lint/configuring/))
 are shown as warnings instead.
 
 ### Smart autocompletion
@@ -146,6 +146,14 @@ the documentation straight from the Python implementation of the modules.
 You may also open the implementation of any module using the standard _Go to
 Definition_ operation, for instance, by clicking on the module name while
 holding `ctrl`/`cmd`.
+
+### Ansible Lightspeed with watsonx Code Assistant
+
+AI based Ansible code recommendations
+
+- [Getting started](https://docs.ai.ansible.redhat.com/vscode_guide/installing_vs/#configuring-the-ansible-vs-code-extension)
+
+- [Contact](https://matrix.to/#/%23ansible-lightspeed:ansible.im)
 
 ## Requirements
 
@@ -216,7 +224,9 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
-  Watson Code Assistant inline suggestions.
+  watsonx Code Assistant inline suggestions.
+- `ansible.lightspeed.modelId`: The model to be used for inline suggestions.
+  This setting applies only to subscribed users.
 
 ## Data and Telemetry
 
@@ -236,6 +246,10 @@ which you can learn more about at
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
+
+## Contact
+
+- [Ansible Developer Tools matrix channel](https://matrix.to/#/#devtools:ansible.im)
 
 ## Credit
 

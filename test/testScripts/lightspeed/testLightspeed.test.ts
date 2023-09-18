@@ -7,6 +7,8 @@ import {
   disableLightspeedSettings,
   canRunLightspeedTests,
   testInlineSuggestionNotTriggered,
+  testInlineSuggestionCursorPositions,
+  testValidJinjaBrackets,
 } from "../../helper";
 
 function testSuggestionPrompts() {
@@ -17,7 +19,7 @@ function testSuggestionPrompts() {
     },
     {
       taskName: "Create a file foo.txt",
-      expectedModule: "ansible.builtin.copy",
+      expectedModule: "ansible.builtin.file",
     },
   ];
 
@@ -30,7 +32,34 @@ function testInvalidPrompts() {
     "--name: Print hello world",
     "- -name: Print hello world",
     "-- name: Print hello world",
+    "- name:",
+    "- name: ",
   ];
+  return tests;
+}
+
+function testInvalidCursorPosition() {
+  const tests = [
+    {
+      taskName: "- name: Print hello world 1",
+      newLineSpaces: 2,
+    },
+    {
+      taskName: "- name: Print hello world 2",
+      newLineSpaces: 6,
+    },
+  ];
+  return tests;
+}
+
+function testSuggestionWithValidJinjaBrackets() {
+  const tests = [
+    {
+      taskName: "Run container with podman using foo_app var",
+      expectedValidJinjaInlineVar: "{{ foo_app.image }}",
+    },
+  ];
+
   return tests;
 }
 
@@ -81,7 +110,38 @@ export function testLightspeed(): void {
           await testInlineSuggestionNotTriggered(promptName);
         });
       });
+
+      const invalidCursorPosTest = testInvalidCursorPosition();
+      invalidCursorPosTest.forEach(({ taskName, newLineSpaces }) => {
+        it(`Should not give inline suggestion for task prompt '${taskName}' with new line spaces ${newLineSpaces}`, async function () {
+          await testInlineSuggestionCursorPositions(
+            taskName,
+            newLineSpaces as number
+          );
+        });
+      });
     });
+
+    describe("Test Ansible Lightspeed inline completion suggestions", function () {
+      const docUri1 = getDocUri("lightspeed/playbook_with_vars.yml");
+
+      before(async function () {
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+        await activate(docUri1);
+      });
+
+      const tests = testSuggestionWithValidJinjaBrackets();
+
+      tests.forEach(({ taskName, expectedValidJinjaInlineVar }) => {
+        it(`Should provide suggestion with valid jinja brackets for task prompt '${taskName}'`, async function () {
+          // await testInlineSuggestion(taskName, expectedValidJinjaInlineVar);
+          await testValidJinjaBrackets(taskName, expectedValidJinjaInlineVar);
+        });
+      });
+    });
+
     after(async function () {
       disableLightspeedSettings();
     });
