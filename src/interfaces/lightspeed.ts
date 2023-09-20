@@ -23,7 +23,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
-  modelId?: string;
+  model_name?: string;
 }
 
 export interface FeedbackResponseParams {

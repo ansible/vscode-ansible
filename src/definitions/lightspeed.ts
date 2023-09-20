@@ -10,7 +10,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
-  modelId?: string;
+  modelIdOverride?: string;
 }
 
 export enum UserAction {
@@ -57,3 +57,5 @@ export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
 
 export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
 export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
+
+export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";

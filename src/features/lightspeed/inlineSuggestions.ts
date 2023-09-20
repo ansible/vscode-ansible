@@ -16,7 +16,10 @@ import {
   IRoleContext,
   IStandaloneTaskContext,
 } from "../../interfaces/lightspeed";
-import { UserAction } from "../../definitions/lightspeed";
+import {
+  LIGHTSPEED_SUGGESTION_TYPE,
+  UserAction,
+} from "../../definitions/lightspeed";
 import { LightSpeedCommands } from "../../definitions/lightspeed";
 import {
   getIncludeVarsContext,
@@ -33,9 +36,9 @@ import {
 import { getAnsibleFileType, getCustomRolePaths } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
 
-const TASK_REGEX_EP =
+const SINGLE_TASK_REGEX_EP =
   /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
-
+const MULTI_TASK_REGEX_EP = /^\s*#\s*\S+.*$/;
 let suggestionId = "";
 let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
@@ -134,8 +137,27 @@ export async function getInlineSuggestionItems(
   let result: CompletionResponseParams = {
     predictions: [],
   };
-  inlineSuggestionData = {};
-  suggestionId = "";
+
+  let parsedAnsibleDocument = undefined;
+  const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
+  const documentContent = range.isEmpty
+    ? ""
+    : document.getText(range).trimEnd();
+  try {
+    parsedAnsibleDocument = yaml.parse(documentContent, {
+      keepSourceTokens: true,
+    });
+  } catch (err) {
+    vscode.window.showErrorMessage(
+      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
+    );
+    return [];
+  }
+  if (!shouldRequestInlineSuggestions(parsedAnsibleDocument)) {
+    return [];
+  }
+
+  let suggestionMatchType: LIGHTSPEED_SUGGESTION_TYPE | undefined = undefined;
 
   let rhUserHasSeat =
     await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
@@ -144,41 +166,115 @@ export async function getInlineSuggestionItems(
   }
 
   const lineToExtractPrompt = document.lineAt(currentPosition.line - 1);
-  const taskMatchedPattern = lineToExtractPrompt.text.match(TASK_REGEX_EP);
+  const taskMatchedPattern =
+    lineToExtractPrompt.text.match(SINGLE_TASK_REGEX_EP);
   const currentLineText = document.lineAt(currentPosition);
-  const spacesBeforeTaskNameStart =
-    lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
   const spacesBeforeCursor =
     currentLineText?.text.slice(0, currentPosition.character).match(/^ +/)?.[0]
       .length || 0;
 
+  if (taskMatchedPattern) {
+    suggestionMatchType = "SINGLE-TASK";
+  } else {
+    const commentMatchedPattern =
+      lineToExtractPrompt.text.match(MULTI_TASK_REGEX_EP);
+    if (commentMatchedPattern) {
+      suggestionMatchType = "MULTI-TASK";
+    }
+  }
+
+  const spacesBeforePromptStart =
+    lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
+
   if (
-    !taskMatchedPattern ||
+    !suggestionMatchType ||
     !currentLineText.isEmptyOrWhitespace ||
-    spacesBeforeTaskNameStart !== spacesBeforeCursor
+    spacesBeforePromptStart !== spacesBeforeCursor
   ) {
     resetInlineSuggestionDisplayed();
     // If the user has triggered the inline suggestion by pressing the configured keys,
     // we will show an information message to the user to help them understand the
     // correct cursor position to trigger the inline suggestion.
     if (context.triggerKind === vscode.InlineCompletionTriggerKind.Invoke) {
-      if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
-        vscode.window.showInformationMessage(
-          "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
-        );
-      } else if (
-        taskMatchedPattern &&
-        currentLineText.isEmptyOrWhitespace &&
-        spacesBeforeTaskNameStart !== spacesBeforeCursor
-      ) {
-        vscode.window.showInformationMessage(
-          `Cursor must be in column ${spacesBeforeTaskNameStart} to trigger an inline suggestion.`
-        );
+      if (rhUserHasSeat) {
+        if (!suggestionMatchType || !currentLineText.isEmptyOrWhitespace) {
+          vscode.window.showInformationMessage(
+            "Cursor should be positioned on the line after the task name or a comment line within task context to trigger an inline suggestion."
+          );
+        } else if (
+          suggestionMatchType &&
+          currentLineText.isEmptyOrWhitespace &&
+          spacesBeforePromptStart !== spacesBeforeCursor
+        ) {
+          vscode.window.showInformationMessage(
+            `Cursor must be in column ${spacesBeforePromptStart} to trigger an inline suggestion.`
+          );
+        }
+      } else {
+        if (!taskMatchedPattern || !currentLineText.isEmptyOrWhitespace) {
+          vscode.window.showInformationMessage(
+            "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
+          );
+        } else if (
+          taskMatchedPattern &&
+          currentLineText.isEmptyOrWhitespace &&
+          spacesBeforePromptStart !== spacesBeforeCursor
+        ) {
+          vscode.window.showInformationMessage(
+            `Cursor must be in column ${spacesBeforePromptStart} to trigger an inline suggestion.`
+          );
+        }
       }
     }
     return [];
   }
+
+  const documentUri = document.uri.toString();
+  const documentDirPath = pathUri.dirname(URI.parse(documentUri).path);
+  const documentFilePath = URI.parse(documentUri).path;
+  const ansibleFileType: IAnsibleFileType = getAnsibleFileType(
+    documentFilePath,
+    parsedAnsibleDocument
+  );
+
+  if (suggestionMatchType === "MULTI-TASK") {
+    if (!rhUserHasSeat) {
+      console.debug(
+        "[inline-suggestions] No suggestions for multitask match for a non seat user."
+      );
+      return [];
+    } else {
+      if (ansibleFileType === "playbook") {
+        const lastObject =
+          parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+        if (typeof lastObject !== "object") {
+          return [];
+        }
+        const keysToCheckFor = [
+          "tasks",
+          "block",
+          "pre_tasks",
+          "post_tasks",
+          "handlers",
+        ];
+        const objectKeys = Object.keys(lastObject);
+        const matchingKey = keysToCheckFor.find((key) =>
+          objectKeys.includes(key)
+        );
+        if (!matchingKey) {
+          return [];
+        }
+
+        const childElements = lastObject[matchingKey];
+        if (childElements && !Array.isArray(childElements)) {
+          return [];
+        }
+      }
+    }
+  }
+
   inlineSuggestionData = {};
+  suggestionId = "";
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
 
@@ -187,7 +283,6 @@ export async function getInlineSuggestionItems(
   );
   try {
     suggestionId = uuidv4();
-    const documentUri = document.uri.toString();
     let activityId: string | undefined = undefined;
     inlineSuggestionData["suggestionId"] = suggestionId;
     inlineSuggestionData["documentUri"] = documentUri;
@@ -203,40 +298,7 @@ export async function getInlineSuggestionItems(
         lightSpeedManager.lightSpeedActivityTracker[documentUri].activityId;
     }
     inlineSuggestionData["activityId"] = activityId;
-    const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
 
-    const documentContent = range.isEmpty
-      ? ""
-      : document.getText(range).trimEnd();
-
-    let parsedAnsibleDocument = undefined;
-    try {
-      parsedAnsibleDocument = yaml.parse(documentContent, {
-        keepSourceTokens: true,
-      });
-      if (!parsedAnsibleDocument) {
-        return [];
-      }
-      // check if YAML is a list, if not it is not a valid Ansible document
-      if (
-        typeof parsedAnsibleDocument === "object" &&
-        !Array.isArray(parsedAnsibleDocument)
-      ) {
-        vscode.window.showErrorMessage(
-          "Ansible Lightspeed expects valid Ansible syntax. For playbook files it should be a list of plays and for tasks files it should be list of tasks."
-        );
-        return [];
-      }
-    } catch (err) {
-      vscode.window.showErrorMessage(
-        `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
-      );
-      return [];
-    }
-
-    if (!shouldRequestInlineSuggestions(parsedAnsibleDocument)) {
-      return [];
-    }
     lightSpeedManager.statusBarProvider.statusBar.text =
       "$(loading~spin) Lightspeed";
     result = await requestInlineSuggest(
@@ -244,7 +306,10 @@ export async function getInlineSuggestionItems(
       parsedAnsibleDocument,
       documentUri,
       activityId,
-      rhUserHasSeat
+      rhUserHasSeat,
+      documentDirPath,
+      documentFilePath,
+      ansibleFileType
     );
     lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
   } catch (error) {
@@ -304,15 +369,11 @@ async function requestInlineSuggest(
   parsedAnsibleDocument: any,
   documentUri: string,
   activityId: string,
-  rhUserHasSeat: boolean
+  rhUserHasSeat: boolean,
+  documentDirPath: string,
+  documentFilePath: string,
+  ansibleFileType: IAnsibleFileType
 ): Promise<CompletionResponseParams> {
-  const documentDirPath = pathUri.dirname(URI.parse(documentUri).path);
-  const documentFilePath = URI.parse(documentUri).path;
-  const ansibleFileType: IAnsibleFileType = getAnsibleFileType(
-    documentFilePath,
-    parsedAnsibleDocument
-  );
-
   const hash = crypto.createHash("sha256").update(documentUri).digest("hex");
   const completionData: CompletionRequestParams = {
     prompt: content,
@@ -323,13 +384,15 @@ async function requestInlineSuggest(
       activityId: activityId,
     },
   };
-  if (rhUserHasSeat) {
-    const modelId =
-      lightSpeedManager.settingsManager.settings.lightSpeedService.modelId;
-    if (modelId && modelId !== "") {
-      completionData.modelId = modelId;
-    }
 
+  const modelIdOverride =
+    lightSpeedManager.settingsManager.settings.lightSpeedService
+      .modelIdOverride;
+  if (modelIdOverride && modelIdOverride !== "") {
+    completionData.model_name = modelIdOverride;
+  }
+
+  if (rhUserHasSeat) {
     const additionalContext = getAdditionalContext(
       parsedAnsibleDocument,
       documentDirPath,
