@@ -26,6 +26,7 @@ import {
   getRelativePath,
   getRolePathFromPathWithinRole,
   shouldRequestInlineSuggestions,
+  shouldTriggerMultiTaskSuggestion,
 } from "./utils/data";
 import { getVarsFilesContext } from "./utils/data";
 import {
@@ -137,25 +138,10 @@ export async function getInlineSuggestionItems(
   let result: CompletionResponseParams = {
     predictions: [],
   };
-
-  let parsedAnsibleDocument = undefined;
   const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
   const documentContent = range.isEmpty
     ? ""
     : document.getText(range).trimEnd();
-  try {
-    parsedAnsibleDocument = yaml.parse(documentContent, {
-      keepSourceTokens: true,
-    });
-  } catch (err) {
-    vscode.window.showErrorMessage(
-      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
-    );
-    return [];
-  }
-  if (!shouldRequestInlineSuggestions(parsedAnsibleDocument)) {
-    return [];
-  }
 
   let suggestionMatchType: LIGHTSPEED_SUGGESTION_TYPE | undefined = undefined;
 
@@ -229,6 +215,7 @@ export async function getInlineSuggestionItems(
     return [];
   }
 
+  let parsedAnsibleDocument = undefined;
   const documentUri = document.uri.toString();
   const documentDirPath = pathUri.dirname(URI.parse(documentUri).path);
   const documentFilePath = URI.parse(documentUri).path;
@@ -240,37 +227,37 @@ export async function getInlineSuggestionItems(
   if (suggestionMatchType === "MULTI-TASK") {
     if (!rhUserHasSeat) {
       console.debug(
-        "[inline-suggestions] No suggestions for multitask match for a non seat user."
+        "[inline-suggestions] Multitask suggestions not supported for a non seat user."
       );
       return [];
     } else {
-      if (ansibleFileType === "playbook") {
-        const lastObject =
-          parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
-        if (typeof lastObject !== "object") {
-          return [];
-        }
-        const keysToCheckFor = [
-          "tasks",
-          "block",
-          "pre_tasks",
-          "post_tasks",
-          "handlers",
-        ];
-        const objectKeys = Object.keys(lastObject);
-        const matchingKey = keysToCheckFor.find((key) =>
-          objectKeys.includes(key)
-        );
-        if (!matchingKey) {
-          return [];
-        }
-
-        const childElements = lastObject[matchingKey];
-        if (childElements && !Array.isArray(childElements)) {
-          return [];
-        }
+      if (
+        !shouldTriggerMultiTaskSuggestion(
+          documentContent,
+          spacesBeforePromptStart,
+          ansibleFileType
+        )
+      ) {
+        return [];
       }
     }
+  }
+
+  try {
+    parsedAnsibleDocument = yaml.parse(documentContent, {
+      keepSourceTokens: true,
+    });
+  } catch (err) {
+    vscode.window.showErrorMessage(
+      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
+    );
+    return [];
+  }
+  if (
+    suggestionMatchType === "SINGLE-TASK" &&
+    !shouldRequestInlineSuggestions(parsedAnsibleDocument)
+  ) {
+    return [];
   }
 
   inlineSuggestionData = {};

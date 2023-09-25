@@ -9,6 +9,7 @@ import {
   IWorkSpaceRolesContext,
   IVarsContext,
   IIncludeVarsContext,
+  IAnsibleFileType,
 } from "../../../interfaces/lightspeed";
 import { watchAnsibleFile } from "./watchers";
 import { LightSpeedManager } from "../base";
@@ -17,6 +18,10 @@ import {
   IncludeVarValidTaskName,
   StandardRolePaths,
 } from "../../../definitions/constants";
+import {
+  tasksFileKeywords,
+  tasksInPlaybookKeywords,
+} from "../../../definitions/lightspeed";
 
 export function shouldRequestInlineSuggestions(
   parsedAnsibleDocument: yaml.YAMLMap[]
@@ -368,3 +373,202 @@ export function getRolePathFromPathWithinRole(roleFilePath: string): string {
   );
   return roleNamePath;
 }
+
+export function shouldTriggerMultiTaskSuggestion(
+  documentContent: string,
+  spacesBeforePromptStart: number,
+  ansibleFileType: IAnsibleFileType
+): boolean {
+  const documentLines = documentContent.trim().split("\n");
+  if (ansibleFileType === "playbook") {
+    if (
+      shouldTriggerMultiTaskSuggestionForPlaybook(
+        documentLines,
+        spacesBeforePromptStart
+      )
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    if (
+      shouldTriggerMultiTaskSuggestionForTaskFile(
+        documentLines,
+        spacesBeforePromptStart
+      )
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
+function shouldTriggerMultiTaskSuggestionForTaskFile(
+  documentLines: string[],
+  spacesBeforePromptStart: number
+): boolean {
+  let firstMatchKeywordIndent = -1;
+  const validSuggestionTriggerIndents: number[] = [];
+  let matchKeywordIndex = -1;
+  for (let lineIndex = documentLines.length - 1; lineIndex >= 0; lineIndex--) {
+    if (matchKeyword(tasksFileKeywords, documentLines[lineIndex])) {
+      const match = documentLines[lineIndex].match(/^\s*/);
+      if (firstMatchKeywordIndent === -1) {
+        firstMatchKeywordIndent = match ? match[0].length : -1;
+      }
+      matchKeywordIndex = lineIndex;
+    }
+    if (matchKeywordIndex !== -1) {
+      let onlyCommentsAfterKeyword = true;
+      for (
+        let commentIndex = matchKeywordIndex + 1;
+        commentIndex < documentLines.length;
+        commentIndex++
+      ) {
+        if (documentLines[commentIndex].trim() === "") {
+          continue;
+        }
+        if (!documentLines[commentIndex].trim().startsWith("#")) {
+          onlyCommentsAfterKeyword = false;
+          break;
+        }
+      }
+      if (onlyCommentsAfterKeyword) {
+        if (spacesBeforePromptStart > firstMatchKeywordIndent) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        for (
+          let indentIndex = matchKeywordIndex + 1;
+          indentIndex < documentLines.length;
+          indentIndex++
+        ) {
+          const matched = documentLines[indentIndex].match(/^\s*-\s*/);
+          if (matched) {
+            const indentLength = Math.max(matched[0].length - 2, 0);
+            if (!validSuggestionTriggerIndents.includes(indentLength)) {
+              validSuggestionTriggerIndents.push(indentLength);
+            }
+            break;
+          }
+        }
+      }
+      matchKeywordIndex = -1;
+    }
+  }
+
+  let commentOnly = true;
+  for (let lineIndex = 0; lineIndex < documentLines.length; lineIndex++) {
+    if (
+      documentLines[lineIndex].trim() === "" ||
+      /^\s*---\s*$/.test(documentLines[lineIndex].trim())
+    ) {
+      continue;
+    }
+    if (commentOnly && !documentLines[lineIndex].trim().startsWith("#")) {
+      commentOnly = false;
+    }
+    const matched = documentLines[lineIndex].match(/^\s*-\s*/);
+    if (matched) {
+      const indentLength = Math.max(matched[0].length - 2, 0);
+      if (!validSuggestionTriggerIndents.includes(indentLength)) {
+        validSuggestionTriggerIndents.push(indentLength);
+      }
+      break;
+    }
+  }
+  if (commentOnly) {
+    return true;
+  }
+  if (validSuggestionTriggerIndents.length > 0) {
+    if (!validSuggestionTriggerIndents.includes(spacesBeforePromptStart)) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  if (
+    firstMatchKeywordIndent === -1 ||
+    spacesBeforePromptStart <= firstMatchKeywordIndent
+  ) {
+    return false;
+  }
+  return true;
+}
+
+function shouldTriggerMultiTaskSuggestionForPlaybook(
+  documentLines: string[],
+  spacesBeforePromptStart: number
+): boolean {
+  let firstMatchKeywordIndent = -1;
+  const validSuggestionTriggerIndents: number[] = [];
+  let matchKeywordIndex = -1;
+  for (let lineIndex = documentLines.length - 1; lineIndex >= 0; lineIndex--) {
+    if (matchKeyword(tasksInPlaybookKeywords, documentLines[lineIndex])) {
+      const match = documentLines[lineIndex].match(/^\s*/);
+      if (firstMatchKeywordIndent === -1) {
+        firstMatchKeywordIndent = match ? match[0].length : -1;
+      }
+      matchKeywordIndex = lineIndex;
+    }
+    if (matchKeywordIndex !== -1) {
+      let onlyCommentsAfterKeyword = true;
+      for (
+        let commentIndex = matchKeywordIndex + 1;
+        commentIndex < documentLines.length;
+        commentIndex++
+      ) {
+        if (documentLines[commentIndex].trim() === "") {
+          continue;
+        }
+        if (!documentLines[commentIndex].trim().startsWith("#")) {
+          onlyCommentsAfterKeyword = false;
+          break;
+        }
+      }
+      if (onlyCommentsAfterKeyword) {
+        if (spacesBeforePromptStart > firstMatchKeywordIndent) {
+          return true;
+        } else {
+          return false;
+        }
+      } else {
+        for (
+          let indentIndex = matchKeywordIndex + 1;
+          indentIndex < documentLines.length;
+          indentIndex++
+        ) {
+          const matched = documentLines[indentIndex].match(/^\s*-\s*/);
+          if (matched) {
+            const indentLength = Math.max(matched[0].length - 2, 0);
+            if (!validSuggestionTriggerIndents.includes(indentLength)) {
+              validSuggestionTriggerIndents.push(indentLength);
+            }
+            break;
+          }
+        }
+      }
+      matchKeywordIndex = -1;
+    }
+  }
+  if (validSuggestionTriggerIndents.length > 0) {
+    if (!validSuggestionTriggerIndents.includes(spacesBeforePromptStart)) {
+      return false;
+    }
+  } else {
+    if (
+      firstMatchKeywordIndent === -1 ||
+      spacesBeforePromptStart <= firstMatchKeywordIndent
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+export const matchKeyword = (keywordsRegex: RegExp[], line: string) =>
+  keywordsRegex.some((keywordRegex) => keywordRegex.test(line));
