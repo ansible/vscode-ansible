@@ -452,11 +452,10 @@
             "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
             "order": 2
           },
-          "ansible.lightspeed.modelId": {
+          "ansible.lightspeed.modelIdOverride": {
             "scope": "resource",
             "type": "string",
-            "markdownDescription": "The model to be used for inline suggestions. This setting applies only to subscribed users.",
-            "hidden": true,
+            "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
             "order": 3
           }
         }

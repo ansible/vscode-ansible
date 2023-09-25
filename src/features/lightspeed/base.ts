@@ -118,15 +118,19 @@ export class LightSpeedManager {
       watchRolesDirectory(this, rolePath);
     }
   }
-  public ansibleContentFeedback(
+  public async ansibleContentFeedback(
     document: vscode.TextDocument,
     trigger: AnsibleContentUploadTrigger
-  ): void {
+  ): Promise<void> {
     if (
       document.languageId !== "ansible" ||
       !this.settingsManager.settings.lightSpeedService.enabled ||
       !this.settingsManager.settings.lightSpeedService.URL.trim()
     ) {
+      return;
+    }
+
+    if (await this.lightSpeedAuthenticationProvider.rhUserHasSeat()) {
       return;
     }
 

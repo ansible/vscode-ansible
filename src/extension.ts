@@ -232,7 +232,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         pythonInterpreterManager
       );
       if (editor) {
-        lightSpeedManager.ansibleContentFeedback(
+        await lightSpeedManager.ansibleContentFeedback(
           editor.document,
           AnsibleContentUploadTrigger.TAB_CHANGE
         );
@@ -250,8 +250,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       AnsibleContentUploadTrigger.FILE_OPEN
     );
   });
-  workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
-    lightSpeedManager.ansibleContentFeedback(
+  workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
+    await lightSpeedManager.ansibleContentFeedback(
       document,
       AnsibleContentUploadTrigger.FILE_CLOSE
     );

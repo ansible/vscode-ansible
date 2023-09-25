@@ -10,7 +10,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
-  modelId?: string;
+  modelIdOverride?: string;
 }
 
 export enum UserAction {
@@ -57,3 +57,21 @@ export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
 
 export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
 export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
+
+export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
+
+export const tasksInPlaybookKeywords = [
+  /(?<!\S)tasks\s*:(?!\S)\s*$/,
+  /(?<!\S)block\s*:(?!\S)\s*$/,
+  /(?<!\S)rescue\s*:(?!\S)\s*$/,
+  /(?<!\S)always\s*:(?!\S)\s*$/,
+  /(?<!\S)pre_tasks\s*:(?!\S)\s*$/,
+  /(?<!\S)post_tasks\s*:(?!\S)\s*$/,
+  /(?<!\S)handlers\s*:(?!\S)\s*$/,
+];
+
+export const tasksFileKeywords = [
+  /(?<!\S)block\s*:(?!\S)\s*$/,
+  /(?<!\S)rescue\s*:(?!\S)\s*$/,
+  /(?<!\S)always\s*:(?!\S)\s*$/,
+];
