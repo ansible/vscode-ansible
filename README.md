@@ -20,8 +20,8 @@ the extension:
 - yaml files having playbook in their filename: `*playbook*.yml` or
   `*playbook*.yaml`
 
-Additionally, in vscode, you can add persistent file association for language to
-`settings.json` file like this:
+Additionally, in VS Code, you can add persistent file association for language
+to `settings.json` file like this:
 
 ```json
 {
@@ -174,7 +174,7 @@ any level (User, Remote, Workspace and/or Folder).
 
 - `ansible.ansible.path`: Path to the `ansible` executable.
 - `ansible.ansible.reuseTerminal`: Enabling this will cause ansible commands run
-  through VSCode to reuse the same Ansible Terminal.
+  through VS Code to reuse the same Ansible Terminal.
 - `ansible.ansible.useFullyQualifiedCollectionNames`: Toggles use of fully
   qualified collection names (FQCN) when inserting a module name. Disabling it
   will only use FQCNs when necessary, that is when the collection isn't
@@ -219,7 +219,7 @@ any level (User, Remote, Workspace and/or Folder).
   when completing modules.
 - `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
   completing module options.
-- `ansibleServer.trace.server`: Traces the communication between VSCode and the
+- `ansibleServer.trace.server`: Traces the communication between VS Code and the
   ansible language server.
 - `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.

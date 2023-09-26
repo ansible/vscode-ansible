@@ -1,6 +1,7 @@
 import * as glob from "glob";
 import * as path from "path";
 import * as fs from "fs";
+import * as yaml from "yaml";
 import { minimatch } from "minimatch";
 import {
   AnsibleFileTypes,
@@ -9,15 +10,22 @@ import {
 } from "../../definitions/constants";
 
 import { IAnsibleFileType } from "../../interfaces/lightspeed";
-import { parseYamlFile } from "./data";
 
 export function getAnsibleFileType(
   filePath: string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  parsedAnsibleDocument?: any
+  documentContent: string
 ): IAnsibleFileType {
-  if (!parsedAnsibleDocument) {
-    parsedAnsibleDocument = parseYamlFile(filePath);
+  let parsedAnsibleDocument;
+  try {
+    parsedAnsibleDocument = yaml.parse(documentContent, {
+      keepSourceTokens: true,
+    });
+  } catch (err) {
+    console.log(err);
+    return "other";
+  }
+  if (!parsedAnsibleDocument || parsedAnsibleDocument.length === 0) {
+    return "other";
   }
   const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
   if (typeof lastObject !== "object") {

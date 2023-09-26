@@ -221,7 +221,7 @@ export async function getInlineSuggestionItems(
   const documentFilePath = URI.parse(documentUri).path;
   const ansibleFileType: IAnsibleFileType = getAnsibleFileType(
     documentFilePath,
-    parsedAnsibleDocument
+    documentContent
   );
 
   if (suggestionMatchType === "MULTI-TASK") {
@@ -569,9 +569,6 @@ export async function inlineSuggestionUserActionHandler(
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload
-  );
-  console.debug(
-    `[ansible-lightspeed-feedback] User action event lightSpeedInlineSuggestionFeedbackEvent sent.`
   );
   inlineSuggestionData = {};
 }
