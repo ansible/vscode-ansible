@@ -151,6 +151,20 @@ export class LightSpeedAPI {
       console.error("Ansible Lightspeed instance is not initialized.");
       return {} as FeedbackResponseParams;
     }
+    const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+    if (rhUserHasSeat) {
+      if (inputData.inlineSuggestion) {
+        delete inputData.inlineSuggestion;
+      }
+      if (inputData.ansibleContent) {
+        delete inputData.ansibleContent;
+      }
+    }
+
+    if (Object.keys(inputData).length === 0) {
+      return {} as FeedbackResponseParams;
+    }
+
     try {
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
