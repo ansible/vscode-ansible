@@ -23,7 +23,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
-  model_name?: string;
+  model?: string;
 }
 
 export interface FeedbackResponseParams {
@@ -83,9 +83,10 @@ export interface IDocumentTracker {
 export interface AttributionsRequestParams {
   suggestion: string;
   suggestionId: string;
+  model?: string;
 }
 
-export interface IAttributionsParams {
+export interface IAttributionParams {
   repo_name: string;
   repo_url: string;
   path: string;
@@ -95,8 +96,12 @@ export interface IAttributionsParams {
   score: number;
 }
 
+export interface IAttribution {
+  attribution: IAttributionParams[];
+}
+
 export interface AttributionsResponseParams {
-  attributions: IAttributionsParams[];
+  attributions: IAttributionParams[] | IAttribution[];
 }
 
 export interface ISuggestionDetails {

@@ -28,5 +28,5 @@ export interface LightSpeedServiceSettings {
   enabled: boolean;
   URL: string;
   suggestions: { enabled: boolean };
-  modelIdOverride: string | undefined;
+  model: string | undefined;
 }

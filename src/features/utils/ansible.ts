@@ -33,7 +33,7 @@ export function getAnsibleFileType(
   }
   const objectKeys = Object.keys(lastObject);
   for (const keyword of objectKeys) {
-    if (keyword in PlaybookKeywords) {
+    if (PlaybookKeywords.includes(keyword)) {
       return "playbook";
     }
   }

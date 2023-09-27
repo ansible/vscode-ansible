@@ -18,6 +18,8 @@ import {
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_SUGGESTION_TYPE,
+  MULTI_TASK_REGEX_EP,
+  SINGLE_TASK_REGEX_EP,
   UserAction,
 } from "../../definitions/lightspeed";
 import { LightSpeedCommands } from "../../definitions/lightspeed";
@@ -37,9 +39,6 @@ import {
 import { getAnsibleFileType, getCustomRolePaths } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
 
-const SINGLE_TASK_REGEX_EP =
-  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
-const MULTI_TASK_REGEX_EP = /^\s*#\s*\S+.*$/;
 let suggestionId = "";
 let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
@@ -327,7 +326,7 @@ export async function getInlineSuggestionItems(
   });
   // currentSuggestion is used in user action handlers
   // to track the suggestion that user is currently working on
-  currentSuggestion = insertTexts[0];
+  currentSuggestion = result.predictions[0];
 
   // previousTriggerPosition is used to track the cursor position
   // on hover when the suggestion is displayed
@@ -336,10 +335,14 @@ export async function getInlineSuggestionItems(
   console.log(
     `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
   );
+  let attributionForSuggestion = currentSuggestion;
+  if (suggestionMatchType === "SINGLE-TASK") {
+    attributionForSuggestion = `${lineToExtractPrompt.text.trimEnd()}\n${currentSuggestion}`;
+  }
   lightSpeedManager.attributionsProvider.suggestionDetails = [
     {
       suggestionId: suggestionId,
-      suggestion: currentSuggestion,
+      suggestion: attributionForSuggestion,
     },
   ];
   // if the suggestion is not empty then we set the flag to true
@@ -372,11 +375,10 @@ async function requestInlineSuggest(
     },
   };
 
-  const modelIdOverride =
-    lightSpeedManager.settingsManager.settings.lightSpeedService
-      .modelIdOverride;
-  if (modelIdOverride && modelIdOverride !== "") {
-    completionData.model_name = modelIdOverride;
+  const model =
+    lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+  if (model && model !== "") {
+    completionData.model = model;
   }
 
   if (rhUserHasSeat) {

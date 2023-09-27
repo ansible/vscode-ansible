@@ -5,10 +5,12 @@ import { SettingsManager } from "../../settings";
 import {
   AttributionsRequestParams,
   AttributionsResponseParams,
-  IAttributionsParams,
+  IAttribution,
+  IAttributionParams,
   ISuggestionDetails,
 } from "../../interfaces/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
+import * as yaml from "yaml";
 
 export class AttributionsWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
@@ -60,6 +62,12 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
       suggestion: suggestion,
       suggestionId: suggestionId,
     };
+
+    const model = this.settingsManager.settings.lightSpeedService.model;
+    if (model && model !== "") {
+      attributionsRequestData.model = model;
+    }
+
     console.log(
       `${getCurrentUTCDateTime().toISOString()}: request attributions from Ansible Lightspeed:\n${JSON.stringify(
         attributionsRequestData
@@ -110,17 +118,62 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
     if (attributionResponses.attributions.length === 0) {
       return noAttributionsFoundHtml;
     }
-    const html = `<html>
-      <body>
-        ${attributionResponses.attributions
-          .map(this.renderAttribution)
-          .join("")}
-      </body>
-    </html>
-  `;
-    return html;
+
+    let attributionsHtml = "";
+    if (attributionResponses.attributions[0].hasOwnProperty("attribution")) {
+      let suggestedTasks = undefined;
+      try {
+        suggestedTasks = yaml.parse(suggestion, {
+          keepSourceTokens: true,
+        });
+      } catch (err) {
+        console.log(err);
+        return noAttributionsFoundHtml;
+      }
+      if (
+        !suggestedTasks ||
+        !Array.isArray(suggestedTasks) ||
+        suggestedTasks.length !== attributionResponses.attributions.length
+      ) {
+        return noAttributionsFoundHtml;
+      }
+
+      for (let taskIndex = 0; taskIndex < suggestedTasks.length; taskIndex++) {
+        let taskNameDescription = suggestedTasks[taskIndex].name;
+        if (!taskNameDescription) {
+          taskNameDescription = "";
+        }
+
+        const attribution = attributionResponses.attributions[taskIndex];
+        attributionsHtml += this.renderAttributionWithTasKDescription(
+          <IAttributionParams[]>(<IAttribution>attribution).attribution,
+          taskNameDescription || ""
+        );
+      }
+      const html = `<html>
+        <body>
+          ${attributionsHtml}
+        </body>
+      </html>
+      `;
+      return html;
+    } else {
+      for (const attribution of attributionResponses.attributions) {
+        attributionsHtml += this.renderAttribution(
+          <IAttributionParams>attribution
+        );
+      }
+      const html = `<html>
+        <body>
+          ${attributionsHtml}
+        </body>
+      </html>
+      `;
+      return html;
+    }
   }
-  private renderAttribution(attributionResponse: IAttributionsParams): string {
+
+  private renderAttribution(attributionResponse: IAttributionParams): string {
     return `
       <details>
         <summary>${attributionResponse.repo_name}</summary>
@@ -133,6 +186,29 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
           <li>Score: ${attributionResponse.score}</li>
         </ul>
       </details>
+    `;
+  }
+
+  private renderAttributionWithTasKDescription(
+    attributionResponses: IAttributionParams[],
+    taskDescription: string
+  ): string {
+    let taskAttribution = "";
+    for (let index = 0; index < attributionResponses.length; index++) {
+      taskAttribution += `<li>${this.renderAttribution(
+        attributionResponses[index]
+      )}</li>`;
+    }
+
+    return `
+    <ul>
+      <details>
+        <summary>${taskDescription}</summary>
+        <ul>
+        ${taskAttribution}
+        </ul>
+      </details>
+    </ul>
     `;
   }
 }
