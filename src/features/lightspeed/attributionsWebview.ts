@@ -76,7 +76,6 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
 
     const outputData: AttributionsResponseParams =
       await this.apiInstance.attributionsRequest(attributionsRequestData);
-
     console.log(
       `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
         outputData
@@ -195,9 +194,9 @@ export class AttributionsWebview implements vscode.WebviewViewProvider {
   ): string {
     let taskAttribution = "";
     for (let index = 0; index < attributionResponses.length; index++) {
-      taskAttribution += `<li>${this.renderAttribution(
+      taskAttribution += `${this.renderAttribution(
         attributionResponses[index]
-      )}</li>`;
+      )}`;
     }
 
     return `
