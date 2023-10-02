@@ -17,6 +17,7 @@ import {
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -59,7 +60,7 @@ export class LightSpeedAPI {
     }
     try {
       const response = await axiosInstance.get(urlPath, {
-        timeout: 20000,
+        timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
       });
       return response.data;
     } catch (error) {
@@ -80,7 +81,7 @@ export class LightSpeedAPI {
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         inputData,
         {
-          timeout: 20000,
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
 
@@ -170,7 +171,7 @@ export class LightSpeedAPI {
         LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
         inputData,
         {
-          timeout: 20000,
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
       if (showInfoMessage) {
@@ -220,7 +221,7 @@ export class LightSpeedAPI {
         LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL,
         inputData,
         {
-          timeout: 20000,
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
       return response.data;

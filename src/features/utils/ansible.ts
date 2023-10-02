@@ -16,6 +16,13 @@ export function getAnsibleFileType(
   documentContent: string
 ): IAnsibleFileType {
   let parsedAnsibleDocument;
+  for (const pattern in AnsibleFileTypes) {
+    if (AnsibleFileTypes.hasOwnProperty(pattern)) {
+      if (minimatch(filePath, pattern as string)) {
+        return AnsibleFileTypes[pattern];
+      }
+    }
+  }
   try {
     parsedAnsibleDocument = yaml.parse(documentContent, {
       keepSourceTokens: true,
@@ -33,15 +40,8 @@ export function getAnsibleFileType(
   }
   const objectKeys = Object.keys(lastObject);
   for (const keyword of objectKeys) {
-    if (keyword in PlaybookKeywords) {
+    if (PlaybookKeywords.includes(keyword)) {
       return "playbook";
-    }
-  }
-  for (const pattern in AnsibleFileTypes) {
-    if (AnsibleFileTypes.hasOwnProperty(pattern)) {
-      if (minimatch(filePath, pattern as string)) {
-        return AnsibleFileTypes[pattern];
-      }
     }
   }
 

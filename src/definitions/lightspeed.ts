@@ -10,7 +10,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
-  modelIdOverride?: string;
+  model?: string;
 }
 
 export enum UserAction {
@@ -75,3 +75,7 @@ export const tasksFileKeywords = [
   /(?<!\S)rescue\s*:(?!\S)\s*$/,
   /(?<!\S)always\s*:(?!\S)\s*$/,
 ];
+
+export const SINGLE_TASK_REGEX_EP =
+  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
+export const MULTI_TASK_REGEX_EP = /^\s*#\s*\S+.*$/;
