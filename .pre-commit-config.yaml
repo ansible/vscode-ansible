@@ -28,7 +28,7 @@ repos:
       #   files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
       #   entry: npx yarn run yarn-audit-fix
   - repo: https://github.com/ScribeMD/pre-commit-hooks
-    rev: 0.15.7
+    rev: 0.16.1
     hooks:
       - id: yarn-dedupe
         entry: npx yarn dedupe
@@ -36,7 +36,7 @@ repos:
       #   entry: npx yarn npm audit
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.5
+    rev: v0.9.0.6
     hooks:
       - id: shellcheck
         args:
@@ -68,7 +68,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v6.31.0
+    rev: v7.3.1
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -91,7 +91,7 @@ repos:
             test/testFixtures/diagnostics/yaml/invalid_yaml.yml
           )$
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell
         exclude: >
@@ -103,7 +103,7 @@ repos:
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.0.0-alpha.9-for-vscode"
+    rev: "v3.0.3"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
@@ -113,7 +113,7 @@ repos:
             syntaxes/external/jinja.tmLanguage.json
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.34.0
+    rev: v0.37.0
     hooks:
       - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
@@ -122,7 +122,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.45.0
+    rev: v8.50.0
     hooks:
       - id: eslint
         args:
