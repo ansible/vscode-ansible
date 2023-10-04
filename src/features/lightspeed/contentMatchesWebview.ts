@@ -119,7 +119,10 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       suggestionId
     );
     console.log(contentMatchResponses);
-    if (contentMatchResponses.contentmatches.length === 0) {
+    if (
+      Object.keys(contentMatchResponses).length === 0 ||
+      contentMatchResponses.contentmatches.length === 0
+    ) {
       return noContentMatchesFoundHtml;
     }
 
