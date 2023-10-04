@@ -58,8 +58,13 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     suggestion: string,
     suggestionId: string
   ): Promise<ContentMatchesResponseParams> {
+    const taskArray = suggestion
+      .trim()
+      .split(/\n\s*\n/)
+      .map((task) => task.trim());
+
     const contentMatchesRequestData: ContentMatchesRequestParams = {
-      suggestion: suggestion,
+      suggestions: taskArray,
       suggestionId: suggestionId,
     };
 
