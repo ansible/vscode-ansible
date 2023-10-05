@@ -81,7 +81,7 @@ export interface IDocumentTracker {
 }
 
 export interface ContentMatchesRequestParams {
-  suggestion: string;
+  suggestions: string[];
   suggestionId: string;
   model?: string;
 }
