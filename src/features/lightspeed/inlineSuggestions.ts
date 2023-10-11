@@ -335,14 +335,14 @@ export async function getInlineSuggestionItems(
   console.log(
     `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
   );
-  let attributionForSuggestion = currentSuggestion;
+  let contentMatchesForSuggestion = currentSuggestion;
   if (suggestionMatchType === "SINGLE-TASK") {
-    attributionForSuggestion = `${lineToExtractPrompt.text.trimEnd()}\n${currentSuggestion}`;
+    contentMatchesForSuggestion = `${lineToExtractPrompt.text.trimEnd()}\n${currentSuggestion}`;
   }
-  lightSpeedManager.attributionsProvider.suggestionDetails = [
+  lightSpeedManager.contentMatchesProvider.suggestionDetails = [
     {
       suggestionId: suggestionId,
-      suggestion: attributionForSuggestion,
+      suggestion: contentMatchesForSuggestion,
     },
   ];
   // if the suggestion is not empty then we set the flag to true
