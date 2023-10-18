@@ -60,6 +60,9 @@ import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
+import { LandingPage } from "./features/contentCreator/landingPage";
+import { AnsibleCreatorInit } from "./features/contentCreator/initPanel";
+import { withInterpreter } from "./features/utils/commandRunner";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -140,6 +143,68 @@ export async function activate(context: ExtensionContext): Promise<void> {
     client,
     extSettings,
     telemetry
+  );
+
+  // pip install ansible-creator
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.install",
+      async () => {
+        const extSettings = new SettingsManager();
+        await extSettings.initialize();
+
+        const pythonInterpreter = extSettings.settings.interpreterPath;
+
+        // specify the current python interpreter path in the pip installation
+        const [command, runEnv] = withInterpreter(
+          extSettings.settings,
+          `${pythonInterpreter} -m pip install ansible-creator`,
+          "--no-input"
+        );
+
+        let terminal;
+        if (
+          vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal
+        ) {
+          terminal = vscode.window.terminals.find(
+            (terminal) => terminal.name === "Ansible Terminal"
+          ) as vscode.Terminal;
+        }
+        terminal = vscode.window.createTerminal({
+          name: "Ansible Terminal",
+          env: runEnv,
+        });
+        terminal.show();
+        terminal.sendText(command);
+      }
+    )
+  );
+
+  // open ansible-python workspace settings directly
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.python-settings.open",
+      async () => {
+        await vscode.commands.executeCommand(
+          "workbench.action.openWorkspaceSettings",
+          "ansible.python"
+        );
+      }
+    )
+  );
+
+  // open ansible-creator menu
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.menu", () => {
+      LandingPage.render(context.extensionUri);
+    })
+  );
+
+  // open ansible-creator init
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.init", () => {
+      AnsibleCreatorInit.render(context.extensionUri);
+    })
   );
 
   context.subscriptions.push(
