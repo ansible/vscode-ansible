@@ -584,11 +584,14 @@ export class LightSpeedAuthenticationProvider
     return userAuth;
   }
 
-  public async rhUserHasSeat(): Promise<boolean> {
+  public async rhUserHasSeat(): Promise<boolean | undefined> {
     const authSession = await this.getLightSpeedAuthSession();
-    if (authSession?.rhUserHasSeat) {
+    if (authSession === undefined) {
+      return undefined;
+    } else if (authSession?.rhUserHasSeat) {
       return true;
+    } else {
+      return false;
     }
-    return false;
   }
 }

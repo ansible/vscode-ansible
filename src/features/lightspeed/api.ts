@@ -76,6 +76,11 @@ export class LightSpeedAPI {
       console.error("Ansible Lightspeed instance is not initialized.");
       return {} as CompletionResponseParams;
     }
+    console.log(
+      `[ansible-lightspeed] Completion request sent to lightspeed: ${JSON.stringify(
+        inputData
+      )}`
+    );
     try {
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
@@ -112,6 +117,23 @@ export class LightSpeedAPI {
           vscode.window.showErrorMessage(
             "Bad Request response. Please try again."
           );
+        } else if (err?.response?.status === 403) {
+          const responseErrorData = <AxiosError<{ message?: string }>>(
+            err?.response?.data
+          );
+          if (
+            responseErrorData &&
+            responseErrorData.hasOwnProperty("message") &&
+            responseErrorData.message?.includes("WCA Model ID is invalid")
+          ) {
+            vscode.window.showErrorMessage(
+              `Model ID "${this.settingsManager.settings.lightSpeedService.model}" is invalid. Please contact your administrator.`
+            );
+          } else {
+            vscode.window.showErrorMessage(
+              `User not authorized to access Ansible Lightspeed.`
+            );
+          }
         } else if (err?.response?.status.toString().startsWith("5")) {
           vscode.window.showErrorMessage(
             "Ansible Lightspeed encountered an error. Try again after some time."
@@ -165,7 +187,11 @@ export class LightSpeedAPI {
     if (Object.keys(inputData).length === 0) {
       return {} as FeedbackResponseParams;
     }
-
+    console.log(
+      `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
+        inputData
+      )}`
+    );
     try {
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
@@ -177,7 +203,6 @@ export class LightSpeedAPI {
       if (showInfoMessage) {
         vscode.window.showInformationMessage("Thanks for your feedback!");
       }
-      console.log(`Event sent to lightspeed: ${JSON.stringify(inputData)}}`);
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
@@ -217,6 +242,11 @@ export class LightSpeedAPI {
       return {} as ContentMatchesResponseParams;
     }
     try {
+      console.log(
+        `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
+          inputData
+        )}`
+      );
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
         inputData,
