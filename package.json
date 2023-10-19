@@ -243,7 +243,7 @@
             "scope": "machine-overridable",
             "type": "boolean",
             "default": false,
-            "markdownDescription": "Enabling this will cause ansible commands run through VSCode to reuse the same Ansible Terminal.",
+            "markdownDescription": "Enabling this will cause ansible commands run through VS Code to reuse the same Ansible Terminal.",
             "order": 2
           }
         }
@@ -452,11 +452,10 @@
             "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
             "order": 2
           },
-          "ansible.lightspeed.modelId": {
+          "ansible.lightspeed.modelIdOverride": {
             "scope": "resource",
             "type": "string",
-            "markdownDescription": "The model to be used for inline suggestions. This setting applies only to subscribed users.",
-            "hidden": true,
+            "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
             "order": 3
           }
         }
@@ -730,7 +729,7 @@
   "displayName": "Ansible",
   "engineStrict": true,
   "engines": {
-    "//": "node version affects only development, it does not affect vscode runtime",
+    "//": "node version affects only development, it does not affect VS Code runtime",
     "node": ">=16.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
     "vscode": "^1.71.0",
@@ -778,7 +777,7 @@
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
   },
   "version": "2.7.0",
-  "packageManager": "yarn@3.6.3",
+  "packageManager": "yarn@3.6.4",
   "vsce": {
     "dependencies": false,
     "yarn": false

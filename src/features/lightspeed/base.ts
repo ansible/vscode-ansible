@@ -12,7 +12,7 @@ import {
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
 import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
-import { AttributionsWebview } from "./attributionsWebview";
+import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
@@ -30,7 +30,7 @@ export class LightSpeedManager {
   public apiInstance: LightSpeedAPI;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   public lightSpeedActivityTracker: IDocumentTracker;
-  public attributionsProvider: AttributionsWebview;
+  public contentMatchesProvider: ContentMatchesWebview;
   public statusBarProvider: LightspeedStatusBar;
   public ansibleVarFilesCache: IVarsFileContext = {};
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
@@ -62,7 +62,7 @@ export class LightSpeedManager {
       this.settingsManager,
       this.lightSpeedAuthenticationProvider
     );
-    this.attributionsProvider = new AttributionsWebview(
+    this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
       this.settingsManager,
@@ -118,15 +118,19 @@ export class LightSpeedManager {
       watchRolesDirectory(this, rolePath);
     }
   }
-  public ansibleContentFeedback(
+  public async ansibleContentFeedback(
     document: vscode.TextDocument,
     trigger: AnsibleContentUploadTrigger
-  ): void {
+  ): Promise<void> {
     if (
       document.languageId !== "ansible" ||
       !this.settingsManager.settings.lightSpeedService.enabled ||
       !this.settingsManager.settings.lightSpeedService.URL.trim()
     ) {
+      return;
+    }
+
+    if (await this.lightSpeedAuthenticationProvider.rhUserHasSeat()) {
       return;
     }
 

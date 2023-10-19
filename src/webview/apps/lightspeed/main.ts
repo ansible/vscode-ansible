@@ -5,6 +5,7 @@ import {
   Dropdown,
   TextArea,
   TextField,
+  Checkbox,
 } from "@vscode/webview-ui-toolkit";
 
 provideVSCodeDesignSystem().register(allComponents);
@@ -52,7 +53,11 @@ function main() {
             <vscode-text-area id="issue-description" cols="29" maxlength="4096" placeholder="Enter details." resize="both"/>
           </section>
           <section class="component-section">
-            <vscode-button id="issue-submit-button">Submit</vscode-button>
+            <input type="checkbox" id="feedback-data-sharing-checkbox">
+            <label for="feedback-data-sharing-checkbox">I understand that feedback is shared with Red Hat and IBM.</label>
+          </section>
+          <section class="component-section">
+            <vscode-button id="issue-submit-button" disabled>Submit</vscode-button>
         </section>
       `;
       feedbackForm.append(bugReportSection);
@@ -67,7 +72,11 @@ function main() {
           <vscode-text-area id="issue-description" cols="29" maxlength="4096" placeholder="Enter details." resize="both" />
         </section>
         <section class="component-section">
-          <vscode-button id="issue-submit-button">Submit</vscode-button>
+          <input type="checkbox" id="feedback-data-sharing-checkbox">
+          <label for="feedback-data-sharing-checkbox">I understand that feedback is shared with Red Hat and IBM.</label>
+        </section>
+        <section class="component-section">
+          <vscode-button id="issue-submit-button" disabled>Submit</vscode-button>
         </section>
       `;
       feedbackForm.appendChild(featureRequestSection);
@@ -90,7 +99,11 @@ function main() {
           <vscode-text-area id="suggestion-additional-comment" cols="29" class="m-b-10" placeholder="Enter details." resize="both" />
         </section>
         <section class="component-section">
-            <vscode-button id="issue-submit-button">Submit</vscode-button>
+          <input type="checkbox" id="feedback-data-sharing-checkbox">
+          <label for="feedback-data-sharing-checkbox">I understand that feedback is shared with Red Hat and IBM.</label>
+        </section>
+        <section class="component-section">
+            <vscode-button id="issue-submit-button" disabled>Submit</vscode-button>
         </section>
       `;
 
@@ -115,6 +128,14 @@ function handleSentimentFeedback() {
   const sentimentSendButton = document.getElementById(
     "sentiment-submit"
   ) as Button;
+
+  const sentimentDataSharingCheckbox = document.getElementById(
+    "sentiment-data-sharing-checkbox"
+  ) as Checkbox;
+
+  sentimentDataSharingCheckbox.addEventListener("change", () => {
+    sentimentSendButton.disabled = !sentimentDataSharingCheckbox.checked;
+  });
 
   sentimentSendButton.addEventListener("click", () => {
     const sentimentSelector = document.querySelector(
@@ -167,6 +188,14 @@ function handleIssueFeedback() {
   const issueDescriptionTextArea = document.getElementById(
     "issue-description"
   ) as TextArea;
+
+  const feedbackDataSharingCheckbox = document.getElementById(
+    "feedback-data-sharing-checkbox"
+  ) as Checkbox;
+
+  feedbackDataSharingCheckbox.addEventListener("change", () => {
+    issueSubmitButton.disabled = !feedbackDataSharingCheckbox.checked;
+  });
 
   issueSubmitButton.addEventListener("click", () => {
     console.log(`Issue type: ${issueTypeDropdown.value}`);

@@ -7,16 +7,17 @@ import {
   CompletionRequestParams,
   FeedbackRequestParams,
   FeedbackResponseParams,
-  AttributionsRequestParams,
-  AttributionsResponseParams,
+  ContentMatchesRequestParams,
+  ContentMatchesResponseParams,
 } from "../../interfaces/lightspeed";
 import {
-  LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL,
+  LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -59,7 +60,7 @@ export class LightSpeedAPI {
     }
     try {
       const response = await axiosInstance.get(urlPath, {
-        timeout: 20000,
+        timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
       });
       return response.data;
     } catch (error) {
@@ -80,7 +81,7 @@ export class LightSpeedAPI {
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         inputData,
         {
-          timeout: 20000,
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
 
@@ -151,12 +152,26 @@ export class LightSpeedAPI {
       console.error("Ansible Lightspeed instance is not initialized.");
       return {} as FeedbackResponseParams;
     }
+    const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+    if (rhUserHasSeat) {
+      if (inputData.inlineSuggestion) {
+        delete inputData.inlineSuggestion;
+      }
+      if (inputData.ansibleContent) {
+        delete inputData.ansibleContent;
+      }
+    }
+
+    if (Object.keys(inputData).length === 0) {
+      return {} as FeedbackResponseParams;
+    }
+
     try {
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
         inputData,
         {
-          timeout: 20000,
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
       if (showInfoMessage) {
@@ -185,28 +200,28 @@ export class LightSpeedAPI {
     }
   }
 
-  public async attributionsRequest(
-    inputData: AttributionsRequestParams
-  ): Promise<AttributionsResponseParams> {
+  public async contentMatchesRequest(
+    inputData: ContentMatchesRequestParams
+  ): Promise<ContentMatchesResponseParams> {
     // return early if the user is not authenticated
     if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
       vscode.window.showErrorMessage(
         "User not authenticated to use Ansible Lightspeed."
       );
-      return {} as AttributionsResponseParams;
+      return {} as ContentMatchesResponseParams;
     }
 
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
       console.error("Ansible Lightspeed instance is not initialized.");
-      return {} as AttributionsResponseParams;
+      return {} as ContentMatchesResponseParams;
     }
     try {
       const response = await axiosInstance.post(
-        LIGHTSPEED_SUGGESTION_ATTRIBUTIONS_URL,
+        LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
         inputData,
         {
-          timeout: 20000,
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
       return response.data;
@@ -221,13 +236,15 @@ export class LightSpeedAPI {
           console.error(`Bad Request response. Please open an Github issue.`);
         } else {
           console.error(
-            "Ansible Lightspeed encountered an error while fetching attributions."
+            "Ansible Lightspeed encountered an error while fetching content matches."
           );
         }
       } else {
-        console.error("Failed to fetch attribution from Ansible Lightspeed.");
+        console.error(
+          "Failed to fetch content matches from Ansible Lightspeed."
+        );
       }
-      return {} as AttributionsResponseParams;
+      return {} as ContentMatchesResponseParams;
     }
   }
 }
