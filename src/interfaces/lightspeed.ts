@@ -92,7 +92,6 @@ export interface IContentMatchParams {
   path: string;
   license: string;
   data_source: string;
-  ansible_type: string;
   score: number;
 }
 
