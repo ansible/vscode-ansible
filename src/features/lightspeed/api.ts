@@ -77,7 +77,9 @@ export class LightSpeedAPI {
       return {} as CompletionResponseParams;
     }
     console.log(
-      `Completion request sent to lightspeed: ${JSON.stringify(inputData)}`
+      `[ansible-lightspeed] Completion request sent to lightspeed: ${JSON.stringify(
+        inputData
+      )}`
     );
     try {
       const response = await axiosInstance.post(
@@ -186,7 +188,9 @@ export class LightSpeedAPI {
       return {} as FeedbackResponseParams;
     }
     console.log(
-      `Feedback request sent to lightspeed: ${JSON.stringify(inputData)}`
+      `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
+        inputData
+      )}`
     );
     try {
       const response = await axiosInstance.post(
@@ -239,7 +243,9 @@ export class LightSpeedAPI {
     }
     try {
       console.log(
-        `Content Match request sent to lightspeed: ${JSON.stringify(inputData)}`
+        `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
+          inputData
+        )}`
       );
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
