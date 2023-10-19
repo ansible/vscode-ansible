@@ -21,6 +21,7 @@ import { LightspeedStatusBar } from "./statusBar";
 import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
+import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 
 export class LightSpeedManager {
   private context;
@@ -82,9 +83,10 @@ export class LightSpeedManager {
   }
 
   public async reInitialize(): Promise<void> {
-    const lightspeedEnabled = await vscode.workspace
-      .getConfiguration("ansible")
-      .get("lightspeed.enabled");
+    const lightspeedSettings = <LightSpeedServiceSettings>(
+      vscode.workspace.getConfiguration("ansible").get("lightspeed")
+    );
+    const lightspeedEnabled = lightspeedSettings.enabled;
 
     if (!lightspeedEnabled) {
       await this.resetContext();
@@ -94,6 +96,19 @@ export class LightSpeedManager {
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
       this.setContext();
+      if (lightspeedSettings.suggestions.enabled) {
+        const githubConfig = (<unknown>(
+          vscode.workspace.getConfiguration("github")
+        )) as {
+          copilot: { enable?: { ansible?: boolean } };
+        };
+        const copilotEnableForAnsible = githubConfig.copilot.enable?.ansible;
+        if (copilotEnableForAnsible) {
+          vscode.window.showInformationMessage(
+            "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed."
+          );
+        }
+      }
     }
   }
 

@@ -182,7 +182,6 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
           <li>Path: ${contentMatchResponse.path}</li>
           <li>Data Source: ${contentMatchResponse.data_source}</li>
           <li>License: ${contentMatchResponse.license}</li>
-          <li>Ansible type: ${contentMatchResponse.ansible_type}</li>
           <li>Score: ${contentMatchResponse.score}</li>
         </ul>
       </details>
