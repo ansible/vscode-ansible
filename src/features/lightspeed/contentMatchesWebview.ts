@@ -180,7 +180,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
         <ul>
           <li>URL: <a href=${contentMatchResponse.repo_url}>${contentMatchResponse.repo_url}</a></li>
           <li>Path: ${contentMatchResponse.path}</li>
-          <li>Data Source: ${contentMatchResponse.data_source}</li>
+          <li>Data Source: ${contentMatchResponse.data_source_description}</li>
           <li>License: ${contentMatchResponse.license}</li>
           <li>Score: ${contentMatchResponse.score}</li>
         </ul>
