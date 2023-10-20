@@ -102,7 +102,7 @@ export class LightSpeedManager {
         )) as {
           copilot: { enable?: { ansible?: boolean } };
         };
-        const copilotEnableForAnsible = githubConfig.copilot.enable?.ansible;
+        const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
         if (copilotEnableForAnsible) {
           vscode.window.showInformationMessage(
             "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed."
