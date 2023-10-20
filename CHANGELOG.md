@@ -4,6 +4,37 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.8
+
+### Major Changes
+
+- Add support to display content matches for multiple tasks (#988) @ganeshrn
+- Add support for lightspeed multi-task pattern match and model Id updates
+  (#979) @ganeshrn
+- Add additional context for lightspeed suggestions (#973) @ganeshrn
+- Add support specifying model Id for Lightspeed subscribed users (#971)
+  @ganeshrn
+
+### Minor Changes
+
+- Add support to display content matches for multiple tasks (#988) @ganeshrn
+- Add a checkbox while sharing Lightspeed sentiment/issue feedback (#980)
+  @ganeshrn
+
+### Bugfixes
+
+- Fix to ignore empty model ID (#995) @ganeshrn
+- Fix reading copilot settings within the extension and other updates (#994)
+  @ganeshrn
+- Update data_source to data_source_description in content matches (#993)
+  @ganeshrn
+- Fix for multi-task and single-task lightspeed suggestions (#992) @ganeshrn
+- Update suggestions field in contentmatch API request (#990) @ganeshrn
+- Fix multitask trigger invocation and code match support for multi-task (#983)
+  @ganeshrn
+- Add check to not sent feedback events for subscribed lightspeed users… (#981)
+  @ganeshrn
+
 ## v2.7
 
 - Fix broken Ansible Lint docs link (#959) @ElijahLynn
