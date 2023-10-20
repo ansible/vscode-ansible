@@ -40,7 +40,9 @@ export class SettingsManager {
         suggestions: {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
-        model: lightSpeedSettings.get("modelIdOverride", undefined),
+        model: <string | undefined>(
+          lightSpeedSettings.get<string | undefined>("modelIdOverride")?.trim()
+        ),
       },
     };
     return;
