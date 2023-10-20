@@ -91,7 +91,7 @@ export interface IContentMatchParams {
   repo_url: string;
   path: string;
   license: string;
-  data_source: string;
+  data_source_description: string;
   score: number;
 }
 
