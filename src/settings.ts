@@ -40,11 +40,20 @@ export class SettingsManager {
         suggestions: {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
-        model: <string | undefined>(
-          lightSpeedSettings.get<string | undefined>("modelIdOverride")?.trim()
-        ),
+        model: lightSpeedSettings.get("modelIdOverride", undefined),
       },
     };
+
+    // Remove whitespace before and after the model ID and if it is empty, set it to undefined
+    if (
+      typeof this.settings.lightSpeedService.model === "string" &&
+      this.settings.lightSpeedService.model.trim()
+    ) {
+      this.settings.lightSpeedService.model =
+        this.settings.lightSpeedService.model.trim();
+    } else {
+      this.settings.lightSpeedService.model = undefined;
+    }
     return;
   }
 
