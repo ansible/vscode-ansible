@@ -144,11 +144,8 @@ export async function getInlineSuggestionItems(
 
   let suggestionMatchType: LIGHTSPEED_SUGGESTION_TYPE | undefined = undefined;
 
-  let rhUserHasSeat =
+  const rhUserHasSeat =
     await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
-  if (rhUserHasSeat === undefined) {
-    rhUserHasSeat = false;
-  }
 
   const lineToExtractPrompt = document.lineAt(currentPosition.line - 1);
   const taskMatchedPattern =
@@ -224,7 +221,7 @@ export async function getInlineSuggestionItems(
   );
 
   if (suggestionMatchType === "MULTI-TASK") {
-    if (!rhUserHasSeat) {
+    if (rhUserHasSeat === false) {
       console.debug(
         "[inline-suggestions] Multitask suggestions not supported for a non seat user."
       );
@@ -254,7 +251,7 @@ export async function getInlineSuggestionItems(
   }
   if (
     suggestionMatchType === "SINGLE-TASK" &&
-    !shouldRequestInlineSuggestions(parsedAnsibleDocument)
+    !shouldRequestInlineSuggestions(parsedAnsibleDocument, ansibleFileType)
   ) {
     return [];
   }
@@ -319,6 +316,7 @@ export async function getInlineSuggestionItems(
   result.predictions.forEach((prediction) => {
     let insertText = prediction;
     insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
+    insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, "");
     insertTexts.push(insertText);
 
     const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
@@ -359,7 +357,7 @@ async function requestInlineSuggest(
   parsedAnsibleDocument: any,
   documentUri: string,
   activityId: string,
-  rhUserHasSeat: boolean,
+  rhUserHasSeat: boolean | undefined,
   documentDirPath: string,
   documentFilePath: string,
   ansibleFileType: IAnsibleFileType
