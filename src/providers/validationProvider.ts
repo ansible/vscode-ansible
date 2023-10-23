@@ -36,7 +36,7 @@ export async function doValidate(
 
     const settings = await context.documentSettings.get(textDocument.uri);
     if (!settings.validation.enabled) {
-      console.log("Validation disabled");
+      connection?.console.log("Validation disabled");
 
       // this is done to remove the cache as well
       const blankDiagnostics = new Map<string, Diagnostic[]>();
@@ -54,10 +54,10 @@ export async function doValidate(
         : settings.validation.lint.path;
       const lintAvailability =
         await commandRunner.getExecutablePath(lintExecutable);
-      console.debug("Path for lint: ", lintAvailability);
+      connection?.console.log(`Path for lint: ${lintAvailability}`);
 
       if (lintAvailability) {
-        console.debug("Validating using ansible-lint");
+        connection?.console.log("Validating using ansible-lint");
         diagnosticsByFile = await context.ansibleLint.doValidate(textDocument);
       } else {
         connection?.window.showErrorMessage(
@@ -68,14 +68,14 @@ export async function doValidate(
 
     // validate using ansible-playbook --syntax-check
     else {
-      console.debug("Validating using ansible syntax-check");
+      connection?.console.log("Validating using ansible syntax-check");
 
       if (isPlaybook(textDocument)) {
-        console.debug("playbook file");
+        connection?.console.log("playbook file");
         diagnosticsByFile =
           await context.ansiblePlaybook.doValidate(textDocument);
       } else {
-        console.debug("non-playbook file");
+        connection?.console.log("non-playbook file");
         diagnosticsByFile = new Map<string, Diagnostic[]>();
       }
     }
