@@ -31,4 +31,3 @@ python:
   install:
     # We also defined PIP_CONSTRAINTS=.config/requirements.txt on readthedocs config
     - requirements: .config/requirements.in
-  system_packages: false
