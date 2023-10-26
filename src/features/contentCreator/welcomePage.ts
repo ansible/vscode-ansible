@@ -6,8 +6,8 @@ import * as ini from "ini";
 import { SettingsManager } from "../../settings";
 import { withInterpreter } from "../utils/commandRunner";
 
-export class LandingPage {
-  public static currentPanel: LandingPage | undefined;
+export class AnsibleCreatorMenu {
+  public static currentPanel: AnsibleCreatorMenu | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
 
@@ -22,8 +22,8 @@ export class LandingPage {
   }
 
   public static render(extensionUri: vscode.Uri) {
-    if (LandingPage.currentPanel) {
-      LandingPage.currentPanel._panel.reveal(vscode.ViewColumn.One);
+    if (AnsibleCreatorMenu.currentPanel) {
+      AnsibleCreatorMenu.currentPanel._panel.reveal(vscode.ViewColumn.One);
     } else {
       const panel = vscode.window.createWebviewPanel(
         "content-creator-menu",
@@ -40,12 +40,15 @@ export class LandingPage {
         }
       );
 
-      LandingPage.currentPanel = new LandingPage(panel, extensionUri);
+      AnsibleCreatorMenu.currentPanel = new AnsibleCreatorMenu(
+        panel,
+        extensionUri
+      );
     }
   }
 
   public dispose() {
-    LandingPage.currentPanel = undefined;
+    AnsibleCreatorMenu.currentPanel = undefined;
 
     this._panel.dispose();
 
