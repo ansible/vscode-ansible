@@ -172,6 +172,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bendera/vscode-webview-elements@npm:^0.16.0":
+  version: 0.16.0
+  resolution: "@bendera/vscode-webview-elements@npm:0.16.0"
+  dependencies:
+    lit: ^2.7.5
+  checksum: 20832ec7eafd86744e0d26e6065b7d136d060211a084c2d7f8b1c660d71b19e788347a2e266a20e3d37cdd9d0dd3bb2b7b0c420a72ec4a7f99cf60d0eaffdb32
+  languageName: node
+  linkType: hard
+
 "@cspotcode/source-map-support@npm:^0.8.0":
   version: 0.8.1
   resolution: "@cspotcode/source-map-support@npm:0.8.1"
@@ -335,6 +344,22 @@ __metadata:
     "@jridgewell/resolve-uri": ^3.1.0
     "@jridgewell/sourcemap-codec": ^1.4.14
   checksum: 956a6f0f6fec060fb48c6bf1f5ec2064e13cd38c8be3873877d4b92b4a27ba58289a34071752671262a3e3c202abcc3fa2aac64d8447b4b0fa1ba3c9047f1c20
+  languageName: node
+  linkType: hard
+
+"@lit-labs/ssr-dom-shim@npm:^1.0.0, @lit-labs/ssr-dom-shim@npm:^1.1.0":
+  version: 1.1.1
+  resolution: "@lit-labs/ssr-dom-shim@npm:1.1.1"
+  checksum: 7a7add78e3ee570a7b987b9bf85e700b20d35d31c8b54cf4c8b2e3c8458ed4e2b0ff328706e5be7887f0ca8a02878c186e76609defb78f0d1b3c0e6b47c9f6ef
+  languageName: node
+  linkType: hard
+
+"@lit/reactive-element@npm:^1.3.0, @lit/reactive-element@npm:^1.6.0":
+  version: 1.6.3
+  resolution: "@lit/reactive-element@npm:1.6.3"
+  dependencies:
+    "@lit-labs/ssr-dom-shim": ^1.0.0
+  checksum: 79b58631c38effeabad090070324431da8a22cf0ff665f5e4de35e4d791f984742b3d340c9c7fce996d1124a8da95febc582471b4c237236c770b1300b56ef6e
   languageName: node
   linkType: hard
 
@@ -769,6 +794,13 @@ __metadata:
   version: 8.1.2
   resolution: "@types/sinonjs__fake-timers@npm:8.1.2"
   checksum: bbc73a5ab6c0ec974929392f3d6e1e8db4ebad97ec506d785301e1c3d8a4f98a35b1aa95b97035daef02886fd8efd7788a2fa3ced2ec7105988bfd8dce61eedd
+  languageName: node
+  linkType: hard
+
+"@types/trusted-types@npm:^2.0.2":
+  version: 2.0.4
+  resolution: "@types/trusted-types@npm:2.0.4"
+  checksum: 5256c4576cd1c90d33ddd9cc9cbd4f202b39c98cbe8b7f74963298f9eb2159c285ea5c25a6181b4c594d8d75641765bff85d72c2d251ad076e6529ce0eeedd1c
   languageName: node
   linkType: hard
 
@@ -1422,6 +1454,7 @@ __metadata:
   resolution: "ansible@workspace:."
   dependencies:
     "@ansible/ansible-language-server": ^1.2.1
+    "@bendera/vscode-webview-elements": ^0.16.0
     "@redhat-developer/vscode-redhat-telemetry": ^0.5.4
     "@types/chai": ^4.3.5
     "@types/glob": ^8.1.0
@@ -4295,6 +4328,37 @@ __metadata:
   version: 1.0.1
   resolution: "listenercount@npm:1.0.1"
   checksum: 0f1c9077cdaf2ebc16473c7d72eb7de6d983898ca42500f03da63c3914b6b312dd5f7a90d2657691ea25adf3fe0ac5a43226e8b2c673fd73415ed038041f4757
+  languageName: node
+  linkType: hard
+
+"lit-element@npm:^3.3.0":
+  version: 3.3.3
+  resolution: "lit-element@npm:3.3.3"
+  dependencies:
+    "@lit-labs/ssr-dom-shim": ^1.1.0
+    "@lit/reactive-element": ^1.3.0
+    lit-html: ^2.8.0
+  checksum: 29a596fa556e231cce7246ca3e5687ad238f299b0cb374a0934d5e6fe9adf1436e031d4fbd21b280aabfc0e21a66e6c4b52da558a908df2566d09d960f3ca93d
+  languageName: node
+  linkType: hard
+
+"lit-html@npm:^2.8.0":
+  version: 2.8.0
+  resolution: "lit-html@npm:2.8.0"
+  dependencies:
+    "@types/trusted-types": ^2.0.2
+  checksum: 2d70df07248bcb2f502a3afb1e91d260735024fa669669ffb1417575aa39c3092779725ac1b90f5f39e4ce78c63f431f51176bc67f532389f0285a6991573255
+  languageName: node
+  linkType: hard
+
+"lit@npm:^2.7.5":
+  version: 2.8.0
+  resolution: "lit@npm:2.8.0"
+  dependencies:
+    "@lit/reactive-element": ^1.6.0
+    lit-element: ^3.3.0
+    lit-html: ^2.8.0
+  checksum: 2480e733f7d022d3ecba91abc58a20968f0ca8f5fa30b3341ecf4bcf4845e674ad27b721a5ae53529cafc6ca603c015b80d0979ceb7a711e268ef20bb6bc7527
   languageName: node
   linkType: hard
 
