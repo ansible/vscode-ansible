@@ -117,7 +117,13 @@ export class AnsibleCreatorInit {
                 </div>
 
                 <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}/.ansible/collections/ansible_collections"
-                  size="512">Init path</vscode-text-field>
+                  size="512">Init path
+                  <section slot="end" class="explorer-icon">
+                    <vscode-button id="folder-explorer" appearance="icon">
+                      <span class="codicon codicon-folder-opened"></span>
+                    </vscode-button>
+                  </section>
+                </vscode-text-field>
 
                 <div id="full-collection-path" class="full-collection-name">
                   <p>Collection path:&nbsp</p>
@@ -142,7 +148,13 @@ export class AnsibleCreatorInit {
 
                 <div id="log-to-file-options-div">
                   <vscode-text-field id="log-file-path" class="required" form="init-form" placeholder="${tempDir}/ansible-creator.log"
-                    size="512">Log file path</vscode-text-field>
+                    size="512">Log file path
+                    <section slot="end" class="explorer-icon">
+                    <vscode-button id="file-explorer" appearance="icon">
+                      <span class="codicon codicon-file"></span>
+                    </vscode-button>
+                  </section>
+                  </vscode-text-field>
 
                   <vscode-checkbox id="log-file-append-checkbox" form="init-form">Append</i></vscode-checkbox>
 
@@ -188,13 +200,17 @@ export class AnsibleCreatorInit {
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
+                  <vscode-button id="copy-logs-button" form="init-form" appearance="secondary">
+                    <span class="codicon codicon-copy"></span>
+                    &nbsp; Copy Logs
+                  </vscode-button>
                   <vscode-button id="open-log-file-button" form="init-form" appearance="secondary" disabled>
                     <span class="codicon codicon-open-preview"></span>
                     &nbsp; Open Log File
                   </vscode-button>
-                  <vscode-button id="copy-logs-button" form="init-form">
-                    <span class="codicon codicon-copy"></span>
-                    &nbsp; Copy Logs
+                  <vscode-button id="open-folder-button" form="init-form" disabled>
+                    <span class="codicon codicon-folder-active"></span>
+                    &nbsp; Open Collection
                   </vscode-button>
                 </div>
               </section>
@@ -214,6 +230,17 @@ export class AnsibleCreatorInit {
         let payload;
 
         switch (command) {
+          case "open-explorer":
+            payload = message.payload;
+            const selectedUri = await this.openExplorerDialog(
+              payload.selectOption
+            );
+            webview.postMessage({
+              command: "file-uri",
+              arguments: { selectedUri: selectedUri },
+            });
+            return;
+
           case "init-create":
             payload = message.payload as AnsibleCreatorInitInterface;
             await this.runInitCommand(payload, webview);
@@ -231,11 +258,35 @@ export class AnsibleCreatorInit {
             payload = message.payload;
             await this.openLogFile(payload.logFileUrl);
             return;
+
+          case "init-open-scaffolded-folder":
+            payload = message.payload;
+            await this.openFolderInWorkspace(payload.scaffoldedFolderUrl);
+            return;
         }
       },
       undefined,
       this._disposables
     );
+  }
+
+  public async openExplorerDialog(selectOption: string) {
+    const options: vscode.OpenDialogOptions = {
+      canSelectMany: false,
+      openLabel: "Select",
+      canSelectFiles: selectOption === "file",
+      canSelectFolders: selectOption === "folder",
+      defaultUri: vscode.Uri.parse(os.homedir()),
+    };
+
+    let selectedUri;
+    await vscode.window.showOpenDialog(options).then((fileUri) => {
+      if (fileUri && fileUri[0]) {
+        selectedUri = fileUri[0].fsPath;
+      }
+    });
+
+    return selectedUri;
   }
 
   public async runInitCommand(
@@ -296,6 +347,8 @@ export class AnsibleCreatorInit {
 
       if (logFileAppend) {
         ansibleCreatorInitCommand += ` --la=true`;
+      } else {
+        ansibleCreatorInitCommand += ` --la=false`;
       }
     }
 
@@ -312,36 +365,57 @@ export class AnsibleCreatorInit {
 
     let commandExecution;
     let commandOutput = "";
+    let commandPassed = true;
 
-    commandExecution = cp.spawn(command, {
+    const collectionUrl = vscode.Uri.joinPath(
+      vscode.Uri.parse(initPathUrl),
+      namespaceName,
+      collectionName
+    ).fsPath;
+
+    commandExecution = cp.exec(command, {
       env: runEnv,
-      shell: true,
       cwd: os.homedir(),
     });
 
-    commandExecution.stdout.setEncoding("utf-8");
-    commandExecution.stdout.on("data", (data) => {
-      commandOutput += data.toString();
-      webView.postMessage({
+    // fail
+    commandExecution.stderr?.on("data", async function (data) {
+      commandOutput += await data.toString();
+      commandPassed = false;
+      await webView.postMessage({
         command: "execution-log",
-        arguments: { commandOutput: commandOutput, logFileUrl: logFilePathUrl },
+        arguments: {
+          commandOutput: commandOutput,
+          logFileUrl: logFilePathUrl,
+        },
       });
     });
 
-    commandExecution.stderr.setEncoding("utf-8");
-    commandExecution.stderr.on("data", (data) => {
-      commandOutput += data.toString();
-      webView.postMessage({
+    // pass
+    commandExecution.stdout?.on("data", async function (data) {
+      commandOutput += await data.toString();
+      await webView.postMessage({
         command: "execution-log",
-        arguments: { commandOutput: commandOutput, logFileUrl: logFilePathUrl },
+        arguments: {
+          commandOutput: commandOutput,
+          logFileUrl: logFilePathUrl,
+        },
       });
     });
 
-    commandExecution.on("error", (err) => {
-      commandOutput += err.message;
-      webView.postMessage({
+    // exit
+    commandExecution.on("exit", async function (code) {
+      commandOutput += `\nProcess exited with status: ${
+        commandPassed ? "success" : "failure"
+      } and code: ${code?.toString()}`;
+      await webView.postMessage({
         command: "execution-log",
-        arguments: { commandOutput: commandOutput, logFileUrl: logFilePathUrl },
+        arguments: {
+          status: commandPassed ? "pass" : "fail",
+          commandOutput: commandOutput,
+          logFileUrl: logFilePathUrl,
+          collectionUrl: collectionUrl,
+        },
       });
     });
   }
@@ -350,6 +424,26 @@ export class AnsibleCreatorInit {
     vscode.commands.executeCommand(
       "vscode.open",
       vscode.Uri.parse(`vscode://file/${fileUrl}`)
+    );
+  }
+
+  public async openFolderInWorkspace(folderUrl: string) {
+    const folderUri = vscode.Uri.joinPath(vscode.Uri.parse(folderUrl), "..");
+
+    // add folder to workspace
+    vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    vscode.workspace.updateWorkspaceFolders(
+      vscode.workspace.workspaceFolders
+        ? vscode.workspace.workspaceFolders.length
+        : 0,
+      null,
+      { uri: folderUri }
+    );
+
+    // open the galaxy file in the editor
+    vscode.commands.executeCommand(
+      "vscode.open",
+      vscode.Uri.parse(`vscode://file/${folderUrl}/galaxy.yml`)
     );
   }
 }

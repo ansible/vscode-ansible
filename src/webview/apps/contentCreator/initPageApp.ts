@@ -17,6 +17,7 @@ window.addEventListener("load", main);
 let initNamespaceNameTextField: TextField;
 let initCollectionNameTextField: TextField;
 let initPathUrlTextField: TextField;
+let folderExplorerButton: Button;
 
 let initCreateButton: Button;
 let initClearButton: Button;
@@ -26,6 +27,7 @@ let forceCheckbox: Checkbox;
 let logToFileCheckbox: Checkbox;
 let logToFileOptionsDiv: HTMLElement | null;
 let logFilePath: TextField;
+let fileExplorerButton: Button;
 let logFileAppendCheckbox: Checkbox;
 let logLevelDropdown: Dropdown;
 
@@ -40,8 +42,10 @@ let initLogsTextArea: TextArea;
 let initClearLogsButton: Button;
 let initOpenLogFileButton: Button;
 let initCopyLogsButton: Button;
+let initOpenScaffoldedFolderButton: Button;
 
 let logFileUrl = "";
+let scaffoldedFolderUrl = "";
 
 function main() {
   // elements for init interface
@@ -52,6 +56,8 @@ function main() {
     "collection-name"
   ) as TextField;
   initPathUrlTextField = document.getElementById("path-url") as TextField;
+  folderExplorerButton = document.getElementById("folder-explorer") as Button;
+
   forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox"
@@ -61,6 +67,7 @@ function main() {
   logToFileOptionsDiv = document.getElementById("log-to-file-options-div");
 
   logFilePath = document.getElementById("log-file-path") as TextField;
+  fileExplorerButton = document.getElementById("file-explorer") as Button;
   logFileAppendCheckbox = document.getElementById(
     "log-file-append-checkbox"
   ) as Checkbox;
@@ -76,10 +83,16 @@ function main() {
     "open-log-file-button"
   ) as Button;
   initCopyLogsButton = document.getElementById("copy-logs-button") as Button;
+  initOpenScaffoldedFolderButton = document.getElementById(
+    "open-folder-button"
+  ) as Button;
 
   initNamespaceNameTextField?.addEventListener("input", toggleCreateButton);
   initCollectionNameTextField?.addEventListener("input", toggleCreateButton);
   initPathUrlTextField?.addEventListener("input", toggleCreateButton);
+
+  folderExplorerButton.addEventListener("click", openExplorer);
+  fileExplorerButton.addEventListener("click", openExplorer);
 
   initCreateButton?.addEventListener("click", handleInitCreateClick);
   initCreateButton.disabled = true;
@@ -89,6 +102,10 @@ function main() {
   initClearLogsButton?.addEventListener("click", handleInitClearLogsClick);
   initOpenLogFileButton?.addEventListener("click", handleInitOpenLogFileClick);
   initCopyLogsButton?.addEventListener("click", handleInitCopyLogsClick);
+  initOpenScaffoldedFolderButton?.addEventListener(
+    "click",
+    handleInitOpenScaffoldedFolderClick
+  );
 
   initCollectionNameDiv = document.getElementById("full-collection-name");
   initCollectionPathDiv = document.getElementById("full-collection-path");
@@ -100,6 +117,38 @@ function main() {
   initCollectionPathElement = document.createElement("p");
   initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
+}
+
+function openExplorer(event: any) {
+  const source = event.target.parentNode.id;
+
+  let selectOption;
+
+  if (source === "folder-explorer") {
+    selectOption = "folder";
+  } else {
+    selectOption = "file";
+  }
+
+  vscode.postMessage({
+    command: "open-explorer",
+    payload: {
+      selectOption: selectOption,
+    },
+  });
+
+  window.addEventListener("message", (event) => {
+    const message = event.data;
+    const selectedUri = message.arguments.selectedUri;
+
+    if (selectedUri) {
+      if (source === "folder-explorer") {
+        initPathUrlTextField.value = selectedUri;
+      } else {
+        logFilePath.value = selectedUri;
+      }
+    }
+  });
 }
 
 function toggleCreateButton() {
@@ -205,6 +254,14 @@ function handleInitCreateClick() {
           initOpenLogFileButton.disabled = true;
         }
 
+        if (message.arguments.status && message.arguments.status === "pass") {
+          initOpenScaffoldedFolderButton.disabled = false;
+        } else {
+          initOpenScaffoldedFolderButton.disabled = true;
+        }
+
+        scaffoldedFolderUrl = message.arguments.collectionUrl;
+
         break;
     }
   });
@@ -228,6 +285,15 @@ function handleInitCopyLogsClick() {
     command: "init-copy-logs",
     payload: {
       initExecutionLogs: initLogsTextArea.value,
+    },
+  });
+}
+
+function handleInitOpenScaffoldedFolderClick() {
+  vscode.postMessage({
+    command: "init-open-scaffolded-folder",
+    payload: {
+      scaffoldedFolderUrl: scaffoldedFolderUrl,
     },
   });
 }

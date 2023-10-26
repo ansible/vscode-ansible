@@ -66,16 +66,8 @@ vscode-text-area {
     font-style: italic;
 }
 
-vscode-button#create-button {
-    margin-left: 6px;
-}
-
-vscode-button#copy-logs-button {
-    margin-left: 6px;
-}
-
-vscode-button#open-log-file-button {
-    margin-left: 6px;
+vscode-button {
+    margin: 0px 3px;
 }
 
 vscode-checkbox i {
