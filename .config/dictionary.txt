@@ -17,6 +17,8 @@ cmds
 codespell
 commitlint
 Containerfile
+contentmatch
+contentmatches
 copyfiles
 cygwin
 dbaeumer
@@ -119,10 +121,12 @@ untildify
 userdata
 usermod
 uuidv4
+varInfiles
 venvs
 vscoss
 vsix
 vyos
+watsonx
 Webviews
 webknjaz
 webpacked

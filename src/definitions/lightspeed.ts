@@ -10,6 +10,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
+  model?: string;
 }
 
 export enum UserAction {
@@ -23,80 +24,58 @@ export enum AnsibleContentUploadTrigger {
   TAB_CHANGE = 2,
 }
 
-export interface FeedbackResponseParams {
-  message: string;
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace LightSpeedCommands {
+  export const LIGHTSPEED_AUTH_REQUEST = "ansible.lightspeed.oauth";
+  export const LIGHTSPEED_SUGGESTION_COMMIT =
+    "ansible.lightspeed.inlineSuggest.accept";
+  export const LIGHTSPEED_SUGGESTION_HIDE =
+    "ansible.lightspeed.inlineSuggest.hide";
+  export const LIGHTSPEED_SUGGESTION_TRIGGER =
+    "ansible.lightspeed.inlineSuggest.trigger";
+  export const LIGHTSPEED_STATUS_BAR_CLICK =
+    "ansible.lightspeed.statusBar.click";
+  export const LIGHTSPEED_FETCH_TRAINING_MATCHES =
+    "ansible.lightspeed.fetchTrainingMatches";
+  export const LIGHTSPEED_CLEAR_TRAINING_MATCHES =
+    "ansible.lightspeed.clearTrainingMatches";
+  export const LIGHTSPEED_FEEDBACK = "ansible.lightspeed.feedback";
 }
 
-export interface InlineSuggestionEvent {
-  latency?: number;
-  userActionTime?: number;
-  documentUri?: string;
-  action?: UserAction;
-  error?: string;
-  suggestionId?: string;
-  activityId?: string;
-}
+export const LIGHTSPEED_API_VERSION = "v0";
+export const LIGHTSPEED_SUGGESTION_COMPLETION_URL = `${LIGHTSPEED_API_VERSION}/ai/completions/`;
+export const LIGHTSPEED_SUGGESTION_FEEDBACK_URL = `${LIGHTSPEED_API_VERSION}/ai/feedback/`;
+export const LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL = `${LIGHTSPEED_API_VERSION}/ai/contentmatches/`;
+export const LIGHTSPEED_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/`;
 
-export interface AnsibleContentEvent {
-  content: string;
-  documentUri: string;
-  trigger: AnsibleContentUploadTrigger;
-  activityId: string | undefined;
-}
-export interface SentimentEvent {
-  value: number;
-  feedback: string;
-}
+export const LIGHTSPEED_FEEDBACK_FORM_URL =
+  "https://red.ht/ansible-ai-feedback";
 
-export interface SuggestionQualityEvent {
-  prompt: string;
-  providedSuggestion: string;
-  expectedSuggestion: string;
-  additionalComment: string;
-}
-export interface IssueFeedbackEvent {
-  type: "bug-report" | "feature-request";
-  title: string;
-  description: string;
-}
+export const LIGHTSPEED_REPORT_EMAIL_ADDRESS = "ansible-content-ai@redhat.com";
+export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
+  "ansible.lightspeed.statusBar.clickHandler";
 
-export interface FeedbackRequestParams {
-  inlineSuggestion?: InlineSuggestionEvent;
-  ansibleContent?: AnsibleContentEvent;
-  sentimentFeedback?: SentimentEvent;
-  suggestionQualityFeedback?: SuggestionQualityEvent;
-  issueFeedback?: IssueFeedbackEvent;
-}
+export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
+export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
 
-export interface IDocumentTrackerFields {
-  activityId: string;
-  content: string;
-}
+export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
 
-export interface IDocumentTracker {
-  [key: string]: IDocumentTrackerFields;
-}
+export const tasksInPlaybookKeywords = [
+  /(?<!\S)tasks\s*:(?!\S)\s*$/,
+  /(?<!\S)block\s*:(?!\S)\s*$/,
+  /(?<!\S)rescue\s*:(?!\S)\s*$/,
+  /(?<!\S)always\s*:(?!\S)\s*$/,
+  /(?<!\S)pre_tasks\s*:(?!\S)\s*$/,
+  /(?<!\S)post_tasks\s*:(?!\S)\s*$/,
+  /(?<!\S)handlers\s*:(?!\S)\s*$/,
+];
 
-export interface AttributionsRequestParams {
-  suggestion: string;
-  suggestionId: string;
-}
+export const tasksFileKeywords = [
+  /(?<!\S)block\s*:(?!\S)\s*$/,
+  /(?<!\S)rescue\s*:(?!\S)\s*$/,
+  /(?<!\S)always\s*:(?!\S)\s*$/,
+];
 
-export interface IAttributionsParams {
-  repo_name: string;
-  repo_url: string;
-  path: string;
-  license: string;
-  data_source: string;
-  ansible_type: string;
-  score: number;
-}
-
-export interface AttributionsResponseParams {
-  attributions: IAttributionsParams[];
-}
-
-export interface ISuggestionDetails {
-  suggestion: string;
-  suggestionId: string;
-}
+export const SINGLE_TASK_REGEX_EP =
+  /^(?<![\s-])(?<blank>\s*)(?<list>- \s*name\s*:\s*)(?<description>\S.*)(?<end>$)/;
+export const MULTI_TASK_REGEX_EP = /^\s*#\s*\S+.*$/;
