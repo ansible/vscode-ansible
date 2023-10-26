@@ -740,6 +740,7 @@
     "mochawesome-report-generator": "^6.2.0",
     "ovsx": "^0.8.0",
     "prettier": "^3.0.0",
+    "react": "^18.2.0",
     "rimraf": "^4.4.1",
     "sinon": "^15.0.4",
     "ts-loader": "^9.4.2",
