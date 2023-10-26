@@ -1,5 +1,5 @@
-import { VscodeButton } from "@bendera/vscode-webview-elements";
 import {
+  Button,
   allComponents,
   provideVSCodeDesignSystem,
 } from "@vscode/webview-ui-toolkit";
@@ -17,7 +17,7 @@ let ansibleLocationStatusText: HTMLElement;
 let pythonVersionStatusText: HTMLElement;
 let pythonLocationStatusText: HTMLElement;
 let ansibleCreatorVersionStatusText: HTMLElement;
-let refreshButton: VscodeButton;
+let refreshButton: Button;
 
 function main() {
   systemCheckDiv = document.getElementById("system-check");
@@ -31,7 +31,7 @@ function main() {
   pythonLocationStatusText = document.createElement("section");
   ansibleCreatorVersionStatusText = document.createElement("section");
 
-  refreshButton = document.getElementById("refresh") as VscodeButton;
+  refreshButton = document.getElementById("refresh") as Button;
   refreshButton?.addEventListener("click", handleRefreshClick);
 
   updateAnsibleCreatorAvailabilityStatus();
