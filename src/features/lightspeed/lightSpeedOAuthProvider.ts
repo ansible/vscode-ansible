@@ -584,11 +584,23 @@ export class LightSpeedAuthenticationProvider
     return userAuth;
   }
 
-  public async rhUserHasSeat(): Promise<boolean> {
+  public async rhUserHasSeat(): Promise<boolean | undefined> {
     const authSession = await this.getLightSpeedAuthSession();
-    if (authSession?.rhUserHasSeat) {
+    if (authSession === undefined) {
+      console.log(
+        "[ansible-lightspeed-oauth] User authentication session not found."
+      );
+      return undefined;
+    } else if (authSession?.rhUserHasSeat) {
+      console.log(
+        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has a seat.`
+      );
       return true;
+    } else {
+      console.log(
+        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does not have a seat.`
+      );
+      return false;
     }
-    return false;
   }
 }

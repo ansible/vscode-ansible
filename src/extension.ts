@@ -49,7 +49,7 @@ import {
   resetInlineSuggestionDisplayed,
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
-import { AttributionsWebview } from "./features/lightspeed/attributionsWebview";
+import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
 import {
   setPythonInterpreter,
@@ -156,8 +156,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
-      AttributionsWebview.viewType,
-      lightSpeedManager.attributionsProvider
+      ContentMatchesWebview.viewType,
+      lightSpeedManager.contentMatchesProvider
     )
   );
 
@@ -165,7 +165,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
-        lightSpeedManager.attributionsProvider.showAttributions();
+        lightSpeedManager.contentMatchesProvider.showContentMatches();
       }
     )
   );
@@ -174,7 +174,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_CLEAR_TRAINING_MATCHES,
       () => {
-        lightSpeedManager.attributionsProvider.clearAttributions();
+        lightSpeedManager.contentMatchesProvider.clearContentMatches();
       }
     )
   );
@@ -232,7 +232,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         pythonInterpreterManager
       );
       if (editor) {
-        lightSpeedManager.ansibleContentFeedback(
+        await lightSpeedManager.ansibleContentFeedback(
           editor.document,
           AnsibleContentUploadTrigger.TAB_CHANGE
         );
@@ -250,8 +250,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       AnsibleContentUploadTrigger.FILE_OPEN
     );
   });
-  workspace.onDidCloseTextDocument((document: vscode.TextDocument) => {
-    lightSpeedManager.ansibleContentFeedback(
+  workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
+    await lightSpeedManager.ansibleContentFeedback(
       document,
       AnsibleContentUploadTrigger.FILE_CLOSE
     );

@@ -17,6 +17,8 @@ cmds
 codespell
 commitlint
 Containerfile
+contentmatch
+contentmatches
 copyfiles
 cygwin
 dbaeumer

@@ -23,7 +23,7 @@ export interface CompletionRequestParams {
   prompt: string;
   suggestionId?: string;
   metadata?: MetadataParams;
-  modelId?: string;
+  model?: string;
 }
 
 export interface FeedbackResponseParams {
@@ -80,23 +80,27 @@ export interface IDocumentTracker {
   [key: string]: IDocumentTrackerFields;
 }
 
-export interface AttributionsRequestParams {
-  suggestion: string;
+export interface ContentMatchesRequestParams {
+  suggestions: string[];
   suggestionId: string;
+  model?: string;
 }
 
-export interface IAttributionsParams {
+export interface IContentMatchParams {
   repo_name: string;
   repo_url: string;
   path: string;
   license: string;
-  data_source: string;
-  ansible_type: string;
+  data_source_description: string;
   score: number;
 }
 
-export interface AttributionsResponseParams {
-  attributions: IAttributionsParams[];
+export interface IContentMatch {
+  contentmatch: IContentMatchParams[];
+}
+
+export interface ContentMatchesResponseParams {
+  contentmatches: IContentMatch[];
 }
 
 export interface ISuggestionDetails {
