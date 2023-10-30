@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import { getUri } from "../utils/getUri";
@@ -132,7 +134,7 @@ export class AnsibleCreatorMenu {
               <img src="${contentCreatorIcon}" alt="Ansible Creator Icon">
               <h1>nsible Content Creator</h1>
             </div>
-            <p>A tool for scaffoling ansible content.
+            <p>A tool for scaffolding ansible content.
               <vscode-link href="https://github.com/ansible-community/ansible-creator#ansible-creator">Read our docs</vscode-link>
               to learn more about this tool.</p>
 
@@ -208,7 +210,7 @@ export class AnsibleCreatorMenu {
   }
 
   private async getSystemDetails(webView: vscode.Webview) {
-    let systemInfo: any = {};
+    const systemInfo: any = {};
 
     // get ansible version and path
     const ansibleVersion = await this.getBinDetail("ansible", "--version");
@@ -222,7 +224,7 @@ export class AnsibleCreatorMenu {
         console.debug("[ansible-creator] No version information from ansible");
       }
 
-      let ansibleCoreVersion = versionInfoObjKeys[0].includes(" [")
+      const ansibleCoreVersion = versionInfoObjKeys[0].includes(" [")
         ? versionInfoObjKeys[0].split(" [")
         : versionInfoObjKeys[0].split(" ");
 

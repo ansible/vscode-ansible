@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+
 import {
   allComponents,
   Button,
@@ -219,12 +221,6 @@ function toggleLogToFileOptions() {
 }
 
 function handleInitCreateClick() {
-  const fullCollectionName = `${initNamespaceNameTextField.value.trim()}.${initCollectionNameTextField.value.trim()}`;
-  let commandString: string = `Command: $ ansible-creator init ${fullCollectionName} --init-path ${initPathUrlTextField.value.trim()}`;
-  if (forceCheckbox.checked) {
-    commandString = commandString + " --force";
-  }
-
   vscode.postMessage({
     command: "init-create",
     payload: {

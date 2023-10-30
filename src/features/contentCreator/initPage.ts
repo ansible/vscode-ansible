@@ -1,3 +1,5 @@
+/* eslint-disable  @typescript-eslint/no-explicit-any */
+
 import * as vscode from "vscode";
 import * as cp from "child_process";
 import * as os from "os";
@@ -338,7 +340,7 @@ export class AnsibleCreatorInit {
       if (logFilePath) {
         logFilePathUrl = logFilePath;
       } else {
-        logFilePathUrl = os.tmpdir() + "/ansible-creator.log";
+        logFilePathUrl = `${os.tmpdir()}/ansible-creator.log`;
       }
 
       ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
@@ -363,7 +365,6 @@ export class AnsibleCreatorInit {
       ""
     );
 
-    let commandExecution;
     let commandOutput = "";
     let commandPassed = true;
 
@@ -373,7 +374,7 @@ export class AnsibleCreatorInit {
       collectionName
     ).fsPath;
 
-    commandExecution = cp.exec(command, {
+    const commandExecution = cp.exec(command, {
       env: runEnv,
       cwd: os.homedir(),
     });
