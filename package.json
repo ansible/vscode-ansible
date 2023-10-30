@@ -65,7 +65,7 @@
       "ansible-explorer": [
         {
           "id": "ansible-creator",
-          "name": "ansible-creator"
+          "name": "Ansible Creator"
         },
         {
           "id": "lightspeed-explorer-treeview",
