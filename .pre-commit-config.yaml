@@ -99,7 +99,8 @@ repos:
             .yarn/.*|
             .config/dictionary.txt|
             CHANGELOG.md|
-            yarn.lock
+            yarn.lock|
+            media/codicons/codicon.css
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
@@ -110,7 +111,7 @@ repos:
         exclude: >
           (?x)^(
             jinja-language-configuration.json|
-            syntaxes/external/jinja.tmLanguage.json
+            syntaxes/external/jinja.tmLanguage.json|
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.34.0
