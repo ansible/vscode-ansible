@@ -221,6 +221,14 @@
         "title": "Ansible Content Creator: Init"
       },
       {
+        "command": "ansible.content-creator.create",
+        "title": "Ansible Content Creator: Create"
+      },
+      {
+        "command": "ansible.content-creator.sample",
+        "title": "Ansible Content Creator: Sample"
+      },
+      {
         "command": "ansible.lightspeed.inlineSuggest.accept",
         "title": "Ansible Lightspeed: Inline suggestion accept"
       },

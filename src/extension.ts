@@ -393,6 +393,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
       AnsibleCreatorInit.render(context.extensionUri);
     })
   );
+
+  // open ansible-creator create
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.create", () => {
+      window.showInformationMessage("This feature is coming soon. Stay tuned.");
+    })
+  );
+
+  // open ansible-creator sample
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.sample", () => {
+      window.showInformationMessage("This feature is coming soon. Stay tuned.");
+    })
+  );
 }
 
 const startClient = async (

@@ -161,14 +161,14 @@ export class AnsibleCreatorMenu {
             </div>
 
             <div class="menu-item">
-              <vscode-link href="#">
+              <vscode-link href="command:ansible.content-creator.create">
                 <img src="${createIcon}" alt="Ansible Creator Icon">
               </vscode-link>
                 <p class="menu-item-heading">Create ansible content</p>
             </div>
 
             <div class="menu-item">
-              <vscode-link href="#">
+              <vscode-link href="command:ansible.content-creator.sample">
                 <img src="${sampleIcon}" alt="Ansible Creator Icon">
               </vscode-link>
                 <p class="menu-item-heading">Open sample manifest file</p>
