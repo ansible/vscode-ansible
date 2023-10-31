@@ -14,8 +14,9 @@ export interface CompletionRequestParams {
 }
 
 export enum UserAction {
-  ACCEPT = 0,
-  IGNORE = 1,
+  ACCEPTED = 0, // accepted the suggestion
+  REJECTED = 1, // rejected the suggestion
+  IGNORED = 2, // ignored the suggestion or didn't wait for suggestion to be displayed
 }
 
 export enum AnsibleContentUploadTrigger {

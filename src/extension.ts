@@ -10,7 +10,7 @@ import {
 } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
-import { LightSpeedCommands } from "./definitions/lightspeed";
+import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
 import {
   TelemetryErrorHandler,
   TelemetryOutputChannel,
@@ -197,7 +197,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
-      inlineSuggestionHideHandler
+      async (
+        textEditor: vscode.TextEditor,
+        edit: vscode.TextEditorEdit,
+        userAction?: UserAction
+      ) => {
+        await inlineSuggestionHideHandler(userAction);
+      }
     )
   );
 

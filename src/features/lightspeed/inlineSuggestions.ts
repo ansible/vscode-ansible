@@ -56,6 +56,13 @@ export class LightSpeedInlineSuggestionProvider
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
+    if (lightSpeedManager.apiInstance._completionRequestInProgress) {
+      vscode.commands.executeCommand(
+        LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
+        UserAction.IGNORED
+      );
+      return [];
+    }
     const activeTextEditor = vscode.window.activeTextEditor;
     if (!activeTextEditor) {
       resetInlineSuggestionDisplayed();
@@ -402,7 +409,6 @@ async function requestInlineSuggest(
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
   lightSpeedManager.statusBarProvider.statusBar.tooltip = "Done";
-
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
   );
@@ -531,25 +537,34 @@ export async function inlineSuggestionCommitHandler() {
   );
 
   // Send feedback for accepted suggestion
-  await inlineSuggestionUserActionHandler(suggestionId, true);
+  await inlineSuggestionUserActionHandler(suggestionId, UserAction.ACCEPTED);
 }
 
-export async function inlineSuggestionHideHandler() {
+export async function inlineSuggestionHideHandler(userAction?: UserAction) {
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
     return;
   }
-
+  const action = userAction || UserAction.REJECTED;
+  if (action === UserAction.REJECTED) {
+    console.log("[inline-suggestions] User rejected the inline suggestion.");
+  } else if (action === UserAction.IGNORED) {
+    console.log("[inline-suggestions] User ignored the inline suggestion.");
+  } else {
+    console.log(
+      "[inline-suggestions] User didn't accept the inline suggestion."
+    );
+  }
   // Hide the suggestion
   console.log("[inline-suggestions] User ignored the inline suggestion.");
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
   // Send feedback for accepted suggestion
-  await inlineSuggestionUserActionHandler(suggestionId, false);
+  await inlineSuggestionUserActionHandler(suggestionId, action);
 }
 
 export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
-  isSuggestionAccepted = false
+  isSuggestionAccepted: UserAction = UserAction.REJECTED
 ) {
   inlineSuggestionData["userActionTime"] =
     getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
@@ -558,11 +573,7 @@ export async function inlineSuggestionUserActionHandler(
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
   resetInlineSuggestionDisplayed();
-  if (isSuggestionAccepted) {
-    inlineSuggestionData["action"] = UserAction.ACCEPT;
-  } else {
-    inlineSuggestionData["action"] = UserAction.IGNORE;
-  }
+  inlineSuggestionData["action"] = isSuggestionAccepted;
   inlineSuggestionData["suggestionId"] = suggestionId;
   const inlineSuggestionFeedbackPayload = {
     inlineSuggestion: inlineSuggestionData,
