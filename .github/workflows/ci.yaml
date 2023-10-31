@@ -70,7 +70,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout vscode-ansible
-        uses: actions/checkout@v4.0.0
+        uses: actions/checkout@v4.1.1
 
       - name: Install Task
         uses: arduino/setup-task@v1
@@ -109,7 +109,7 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Use NodeJS v18
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
