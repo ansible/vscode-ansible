@@ -3,10 +3,13 @@
     "onCommand:extension.ansible-navigator.run",
     "onCommand:extension.ansible-playbook.run",
     "onCommand:extension.ansible.vault",
+    "onCommand:ansible.debugger.pickAnsiblePlaybook",
+    "onCommand:ansible.debugger.pickAnsibleProcess",
     "onLanguage:ansible",
     "onLanguage:yaml",
     "onCommand:extension.resync-ansible-inventory",
-    "workspaceContains:tox-ansible.ini"
+    "workspaceContains:tox-ansible.ini",
+    "onDebugResolve:ansible"
   ],
   "badges": [
     {
@@ -507,6 +510,29 @@
             "order": 0
           }
         }
+      },
+      {
+        "title": "Debugger",
+        "properties": {
+          "ansible.debugger.logFile": {
+            "type": "string",
+            "default": "",
+            "markdownDescription": "Set to enable the debug server logging to the path set.",
+            "order": 0
+          },
+          "ansible.debugger.logLevel": {
+            "type": "string",
+            "default": "info",
+            "enum": [
+              "info",
+              "debug",
+              "warning",
+              "error"
+            ],
+            "markdownDescription": "The logging level to configure for the debug server.",
+            "order": 1
+          }
+        }
       }
     ],
     "configurationDefaults": {
@@ -701,6 +727,203 @@
             "description": "The testenv to execute"
           }
         }
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "ansible"
+      },
+      {
+        "language": "yaml"
+      }
+    ],
+    "debuggers": [
+      {
+        "type": "ansible",
+        "label": "Ansible Debug",
+        "languages": [
+          "ansible"
+        ],
+        "variables": {
+          "PickAnsiblePlaybook": "ansible.debugger.pickAnsiblePlaybook",
+          "PickAnsibleProcess": "ansible.debugger.pickAnsibleProcess"
+        },
+        "configurationAttributes": {
+          "attach": {
+            "properties": {
+              "processId": {
+                "type": [
+                  "string",
+                  "number"
+                ],
+                "description": "The process id of the ansible-playbook process to attach to.",
+                "default": "${command:PickAnsibleProcess}"
+              },
+              "address": {
+                "type": "string",
+                "description": "The host that is running the ansible-playbook process with the scheme tcp:// or uds://.",
+                "default": "tcp://remote-host:1234"
+              },
+              "useTLS": {
+                "type": "boolean",
+                "description": "Wrap the communication socket with TLS to add server verification and encryption to the connection.",
+                "default": false
+              },
+              "tlsVerification": {
+                "type": "string",
+                "description": "The TLS verification settings, defaults to verify but can be set to ignore to ignore the verification checks. Can also be set to the path of a file or directory to use as the CA trust store.",
+                "default": "verify"
+              },
+              "tlsCertificate": {
+                "type": "string",
+                "description": "",
+                "default": "The path to a PEM encoded certificate, and optional key, to use for client certificate authentication with TLS. Use tlsKey if the path does not contain the key."
+              },
+              "tlsKey": {
+                "type": "string",
+                "description": "",
+                "default": "The path to a PEM encoded key for the certificate used for client certificate authentication with TLS. If encrypted use tlsKeyPassword to supply the password."
+              },
+              "tlsKeyPassword": {
+                "type": "string",
+                "description": "",
+                "default": "The password for the client certificate key if it is encrypted."
+              },
+              "connectTimeout": {
+                "type": "float",
+                "description": "The timeout, in seconds, to wait when trying to attach to the ansible-playbook process.",
+                "default": 5
+              },
+              "pathMappings": {
+                "$id": "#pathMappings",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "description": "The remote path prefix the Ansible playbook is running under and the local path prefix it maps to.",
+                  "properties": {
+                    "localRoot": {
+                      "type": "string",
+                      "description": "The local path root prefix this mapping applies to.",
+                      "default": "${workspaceFolder}/"
+                    },
+                    "remoteRoot": {
+                      "type": "string",
+                      "description": "The remote path root prefix this mapping applied to.",
+                      "default": ""
+                    }
+                  },
+                  "required": [
+                    "localRoot",
+                    "remoteRoot"
+                  ]
+                },
+                "description": "A list of case sensitive path mappings between a local and remote path. Multiple paths can be defined as needed.",
+                "default": []
+              }
+            }
+          },
+          "launch": {
+            "properties": {
+              "playbook": {
+                "type": "string",
+                "description": "The path to the Ansible playbook to launch.",
+                "default": "${command:PickAnsiblePlaybook}"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Command line arguments to pass to the ansible-playbook call, excluding the playbook itself.",
+                "default": []
+              },
+              "console": {
+                "type": "string",
+                "description": "Where to launch the debug target.",
+                "default": "integratedTerminal",
+                "enum": [
+                  "integratedTerminal",
+                  "externalTerminal"
+                ]
+              },
+              "cwd": {
+                "type": "string",
+                "description": "Absolute path to the working directory of the new ansible-playbook process that is spawned.",
+                "default": "${workspaceFolder}"
+              },
+              "connectTimeout": {
+                "type": "float",
+                "description": "The timeout, in seconds, to wait for the new ansible-playbook process to connect back to the debug client before failing.",
+                "default": 5
+              },
+              "logFile": {
+                "type": "string",
+                "description": "The path to a file to log the ansibug debuggee logging entries to. Use logLevel to control the verbosity of these logs."
+              },
+              "logLevel": {
+                "type": "string",
+                "description": "The level of logging to enable on the ansibug debuggee run. This is only enabled if logFile is also set.",
+                "default": "info",
+                "enum": [
+                  "info",
+                  "debug",
+                  "warning",
+                  "error"
+                ]
+              },
+              "pathMappings": {
+                "$ref": "#pathMappings"
+              }
+            },
+            "required": [
+              "playbook"
+            ]
+          }
+        },
+        "configurationSnippets": [
+          {
+            "label": "Ansible: Launch new ansible-playbook Process",
+            "description": "Launch a new ansible-playbook process",
+            "body": {
+              "name": "Ansible: Launch ansible-playbook Process",
+              "type": "ansible",
+              "request": "launch",
+              "playbook": "^\"\\${command:PickAnsiblePlaybook}\""
+            }
+          },
+          {
+            "label": "Ansible: Launch Current File",
+            "description": "Launch and debug the file in the currently active editor window",
+            "body": {
+              "name": "Ansible: Launch Current File",
+              "type": "ansible",
+              "request": "launch",
+              "playbook": "^\"\\${file}\"",
+              "cwd": "^\"\\${cwd}\""
+            }
+          },
+          {
+            "label": "Ansible: Attach to local ansible-playbook Process",
+            "description": "Attach the debugger to a locally running ansible-playbook process",
+            "body": {
+              "name": "Ansible: Attach to local ansible-playbook Process",
+              "type": "ansible",
+              "request": "attach",
+              "processId": "^\"\\${command:PickAnsibleProcess}\""
+            }
+          },
+          {
+            "label": "Ansible: Attach to remote ansible-playbook Process",
+            "description": "Attach the debugger to a remote ansible-playbook process",
+            "body": {
+              "name": "Ansible: Attach to remote ansible-playbook Process",
+              "type": "ansible",
+              "request": "attach",
+              "address": "tcp://target-host:1234"
+            }
+          }
+        ],
+        "initialConfigurations": []
       }
     ]
   },

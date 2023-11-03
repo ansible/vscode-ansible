@@ -7,6 +7,7 @@ export interface ExtensionSettings {
   interpreterPath: string | undefined;
   executionEnvironment: ExecutionEnvironmentSettings;
   lightSpeedService: LightSpeedServiceSettings;
+  debugger: DebuggerSettings;
 }
 
 export interface IVolumeMounts {
@@ -29,4 +30,9 @@ export interface LightSpeedServiceSettings {
   URL: string;
   suggestions: { enabled: boolean };
   model: string | undefined;
+}
+
+export interface DebuggerSettings {
+  logFile: string | null;
+  logLevel: string;
 }

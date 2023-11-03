@@ -29,6 +29,12 @@ import {
 
 /* local */
 import { SettingsManager } from "./settings";
+import {
+  AnsibleDebugConfigurationProvider,
+  DebuggerManager,
+  DebuggerCommands,
+  createAnsibleDebugAdapter,
+} from "./features/debugger";
 import { AnsiblePlaybookRunProvider } from "./features/runner";
 import {
   getConflictingExtensions,
@@ -216,6 +222,41 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
       inlineSuggestionTriggerHandler
+    )
+  );
+
+  // Debugging
+  const debuggerManager = new DebuggerManager();
+  context.subscriptions.push(
+    vscode.debug.registerDebugAdapterDescriptorFactory("ansible", {
+      createDebugAdapterDescriptor: () => {
+        return createAnsibleDebugAdapter(extSettings.settings);
+      },
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.debug.registerDebugConfigurationProvider(
+      "ansible",
+      new AnsibleDebugConfigurationProvider()
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      DebuggerCommands.PICK_ANSIBLE_PLAYBOOK,
+      () => {
+        return debuggerManager.pickAnsiblePlaybook();
+      }
+    )
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      DebuggerCommands.PICK_ANSIBLE_PROCESS,
+      () => {
+        return debuggerManager.pickAnsibleProcess();
+      }
     )
   );
 

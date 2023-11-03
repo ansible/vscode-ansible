@@ -25,6 +25,9 @@ ajinkyau
 akira
 alefragnani
 alphanums
+ALS
+Anson
+ansibug
 autofix
 autoupdate
 backticks
@@ -44,6 +47,7 @@ copyfiles
 cygwin
 cython
 dbaeumer
+debuggee
 dedupe
 depcheck
 deps
@@ -99,6 +103,9 @@ priyamsahoo
 projectuser
 prsahoo
 pyparsing
+PYTHONBREAKPOINT
+PYTHONHOME
+PYTHONPATH
 reindent
 reindented
 relogin
