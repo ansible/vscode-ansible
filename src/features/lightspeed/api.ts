@@ -114,9 +114,22 @@ export class LightSpeedAPI {
             "Too many requests to Ansible Lightspeed. Please try again after some time."
           );
         } else if (err?.response?.status === 400) {
-          vscode.window.showErrorMessage(
-            "Bad Request response. Please try again."
+          const responseErrorData = <AxiosError<{ message?: string }>>(
+            err?.response?.data
           );
+          if (
+            responseErrorData &&
+            responseErrorData.hasOwnProperty("message") &&
+            responseErrorData.message?.includes("Cloudflare")
+          ) {
+            vscode.window.showErrorMessage(
+              `Cloudflare rejected the request. Please contact your administrator.`
+            );
+          } else {
+            vscode.window.showErrorMessage(
+              "Bad Request response. Please try again."
+            );
+          }
         } else if (err?.response?.status === 403) {
           const responseErrorData = <AxiosError<{ message?: string }>>(
             err?.response?.data
