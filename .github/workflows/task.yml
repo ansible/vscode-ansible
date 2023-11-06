@@ -159,7 +159,7 @@ jobs:
         # as Windows executables are exposed inside WSL at top of PATH, we
         # would end with broken npm script in PATH on wsl.
         if: "!contains(matrix.shell, 'wsl')"
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
