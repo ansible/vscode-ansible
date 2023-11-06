@@ -61,6 +61,9 @@ import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
+import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
+import { AnsibleCreatorInit } from "./features/contentCreator/initPage";
+import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 
 export let client: LanguageClient;
@@ -138,7 +141,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
   await pythonInterpreterManager.updatePythonInfoInStatusbar();
 
-  // handle Ansible Lightspeed
+  /**
+   * Handle "Ansible Lightspeed" in the extension
+   */
   lightSpeedManager = new LightSpeedManager(
     context,
     client,
@@ -305,7 +310,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(lightspeedFeedbackCommand);
 
-  // handle Ansible Tox
+  /**
+   * Handle "Ansible Tox" in the extension
+   */
   const ansibleToxController = new AnsibleToxController();
   context.subscriptions.push(await ansibleToxController.create());
 
@@ -320,6 +327,86 @@ export async function activate(context: ExtensionContext): Promise<void> {
       )
     );
   }
+
+  /**
+   * Handle "Ansible Creator" in the extension
+   */
+
+  // pip install ansible-creator
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.install",
+      async () => {
+        const extSettings = new SettingsManager();
+        await extSettings.initialize();
+
+        const pythonInterpreter = extSettings.settings.interpreterPath;
+
+        // specify the current python interpreter path in the pip installation
+        const [command, runEnv] = withInterpreter(
+          extSettings.settings,
+          `${pythonInterpreter} -m pip install ansible-creator`,
+          "--no-input"
+        );
+
+        let terminal;
+        if (
+          vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal
+        ) {
+          terminal = vscode.window.terminals.find(
+            (terminal) => terminal.name === "Ansible Terminal"
+          ) as vscode.Terminal;
+        }
+        terminal = vscode.window.createTerminal({
+          name: "Ansible Terminal",
+          env: runEnv,
+        });
+        terminal.show();
+        terminal.sendText(command);
+      }
+    )
+  );
+
+  // open ansible-python workspace settings directly
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.python-settings.open",
+      async () => {
+        await vscode.commands.executeCommand(
+          "workbench.action.openWorkspaceSettings",
+          "ansible.python"
+        );
+      }
+    )
+  );
+
+  // open ansible-creator menu
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.menu", () => {
+      AnsibleCreatorMenu.render(context.extensionUri);
+    })
+  );
+
+  // open ansible-creator init
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.init", () => {
+      AnsibleCreatorInit.render(context.extensionUri);
+    })
+  );
+
+  // open ansible-creator create
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.create", () => {
+      window.showInformationMessage("This feature is coming soon. Stay tuned.");
+    })
+  );
+
+  // open ansible-creator sample
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.content-creator.sample", () => {
+      window.showInformationMessage("This feature is coming soon. Stay tuned.");
+    })
+  );
 }
 
 const startClient = async (
