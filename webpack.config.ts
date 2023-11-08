@@ -78,4 +78,35 @@ const webviewConfig = {
   },
 };
 
-module.exports = [config, webviewConfig];
+const contentCreatorMenuWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/welcomePageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/contentCreator/welcomePageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+const contentCreatorInitWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/initPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/contentCreator/initPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+module.exports = [
+  config,
+  webviewConfig,
+  contentCreatorMenuWebviewConfig,
+  contentCreatorInitWebviewConfig,
+];

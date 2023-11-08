@@ -48,7 +48,7 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "ansible-lightspeed-explorer",
+          "id": "ansible-explorer",
           "title": "Ansible",
           "icon": "images/ansible.svg"
         }
@@ -62,7 +62,11 @@
       ]
     },
     "views": {
-      "ansible-lightspeed-explorer": [
+      "ansible-explorer": [
+        {
+          "id": "ansible-creator",
+          "name": "Ansible Creator"
+        },
         {
           "id": "lightspeed-explorer-treeview",
           "name": "Ansible Lightspeed Login"
@@ -86,6 +90,10 @@
       ]
     },
     "viewsWelcome": [
+      {
+        "view": "ansible-creator",
+        "contents": "Welcome to Ansible Creator. Elevate automation with a toolkit for efficient ansible content creation. [Learn more](https://github.com/ansible-community/ansible-creator)\n[Get started](command:ansible.content-creator.menu)"
+      },
       {
         "view": "lightspeed-explorer-treeview",
         "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
@@ -195,6 +203,30 @@
       {
         "command": "ansible.python.set.interpreter",
         "title": "Ansible: Set Python Interpreter"
+      },
+      {
+        "command": "ansible.python-settings.open",
+        "title": "Ansible: Open Python Settings"
+      },
+      {
+        "command": "ansible.content-creator.menu",
+        "title": "Open Ansible Content Creator menu"
+      },
+      {
+        "command": "ansible.content-creator.install",
+        "title": "Install Ansible Content Creator"
+      },
+      {
+        "command": "ansible.content-creator.init",
+        "title": "Ansible Content Creator: Init"
+      },
+      {
+        "command": "ansible.content-creator.create",
+        "title": "Ansible Content Creator: Create"
+      },
+      {
+        "command": "ansible.content-creator.sample",
+        "title": "Ansible Content Creator: Sample"
       },
       {
         "command": "ansible.lightspeed.inlineSuggest.accept",
@@ -715,6 +747,7 @@
     "mochawesome-report-generator": "^6.2.0",
     "ovsx": "^0.8.0",
     "prettier": "^3.0.0",
+    "react": "^18.2.0",
     "rimraf": "^4.4.1",
     "sinon": "^15.0.4",
     "ts-loader": "^9.4.2",
@@ -769,7 +802,7 @@
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
     "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.ts",
     "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.ts",
-    "webpack-watch": "webpack --mode development --config ./webpack.config.ts --watch",
+    "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
     "test-compile": "yarn run clean && yarn run compile && tsc -p ./",
     "test-compile-withserver": "yarn run clean && yarn run compile-withserver && tsc -p ./",
