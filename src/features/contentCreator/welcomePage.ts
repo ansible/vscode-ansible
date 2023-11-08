@@ -134,7 +134,7 @@ export class AnsibleCreatorMenu {
               <img src="${contentCreatorIcon}" alt="Ansible Creator Icon">
               <h1>nsible Content Creator</h1>
             </div>
-            
+
             <p>A tool for scaffolding ansible content.
               <vscode-link href="https://github.com/ansible-community/ansible-creator#ansible-creator">Read our docs</vscode-link>
               to learn more about this tool.</p>
@@ -143,7 +143,7 @@ export class AnsibleCreatorMenu {
               <div class="icon">
                 <p>System requirements:</p>
               </div>
-              
+
               <div id=install-status></div>
 
               <div class="refresh-button-div">
