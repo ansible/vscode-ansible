@@ -61,7 +61,6 @@ export class LightSpeedInlineSuggestionProvider
         LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
         UserAction.IGNORED
       );
-      return [];
     }
     const activeTextEditor = vscode.window.activeTextEditor;
     if (!activeTextEditor) {
