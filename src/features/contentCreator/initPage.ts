@@ -144,7 +144,7 @@ export class AnsibleCreatorInit {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="log-to-file-checkbox" form="init-form">Log to output to file <br><i>Default path:
+                  <vscode-checkbox id="log-to-file-checkbox" form="init-form">Log output to a file <br><i>Default path:
                       ${tempDir}/ansible-creator.log.</i></vscode-checkbox>
                 </div>
 
