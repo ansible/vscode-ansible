@@ -1,3 +1,4 @@
+cython>=3.0.5; python_version >= "3.12"
 ansible-core>=2.13.0
 ansible-lint>=6.8.7
 mypy # used by vscode

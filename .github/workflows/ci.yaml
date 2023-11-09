@@ -99,14 +99,14 @@ jobs:
             ~/.cache/yarn
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
-      - name: Enable caching for podman-machine
-        if: "contains(matrix.os, 'macos')"
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.local/share/containers
-            ~/.config/containers
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
+      # - name: Enable caching for podman-machine
+      #   if: "contains(matrix.os, 'macos')"
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: |
+      #       ~/.local/share/containers
+      #       ~/.config/containers
+      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Use NodeJS v18
         uses: actions/setup-node@v4
