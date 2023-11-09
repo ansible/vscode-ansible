@@ -203,6 +203,11 @@ function handleInitClearClick() {
   verboseDropdown.currentValue = "Off";
 
   initCreateButton.disabled = true;
+
+  logToFileCheckbox.checked = false;
+  logFilePath.value = "";
+  logFileAppendCheckbox.checked = false;
+  logLevelDropdown.currentValue = "Debug";
 }
 
 function toggleLogToFileOptions() {

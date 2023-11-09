@@ -144,7 +144,7 @@ export class AnsibleCreatorInit {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="log-to-file-checkbox" form="init-form">Log to output to file <br><i>Default path:
+                  <vscode-checkbox id="log-to-file-checkbox" form="init-form">Log output to a file <br><i>Default path:
                       ${tempDir}/ansible-creator.log.</i></vscode-checkbox>
                 </div>
 
@@ -422,10 +422,11 @@ export class AnsibleCreatorInit {
   }
 
   public async openLogFile(fileUrl: string) {
-    vscode.commands.executeCommand(
-      "vscode.open",
-      vscode.Uri.parse(`vscode://file/${fileUrl}`)
-    );
+    const logFileUrl = vscode.Uri.file(fileUrl).fsPath;
+    console.log(`[ansible-creator] New Log file url: ${logFileUrl}`);
+    const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
+    console.log(`[ansible-creator] Parsed log file url: ${parsedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
   }
 
   public async openFolderInWorkspace(folderUrl: string) {
@@ -442,9 +443,21 @@ export class AnsibleCreatorInit {
     );
 
     // open the galaxy file in the editor
-    vscode.commands.executeCommand(
-      "vscode.open",
-      vscode.Uri.parse(`vscode://file/${folderUrl}/galaxy.yml`)
-    );
+    const galaxyFileUrl = vscode.Uri.joinPath(
+      vscode.Uri.parse(folderUrl),
+      "galaxy.yml"
+    ).fsPath;
+    console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
+    const parsedUrl = vscode.Uri.parse(`vscode://file${galaxyFileUrl}`);
+    console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
+  }
+
+  public openFileInEditor(fileUrl: string) {
+    const re = /~/gi;
+    const updatedUrl = fileUrl.replace(re, os.homedir());
+    console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
+
+    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 }

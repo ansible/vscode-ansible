@@ -97,8 +97,8 @@ function updateAnsibleCreatorAvailabilityStatus() {
         } else {
           ansibleCreatorVersionStatusText.innerHTML = `
           <p class='not-found'>ansible-creator version: Not found</p>
-          <p>Please <vscode-link href="command:ansible.content-creator.install">install ansible-creator</vscode-link> (via pip) before getting started.<br>
-          Or change <vscode-link href="command:ansible.python-settings.open">ansible-python settings</vscode-link>.</p>
+          <p>Before getting started, please <vscode-link href="command:ansible.content-creator.install">install ansible-creator</vscode-link> (via pip) or <br>
+          <vscode-link href="command:ansible.python-settings.open">switch to a different python interpreter</vscode-link>  with ansible-creator already installed in it.</p>
           `;
         }
         installStatusDiv?.appendChild(ansibleCreatorVersionStatusText);
