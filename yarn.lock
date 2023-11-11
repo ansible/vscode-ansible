@@ -1438,7 +1438,7 @@ __metadata:
     "@vscode/test-electron": "npm:^2.3.0"
     "@vscode/vsce": "npm:^2.18.0"
     "@vscode/webview-ui-toolkit": "npm:^1.2.2"
-    axios: "npm:^1.3.4"
+    axios: "npm:^1.6.0"
     chai: "npm:^4.3.7"
     copyfiles: "npm:^2.4.1"
     depcheck: "npm:^1.4.3"
@@ -1605,7 +1605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.1.3, axios@npm:^1.3.4":
+"axios@npm:^1.1.3":
   version: 1.5.0
   resolution: "axios@npm:1.5.0"
   dependencies:
@@ -1613,6 +1613,17 @@ __metadata:
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
   checksum: 128433020b1fe9a460121735016f377adc6109a1f62b61795b1a80704de0a70affb0d580c8abd057e28af5f343cb4fb9a17a0b2512ea7f314578bbe492851a23
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.6.0":
+  version: 1.6.1
+  resolution: "axios@npm:1.6.1"
+  dependencies:
+    follow-redirects: "npm:^1.15.0"
+    form-data: "npm:^4.0.0"
+    proxy-from-env: "npm:^1.1.0"
+  checksum: fb091af3ad47d70fdcba5e71654b9e3c56947d93d8b2375dd0b4db63de9982adab6235aebc514488aa289c7faf103b09e8911280e6f6b1112d1604fe5f111f71
   languageName: node
   linkType: hard
 
