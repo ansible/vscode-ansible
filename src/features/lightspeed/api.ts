@@ -23,6 +23,7 @@ export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
   private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  public _completionRequestInProgress: boolean;
 
   constructor(
     settingsManager: SettingsManager,
@@ -30,6 +31,7 @@ export class LightSpeedAPI {
   ) {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this._completionRequestInProgress = false;
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
@@ -82,6 +84,7 @@ export class LightSpeedAPI {
       )}`
     );
     try {
+      this._completionRequestInProgress = true;
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         inputData,
@@ -89,7 +92,7 @@ export class LightSpeedAPI {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
-
+      this._completionRequestInProgress = false;
       if (
         response.status === 204 ||
         response.data.predictions.length === 0 ||
@@ -165,7 +168,10 @@ export class LightSpeedAPI {
           "Failed to fetch inline suggestion from Ansible Lightspeed. Try again after some time."
         );
       }
+      this._completionRequestInProgress = false;
       return {} as CompletionResponseParams;
+    } finally {
+      this._completionRequestInProgress = false;
     }
   }
 
