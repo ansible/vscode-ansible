@@ -20,6 +20,16 @@ mkdir -p out/log
 # we do not want pip logs from previous runs
 : >"${PIP_LOG_FILE}"
 
+timed() {
+  local start
+  start=$(date +%s)
+  local exit_code
+  exit_code=0
+  "$@" || exit_code=$?
+  echo >&2 "took ~$(($(date +%s)-start)) seconds. exited with ${exit_code}"
+  return $exit_code
+}
+
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
 get_version() {
@@ -57,6 +67,16 @@ log() {
         ;;
     esac
     echo >&2 -e "${prefix}${2}${NC}"
+}
+
+is_podman_running() {
+    if [[ "$(podman machine ls --format '{{.Name}} {{.Running}}' --noheading 2>/dev/null)" == *"podman-machine-default* true"* ]]; then
+        log notice "Podman machine is running."
+        return 0
+    else
+        log error "Podman machine is not running."
+        return 1
+    fi
 }
 
 if [ ! -d "$HOME/.local/bin" ] ; then
@@ -321,16 +341,16 @@ log notice "Podman checks..."
 if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
         log notice "Installing podman..."
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+        HOMEBREW_NO_ENV_HINTS=1 timed brew install podman
     }
     log notice "Configuring podman machine ($MACHTYPE)..."
-    podman machine ls --noheading | grep '\*' || {
+    podman machine ls --noheading | grep '\*' >/dev/null || {
         log warning "Podman machine not found, creating and starting one ($MACHTYPE)..."
-        time podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
+        timed podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
     }
     podman machine ls --noheading
     log notice "Checking status of podman machine ($MACHTYPE)..."
-    podman machine ls --format '{{.Name}} {{.Running}}' --noheading | grep podman-machine-default | grep true || {
+    is_podman_running || {
         log warning "Podman machine not running, trying to start it..."
         # do not use full path as it varies based on architecture
         # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
@@ -340,13 +360,16 @@ if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
         else
             qemu-system-aarch64 -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
         fi
+        podman machine start
+        # Waiting for machine to become available
         n=0
-        until [ "$n" -ge 5 ]; do
-            log warning "Trying to start podman machine again ($n)..."
-            time podman machine start && break  # substitute your command here
+        until [ "$n" -ge 9 ]; do
+            log warning "Still waiting for podman machine to become available $((n * 15))s ..."
+            is_podman_running && break
             n=$((n+1))
             sleep 15
         done
+        is_podman_running
         }
     # validation is done later
     podman info
@@ -359,12 +382,14 @@ PODMAN_VERSION="$(get_version podman || echo null)"
 if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     log notice "Pull our test container image with podman."
     podman pull --quiet "${IMAGE}" >/dev/null
-    # without running we will never be sure it works (no arm64 image yet)
+    # without running we will never be sure it works
+    log notice "Retrieving ansible version from ee"
     EE_ANSIBLE_VERSION=$(get_version \
         podman run "${IMAGE}" ansible --version)
+    log notice "Retrieving ansible-lint version from ee"
     EE_ANSIBLE_LINT_VERSION=$(get_version \
         podman run "${IMAGE}" ansible-lint --nocolor --version)
-    # Test podman ability to mount current folder with write access, default mount options
+    log notice "Test podman ability to mount current folder with write access, default mount options"
     podman run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
