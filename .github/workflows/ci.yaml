@@ -78,8 +78,8 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup yarn
-        run: yarn set version latest
+      # - name: Setup yarn
+      #   run: yarn set version latest
 
       - name: Setup python
         uses: actions/setup-python@v4
