@@ -3,9 +3,17 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
 import { LightSpeedCommands } from "../../definitions/lightspeed";
+import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
+import { LightspeedAuthSession } from "../../interfaces/lightspeed";
+import {
+  ANSIBLE_LIGHTSPEED_AUTH_ID,
+  getLoggedInSessionDetails,
+} from "./utils/webUtils";
+import { lightSpeedManager } from "../../extension";
 
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
+  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
   private context;
   public client;
   public settingsManager: SettingsManager;
@@ -13,11 +21,13 @@ export class LightspeedStatusBar {
 
   constructor(
     apiInstance: LightSpeedAPI,
+    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager
   ) {
     this.apiInstance = apiInstance;
+    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
@@ -34,11 +44,29 @@ export class LightspeedStatusBar {
     );
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
-    lightSpeedStatusBarItem.text = "Lightspeed";
+    this.getLightSpeedStatusBarText().then((text) => {
+      lightSpeedStatusBarItem.text = text;
+    });
     this.context.subscriptions.push(lightSpeedStatusBarItem);
     return lightSpeedStatusBarItem;
   }
 
+  public async getLightSpeedStatusBarText(
+    rhUserHasSeat?: boolean
+  ): Promise<string> {
+    let lightSpeedStatusbarText;
+    if (rhUserHasSeat === undefined) {
+      rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+    }
+    if (rhUserHasSeat === true) {
+      lightSpeedStatusbarText = "Lightspeed (licensed)";
+    } else if (rhUserHasSeat === false) {
+      lightSpeedStatusbarText = "Lightspeed (Tech Preview)";
+    } else {
+      lightSpeedStatusbarText = "Lightspeed";
+    }
+    return lightSpeedStatusbarText;
+  }
   private handleStatusBar() {
     if (!this.client.isRunning()) {
       return;
@@ -55,10 +83,11 @@ export class LightspeedStatusBar {
         "statusBarItem.warningBackground"
       );
     }
+    this.setLightSpeedStatusBarTooltip();
     this.statusBar.show();
   }
 
-  public updateLightSpeedStatusbar(): void {
+  public async updateLightSpeedStatusbar(): Promise<void> {
     if (
       vscode.window.activeTextEditor?.document.languageId !== "ansible" ||
       !this.settingsManager.settings.lightSpeedService.enabled
@@ -72,5 +101,51 @@ export class LightspeedStatusBar {
 
   public async lightSpeedStatusBarClickHandler() {
     vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
+  }
+
+  public async setLightSpeedStatusBarTooltip(
+    session?: LightspeedAuthSession
+  ): Promise<void> {
+    if (session === undefined) {
+      session = <LightspeedAuthSession>await vscode.authentication.getSession(
+        ANSIBLE_LIGHTSPEED_AUTH_ID,
+        [],
+        {
+          createIfNone: false,
+        }
+      );
+    }
+    const statusBarInfo = getLoggedInSessionDetails(session);
+    let modelName = statusBarInfo.modelInfo?.model;
+    if (modelName === undefined) {
+      modelName =
+        lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+    }
+    const userType = statusBarInfo.userInfo?.userType;
+    const role = statusBarInfo.userInfo?.role;
+    let mdString = "";
+    if (userType !== undefined || role !== undefined) {
+      mdString = `<h4>User Details:</h4>\n<hr>\n<ul>`;
+      if (userType) {
+        mdString += `<li>User Type: ${userType}</li>\n`;
+      }
+      if (role) {
+        mdString += `<li>Role: ${role}</li>\n`;
+      }
+      mdString += `</ul>\n`;
+    }
+    if (modelName !== undefined) {
+      mdString += `<h4>Model Details:</h4>
+                    <hr>
+                    <ul>
+                      <li>Model: ${modelName}</li>
+                    </ul>\n`;
+    }
+
+    const mdStringObj = new vscode.MarkdownString(mdString, true);
+    mdStringObj.supportHtml = true;
+    mdStringObj.isTrusted = true;
+
+    lightSpeedManager.statusBarProvider.statusBar.tooltip = mdStringObj;
   }
 }
