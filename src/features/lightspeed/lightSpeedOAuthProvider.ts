@@ -37,6 +37,7 @@ import {
   LIGHTSPEED_ME_AUTH_URL,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
+import { lightSpeedManager } from "../../extension";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -118,6 +119,7 @@ export class LightSpeedAuthenticationProvider
    */
   public async createSession(scopes: string[]): Promise<LightspeedAuthSession> {
     try {
+      lightSpeedManager.currentModelValue = undefined;
       const account = await this.login(scopes);
 
       if (!account) {
@@ -129,19 +131,32 @@ export class LightSpeedAuthenticationProvider
       );
 
       const identifier = uuid();
-      const userName = userinfo.external_username || userinfo.username;
+      const userName = userinfo.external_username || userinfo.username || "";
+      const rhUserHasSeat = userinfo.rh_user_has_seat
+        ? userinfo.rh_user_has_seat
+        : false;
 
+      let label = userName;
+      if (rhUserHasSeat) {
+        label += " (licensed)";
+      } else {
+        label += " (Tech Preview)";
+      }
       const session: LightspeedAuthSession = {
         id: identifier,
         accessToken: account.accessToken,
         account: {
-          label: userName || "",
+          label: label,
           id: identifier,
         },
         // scopes: account.scope,
         scopes: [],
-        rhUserHasSeat: userinfo.rh_user_has_seat
-          ? userinfo.rh_user_has_seat
+        rhUserHasSeat: rhUserHasSeat,
+        rhOrgHasSubscription: userinfo.rh_org_has_subscription
+          ? userinfo.rh_org_has_subscription
+          : false,
+        rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin
+          ? userinfo.rh_user_is_org_admin
           : false,
       };
       await this.context.secrets.store(
@@ -154,6 +169,15 @@ export class LightSpeedAuthenticationProvider
         removed: [],
         changed: [],
       });
+
+      lightSpeedManager.statusBarProvider.statusBar.text =
+        await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
+          rhUserHasSeat
+        );
+
+      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
+        session
+      );
 
       console.log("[ansible-lightspeed-oauth] Session created...");
 
@@ -195,6 +219,9 @@ export class LightSpeedAuthenticationProvider
         );
       }
     }
+    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
+    lightSpeedManager.currentModelValue = undefined;
   }
 
   /**

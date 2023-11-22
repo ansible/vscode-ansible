@@ -104,6 +104,11 @@ export class LightSpeedAPI {
         );
         return {} as CompletionResponseParams;
       }
+      console.log(
+        `[ansible-lightspeed] Completion response: ${JSON.stringify(
+          response.data
+        )}`
+      );
       return response.data;
     } catch (error) {
       const err = error as AxiosError;

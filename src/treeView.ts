@@ -1,16 +1,39 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import * as vscode from "vscode";
+import {
+  LightspeedAuthSession,
+  LightspeedSessionInfo,
+} from "./interfaces/lightspeed";
+import { getLoggedInSessionDetails } from "./features/lightspeed/utils/webUtils";
 
 export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   onDidChangeTreeData?: vscode.Event<TreeItem | null | undefined> | undefined;
 
   data: TreeItem[];
 
-  constructor(sessionData: vscode.AuthenticationSession | undefined) {
+  constructor(sessionData: LightspeedAuthSession | undefined) {
     if (!sessionData) {
       this.data = [];
     } else {
-      this.data = [new TreeItem(`Logged in as ${sessionData.account.label}`)];
+      const loggedMessage = `Logged in as: ${sessionData.account.label}`;
+      const children: TreeItem[] = [];
+      const labels: string[] = [];
+      const sessionInfo: LightspeedSessionInfo =
+        getLoggedInSessionDetails(sessionData);
+
+      labels.push(`User Type: ${sessionInfo.userInfo?.userType}`);
+      if (sessionInfo.userInfo?.role !== undefined) {
+        labels.push(`Role: ${sessionInfo.userInfo?.role}`);
+      }
+
+      labels.forEach((label) => {
+        children.push({
+          label,
+          children: [],
+        });
+      });
+
+      this.data = [new TreeItem(loggedMessage, children)];
     }
   }
 
