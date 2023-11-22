@@ -8,9 +8,9 @@ ci:
 
     for more information, see https://pre-commit.ci
   skip:
-    #- yarn-audit
-    #- yarn-audit-fix
-    - yarn-dedupe
+    - yarn-audit
+    - yarn-audit-fix
+    #- yarn-dedupe
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: local
@@ -27,11 +27,11 @@ repos:
       #   pass_filenames: false
       #   files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
       #   entry: npx yarn run yarn-audit-fix
-  - repo: https://github.com/ScribeMD/pre-commit-hooks
-    rev: 0.16.1
-    hooks:
-      - id: yarn-dedupe
-        entry: npx yarn dedupe
+  # - repo: https://github.com/ScribeMD/pre-commit-hooks
+  #   rev: 0.16.1
+  #   hooks:
+  #     - id: yarn-dedupe
+  #       entry: npx yarn dedupe
       # - id: yarn-audit
       #   entry: npx yarn npm audit
 
