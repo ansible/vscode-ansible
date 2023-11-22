@@ -398,14 +398,15 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     sudo apparmor_status || true
 fi
 
-log notice "Install node deps using yarn"
-if ! command -v yarn &> /dev/null
-    then
-        echo "Yarn could not be found. Installing..."
-        npm install -g yarn
+log notice "Install node deps using either yarn or npm"
+if [[ -f yarn.lock ]]; then
+    command -v yarn >/dev/null 2>&1 || npm install -g yarn
+    yarn --version
+    yarn install --immutable
+    # --immutable-cache --check-cache
+else
+    npm ci --no-audit
 fi
-yarn --version
-yarn install --immutable
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
