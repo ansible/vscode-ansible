@@ -4,6 +4,26 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.9
+
+### Major Changes
+
+- Add lightspeed indications for tech preview and license users (#1014)
+  @ganeshrn
+- Add user action to track suggestion ignore scenarios (#1004) @ganeshrn
+- Ansible-creator integration with extension (#1000) @priyamsahoo
+
+### Minor Changes
+
+- Improve task setup phase (#1010) @ssbarnea
+- Lightspeed service status code 403 from CloudFlare mistaken as invalid Model
+  ID (#1005) @manstis
+
+### Bugfixes
+
+- [ansible-creator] Fix file opening issue in Linux environments (#1009)
+  @priyamsahoo
+
 ## v2.8
 
 ### Major Changes
