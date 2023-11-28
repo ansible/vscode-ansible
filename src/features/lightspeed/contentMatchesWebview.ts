@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
+import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { SettingsManager } from "../../settings";
 import {
   ContentMatchesRequestParams,
@@ -17,6 +18,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
   private _extensionUri: vscode.Uri;
   private context;
+  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
   public client;
   public settingsManager: SettingsManager;
   public apiInstance: LightSpeedAPI;
@@ -26,13 +28,15 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager,
-    apiInstance: LightSpeedAPI
+    apiInstance: LightSpeedAPI,
+    lightSpeedAuthProvider: LightSpeedAuthenticationProvider
   ) {
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
     this.apiInstance = apiInstance;
     this._extensionUri = context.extensionUri;
+    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
   }
 
   public async resolveWebviewView(
@@ -150,6 +154,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return noContentMatchesFoundHtml;
     }
 
+    const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
     for (let taskIndex = 0; taskIndex < suggestedTasks.length; taskIndex++) {
       let taskNameDescription = suggestedTasks[taskIndex].name;
       if (!taskNameDescription) {
@@ -159,7 +164,8 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       const contentMatchValue = contentMatchResponses.contentmatches[taskIndex];
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
         <IContentMatchParams[]>(<IContentMatch>contentMatchValue).contentmatch,
-        taskNameDescription || ""
+        taskNameDescription || "",
+        rhUserHasSeat === true
       );
     }
     const html = `<html>
@@ -172,8 +178,12 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   }
 
   private renderContentMatches(
-    contentMatchResponse: IContentMatchParams
+    contentMatchResponse: IContentMatchParams,
+    rhUserHasSeat: boolean
   ): string {
+    const licenseLine = rhUserHasSeat
+      ? `<li>License: ${contentMatchResponse.license}</li>`
+      : "";
     return `
       <details>
         <summary>${contentMatchResponse.repo_name}</summary>
@@ -181,7 +191,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
           <li>URL: <a href=${contentMatchResponse.repo_url}>${contentMatchResponse.repo_url}</a></li>
           <li>Path: ${contentMatchResponse.path}</li>
           <li>Data Source: ${contentMatchResponse.data_source_description}</li>
-          <li>License: ${contentMatchResponse.license}</li>
+          ${licenseLine}
           <li>Score: ${contentMatchResponse.score}</li>
         </ul>
       </details>
@@ -190,12 +200,14 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
   private renderContentMatchWithTasKDescription(
     contentMatchesResponse: IContentMatchParams[],
-    taskDescription: string
+    taskDescription: string,
+    rhUserHasSeat: boolean
   ): string {
     let taskContentMatch = "";
     for (let index = 0; index < contentMatchesResponse.length; index++) {
       taskContentMatch += `${this.renderContentMatches(
-        contentMatchesResponse[index]
+        contentMatchesResponse[index],
+        rhUserHasSeat
       )}`;
     }
 
