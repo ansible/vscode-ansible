@@ -69,7 +69,8 @@ export class LightSpeedManager {
       this.context,
       this.client,
       this.settingsManager,
-      this.apiInstance
+      this.apiInstance,
+      this.lightSpeedAuthenticationProvider
     );
 
     // create a new project lightspeed status bar item that we can manage
