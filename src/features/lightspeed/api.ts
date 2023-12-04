@@ -153,7 +153,8 @@ export class LightSpeedAPI {
           } else if (
             responseErrorData &&
             responseErrorData.hasOwnProperty("code") &&
-            responseErrorData.code === "permission_denied_wca_api_key_is_missing"
+            responseErrorData.code ===
+              "permission_denied_wca_api_key_is_missing"
           ) {
             vscode.window.showErrorMessage(
               `You do not have a licensed seat for Ansible Lightspeed and your\norganization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.`

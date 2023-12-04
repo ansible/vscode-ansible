@@ -60,7 +60,8 @@ export class LightspeedStatusBar {
       rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
     }
     if (rhOrgHasSubscription === undefined) {
-      rhOrgHasSubscription = await this.lightSpeedAuthProvider.rhOrgHasSubscription();
+      rhOrgHasSubscription =
+        await this.lightSpeedAuthProvider.rhOrgHasSubscription();
     }
     if (rhUserHasSeat === true) {
       lightSpeedStatusbarText = "Lightspeed (licensed)";

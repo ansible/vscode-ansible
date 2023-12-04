@@ -656,5 +656,4 @@ export class LightSpeedAuthenticationProvider
       return false;
     }
   }
-
 }
