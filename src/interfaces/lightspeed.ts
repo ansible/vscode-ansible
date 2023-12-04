@@ -166,7 +166,7 @@ export interface IAdditionalContext {
 }
 
 export interface LightspeedSessionUserInfo {
-  userType?: "Licensed" | "Tech Preview";
+  userType?: "Licensed" | "no seat assigned" | "Tech Preview";
   role?: string;
   subscribed?: boolean;
 }

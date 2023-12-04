@@ -132,6 +132,9 @@ export class LightSpeedAuthenticationProvider
 
       const identifier = uuid();
       const userName = userinfo.external_username || userinfo.username || "";
+      const rhOrgHasSubscription = userinfo.rh_org_has_subscription
+        ? userinfo.rh_org_has_subscription
+        : false;
       const rhUserHasSeat = userinfo.rh_user_has_seat
         ? userinfo.rh_user_has_seat
         : false;
@@ -139,6 +142,8 @@ export class LightSpeedAuthenticationProvider
       let label = userName;
       if (rhUserHasSeat) {
         label += " (licensed)";
+      } else if (rhOrgHasSubscription) {
+        label += " (no seat assigned)";
       } else {
         label += " (Tech Preview)";
       }
@@ -172,7 +177,8 @@ export class LightSpeedAuthenticationProvider
 
       lightSpeedManager.statusBarProvider.statusBar.text =
         await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-          rhUserHasSeat
+          rhUserHasSeat,
+          rhOrgHasSubscription
         );
 
       lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
@@ -630,4 +636,25 @@ export class LightSpeedAuthenticationProvider
       return false;
     }
   }
+
+  public async rhOrgHasSubscription(): Promise<boolean | undefined> {
+    const authSession = await this.getLightSpeedAuthSession();
+    if (authSession === undefined) {
+      console.log(
+        "[ansible-lightspeed-oauth] User authentication session not found."
+      );
+      return undefined;
+    } else if (authSession?.rhOrgHasSubscription) {
+      console.log(
+        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has an Org with a subscription.`
+      );
+      return true;
+    } else {
+      console.log(
+        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does have an Org with a subscription.`
+      );
+      return false;
+    }
+  }
+
 }
