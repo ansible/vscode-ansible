@@ -32,8 +32,8 @@ async function main(): Promise<void> {
       process.platform === "darwin"
         ? "darwin"
         : process.platform === "win32"
-        ? "win32-archive"
-        : "linux-x64";
+          ? "win32-archive"
+          : "linux-x64";
 
     const cliPath = resolveCliPathFromVSCodeExecutablePath(
       executable,
