@@ -97,6 +97,7 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
+            ~/.cache/pre-commit/
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
