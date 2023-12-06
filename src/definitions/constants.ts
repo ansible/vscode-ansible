@@ -39,4 +39,4 @@ export const IncludeVarValidTaskName = [
   "ansible.legacy.include_vars",
 ];
 
-export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 50000;
+export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 50001;
