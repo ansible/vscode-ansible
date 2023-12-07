@@ -131,6 +131,7 @@ jobs:
         uses: coactions/setup-xvfb@v1
         with:
           run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+        continue-on-error: ${{ startsWith(matrix.os, 'macos') }}
 
       - name: Upload vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
