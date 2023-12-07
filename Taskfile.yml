@@ -136,6 +136,7 @@ tasks:
   test:
     desc: Run all tests
     deps:
+      - setup
       - package
     cmds:
       #- task: test-ui
