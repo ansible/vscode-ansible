@@ -25,16 +25,21 @@ try {
   process.exit(PRETEST_ERR_RC);
 }
 
+function getDownloadPlatform(platform: string): string {
+  switch (platform) {
+    case "darwin":
+      return "darwin";
+    case "win32":
+      return "win32-archive";
+    default:
+      return "linux-x64";
+  }
+}
+
 async function main(): Promise<void> {
   try {
     const executable = await downloadAndUnzipVSCode();
-    const downloadPlatform =
-      process.platform === "darwin"
-        ? "darwin"
-        : process.platform === "win32"
-        ? "win32-archive"
-        : "linux-x64";
-
+    const downloadPlatform = getDownloadPlatform(process.platform);
     const cliPath = resolveCliPathFromVSCodeExecutablePath(
       executable,
       downloadPlatform
