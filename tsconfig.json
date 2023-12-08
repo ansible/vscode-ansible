@@ -12,5 +12,5 @@
     "skipLibCheck": true
   },
   "include": ["src", "test"],
-  "exclude": ["node_modules", "test-resources"]
+  "exclude": ["node_modules", "test-resources", "test/units/**/*.test.ts"]
 }
