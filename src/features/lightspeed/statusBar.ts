@@ -52,14 +52,21 @@ export class LightspeedStatusBar {
   }
 
   public async getLightSpeedStatusBarText(
-    rhUserHasSeat?: boolean
+    rhUserHasSeat?: boolean,
+    rhOrgHasSubscription?: boolean
   ): Promise<string> {
     let lightSpeedStatusbarText;
     if (rhUserHasSeat === undefined) {
       rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
     }
+    if (rhOrgHasSubscription === undefined) {
+      rhOrgHasSubscription =
+        await this.lightSpeedAuthProvider.rhOrgHasSubscription();
+    }
     if (rhUserHasSeat === true) {
       lightSpeedStatusbarText = "Lightspeed (licensed)";
+    } else if (rhOrgHasSubscription === true && rhUserHasSeat === false) {
+      lightSpeedStatusbarText = "Lightspeed (no seat assigned)";
     } else if (rhUserHasSeat === false) {
       lightSpeedStatusbarText = "Lightspeed (Tech Preview)";
     } else {
