@@ -76,6 +76,7 @@ repos:
           (?x)^(
             .vscode/settings.json|
             .yarn/.*|
+            .github/.*|
             CHANGELOG.md|
             yarn.lock
           )$
