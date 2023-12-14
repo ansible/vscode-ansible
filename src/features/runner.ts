@@ -144,7 +144,8 @@ export class AnsiblePlaybookRunProvider {
       );
       return;
     }
-    commandLineArgs.push(playbookFsPath);
+    // replace spaces in file name with escape sequence '\ '
+    commandLineArgs.push(playbookFsPath.replace(/(\s)/, "\\ "));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const [command, runEnv] = withInterpreter(
       this.settings,
