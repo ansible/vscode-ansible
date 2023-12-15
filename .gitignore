@@ -20,3 +20,4 @@ CHANGELOG.html
 .DS_Store
 .direnv
 .tool-versions
+coverage
