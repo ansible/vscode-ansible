@@ -190,7 +190,7 @@ jobs:
 
       - name: Upload test logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os }}-${{ matrix.task-name }}.zip
           path: |
