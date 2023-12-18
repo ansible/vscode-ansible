@@ -43,6 +43,13 @@ export function retrieve_error(err: AxiosError): string {
           "permission_denied__org_not_ready_because_wca_not_configured"
       ) {
         return `Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.`;
+      } else if (
+        responseErrorData &&
+        responseErrorData.hasOwnProperty("code") &&
+        responseErrorData.code === "permission_denied__user_trial_expired"
+      ) {
+        // TODO: Use the right message & i18n.
+        return `Trial for Ansible Lightspeed user expired. Please check your organization uses a paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.`;
       } else {
         return `User not authorized to access Ansible Lightspeed.`;
       }
