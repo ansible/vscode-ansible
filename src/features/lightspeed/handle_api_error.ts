@@ -48,8 +48,7 @@ export function retrieve_error(err: AxiosError): string {
         responseErrorData.hasOwnProperty("code") &&
         responseErrorData.code === "permission_denied__user_trial_expired"
       ) {
-        // TODO: Use the right message & i18n.
-        return `Trial for Ansible Lightspeed user expired. Please check your organization uses a paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.`;
+        return `Trial for Ansible Lightspeed user expired. Contact your Red Hat Organization's administrator for more information on how to fix this.`;
       } else {
         return `User not authorized to access Ansible Lightspeed.`;
       }
