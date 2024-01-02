@@ -55,16 +55,19 @@ export class LightSpeedAuthenticationProvider
   private _uriHandler = new UriEventHandler();
   private _authId: string;
   private _authName: string;
+  private _externalRedirectUri: string;
 
   constructor(
     private readonly context: ExtensionContext,
     settingsManager: SettingsManager,
     authId: string,
-    authName: string
+    authName: string,
+    externalRedirectUri = ""
   ) {
     this.settingsManager = settingsManager;
     this._authId = authId;
     this._authName = authName;
+    this._externalRedirectUri = externalRedirectUri;
   }
 
   public initialize() {
@@ -84,6 +87,11 @@ export class LightSpeedAuthenticationProvider
       ),
       window.registerUriHandler(this._uriHandler)
     );
+  }
+
+  async setExternalRedirectUri() {
+    const callbackUri = await env.asExternalUri(Uri.parse(this.redirectUri));
+    this._externalRedirectUri = callbackUri.toString(true);
   }
 
   get redirectUri() {
@@ -252,12 +260,14 @@ export class LightSpeedAuthenticationProvider
   private async login(scopes: string[] = []) {
     console.log("[ansible-lightspeed-oauth] Logging in...");
 
+    await this.setExternalRedirectUri();
+
     const searchParams = new URLSearchParams([
       ["response_type", "code"],
       ["code_challenge", CODE_CHALLENGE],
       ["code_challenge_method", "S256"],
       ["client_id", LIGHTSPEED_CLIENT_ID],
-      ["redirect_uri", this.redirectUri],
+      ["redirect_uri", this._externalRedirectUri],
     ]);
 
     const base_uri = getBaseUri(this.settingsManager);
@@ -267,14 +277,8 @@ export class LightSpeedAuthenticationProvider
       );
     }
 
-    const uri = Uri.parse(
-      Uri.parse(base_uri)
-        .with({
-          path: "/o/authorize/",
-          query: searchParams.toString(),
-        })
-        .toString(true)
-    );
+    const query = searchParams.toString();
+    const uri = Uri.parse(base_uri).with({ path: "/o/authorize/", query });
 
     const {
       promise: receivedRedirectUrl,
@@ -355,7 +359,7 @@ export class LightSpeedAuthenticationProvider
       client_id: LIGHTSPEED_CLIENT_ID,
       code: code,
       code_verifier: CODE_VERIFIER,
-      redirect_uri: this.redirectUri,
+      redirect_uri: this._externalRedirectUri,
       grant_type: "authorization_code",
     };
 
