@@ -48,7 +48,7 @@ export function retrieve_error(err: AxiosError): string {
         responseErrorData.hasOwnProperty("code") &&
         responseErrorData.code === "permission_denied__user_trial_expired"
       ) {
-        return `Trial for Ansible Lightspeed user expired. Contact your Red Hat Organization's administrator for more information on how to fix this.`;
+        return `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant.`;
       } else {
         return `User not authorized to access Ansible Lightspeed.`;
       }
