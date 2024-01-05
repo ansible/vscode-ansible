@@ -43,6 +43,12 @@ export function retrieve_error(err: AxiosError): string {
           "permission_denied__org_not_ready_because_wca_not_configured"
       ) {
         return `Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.`;
+      } else if (
+        responseErrorData &&
+        responseErrorData.hasOwnProperty("code") &&
+        responseErrorData.code === "permission_denied__user_trial_expired"
+      ) {
+        return `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant.`;
       } else {
         return `User not authorized to access Ansible Lightspeed.`;
       }

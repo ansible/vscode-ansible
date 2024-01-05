@@ -83,6 +83,17 @@ describe("testing the error handling", () => {
       `You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.`
     );
   });
+  it("err Forbidden - Trial expired", () => {
+    const msg = retrieve_error(
+      create_error(403, {
+        code: "permission_denied__user_trial_expired",
+      })
+    );
+    assert.equal(
+      msg,
+      `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant.`
+    );
+  });
   it("err Forbidden - WCA not ready", () => {
     const msg = retrieve_error(
       create_error(403, {
