@@ -48,7 +48,6 @@ let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 export const suggestion_displayed = new SuggestionDisplayed();
 
-
 export class LightSpeedInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
 {
