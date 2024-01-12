@@ -13,6 +13,7 @@ export interface LightspeedAuthSession extends AuthenticationSession {
 export interface CompletionResponseParams {
   predictions: string[];
   model?: string;
+  suggestionId: string;
 }
 
 export interface MetadataParams {
