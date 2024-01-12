@@ -77,7 +77,7 @@ export function getLoggedInSessionDetails(
   const modelInfo: LightspeedSessionModelInfo = {};
   if (sessionData.rhUserHasSeat) {
     userInfo.userType = "Licensed";
-  } else if (sessionData.rhOrgHasSubscription && sessionData.rhUserHasSeat) {
+  } else if (sessionData.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
     userInfo.userType = "No seat assigned";
   } else {
     userInfo.userType = "Tech Preview";
