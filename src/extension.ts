@@ -45,8 +45,7 @@ import {
   inlineSuggestionTriggerHandler,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
-  getInlineSuggestionDisplayed,
-  resetInlineSuggestionDisplayed,
+  suggestion_displayed,
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
@@ -226,11 +225,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
       const lightSpeedSettings =
         lightSpeedManager.settingsManager.settings.lightSpeedService;
       if (
-        getInlineSuggestionDisplayed() &&
+        suggestion_displayed.get() &&
         lightSpeedSettings.enabled &&
         lightSpeedSettings.suggestions.enabled
       ) {
-        resetInlineSuggestionDisplayed();
+        suggestion_displayed.reset();
       }
     })
   );
