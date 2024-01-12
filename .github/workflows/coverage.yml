@@ -22,5 +22,8 @@ jobs:
         with:
           cmd: unit-tests
 
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+      # - name: Upload coverage to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     directory: ./coverage/
+      #     files: lcov.info

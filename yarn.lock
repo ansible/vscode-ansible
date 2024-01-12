@@ -648,12 +648,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/fake-timers@npm:^10.0.2, @sinonjs/fake-timers@npm:^10.3.0":
-  version: 10.3.0
-  resolution: "@sinonjs/fake-timers@npm:10.3.0"
+"@sinonjs/fake-timers@npm:^11.2.2":
+  version: 11.2.2
+  resolution: "@sinonjs/fake-timers@npm:11.2.2"
   dependencies:
     "@sinonjs/commons": "npm:^3.0.0"
-  checksum: 78155c7bd866a85df85e22028e046b8d46cf3e840f72260954f5e3ed5bd97d66c595524305a6841ffb3f681a08f6e5cef572a2cce5442a8a232dc29fb409b83e
+  checksum: da7dfa677b2362bc5a321fc1563184755b5c62fbb1a72457fb9e901cd187ba9dc834f9e8a0fb5a4e1d1e6e6ad4c5b54e90900faa44dd6c82d3c49c92ec23ecd4
   languageName: node
   linkType: hard
 
@@ -668,7 +668,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/text-encoding@npm:^0.7.1":
+"@sinonjs/text-encoding@npm:^0.7.2":
   version: 0.7.2
   resolution: "@sinonjs/text-encoding@npm:0.7.2"
   checksum: ec713fb44888c852d84ca54f6abf9c14d036c11a5d5bfab7825b8b9d2b22127dbe53412c68f4dbb0c05ea5ed61c64679bd2845c177d81462db41e0d3d7eca499
@@ -1599,7 +1599,7 @@ __metadata:
     prettier: "npm:^3.0.0"
     react: "npm:^18.2.0"
     rimraf: "npm:^4.4.1"
-    sinon: "npm:^15.0.4"
+    sinon: "npm:^17.0.1"
     ts-loader: "npm:^9.4.2"
     ts-node: "npm:^10.9.1"
     typescript: "npm:^5.1.3"
@@ -4636,10 +4636,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"just-extend@npm:^4.0.2":
-  version: 4.2.1
-  resolution: "just-extend@npm:4.2.1"
-  checksum: 375389c0847d56300873fa622fbc5c5e208933e372bbedb39c82f583299cdad4fe9c4773bc35fcd9c42cd85744f07474ca4163aa0f9125dd5be37bc09075eb49
+"just-extend@npm:^6.2.0":
+  version: 6.2.0
+  resolution: "just-extend@npm:6.2.0"
+  checksum: 1f487b074b9e5773befdd44dc5d1b446f01f24f7d4f1f255d51c0ef7f686e8eb5f95d983b792b9ca5c8b10cd7e60a924d64103725759eddbd7f18bcb22743f92
   languageName: node
   linkType: hard
 
@@ -5431,16 +5431,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nise@npm:^5.1.4":
-  version: 5.1.4
-  resolution: "nise@npm:5.1.4"
+"nise@npm:^5.1.5":
+  version: 5.1.7
+  resolution: "nise@npm:5.1.7"
   dependencies:
-    "@sinonjs/commons": "npm:^2.0.0"
-    "@sinonjs/fake-timers": "npm:^10.0.2"
-    "@sinonjs/text-encoding": "npm:^0.7.1"
-    just-extend: "npm:^4.0.2"
-    path-to-regexp: "npm:^1.7.0"
-  checksum: d49fbe9093ca6c54e3a8e997fe003ace695874c065e5b59d62a7dc096cc4249afe8d9bd0c55e1b81fc0a92d302f197f9e0fb5e18ae812371a7affc53dc2025c3
+    "@sinonjs/commons": "npm:^3.0.0"
+    "@sinonjs/fake-timers": "npm:^11.2.2"
+    "@sinonjs/text-encoding": "npm:^0.7.2"
+    just-extend: "npm:^6.2.0"
+    path-to-regexp: "npm:^6.2.1"
+  checksum: 4754e3ae52654f66e947d44d0dd40ae823e594c201474ad7c5115acb2188c839c9b8617504327051857aea8042befac946e82918e1e53b99350cb275140332d0
   languageName: node
   linkType: hard
 
@@ -5959,12 +5959,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"path-to-regexp@npm:^1.7.0":
-  version: 1.8.0
-  resolution: "path-to-regexp@npm:1.8.0"
-  dependencies:
-    isarray: "npm:0.0.1"
-  checksum: 45a01690f72919163cf89714e31a285937b14ad54c53734c826363fcf7beba9d9d0f2de802b4986b1264374562d6a3398a2e5289753a764e3a256494f1e52add
+"path-to-regexp@npm:^6.2.1":
+  version: 6.2.1
+  resolution: "path-to-regexp@npm:6.2.1"
+  checksum: 1e266be712d1a08086ee77beab12a1804842ec635dfed44f9ee1ba960a0e01cec8063fb8c92561115cdc0ce73158cdc7766e353ffa039340b4a85b370084c4d4
   languageName: node
   linkType: hard
 
@@ -6701,17 +6699,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon@npm:^15.0.4":
-  version: 15.2.0
-  resolution: "sinon@npm:15.2.0"
+"sinon@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "sinon@npm:17.0.1"
   dependencies:
     "@sinonjs/commons": "npm:^3.0.0"
-    "@sinonjs/fake-timers": "npm:^10.3.0"
+    "@sinonjs/fake-timers": "npm:^11.2.2"
     "@sinonjs/samsam": "npm:^8.0.0"
     diff: "npm:^5.1.0"
-    nise: "npm:^5.1.4"
+    nise: "npm:^5.1.5"
     supports-color: "npm:^7.2.0"
-  checksum: faa2d12aaa8944df5c4b23dfdc9987cafbcba5ba6ad50fcf90e09a448e50fd617a0b53364027984721fe4f4b11be2c394c85bd9cc03db187d4fdb8f9580a9203
+  checksum: b34f1a97da0be3556ac686c6b649a566c2666eb7f50e75e754928c1c72c96d78f56e56a999227be794c3d9cdaed0bc78d11f38ab303d3079c5bcbcffc0f9c6d5
   languageName: node
   linkType: hard
 
