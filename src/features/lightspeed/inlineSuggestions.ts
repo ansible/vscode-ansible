@@ -38,14 +38,16 @@ import {
 } from "../../interfaces/lightspeed";
 import { getAnsibleFileType, getCustomRolePaths } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
+//import { inlineSuggestionUserActionHandler } from "./inlinesuggestion/useractionhandler";
+import { SuggestionDisplayed } from "./inlinesuggestion/suggestionDisplayed";
 
 let suggestionId = "";
 let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
-let _inlineSuggestionDisplayed = false;
 let previousTriggerPosition: vscode.Position;
-let _cachedCompletionItem: vscode.InlineCompletionItem[];
+export const suggestion_displayed = new SuggestionDisplayed();
+
 
 export class LightSpeedInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
@@ -64,22 +66,22 @@ export class LightSpeedInlineSuggestionProvider
     }
     const activeTextEditor = vscode.window.activeTextEditor;
     if (!activeTextEditor) {
-      resetInlineSuggestionDisplayed();
+      suggestion_displayed.reset();
       return [];
     }
     if (activeTextEditor.document.languageId !== "ansible") {
       lightSpeedManager.statusBarProvider.statusBar.hide();
-      resetInlineSuggestionDisplayed();
+      suggestion_displayed.reset();
       return [];
     }
 
     if (token.isCancellationRequested) {
-      resetInlineSuggestionDisplayed();
+      suggestion_displayed.reset();
       return [];
     }
     if (document.languageId !== "ansible") {
       lightSpeedManager.statusBarProvider.statusBar.hide();
-      resetInlineSuggestionDisplayed();
+      suggestion_displayed.reset();
       return [];
     }
     const lightSpeedSetting =
@@ -87,7 +89,7 @@ export class LightSpeedInlineSuggestionProvider
     if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
       console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
-      resetInlineSuggestionDisplayed();
+      suggestion_displayed.reset();
       return [];
     }
 
@@ -95,13 +97,13 @@ export class LightSpeedInlineSuggestionProvider
       vscode.window.showErrorMessage(
         "Ansible Lightspeed URL is empty. Please provide a URL."
       );
-      resetInlineSuggestionDisplayed();
+      suggestion_displayed.reset();
       return [];
     }
 
     // If users continue to without pressing configured keys to
     // either accept or reject the suggestion, we will consider it as ignored.
-    if (getInlineSuggestionDisplayed()) {
+    if (suggestion_displayed.get()) {
       /* The following approach is implemented to address a specific issue related to the
        * behavior of inline suggestion in the 'automated' trigger scenario:
        *
@@ -118,7 +120,7 @@ export class LightSpeedInlineSuggestionProvider
        * in the editor.
        */
       if (_.isEqual(position, previousTriggerPosition)) {
-        return _cachedCompletionItem;
+        return suggestion_displayed.cachedCompletionItem;
       }
 
       vscode.commands.executeCommand(
@@ -179,7 +181,7 @@ export async function getInlineSuggestionItems(
     !currentLineText.isEmptyOrWhitespace ||
     spacesBeforePromptStart !== spacesBeforeCursor
   ) {
-    resetInlineSuggestionDisplayed();
+    suggestion_displayed.reset();
     // If the user has triggered the inline suggestion by pressing the configured keys,
     // we will show an information message to the user to help them understand the
     // correct cursor position to trigger the inline suggestion.
@@ -357,7 +359,7 @@ export async function getInlineSuggestionItems(
   // indicating that the suggestion is displayed and will be used
   // to track the user action on the suggestion in scenario where
   // the user continued to type without accepting or rejecting the suggestion
-  setInlineSuggestionDisplayed(inlineSuggestionUserActionItems);
+  suggestion_displayed.set(inlineSuggestionUserActionItems);
   return inlineSuggestionUserActionItems;
 }
 
@@ -589,7 +591,7 @@ export async function inlineSuggestionUserActionHandler(
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
-  resetInlineSuggestionDisplayed();
+  suggestion_displayed.reset();
   inlineSuggestionData["action"] = isSuggestionAccepted;
   inlineSuggestionData["suggestionId"] = suggestionId;
   const inlineSuggestionFeedbackPayload = {
@@ -599,20 +601,4 @@ export async function inlineSuggestionUserActionHandler(
     inlineSuggestionFeedbackPayload
   );
   inlineSuggestionData = {};
-}
-
-export function resetInlineSuggestionDisplayed() {
-  _inlineSuggestionDisplayed = false;
-  _cachedCompletionItem = [];
-}
-
-function setInlineSuggestionDisplayed(
-  inlineCompletionItem: vscode.InlineCompletionItem[]
-) {
-  _inlineSuggestionDisplayed = true;
-  _cachedCompletionItem = inlineCompletionItem;
-}
-
-export function getInlineSuggestionDisplayed() {
-  return _inlineSuggestionDisplayed;
 }
