@@ -5,6 +5,7 @@ import { SettingsManager } from "../../settings";
 import { LightSpeedCommands } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
+import { getModelDetailsString } from "./utils/uiUtils";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   getLoggedInSessionDetails,
@@ -123,11 +124,10 @@ export class LightspeedStatusBar {
       );
     }
     const statusBarInfo = getLoggedInSessionDetails(session);
-    let modelName = statusBarInfo.modelInfo?.model;
-    if (modelName === undefined) {
-      modelName =
-        lightSpeedManager.settingsManager.settings.lightSpeedService.model;
-    }
+    const modelName = getModelDetailsString(
+      lightSpeedManager.settingsManager.settings.lightSpeedService.model,
+      statusBarInfo.modelInfo?.model
+    );
     const userType = statusBarInfo.userInfo?.userType;
     const role = statusBarInfo.userInfo?.role;
     let mdString = "";

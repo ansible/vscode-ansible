@@ -414,8 +414,12 @@ async function requestInlineSuggest(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
   );
   if (outputData.model) {
-    // If model name is returned by server is different from the one previously used update the model name
-    if (lightSpeedManager.currentModelValue !== outputData.model) {
+    // If model name is returned by server is different from the one previously used
+    // and it is not the user provided model, update the model name
+    if (
+      lightSpeedManager.currentModelValue !== outputData.model &&
+      outputData.model !== userProvidedModel
+    ) {
       lightSpeedManager.currentModelValue = outputData.model;
       // update the Lightspeed status bar tooltip with the model name
       lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip();
