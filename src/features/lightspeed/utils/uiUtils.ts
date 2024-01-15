@@ -6,6 +6,6 @@ export function getModelDetailsString(
   return modelIdOverride
     ? modelIdOverride
     : currentModelId
-    ? `${currentModelId} ${orgDefault}`
-    : orgDefault;
+      ? `${currentModelId} ${orgDefault}`
+      : orgDefault;
 }
