@@ -216,7 +216,7 @@ log notice "Installing $(python3 --version) venv and dependencies matching creat
 VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
 if [[ ! -d ${VIRTUAL_ENV} ]]; then
     log notice "Creating virtualenv ..."
-    python3 -m venv "${VIRTUAL_ENV}"
+    python3.11 -m venv "${VIRTUAL_ENV}"
 fi
 log notice "Activating virtualenv from ${VIRTUAL_ENV} ..."
 # shellcheck disable=SC1091
