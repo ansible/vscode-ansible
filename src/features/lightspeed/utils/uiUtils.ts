@@ -3,9 +3,11 @@ export function getModelDetailsString(
   currentModelId: string | undefined
 ): string {
   const orgDefault = "(Red Hat org default)";
-  return modelIdOverride
-    ? modelIdOverride
-    : currentModelId
-      ? `${currentModelId} ${orgDefault}`
-      : orgDefault;
+  if (modelIdOverride) {
+    return modelIdOverride;
+  } else if (currentModelId) {
+    return `${currentModelId} ${orgDefault}`;
+  } else {
+    return orgDefault;
+  }
 }
