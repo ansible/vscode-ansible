@@ -47,136 +47,166 @@ let currentSuggestion = "";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
-export const suggestion_displayed = new SuggestionDisplayed();
+export const suggestionDisplayed = new SuggestionDisplayed();
 
 interface CallbackEntry {
-  
-(
-  suggestion_displayed: SuggestionDisplayed,
-  document: vscode.TextDocument,
-  position: vscode.Position,
-  context: vscode.InlineCompletionContext,
-  executeCommand: typeof vscode.commands.executeCommand,
-) : vscode.InlineCompletionItem[]|Promise<vscode.InlineCompletionItem[]>
+  (
+    suggestionDisplayed: SuggestionDisplayed,
+    document: vscode.TextDocument,
+    position: vscode.Position,
+    context: vscode.InlineCompletionContext,
+    executeCommand: typeof vscode.commands.executeCommand
+  ): vscode.InlineCompletionItem[] | Promise<vscode.InlineCompletionItem[]>;
 }
 
-
-var onTextEditorNotActive: CallbackEntry = function (suggestion_displayed: SuggestionDisplayed){
-  suggestion_displayed.reset();
+const onTextEditorNotActive: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
+) {
+  suggestionDisplayed.reset();
   return [];
-}
+};
 
-var onNotForMe: CallbackEntry = function(
-  suggestion_displayed: SuggestionDisplayed,
+const onNotForMe: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
 ) {
   lightSpeedManager.statusBarProvider.statusBar.hide(); // TODO: parametrize
-  suggestion_displayed.reset();
+  suggestionDisplayed.reset();
   return [];
-}
+};
 
-var onCancellationRequested: CallbackEntry = function (suggestion_displayed: SuggestionDisplayed) {
-  suggestion_displayed.reset();
+const onCancellationRequested: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
+) {
+  suggestionDisplayed.reset();
   return [];
-}
+};
 
-var onLightspeedIsDisabled: CallbackEntry = function (suggestion_displayed: SuggestionDisplayed) {
+const onLightspeedIsDisabled: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
+) {
   console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
   lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar(); // TODO: parametrize
-  suggestion_displayed.reset();
+  suggestionDisplayed.reset();
   return [];
-}
+};
 
-var onLightspeedURLMissconfigured:CallbackEntry = function (suggestion_displayed: SuggestionDisplayed) {
+const onLightspeedURLMisconfigured: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
+) {
   vscode.window.showErrorMessage(
     "Ansible Lightspeed URL is empty. Please provide a URL."
   );
-  suggestion_displayed.reset();
+  suggestionDisplayed.reset();
   return [];
-}
+};
 
-var onRetrySuggestion:CallbackEntry = function (suggestion_displayed: SuggestionDisplayed) {
-  return suggestion_displayed.cachedCompletionItem;
-}
+const onRetrySuggestion: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
+) {
+  return suggestionDisplayed.cachedCompletionItem;
+};
 
-var onRefusedSuggestion:CallbackEntry = function (
-  suggestion_displayed: SuggestionDisplayed,
+const onRefusedSuggestion: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed,
   document: vscode.TextDocument,
   position: vscode.Position,
   context: vscode.InlineCompletionContext,
-  executeCommand: typeof vscode.commands.executeCommand) {
+  executeCommand: typeof vscode.commands.executeCommand
+) {
+  executeCommand(LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE);
+  return [];
+};
+
+const onRequestInProgress: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed,
+  document: vscode.TextDocument,
+  position: vscode.Position,
+  context: vscode.InlineCompletionContext,
+  executeCommand: typeof vscode.commands.executeCommand
+) {
   executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
+    UserAction.IGNORED
   );
   return [];
-}
+};
 
-var onDefault:CallbackEntry = function (
-  suggestion_displayed: SuggestionDisplayed,
-  document, position, context) {
+
+const onDefault: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed,
+  document,
+  position,
+  context
+) {
   const suggestionItems = getInlineSuggestionItems(document, position, context);
-  return suggestionItems
-}
-
-//type CompletionState = "TextEditorNotActive" | "NotForMe" | "CancellationRequested" | "LightspeedIsDisabled" | "LightspeedURLMissconfigured" | "RetrySuggestion" | "RefusedSuggestion" | "Default"
-
+  return suggestionItems;
+};
 
 const CompletionState = {
-  "TextEditorNotActive": onTextEditorNotActive,
-  "NotForMe": onNotForMe,
-  "CancellationRequested": onCancellationRequested,
-  "LightspeedIsDisabled": onLightspeedIsDisabled,
-  "LightspeedURLMissconfigured": onLightspeedURLMissconfigured,
-  "RetrySuggestion": onRetrySuggestion,
-  "RefusedSuggestion": onRefusedSuggestion,
-  "Default": onDefault
+  TextEditorNotActive: onTextEditorNotActive,
+  NotForMe: onNotForMe,
+  CancellationRequested: onCancellationRequested,
+  LightspeedIsDisabled: onLightspeedIsDisabled,
+  LightspeedURLMisconfigured: onLightspeedURLMisconfigured,
+  RetrySuggestion: onRetrySuggestion,
+  RefusedSuggestion: onRefusedSuggestion,
+  RequestInProgress: onRequestInProgress,
+  Default: onDefault,
 } as const;
-type CompletionState = typeof CompletionState[keyof typeof CompletionState];
+type CompletionState = (typeof CompletionState)[keyof typeof CompletionState];
 
+function getCompletionState(
+  suggestionDisplayed: SuggestionDisplayed,
+  completionRequestInProgress: boolean,
+  languageId: string,
+  isCancellationRequested: boolean,
+  lightSpeedSetting: LightSpeedServiceSettings,
+  positionHasChanged?: boolean
+): CompletionState {
+  if (completionRequestInProgress) {
+    return CompletionState.RequestInProgress;
+  }
+  if (languageId !== "ansible") {
+    return CompletionState.NotForMe;
+  }
+  if (isCancellationRequested) {
+    return CompletionState.CancellationRequested;
+  }
+  if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
+    return CompletionState.LightspeedIsDisabled;
+  }
 
-function get_completion_state(suggestion_displayed: SuggestionDisplayed, languageId: string, isCancellationRequested: boolean, lightSpeedSetting: LightSpeedServiceSettings, positionHasChanged?: boolean): CompletionState {
-    if (languageId !== "ansible") {
-      return CompletionState.NotForMe;
-    }
-    if (isCancellationRequested) {
-      return CompletionState.CancellationRequested
-    }
-    if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
-      return CompletionState.LightspeedIsDisabled
-    }
+  if (!lightSpeedSetting.URL.trim()) {
+    return CompletionState.LightspeedURLMisconfigured;
+  }
 
-    if (!lightSpeedSetting.URL.trim()) {
-      return CompletionState.LightspeedURLMissconfigured
-    }
+  // If users continue to without pressing configured keys to
+  // either accept or reject the suggestion, we will consider it as ignored.
+  if (suggestionDisplayed.get() && !positionHasChanged) {
+    /* The following approach is implemented to address a specific issue related to the
+     * behavior of inline suggestion in the 'automated' trigger scenario:
+     *
+     * Whenever the toolbar appears on the suggestion, the method provideInlineCompletionItems
+     * is called again with trigger kind as 'invoke'. This results in a new request for inline
+     * suggestion, causing the current suggestion to disappear.
+     *
+     * To resolve this issue, we have implemented a mechanism to keep track of the previous and current
+     * cursor position of the trigger. We cache and return the same completion item when the cursor
+     * position remains unchanged, thus avoiding the disappearance of the current suggestion.
+     *
+     * It is important to note that the entire flow is triggered whenever the user makes any changes.
+     * As a result, we always make a new request for inline suggestion whenever any changes are made
+     * in the editor.
+     */
+    return CompletionState.RetrySuggestion;
+  }
 
-    // If users continue to without pressing configured keys to
-    // either accept or reject the suggestion, we will consider it as ignored.
-    if (suggestion_displayed.get() && !positionHasChanged) {
-      /* The following approach is implemented to address a specific issue related to the
-       * behavior of inline suggestion in the 'automated' trigger scenario:
-       *
-       * Whenever the toolbar appears on the suggestion, the method provideInlineCompletionItems
-       * is called again with trigger kind as 'invoke'. This results in a new request for inline
-       * suggestion, causing the current suggestion to disappear.
-       *
-       * To resolve this issue, we have implemented a mechanism to keep track of the previous and current
-       * cursor position of the trigger. We cache and return the same completion item when the cursor
-       * position remains unchanged, thus avoiding the disappearance of the current suggestion.
-       *
-       * It is important to note that the entire flow is triggered whenever the user makes any changes.
-       * As a result, we always make a new request for inline suggestion whenever any changes are made
-       * in the editor.
-       */
-      return CompletionState.RetrySuggestion
-    }
+  if (suggestionDisplayed.get()) {
+    return CompletionState.RefusedSuggestion;
+  }
 
-    if (suggestion_displayed.get()) {
-      return CompletionState.RefusedSuggestion
-    }
-
-    return CompletionState.Default;
-  
+  return CompletionState.Default;
 }
-
 
 export class LightSpeedInlineSuggestionProvider
   implements vscode.InlineCompletionItemProvider
@@ -186,38 +216,36 @@ export class LightSpeedInlineSuggestionProvider
     position: vscode.Position,
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
-  ): vscode.ProviderResult<vscode.InlineCompletionItem[]>|Promise<vscode.InlineCompletionItem[]> {
-    if (lightSpeedManager.apiInstance._completionRequestInProgress) {
-      vscode.commands.executeCommand(
-        LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
-        UserAction.IGNORED
-      );
-    }
+  ):
+    | vscode.ProviderResult<vscode.InlineCompletionItem[]>
+    | Promise<vscode.InlineCompletionItem[]> {
     const activeTextEditor = vscode.window.activeTextEditor;
     const lightSpeedSetting =
       lightSpeedManager.settingsManager.settings.lightSpeedService;
 
-
-    let state = get_completion_state(
-      suggestion_displayed,
-      ((activeTextEditor && activeTextEditor.document.languageId) || document.languageId),
+    const state = getCompletionState(
+      suggestionDisplayed,
+      lightSpeedManager.apiInstance.completionRequestInProgress,
+      (activeTextEditor && activeTextEditor.document.languageId) ||
+        document.languageId,
       token.isCancellationRequested,
       lightSpeedSetting,
       !_.isEqual(position, previousTriggerPosition)
     );
     return state(
-      suggestion_displayed,
+      suggestionDisplayed,
       document,
       position,
       context,
-      vscode.commands.executeCommand );
+      vscode.commands.executeCommand
+    );
   }
 }
 
 export async function getInlineSuggestionItems(
   document: vscode.TextDocument,
   currentPosition: vscode.Position,
-  context: vscode.InlineCompletionContext,
+  context: vscode.InlineCompletionContext
 ): Promise<vscode.InlineCompletionItem[]> {
   let result: CompletionResponseParams = {
     predictions: [],
@@ -258,7 +286,7 @@ export async function getInlineSuggestionItems(
     !currentLineText.isEmptyOrWhitespace ||
     spacesBeforePromptStart !== spacesBeforeCursor
   ) {
-    suggestion_displayed.reset();
+    suggestionDisplayed.reset();
     // If the user has triggered the inline suggestion by pressing the configured keys,
     // we will show an information message to the user to help them understand the
     // correct cursor position to trigger the inline suggestion.
@@ -436,7 +464,7 @@ export async function getInlineSuggestionItems(
   // indicating that the suggestion is displayed and will be used
   // to track the user action on the suggestion in scenario where
   // the user continued to type without accepting or rejecting the suggestion
-  suggestion_displayed.set(inlineSuggestionUserActionItems);
+  suggestionDisplayed.set(inlineSuggestionUserActionItems);
   return inlineSuggestionUserActionItems;
 }
 
@@ -668,7 +696,7 @@ export async function inlineSuggestionUserActionHandler(
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
-  suggestion_displayed.reset();
+  suggestionDisplayed.reset();
   inlineSuggestionData["action"] = isSuggestionAccepted;
   inlineSuggestionData["suggestionId"] = suggestionId;
   const inlineSuggestionFeedbackPayload = {

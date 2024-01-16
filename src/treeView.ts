@@ -15,7 +15,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
     if (!sessionData) {
       this.data = [];
     } else {
-      const loggedMessage = `Logged in as: ${sessionData.account.label}`;
+      const loggedMessage = `Logged dev in as: ${sessionData.account.label}`;
       const children: TreeItem[] = [];
       const labels: string[] = [];
       const sessionInfo: LightspeedSessionInfo =
