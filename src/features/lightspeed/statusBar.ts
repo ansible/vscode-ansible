@@ -2,10 +2,12 @@ import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
-import { LightSpeedCommands } from "../../definitions/lightspeed";
+import {
+  LightSpeedCommands,
+  LIGHTSPEED_DEFAULT,
+} from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
-import { getModelDetailsString } from "./utils/uiUtils";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   getLoggedInSessionDetails,
@@ -124,10 +126,6 @@ export class LightspeedStatusBar {
       );
     }
     const statusBarInfo = getLoggedInSessionDetails(session);
-    const modelName = getModelDetailsString(
-      lightSpeedManager.settingsManager.settings.lightSpeedService.model,
-      statusBarInfo.modelInfo?.model
-    );
     const userType = statusBarInfo.userInfo?.userType;
     const role = statusBarInfo.userInfo?.role;
     let mdString = "";
@@ -141,13 +139,13 @@ export class LightspeedStatusBar {
       }
       mdString += `</ul>\n`;
     }
-    if (modelName !== undefined) {
-      mdString += `<h4>Model Details:</h4>
-                    <hr>
-                    <ul>
-                      <li>Model: ${modelName}</li>
-                    </ul>\n`;
-    }
+    const modelName =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+    mdString += `<h4>Model Details:</h4>
+                  <hr>
+                  <ul>
+                    <li>Model: ${modelName || LIGHTSPEED_DEFAULT}</li>
+                  </ul>\n`;
 
     const mdStringObj = new vscode.MarkdownString(mdString, true);
     mdStringObj.supportHtml = true;
