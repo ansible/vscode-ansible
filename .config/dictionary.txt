@@ -68,6 +68,7 @@ hbenl
 hostvars
 hotfixes
 icontent
+inlinesuggestion
 jeinwag
 johndoe
 keyfile
@@ -125,6 +126,7 @@ tsdoc
 ttakamiy
 unstash
 untildify
+useractionhandler
 userdata
 usermod
 uuidv4
