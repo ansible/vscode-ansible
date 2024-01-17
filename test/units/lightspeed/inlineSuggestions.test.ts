@@ -1,7 +1,12 @@
 import * as assert from "assert";
 import { after } from "mocha";
 
-import {TextDocument, Position, InlineCompletionContext, commands} from "vscode";
+import {
+  TextDocument,
+  Position,
+  InlineCompletionContext,
+  commands,
+} from "vscode";
 
 // You can import and use all API from the 'vscode' module
 // as well as import your extension to test it
@@ -19,22 +24,21 @@ import { SuggestionDisplayed } from "../../../src/features/lightspeed/inlinesugg
 // }
 
 describe("testing the callbacks", () => {
-    it("TextEditorNotActive", async function () {
+  it("TextEditorNotActive", async function () {
+    const suggestionDisplayed = new SuggestionDisplayed();
+    const document: Partial<TextDocument> = {};
+    const position: Partial<Position> = {};
+    const context: Partial<InlineCompletionContext> = {};
+    const executeCommand = {};
 
-        const suggestionDisplayed = new SuggestionDisplayed();
-        const document: Partial<TextDocument> = {};
-        const position: Partial<Position> = {};
-        const context: Partial<InlineCompletionContext> = {};
-        const executeCommand = {};
-
-
-        
-        const items = await onTextEditorNotActive(suggestionDisplayed,
-                                            document as TextDocument,
-                                            position as Position,context as InlineCompletionContext,
-                                           executeCommand as typeof commands.executeCommand
-                                           );
-        console.log(items);
-        assert.equal(items.length, 0);
-    });
+    const items = await onTextEditorNotActive(
+      suggestionDisplayed,
+      document as TextDocument,
+      position as Position,
+      context as InlineCompletionContext,
+      executeCommand as typeof commands.executeCommand
+    );
+    console.log(items);
+    assert.equal(items.length, 0);
+  });
 });

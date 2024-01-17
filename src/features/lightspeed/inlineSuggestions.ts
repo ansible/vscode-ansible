@@ -12,36 +12,24 @@ import {
   CompletionResponseParams,
   InlineSuggestionEvent,
   CompletionRequestParams,
-  IRolesContext,
-  IRoleContext,
-  IStandaloneTaskContext,
 } from "../../interfaces/lightspeed";
 import {
+  LightSpeedCommands,
   LIGHTSPEED_SUGGESTION_TYPE,
   MULTI_TASK_REGEX_EP,
   SINGLE_TASK_REGEX_EP,
   UserAction,
 } from "../../definitions/lightspeed";
-import { LightSpeedCommands } from "../../definitions/lightspeed";
 import {
-  getIncludeVarsContext,
-  getRelativePath,
-  getRolePathFromPathWithinRole,
   shouldRequestInlineSuggestions,
   shouldTriggerMultiTaskSuggestion,
 } from "./utils/data";
-import { getVarsFilesContext } from "./utils/data";
-import {
-  IAdditionalContext,
-  IAnsibleFileType,
-  IPlaybookContext,
-} from "../../interfaces/lightspeed";
-import { getAnsibleFileType, getCustomRolePaths } from "../utils/ansible";
-import { watchRolesDirectory } from "./utils/watchers";
+import { IAnsibleFileType } from "../../interfaces/lightspeed";
+import { getAnsibleFileType } from "../utils/ansible";
 //import { inlineSuggestionUserActionHandler } from "./inlinesuggestion/useractionhandler";
 import { SuggestionDisplayed } from "./inlinesuggestion/suggestionDisplayed";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
-import { onTextEditorNotActive } from "./inlinesuggestion/completionState";
+import { getAdditionalContext } from "./inlinesuggestion/additionalContext";
 
 let suggestionId = "";
 let currentSuggestion = "";
@@ -50,27 +38,30 @@ let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 export const suggestionDisplayed = new SuggestionDisplayed();
 
+interface InlinePosition {
+  document: vscode.TextDocument;
+  position: vscode.Position;
+  context: vscode.InlineCompletionContext;
+}
+
 export interface CallbackEntry {
   (
     suggestionDisplayed: SuggestionDisplayed,
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    context: vscode.InlineCompletionContext,
-    executeCommand: Function|typeof vscode.commands.executeCommand
+    inlinePosition: InlinePosition
   ): vscode.InlineCompletionItem[] | Promise<vscode.InlineCompletionItem[]>;
 }
 
-// export const onTextEditorNotActive: CallbackEntry = function (
-//   suggestionDisplayed: SuggestionDisplayed
-// ) {
-//   suggestionDisplayed.reset();
-//   return [];
-// };
+export const onTextEditorNotActive: CallbackEntry = function (
+  suggestionDisplayed: SuggestionDisplayed
+) {
+  suggestionDisplayed.reset();
+  return [];
+};
 
 const onNotForMe: CallbackEntry = function (
   suggestionDisplayed: SuggestionDisplayed
 ) {
-  lightSpeedManager.statusBarProvider.statusBar.hide(); // TODO: parametrize
+  lightSpeedManager.statusBarProvider.statusBar.hide();
   suggestionDisplayed.reset();
   return [];
 };
@@ -86,7 +77,7 @@ const onLightspeedIsDisabled: CallbackEntry = function (
   suggestionDisplayed: SuggestionDisplayed
 ) {
   console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
-  lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar(); // TODO: parametrize
+  lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
   suggestionDisplayed.reset();
   return [];
 };
@@ -107,39 +98,24 @@ const onRetrySuggestion: CallbackEntry = function (
   return suggestionDisplayed.cachedCompletionItem;
 };
 
-const onRefusedSuggestion: CallbackEntry = function (
-  suggestionDisplayed: SuggestionDisplayed,
-  document: vscode.TextDocument,
-  position: vscode.Position,
-  context: vscode.InlineCompletionContext,
-  executeCommand: typeof vscode.commands.executeCommand
-) {
-  executeCommand(LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE);
+const onRefusedSuggestion: CallbackEntry = function () {
+  vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE);
   return [];
 };
 
-const onRequestInProgress: CallbackEntry = function (
-  suggestionDisplayed: SuggestionDisplayed,
-  document: vscode.TextDocument,
-  position: vscode.Position,
-  context: vscode.InlineCompletionContext,
-  executeCommand: typeof vscode.commands.executeCommand
-) {
-  executeCommand(
+const onRequestInProgress: CallbackEntry = function () {
+  vscode.commands.executeCommand(
     LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
     UserAction.IGNORED
   );
   return [];
 };
 
-
 const onDefault: CallbackEntry = function (
   suggestionDisplayed: SuggestionDisplayed,
-  document,
-  position,
-  context
+  inlinePosition: InlinePosition
 ) {
-  const suggestionItems = getInlineSuggestionItems(document, position, context);
+  const suggestionItems = getInlineSuggestionItems(inlinePosition);
   return suggestionItems;
 };
 
@@ -233,41 +209,45 @@ export class LightSpeedInlineSuggestionProvider
       lightSpeedSetting,
       !_.isEqual(position, previousTriggerPosition)
     );
-    return state(
-      suggestionDisplayed,
-      document,
-      position,
-      context,
-      vscode.commands.executeCommand
-    );
+    return state(suggestionDisplayed, {
+      document: document,
+      position: position,
+      context: context,
+    });
   }
 }
 
 export async function getInlineSuggestionItems(
-  document: vscode.TextDocument,
-  currentPosition: vscode.Position,
-  context: vscode.InlineCompletionContext
+  inlinePosition: InlinePosition
 ): Promise<vscode.InlineCompletionItem[]> {
   let result: CompletionResponseParams = {
     predictions: [],
   };
-  const range = new vscode.Range(new vscode.Position(0, 0), currentPosition);
+  const range = new vscode.Range(
+    new vscode.Position(0, 0),
+    inlinePosition.position
+  );
   const documentContent = range.isEmpty
     ? ""
-    : document.getText(range).trimEnd();
+    : inlinePosition.document.getText(range).trimEnd();
 
   let suggestionMatchType: LIGHTSPEED_SUGGESTION_TYPE | undefined = undefined;
 
   const rhUserHasSeat =
     await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
 
-  const lineToExtractPrompt = document.lineAt(currentPosition.line - 1);
+  const lineToExtractPrompt = inlinePosition.document.lineAt(
+    inlinePosition.position.line - 1
+  );
   const taskMatchedPattern =
     lineToExtractPrompt.text.match(SINGLE_TASK_REGEX_EP);
-  const currentLineText = document.lineAt(currentPosition);
+  const currentLineText = inlinePosition.document.lineAt(
+    inlinePosition.position
+  );
   const spacesBeforeCursor =
-    currentLineText?.text.slice(0, currentPosition.character).match(/^ +/)?.[0]
-      .length || 0;
+    currentLineText?.text
+      .slice(0, inlinePosition.position.character)
+      .match(/^ +/)?.[0].length || 0;
 
   if (taskMatchedPattern) {
     suggestionMatchType = "SINGLE-TASK";
@@ -291,7 +271,10 @@ export async function getInlineSuggestionItems(
     // If the user has triggered the inline suggestion by pressing the configured keys,
     // we will show an information message to the user to help them understand the
     // correct cursor position to trigger the inline suggestion.
-    if (context.triggerKind === vscode.InlineCompletionTriggerKind.Invoke) {
+    if (
+      inlinePosition.context.triggerKind ===
+      vscode.InlineCompletionTriggerKind.Invoke
+    ) {
       if (rhUserHasSeat) {
         if (!suggestionMatchType || !currentLineText.isEmptyOrWhitespace) {
           vscode.window.showInformationMessage(
@@ -326,7 +309,7 @@ export async function getInlineSuggestionItems(
   }
 
   let parsedAnsibleDocument = undefined;
-  const documentUri = document.uri.toString();
+  const documentUri = inlinePosition.document.uri.toString();
   const documentDirPath = pathUri.dirname(URI.parse(documentUri).path);
   const documentFilePath = URI.parse(documentUri).path;
   const ansibleFileType: IAnsibleFileType = getAnsibleFileType(
@@ -391,7 +374,7 @@ export async function getInlineSuggestionItems(
       activityId = uuidv4();
       lightSpeedManager.lightSpeedActivityTracker[documentUri] = {
         activityId: activityId,
-        content: document.getText(),
+        content: inlinePosition.document.getText(),
       };
     } else {
       activityId =
@@ -433,7 +416,10 @@ export async function getInlineSuggestionItems(
   const insertTexts: string[] = [];
   result.predictions.forEach((prediction) => {
     let insertText = prediction;
-    insertText = adjustInlineSuggestionIndent(prediction, currentPosition);
+    insertText = adjustInlineSuggestionIndent(
+      prediction,
+      inlinePosition.position
+    );
     insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, "");
     insertTexts.push(insertText);
 
@@ -446,7 +432,7 @@ export async function getInlineSuggestionItems(
 
   // previousTriggerPosition is used to track the cursor position
   // on hover when the suggestion is displayed
-  previousTriggerPosition = currentPosition;
+  previousTriggerPosition = inlinePosition.position;
 
   console.log(
     `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
@@ -502,7 +488,8 @@ async function requestInlineSuggest(
       parsedAnsibleDocument,
       documentDirPath,
       documentFilePath,
-      ansibleFileType
+      ansibleFileType,
+      vscode.workspace.workspaceFolders
     );
     if (completionData.metadata) {
       completionData.metadata.additionalContext = additionalContext;
@@ -538,92 +525,6 @@ async function requestInlineSuggest(
     }
   }
   return outputData;
-}
-
-export function getAdditionalContext(
-  parsedAnsibleDocument: yaml.YAMLMap[],
-  documentDirPath: string,
-  documentFilePath: string,
-  ansibleFileType: IAnsibleFileType
-): IAdditionalContext {
-  const workspaceFolders = vscode.workspace.workspaceFolders;
-  let workSpaceRoot = undefined;
-  const playbookContext: IPlaybookContext = {};
-  let roleContext: IRoleContext = {};
-  const standaloneTaskContext: IStandaloneTaskContext = {};
-  if (workspaceFolders) {
-    workSpaceRoot = workspaceFolders[0].uri.fsPath;
-  }
-  if (ansibleFileType === "playbook") {
-    const varsFilesContext = getVarsFilesContext(
-      lightSpeedManager,
-      parsedAnsibleDocument,
-      documentDirPath
-    );
-    playbookContext["varInfiles"] = varsFilesContext || {};
-    const rolesCache: IRolesContext = {};
-    if (workSpaceRoot) {
-      // check if roles are installed in the workspace
-      if (!(workSpaceRoot in lightSpeedManager.ansibleRolesCache)) {
-        const rolesPath = getCustomRolePaths(workSpaceRoot);
-        for (const rolePath of rolesPath) {
-          watchRolesDirectory(lightSpeedManager, rolePath, workSpaceRoot);
-        }
-      }
-      // if roles are installed in the workspace, then get the relative path w.r.t. the workspace root
-      if (workSpaceRoot in lightSpeedManager.ansibleRolesCache) {
-        const workspaceRolesCache =
-          lightSpeedManager.ansibleRolesCache[workSpaceRoot];
-        for (const absRolePath in workspaceRolesCache) {
-          const relativeRolePath = getRelativePath(
-            documentDirPath,
-            workSpaceRoot,
-            absRolePath
-          );
-          rolesCache[relativeRolePath] = workspaceRolesCache[absRolePath];
-        }
-      }
-    }
-    if ("common" in lightSpeedManager.ansibleRolesCache) {
-      for (const commonRolePath in lightSpeedManager.ansibleRolesCache) {
-        rolesCache[commonRolePath] =
-          lightSpeedManager.ansibleRolesCache["common"][commonRolePath];
-      }
-    }
-    playbookContext["roles"] = rolesCache;
-  } else if (ansibleFileType === "tasks_in_role") {
-    const roleCache = lightSpeedManager.ansibleRolesCache;
-    const absRolePath = getRolePathFromPathWithinRole(documentFilePath);
-    if (
-      workSpaceRoot &&
-      workSpaceRoot in roleCache &&
-      absRolePath in roleCache[workSpaceRoot]
-    ) {
-      roleContext = roleCache[workSpaceRoot][absRolePath];
-    }
-  }
-  const includeVarsContext =
-    getIncludeVarsContext(
-      lightSpeedManager,
-      parsedAnsibleDocument,
-      documentDirPath,
-      ansibleFileType
-    ) || {};
-
-  if (ansibleFileType === "playbook") {
-    playbookContext.includeVars = includeVarsContext;
-  } else if (ansibleFileType === "tasks_in_role") {
-    roleContext.includeVars = includeVarsContext;
-  } else if (ansibleFileType === "tasks") {
-    standaloneTaskContext.includeVars = includeVarsContext;
-  }
-
-  const additionalContext: IAdditionalContext = {
-    playbookContext: playbookContext,
-    roleContext: roleContext,
-    standaloneTaskContext: standaloneTaskContext,
-  };
-  return additionalContext;
 }
 
 // Handlers
