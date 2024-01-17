@@ -41,6 +41,7 @@ import { watchRolesDirectory } from "./utils/watchers";
 //import { inlineSuggestionUserActionHandler } from "./inlinesuggestion/useractionhandler";
 import { SuggestionDisplayed } from "./inlinesuggestion/suggestionDisplayed";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import { onTextEditorNotActive } from "./inlinesuggestion/completionState";
 
 let suggestionId = "";
 let currentSuggestion = "";
@@ -49,22 +50,22 @@ let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 export const suggestionDisplayed = new SuggestionDisplayed();
 
-interface CallbackEntry {
+export interface CallbackEntry {
   (
     suggestionDisplayed: SuggestionDisplayed,
     document: vscode.TextDocument,
     position: vscode.Position,
     context: vscode.InlineCompletionContext,
-    executeCommand: typeof vscode.commands.executeCommand
+    executeCommand: Function|typeof vscode.commands.executeCommand
   ): vscode.InlineCompletionItem[] | Promise<vscode.InlineCompletionItem[]>;
 }
 
-const onTextEditorNotActive: CallbackEntry = function (
-  suggestionDisplayed: SuggestionDisplayed
-) {
-  suggestionDisplayed.reset();
-  return [];
-};
+// export const onTextEditorNotActive: CallbackEntry = function (
+//   suggestionDisplayed: SuggestionDisplayed
+// ) {
+//   suggestionDisplayed.reset();
+//   return [];
+// };
 
 const onNotForMe: CallbackEntry = function (
   suggestionDisplayed: SuggestionDisplayed
