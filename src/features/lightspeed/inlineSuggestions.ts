@@ -56,7 +56,12 @@ export class LightSpeedInlineSuggestionProvider
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
-    if (lightSpeedManager.apiInstance._completionRequestInProgress) {
+    const apiInstance = lightSpeedManager.apiInstance;
+    if (
+      apiInstance.completionRequestInProgress &&
+      !apiInstance.inlineSuggestionFeedbackSent
+    ) {
+      apiInstance.inlineSuggestionFeedbackSent = true;
       vscode.commands.executeCommand(
         LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
         UserAction.IGNORED
