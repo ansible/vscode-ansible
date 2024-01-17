@@ -1,6 +1,6 @@
 import { AxiosError } from "axios";
 
-export function retrieve_error(err: AxiosError): string {
+export function retrieveError(err: AxiosError): string {
   if (err && "response" in err) {
     if (err?.response?.status === 401) {
       return "User not authorized to access Ansible Lightspeed.";

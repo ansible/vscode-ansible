@@ -18,7 +18,7 @@ import {
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { retrieve_error } from "./handle_api_error";
+import { retrieveError } from "./handleApiError";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -113,7 +113,7 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      vscode.window.showErrorMessage(retrieve_error(err));
+      vscode.window.showErrorMessage(retrieveError(err));
       this._completionRequestInProgress = false;
       return {} as CompletionResponseParams;
     } finally {
