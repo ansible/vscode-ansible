@@ -22,8 +22,8 @@ import {
   ISuggestionDetails,
 } from "../../../src/interfaces/lightspeed";
 
-function create_match_response(): ContentMatchesResponseParams {
-  const content_match_params = {
+function createMatchResponse(): ContentMatchesResponseParams {
+  const contentMatchParams = {
     repo_name: "ansible.ansible",
     repo_url: "https://github.com/ansible/ansible",
     path: "some/file.py",
@@ -32,13 +32,13 @@ function create_match_response(): ContentMatchesResponseParams {
     score: 123,
   } as IContentMatchParams;
   const icontent_match = {
-    contentmatch: [content_match_params],
+    contentmatch: [contentMatchParams],
   } as IContentMatch;
 
   return { contentmatches: [icontent_match] } as ContentMatchesResponseParams;
 }
 
-function create_content_matches_webview(): ContentMatchesWebview {
+function createContentMatchesWebview(): ContentMatchesWebview {
   const m_context: Partial<ExtensionContext> = {};
   const m_client: Partial<LanguageClient> = {};
   const m_settings: Partial<SettingsManager> = {};
@@ -58,12 +58,12 @@ function create_content_matches_webview(): ContentMatchesWebview {
 
 describe("ContentMatches view", () => {
   it("with normal input", async function () {
-    const cmw = create_content_matches_webview();
+    const cmw = createContentMatchesWebview();
     cmw.apiInstance.contentMatchesRequest = async (
       inputData: ContentMatchesRequestParams
     ): Promise<ContentMatchesResponseParams> => {
       assert.equal(inputData.model, undefined);
-      return create_match_response();
+      return createMatchResponse();
     };
     const res = await cmw.requestInlineSuggestContentMatches("foo", "bar");
     assert.equal(
@@ -73,13 +73,13 @@ describe("ContentMatches view", () => {
   });
 
   it("with a specific model", async function () {
-    const cmw = create_content_matches_webview();
+    const cmw = createContentMatchesWebview();
     cmw.settingsManager.settings.lightSpeedService.model = "the_model";
     cmw.apiInstance.contentMatchesRequest = async (
       inputData: ContentMatchesRequestParams
     ): Promise<ContentMatchesResponseParams> => {
       assert.equal(inputData.model, "the_model");
-      return create_match_response();
+      return createMatchResponse();
     };
     const res = await cmw.requestInlineSuggestContentMatches("foo", "bar");
     assert.equal(
@@ -91,13 +91,13 @@ describe("ContentMatches view", () => {
 
 describe("GetWebviewContent", () => {
   it("no suggestion", async function () {
-    const cmw = create_content_matches_webview();
+    const cmw = createContentMatchesWebview();
     const res = await cmw["getWebviewContent"]();
     assert.match(res, new RegExp("No training matches found"));
   });
 
   it("suggestion has no matches", async function () {
-    const cmw = create_content_matches_webview();
+    const cmw = createContentMatchesWebview();
     cmw.suggestionDetails = [
       {
         suggestion: "- name: foo\n  my.mod:\n",
@@ -107,7 +107,7 @@ describe("GetWebviewContent", () => {
     cmw.apiInstance.contentMatchesRequest = async (
       inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<ContentMatchesResponseParams> => {
-      const res = create_match_response();
+      const res = createMatchResponse();
       res.contentmatches = [];
       return res;
     };
@@ -116,7 +116,7 @@ describe("GetWebviewContent", () => {
   });
 
   it("suggest has invalid YAML", async function () {
-    const cmw = create_content_matches_webview();
+    const cmw = createContentMatchesWebview();
     cmw.suggestionDetails = [
       {
         suggestion: "- name: foo\nI\n\nBROKEN\n",
@@ -126,7 +126,7 @@ describe("GetWebviewContent", () => {
     cmw.apiInstance.contentMatchesRequest = async (
       inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<ContentMatchesResponseParams> => {
-      return create_match_response();
+      return createMatchResponse();
     };
     const spiedConsole = sinon.spy(console, "log");
     const res = await cmw["getWebviewContent"]();
@@ -141,7 +141,7 @@ describe("GetWebviewContent", () => {
   });
 
   it("suggestion with a match", async function () {
-    const cmw = create_content_matches_webview();
+    const cmw = createContentMatchesWebview();
     cmw.suggestionDetails = [
       {
         suggestion: "- name: foo\n  my.mod:\n",
@@ -151,7 +151,7 @@ describe("GetWebviewContent", () => {
     cmw.apiInstance.contentMatchesRequest = async (
       inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<ContentMatchesResponseParams> => {
-      return create_match_response();
+      return createMatchResponse();
     };
 
     function setRhUserHasSeat(has_seat: boolean) {
