@@ -122,6 +122,7 @@ tomaciazek
 towerhost
 tsbuildinfo
 tsdoc
+ttakamiy
 unstash
 untildify
 userdata

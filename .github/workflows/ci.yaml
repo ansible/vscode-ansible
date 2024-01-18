@@ -16,6 +16,7 @@ concurrency:
 
 env:
   FORCE_COLOR: "1" # make mocha output colorful
+  PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

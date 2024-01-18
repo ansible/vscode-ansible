@@ -39,6 +39,13 @@ const config = {
     __dirname: false, // leave the __dirname-behavior intact
   },
   plugins: [new WarningsToErrorsPlugin()],
+  ignoreWarnings: [
+    {
+      // https://github.com/microsoft/vscode-languageserver-node/issues/1355
+      message:
+        /require function is used in a way in which dependencies cannot be statically extracted/,
+    },
+  ],
   output: {
     filename: (pathData: { chunk: { name: string } }) => {
       return pathData.chunk.name === "client"

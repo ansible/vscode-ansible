@@ -45,7 +45,7 @@ node('rhel8') {
   print "DEBUG: parameter publishPreRelease=${params.publishPreRelease}"
   timeout(time:5, unit:'DAYS') {
     // these are LDAP accounts
-    input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto,audjirka,shamishr'
+    input message:'Approve deployment?', submitter: 'ssbarnea,ssydoren,gnalawad,prsahoo,bthornto,audjirka,shamishr,ttakamiy'
   }
 
   stage('publish') {
