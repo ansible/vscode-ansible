@@ -61,7 +61,7 @@ export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
 
 export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
 
-export const LIGHTSPEED_DEFAULT = "default";
+export const LIGHTSPEED_MODEL_DEFAULT = "default";
 
 export const tasksInPlaybookKeywords = [
   /(?<!\S)tasks\s*:(?!\S)\s*$/,

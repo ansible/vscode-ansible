@@ -4,7 +4,7 @@ import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
 import {
   LightSpeedCommands,
-  LIGHTSPEED_DEFAULT,
+  LIGHTSPEED_MODEL_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
@@ -144,7 +144,7 @@ export class LightspeedStatusBar {
     mdString += `<h4>Model Details:</h4>
                   <hr>
                   <ul>
-                    <li>Model: ${modelName || LIGHTSPEED_DEFAULT}</li>
+                    <li>Model: ${modelName || LIGHTSPEED_MODEL_DEFAULT}</li>
                   </ul>\n`;
 
     const mdStringObj = new vscode.MarkdownString(mdString, true);
