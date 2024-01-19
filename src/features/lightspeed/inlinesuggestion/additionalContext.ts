@@ -1,4 +1,4 @@
-import {WorkspaceFolder} from "vscode";
+import { WorkspaceFolder } from "vscode";
 import * as yaml from "yaml";
 import {
   CompletionRequestParams,
@@ -8,7 +8,7 @@ import {
   IPlaybookContext,
   IRoleContext,
   IRolesContext,
-  IStandaloneTaskContext,   
+  IStandaloneTaskContext,
   InlineSuggestionEvent,
 } from "../../../interfaces/lightspeed";
 import {
@@ -26,7 +26,7 @@ export function getAdditionalContext(
   documentDirPath: string,
   documentFilePath: string,
   ansibleFileType: IAnsibleFileType,
-  workspaceFolders: readonly WorkspaceFolder[]|undefined
+  workspaceFolders: readonly WorkspaceFolder[] | undefined
 ): IAdditionalContext {
   let workSpaceRoot = undefined;
   const playbookContext: IPlaybookContext = {};
