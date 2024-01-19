@@ -230,14 +230,18 @@ const onUnexpectedPromptWithNoSeat: CallbackEntry = async function (
     vscode.InlineCompletionTriggerKind.Invoke
   ) {
     const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
-    if (!suggestionMatchInfo.taskMatchedPattern || !suggestionMatchInfo.currentLineText.isEmptyOrWhitespace) {
+    if (
+      !suggestionMatchInfo.taskMatchedPattern ||
+      !suggestionMatchInfo.currentLineText.isEmptyOrWhitespace
+    ) {
       vscode.window.showInformationMessage(
         "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
       );
     } else if (
       suggestionMatchInfo.taskMatchedPattern &&
       suggestionMatchInfo.currentLineText.isEmptyOrWhitespace &&
-      suggestionMatchInfo.spacesBeforePromptStart !== suggestionMatchInfo.spacesBeforeCursor
+      suggestionMatchInfo.spacesBeforePromptStart !==
+        suggestionMatchInfo.spacesBeforeCursor
     ) {
       vscode.window.showInformationMessage(
         `Cursor must be in column ${suggestionMatchInfo.spacesBeforePromptStart} to trigger an inline suggestion.`
