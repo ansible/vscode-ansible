@@ -24,7 +24,8 @@ export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
   private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
-  public _completionRequestInProgress: boolean;
+  private _completionRequestInProgress: boolean;
+  private _inlineSuggestionFeedbackSent: boolean;
 
   constructor(
     settingsManager: SettingsManager,
@@ -33,6 +34,19 @@ export class LightSpeedAPI {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
     this._completionRequestInProgress = false;
+    this._inlineSuggestionFeedbackSent = false;
+  }
+
+  get completionRequestInProgress(): boolean {
+    return this._completionRequestInProgress;
+  }
+
+  get inlineSuggestionFeedbackSent(): boolean {
+    return this._inlineSuggestionFeedbackSent;
+  }
+
+  set inlineSuggestionFeedbackSent(newValue: boolean) {
+    this._inlineSuggestionFeedbackSent = newValue;
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
@@ -86,6 +100,7 @@ export class LightSpeedAPI {
     );
     try {
       this._completionRequestInProgress = true;
+      this._inlineSuggestionFeedbackSent = false;
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         inputData,
@@ -93,7 +108,6 @@ export class LightSpeedAPI {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
-      this._completionRequestInProgress = false;
       if (
         response.status === 204 ||
         response.data.predictions.length === 0 ||
@@ -114,7 +128,6 @@ export class LightSpeedAPI {
     } catch (error) {
       const err = error as AxiosError;
       vscode.window.showErrorMessage(retrieveError(err));
-      this._completionRequestInProgress = false;
       return {} as CompletionResponseParams;
     } finally {
       this._completionRequestInProgress = false;
