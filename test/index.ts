@@ -2,7 +2,36 @@ import * as path from "path";
 import Mocha from "mocha";
 import glob from "glob";
 
+function setupCoverage() {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const NYC = require("nyc");
+  const nyc = new NYC({
+    cwd: path.join(__dirname, "..", "..", ".."),
+    reporter: ["text", "html"],
+    all: true,
+    silent: false,
+    instrument: true,
+    hookRequire: true,
+    hookRunInContext: true,
+    hookRunInThisContext: true,
+    include: ["out/client/**/*.js", "out/server/**/*.js"],
+    exclude: ["**/test/**"],
+  });
+
+  nyc.reset();
+  nyc.wrap();
+
+  return nyc;
+}
+
 export async function run(): Promise<void> {
+  // Setup NYC for code coverage
+  const nyc = process.env.COVERAGE ? setupCoverage() : null;
+
+  // if (nyc) { // For debugging
+  //   console.log("Glob verification", await nyc.exclude.glob(nyc.cwd));
+  // }
+
   // Create the mocha test
   const mocha = new Mocha({
     color: true,
@@ -26,8 +55,8 @@ export async function run(): Promise<void> {
   // Add files to the test suite
   files.forEach((file) => mocha.addFile(path.resolve(testsRoot, file)));
 
-  return new Promise((c, e) => {
-    try {
+  try {
+    await new Promise<void>((c, e) => {
       // Run the mocha test
       mocha.run((failures: number) => {
         if (failures > 0) {
@@ -36,9 +65,13 @@ export async function run(): Promise<void> {
           c();
         }
       });
-    } catch (err) {
-      console.error(err);
-      e(err);
+    });
+  } catch (err) {
+    console.error(err);
+  } finally {
+    if (nyc) {
+      nyc.writeCoverageFile();
+      await nyc.report();
     }
-  });
+  }
 }

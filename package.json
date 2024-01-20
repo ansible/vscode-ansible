@@ -805,11 +805,13 @@
     "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.ts",
     "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
-    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo coverage .nyc_output",
     "test-compile": "yarn run clean && yarn run compile && tsc -p ./",
     "test-compile-withserver": "yarn run clean && yarn run compile-withserver && tsc -p ./",
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
-    "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
+    "coverage-e2e": "COVERAGE=1 yarn run test-e2e",
+    "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner",
+    "coverage-e2e-withserver": "COVERAGE=1 yarn run test-e2e-withserver"
   },
   "version": "2.9.0",
   "packageManager": "yarn@4.0.2",
