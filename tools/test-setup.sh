@@ -111,6 +111,7 @@ fi
 
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
+WSL=0
 if [[ "${OS:-}" == "windows" ]]; then
     log error "You cannot use Windows build tools for development, try WSL."
     exit 1
@@ -120,6 +121,7 @@ if grep -qi microsoft /proc/version >/dev/null 2>&1; then
     if [[ "$(pwd -P || true)" == /mnt/* ]]; then
         log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
     fi
+    WSL=1
 fi
 
 # User specific environment
@@ -191,15 +193,22 @@ python3 -m pip install -q -U pip
 
 EE_VERSION=$(./tools/get-image-version)
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    URL="https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt"
-    log notice "Installing dependencies from .config/requirements.in and ${URL} loaded from .config/Dockerfile ..."
+    log notice "Installing dependencies from .config/requirements.in loaded from .config/Dockerfile ..."
 
     if [[ "${OS:-}" == "darwin" ]]; then
         log notice "MacOS detected, altering CFLAGS to avoid potential build failure due to https://github.com/ansible/pylibssh/issues/207 ..."
         CFLAGS="-I $(brew --prefix)/include -I ext -L $(brew --prefix)/lib -lssh"
         export CFLAGS
     fi
-    python3 -m pip install -r "${URL}" -r .config/requirements.in
+    if [[ "${WSL}" == "0" ]]; then
+        log notice "Ensure python version is recent enough for using latest ansible-core"
+        python3 -c "import sys; print(sys.version_info[:2]); sys.exit(not sys.version_info[:2]>=(3, 10))"
+        python3 -m pip install -r "https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt" -r .config/requirements.in
+    else
+        # Under WSL we do not use our constraints because github runners has ubuntu 20.04 with python3.9 which is too old
+        python3 -c "import sys; print(sys.version_info[:2]); sys.exit(not sys.version_info[:2]>=(3, 9))"
+        python3 -m pip install -r .config/requirements.in
+    fi
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
