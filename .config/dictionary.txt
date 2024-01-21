@@ -71,6 +71,7 @@ haaaad
 hbenl
 hostvars
 hotfixes
+icontent
 jeinwag
 johndoe
 keyfile
@@ -128,6 +129,7 @@ tomaciazek
 towerhost
 tsbuildinfo
 tsdoc
+ttakamiy
 unstash
 untildify
 userdata

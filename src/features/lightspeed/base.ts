@@ -36,6 +36,7 @@ export class LightSpeedManager {
   public ansibleVarFilesCache: IVarsFileContext = {};
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
+  public currentModelValue: string | undefined = undefined;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -48,6 +49,7 @@ export class LightSpeedManager {
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
+    this.currentModelValue = undefined;
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
@@ -67,12 +69,14 @@ export class LightSpeedManager {
       this.context,
       this.client,
       this.settingsManager,
-      this.apiInstance
+      this.apiInstance,
+      this.lightSpeedAuthenticationProvider
     );
 
     // create a new project lightspeed status bar item that we can manage
     this.statusBarProvider = new LightspeedStatusBar(
       this.apiInstance,
+      this.lightSpeedAuthenticationProvider,
       context,
       client,
       settingsManager
@@ -95,6 +99,7 @@ export class LightSpeedManager {
       return;
     } else {
       this.lightSpeedAuthenticationProvider.initialize();
+      this.statusBarProvider.setLightSpeedStatusBarTooltip();
       this.setContext();
       if (lightspeedSettings.suggestions.enabled) {
         const githubConfig = (<unknown>(

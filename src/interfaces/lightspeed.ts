@@ -6,10 +6,13 @@ import {
 
 export interface LightspeedAuthSession extends AuthenticationSession {
   rhUserHasSeat: boolean;
+  rhOrgHasSubscription: boolean;
+  rhUserIsOrgAdmin: boolean;
 }
 
 export interface CompletionResponseParams {
   predictions: string[];
+  model?: string;
 }
 
 export interface MetadataParams {
@@ -160,4 +163,18 @@ export interface IAdditionalContext {
   playbookContext?: IPlaybookContext;
   roleContext?: IRoleContext;
   standaloneTaskContext?: IStandaloneTaskContext;
+}
+
+export interface LightspeedSessionUserInfo {
+  userType?: "Licensed" | "No seat assigned" | "Tech Preview";
+  role?: string;
+  subscribed?: boolean;
+}
+
+export interface LightspeedSessionModelInfo {
+  model?: string;
+}
+export interface LightspeedSessionInfo {
+  userInfo?: LightspeedSessionUserInfo;
+  modelInfo?: LightspeedSessionModelInfo;
 }

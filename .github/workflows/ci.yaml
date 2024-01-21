@@ -16,6 +16,7 @@ concurrency:
 
 env:
   FORCE_COLOR: "1" # make mocha output colorful
+  PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -82,7 +83,7 @@ jobs:
         run: yarn set version latest
 
       - name: Setup python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -97,6 +98,7 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
+            ~/.cache/pre-commit/
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
@@ -130,11 +132,11 @@ jobs:
         uses: coactions/setup-xvfb@v1
         with:
           run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
-        continue-on-error: ${{ matrix.continue-on-error || false }}
+        continue-on-error: ${{ startsWith(matrix.os, 'macos') }}
 
       - name: Upload vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ansible-extension-from-pr-${{ github.event.number }}.vsix
           path: ansible-*.vsix
@@ -142,7 +144,7 @@ jobs:
 
       - name: Upload test logs
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os }}-${{ matrix.task-name }}.zip
           path: |

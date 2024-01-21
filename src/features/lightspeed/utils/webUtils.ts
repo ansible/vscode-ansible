@@ -1,6 +1,13 @@
 import { EventEmitter, Uri, UriHandler } from "vscode";
 import crypto from "crypto";
 import { SettingsManager } from "../../../settings";
+import {
+  LightspeedAuthSession,
+  LightspeedSessionModelInfo,
+  LightspeedSessionUserInfo,
+  LightspeedSessionInfo,
+} from "../../../interfaces/lightspeed";
+import { lightSpeedManager } from "../../../extension";
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
 export const ANSIBLE_LIGHTSPEED_AUTH_NAME = `Ansible Lightspeed`;
@@ -18,6 +25,8 @@ export interface LoggedInUserInfo {
   username?: string;
   external_username: string;
   rh_user_has_seat: boolean;
+  rh_org_has_subscription: boolean;
+  rh_user_is_org_admin: boolean;
 }
 
 export class UriEventHandler extends EventEmitter<Uri> implements UriHandler {
@@ -59,4 +68,31 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 export function getBaseUri(settingsManager: SettingsManager) {
   const baseUri = settingsManager.settings.lightSpeedService.URL.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
+}
+
+export function getLoggedInSessionDetails(
+  sessionData: LightspeedAuthSession
+): LightspeedSessionInfo {
+  const userInfo: LightspeedSessionUserInfo = {};
+  const modelInfo: LightspeedSessionModelInfo = {};
+  if (sessionData.rhUserHasSeat) {
+    userInfo.userType = "Licensed";
+  } else if (sessionData.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
+    userInfo.userType = "No seat assigned";
+  } else {
+    userInfo.userType = "Tech Preview";
+  }
+  if (sessionData.rhUserIsOrgAdmin) {
+    userInfo.role = "Administrator";
+  }
+  if (sessionData.rhOrgHasSubscription) {
+    userInfo.subscribed = true;
+  }
+  if (lightSpeedManager.currentModelValue) {
+    modelInfo.model = lightSpeedManager.currentModelValue;
+  }
+  return {
+    userInfo: userInfo,
+    modelInfo: modelInfo,
+  };
 }

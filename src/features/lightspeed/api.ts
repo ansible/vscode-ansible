@@ -18,12 +18,14 @@ import {
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { retrieveError } from "./handleApiError";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
   private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
-  public _completionRequestInProgress: boolean;
+  private _completionRequestInProgress: boolean;
+  private _inlineSuggestionFeedbackSent: boolean;
 
   constructor(
     settingsManager: SettingsManager,
@@ -32,6 +34,19 @@ export class LightSpeedAPI {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
     this._completionRequestInProgress = false;
+    this._inlineSuggestionFeedbackSent = false;
+  }
+
+  get completionRequestInProgress(): boolean {
+    return this._completionRequestInProgress;
+  }
+
+  get inlineSuggestionFeedbackSent(): boolean {
+    return this._inlineSuggestionFeedbackSent;
+  }
+
+  set inlineSuggestionFeedbackSent(newValue: boolean) {
+    this._inlineSuggestionFeedbackSent = newValue;
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
@@ -85,6 +100,7 @@ export class LightSpeedAPI {
     );
     try {
       this._completionRequestInProgress = true;
+      this._inlineSuggestionFeedbackSent = false;
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         inputData,
@@ -92,7 +108,6 @@ export class LightSpeedAPI {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
       );
-      this._completionRequestInProgress = false;
       if (
         response.status === 204 ||
         response.data.predictions.length === 0 ||
@@ -104,71 +119,15 @@ export class LightSpeedAPI {
         );
         return {} as CompletionResponseParams;
       }
+      console.log(
+        `[ansible-lightspeed] Completion response: ${JSON.stringify(
+          response.data
+        )}`
+      );
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      if (err && "response" in err) {
-        if (err?.response?.status === 401) {
-          vscode.window.showErrorMessage(
-            "User not authorized to access Ansible Lightspeed."
-          );
-        } else if (err?.response?.status === 429) {
-          vscode.window.showErrorMessage(
-            "Too many requests to Ansible Lightspeed. Please try again after some time."
-          );
-        } else if (err?.response?.status === 400) {
-          const responseErrorData = <AxiosError<{ message?: string }>>(
-            err?.response?.data
-          );
-          if (
-            responseErrorData &&
-            responseErrorData.hasOwnProperty("message") &&
-            responseErrorData.message?.includes("Cloudflare")
-          ) {
-            vscode.window.showErrorMessage(
-              `Cloudflare rejected the request. Please contact your administrator.`
-            );
-          } else {
-            vscode.window.showErrorMessage(
-              "Bad Request response. Please try again."
-            );
-          }
-        } else if (err?.response?.status === 403) {
-          const responseErrorData = <AxiosError<{ message?: string }>>(
-            err?.response?.data
-          );
-          if (
-            responseErrorData &&
-            responseErrorData.hasOwnProperty("message") &&
-            responseErrorData.message?.includes("WCA Model ID is invalid")
-          ) {
-            vscode.window.showErrorMessage(
-              `Model ID "${this.settingsManager.settings.lightSpeedService.model}" is invalid. Please contact your administrator.`
-            );
-          } else {
-            vscode.window.showErrorMessage(
-              `User not authorized to access Ansible Lightspeed.`
-            );
-          }
-        } else if (err?.response?.status.toString().startsWith("5")) {
-          vscode.window.showErrorMessage(
-            "Ansible Lightspeed encountered an error. Try again after some time."
-          );
-        } else {
-          vscode.window.showErrorMessage(
-            `Failed to fetch inline suggestion from Ansible Lightspeed with status code: ${err?.response?.status}. Try again after some time.`
-          );
-        }
-      } else if (err.code === AxiosError.ECONNABORTED) {
-        vscode.window.showErrorMessage(
-          "Ansible Lightspeed connection timeout. Try again after some time."
-        );
-      } else {
-        vscode.window.showErrorMessage(
-          "Failed to fetch inline suggestion from Ansible Lightspeed. Try again after some time."
-        );
-      }
-      this._completionRequestInProgress = false;
+      vscode.window.showErrorMessage(retrieveError(err));
       return {} as CompletionResponseParams;
     } finally {
       this._completionRequestInProgress = false;

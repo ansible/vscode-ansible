@@ -71,6 +71,7 @@ import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
 import { AnsibleCreatorInit } from "./features/contentCreator/initPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
+import { LightspeedAuthSession } from "./interfaces/lightspeed";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -309,15 +310,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
     );
   });
 
-  workspace.onDidChangeConfiguration(
-    async () =>
-      await updateConfigurationChanges(
-        metaData,
-        pythonInterpreterManager,
-        extSettings,
-        lightSpeedManager
-      )
-  );
+  workspace.onDidChangeConfiguration(async () => {
+    await updateConfigurationChanges(
+      metaData,
+      pythonInterpreterManager,
+      extSettings,
+      lightSpeedManager
+    );
+    await updateAnsibleStatusBar(
+      metaData,
+      lightSpeedManager,
+      pythonInterpreterManager
+    );
+  });
 
   let session: vscode.AuthenticationSession | undefined;
 
@@ -330,7 +335,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   if (session) {
     window.registerTreeDataProvider(
       "lightspeed-explorer-treeview",
-      new TreeDataProvider(session)
+      new TreeDataProvider(<LightspeedAuthSession>session)
     );
   }
 
@@ -540,7 +545,7 @@ async function updateAnsibleStatusBar(
   pythonInterpreterManager: PythonInterpreterManager
 ) {
   await metaData.updateAnsibleInfoInStatusbar();
-  lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
+  await lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
   await pythonInterpreterManager.updatePythonInfoInStatusbar();
 }
 /**
@@ -581,7 +586,7 @@ async function getAuthToken(): Promise<void> {
     );
     return;
   }
-
+  lightSpeedManager.currentModelValue = undefined;
   const session = await authentication.getSession(
     ANSIBLE_LIGHTSPEED_AUTH_ID,
     [],
@@ -591,7 +596,7 @@ async function getAuthToken(): Promise<void> {
   );
   window.registerTreeDataProvider(
     "lightspeed-explorer-treeview",
-    new TreeDataProvider(session)
+    new TreeDataProvider(<LightspeedAuthSession>session)
   );
 
   if (session) {

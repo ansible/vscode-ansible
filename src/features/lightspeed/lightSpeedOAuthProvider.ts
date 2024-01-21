@@ -37,6 +37,7 @@ import {
   LIGHTSPEED_ME_AUTH_URL,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
+import { lightSpeedManager } from "../../extension";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -54,16 +55,19 @@ export class LightSpeedAuthenticationProvider
   private _uriHandler = new UriEventHandler();
   private _authId: string;
   private _authName: string;
+  private _externalRedirectUri: string;
 
   constructor(
     private readonly context: ExtensionContext,
     settingsManager: SettingsManager,
     authId: string,
-    authName: string
+    authName: string,
+    externalRedirectUri = ""
   ) {
     this.settingsManager = settingsManager;
     this._authId = authId;
     this._authName = authName;
+    this._externalRedirectUri = externalRedirectUri;
   }
 
   public initialize() {
@@ -83,6 +87,11 @@ export class LightSpeedAuthenticationProvider
       ),
       window.registerUriHandler(this._uriHandler)
     );
+  }
+
+  async setExternalRedirectUri() {
+    const callbackUri = await env.asExternalUri(Uri.parse(this.redirectUri));
+    this._externalRedirectUri = callbackUri.toString(true);
   }
 
   get redirectUri() {
@@ -118,6 +127,7 @@ export class LightSpeedAuthenticationProvider
    */
   public async createSession(scopes: string[]): Promise<LightspeedAuthSession> {
     try {
+      lightSpeedManager.currentModelValue = undefined;
       const account = await this.login(scopes);
 
       if (!account) {
@@ -129,19 +139,37 @@ export class LightSpeedAuthenticationProvider
       );
 
       const identifier = uuid();
-      const userName = userinfo.external_username || userinfo.username;
+      const userName = userinfo.external_username || userinfo.username || "";
+      const rhOrgHasSubscription = userinfo.rh_org_has_subscription
+        ? userinfo.rh_org_has_subscription
+        : false;
+      const rhUserHasSeat = userinfo.rh_user_has_seat
+        ? userinfo.rh_user_has_seat
+        : false;
 
+      let label = userName;
+      if (rhUserHasSeat) {
+        label += " (licensed)";
+      } else if (rhOrgHasSubscription) {
+        label += " (no seat assigned)";
+      } else {
+        label += " (Tech Preview)";
+      }
       const session: LightspeedAuthSession = {
         id: identifier,
         accessToken: account.accessToken,
         account: {
-          label: userName || "",
+          label: label,
           id: identifier,
         },
         // scopes: account.scope,
         scopes: [],
-        rhUserHasSeat: userinfo.rh_user_has_seat
-          ? userinfo.rh_user_has_seat
+        rhUserHasSeat: rhUserHasSeat,
+        rhOrgHasSubscription: userinfo.rh_org_has_subscription
+          ? userinfo.rh_org_has_subscription
+          : false,
+        rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin
+          ? userinfo.rh_user_is_org_admin
           : false,
       };
       await this.context.secrets.store(
@@ -154,6 +182,16 @@ export class LightSpeedAuthenticationProvider
         removed: [],
         changed: [],
       });
+
+      lightSpeedManager.statusBarProvider.statusBar.text =
+        await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
+          rhUserHasSeat,
+          rhOrgHasSubscription
+        );
+
+      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
+        session
+      );
 
       console.log("[ansible-lightspeed-oauth] Session created...");
 
@@ -195,6 +233,9 @@ export class LightSpeedAuthenticationProvider
         );
       }
     }
+    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
+    lightSpeedManager.currentModelValue = undefined;
   }
 
   /**
@@ -219,12 +260,14 @@ export class LightSpeedAuthenticationProvider
   private async login(scopes: string[] = []) {
     console.log("[ansible-lightspeed-oauth] Logging in...");
 
+    await this.setExternalRedirectUri();
+
     const searchParams = new URLSearchParams([
       ["response_type", "code"],
       ["code_challenge", CODE_CHALLENGE],
       ["code_challenge_method", "S256"],
       ["client_id", LIGHTSPEED_CLIENT_ID],
-      ["redirect_uri", this.redirectUri],
+      ["redirect_uri", this._externalRedirectUri],
     ]);
 
     const base_uri = getBaseUri(this.settingsManager);
@@ -234,14 +277,8 @@ export class LightSpeedAuthenticationProvider
       );
     }
 
-    const uri = Uri.parse(
-      Uri.parse(base_uri)
-        .with({
-          path: "/o/authorize/",
-          query: searchParams.toString(),
-        })
-        .toString(true)
-    );
+    const query = searchParams.toString();
+    const uri = Uri.parse(base_uri).with({ path: "/o/authorize/", query });
 
     const {
       promise: receivedRedirectUrl,
@@ -322,7 +359,7 @@ export class LightSpeedAuthenticationProvider
       client_id: LIGHTSPEED_CLIENT_ID,
       code: code,
       code_verifier: CODE_VERIFIER,
-      redirect_uri: this.redirectUri,
+      redirect_uri: this._externalRedirectUri,
       grant_type: "authorization_code",
     };
 
@@ -599,6 +636,26 @@ export class LightSpeedAuthenticationProvider
     } else {
       console.log(
         `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does not have a seat.`
+      );
+      return false;
+    }
+  }
+
+  public async rhOrgHasSubscription(): Promise<boolean | undefined> {
+    const authSession = await this.getLightSpeedAuthSession();
+    if (authSession === undefined) {
+      console.log(
+        "[ansible-lightspeed-oauth] User authentication session not found."
+      );
+      return undefined;
+    } else if (authSession?.rhOrgHasSubscription) {
+      console.log(
+        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has an Org with a subscription.`
+      );
+      return true;
+    } else {
+      console.log(
+        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does not have an Org with a subscription.`
       );
       return false;
     }

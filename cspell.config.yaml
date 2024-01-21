@@ -15,3 +15,4 @@ dictionaries:
 ignorePaths:
   - syntaxes/external/*.*
   - media
+  - package.json

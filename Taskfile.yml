@@ -136,6 +136,7 @@ tasks:
   test:
     desc: Run all tests
     deps:
+      - setup
       - package
     cmds:
       #- task: test-ui
@@ -148,27 +149,24 @@ tasks:
     deps:
       - package
     cmds:
-      - >
-        source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-e2e
+      - $VIRTUAL_ENV/bin/python3 --version
+      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-e2e'
     interactive: true
   test-ui:
     desc: Run UI tests
     deps:
       - package
     cmds:
-      - >
-        source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-ui-current
+      - $VIRTUAL_ENV/bin/python3 --version
+      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-current'
     interactive: true
   test-ui-old:
     desc: Run UI tests (oldest vscode)
     deps:
       - package
     cmds:
-      - >
-        source "${VIRTUAL_ENV}/bin/activate" &&
-        yarn run test-ui-oldest
+      - $VIRTUAL_ENV/bin/python3 --version
+      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
     interactive: true
   package:
     vars:

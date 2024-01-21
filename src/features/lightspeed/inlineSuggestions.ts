@@ -56,7 +56,12 @@ export class LightSpeedInlineSuggestionProvider
     context: vscode.InlineCompletionContext,
     token: vscode.CancellationToken
   ): vscode.ProviderResult<vscode.InlineCompletionItem[]> {
-    if (lightSpeedManager.apiInstance._completionRequestInProgress) {
+    const apiInstance = lightSpeedManager.apiInstance;
+    if (
+      apiInstance.completionRequestInProgress &&
+      !apiInstance.inlineSuggestionFeedbackSent
+    ) {
+      apiInstance.inlineSuggestionFeedbackSent = true;
       vscode.commands.executeCommand(
         LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
         UserAction.IGNORED
@@ -266,10 +271,13 @@ export async function getInlineSuggestionItems(
   suggestionId = "";
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
-
   console.log(
     "[inline-suggestions] Inline suggestions triggered by user edits."
   );
+  const lightSpeedStatusbarText =
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
+      rhUserHasSeat
+    );
   try {
     suggestionId = uuidv4();
     let activityId: string | undefined = undefined;
@@ -288,8 +296,7 @@ export async function getInlineSuggestionItems(
     }
     inlineSuggestionData["activityId"] = activityId;
 
-    lightSpeedManager.statusBarProvider.statusBar.text =
-      "$(loading~spin) Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
     result = await requestInlineSuggest(
       documentContent,
       parsedAnsibleDocument,
@@ -300,13 +307,15 @@ export async function getInlineSuggestionItems(
       documentFilePath,
       ansibleFileType
     );
-    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      lightSpeedStatusbarText;
   } catch (error) {
     inlineSuggestionData["error"] = `${error}`;
     vscode.window.showErrorMessage(`Error in inline suggestions: ${error}`);
     return [];
   } finally {
-    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      lightSpeedStatusbarText;
   }
   if (!result || !result.predictions || result.predictions.length === 0) {
     console.error("[inline-suggestions] Inline suggestions not found.");
@@ -379,10 +388,10 @@ async function requestInlineSuggest(
     },
   };
 
-  const model =
+  const userProvidedModel =
     lightSpeedManager.settingsManager.settings.lightSpeedService.model;
-  if (model && model !== "") {
-    completionData.model = model;
+  if (userProvidedModel && userProvidedModel !== "") {
+    completionData.model = userProvidedModel;
   }
 
   if (rhUserHasSeat) {
@@ -401,16 +410,34 @@ async function requestInlineSuggest(
   );
 
   lightSpeedManager.statusBarProvider.statusBar.show();
-  lightSpeedManager.statusBarProvider.statusBar.tooltip = "processing...";
   console.log(
     `[inline-suggestions] completionData: \n${yaml.stringify(completionData)}\n`
   );
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
-  lightSpeedManager.statusBarProvider.statusBar.tooltip = "Done";
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
   );
+  if (outputData.model) {
+    // If model name is returned by server is different from the one previously used
+    // and it is not the user provided model, update the model name
+    if (
+      lightSpeedManager.currentModelValue !== outputData.model &&
+      outputData.model !== userProvidedModel
+    ) {
+      lightSpeedManager.currentModelValue = outputData.model;
+      // update the Lightspeed status bar tooltip with the model name
+      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip();
+    }
+    // check if the model value provided by user is same as that is used by the server
+    if (userProvidedModel && userProvidedModel !== "") {
+      if (outputData.model !== userProvidedModel) {
+        vscode.window.showWarningMessage(
+          `Ansible Lightspeed is using the model ${outputData.model} for suggestions instead of ${userProvidedModel}. Please contact your administrator.`
+        );
+      }
+    }
+  }
   return outputData;
 }
 
