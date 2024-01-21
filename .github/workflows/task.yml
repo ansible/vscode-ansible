@@ -108,7 +108,7 @@ jobs:
 
       - name: Enable caching
         if: "!contains(matrix.shell, 'wsl')"
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/npm
@@ -124,7 +124,7 @@ jobs:
             ) }}
 
       - name: Enable caching for podman-machine
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         if: "contains(matrix.os, 'macos')"
         with:
           path: |
