@@ -9,8 +9,8 @@
     "sourceMap": true,
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
   "include": ["src", "test"],
-  "exclude": ["node_modules", "test-resources", "test/units/**/*.test.ts"]
+  "exclude": ["node_modules", "test-resources", "test/units/**/*.test.ts"],
 }
