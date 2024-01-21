@@ -173,16 +173,32 @@ if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     log notice "Creating virtualenv ..."
     python3 -m venv "${VIRTUAL_ENV}"
 fi
-# shellcheck disable=SC1091
+# shellcheck source=/dev/null
 . "${VIRTUAL_ENV}/bin/activate"
 
+if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
+    log warning "Virtualenv broken, trying to recreate it ..."
+    python3 -m venv --clear "${VIRTUAL_ENV}"
+    . "${VIRTUAL_ENV}/bin/activate"
+    if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
+        log error "Virtualenv still broken."
+        exit 99
+    fi
+fi
 log notice "Upgrading pip ..."
+
 python3 -m pip install -q -U pip
 
 EE_VERSION=$(./tools/get-image-version)
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     URL="https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt"
-    log notice "Installing dependencies from .config/requirements.in and ${URL} loaded from .config/Containerfile ..."
+    log notice "Installing dependencies from .config/requirements.in and ${URL} loaded from .config/Dockerfile ..."
+
+    if [[ "${OS:-}" == "darwin" ]]; then
+        log notice "MacOS detected, altering CFLAGS to avoid potential build failure due to https://github.com/ansible/pylibssh/issues/207 ..."
+        CFLAGS="-I $(brew --prefix)/include -I ext -L $(brew --prefix)/lib -lssh"
+        export CFLAGS
+    fi
     python3 -m pip install -r "${URL}" -r .config/requirements.in
 fi
 

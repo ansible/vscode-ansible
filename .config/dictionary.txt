@@ -1,4 +1,5 @@
 Ansible
+CFLAGS
 Containerfile
 Dpkg
 FQCN
@@ -58,8 +59,10 @@ lineinfile
 linkcheck
 linkify
 loglevel
+lssh
 lxml
 markdownlint
+mkdocs
 monospace
 mycollection
 mymodule
@@ -118,7 +121,6 @@ wordwrap
 workdir
 xvfb
 yammlint
-mkdocs
 
 # names and usernames:
 Ganesh

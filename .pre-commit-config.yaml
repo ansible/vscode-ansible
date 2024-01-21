@@ -23,6 +23,8 @@ repos:
       - id: shellcheck
         args:
           - --color=always
+          - -e
+          - SC1091
   - repo: local
     hooks:
       - id: npm-ci
@@ -52,7 +54,7 @@ repos:
         files: "codecov.yml"
         pass_filenames: false
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.2.1
+    rev: v8.3.0
     hooks:
       - id: cspell
         name: Spell check with cspell
@@ -103,7 +105,7 @@ repos:
             docs/settings.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-alpha.0
+    rev: v9.0.0-alpha.1
     hooks:
       - id: eslint
         args:
