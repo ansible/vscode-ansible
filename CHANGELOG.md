@@ -8,12 +8,14 @@
 
 ### Major Changes
 
-- Show the license section of content matches only for licensed users (#1019) @TamiTakamiya
+- Show the license section of content matches only for licensed users (#1019)
+  @TamiTakamiya
 
 ### Minor Changes
 
 - Show model ID to be used in statusbar tooltip (#1046) @TamiTakamiya
-- Rename files and vars to use camel case inline with the naming conven… (#1048) @ganeshrn
+- Rename files and vars to use camel case inline with the naming conven… (#1048)
+  @ganeshrn
 - unit-test coverage for contentMatchesWebview (#1041) @goneri
 - AAP-18228: Handle user's trial expiry (#1037) @hasys
 - GitHub Codespaces/code-server support (#1012) @TamiTakamiya
@@ -24,7 +26,8 @@
 ### Bugfixes
 
 - Do not send duplicated inline suggestion feedback (#1050) @TamiTakamiya
-- Ignore a webpack warning from vscode-languageserver-textdocument (#1051) @TamiTakamiya
+- Ignore a webpack warning from vscode-languageserver-textdocument (#1051)
+  @TamiTakamiya
 - fix check for no seat assigned (#1040) @robinbobbitt
 - Handle spaces in file path (#1032) @ajinkyau
 
