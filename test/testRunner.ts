@@ -79,17 +79,6 @@ async function main(): Promise<void> {
     fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
     fs.copyFileSync(settings_src, settings_dst);
 
-    // Install the ansible extension from generated .vsix
-    const installLog = cp.execSync(
-      `"${cliPath}" ${cliArgs.join(
-        " "
-      )} --install-extension ansible-*.vsix --force`,
-      {
-        env: env,
-      }
-    );
-    console.log(installLog.toString());
-
     // Install the dependent extensions
     const dependencies = ["ms-python.python", "redhat.vscode-yaml"];
     for (const dep of dependencies) {
@@ -109,7 +98,7 @@ async function main(): Promise<void> {
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
-    const extensionDevelopmentPath = path.resolve(__dirname, "../../");
+    const extensionDevelopmentPath = path.resolve(__dirname, "../../../");
 
     // The path to test runner
     // Passed to --extensionTestsPath
