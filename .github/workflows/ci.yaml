@@ -88,7 +88,7 @@ jobs:
           python-version: "3.11"
 
       - name: Enable caching
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             .vscode-test
@@ -103,7 +103,7 @@ jobs:
 
       # - name: Enable caching for podman-machine
       #   if: "contains(matrix.os, 'macos')"
-      #   uses: actions/cache@v3
+      #   uses: actions/cache@v4
       #   with:
       #     path: |
       #       ~/.local/share/containers
