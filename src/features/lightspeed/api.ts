@@ -153,7 +153,10 @@ export class LightSpeedAPI {
       return {} as FeedbackResponseParams;
     }
     const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
-    if (rhUserHasSeat) {
+    const orgTelementryOptOut =
+      this.settingsManager.settings.lightSpeedService.orgTelemetryOptOut;
+
+    if (rhUserHasSeat && orgTelementryOptOut) {
       if (inputData.inlineSuggestion) {
         delete inputData.inlineSuggestion;
       }

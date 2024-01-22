@@ -11,17 +11,24 @@ import {
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
-import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
+import {
+  LIGHTSPEED_ME_AUTH_URL,
+  AnsibleContentUploadTrigger,
+} from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
+  getBaseUri,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
 import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
-import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import {
+  LightSpeedServiceSettings,
+  UserResponse,
+} from "../../interfaces/extensionSettings";
 
 export class LightSpeedManager {
   private context;
@@ -37,6 +44,7 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
+  public orgTelemetryOptOut = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -65,6 +73,15 @@ export class LightSpeedManager {
       this.settingsManager,
       this.lightSpeedAuthenticationProvider
     );
+    this.apiInstance
+      .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
+      .then((userResponse: UserResponse) => {
+        this.settingsManager.settings.lightSpeedService.orgTelemetryOptOut =
+          userResponse.org_telemetry_opt_out;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
@@ -150,7 +167,12 @@ export class LightSpeedManager {
       return;
     }
 
-    if (await this.lightSpeedAuthenticationProvider.rhUserHasSeat()) {
+    const rhUserHasSeat =
+      await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
+    const orgTelementryOptOut =
+      this.settingsManager.settings.lightSpeedService.orgTelemetryOptOut;
+
+    if (rhUserHasSeat && orgTelementryOptOut) {
       return;
     }
 
