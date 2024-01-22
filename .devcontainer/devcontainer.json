@@ -1,5 +1,5 @@
 {
   "image": "ghcr.io/ansible/creator-ee:latest",
   "workspaceFolder": "/workspace",
-  "workspaceMount": "source=remote-workspace,target=/workspace,type=volume",
+  "workspaceMount": "source=remote-workspace,target=/workspace,type=volume"
 }
