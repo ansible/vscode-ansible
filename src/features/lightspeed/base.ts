@@ -44,6 +44,9 @@ export class LightSpeedManager {
     settingsManager: SettingsManager,
     telemetry: TelemetryManager
   ) {
+    vscode.window.showWarningMessage(
+      "NOTE: Due to overwhelming positive demand, we have extended the availability of the Ansible Lightspeed Technical Preview from December 31, 2023 to February 29, 2024."
+    );
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
