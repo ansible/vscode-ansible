@@ -21,3 +21,6 @@ CHANGELOG.html
 .direnv
 .tool-versions
 coverage
+.nyc_output
+.idea
+*.pyc
