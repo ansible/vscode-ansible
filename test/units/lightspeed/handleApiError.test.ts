@@ -105,6 +105,18 @@ describe("testing the error handling", () => {
       `Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.`
     );
   });
+  it("err Forbidden - No Seat", () => {
+    const msg = retrieveError(
+      createError(403, {
+        code: "permission_denied__user_with_no_seat",
+      })
+    );
+    assert.equal(
+      msg,
+      "You don't have access to IBM watsonx Code Assistant. Contact your administrator."
+    );
+  });
+
   it("err Forbidden", () => {
     const msg = retrieveError(createError(403));
     assert.equal(msg, `User not authorized to access Ansible Lightspeed.`);
