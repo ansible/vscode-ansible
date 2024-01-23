@@ -813,7 +813,7 @@
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner",
     "coverage-e2e-withserver": "COVERAGE=1 yarn run test-e2e-withserver"
   },
-  "version": "2.9.0",
+  "version": "2.10.0",
   "packageManager": "yarn@4.0.2",
   "vsce": {
     "dependencies": false,
