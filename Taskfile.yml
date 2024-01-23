@@ -5,6 +5,8 @@ env: &env
   # basically the same thing from .envrc file:
   VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
     sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
+  # Avoid undesired extra hints from docker when pulling images
+  DOCKER_CLI_HINTS: "false"
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-localhost}
@@ -57,6 +59,7 @@ tasks:
       - ./tools/test-setup.sh
     sources:
       - package.json
+      - package-lock.json
       - .config/requirements.*
       - setup.cfg
       - tools/test-setup.sh
@@ -81,6 +84,7 @@ tasks:
     deps:
       - setup
     cmds:
+      - npm install -g npm@latest
       - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
       # bumps some developments dependencies
       - npx ncu -u --dep dev

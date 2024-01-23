@@ -76,7 +76,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
 fi
-python3 --version
+log notice "Using $(python3 --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
@@ -202,12 +202,12 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     fi
     if [[ "${WSL}" == "0" ]]; then
         log notice "Ensure python version is recent enough for using latest ansible-core"
-        python3 -c "import sys; print(sys.version_info[:2]); sys.exit(not sys.version_info[:2]>=(3, 10))"
-        python3 -m pip install -r "https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt" -r .config/requirements.in
+        python3 -c "import sys; sys.exit(0 if sys.version_info[:2]>=(3, 10) else 1);"
+        python3 -m pip install -q -r "https://raw.githubusercontent.com/ansible/creator-ee/${EE_VERSION}/_build/requirements.txt" -r .config/requirements.in
     else
         # Under WSL we do not use our constraints because github runners has ubuntu 20.04 with python3.9 which is too old
-        python3 -c "import sys; print(sys.version_info[:2]); sys.exit(not sys.version_info[:2]>=(3, 9))"
-        python3 -m pip install -r .config/requirements.in
+        python3 -c "import sys; sys.exit(0 if sys.version_info[:2]>=(3, 9) else 1);"
+        python3 -m pip install -q -r .config/requirements.in
     fi
 fi
 
@@ -333,12 +333,16 @@ creator-ee:
   ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
 EOF
 
-log notice "Install node deps using either yarn or npm"
 if [[ -f yarn.lock ]]; then
-    yarn install
+    command -v yarn >/dev/null 2>&1 || npm install -g yarn
+    yarn --version
+    CMD="yarn install --immutable"
+    # --immutable-cache --check-cache
 else
-    npm ci --no-audit
+    CMD="npm ci --no-audit"
 fi
+log notice "Install node deps using: ${CMD}"
+$CMD
 
 [[ $ERR -eq 0 ]] && level=notice || level=error
 log "${level}" "${0##*/} -> out/log/manifest.yml and returned ${ERR}"
