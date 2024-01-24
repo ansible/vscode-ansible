@@ -432,7 +432,9 @@ export class ExecutionEnvironment {
     this.cleanUpContainer(containerName);
 
     try {
-      let command = `${this._container_engine} run --rm -it -d `;
+      // Do not add '-t' option when running the containers as this causes stderr noise, such:
+      // The input device is not a TTY. The --tty and--interactive flags might not work properly
+      let command = `${this._container_engine} run -i --rm -d `;
       if (this.settingsVolumeMounts && this.settingsVolumeMounts.length > 0) {
         command += this.settingsVolumeMounts.join(" ");
       }
