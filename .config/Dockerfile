@@ -1,4 +1,4 @@
-FROM quay.io/ansible/creator-ee:v0.21.0 as DEFAULT_EE
+FROM quay.io/ansible/creator-ee:v0.22.0 as DEFAULT_EE
 # This file is updated by dependabot and used to determine not only which
 # version of creator-ee we are supposed to use for testing execution
 # environments but also to dynamically retrieve the same set of constraints
