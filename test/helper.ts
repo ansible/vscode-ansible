@@ -6,8 +6,7 @@ import { createConnection, TextDocuments } from "vscode-languageserver/node";
 import { ValidationManager } from "../src/services/validationManager";
 import { ExtensionSettings } from "../src/interfaces/extensionSettings";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const Fuse = require("fuse.js");
+import Fuse from "fuse.js";
 
 export const FIXTURES_BASE_PATH = path.join("test", "fixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
@@ -106,7 +105,6 @@ export function smartFilter(completionList, triggerCharacter) {
   const searcher = new Fuse(completionList, {
     keys: ["filterText"],
     threshold: 0.4,
-    refIndex: false,
   });
 
   let filteredCompletionList = triggerCharacter
@@ -119,7 +117,6 @@ export function smartFilter(completionList, triggerCharacter) {
     const newSearcher = new Fuse(completionList, {
       keys: ["label"],
       threshold: 0.2,
-      refIndex: false,
     });
 
     filteredCompletionList = triggerCharacter
