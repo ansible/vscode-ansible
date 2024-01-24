@@ -71,24 +71,22 @@ export function getBaseUri(settingsManager: SettingsManager) {
 }
 
 export function getLoggedInSessionDetails(
-  sessionData: LightspeedAuthSession
+  sessionData?: LightspeedAuthSession
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};
-  if (sessionData) {
-    if (sessionData.rhUserHasSeat) {
-      userInfo.userType = "Licensed";
-    } else if (sessionData.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
-      userInfo.userType = "No seat assigned";
-    } else {
-      userInfo.userType = "Tech Preview";
-    }
-    if (sessionData.rhUserIsOrgAdmin) {
-      userInfo.role = "Administrator";
-    }
-    if (sessionData.rhOrgHasSubscription) {
-      userInfo.subscribed = true;
-    }
+  if (sessionData?.rhUserHasSeat) {
+    userInfo.userType = "Licensed";
+  } else if (sessionData?.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
+    userInfo.userType = "No seat assigned";
+  } else {
+    userInfo.userType = "Tech Preview";
+  }
+  if (sessionData?.rhUserIsOrgAdmin) {
+    userInfo.role = "Administrator";
+  }
+  if (sessionData?.rhOrgHasSubscription) {
+    userInfo.subscribed = true;
   }
   if (lightSpeedManager.currentModelValue) {
     modelInfo.model = lightSpeedManager.currentModelValue;
