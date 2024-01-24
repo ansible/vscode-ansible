@@ -2,7 +2,7 @@
 import express, { Application } from "express";
 import { completions } from "./completion";
 import { me } from "./me";
-import { openurl } from "./openurl";
+import { openUrl } from "./openUrl";
 
 const API_VERSION = "v0";
 const API_ROOT = `/api/${API_VERSION}`;
@@ -38,7 +38,7 @@ export default class Server {
       console.log(req.query);
       const redirectUri = decodeURIComponent(req.query.redirect_uri);
       console.log(`opening ${redirectUri} ...`);
-      openurl(`${redirectUri}&code=CODE`);
+      openUrl(`${redirectUri}&code=CODE`);
       return res.send({});
     });
 

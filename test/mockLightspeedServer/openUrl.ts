@@ -3,7 +3,7 @@ import { spawn } from "child_process";
 
 const command = process.platform === "darwin" ? "open" : "xdg-open";
 
-export function openurl(url: string) {
+export function openUrl(url: string) {
   const child = spawn(command, [url]);
   let errorText = "";
   child.stderr.setEncoding("utf8");
