@@ -12,6 +12,7 @@ else
   git checkout main
   git pull --ff-only
 fi
+asdf local nodejs latest:18
 
 unset VIRTUAL_ENV
 

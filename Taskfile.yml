@@ -10,10 +10,6 @@ env: &env
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-localhost}
-  NODE_ENV: |
-    [ -z "$NVM_DIR" ] && export NVM_DIR="$HOME/.nvm";
-    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh" --silent;
-    [ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh";
   EE_VERSION:
     sh: ./tools/get-image-version
 tasks:
@@ -25,7 +21,6 @@ tasks:
       VERSION:
         sh: node -p "require('./package.json').version"
     cmds:
-      - bash -c '{{ .NODE_ENV }} nvm install'
       - task: lint
       - task: package
       - task: docs
@@ -85,6 +80,11 @@ tasks:
       - setup
     cmds:
       - npm install -g npm@latest
+      # 1st node version is the implicit one and must match node version from
+      # vscode about dialog and be within supported range from https://www.npmjs.com/package/vscode-extension-tester
+      # as we want to avoid using different node versions across the projects.
+      # 2nd node version is used for preparing for new versions
+      - asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)
       - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
       # bumps some developments dependencies
       - npx ncu -u --dep dev
@@ -110,8 +110,9 @@ tasks:
       - src/**/*.*
       - test/**/*.*
       - tools/**/*.*
-  test:
-    desc: Run all tests
+  .test:
+    # Keep the desc empty to hide entry when listing
+    # desc: Run all tests
     vars:
       ENGINE:
         sh: bash -c "command -v docker | head -n 1"
@@ -124,18 +125,22 @@ tasks:
       - >
         source $VIRTUAL_ENV/bin/activate &&
         command -v ansible-lint &&
-        bash -c '{{ .NODE_ENV }} npm run test'
+        npm run test
     interactive: true
-  test-node14:
-    desc: Run all tests using node 14
+  test:
+    desc: Run all tests using node (same version as vscode)
     cmds:
-      - bash -c '{{ .NODE_ENV }} nvm install 14'
-      - task: test
-  test-node16:
-    desc: Run all tests using node 16
+      - bash -c 'asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)'
+      - task: .test
+  test-node-lts:
+    desc: Run all tests using node-lts (future)
     cmds:
-      - bash -c '{{ .NODE_ENV }} nvm install 16'
-      - task: test
+      # switch to node-lts
+      - bash -c 'asdf local nodejs latest:$(asdf nodejs resolve lts) latest:18'
+      - task: .test
+      - node --version
+      # restore implicit node version
+      - bash -c 'asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)'
   test-with-ee:
     desc: Run only ee tests
     deps:
@@ -143,7 +148,7 @@ tasks:
     cmds:
       - >
         source $VIRTUAL_ENV/bin/activate &&
-        bash -c '{{ .NODE_ENV }} npm run test-with-ee'
+        bash -c 'npm run test-with-ee'
     interactive: true
   test-without-ee:
     desc: Run only non-ee tests
@@ -152,7 +157,7 @@ tasks:
     cmds:
       - >
         source $VIRTUAL_ENV/bin/activate &&
-        bash -c '{{ .NODE_ENV }} npm run test-without-ee'
+        bash -c 'npm run test-without-ee'
     interactive: true
   package:
     desc: Package extension
@@ -167,7 +172,7 @@ tasks:
       - "*.vsix"
     cmds:
       - rm -f *.tgz
-      - bash -c '{{ .NODE_ENV }} npm pack'
+      - bash -c 'npm pack'
     silent: false
   pr:
     desc: Opens a pull request using gh

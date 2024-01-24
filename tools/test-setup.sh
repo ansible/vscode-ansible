@@ -54,6 +54,12 @@ log () {
     >&2 echo -e "${prefix}${2}${NC}"
 }
 
+log notice "Install latest lts version of nodejs (used by 'node-lts' job)"
+asdf install
+
+log notice "Report current build tool versions..."
+asdf current
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
@@ -154,8 +160,8 @@ command -v gh >/dev/null 2>&1 || {
           sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
       sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-      sudo apt update
-      sudo apt install gh
+      sudo apt-get update
+      sudo apt-get install gh
     else
         command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
     fi
@@ -246,23 +252,9 @@ for CMD in ansible ansible-lint; do
 done
 unset CMD
 
-command -v nvm >/dev/null 2>&1 || {
-    # define its location (needed)
-    [[ -z "${NVM_DIR:-}" ]] && export NVM_DIR="${HOME}/.nvm";
-    # install if missing
-    [[ ! -s "${NVM_DIR:-}/nvm.sh" ]] && {
-        log warning "Installing missing nvm"
-        curl -s -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-    }
-    # activate nvm
-    # shellcheck disable=1091
-    . "${NVM_DIR:-${HOME}/.nvm}/nvm.sh"
-    # shellcheck disable=1091
-    [[ -s "/usr/local/opt/nvm/nvm.sh" ]] && . "/usr/local/opt/nvm/nvm.sh";
-}
 command -v npm  >/dev/null 2>&1 || {
     log notice "Installing nodejs stable."
-    nvm install stable
+    asdf install
 }
 # Check if npm has permissions to install packages (system installed does not)
 # Share https://stackoverflow.com/a/59227497/99834
@@ -315,12 +307,11 @@ env:
 tools:
   ansible-lint: $(get_version ansible-lint)
   ansible: $(get_version ansible)
+  asdf: $(get_version asdf)
   bash: $(get_version bash)
   gh: $(get_version gh || echo null)
   git: $(get_version git)
   node: $(get_version node)
-  npm: $(get_version npm)
-  nvm: $(get_version nvm || echo null)
   pre-commit: $(get_version pre-commit)
   python: $(get_version python)
   task: $(get_version task)

@@ -42,8 +42,8 @@ jobs:
           - "16"
         task-name:
           - vscode
-          - test-node14
-          - test-node16
+          - test
+          - test-node-lts
         upload-artifact:
           - false
         name:
@@ -68,13 +68,17 @@ jobs:
 
     steps:
       - name: Disable autocrlf
-        if: "contains(matrix.os, 'windows')"
+        if: contains(matrix.os, 'windows')
         run: |-
           git config --global core.autocrlf false
           git config --global core.eol lf
         shell: bash # <-- keep it here to avoid using default shell
 
       - uses: actions/checkout@v4
+
+      - name: Setup asdf
+        if: "!contains(matrix.shell, 'wsl')"
+        uses: asdf-vm/actions/install@v3
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
@@ -84,7 +88,7 @@ jobs:
           set-as-default: 'true'
           # we want to load user profile
           # https://github.com/Vampire/setup-wsl#wsl-shell-command
-          wsl-shell-command: "bash -euo pipefail"
+          wsl-shell-command: "bash -l -euo pipefail"
           # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
           wsl-conf: |
             [automount]
@@ -98,13 +102,17 @@ jobs:
             hostname = wsl
           additional-packages:
             curl
+            dirmngr
+            gawk
             git
+            gpg
             make
             python3-dev
             python3-pip
             python3-venv
             qemu-user-static
             xvfb
+          # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Set up Python ${{ matrix.python_version || '3.10' }}
         if: "!contains(matrix.shell, 'wsl')"
@@ -120,7 +128,6 @@ jobs:
             ~/.cache/npm
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.nvm/.cache
             ~/Library/Caches/pip
           key: >
             ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles(
@@ -152,23 +159,6 @@ jobs:
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
           task --version
 
-      - name: Dump node version into .nvmrc file
-        # save node version in .nvmrc file by looking for a pattern like
-        # node12 in job name. If pattern is not found it uses 'current' alias
-        if: "!contains(matrix.shell, 'wsl')"
-        run: >
-          python3 -c 'import os, re;
-          v = re.search("node(\d+)", os.environ.get("JOB_NAME", "")) or ["", "current"];
-          print(v[1])' > .nvmrc
-
-      - name: Use node
-        # as Windows executables are exposed inside WSL at top of PATH, we
-        # would end with broken npm script in PATH on wsl.
-        if: "!contains(matrix.shell, 'wsl')"
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-
       - name: Install task inside WSL
         if: "contains(matrix.shell, 'wsl')"
         run: |
@@ -176,6 +166,19 @@ jobs:
           sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
           echo $PATH
           command -v task
+
+      - name: Install asdf inside WSL
+        if: "contains(matrix.shell, 'wsl')"
+        run: |
+          set -ex
+          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+          export ASDF_DIR="$HOME/.asdf"
+          . "$HOME/.asdf/asdf.sh"
+          asdf plugin add nodejs
+          asdf plugin add python
+          asdf install
+          asdf info
 
       - run: task setup
 

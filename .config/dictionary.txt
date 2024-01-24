@@ -38,6 +38,7 @@ deps
 devel
 direnv
 dirhtml
+dirmngr
 docker
 doctree
 doctrees
@@ -76,7 +77,6 @@ notfound
 npmjs
 npmrc
 nvim
-nvmrc
 parseable
 patchback
 pgrep
