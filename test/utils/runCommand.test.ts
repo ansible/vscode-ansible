@@ -4,10 +4,12 @@ import { WorkspaceManager } from "../../src/services/workspaceManager";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "../helper";
 import * as path from "path";
+import { readFileSync } from "fs";
 
 describe("commandRunner", () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const pkgJSON = require(path.resolve(__dirname, "..", "..", "package.json"));
+  const packageJsonPath = require.resolve("../../package.json");
+  const packageJsonContents = readFileSync(packageJsonPath).toString();
+  const pkgJSON = JSON.parse(packageJsonContents);
 
   const tests = [
     {
