@@ -71,21 +71,21 @@ export function getBaseUri(settingsManager: SettingsManager) {
 }
 
 export function getLoggedInSessionDetails(
-  sessionData?: LightspeedAuthSession
+  sessionData: LightspeedAuthSession
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};
-  if (sessionData?.rhUserHasSeat) {
+  if (sessionData.rhUserHasSeat) {
     userInfo.userType = "Licensed";
-  } else if (sessionData?.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
+  } else if (sessionData.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
     userInfo.userType = "No seat assigned";
   } else {
     userInfo.userType = "Tech Preview";
   }
-  if (sessionData?.rhUserIsOrgAdmin) {
+  if (sessionData.rhUserIsOrgAdmin) {
     userInfo.role = "Administrator";
   }
-  if (sessionData?.rhOrgHasSubscription) {
+  if (sessionData.rhOrgHasSubscription) {
     userInfo.subscribed = true;
   }
   if (lightSpeedManager.currentModelValue) {
