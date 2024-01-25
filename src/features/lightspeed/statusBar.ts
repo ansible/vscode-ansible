@@ -11,6 +11,7 @@ import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   getLoggedInSessionDetails,
+  getUserTypeLabel,
 } from "./utils/webUtils";
 import { lightSpeedManager } from "../../extension";
 
@@ -58,7 +59,6 @@ export class LightspeedStatusBar {
     rhUserHasSeat?: boolean,
     rhOrgHasSubscription?: boolean
   ): Promise<string> {
-    let lightSpeedStatusbarText;
     if (rhUserHasSeat === undefined) {
       rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
     }
@@ -66,16 +66,11 @@ export class LightspeedStatusBar {
       rhOrgHasSubscription =
         await this.lightSpeedAuthProvider.rhOrgHasSubscription();
     }
-    if (rhUserHasSeat === true) {
-      lightSpeedStatusbarText = "Lightspeed (licensed)";
-    } else if (rhOrgHasSubscription === true && rhUserHasSeat === false) {
-      lightSpeedStatusbarText = "Lightspeed (no seat assigned)";
-    } else if (rhUserHasSeat === false) {
-      lightSpeedStatusbarText = "Lightspeed (Tech Preview)";
-    } else {
-      lightSpeedStatusbarText = "Lightspeed";
-    }
-    return lightSpeedStatusbarText;
+    const userTypeLabel = getUserTypeLabel(
+      rhOrgHasSubscription,
+      rhUserHasSeat
+    ).toLowerCase();
+    return `Lightspeed (${userTypeLabel})`;
   }
   private handleStatusBar() {
     if (!this.client.isRunning()) {

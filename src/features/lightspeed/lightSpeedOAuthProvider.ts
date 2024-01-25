@@ -29,6 +29,7 @@ import {
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
   getBaseUri,
+  getUserTypeLabel,
 } from "./utils/webUtils";
 import {
   LightSpeedCommands,
@@ -147,19 +148,16 @@ export class LightSpeedAuthenticationProvider
         ? userinfo.rh_user_has_seat
         : false;
 
-      let label = userName;
-      if (rhUserHasSeat) {
-        label += " (licensed)";
-      } else if (rhOrgHasSubscription) {
-        label += " (no seat assigned)";
-      } else {
-        label += " (Tech Preview)";
-      }
+      const userTypeLabel = getUserTypeLabel(
+        rhOrgHasSubscription,
+        rhUserHasSeat
+      ).toLowerCase();
+      const label = `${userName} (${userTypeLabel})`;
       const session: LightspeedAuthSession = {
         id: identifier,
         accessToken: account.accessToken,
         account: {
-          label: label,
+          label,
           id: identifier,
         },
         // scopes: account.scope,
