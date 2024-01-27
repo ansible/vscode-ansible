@@ -17,6 +17,11 @@ concurrency:
 env:
   FORCE_COLOR: "1" # make mocha output colorful
   PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
+  # https://docs.github.com/en/actions/learn-github-actions/environment-variables
+  # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p
+  # We define a hostname because otherwise the variable might not always be accessible on runners.
+  HOSTNAME: gha
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -67,20 +72,34 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout vscode-ansible
-        uses: actions/checkout@v4.1.1
+      - name: Disable autocrlf
+        if: contains(matrix.os, 'windows')
+        run: |-
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        shell: bash # <-- keep it here to avoid using default shell
 
-      - name: Install Task
-        uses: arduino/setup-task@v1
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/checkout@v4
 
-      - name: Setup yarn
-        run: yarn set version latest
+      - name: Setup asdf
+        if: "!contains(matrix.shell, 'wsl')"
+        uses: asdf-vm/actions/install@v3
+
+      - name: Install asdf inside WSL
+        if: "contains(matrix.shell, 'wsl')"
+        run: |
+          set -ex
+          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+          export ASDF_DIR="$HOME/.asdf"
+          . "$HOME/.asdf/asdf.sh"
+          asdf plugin add nodejs
+          asdf plugin add python
+          asdf plugin add task
+          asdf plugin add yarn
+          asdf install
+          asdf info
 
       - name: Setup python
         uses: actions/setup-python@v5
@@ -110,11 +129,6 @@ jobs:
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
-      - name: Use NodeJS v18
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
       - name: task setup
         run: task setup
 
@@ -128,11 +142,7 @@ jobs:
         env:
           TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
           TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
-        # xvfb needed for chrome headless tests
-        uses: coactions/setup-xvfb@v1
-        with:
-          run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
-        continue-on-error: ${{ startsWith(matrix.os, 'macos') }}
+        run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
       - name: Upload vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}

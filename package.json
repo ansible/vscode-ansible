@@ -710,6 +710,7 @@
     "@types/ini": "^4.1.0",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "axios": "^1.6.4",
+    "express": "^4.18.2",
     "ini": "^4.1.1",
     "minimatch": "^9.0.3",
     "untildify": "^4.0.0",
@@ -721,6 +722,7 @@
   "description": "Ansible language support",
   "devDependencies": {
     "@types/chai": "^4.3.11",
+    "@types/express": "^4",
     "@types/glob": "^8.1.0",
     "@types/minimatch": "^5.1.2",
     "@types/mocha": "^10.0.6",
@@ -805,13 +807,17 @@
     "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.ts",
     "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
-    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo",
+    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo coverage .nyc_output",
     "test-compile": "yarn run clean && yarn run compile && tsc -p ./",
     "test-compile-withserver": "yarn run clean && yarn run compile-withserver && tsc -p ./",
     "test-e2e": "yarn run test-compile && node ./out/client/test/testRunner",
-    "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner"
+    "coverage-e2e": "COVERAGE=1 yarn run test-e2e",
+    "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner",
+    "coverage-e2e-withserver": "COVERAGE=1 yarn run test-e2e-withserver",
+    "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js",
+    "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js"
   },
-  "version": "2.9.0",
+  "version": "2.10.0",
   "packageManager": "yarn@4.0.2",
   "vsce": {
     "dependencies": false,

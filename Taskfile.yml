@@ -7,10 +7,13 @@ env: &env
   PRE_COMMIT_COLOR: always
   # basically the same thing from .envrc file:
   VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-out/venvs/{{.HOSTNAME}}}"
+    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/{{.HOSTNAME}}}"
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
+  XVFB:
+    # prefix to add to allow execution of test in headless machines (CI)
+    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) -e out/log/xvfb.log"; fi'
 tasks:
   default:
     vars:
@@ -139,6 +142,7 @@ tasks:
       - setup
       - package
     cmds:
+      - task: unit
       #- task: test-ui
       #- task: test-ui-old
       - task: test-e2e
@@ -150,7 +154,7 @@ tasks:
       - package
     cmds:
       - $VIRTUAL_ENV/bin/python3 --version
-      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-e2e'
+      - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run test-e2e'"
     interactive: true
   test-ui:
     desc: Run UI tests
@@ -167,6 +171,11 @@ tasks:
     cmds:
       - $VIRTUAL_ENV/bin/python3 --version
       - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
+    interactive: true
+  unit:
+    desc: Run unit tests with coverage report
+    cmds:
+      - npm run unit-tests
     interactive: true
   package:
     vars:

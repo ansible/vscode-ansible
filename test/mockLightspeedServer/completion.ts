@@ -1,0 +1,70 @@
+import { v4 as uuidv4 } from "uuid";
+
+// Default model ID
+const DEFAULT_MODEL_ID = "ABCD-1234-5678";
+
+//
+// Pre-defined predictions to be returned.
+// 1. Each element is an array with two strings.
+// 2. The first element is the default prediction results.
+// 3. In the following elements:
+//    - The first element of the array specifies a keyword (in lowercase)
+//    - The second element of the array specifies the prediction results.
+//    - If the keyword is found in the (lowercased) prompt, the prediction results
+//      will be used in the response from the completions API.
+//
+const PREDICTIONS = [
+  // prettier-ignore
+  ["", // Default prediction result
+`      ansible.builtin.package:
+        name: openssh-server
+        state: present
+`],
+  // prettier-ignore
+  ["print",
+`      ansible.builtin.debug:
+        msg: Hello World
+`],
+  // prettier-ignore
+  ["file",
+`      ansible.builtin.file:
+        path: ~/foo.txt
+        state: touch
+`],
+  // prettier-ignore
+  ["podman",
+`      containers.podman.podman_container:
+        name: "{{ foo_app.name }}"
+        image: "{{ foo_app.image }}"
+        state: "{{ foo_app.state }}"
+        env: "{{ foo_app.env }}"
+        pod: "{{ _pod_ }}"
+        network:
+          - hostname: foo
+            ports:
+              - 8065:8065
+        generate_systemd: "{{ foo_app.generate_systemd }}"
+        ports: "{{ foo_app.ports }}"
+`],
+];
+
+export function completions(req: {
+  body: { model: string; prompt: string; suggestionId?: string };
+}) {
+  const model = req.body.model ? req.body.model : DEFAULT_MODEL_ID;
+  const prompt = req.body.prompt.toLowerCase();
+  const suggestionId = req.body.suggestionId ? req.body.suggestionId : uuidv4();
+
+  let predictions = [PREDICTIONS[0][1]];
+  PREDICTIONS.slice(1).forEach((element) => {
+    if (prompt.includes(element[0])) {
+      predictions = [element[1]];
+    }
+  });
+
+  return {
+    predictions,
+    model,
+    suggestionId,
+  };
+}
