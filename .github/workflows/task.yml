@@ -17,7 +17,9 @@ env:
   FORCE_COLOR: "1" # make mocha output colorful
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
-  WSLENV: CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p
+  # We define a hostname because otherwise the variable might not always be accessible on runners.
+  HOSTNAME: gha
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -145,28 +147,6 @@ jobs:
             ~/.config/containers
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/Dockerfile', '**/Taskfile.yml', 'tools/*.*') }}
 
-      - name: Install Task
-        if: "!contains(matrix.shell, 'wsl')"
-        uses: arduino/setup-task@v1
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install Task (wsl)
-        if: "contains(matrix.shell, 'wsl')"
-        run: |
-          sudo apt-get update && sudo apt-get install -y curl
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
-          task --version
-
-      - name: Install task inside WSL
-        if: "contains(matrix.shell, 'wsl')"
-        run: |
-          mkdir -p ~/.local/bin
-          sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b ~/.local/bin
-          echo $PATH
-          command -v task
-
       - name: Install asdf inside WSL
         if: "contains(matrix.shell, 'wsl')"
         run: |
@@ -177,6 +157,7 @@ jobs:
           . "$HOME/.asdf/asdf.sh"
           asdf plugin add nodejs
           asdf plugin add python
+          asdf plugin add task
           asdf install
           asdf info
 

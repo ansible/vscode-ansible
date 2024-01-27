@@ -7,7 +7,6 @@ set -euo pipefail
 
 IMAGE=ghcr.io/ansible/creator-ee:$(./tools/get-image-version)
 PIP_LOG_FILE=out/log/pip.log
-HOSTNAME="${HOSTNAME:-localhost}"
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
@@ -53,6 +52,11 @@ log () {
     esac
     >&2 echo -e "${prefix}${2}${NC}"
 }
+
+if [[ -z "${HOSTNAME:-}" ]]; then
+   log error "A valid HOSTNAME environment variable is required but is missing or empty."
+   exit 2
+fi
 
 log notice "Install latest lts version of nodejs (used by 'node-lts' job)"
 asdf install
@@ -176,7 +180,12 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
         nodejs gcc g++ make python3-dev
 fi
 
-VIRTUAL_ENV=${VIRTUAL_ENV:-out/venvs/${HOSTNAME}}
+# if a virtualenv is already active, ensure is the expected one
+EXPECTED_VENV="${PWD}/out/venvs/${HOSTNAME}"
+if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
+     log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
+fi
+VIRTUAL_ENV=${EXPECTED_VENV}
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     log notice "Creating virtualenv ..."
     python3 -m venv "${VIRTUAL_ENV}"

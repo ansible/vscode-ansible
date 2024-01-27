@@ -3,15 +3,13 @@
 version: "3"
 env: &env
   # basically the same thing from .envrc file:
-  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-out/venvs/${HOSTNAME:-localhost}}"
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"
 vars:
-  HOSTNAME:
-    sh: echo ${HOSTNAME:-localhost}
   EE_VERSION:
     sh: ./tools/get-image-version
+  VIRTUAL_ENV:
+    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/${HOSTNAME:-localhost}}"
 tasks:
   default:
     desc: Run most commands
@@ -38,10 +36,9 @@ tasks:
     cmds:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
-      - git fetch --tags
+      - git fetch --tags --force
       - npm run generate-settings-readme
-      - source $VIRTUAL_ENV/bin/activate &&
-        mkdocs build --strict
+      - "source {{.VIRTUAL_ENV}}/bin/activate && mkdocs build --strict"
 
   setup:
     desc: Install dependencies
@@ -85,7 +82,7 @@ tasks:
       # as we want to avoid using different node versions across the projects.
       # 2nd node version is used for preparing for new versions
       - asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)
-      - $VIRTUAL_ENV/bin/python -m pre_commit autoupdate
+      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit autoupdate"
       # bumps some developments dependencies
       - npx ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file
@@ -98,7 +95,7 @@ tasks:
       <<: *env
       PRE_COMMIT_COLOR: always
     cmds:
-      - $VIRTUAL_ENV/bin/python -m pre_commit run -a
+      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit run -a"
     silent: true
     sources:
       - "*.*"
@@ -123,7 +120,7 @@ tasks:
       # Tests that container engine is functional and that we have the image:
       - "{{.ENGINE}} run -i ghcr.io/ansible/creator-ee:{{ .EE_VERSION }} ansible-lint --version"
       - >
-        source $VIRTUAL_ENV/bin/activate &&
+        source {{.VIRTUAL_ENV}}/bin/activate &&
         command -v ansible-lint &&
         npm run test
     interactive: true
@@ -147,7 +144,7 @@ tasks:
       - setup
     cmds:
       - >
-        source $VIRTUAL_ENV/bin/activate &&
+        source {{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-with-ee'
     interactive: true
   test-without-ee:
@@ -156,7 +153,7 @@ tasks:
       - setup
     cmds:
       - >
-        source $VIRTUAL_ENV/bin/activate &&
+        source {{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-without-ee'
     interactive: true
   package:
