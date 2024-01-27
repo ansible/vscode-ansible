@@ -4,6 +4,33 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.10
+
+### Major Changes
+
+- Show the license section of content matches only for licensed users (#1019)
+  @TamiTakamiya
+
+### Minor Changes
+
+- Show model ID to be used in statusbar tooltip (#1046) @TamiTakamiya
+- Rename files and vars to use camel case inline with the naming conven… (#1048)
+  @ganeshrn
+- unit-test coverage for contentMatchesWebview (#1041) @goneri
+- AAP-18228: Handle user's trial expiry (#1037) @hasys
+- GitHub Codespaces/code-server support (#1012) @TamiTakamiya
+- unit-tests: move from Jest to Mocha (#1031) @goneri
+- lightspeed: a unit-test for the error handling (#1028) @goneri
+- lightspeed: use the code value from the 403 (#1024) @goneri
+
+### Bugfixes
+
+- Do not send duplicated inline suggestion feedback (#1050) @TamiTakamiya
+- Ignore a webpack warning from vscode-languageserver-textdocument (#1051)
+  @TamiTakamiya
+- fix check for no seat assigned (#1040) @robinbobbitt
+- Handle spaces in file path (#1032) @ajinkyau
+
 ## v2.9
 
 ### Major Changes
