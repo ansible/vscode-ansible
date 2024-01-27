@@ -105,7 +105,7 @@ repos:
             docs/settings.md
           $
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-alpha.1
+    rev: v9.0.0-alpha.2
     hooks:
       - id: eslint
         args:

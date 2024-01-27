@@ -40,8 +40,6 @@ jobs:
       matrix:
         os:
           - ubuntu-22.04
-        node-version:
-          - "16"
         task-name:
           - vscode
           - test

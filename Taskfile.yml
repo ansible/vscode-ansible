@@ -83,6 +83,7 @@ tasks:
       # 2nd node version is used for preparing for new versions
       - asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)
       - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit autoupdate"
+      - npm outdated
       # bumps some developments dependencies
       - npx ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file

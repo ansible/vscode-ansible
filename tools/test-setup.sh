@@ -74,7 +74,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
     if [[ "${INSTALL}" -eq 1 ]]; then
-        printf '%s\n' "We need sudo to install some packages: ${DEBS[*]}"
+        log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
         sudo apt-get update -qq -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
