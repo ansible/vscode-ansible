@@ -186,10 +186,21 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = err?.response?.data;
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
             "User not authorized to access Ansible Lightspeed."
+          );
+        } else if (
+          err?.response?.status === 403 &&
+          (data?.code === "permission_denied__user_with_no_seat" ||
+            data?.code ===
+              "permission_denied__org_not_ready_because_wca_not_configured")
+        ) {
+          vscode.window.showErrorMessage(
+            "You must be connected to a model to send Ansible Lightspeed feedback."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
