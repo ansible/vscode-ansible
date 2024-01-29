@@ -83,7 +83,7 @@
           "name": "Lightspeed Training Matches",
           "type": "webview",
           "contextualTitle": "Ansible",
-          "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled",
+          "when": "redhat.ansible.lightspeedSuggestionsEnabled",
           "visibility": "visible",
           "retainContextWhenHidden": true
         }

@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { assert } from "chai";
 import sinon from "sinon";
 import {
   getDocUri,
@@ -91,20 +92,95 @@ export function testLightspeed(): void {
 
     describe("Test Ansible Lightspeed inline completion suggestions", function () {
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let isAuthenticatedStub: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let contentMatchesRequestSpy: any;
 
       before(async function () {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
         await activate(docUri1);
+        isAuthenticatedStub = sinon.stub(
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          "isAuthenticated"
+        );
+        contentMatchesRequestSpy = sinon.spy(
+          lightSpeedManager.apiInstance,
+          "contentMatchesRequest"
+        );
       });
 
       const tests = testSuggestionPrompts();
 
       tests.forEach(({ taskName, expectedModule }) => {
         it(`Should give inline suggestion for task prompt '${taskName}'`, async function () {
+          isAuthenticatedStub.returns(Promise.resolve(true));
           await testInlineSuggestion(taskName, expectedModule);
         });
+      });
+
+      after(async function () {
+        contentMatchesRequestSpy.restore();
+        sinon.restore();
+        const contentMatchesApiCalls = contentMatchesRequestSpy.getCalls();
+        assert.equal(contentMatchesApiCalls.length, tests.length);
+      });
+    });
+
+    after(async function () {
+      disableLightspeedSettings();
+    });
+  });
+}
+export function testLightspeed2(): void {
+  describe("TEST ANSIBLE LIGHTSPEED", function () {
+    before(async function () {
+      await enableLightspeedSettings();
+
+      // check if we can run lightspeed tests or not> If not, skip the tests
+      if (!(await canRunLightspeedTests())) {
+        this.skip();
+      }
+    });
+
+    describe("Test Ansible Lightspeed inline completion suggestions", function () {
+      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let isAuthenticatedStub: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let contentMatchesRequestSpy: any;
+
+      before(async function () {
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+        await activate(docUri1);
+        isAuthenticatedStub = sinon.stub(
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          "isAuthenticated"
+        );
+        contentMatchesRequestSpy = sinon.spy(
+          lightSpeedManager.apiInstance,
+          "contentMatchesRequest"
+        );
+      });
+
+      const tests = testSuggestionPrompts();
+
+      tests.forEach(({ taskName, expectedModule }) => {
+        it(`Should give inline suggestion for task prompt '${taskName}'`, async function () {
+          isAuthenticatedStub.returns(Promise.resolve(true));
+          await testInlineSuggestion(taskName, expectedModule);
+        });
+      });
+
+      after(async function () {
+        contentMatchesRequestSpy.restore();
+        sinon.restore();
+        const contentMatchesApiCalls = contentMatchesRequestSpy.getCalls();
+        assert.equal(contentMatchesApiCalls.length, tests.length);
       });
     });
 
