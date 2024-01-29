@@ -713,6 +713,7 @@
     "express": "^4.18.2",
     "ini": "^4.1.1",
     "minimatch": "^9.0.3",
+    "start-server-and-test": "^2.0.3",
     "uuid": "^9.0.1",
     "vscode-languageclient": "^8.1.0",
     "vscode-uri": "^3.0.8",
@@ -816,7 +817,8 @@
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner",
     "coverage-e2e-withserver": "COVERAGE=1 yarn run test-e2e-withserver",
     "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js",
-    "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js"
+    "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js",
+    "coverage-all": "start-server-and-test 'yarn mock-lightspeed-server' 'http://[::1]:3000' 'TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=http://[::1]:3000 yarn coverage-e2e'"
   },
   "version": "2.10.0",
   "packageManager": "yarn@4.0.2",
