@@ -1,0 +1,6 @@
+codecov:
+  require_ci_to_pass: true
+comment: false
+coverage:
+  status:
+    patch: true # we want github annotations
