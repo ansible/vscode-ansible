@@ -798,7 +798,7 @@
     "package": "yarn run webpack && npx vsce package",
     "preinstall": "",
     "pretest": "yarn run compile",
-    "unit-tests": "nyc --reporter=html --reporter=text --reporter=lcov mocha --recursive test/units",
+    "unit-tests": "nyc mocha --recursive test/units",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "extest get-vscode -c max -s out/test-resources && extest get-chromedriver -c max -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
     "test-ui-oldest": "extest get-vscode -c min -s out/test-resources && extest get-chromedriver -c min -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",

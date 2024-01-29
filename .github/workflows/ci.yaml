@@ -144,6 +144,15 @@ jobs:
           TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
         run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
+      - name: Upload coverage data
+        if: ${{ startsWith(matrix.name, 'test') }}
+        uses: codecov/codecov-action@v3
+        with:
+          name: ${{ matrix.name }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: out/coverage/lcov.info
+          flags: unit
+
       - name: Upload vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
         uses: actions/upload-artifact@v4
