@@ -7,15 +7,16 @@ function setupCoverage() {
   const NYC = require("nyc");
   const nyc = new NYC({
     cwd: path.join(__dirname, "..", "..", ".."),
-    reporter: ["text", "html"],
+    reporter: ["text", "html", "lcov"],
     all: true,
     silent: false,
     instrument: true,
     hookRequire: true,
     hookRunInContext: true,
     hookRunInThisContext: true,
-    include: ["out/client/**/*.js", "out/server/**/*.js"],
-    exclude: ["**/test/**"],
+    include: ["out/client/src/**/*.js"],
+    reportDir: "out/coverage",
+    tempDir: "out/.nyc_output",
   });
 
   nyc.reset();

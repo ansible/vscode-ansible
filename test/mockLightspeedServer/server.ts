@@ -8,7 +8,7 @@ const API_VERSION = "v0";
 const API_ROOT = `/api/${API_VERSION}`;
 
 const PORT = process.env.MOCK_LIGHTSPEED_SERVER_PORT || "3000";
-const HOST = process.env.MOCK_LIGHTSPEED_SERVER_HOST || "127.0.0.1";
+const HOST = process.env.MOCK_LIGHTSPEED_SERVER_HOST || "localhost";
 
 export default class Server {
   constructor(app: Application) {
