@@ -1,12 +1,24 @@
 /* node "stdlib" */
 import * as fs from "fs";
+import os from "node:os";
 
 /* vscode"stdlib" */
 import * as vscode from "vscode";
 
 /* third-party */
-import untildify from "untildify";
 import * as ini from "ini";
+
+const homeDirectory = os.homedir();
+
+export default function untildify(pathWithTilde: string) {
+  if (typeof pathWithTilde !== "string") {
+    throw new TypeError(`Expected a string, got ${typeof pathWithTilde}`);
+  }
+
+  return homeDirectory
+    ? pathWithTilde.replace(/^~(?=$|\/|\\)/, homeDirectory)
+    : pathWithTilde;
+}
 
 // Get rootPath based on multi-workspace API
 export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
