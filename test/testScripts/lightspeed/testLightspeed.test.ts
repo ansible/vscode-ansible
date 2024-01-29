@@ -10,6 +10,7 @@ import {
   testInlineSuggestionCursorPositions,
   testValidJinjaBrackets,
 } from "../../helper";
+import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
 
 function testSuggestionPrompts() {
   const tests = [
@@ -140,6 +141,10 @@ export function testLightspeed(): void {
           await testValidJinjaBrackets(taskName, expectedValidJinjaInlineVar);
         });
       });
+    });
+
+    describe("Test Ansible Lightspeed Functions", function () {
+      testLightspeedFunctions();
     });
 
     after(async function () {

@@ -70,18 +70,22 @@ export function getBaseUri(settingsManager: SettingsManager) {
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
 
+export function getUserTypeLabel(
+  rhOrgHasSubscription?: boolean,
+  rhUserHasSeat?: boolean
+): "Licensed" | "Unlicensed" {
+  return rhOrgHasSubscription && rhUserHasSeat ? "Licensed" : "Unlicensed";
+}
+
 export function getLoggedInSessionDetails(
   sessionData: LightspeedAuthSession
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};
-  if (sessionData.rhUserHasSeat) {
-    userInfo.userType = "Licensed";
-  } else if (sessionData.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
-    userInfo.userType = "No seat assigned";
-  } else {
-    userInfo.userType = "Tech Preview";
-  }
+  userInfo.userType = getUserTypeLabel(
+    sessionData.rhOrgHasSubscription,
+    sessionData.rhUserHasSeat
+  );
   if (sessionData.rhUserIsOrgAdmin) {
     userInfo.role = "Administrator";
   }
