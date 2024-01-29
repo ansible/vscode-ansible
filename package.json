@@ -713,7 +713,6 @@
     "express": "^4.18.2",
     "ini": "^4.1.1",
     "minimatch": "^9.0.3",
-    "untildify": "^5.0.0",
     "uuid": "^9.0.1",
     "vscode-languageclient": "^8.1.0",
     "vscode-uri": "^3.0.8",
