@@ -53,8 +53,18 @@ export async function run(): Promise<void> {
 
   const files = await glob("**/**.test.js", { cwd: testsRoot });
 
-  // Add files to the test suite
-  files.forEach((file) => mocha.addFile(path.resolve(testsRoot, file)));
+  // Add unit test cases to the test suite first
+  files.forEach((file) => {
+    if (file.indexOf("/units/") !== -1) {
+      mocha.addFile(path.resolve(testsRoot, file));
+    }
+  });
+  // Then add e2e test cases
+  files.forEach((file) => {
+    if (file.indexOf("/units/") === -1) {
+      mocha.addFile(path.resolve(testsRoot, file));
+    }
+  });
 
   try {
     await new Promise<void>((c, e) => {

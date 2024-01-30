@@ -128,7 +128,7 @@ describe("GetWebviewContent", () => {
     ): Promise<ContentMatchesResponseParams> => {
       return createMatchResponse();
     };
-    const spiedConsole = sinon.spy(console, "log");
+    const spiedConsole = sinon.spy(cmw, "log");
     const res = await cmw["getWebviewContent"]();
     const console_log_calls = spiedConsole.getCalls();
     spiedConsole.restore();

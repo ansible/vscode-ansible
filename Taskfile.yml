@@ -155,7 +155,7 @@ tasks:
     cmds:
       - $VIRTUAL_ENV/bin/python3 --version
 #     - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run test-e2e'"
-      - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run coverage-e2e-with-mock-lightspeed-server'"
+      - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run coverage-all'"
     interactive: true
   test-ui:
     desc: Run UI tests
