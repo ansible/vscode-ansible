@@ -11,8 +11,8 @@ import {
 
 export function testDiagnosticsAnsibleWithoutEE(): void {
   describe("TEST FOR ANSIBLE DIAGNOSTICS WITHOUT EE", () => {
-    const docUri1 = getDocUri("diagnostics/ansible/without_ee/1.yml");
-    const docUri2 = getDocUri("diagnostics/ansible/without_ee/2.yml");
+    const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
+    const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
 
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
@@ -48,7 +48,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
           {
             severity: 0,
             message:
-              "Unexpected error code 4 from execution of: ansible-playbook --syntax-check",
+              "Unexpected error code 4 from execution of: ansible-playbook -i localhost, --syntax-check",
             range: new vscode.Range(
               new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE)
