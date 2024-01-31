@@ -7,8 +7,7 @@ import { openUrl } from "./openUrl";
 const API_VERSION = "v0";
 const API_ROOT = `/api/${API_VERSION}`;
 
-const PORT = process.env.MOCK_LIGHTSPEED_SERVER_PORT || "3000";
-const HOST = process.env.MOCK_LIGHTSPEED_SERVER_HOST || "127.0.0.1";
+const url = new URL(process.env.TEST_LIGHTSPEED_URL || "http://127.0.0.1:3000");
 
 export default class Server {
   constructor(app: Application) {
@@ -49,8 +48,8 @@ export default class Server {
       })
     );
 
-    app.listen(parseInt(PORT), HOST, () => {
-      console.log(`Listening on port ${PORT} at ${HOST}`);
+    app.listen(parseInt(url.port), url.hostname, () => {
+      console.log(`Listening on port ${url.port} at ${url.hostname}`);
     });
   }
 }
