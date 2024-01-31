@@ -819,8 +819,8 @@
     "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js",
     "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js",
     "_coverage-all": "start-server-and-test 'TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server' ${TEST_LIGHTSPEED_URL} 'TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn coverage-e2e'",
-    "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",
-    "coverage-all-linux-ci": "TEST_LIGHTSPEED_URL='http://ip6-localhost:3000' yarn _coverage-all"
+    "coverage-all": "TEST_LIGHTSPEED_URL='http://localhost:3000' yarn _coverage-all",
+    "coverage-all-linux-ci": "TEST_LIGHTSPEED_URL='http://localhost:3000' yarn _coverage-all"
   },
   "version": "2.10.0",
   "packageManager": "yarn@4.0.2",
