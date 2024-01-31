@@ -302,10 +302,6 @@ if [[ -n "${CI:-}" ]]; then
         log warning "Removing unexpected ~/.ansible folder found on CI to avoid test contamination."
         rm -rf "${HOME}/.ansible"
     fi
-    # Add an /etc/hosts entry for a local ipv6 address ("localhost6")
-    if ! grep -q localhost6 /etc/hosts; then
-        echo "::1         localhost6" | sudo tee -a /etc/hosts
-    fi
 fi
 
 # Fail if detected tool paths are not from inside out out/ folder

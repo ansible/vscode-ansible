@@ -155,6 +155,26 @@ tasks:
     cmds:
       - $VIRTUAL_ENV/bin/python3 --version
 #     - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run test-e2e'"
+      - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run coverage-all-linux-ci'"
+    interactive: true
+  test-macos:
+    desc: Run all tests on MacOS
+    deps:
+      - setup
+      - package
+    cmds:
+      - task: unit
+      #- task: test-ui
+      #- task: test-ui-old
+      - task: test-e2e-macos
+      - tools/dirty.sh
+    interactive: true
+  test-e2e-macos:
+    desc: Run e2e tests on MacOS
+    deps:
+      - package
+    cmds:
+      - $VIRTUAL_ENV/bin/python3 --version
       - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run coverage-all'"
     interactive: true
   test-ui:

@@ -63,7 +63,7 @@ jobs:
             os: ubuntu-22.04
 
           - name: test (macos)
-            task-name: test
+            task-name: test-macos
             os: macos-12
             env:
               SKIP_PODMAN: 1
