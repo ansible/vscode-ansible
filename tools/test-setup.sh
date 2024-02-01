@@ -40,7 +40,8 @@ get_version () {
         # Keep the `tail -n +1` and the silencing of 141 error code because otherwise
         # the called tool might fail due to premature closure of /dev/stdout
         # made by `--head n1`. See https://superuser.com/a/642932/3004
-        "${_cmd[@]}" | tail -n +1 | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
+        # NO_COLOR is needed by ansible-lint to allow sed to work correctly
+        NO_COLOR=1 "${_cmd[@]}" | tail -n +1 | head -n1 | sed -r 's/^[^0-9]*([0-9][0-9\\w\\.]*).*$/\1/'
     else
         log error "Got $? while trying to retrieve ${1:-} version"
         return 99

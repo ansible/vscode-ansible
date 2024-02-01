@@ -112,7 +112,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
       });
 
-      it("should return no diagnostics even when `hosts` key in missing", async function () {
+      it("should return no diagnostics even when `hosts` key is missing", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
 
