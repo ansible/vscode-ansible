@@ -151,7 +151,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry
   );
 
-  vscode.commands.executeCommand('setContext', 'lightspeedConnectReady', true)
+  vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
