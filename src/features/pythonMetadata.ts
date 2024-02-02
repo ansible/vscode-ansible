@@ -12,6 +12,7 @@ import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
 import { AnsibleCommands } from "../definitions/constants";
 import { execSync } from "child_process";
+import fs from 'fs';
 
 export class PythonInterpreterManager {
   private context;
@@ -71,9 +72,9 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    if (this.extensionSettings.settings.interpreterPath) {
-      const interpreterPath = this.extensionSettings.settings.interpreterPath;
-      const label = this.makeLabelFromPath(interpreterPath);
+    const interpreterPath = this.extensionSettings.settings.interpreterPath;
+    if (interpreterPath && fs.existsSync(interpreterPath)) {
+      const label = this.makeLabelFromPath(interpreterPath!);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;
         this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
@@ -83,7 +84,10 @@ export class PythonInterpreterManager {
         this.pythonInterpreterStatusBarItem.backgroundColor = "";
       }
     } else {
-      this.pythonInterpreterStatusBarItem.text = "Select python environment";
+      if (!interpreterPath)
+        this.pythonInterpreterStatusBarItem.text = "Select python environment";
+      else
+        this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
         "statusBarItem.warningBackground"
       );
