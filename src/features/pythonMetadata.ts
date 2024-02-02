@@ -12,7 +12,7 @@ import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
 import { AnsibleCommands } from "../definitions/constants";
 import { execSync } from "child_process";
-import fs from 'fs';
+import fs from "fs";
 
 export class PythonInterpreterManager {
   private context;
