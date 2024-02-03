@@ -86,8 +86,10 @@ export class PythonInterpreterManager {
     } else {
       if (!interpreterPath)
         this.pythonInterpreterStatusBarItem.text = "Select python environment";
-      else
+      else {
         this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
+        console.error(`The specified python interpreter path in settings does not exist: ${interpreterPath} `)
+      }
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
         "statusBarItem.warningBackground"
       );
