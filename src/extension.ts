@@ -139,7 +139,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry,
     extSettings
   );
-  await pythonInterpreterManager.updatePythonInfoInStatusbar();
+  try {
+    await pythonInterpreterManager.updatePythonInfoInStatusbar();
+  } catch (error) {
+    console.error(`Error updating python status bar: ${error}`);
+  }
 
   /**
    * Handle "Ansible Lightspeed" in the extension
@@ -150,6 +154,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     extSettings,
     telemetry
   );
+
+  vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
