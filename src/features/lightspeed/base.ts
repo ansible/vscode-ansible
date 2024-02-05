@@ -169,10 +169,10 @@ export class LightSpeedManager {
 
     const rhUserHasSeat =
       await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
-    const orgTelementryOptOut =
+    const orgTelemetryOptOut =
       this.settingsManager.settings.lightSpeedService.orgTelemetryOptOut;
 
-    if (rhUserHasSeat && orgTelementryOptOut) {
+    if (rhUserHasSeat && orgTelemetryOptOut) {
       return;
     }
 
