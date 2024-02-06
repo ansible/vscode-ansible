@@ -109,7 +109,9 @@ export class PythonInterpreterManager {
     try {
       version = execSync(`${interpreterPath} -V`).toString().trim();
     } catch (error) {
-      console.error(`Error gathering python version from ${interpreterPath}: ${error}`);
+      console.error(
+        `Error gathering python version from ${interpreterPath}: ${error}`
+      );
       return;
     }
     let envLabel: string = version;
