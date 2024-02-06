@@ -76,7 +76,7 @@ export class LightSpeedManager {
     this.apiInstance
       .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
       .then((userResponse: UserResponse) => {
-        this.settingsManager.settings.lightSpeedService.orgTelemetryOptOut =
+        this.lightSpeedAuthenticationProvider.optOutTelemetry =
           userResponse.org_telemetry_opt_out;
       })
       .catch((error) => {
@@ -169,10 +169,8 @@ export class LightSpeedManager {
 
     const rhUserHasSeat =
       await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
-    const orgTelemetryOptOut =
-      this.settingsManager.settings.lightSpeedService.orgTelemetryOptOut;
 
-    if (rhUserHasSeat && orgTelemetryOptOut) {
+    if (rhUserHasSeat && this.orgTelemetryOptOut) {
       return;
     }
 

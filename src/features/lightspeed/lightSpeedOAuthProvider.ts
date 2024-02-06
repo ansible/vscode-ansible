@@ -57,6 +57,7 @@ export class LightSpeedAuthenticationProvider
   private _authId: string;
   private _authName: string;
   private _externalRedirectUri: string;
+  private _optOutTelemetry: boolean;
 
   constructor(
     private readonly context: ExtensionContext,
@@ -69,6 +70,8 @@ export class LightSpeedAuthenticationProvider
     this._authId = authId;
     this._authName = authName;
     this._externalRedirectUri = externalRedirectUri;
+    // Should be initialized by promise in async
+    this._optOutTelemetry = false;
   }
 
   public initialize() {
@@ -88,6 +91,14 @@ export class LightSpeedAuthenticationProvider
       ),
       window.registerUriHandler(this._uriHandler)
     );
+  }
+
+  get optOutTelemetry() {
+    return this._optOutTelemetry;
+  }
+
+  set optOutTelemetry(value: boolean) {
+    this._optOutTelemetry = value;
   }
 
   async setExternalRedirectUri() {

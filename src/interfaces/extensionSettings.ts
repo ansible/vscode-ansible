@@ -33,10 +33,10 @@ export interface UserResponse {
   org_telemetry_opt_out: boolean;
 }
 
+// Settings appear on VS Code Settings UI
 export interface LightSpeedServiceSettings {
   enabled: boolean;
   URL: string;
   suggestions: { enabled: boolean };
   model: string | undefined;
-  orgTelemetryOptOut?: boolean;
 }
