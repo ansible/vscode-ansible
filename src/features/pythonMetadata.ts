@@ -12,7 +12,6 @@ import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
 import { AnsibleCommands } from "../definitions/constants";
 import { execSync } from "child_process";
-import fs from "fs";
 
 export class PythonInterpreterManager {
   private context;
@@ -73,7 +72,7 @@ export class PythonInterpreterManager {
     this.pythonInterpreterStatusBarItem.show();
 
     const interpreterPath = this.extensionSettings.settings.interpreterPath;
-    if (interpreterPath && fs.existsSync(interpreterPath)) {
+    if (interpreterPath) {
       const label = this.makeLabelFromPath(interpreterPath!);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;
@@ -82,16 +81,17 @@ export class PythonInterpreterManager {
           true
         );
         this.pythonInterpreterStatusBarItem.backgroundColor = "";
-      }
-    } else {
-      if (!interpreterPath)
-        this.pythonInterpreterStatusBarItem.text = "Select python environment";
-      else {
+      } else {
         this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
+        this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+          "statusBarItem.warningBackground"
+        );
         console.error(
           `The specified python interpreter path in settings does not exist: ${interpreterPath} `
         );
       }
+    } else {
+      this.pythonInterpreterStatusBarItem.text = "Select python environment";
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
         "statusBarItem.warningBackground"
       );
@@ -105,8 +105,13 @@ export class PythonInterpreterManager {
   }
 
   public makeLabelFromPath(interpreterPath: string): string | undefined {
-    const version = execSync(`${interpreterPath} -V`).toString().trim();
-
+    let version: string;
+    try {
+      version = execSync(`${interpreterPath} -V`).toString().trim();
+    } catch (error) {
+      console.error(`Error gathering python version from ${interpreterPath}: ${error}`);
+      return;
+    }
     let envLabel: string = version;
 
     const pythonInVenv = execSync(
