@@ -76,8 +76,7 @@ export class LightSpeedManager {
     this.apiInstance
       .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
       .then((userResponse: UserResponse) => {
-        this.lightSpeedAuthenticationProvider.optOutTelemetry =
-          userResponse.org_telemetry_opt_out;
+        this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
       })
       .catch((error) => {
         console.error(error);
@@ -226,6 +225,6 @@ export class LightSpeedManager {
       },
     };
     console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
-    this.apiInstance.feedbackRequest(inputData);
+    this.apiInstance.feedbackRequest(inputData, this.orgTelemetryOptOut);
   }
 }

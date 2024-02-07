@@ -828,7 +828,8 @@ export async function inlineSuggestionUserActionHandler(
     inlineSuggestion: inlineSuggestionData,
   };
   lightSpeedManager.apiInstance.feedbackRequest(
-    inlineSuggestionFeedbackPayload
+    inlineSuggestionFeedbackPayload,
+    lightSpeedManager.orgTelemetryOptOut
   );
   inlineSuggestionData = {};
 }
