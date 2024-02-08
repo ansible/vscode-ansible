@@ -145,16 +145,16 @@ jobs:
           # The mock server runs on localhost. However, just using "localhost" as the hostname causes a few issues in
           # GitHub Actions environment:
           #
-          # On Linux: When "localhost" is used as the hostname, the mock server uses the ipv6 loopback address [::1] . However, 
+          # On Linux: When "localhost" is used as the hostname, the mock server uses the ipv6 loopback address [::1] . However,
           # the axios library, which is used in the extension tries to access to the ipv4 loopback 127.0.0.1 when "localhost"
-          # is specified and the axios library does not support URLs that contains ipv6 addresses, e.g. http://[::1]:3000. 
-          # Also, If 127.0.0.1 is specified for the mock server, the server fails to start. Those issues are resolved by 
+          # is specified and the axios library does not support URLs that contains ipv6 addresses, e.g. http://[::1]:3000.
+          # Also, If 127.0.0.1 is specified for the mock server, the server fails to start. Those issues are resolved by
           # using the special ipv6-only hostname "ip6-localhost", which is available in GitHub Actions Linux environment.
           #
           # On MacOS: The hostname "ip6-localhost" is not available. However, 127.0.0.1 can be used for starting the mock
           # server on MacOS and the axios library can connect to that address. So we can use 127.0.0.1 for MacOS.
           #
-          # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use 
+          # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use
           # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
           TEST_LIGHTSPEED_URL:  "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
 
