@@ -7,7 +7,7 @@ import { openUrl } from "./openUrl";
 const API_VERSION = "v0";
 const API_ROOT = `/api/${API_VERSION}`;
 
-const url = new URL(process.env.TEST_LIGHTSPEED_URL || "http://127.0.0.1:3000");
+const url = new URL("http://localhost:3000");
 
 export default class Server {
   constructor(app: Application) {

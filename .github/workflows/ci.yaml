@@ -63,11 +63,14 @@ jobs:
             os: ubuntu-22.04
 
           - name: test (macos)
-            task-name: test-macos
+            task-name: test
             os: macos-12
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
+              # Use "localhost" for the mock Lightspeed server as the ipv4 loopback address is available in macos.
+              TEST_LIGHTSPEED_URL: "http://localhost:3000"
+
             # only until we fix some broken tests, as we need it to pass
             # in order to enable the caching
             continue-on-error: true
@@ -140,8 +143,17 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         env:
-          TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
-          TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
+          # For using the mock Lightspeed server.
+          TEST_LIGHTSPEED_ACCESS_TOKEN: "dummy"
+
+          # Use the ipv6 loopback address for the mock Lightspeed server as the ipv4 loopback address is not available
+          # in GitHub action Ubuntu Linux environment.  Also we cannot specify it as "http://[::1]:3000" because the
+          # axios library, which is used in the extension, does not support it.
+          TEST_LIGHTSPEED_URL: "http://ip6-localhost:3000"
+
+          # For using an actual Lightspeed server instance, uncomment following two lines.
+          # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+          # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
         run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
       - name: Upload coverage data
