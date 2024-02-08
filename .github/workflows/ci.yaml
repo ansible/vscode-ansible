@@ -146,7 +146,7 @@ jobs:
           # not work in the GitHub action Linux enviornment as the server listens at the ipv6 loopback address [::1]
           # and the extension tries to access to the ipv4 loopback address 127.0.0.1. So we need to use the special
           # ipv6-only hostname "ip6-localhost" in such cases.
-          TEST_LIGHTSPEED_URL:  ${{ contains(matrix.name, 'macos') && "http://localhost:3000" || "http://ip6-localhost:3000" }}
+          TEST_LIGHTSPEED_URL:  "${{ contains(matrix.name, 'macos') && 'http://localhost:3000' || 'http://ip6-localhost:3000' }}"
 
           # For using an actual Lightspeed server instance, uncomment following two lines.
           # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
