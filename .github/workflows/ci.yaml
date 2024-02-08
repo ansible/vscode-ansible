@@ -22,6 +22,20 @@ env:
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
+
+  # For using the mock Lightspeed server.
+  TEST_LIGHTSPEED_ACCESS_TOKEN: "dummy"
+  # Use the ipv6 loopback address for the mock Lightspeed server as the ipv4 loopback address is not available
+  # in GitHub action Ubuntu Linux environment.  Also we cannot specify it as "http://[::1]:3000" because the
+  # axios library, which is used in the extension, does not support it. Since the "ip-localhost" hostname is not
+  # on macos and "localhost" just work fine there, it will be overridden with "http://localhost:3000" on macos.
+  TEST_LIGHTSPEED_URL: "http://ip6-localhost:3000"
+
+  # For using an actual Lightspeed server instance, uncomment following two lines.
+  # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+  # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
+
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
@@ -142,7 +156,7 @@ jobs:
         env:
           # For using the mock Lightspeed server.
           TEST_LIGHTSPEED_ACCESS_TOKEN: "dummy"
-          # On macos, we can give "http://localhost:3000" to the extension as the server address. However, it does 
+          # On macos, we can give "http://localhost:3000" to the extension as the server address. However, it does
           # not work in the GitHub action Linux enviornment as the server listens at the ipv6 loopback address [::1]
           # and the extension tries to access to the ipv4 loopback address 127.0.0.1. So we need to use the special
           # ipv6-only hostname "ip6-localhost" in such cases.
