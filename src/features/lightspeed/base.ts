@@ -93,7 +93,7 @@ export class LightSpeedManager {
     const lightspeedEnabled = lightspeedSettings.enabled;
 
     if (!lightspeedEnabled) {
-      await this.resetContext();
+      this.resetContext();
       await this.lightSpeedAuthenticationProvider.dispose();
       this.statusBarProvider.statusBar.hide();
       return;
@@ -117,7 +117,7 @@ export class LightSpeedManager {
     }
   }
 
-  private async resetContext(): Promise<void> {
+  private resetContext(): void {
     this.ansibleVarFilesCache = {};
     this.ansibleRolesCache = {};
   }
