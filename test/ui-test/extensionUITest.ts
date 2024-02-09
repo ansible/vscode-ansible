@@ -7,8 +7,7 @@ import {
   Workbench,
 } from "vscode-extension-tester";
 
-const LIGHTSPEED_ACCESS_TOKEN = process.env.LIGHTSPEED_ACCESS_TOKEN || "dummy";
-const WAIT_TIME = LIGHTSPEED_ACCESS_TOKEN === "dummy" ? 1000 : 10000;
+const WAIT_TIME = 10000;
 
 config.truncateThreshold = 0;
 export function extensionUIAssetsTest(): void {

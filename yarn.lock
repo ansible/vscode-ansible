@@ -990,7 +990,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/selenium-webdriver@npm:^4.1.17":
+"@types/selenium-webdriver@npm:^4.1.21":
   version: 4.1.21
   resolution: "@types/selenium-webdriver@npm:4.1.21"
   dependencies:
@@ -1229,7 +1229,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/vsce@npm:^2.19.0, @vscode/vsce@npm:^2.21.1, @vscode/vsce@npm:^2.23.0":
+"@vscode/vsce@npm:^2.19.0, @vscode/vsce@npm:^2.22.0, @vscode/vsce@npm:^2.23.0":
   version: 2.23.0
   resolution: "@vscode/vsce@npm:2.23.0"
   dependencies:
@@ -1737,7 +1737,7 @@ __metadata:
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.3.3"
     uuid: "npm:^9.0.1"
-    vscode-extension-tester: "npm:^5.10.0"
+    vscode-extension-tester: "npm:^7.0.0"
     vscode-languageclient: "npm:^8.1.0"
     vscode-uri: "npm:^3.0.8"
     warnings-to-errors-webpack-plugin: "npm:^2.3.0"
@@ -2499,7 +2499,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^11.0.0":
+"commander@npm:^11.0.0, commander@npm:^11.1.0":
   version: 11.1.0
   resolution: "commander@npm:11.1.0"
   checksum: 66bd2d8a0547f6cb1d34022efb25f348e433b0e04ad76a65279b1b09da108f59a4d3001ca539c60a7a46ea38bcf399fc17d91adad76a8cf43845d8dcbaf5cda1
@@ -3754,7 +3754,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fs-extra@npm:^11.1.0, fs-extra@npm:^11.1.1, fs-extra@npm:^11.2.0":
+"fs-extra@npm:^11.1.1, fs-extra@npm:^11.2.0":
   version: 11.2.0
   resolution: "fs-extra@npm:11.2.0"
   dependencies:
@@ -5581,7 +5581,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-page-objects@npm:^3.10.0":
+"monaco-page-objects@npm:^3.12.0":
   version: 3.12.0
   resolution: "monaco-page-objects@npm:3.12.0"
   dependencies:
@@ -6827,14 +6827,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.13.0":
-  version: 4.16.0
-  resolution: "selenium-webdriver@npm:4.16.0"
+"selenium-webdriver@npm:^4.16.0":
+  version: 4.17.0
+  resolution: "selenium-webdriver@npm:4.17.0"
   dependencies:
     jszip: "npm:^3.10.1"
     tmp: "npm:^0.2.1"
     ws: "npm:>=8.14.2"
-  checksum: b0d33dd53b8115790272564fde86bbd1c5dc64d28ca48c55a0a474bcf409eeb2cb1cbcdf08674af4dbd2b3a6f742bdf1f3eebf9032c950022b98454374282fdf
+  checksum: 5bbc3aea2431c90014bb341c2443d69f7a3e78c63f0862cfe1fc6fd9462db33f8bcd3c2d5192a041f22b36f25288530277b10fc9f278b5fa08027e3386733969
   languageName: node
   linkType: hard
 
@@ -7972,7 +7972,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester-locators@npm:^3.8.0":
+"vscode-extension-tester-locators@npm:^3.10.0":
   version: 3.10.0
   resolution: "vscode-extension-tester-locators@npm:3.10.0"
   peerDependencies:
@@ -7982,31 +7982,31 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^5.10.0":
-  version: 5.10.0
-  resolution: "vscode-extension-tester@npm:5.10.0"
+"vscode-extension-tester@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "vscode-extension-tester@npm:7.0.0"
   dependencies:
-    "@types/selenium-webdriver": "npm:^4.1.17"
-    "@vscode/vsce": "npm:^2.21.1"
-    commander: "npm:^11.0.0"
+    "@types/selenium-webdriver": "npm:^4.1.21"
+    "@vscode/vsce": "npm:^2.22.0"
+    commander: "npm:^11.1.0"
     compare-versions: "npm:^6.1.0"
-    fs-extra: "npm:^11.1.0"
+    fs-extra: "npm:^11.2.0"
     glob: "npm:^10.3.10"
     got: "npm:^13.0.0"
     hpagent: "npm:^1.2.0"
     js-yaml: "npm:^4.1.0"
-    monaco-page-objects: "npm:^3.10.0"
+    monaco-page-objects: "npm:^3.12.0"
     sanitize-filename: "npm:^1.6.3"
-    selenium-webdriver: "npm:^4.13.0"
+    selenium-webdriver: "npm:^4.16.0"
     targz: "npm:^1.0.1"
     unzipper: "npm:^0.10.14"
-    vscode-extension-tester-locators: "npm:^3.8.0"
+    vscode-extension-tester-locators: "npm:^3.10.0"
   peerDependencies:
     mocha: ">=5.2.0"
     typescript: ">=4.6.2"
   bin:
     extest: out/cli.js
-  checksum: 1833a9b2c620a862d09d53630cb9d35ff8e1441021b72d98e2d9091c21a6a3e6185b93f50114be238190ec4eabf2aa3e36758ffa677641b12ea7d9c5570be8d7
+  checksum: 82fe7a5e4fc4074ef7d5c0d7508dc86b0738921fb2060d985a36dfdbd2613e09eb06e243a7d39a2ac2422d1517e2dd7e6bcb336731402ef6ac8803ad5f202f3a
   languageName: node
   linkType: hard
 
