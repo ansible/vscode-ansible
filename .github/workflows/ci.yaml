@@ -66,8 +66,8 @@ jobs:
             task-name: test
             os: macos-12
             env:
-              SKIP_PODMAN: 1
-            #  SKIP_DOCKER: 1
+              # SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
             # only until we fix some broken tests, as we need it to pass
             # in order to enable the caching
             continue-on-error: true
