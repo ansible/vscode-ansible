@@ -77,7 +77,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       contentMatchesRequestData.model = model;
     }
 
-    console.log(
+    this.log(
       `${getCurrentUTCDateTime().toISOString()}: request content matches from Ansible Lightspeed:\n${JSON.stringify(
         contentMatchesRequestData
       )}`
@@ -85,7 +85,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     const outputData: ContentMatchesResponseParams =
       await this.apiInstance.contentMatchesRequest(contentMatchesRequestData);
-    console.log(
+    this.log(
       `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
         outputData
       )}`
@@ -122,7 +122,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       suggestion,
       suggestionId
     );
-    console.log(contentMatchResponses);
+    this.log(contentMatchResponses);
     if (
       Object.keys(contentMatchResponses).length === 0 ||
       contentMatchResponses.contentmatches.length === 0
@@ -143,7 +143,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
         keepSourceTokens: true,
       });
     } catch (err) {
-      console.log(err);
+      this.log(err);
       return noContentMatchesFoundHtml;
     }
     if (
@@ -221,5 +221,10 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       </details>
     </ul>
     `;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public log(message: any): void {
+    console.log(message);
   }
 }
