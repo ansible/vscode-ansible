@@ -136,6 +136,7 @@ export class LightSpeedAPI {
 
   public async feedbackRequest(
     inputData: FeedbackRequestParams,
+    orgOptOutTelemetry = false,
     showAuthErrorMessage = false,
     showInfoMessage = false
   ): Promise<FeedbackResponseParams> {
@@ -153,7 +154,8 @@ export class LightSpeedAPI {
       return {} as FeedbackResponseParams;
     }
     const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
-    if (rhUserHasSeat) {
+
+    if (rhUserHasSeat && orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {
         delete inputData.inlineSuggestion;
       }
