@@ -1004,6 +1004,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/tmp@npm:^0.2.6":
+  version: 0.2.6
+  resolution: "@types/tmp@npm:0.2.6"
+  checksum: e14a094c10569d3b56805552b21417860ef21060d969000d5d5b53604a78c2bdac216f064b03797d4b07a081e0141dd3ab22bc36923e75300eb1c023f7252cc7
+  languageName: node
+  linkType: hard
+
 "@types/uuid@npm:^9.0.8":
   version: 9.0.8
   resolution: "@types/uuid@npm:9.0.8"
@@ -1655,6 +1662,7 @@ __metadata:
     "@types/mocha": "npm:^10.0.6"
     "@types/node": "npm:^20.11.7"
     "@types/sinon": "npm:^17.0.3"
+    "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^9.0.8"
     "@types/vscode": "npm:^1.85.0"
     "@types/vscode-webview": "npm:^1.57.4"

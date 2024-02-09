@@ -3,17 +3,15 @@ import * as yaml from "yaml";
 import * as path from "path";
 import * as fs from "fs";
 import { getExpandedPath } from "../../../utils/fileUtils";
-import { IParsedYaml } from "../../../interfaces/yaml";
 import {
   IVarsFileContext,
-  IWorkSpaceRolesContext,
-  IVarsContext,
   IIncludeVarsContext,
   IAnsibleFileType,
 } from "../../../interfaces/lightspeed";
 import { watchAnsibleFile } from "./watchers";
 import { LightSpeedManager } from "../base";
-import { VarType } from "../../../interfaces/lightspeed";
+import { updateRolesContext } from "./updateRolesContext";
+import { readVarFiles } from "./readVarFiles";
 import {
   IncludeVarValidTaskName,
   StandardRolePaths,
@@ -227,41 +225,6 @@ export function getIncludeVarsContext(
   return includeVarsContext;
 }
 
-export function readVarFiles(varFile: string): string | undefined {
-  try {
-    if (!fs.existsSync(varFile)) {
-      return undefined;
-    }
-    const contents = fs.readFileSync(varFile, "utf8");
-    const parsedAnsibleVars = yaml.parse(contents, {
-      keepSourceTokens: true,
-    });
-    removeVarsValues(parsedAnsibleVars);
-    const updatedFileContents = yaml.stringify(parsedAnsibleVars);
-    return updatedFileContents;
-  } catch (err) {
-    console.error(`Failed to read ${varFile} with error ${err}`);
-    return undefined;
-  }
-}
-function removeVarsValues(parsedYaml: IParsedYaml[] | IParsedYaml | "") {
-  if (Array.isArray(parsedYaml)) {
-    for (const item of parsedYaml) {
-      removeVarsValues(item);
-    }
-  } else if (typeof parsedYaml === "object" && parsedYaml !== null) {
-    for (const key in parsedYaml) {
-      if (Object.prototype.hasOwnProperty.call(parsedYaml, key)) {
-        parsedYaml[key] = removeVarsValues(parsedYaml[key]);
-      }
-    }
-  } else {
-    parsedYaml = "";
-  }
-
-  return parsedYaml;
-}
-
 export function updateRolesCache(
   uri: vscode.Uri,
   lightSpeedManager: LightSpeedManager
@@ -272,61 +235,18 @@ export function updateRolesCache(
     dirPath = path.dirname(dirPath);
   }
   if (dirPath in StandardRolePaths) {
-    updateRolesContext(lightSpeedManager, dirPath, "common");
+    updateRolesContext(lightSpeedManager.ansibleRolesCache, dirPath, "common");
   } else {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (workspaceFolders) {
       const workspaceFolder = workspaceFolders[0].uri.fsPath;
-      updateRolesContext(lightSpeedManager, dirPath, workspaceFolder);
+      updateRolesContext(
+        lightSpeedManager.ansibleRolesCache,
+        dirPath,
+        workspaceFolder
+      );
     }
   }
-}
-
-export function updateRolesContext(
-  lightSpeedManager: LightSpeedManager,
-  rolesRootPath: string,
-  workSpaceRoot: string
-): IWorkSpaceRolesContext | undefined {
-  if (!fs.existsSync(rolesRootPath) || !rolesRootPath.endsWith("roles")) {
-    return;
-  }
-  const roleNames = fs
-    .readdirSync(rolesRootPath)
-    .filter((name) =>
-      fs.statSync(path.join(rolesRootPath, name)).isDirectory()
-    );
-  for (const roleName of roleNames) {
-    const rolePath = path.join(rolesRootPath, roleName);
-    updateRoleContext(lightSpeedManager, rolePath, workSpaceRoot);
-  }
-}
-export function updateRoleContext(
-  lightSpeedManager: LightSpeedManager,
-  rolePath: string,
-  workSpaceRoot: string
-) {
-  if (!lightSpeedManager.ansibleRolesCache[workSpaceRoot]) {
-    lightSpeedManager.ansibleRolesCache[workSpaceRoot] = {};
-  }
-  const rolesContext = lightSpeedManager.ansibleRolesCache[workSpaceRoot];
-  rolesContext[rolePath] = {
-    name: rolePath.split(path.sep).pop(),
-  };
-
-  // Get all the task files in the tasks directory
-  const tasksPath = path.join(rolePath, "tasks");
-  if (fs.existsSync(tasksPath)) {
-    const taskNames = fs
-      .readdirSync(tasksPath)
-      .filter((name) => [".yml", ".yaml"].includes(path.extname(name)))
-      .map((name) => path.basename(name, path.extname(name)));
-    rolesContext[rolePath]["tasks"] = taskNames;
-  }
-
-  rolesContext[rolePath]["roleVars"] = {
-    defaults: getVarsFromRoles(rolePath, "defaults") || {},
-    vars: getVarsFromRoles(rolePath, "vars") || {},
-  };
 }
 
 export function getRelativePath(
@@ -339,41 +259,6 @@ export function getRelativePath(
     relativePath = path.relative(documentDir, absPath);
   }
   return relativePath;
-}
-
-function getVarsFromRoles(
-  rolePath: string,
-  varType: VarType
-): IVarsContext | undefined {
-  const varsRootPath = path.join(rolePath, varType);
-  if (!fs.existsSync(varsRootPath)) {
-    return;
-  }
-  const varsFiles =
-    fs
-      .readdirSync(varsRootPath)
-      .filter((name) => [".yml", ".yaml"].includes(path.extname(name)))
-      .map((name) => name)
-      .map((name) => path.join(varsRootPath, name)) || [];
-  for (const varsFile of varsFiles) {
-    if (!fs.existsSync(varsFile)) {
-      continue;
-    }
-
-    try {
-      const varsContext: IVarsContext = {};
-      const varsFileName = path.basename(varsFile);
-      const varsFileContent = readVarFiles(varsFile);
-      if (varsFileContent) {
-        varsContext[varsFileName] = varsFileContent;
-        return varsContext;
-      }
-    } catch (err) {
-      console.error(`Failed to read ${varsFile} with error ${err}`);
-    }
-  }
-
-  return;
 }
 
 export function getRolePathFromPathWithinRole(roleFilePath: string): string {

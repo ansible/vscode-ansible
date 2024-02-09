@@ -4,13 +4,11 @@ import * as fs from "fs";
 import { globalFileSystemWatcher } from "../../../extension";
 import { LightSpeedManager } from "../base";
 import { IAnsibleType } from "../../../interfaces/watchers";
-import {
-  getRolePathFromPathWithinRole,
-  readVarFiles,
-  updateRoleContext,
-} from "./data";
+import { getRolePathFromPathWithinRole } from "./data";
+import { readVarFiles } from "./readVarFiles";
+import { updateRoleContext, updateRolesContext } from "./updateRolesContext";
+
 import { isFile } from "../../../utils/fileUtils";
-import { updateRolesContext } from "./data";
 import { StandardRolePaths } from "../../../definitions/constants";
 
 export async function watchAnsibleFile(
@@ -77,10 +75,18 @@ export function watchRolesDirectory(
     rolesPath in ansibleRolesCache[workspaceRoot]
   ) {
     console.log(`Directory ${rolesPath} is already being watched`);
-    updateRolesContext(lightSpeedManager, rolesPath, workspaceRoot);
+    updateRolesContext(
+      lightSpeedManager.ansibleRolesCache,
+      rolesPath,
+      workspaceRoot
+    );
     return;
   } else {
-    updateRolesContext(lightSpeedManager, rolesPath, workspaceRoot);
+    updateRolesContext(
+      lightSpeedManager.ansibleRolesCache,
+      rolesPath,
+      workspaceRoot
+    );
     console.log(`Created roles cache for ${rolesPath}`);
   }
 
@@ -93,7 +99,11 @@ export function watchRolesDirectory(
     if (currentWorkspaceRoot) {
       const workspaceRoot = currentWorkspaceRoot[0].uri.fsPath;
       const rolePath = getRolePathFromPathWithinRole(uri.fsPath);
-      updateRoleContext(lightSpeedManager, rolePath, workspaceRoot);
+      updateRoleContext(
+        lightSpeedManager.ansibleRolesCache,
+        rolePath,
+        workspaceRoot
+      );
       console.log(`Directory ${uri.fsPath} has been changed`);
     }
   });
@@ -123,7 +133,11 @@ export function watchRolesDirectory(
     if (currentWorkspaceRoot) {
       const workspaceRoot = currentWorkspaceRoot[0].uri.fsPath;
       const rolePath = getRolePathFromPathWithinRole(uri.fsPath);
-      updateRoleContext(lightSpeedManager, rolePath, workspaceRoot);
+      updateRoleContext(
+        lightSpeedManager.ansibleRolesCache,
+        rolePath,
+        workspaceRoot
+      );
       console.log(`Directory ${uri.fsPath} has been changed`);
     }
   });
