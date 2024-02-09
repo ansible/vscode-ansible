@@ -91,7 +91,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       msg,
-      `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant.`
+      `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant by moving to one of the paid plans.`
     );
   });
   it("err Forbidden - WCA not ready", () => {

@@ -41,7 +41,7 @@ export function retrieveError(err: AxiosError): string {
             return "Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.";
           }
           case "permission_denied__user_trial_expired": {
-            return "Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant.";
+            return "Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant by moving to one of the paid plans.";
           }
           case "permission_denied__user_with_no_seat": {
             return "You don't have access to IBM watsonx Code Assistant. Contact your administrator.";
