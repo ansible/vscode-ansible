@@ -49,9 +49,12 @@ export function lightspeedUIAssetsTest(): void {
       // this.retries(3);
       // this.timeout(20000); // even 18s failed
 
-      const welcomeContent = await lightspeedServiceSection.findWelcomeContent();
+      const welcomeContent =
+        await lightspeedServiceSection.findWelcomeContent();
       expect(welcomeContent).not.undefined;
-      const loginButton = await welcomeContent?.findElement(By.xpath("//a[.//span/text()='Connect']"));
+      const loginButton = await welcomeContent?.findElement(
+        By.xpath("//a[.//span/text()='Connect']")
+      );
       expect(loginButton).not.undefined;
 
       // **** ORIGINAL CODE ****
@@ -64,7 +67,7 @@ export function lightspeedUIAssetsTest(): void {
 
       // const loginButtonTitle = await (await loginButton)[0].getTitle();
 
-      // expect(loginButtonTitle).to.equal("Connect");      
+      // expect(loginButtonTitle).to.equal("Connect");
     });
   });
 
@@ -89,9 +92,12 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Ansible Lightspeed status bar item absent when settings not enabled", async function () {
       await editorView.openEditor(file);
-      const items = await statusBar.findElements(By.xpath((
-        "//div[contains(@class, 'statusbar-item') and " 
-        + ".//a/text()='Lightspeed (unlicensed)']")));
+      const items = await statusBar.findElements(
+        By.xpath(
+          "//div[contains(@class, 'statusbar-item') and " +
+            ".//a/text()='Lightspeed (unlicensed)']"
+        )
+      );
       expect(items.length).equals(0);
 
       // **** ORIGINAL CODE ****
@@ -104,11 +110,14 @@ export function lightspeedUIAssetsTest(): void {
       settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
       await editorView.openEditor(file);
-      const lightspeedStatusBarItem = await statusBar.findElement(By.xpath((
-        "//div[contains(@class, 'statusbar-item') and " 
-        + "contains(@class, 'has-background-color') and "
-        + "contains(@class, 'warning-kind') and "
-        + ".//a/text()='Lightspeed (unlicensed)']")));
+      const lightspeedStatusBarItem = await statusBar.findElement(
+        By.xpath(
+          "//div[contains(@class, 'statusbar-item') and " +
+            "contains(@class, 'has-background-color') and " +
+            "contains(@class, 'warning-kind') and " +
+            ".//a/text()='Lightspeed (unlicensed)']"
+        )
+      );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
 
       // **** ORIGINAL CODE ****
@@ -131,12 +140,15 @@ export function lightspeedUIAssetsTest(): void {
         true
       );
       await editorView.openEditor(file);
-      const lightspeedStatusBarItem = await statusBar.findElement(By.xpath((
-        "//div[contains(@class, 'statusbar-item') and " 
-        + "not (contains(@class, 'has-background-color')) and "
-        + ".//a/text()='Lightspeed (unlicensed)']")));
+      const lightspeedStatusBarItem = await statusBar.findElement(
+        By.xpath(
+          "//div[contains(@class, 'statusbar-item') and " +
+            "not (contains(@class, 'has-background-color')) and " +
+            ".//a/text()='Lightspeed (unlicensed)']"
+        )
+      );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
-      
+
       // **** ORIGINAL CODE ****
       //   *** statusBar.getItem() does not seem to get items correctly.
       // const lightspeedStatusBarItem = await statusBar.getItem("Lightspeed");
