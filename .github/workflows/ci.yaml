@@ -165,7 +165,7 @@ jobs:
 
       - name: Upload coverage data
         if: ${{ startsWith(matrix.name, 'test') }}
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           name: ${{ matrix.name }}
           token: ${{ secrets.CODECOV_TOKEN }}
