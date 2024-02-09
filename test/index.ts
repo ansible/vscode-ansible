@@ -7,15 +7,16 @@ function setupCoverage() {
   const NYC = require("nyc");
   const nyc = new NYC({
     cwd: path.join(__dirname, "..", "..", ".."),
-    reporter: ["text", "html"],
+    reporter: ["text", "html", "lcov"],
     all: true,
     silent: false,
     instrument: true,
     hookRequire: true,
     hookRunInContext: true,
     hookRunInThisContext: true,
-    include: ["out/client/**/*.js", "out/server/**/*.js"],
-    exclude: ["**/test/**"],
+    include: ["out/client/src/**/*.js"],
+    reportDir: "out/coverage",
+    tempDir: "out/.nyc_output",
   });
 
   nyc.reset();
@@ -52,8 +53,18 @@ export async function run(): Promise<void> {
 
   const files = await glob("**/**.test.js", { cwd: testsRoot });
 
-  // Add files to the test suite
-  files.forEach((file) => mocha.addFile(path.resolve(testsRoot, file)));
+  // Add unit test cases to the test suite first
+  files.forEach((file) => {
+    if (file.indexOf("/units/") !== -1) {
+      mocha.addFile(path.resolve(testsRoot, file));
+    }
+  });
+  // Then add e2e test cases
+  files.forEach((file) => {
+    if (file.indexOf("/units/") === -1) {
+      mocha.addFile(path.resolve(testsRoot, file));
+    }
+  });
 
   try {
     await new Promise<void>((c, e) => {
