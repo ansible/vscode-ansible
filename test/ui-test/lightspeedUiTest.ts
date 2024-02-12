@@ -21,7 +21,6 @@ export function lightspeedUIAssetsTest(): void {
     let lightspeedServiceSection: ExtensionsViewSection;
 
     before(async function () {
-      // this.timeout(10000);
       view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
       sideBar = await view.openView();
 
@@ -31,9 +30,6 @@ export function lightspeedUIAssetsTest(): void {
     });
 
     it("Ansible Lightspeed welcome message is present", async function () {
-      // this.retries(3);
-      // this.timeout(20000); // even 18s failed
-
       const welcomeMessage = await lightspeedServiceSection
         .findWelcomeContent()
         .then(async (val) => {
@@ -46,28 +42,15 @@ export function lightspeedUIAssetsTest(): void {
     });
 
     it("Ansible Lightspeed login button is present", async function () {
-      // this.retries(3);
-      // this.timeout(20000); // even 18s failed
-
       const welcomeContent =
         await lightspeedServiceSection.findWelcomeContent();
       expect(welcomeContent).not.undefined;
+
+      // The following lines replaced the original code that was using ExtensionsViewSection APIs.
       const loginButton = await welcomeContent?.findElement(
         By.xpath("//a[.//span/text()='Connect']")
       );
       expect(loginButton).not.undefined;
-
-      // **** ORIGINAL CODE ****
-      // const loginButton = lightspeedServiceSection
-      //   .findWelcomeContent()
-      //   .then(async (val) => {
-      //// *** Following getButtons() call does not seem to get buttons...
-      //     return (await val?.getButtons()) as WelcomeContentButton[];
-      //   });
-
-      // const loginButtonTitle = await (await loginButton)[0].getTitle();
-
-      // expect(loginButtonTitle).to.equal("Connect");
     });
   });
 
@@ -80,8 +63,6 @@ export function lightspeedUIAssetsTest(): void {
     const filePath = getFilePath(file);
 
     before(async function () {
-      // this.timeout(100000);
-
       statusBar = new StatusBar();
       editorView = new EditorView();
       workbench = new Workbench();
@@ -92,6 +73,8 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Ansible Lightspeed status bar item absent when settings not enabled", async function () {
       await editorView.openEditor(file);
+
+      // The following lines replaced the original code that was using StatusBar.getItem() API.
       const items = await statusBar.findElements(
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
@@ -99,17 +82,14 @@ export function lightspeedUIAssetsTest(): void {
         )
       );
       expect(items.length).equals(0);
-
-      // **** ORIGINAL CODE ****
-      //   *** statusBar.getItem() does not seem to get items correctly.
-      // const lightspeedStatusBarItem = await statusBar.getItem("Lightspeed");
-      // expect(lightspeedStatusBarItem).to.be.undefined;
     });
 
     it("Ansible Lightspeed status bar item present when only lightspeed is enabled (with warning color)", async () => {
       settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
       await editorView.openEditor(file);
+
+      // The following lines replaced the original code that was using StatusBar.getItem() API.
       const lightspeedStatusBarItem = await statusBar.findElement(
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
@@ -119,27 +99,18 @@ export function lightspeedUIAssetsTest(): void {
         )
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
-
-      // **** ORIGINAL CODE ****
-      //   *** statusBar.getItem() does not seem to get items correctly.
-      // const lightspeedStatusBarItem = await statusBar.getItem("Lightspeed");
-      // expect(lightspeedStatusBarItem).not.to.be.undefined;
-
-      //  // getAttribute('style') returns a string with "background-color" in case of different color, else returns nothing
-      // expect(await lightspeedStatusBarItem?.getAttribute("style")).to.include(
-      //   "background-color"
-      // );
     });
 
     it("Ansible Lightspeed status bar item present when lightspeed and lightspeed suggestions are enabled (with normal color)", async () => {
       settingsEditor = await workbench.openSettings();
-      // await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
       await updateSettings(
         settingsEditor,
         "ansible.lightspeed.suggestions.enabled",
         true
       );
       await editorView.openEditor(file);
+
+      // The following lines replaced the original code that was using StatusBar.getItem() API.
       const lightspeedStatusBarItem = await statusBar.findElement(
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
@@ -148,14 +119,6 @@ export function lightspeedUIAssetsTest(): void {
         )
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
-
-      // **** ORIGINAL CODE ****
-      //   *** statusBar.getItem() does not seem to get items correctly.
-      // const lightspeedStatusBarItem = await statusBar.getItem("Lightspeed");
-      // expect(lightspeedStatusBarItem).not.to.be.undefined;
-
-      // // getAttribute('style') returns a string with "background-color" in case of different color, else returns nothing
-      // expect(await lightspeedStatusBarItem?.getAttribute("style")).to.be.empty;
     });
   });
 }
