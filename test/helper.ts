@@ -235,7 +235,8 @@ export async function testHover(
 
 export async function testInlineSuggestion(
   prompt: string,
-  expectedModule: string
+  expectedModule: string,
+  multiTask = false
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -254,7 +255,10 @@ export async function testInlineSuggestion(
       writePosition,
       new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
     );
-    edit.replace(replaceRange, `- name: ${prompt}\n`);
+    edit.replace(
+      replaceRange,
+      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`
+    );
   });
 
   await vscode.commands.executeCommand("cursorMove", {
@@ -298,7 +302,8 @@ export async function testInlineSuggestion(
 }
 
 export async function testInlineSuggestionNotTriggered(
-  prompt: string
+  prompt: string,
+  multiTask = false
 ): Promise<void> {
   const editor = vscode.window.activeTextEditor;
 
@@ -316,7 +321,10 @@ export async function testInlineSuggestionNotTriggered(
       writePosition,
       new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
     );
-    edit.replace(replaceRange, `${prompt}\n`);
+    edit.replace(
+      replaceRange,
+      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`
+    );
   });
 
   await vscode.commands.executeCommand("cursorMove", {

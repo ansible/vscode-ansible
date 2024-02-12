@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import sinon from "sinon";
 import {
   getDocUri,
   activate,
@@ -11,6 +12,7 @@ import {
   testValidJinjaBrackets,
 } from "../../helper";
 import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
+import { lightSpeedManager } from "../../../src/extension";
 
 function testSuggestionPrompts() {
   const tests = [
@@ -21,6 +23,17 @@ function testSuggestionPrompts() {
     {
       taskName: "Create a file foo.txt",
       expectedModule: "ansible.builtin.file",
+    },
+  ];
+
+  return tests;
+}
+
+function testMultiTaskSuggestionPrompts() {
+  const tests = [
+    {
+      taskName: "Install vim & install python3 & debug OS version",
+      expectedModule: "ansible.builtin.package",
     },
   ];
 
@@ -91,6 +104,41 @@ export function testLightspeed(): void {
         it(`Should give inline suggestion for task prompt '${taskName}'`, async function () {
           await testInlineSuggestion(taskName, expectedModule);
         });
+      });
+    });
+
+    describe("Test Ansible Lightspeed multitask inline completion suggestions", function () {
+      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let rhUserHasSeatStub: any;
+
+      before(async function () {
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+        await activate(docUri1);
+        rhUserHasSeatStub = sinon.stub(
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          "rhUserHasSeat"
+        );
+      });
+
+      const tests = testMultiTaskSuggestionPrompts();
+
+      tests.forEach(({ taskName, expectedModule }) => {
+        it(`Should give multitask inline suggestion for task prompt '${taskName}'`, async function () {
+          rhUserHasSeatStub.returns(Promise.resolve(true));
+          await testInlineSuggestion(taskName, expectedModule, true);
+        });
+
+        it(`Should not give multitask inline suggestion for task prompt '${taskName}' if the user is unseated`, async function () {
+          rhUserHasSeatStub.returns(Promise.resolve(false));
+          await testInlineSuggestionNotTriggered(taskName, true);
+        });
+      });
+
+      after(async function () {
+        sinon.restore();
       });
     });
 
