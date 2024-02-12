@@ -48,6 +48,7 @@ export class LightspeedStatusBar {
     );
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
+    lightSpeedStatusBarItem.text = this.getLightSpeedStatusBarTextSync();
     this.getLightSpeedStatusBarText().then((text) => {
       lightSpeedStatusBarItem.text = text;
     });
@@ -66,12 +67,23 @@ export class LightspeedStatusBar {
       rhOrgHasSubscription =
         await this.lightSpeedAuthProvider.rhOrgHasSubscription();
     }
+    return this.getLightSpeedStatusBarTextSync(
+      rhOrgHasSubscription,
+      rhUserHasSeat
+    );
+  }
+
+  private getLightSpeedStatusBarTextSync(
+    rhUserHasSeat?: boolean,
+    rhOrgHasSubscription?: boolean
+  ): string {
     const userTypeLabel = getUserTypeLabel(
       rhOrgHasSubscription,
       rhUserHasSeat
     ).toLowerCase();
     return `Lightspeed (${userTypeLabel})`;
   }
+
   private handleStatusBar() {
     if (!this.client.isRunning()) {
       return;
