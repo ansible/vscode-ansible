@@ -1,6 +1,7 @@
 // "Mock" Lightspeed Server
 import express, { Application } from "express";
 import { completions } from "./completion";
+import { feedback } from "./feedback";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 
@@ -28,9 +29,7 @@ export default class Server {
     });
 
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {
-      const body = req.body;
-      console.log(JSON.stringify(body, null, 2));
-      return res.send({});
+      return feedback(req, res);
     });
 
     app.get(`${API_ROOT}/me`, (req, res) => {

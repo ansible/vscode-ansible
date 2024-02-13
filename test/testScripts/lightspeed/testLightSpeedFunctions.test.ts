@@ -1,3 +1,4 @@
+import sinon from "sinon";
 import { getLoggedInSessionDetails } from "../../../src/features/lightspeed/utils/webUtils";
 import { LightspeedAuthSession } from "../../../src/interfaces/lightspeed";
 import { lightSpeedManager } from "../../../src/extension";
@@ -77,7 +78,55 @@ function testGetLightSpeedStatusBarText(): void {
   });
 }
 
+function testFeedbackAPI(): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let isAuthenticated: any;
+
+  before(async function () {
+    isAuthenticated = sinon.stub(
+      lightSpeedManager.lightSpeedAuthenticationProvider,
+      "isAuthenticated"
+    );
+    isAuthenticated.returns(Promise.resolve(true));
+  });
+
+  describe("Test Feedback API", function () {
+    it("Verify a sentiment feedback is sent successfully", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+      const request = {
+        sentimentFeedback: {
+          value: 5,
+          feedback: "It's awesome!",
+        },
+      };
+      const response = await apiInstance.feedbackRequest(request);
+      console.log(JSON.stringify(response));
+      assert.equal(response.message, "Thanks for your feedback!");
+    });
+
+    it("Verify a sentiment feedback fails when permission is denied", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+      const request = {
+        sentimentFeedback: {
+          value: 1,
+          // If feedback starts with "permission_denied__", mock server returns an error.
+          feedback: "permission_denied__user_with_no_seat",
+        },
+      };
+      const response = await apiInstance.feedbackRequest(request);
+      console.log(JSON.stringify(response));
+      // When an error is found, feedbackRequest() does not return a message
+      assert.equal(response.message, undefined);
+    });
+  });
+
+  after(async function () {
+    sinon.restore();
+  });
+}
+
 export function testLightspeedFunctions(): void {
   testGetLoggedInSessionDetails();
   testGetLightSpeedStatusBarText();
+  testFeedbackAPI();
 }
