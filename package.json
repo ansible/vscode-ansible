@@ -823,7 +823,7 @@
     "_coverage-all": "start-server-and-test 'TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server' ${TEST_LIGHTSPEED_URL} 'TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn coverage-e2e'",
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all"
   },
-  "version": "2.10.0",
+  "version": "2.11.0",
   "packageManager": "yarn@4.0.2",
   "vsce": {
     "dependencies": false,
