@@ -4,6 +4,27 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.11
+
+### Minor Changes
+
+- Lightspeed VSCode extension: Analytics telemetry opting-out support (#1078)
+  @hasys
+- Integrate code coverage & mock Lightspeed server into CI (#1067) @TamiTakamiya
+- Show Licensed or Unlicensed for user type (#1064) @TamiTakamiya
+- Mock Lightspeed Server for local test execution (#1062) @TamiTakamiya
+- lightspeed/inlineSuggestions: refactoring to simplify the testing (#1055)
+  @goneri
+- lightspeed: show a proper message when the user has no seat (#1059) @goneri
+- Enable code coverage on e2e tests (#1056) @TamiTakamiya
+
+### Bugfixes
+
+- handle command in python interpreter path (#1082) @robinbobbitt
+- avoid an exception during init if 'roles' is not a directory (#1085) @goneri
+- handle invalid python interpreter path (#1077) @robinbobbitt
+- enable lightspeed connect when ready (#1076) @robinbobbitt
+
 ## v2.10
 
 ### Major Changes
