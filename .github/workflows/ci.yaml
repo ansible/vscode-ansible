@@ -161,7 +161,12 @@ jobs:
           # For using an actual Lightspeed server instance, uncomment following two lines.
           # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
           # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
-        run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+        # run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+        # xvfb needed for chrome headless tests
+        uses: coactions/setup-xvfb@v1
+        with:
+          run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+        continue-on-error: ${{ startsWith(matrix.os, 'macos') }}
 
       - name: Upload coverage data
         if: ${{ startsWith(matrix.name, 'test') }}
