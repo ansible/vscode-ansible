@@ -13,7 +13,7 @@ vars:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) -e out/log/xvfb.log"; fi'
+    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
 tasks:
   default:
     vars:
