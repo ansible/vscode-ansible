@@ -41,6 +41,9 @@ export class SettingsManager {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
+        scan: {
+          autoFix: lightSpeedSettings.get("scan.autoFix", false),
+        },
       },
     };
 

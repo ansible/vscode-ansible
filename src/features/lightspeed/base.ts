@@ -22,6 +22,7 @@ import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import { LightspeedScan } from "./scan";
 
 export class LightSpeedManager {
   private context;
@@ -37,6 +38,8 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
+  public staticScan: LightspeedScan;
+  public _channel: vscode.OutputChannel;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -84,6 +87,16 @@ export class LightSpeedManager {
 
     // create workspace context for ansible roles
     this.setContext();
+
+    // register the commands
+    this.staticScan = new LightspeedScan(
+      context,
+      settingsManager,
+      this.apiInstance,
+      telemetry
+    );
+
+    this._channel = this.getOutputChannel();
   }
 
   public async reInitialize(): Promise<void> {
@@ -207,5 +220,12 @@ export class LightSpeedManager {
     };
     console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
     this.apiInstance.feedbackRequest(inputData);
+  }
+
+  private getOutputChannel(): vscode.OutputChannel {
+    if (!this._channel) {
+      this._channel = vscode.window.createOutputChannel("Ansible Lightspeed");
+    }
+    return this._channel;
   }
 }

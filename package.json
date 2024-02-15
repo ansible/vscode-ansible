@@ -202,6 +202,21 @@
         "title": "%commands.title.ansible-vault%"
       },
       {
+        "category": "%commands.category.ansible.lightspeed%",
+        "command": "extension.ansible.lightspeed.scan",
+        "title": "Scan"
+      },
+      {
+        "category": "%commands.category.ansible.lightspeed%",
+        "command": "extension.ansible.lightspeed.policy-check.pre-run",
+        "title": "Pre-run Validataions"
+      },
+      {
+        "category": "%commands.category.ansible.lightspeed%",
+        "command": "extension.ansible.lightspeed.policy-check.post-run",
+        "title": "Post-run Validataions"
+      },
+      {
         "command": "ansible.python.set.interpreter",
         "title": "Ansible: Set Python Interpreter"
       },
@@ -490,6 +505,13 @@
             "type": "string",
             "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
             "order": 3
+          },
+          "ansible.lightspeed.scan.autoFix": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Scan and address possible issues in Ansible files.",
+            "order": 4
           }
         }
       },
@@ -584,10 +606,37 @@
           "command": "extension.ansible-playbook.run"
         }
       ],
+      "ansible.lightspeed": [
+        {
+          "command": "extension.ansible.lightspeed.scan",
+          "group": "lightspeed"
+        },
+        {
+          "submenu": "ansible.lightspeed.policy-check",
+          "group": "lightspeed"
+        }
+      ],
+      "ansible.lightspeed.policy-check": [
+        {
+          "command": "extension.ansible.lightspeed.policy-check.pre-run",
+          "group": "lightspeed",
+          "title": "Pre-run"
+        },
+        {
+          "command": "extension.ansible.lightspeed.policy-check.post-run",
+          "group": "lightspeed",
+          "title": "Post-run"
+        }
+      ],
       "editor/context": [
         {
           "group": "2_main@1",
           "submenu": "ansible.playbook.run",
+          "when": "isFileSystemResource && editorLangId == ansible"
+        },
+        {
+          "group": "2_main@2",
+          "submenu": "ansible.lightspeed",
           "when": "isFileSystemResource && editorLangId == ansible"
         }
       ],
@@ -596,6 +645,11 @@
           "group": "2_main@1",
           "submenu": "ansible.playbook.run",
           "when": "isFileSystemResource && resourceLangId == ansible"
+        },
+        {
+          "group": "2_main@2",
+          "submenu": "ansible.lightspeed",
+          "when": "isFileSystemResource && resourceLangId == ansible"
         }
       ]
     },
@@ -603,6 +657,14 @@
       {
         "id": "ansible.playbook.run",
         "label": "%submenus.ansible.run-via%"
+      },
+      {
+        "id": "ansible.lightspeed",
+        "label": "Ansible Lightspeed"
+      },
+      {
+        "id": "ansible.lightspeed.policy-check",
+        "label": "Policy Checks"
       }
     ],
     "grammars": [

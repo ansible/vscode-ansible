@@ -48,6 +48,7 @@ export const LIGHTSPEED_SUGGESTION_COMPLETION_URL = `${LIGHTSPEED_API_VERSION}/a
 export const LIGHTSPEED_SUGGESTION_FEEDBACK_URL = `${LIGHTSPEED_API_VERSION}/ai/feedback/`;
 export const LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL = `${LIGHTSPEED_API_VERSION}/ai/contentmatches/`;
 export const LIGHTSPEED_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/`;
+export const LIGHTSPEED_SCAN_CONTENT_URL = `${LIGHTSPEED_API_VERSION}/scan/content/`;
 
 export const LIGHTSPEED_FEEDBACK_FORM_URL =
   "https://red.ht/ansible-ai-feedback";

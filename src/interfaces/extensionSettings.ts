@@ -24,9 +24,13 @@ export interface ExecutionEnvironmentSettings {
   volumeMounts: Array<IVolumeMounts>;
 }
 
+export interface LightSpeedServiceScanSettings {
+  autoFix: boolean;
+}
 export interface LightSpeedServiceSettings {
   enabled: boolean;
   URL: string;
   suggestions: { enabled: boolean };
   model: string | undefined;
+  scan: LightSpeedServiceScanSettings;
 }

@@ -8,6 +8,7 @@ import { getContainerEngine } from "../utils/executionEnvironment";
 import { AnsibleCommands } from "../definitions/constants";
 import { registerCommandWithTelemetry } from "../utils/registerCommands";
 import { TelemetryManager } from "../utils/telemetryUtils";
+import { extractTargetFsPath } from "./utils/fileUtils";
 
 /**
  * A set of commands and context menu items for running Ansible playbooks using
@@ -137,15 +138,15 @@ export class AnsiblePlaybookRunProvider {
   ): Promise<void> {
     const runExecutable = this.ansiblePlaybookExecutablePath;
     const commandLineArgs: string[] = [];
-    const playbookFsPath = extractTargetFsPath(...fileObj);
-    if (typeof playbookFsPath === "undefined") {
+    const { filePath } = extractTargetFsPath(...fileObj);
+    if (typeof filePath === "undefined") {
       vscode.window.showErrorMessage(
         `No Ansible playbook file has been specified to be executed with ansible-playbook.`
       );
       return;
     }
     // replace spaces in file name with escape sequence '\ '
-    commandLineArgs.push(playbookFsPath.replace(/(\s)/, "\\ "));
+    commandLineArgs.push(filePath.replace(/(\s)/, "\\ "));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const [command, runEnv] = withInterpreter(
       this.settings,
@@ -166,14 +167,14 @@ export class AnsiblePlaybookRunProvider {
   ): Promise<void> {
     const runExecutable = this.ansibleNavigatorExecutablePath;
     const commandLineArgs: string[] = [];
-    const playbookFsPath = extractTargetFsPath(...fileObj);
-    if (typeof playbookFsPath === "undefined") {
+    const { filePath } = extractTargetFsPath(...fileObj);
+    if (typeof filePath === "undefined") {
       vscode.window.showErrorMessage(
         `No Ansible playbook file has been specified to be executed with ansible-navigator run.`
       );
       return;
     }
-    commandLineArgs.push(playbookFsPath);
+    commandLineArgs.push(filePath);
 
     this.addEEArgs(commandLineArgs);
 
@@ -187,22 +188,4 @@ export class AnsiblePlaybookRunProvider {
     console.debug(`Running command: ${command}`);
     this.invokeInTerminal(command, runEnv);
   }
-}
-
-/**
- * A helper function for inferring selected file from the context.
- * @param priorityPathObjs - Target file path candidates.
- * @returns A path to the currently selected file.
- */
-function extractTargetFsPath(
-  ...priorityPathObjs: vscode.Uri[] | undefined[]
-): string | undefined {
-  const pathCandidates: vscode.Uri[] = [
-    ...priorityPathObjs,
-    vscode.window.activeTextEditor?.document.uri,
-  ]
-    .filter((p) => p instanceof vscode.Uri)
-    .map((p) => <vscode.Uri>p)
-    .filter((p) => p.scheme === "file");
-  return pathCandidates[0]?.fsPath;
 }

@@ -9,11 +9,14 @@ import {
   FeedbackResponseParams,
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
+  ScanRequestParams,
+  ScanResponseParams,
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
+  LIGHTSPEED_SCAN_CONTENT_URL,
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
@@ -253,6 +256,65 @@ export class LightSpeedAPI {
         );
       }
       return {} as ContentMatchesResponseParams;
+    }
+  }
+
+  public async runScan(
+    filePath: string,
+    fileContent: string
+  ): Promise<ScanResponseParams> {
+    {
+      const inputData: ScanRequestParams = {
+        fileContent: fileContent,
+        ansibleFileType: "playbook",
+        autoFix: this.settingsManager.settings.lightSpeedService.scan.autoFix,
+      };
+      // return early if the user is not authenticated
+      if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
+        vscode.window.showErrorMessage(
+          "User not authenticated to use Ansible Lightspeed."
+        );
+        return {} as ScanResponseParams;
+      }
+
+      const axiosInstance = await this.getApiInstance();
+      if (axiosInstance === undefined) {
+        console.error("Ansible Lightspeed instance is not initialized.");
+        return {} as ScanResponseParams;
+      }
+      try {
+        console.log(
+          `[ansible-lightspeed] Static scan request sent to lightspeed: ${JSON.stringify(
+            inputData
+          )}`
+        );
+        const response = await axiosInstance.post(
+          LIGHTSPEED_SCAN_CONTENT_URL,
+          inputData,
+          {
+            timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+          }
+        );
+        return response.data as ScanResponseParams;
+      } catch (error) {
+        const err = error as AxiosError;
+        if (err && "response" in err) {
+          if (err?.response?.status === 401) {
+            vscode.window.showErrorMessage(
+              "User not authorized to access Ansible Lightspeed."
+            );
+          } else if (err?.response?.status === 400) {
+            console.error(`Bad Request response. Please open an Github issue.`);
+          } else {
+            console.error(
+              `Ansible Lightspeed encountered an error while scanning the file ${filePath}.`
+            );
+          }
+        } else {
+          console.error(`Failed to scan file ${filePath}`);
+        }
+        return {} as ScanResponseParams;
+      }
     }
   }
 }

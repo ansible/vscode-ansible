@@ -7,6 +7,12 @@ export namespace AnsibleCommands {
   export const ANSIBLE_INVENTORY_RESYNC = "extension.resync-ansible-inventory";
   export const ANSIBLE_PLAYBOOK_RUN = "extension.ansible-playbook.run";
   export const ANSIBLE_NAVIGATOR_RUN = "extension.ansible-navigator.run";
+  export const ANSIBLE_LIGHTSPEED_STATIC_SCAN =
+    "extension.ansible.lightspeed.scan";
+  export const ANSIBLE_LIGHTSPEED_POLICY_VALIDATE_PRE_RUN =
+    "extension.ansible.lightspeed.policy-check.pre-run";
+  export const ANSIBLE_LIGHTSPEED_POLICY_VALIDATE_POST_RUN =
+    "extension.ansible.lightspeed.policy-check.post-run";
   export const ANSIBLE_PYTHON_SET_INTERPRETER =
     "ansible.python.set.interpreter";
 }

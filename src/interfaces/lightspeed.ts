@@ -34,6 +34,38 @@ export interface FeedbackResponseParams {
   message: string;
 }
 
+export interface ScanRequestParams {
+  fileContent: string;
+  ansibleFileType: IAnsibleFileType;
+  autoFix: boolean;
+}
+
+export interface ILintableRule {
+  name: string;
+  id: string;
+  tags: string;
+  description: string;
+  severity: string;
+  link: string;
+  url: string;
+}
+export interface ScanDiagnostic {
+  column: number;
+  fixed: boolean;
+  ignore: boolean;
+  level: string;
+  lineNo: number;
+  matchType: string;
+  message: string;
+  position: string;
+  rule: ILintableRule;
+  tag: string;
+}
+export interface ScanResponseParams {
+  fileContent: string;
+  diagnostics: ScanDiagnostic[];
+}
+
 export interface InlineSuggestionEvent {
   latency?: number;
   userActionTime?: number;
