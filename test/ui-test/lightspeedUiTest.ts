@@ -78,7 +78,7 @@ export function lightspeedUIAssetsTest(): void {
       const items = await statusBar.findElements(
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
-            ".//a/text()='Lightspeed (unlicensed)']"
+            ".//a/text()='Lightspeed (not logged in))']"
         )
       );
       expect(items.length).equals(0);
@@ -95,7 +95,7 @@ export function lightspeedUIAssetsTest(): void {
           "//div[contains(@class, 'statusbar-item') and " +
             "contains(@class, 'has-background-color') and " +
             "contains(@class, 'warning-kind') and " +
-            ".//a/text()='Lightspeed (unlicensed)']"
+            ".//a/text()='Lightspeed (not logged in)']"
         )
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -115,7 +115,7 @@ export function lightspeedUIAssetsTest(): void {
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
             "not (contains(@class, 'has-background-color')) and " +
-            ".//a/text()='Lightspeed (unlicensed)']"
+            ".//a/text()='Lightspeed (not logged in)']"
         )
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;

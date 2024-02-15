@@ -36,6 +36,7 @@ import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
+  LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
@@ -231,7 +232,7 @@ export class LightSpeedAuthenticationProvider
         );
       }
     }
-    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
     lightSpeedManager.currentModelValue = undefined;
   }

@@ -5,6 +5,7 @@ import { SettingsManager } from "../../settings";
 import {
   LightSpeedCommands,
   LIGHTSPEED_MODEL_DEFAULT,
+  LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
@@ -48,7 +49,7 @@ export class LightspeedStatusBar {
     );
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
-    lightSpeedStatusBarItem.text = this.getLightSpeedStatusBarTextSync();
+    lightSpeedStatusBarItem.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     this.getLightSpeedStatusBarText().then((text) => {
       lightSpeedStatusBarItem.text = text;
     });

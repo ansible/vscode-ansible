@@ -4,6 +4,7 @@ import { LightspeedAuthSession } from "../../../src/interfaces/lightspeed";
 import { lightSpeedManager } from "../../../src/extension";
 import { v4 as uuid } from "uuid";
 import { assert } from "chai";
+import { LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from "../../../src/definitions/lightspeed";
 
 function getLightSpeedAuthSession(
   rhUserHasSeat: boolean,
@@ -66,7 +67,11 @@ function testGetLightSpeedStatusBarText(): void {
   describe("Test getLightSpeedStatusBarTest", function () {
     it("Verify status bar text for various user types", async function () {
       const statusBarProvider = lightSpeedManager.statusBarProvider;
-      let text = await statusBarProvider.getLightSpeedStatusBarText(true, true);
+
+      let text = await statusBarProvider.getLightSpeedStatusBarText();
+      assert.equal(text, LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT);
+
+      text = await statusBarProvider.getLightSpeedStatusBarText(true, true);
       assert.equal(text, "Lightspeed (licensed)");
       text = await statusBarProvider.getLightSpeedStatusBarText(true, false);
       assert.equal(text, "Lightspeed (unlicensed)");
