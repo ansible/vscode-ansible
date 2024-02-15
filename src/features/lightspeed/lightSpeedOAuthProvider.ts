@@ -232,7 +232,8 @@ export class LightSpeedAuthenticationProvider
         );
       }
     }
-    lightSpeedManager.statusBarProvider.statusBar.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
     lightSpeedManager.currentModelValue = undefined;
   }
