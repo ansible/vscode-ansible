@@ -69,6 +69,7 @@ export class CommandRunner {
       encoding: "utf-8",
       cwd: currentWorkingDirectory,
       env: runEnv,
+      maxBuffer: 10 * 1000 * 1000,
     });
 
     return result;
