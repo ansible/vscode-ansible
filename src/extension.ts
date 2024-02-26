@@ -46,6 +46,7 @@ import {
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
   suggestionDisplayed,
+  textDocumentChangeHandler,
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
@@ -287,6 +288,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
       pythonInterpreterManager
     );
   });
+
+  context.subscriptions.push(
+    workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
+      textDocumentChangeHandler(e);
+    })
+  );
 
   let session: vscode.AuthenticationSession | undefined;
 

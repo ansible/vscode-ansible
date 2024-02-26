@@ -33,6 +33,7 @@ import { getAdditionalContext } from "./inlineSuggestion/additionalContext";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
+let currentSuggestion: string | undefined;
 export const suggestionDisplayed = new SuggestionDisplayed();
 
 interface DocumentInfo {
@@ -377,7 +378,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition
 ) {
-  inlineSuggestionData = {};
+  resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
@@ -411,7 +412,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
   });
   // currentSuggestion is used in user action handlers
   // to track the suggestion that user is currently working on
-  const currentSuggestion: string = result.predictions[0];
+  currentSuggestion = result.predictions[0];
 
   // previousTriggerPosition is used to track the cursor position
   // on hover when the suggestion is displayed
@@ -439,7 +440,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition
 ) {
-  inlineSuggestionData = {};
+  resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
@@ -473,7 +474,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
   });
   // currentSuggestion is used in user action handlers
   // to track the suggestion that user is currently working on
-  const currentSuggestion: string = result.predictions[0];
+  currentSuggestion = result.predictions[0];
 
   // previousTriggerPosition is used to track the cursor position
   // on hover when the suggestion is displayed
@@ -835,5 +836,41 @@ export async function inlineSuggestionUserActionHandler(
     inlineSuggestionFeedbackPayload,
     lightSpeedManager.orgTelemetryOptOut
   );
+  resetSuggestionData();
+}
+
+function resetSuggestionData(): void {
   inlineSuggestionData = {};
+  currentSuggestion = undefined;
+}
+
+export async function textDocumentChangeHandler(e: vscode.TextDocumentChangeEvent) {
+  // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
+  // command is not sent. This method checks if a text change that matches to the current 
+  // suggestion was found. If such a change was detected, we assume that the user accepted
+  // the suggestion on the widget.
+  if (inlineSuggestionData["suggestionId"] &&
+      currentSuggestion && 
+      e.document.languageId === "ansible" &&
+      e.contentChanges.length > 0) {
+    const suggestionId = inlineSuggestionData["suggestionId"];
+
+    // Since leading/trailing whitespaces are adjusted in inserting a text, compare the current
+    // suggestion and texts in the event after trimming them.
+    const suggestion = currentSuggestion.trim();
+    e.contentChanges.forEach(async (c) => {
+      if (suggestion === c.text.trim()) {
+
+        // If a matching change was found, send a feedback with the ACCEPTED user action.
+        console.log(
+          "[inline-suggestions] Detected a text change that matches to the current suggestion."
+        );
+        console.log(JSON.stringify(e, null ,2));
+        await inlineSuggestionUserActionHandler(
+          suggestionId, 
+          UserAction.ACCEPTED,
+        );
+      }
+    });
+  }
 }
