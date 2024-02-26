@@ -4,6 +4,19 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.12
+
+### Minor Changes
+
+- Update lightspeed doc link in README (#1097) @TamiTakamiya
+- Reject feedback API for unlicensed users after disabling tech preview (#1090) @TamiTakamiya
+
+### Bugfixes
+
+- avoid duplicated suggestionFeedback event (#1099) @goneri
+- Unbound variable error in language server CI jobs (#1095) @TamiTakamiya
+- Update CI job to assign auto server number for xvfb execution (#1094) @priyamsahoo
+
 ## v2.11
 
 ### Minor Changes
