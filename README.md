@@ -151,7 +151,7 @@ holding `ctrl`/`cmd`.
 
 AI based Ansible code recommendations
 
-- [Getting started](https://docs.ai.ansible.redhat.com/vscode_guide/installing_vs/#configuring-the-ansible-vs-code-extension)
+- [Getting started](https://access.redhat.com/documentation/en-us/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/configuring-with-code-assistant_lightspeed-user-guide#doc-wrapper)
 
 - [Contact](https://matrix.to/#/%23ansible-lightspeed:ansible.im)
 
