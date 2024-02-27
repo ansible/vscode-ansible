@@ -50,6 +50,7 @@ import {
   LightSpeedInlineSuggestionProvider,
   rejectPendingSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
+import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
@@ -72,6 +73,7 @@ import { LightspeedAuthSession } from "./interfaces/lightspeed";
 import { showPlaybookGenerationPage } from "./features/playbookGeneration/playbookGenerationPage";
 
 export let client: LanguageClient;
+export let lsClient: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
 export const globalFileSystemWatcher: IFileSystemWatchers = {};
 
@@ -156,6 +158,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   lightSpeedManager = new LightSpeedManager(
     context,
     client,
+    lsClient,
     extSettings,
     telemetry,
   );
@@ -240,6 +243,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
       ) => inlineSuggestionReplaceMarker(position),
     ),
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      LightSpeedCommands.LIGHTSPEED_PLAYBOOK_EXPLANATION,
+      async () => {
+        await playbookExplanation(
+          context.extensionUri,
+          lsClient,
+          lightSpeedManager.lightSpeedAuthenticationProvider
+        );
+      }
+    )
+  );
+
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
@@ -529,6 +546,36 @@ const startClient = async (
     clientOptions,
   );
 
+  const lsServerModule = context.asAbsolutePath(
+    path.join("out", "client", "src", "features", "lightspeed", "server.js")
+  );
+
+  const lsServerOptions: ServerOptions = {
+    run: { module: serverModule, transport: TransportKind.ipc },
+    debug: {
+      module: lsServerModule,
+      transport: TransportKind.ipc,
+    },
+  };
+
+  const lsClientOptions: LanguageClientOptions = {
+    // register the server for Ansible documents
+    documentSelector: [{ scheme: "file", language: "ansible" }],
+    revealOutputChannelOn: RevealOutputChannelOn.Never,
+    errorHandler: telemetryErrorHandler,
+    outputChannel: new TelemetryOutputChannel(
+      outputChannel,
+      telemetry.telemetryService
+    ),
+  };
+
+  lsClient = new LanguageClient(
+    "lightSpeedServer",
+    "Ansible LightSpeed Server",
+    lsServerOptions,
+    lsClientOptions
+  );
+
   context.subscriptions.push(
     client.onTelemetry((e) => {
       telemetry.telemetryService.send(e);
@@ -537,6 +584,7 @@ const startClient = async (
 
   try {
     await client.start();
+    await lsClient.start();
 
     // If the extensions change, fire this notification again to pick up on any association changes
     extensions.onDidChange(() => {

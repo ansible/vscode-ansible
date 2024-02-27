@@ -260,6 +260,10 @@
       {
         "command": "ansible.lightspeed.thumbsUpDown",
         "title": "Send Lightspeed Thumbs Up/Down Feedback"
+      },
+      {
+        "command": "ansible.lightspeed.playbookExplanation",
+        "title": "Ansible Lightspeed: Playbook explanation"
       }
     ],
     "configuration": [
