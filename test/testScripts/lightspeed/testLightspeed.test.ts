@@ -31,7 +31,7 @@ function testSuggestionPrompts() {
 }
 
 function testSuggestionExpectedInsertTexts() {
-  // Based on the responses wrtten in the mock lightspeed server codes
+  // Based on the responses defined in the mock lightspeed server codes
   const insertTexts = [
     "  ansible.builtin.debug:\n        msg: Hello World\n    ",
     "  ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    ",
