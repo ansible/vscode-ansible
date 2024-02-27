@@ -252,6 +252,10 @@
       {
         "command": "ansible.lightspeed.feedback",
         "title": "Ansible Lightspeed: Feedback"
+      },
+      {
+        "command": "ansible.lightspeed.playbook_explanation",
+        "title": "Ansible Lightspeed: Playbook explanation"
       }
     ],
     "configuration": [
