@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import sinon from "sinon";
+import { assert } from "chai";
 import {
   getDocUri,
   activate,
@@ -27,6 +28,16 @@ function testSuggestionPrompts() {
   ];
 
   return tests;
+}
+
+function testSuggestionExpectedInsertTexts() {
+  // Based on the responses wrtten in the mock lightspeed server codes
+  const insertTexts = [
+    "  ansible.builtin.debug:\n        msg: Hello World\n    ",
+    "  ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    ",
+  ];
+
+  return insertTexts;
 }
 
 function testMultiTaskSuggestionPrompts() {
@@ -89,6 +100,8 @@ export function testLightspeed(): void {
     });
 
     describe("Test Ansible Lightspeed inline completion suggestions", function () {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let feedbackRequestSpy: any;
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
       before(async function () {
@@ -96,14 +109,33 @@ export function testLightspeed(): void {
           "workbench.action.closeAllEditors"
         );
         await activate(docUri1);
+        feedbackRequestSpy = sinon.spy(
+          lightSpeedManager.apiInstance,
+          "feedbackRequest"
+        );
       });
 
       const tests = testSuggestionPrompts();
+      const expectedInsertTexts = testSuggestionExpectedInsertTexts();
 
       tests.forEach(({ taskName, expectedModule }) => {
         it(`Should give inline suggestion for task prompt '${taskName}'`, async function () {
           await testInlineSuggestion(taskName, expectedModule);
         });
+      });
+
+      tests.map((test, i) => {
+        let { taskName, expectedModule } = test;
+        it(`Should send inlineSuggestionFeedback with expected text changes for task prompt '${taskName}'`, async function() {
+          await testInlineSuggestion(taskName, expectedModule, false, expectedInsertTexts[i]);
+        });
+      });
+
+      after(async function () {
+        const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+        assert.equal(feedbackRequestApiCalls.length, tests.length * 2);
+        feedbackRequestSpy.restore();
+        sinon.restore();
       });
     });
 
