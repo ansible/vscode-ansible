@@ -847,11 +847,11 @@ function resetSuggestionData(): void {
 
 export async function textDocumentChangeHandler(e: vscode.TextDocumentChangeEvent) {
   // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
-  // command is not sent. This method checks if a text change that matches to the current 
+  // command is not sent. This method checks if a text change that matches to the current
   // suggestion was found. If such a change was detected, we assume that the user accepted
   // the suggestion on the widget.
   if (inlineSuggestionPending() &&
-      insertTexts && 
+      insertTexts &&
       e.document.languageId === "ansible" &&
       e.contentChanges.length > 0) {
 
