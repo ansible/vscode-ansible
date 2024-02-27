@@ -290,13 +290,13 @@ export async function testInlineSuggestion(
     // If insertText is specified, insertText at the current cursor position.
     // It simulates the scenario that user clicks the accept button on widget.
     assert(editor);
-    await editor.edit((editBuilder) => {    
+    await editor.edit((editBuilder) => {
       editBuilder.insert(editor!.selection.active, insertText);
     });
   } else {
     await vscode.commands.executeCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
-    );  
+    );
   }
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 

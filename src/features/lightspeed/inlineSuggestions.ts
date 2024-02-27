@@ -845,26 +845,31 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
-export async function textDocumentChangeHandler(e: vscode.TextDocumentChangeEvent) {
+export async function textDocumentChangeHandler(
+  e: vscode.TextDocumentChangeEvent
+) {
   // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
   // command is not sent. This method checks if a text change that matches to the current
   // suggestion was found. If such a change was detected, we assume that the user accepted
   // the suggestion on the widget.
-  if (inlineSuggestionPending() &&
-      insertTexts &&
-      e.document.languageId === "ansible" &&
-      e.contentChanges.length > 0) {
-
+  if (
+    inlineSuggestionPending() &&
+    insertTexts &&
+    e.document.languageId === "ansible" &&
+    e.contentChanges.length > 0
+  ) {
     const suggestionId = inlineSuggestionData["suggestionId"];
 
     e.contentChanges.forEach(async (c) => {
       if (c.text === insertTexts[0]) {
-
         // If a matching change was found, send a feedback with the ACCEPTED user action.
         console.log(
           "[inline-suggestions] Detected a text change that matches to the current suggestion."
         );
-        await inlineSuggestionUserActionHandler(suggestionId!, UserAction.ACCEPTED);
+        await inlineSuggestionUserActionHandler(
+          suggestionId!,
+          UserAction.ACCEPTED
+        );
       }
     });
   }

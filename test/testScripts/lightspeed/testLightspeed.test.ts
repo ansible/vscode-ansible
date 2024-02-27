@@ -125,9 +125,14 @@ export function testLightspeed(): void {
       });
 
       tests.map((test, i) => {
-        let { taskName, expectedModule } = test;
-        it(`Should send inlineSuggestionFeedback with expected text changes for task prompt '${taskName}'`, async function() {
-          await testInlineSuggestion(taskName, expectedModule, false, expectedInsertTexts[i]);
+        const { taskName, expectedModule } = test;
+        it(`Should send inlineSuggestionFeedback with expected text changes for task prompt '${taskName}'`, async function () {
+          await testInlineSuggestion(
+            taskName,
+            expectedModule,
+            false,
+            expectedInsertTexts[i]
+          );
         });
       });
 
