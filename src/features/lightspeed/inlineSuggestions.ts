@@ -862,6 +862,29 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
+export async function rejectPendingSuggestion() {
+  const lightSpeedSettings =
+    lightSpeedManager.settingsManager.settings.lightSpeedService;
+  if (
+    suggestionDisplayed.get() &&
+    lightSpeedSettings.enabled &&
+    lightSpeedSettings.suggestions.enabled
+  ) {
+    if (inlineSuggestionPending()) {
+      console.log(
+        "[inline-suggestions] Send a REJECTED feedback for a pending suggestion."
+      );
+      const suggestionId = inlineSuggestionData["suggestionId"];
+      await inlineSuggestionUserActionHandler(
+        suggestionId!,
+        UserAction.REJECTED
+      );
+    } else {
+      suggestionDisplayed.reset();
+    }
+  }
+}
+
 export async function inlineSuggestionTextDocumentChangeHandler(
   e: vscode.TextDocumentChangeEvent
 ) {
