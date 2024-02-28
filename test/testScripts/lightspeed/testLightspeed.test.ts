@@ -14,6 +14,8 @@ import {
 } from "../../helper";
 import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
 import { lightSpeedManager } from "../../../src/extension";
+import { UserAction } from "../../../src/definitions/lightspeed";
+import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 
 function testSuggestionPrompts() {
   const tests = [
@@ -102,6 +104,8 @@ export function testLightspeed(): void {
     describe("Test Ansible Lightspeed inline completion suggestions", function () {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let feedbackRequestSpy: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let isAuthenticatedStub: any;
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
       before(async function () {
@@ -113,6 +117,11 @@ export function testLightspeed(): void {
           lightSpeedManager.apiInstance,
           "feedbackRequest"
         );
+        isAuthenticatedStub = sinon.stub(
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          "isAuthenticated"
+        );
+        isAuthenticatedStub.returns(Promise.resolve(true));
       });
 
       const tests = testSuggestionPrompts();
@@ -139,6 +148,15 @@ export function testLightspeed(): void {
       after(async function () {
         const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
         assert.equal(feedbackRequestApiCalls.length, tests.length * 2);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        feedbackRequestSpy.args.forEach((arg: any) => {
+          const inputData: FeedbackRequestParams = arg[0];
+          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        feedbackRequestSpy.returnValues.forEach((ret: any) => {
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+        });
         feedbackRequestSpy.restore();
         sinon.restore();
       });
