@@ -137,7 +137,7 @@ export function testLightspeed(): void {
           assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
-          feedbackRequestSpy.restore();
+          feedbackRequestSpy.resetHistory();
         });
       });
 
@@ -157,11 +157,12 @@ export function testLightspeed(): void {
           assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
-          feedbackRequestSpy.restore();
+          feedbackRequestSpy.resetHistory();
         });
       });
 
       after(async function () {
+        feedbackRequestSpy.restore();
         sinon.restore();
       });
     });
