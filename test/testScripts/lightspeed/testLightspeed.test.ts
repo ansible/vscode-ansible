@@ -130,6 +130,14 @@ export function testLightspeed(): void {
       tests.forEach(({ taskName, expectedModule }) => {
         it(`Should give inline suggestion for task prompt '${taskName}'`, async function () {
           await testInlineSuggestion(taskName, expectedModule);
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 1);
+          const inputData: FeedbackRequestParams =
+            feedbackRequestSpy.args[0][0];
+          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          const ret = feedbackRequestSpy.returnValues[0];
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+          feedbackRequestSpy.restore();
         });
       });
 
@@ -142,22 +150,18 @@ export function testLightspeed(): void {
             false,
             expectedInsertTexts[i]
           );
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 1);
+          const inputData: FeedbackRequestParams =
+            feedbackRequestSpy.args[0][0];
+          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          const ret = feedbackRequestSpy.returnValues[0];
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+          feedbackRequestSpy.restore();
         });
       });
 
       after(async function () {
-        const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
-        assert.equal(feedbackRequestApiCalls.length, tests.length * 2);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        feedbackRequestSpy.args.forEach((arg: any) => {
-          const inputData: FeedbackRequestParams = arg[0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
-        });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        feedbackRequestSpy.returnValues.forEach((ret: any) => {
-          assert(Object.keys(ret).length === 0); // ret should be equal to {}
-        });
-        feedbackRequestSpy.restore();
         sinon.restore();
       });
     });
