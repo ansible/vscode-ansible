@@ -848,6 +848,13 @@ function resetSuggestionData(): void {
 export async function textDocumentChangeHandler(
   e: vscode.TextDocumentChangeEvent
 ) {
+  // Exit early if Lightspeed or Inline suggestion is not enabled.
+  const lightSpeedSetting =
+    lightSpeedManager.settingsManager.settings.lightSpeedService;
+  if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
+    return;
+  }
+
   // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
   // command is not sent. This method checks if a text change that matches to the current
   // suggestion was found. If such a change was detected, we assume that the user accepted
