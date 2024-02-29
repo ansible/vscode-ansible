@@ -25,7 +25,6 @@ const LINE_TO_ACTIVATE = 1;
 const COLUMN_TO_ACTIVATE = 8;
 
 export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
-  console.log("HELLO");
   describe("Test an inline suggestion from another provider", async () => {
     let disposable: Disposable;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
