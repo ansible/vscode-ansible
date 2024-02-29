@@ -862,7 +862,7 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
-export async function textDocumentChangeHandler(
+export async function inlineSuggestionTextDocumentChangeHandler(
   e: vscode.TextDocumentChangeEvent
 ) {
   // Exit early if Lightspeed or Inline suggestion is not enabled.
