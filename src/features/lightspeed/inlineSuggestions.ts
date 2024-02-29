@@ -759,12 +759,23 @@ export async function inlineSuggestionTriggerHandler() {
 }
 
 export async function inlineSuggestionCommitHandler() {
-  if (!inlineSuggestionPending()) {
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
     return;
   }
-  // Commit the suggestion
-  console.log("[inline-suggestions] User accepted the inline suggestion.");
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return;
+  }
+
+  // Commit the suggestion, which might be provided by another provider
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
+
+  // If the suggestion does not seem to be ours, exit early.
+  if (!inlineSuggestionData["suggestionId"]) {
+    return;
+  }
+
+  console.log("[inline-suggestions] User accepted the inline suggestion.");
 
   vscode.commands.executeCommand(
     LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
@@ -776,7 +787,15 @@ export async function inlineSuggestionCommitHandler() {
 }
 
 export async function inlineSuggestionHideHandler(userAction?: UserAction) {
-  if (!inlineSuggestionPending()) {
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    return;
+  }
+
+  // Hide the suggestion, which might be provided by another provider
+  vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
+
+  // If the suggestion does not seem to be ours, exit early.
+  if (!inlineSuggestionData["suggestionId"]) {
     return;
   }
   const action = userAction || UserAction.REJECTED;
@@ -794,9 +813,7 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
     }
   }
 
-  // Hide the suggestion
   console.log("[inline-suggestions] User ignored the inline suggestion.");
-  vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
   const suggestionId = inlineSuggestionData["suggestionId"];
   // Send feedback for refused suggestion
