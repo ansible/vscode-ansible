@@ -13,6 +13,7 @@ import {
 } from "../../helper";
 import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
 import { lightSpeedManager } from "../../../src/extension";
+import { testInlineSuggestionByAnotherProvider } from "./e2eInlineSuggestion.test";
 
 function testSuggestionPrompts() {
   const tests = [
@@ -189,6 +190,10 @@ export function testLightspeed(): void {
           await testValidJinjaBrackets(taskName, expectedValidJinjaInlineVar);
         });
       });
+    });
+
+    describe("Test inline suggestion by another provider", () => {
+      testInlineSuggestionByAnotherProvider();
     });
 
     describe("Test Ansible Lightspeed Functions", function () {
