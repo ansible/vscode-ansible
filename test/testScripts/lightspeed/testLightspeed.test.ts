@@ -194,7 +194,7 @@ export function testLightspeed(): void {
 
     describe("Test inline suggestion by another provider", () => {
       testInlineSuggestionByAnotherProvider();
-    })
+    });
 
     describe("Test Ansible Lightspeed Functions", function () {
       testLightspeedFunctions();
