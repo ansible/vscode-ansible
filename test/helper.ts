@@ -77,8 +77,7 @@ export async function updateSettings(
   section = "ansible"
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration(section);
-  const useGlobalSettings = true;
-  return ansibleConfiguration.update(setting, value, useGlobalSettings);
+  return ansibleConfiguration.update(setting, value);
 }
 
 export function setFixtureAnsibleCollectionPathEnv(
@@ -118,6 +117,18 @@ export async function enableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", true);
   await updateSettings("lightspeed.suggestions.enabled", true);
   await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
+
+  // Make sure content matches panel is enabled in a timely manner
+  vscode.commands.executeCommand(
+    "setContext",
+    "redhat.ansible.lightspeedSuggestionsEnabled",
+    true
+  );
+
+  // Open content matches panel
+  await vscode.commands.executeCommand(
+    "ansible.lightspeed.trainingMatchPanel.focus"
+  );
 }
 
 export async function disableLightspeedSettings(): Promise<void> {
