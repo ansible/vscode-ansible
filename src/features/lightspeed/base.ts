@@ -234,17 +234,21 @@ export class LightSpeedManager {
     this.apiInstance.feedbackRequest(inputData, this.orgTelemetryOptOut);
   }
 
-  private setCustomWhenClauseContext(): void {
+  get inlineSuggestionsEnabled() {
     const lightspeedSettings = <LightSpeedServiceSettings>(
       vscode.workspace.getConfiguration("ansible").get("lightspeed")
     );
     const lightspeedEnabled = lightspeedSettings?.enabled;
     const lightspeedSuggestionsEnabled =
       lightspeedSettings?.suggestions.enabled;
+    return lightspeedEnabled && lightspeedSuggestionsEnabled;
+  }
+
+  private setCustomWhenClauseContext(): void {
     vscode.commands.executeCommand(
       "setContext",
       "redhat.ansible.lightspeedSuggestionsEnabled",
-      lightspeedEnabled && lightspeedSuggestionsEnabled
+      this.inlineSuggestionsEnabled
     );
   }
 }
