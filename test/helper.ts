@@ -236,7 +236,8 @@ export async function testHover(
 export async function testInlineSuggestion(
   prompt: string,
   expectedModule: string,
-  multiTask = false
+  multiTask = false,
+  insertText = ""
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -284,9 +285,19 @@ export async function testInlineSuggestion(
     LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
-  await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
-  );
+
+  if (insertText) {
+    // If insertText is specified, insertText at the current cursor position.
+    // It simulates the scenario that user clicks the accept button on widget.
+    assert(editor);
+    await editor.edit((editBuilder) => {
+      editBuilder.insert(editor!.selection.active, insertText);
+    });
+  } else {
+    await vscode.commands.executeCommand(
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+    );
+  }
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
   // get the committed suggestion

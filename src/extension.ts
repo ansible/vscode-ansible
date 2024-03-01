@@ -41,10 +41,11 @@ import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
-  LightSpeedInlineSuggestionProvider,
-  inlineSuggestionTriggerHandler,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
+  inlineSuggestionTextDocumentChangeHandler,
+  inlineSuggestionTriggerHandler,
+  LightSpeedInlineSuggestionProvider,
   suggestionDisplayed,
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
@@ -287,6 +288,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
       pythonInterpreterManager
     );
   });
+
+  context.subscriptions.push(
+    workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
+      inlineSuggestionTextDocumentChangeHandler(e);
+    })
+  );
 
   let session: vscode.AuthenticationSession | undefined;
 
