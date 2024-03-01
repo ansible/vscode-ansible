@@ -54,6 +54,7 @@ export default class Server {
       res.send({
         access_token: "ACCESS_TOKEN",
         refresh_token: "REFRESH_TOKEN",
+        expires_in: 3600,
       })
     );
 

@@ -5,6 +5,6 @@ export function me() {
     rh_user_is_org_admin: true,
     external_username: "EXTERNAL_USERNAME",
     username: "USERNAME",
-    org_telemetry_opt_out: true,
+    org_telemetry_opt_out: false,
   };
 }

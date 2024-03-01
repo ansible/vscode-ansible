@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import { assert } from "chai";
 import sinon from "sinon";
+import { assert } from "chai";
 import {
   getDocUri,
   activate,
@@ -15,6 +15,8 @@ import {
 import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
 import { lightSpeedManager } from "../../../src/extension";
 import { testInlineSuggestionByAnotherProvider } from "./e2eInlineSuggestion.test";
+import { UserAction } from "../../../src/definitions/lightspeed";
+import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 
 function testSuggestionPrompts() {
   const tests = [
@@ -29,6 +31,16 @@ function testSuggestionPrompts() {
   ];
 
   return tests;
+}
+
+function testSuggestionExpectedInsertTexts() {
+  // Based on the responses defined in the mock lightspeed server codes
+  const insertTexts = [
+    "  ansible.builtin.debug:\n        msg: Hello World\n    ",
+    "  ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    ",
+  ];
+
+  return insertTexts;
 }
 
 function testMultiTaskSuggestionPrompts() {
@@ -91,40 +103,67 @@ export function testLightspeed(): void {
     });
 
     describe("Test Ansible Lightspeed inline completion suggestions", function () {
-      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let feedbackRequestSpy: any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let isAuthenticatedStub: any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let contentMatchesRequestSpy: any;
+      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
       before(async function () {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors"
         );
         await activate(docUri1);
+        feedbackRequestSpy = sinon.spy(
+          lightSpeedManager.apiInstance,
+          "feedbackRequest"
+        );
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
           "isAuthenticated"
         );
-        contentMatchesRequestSpy = sinon.spy(
-          lightSpeedManager.apiInstance,
-          "contentMatchesRequest"
-        );
+        isAuthenticatedStub.returns(Promise.resolve(true));
       });
 
       const tests = testSuggestionPrompts();
+      const expectedInsertTexts = testSuggestionExpectedInsertTexts();
 
       tests.forEach(({ taskName, expectedModule }) => {
         it(`Should give inline suggestion for task prompt '${taskName}'`, async function () {
-          isAuthenticatedStub.returns(Promise.resolve(true));
           await testInlineSuggestion(taskName, expectedModule);
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 1);
+          const inputData: FeedbackRequestParams =
+            feedbackRequestSpy.args[0][0];
+          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          const ret = feedbackRequestSpy.returnValues[0];
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+          feedbackRequestSpy.resetHistory();
+        });
+      });
+
+      tests.map((test, i) => {
+        const { taskName, expectedModule } = test;
+        it(`Should send inlineSuggestionFeedback with expected text changes for task prompt '${taskName}'`, async function () {
+          await testInlineSuggestion(
+            taskName,
+            expectedModule,
+            false,
+            expectedInsertTexts[i]
+          );
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 1);
+          const inputData: FeedbackRequestParams =
+            feedbackRequestSpy.args[0][0];
+          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          const ret = feedbackRequestSpy.returnValues[0];
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+          feedbackRequestSpy.resetHistory();
         });
       });
 
       after(async function () {
-        const contentMatchesApiCalls = contentMatchesRequestSpy.getCalls();
-        assert.equal(contentMatchesApiCalls.length, tests.length);
-        contentMatchesRequestSpy.restore();
+        feedbackRequestSpy.restore();
         sinon.restore();
       });
     });
