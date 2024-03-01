@@ -26,15 +26,18 @@ export class LightSpeedAPI {
   private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
   private _completionRequestInProgress: boolean;
   private _inlineSuggestionFeedbackSent: boolean;
+  private _extensionVersion: string;
 
   constructor(
     settingsManager: SettingsManager,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider
+    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    context: vscode.ExtensionContext,
   ) {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
     this._completionRequestInProgress = false;
     this._inlineSuggestionFeedbackSent = false;
+    this._extensionVersion = context.extension.packageJSON.version;
   }
 
   get completionRequestInProgress(): boolean {
@@ -101,9 +104,10 @@ export class LightSpeedAPI {
     try {
       this._completionRequestInProgress = true;
       this._inlineSuggestionFeedbackSent = false;
+      const requestData = { ...inputData, "metadata": { ...inputData.metadata, ansibleExtensionVersion: this._extensionVersion } }
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
-        inputData,
+        requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
@@ -167,15 +171,16 @@ export class LightSpeedAPI {
     if (Object.keys(inputData).length === 0) {
       return {} as FeedbackResponseParams;
     }
+    const requestData = { ...inputData, "metadata": { ansibleExtensionVersion: this._extensionVersion } }
     console.log(
       `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
-        inputData
+        requestData
       )}`
     );
     try {
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
-        inputData,
+        requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
@@ -233,14 +238,15 @@ export class LightSpeedAPI {
       return {} as ContentMatchesResponseParams;
     }
     try {
+      const requestData = { ...inputData, "metadata": { ansibleExtensionVersion: this._extensionVersion } }
       console.log(
         `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
-          inputData
+          requestData
         )}`
       );
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
-        inputData,
+        requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
