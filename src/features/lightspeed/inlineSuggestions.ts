@@ -862,21 +862,32 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
+export async function rejectPendingSuggestion() {
+  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+    if (inlineSuggestionPending()) {
+      console.log(
+        "[inline-suggestions] Send a REJECTED feedback for a pending suggestion."
+      );
+      const suggestionId = inlineSuggestionData["suggestionId"];
+      await inlineSuggestionUserActionHandler(
+        suggestionId!,
+        UserAction.REJECTED
+      );
+    } else {
+      suggestionDisplayed.reset();
+    }
+  }
+}
+
 export async function inlineSuggestionTextDocumentChangeHandler(
   e: vscode.TextDocumentChangeEvent
 ) {
-  // Exit early if Lightspeed or Inline suggestion is not enabled.
-  const lightSpeedSetting =
-    lightSpeedManager.settingsManager.settings.lightSpeedService;
-  if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
-    return;
-  }
-
   // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
   // command is not sent. This method checks if a text change that matches to the current
   // suggestion was found. If such a change was detected, we assume that the user accepted
   // the suggestion on the widget.
   if (
+    lightSpeedManager.inlineSuggestionsEnabled &&
     inlineSuggestionPending() &&
     insertTexts &&
     e.document.languageId === "ansible" &&

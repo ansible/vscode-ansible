@@ -46,7 +46,7 @@ import {
   inlineSuggestionTextDocumentChangeHandler,
   inlineSuggestionTriggerHandler,
   LightSpeedInlineSuggestionProvider,
-  suggestionDisplayed,
+  rejectPendingSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
@@ -228,16 +228,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Listen for text selection changes
   context.subscriptions.push(
-    vscode.window.onDidChangeTextEditorSelection(() => {
-      const lightSpeedSettings =
-        lightSpeedManager.settingsManager.settings.lightSpeedService;
-      if (
-        suggestionDisplayed.get() &&
-        lightSpeedSettings.enabled &&
-        lightSpeedSettings.suggestions.enabled
-      ) {
-        suggestionDisplayed.reset();
-      }
+    vscode.window.onDidChangeTextEditorSelection(async () => {
+      rejectPendingSuggestion();
     })
   );
 
