@@ -100,6 +100,9 @@ export class LightSpeedManager {
 
     // create workspace context for ansible roles
     this.setContext();
+
+    // set custom when clause for controlling visibility of views
+    this.setCustomWhenClauseContext();
   }
 
   public async reInitialize(): Promise<void> {
@@ -131,6 +134,9 @@ export class LightSpeedManager {
         }
       }
     }
+
+    // set custom when clause for controlling visibility of views
+    this.setCustomWhenClauseContext();
   }
 
   private resetContext(): void {
@@ -226,5 +232,19 @@ export class LightSpeedManager {
     };
     console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
     this.apiInstance.feedbackRequest(inputData, this.orgTelemetryOptOut);
+  }
+
+  private setCustomWhenClauseContext(): void {
+    const lightspeedSettings = <LightSpeedServiceSettings>(
+      vscode.workspace.getConfiguration("ansible").get("lightspeed")
+    );
+    const lightspeedEnabled = lightspeedSettings?.enabled;
+    const lightspeedSuggestionsEnabled =
+      lightspeedSettings?.suggestions.enabled;
+    vscode.commands.executeCommand(
+      "setContext",
+      "redhat.ansible.lightspeedSuggestionsEnabled",
+      lightspeedEnabled && lightspeedSuggestionsEnabled
+    );
   }
 }

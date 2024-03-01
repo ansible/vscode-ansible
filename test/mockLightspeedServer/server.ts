@@ -1,6 +1,7 @@
 // "Mock" Lightspeed Server
 import express, { Application } from "express";
 import { completions } from "./completion";
+import { contentmatches } from "./contentmatches";
 import { feedback } from "./feedback";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
@@ -26,6 +27,11 @@ export default class Server {
     app.post(`${API_ROOT}/ai/completions`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 100)); // fake 100ms latency
       return res.send(completions(req));
+    });
+
+    app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 100)); // fake 100ms latency
+      return res.send(contentmatches(req));
     });
 
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {
