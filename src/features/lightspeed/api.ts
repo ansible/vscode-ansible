@@ -31,7 +31,7 @@ export class LightSpeedAPI {
   constructor(
     settingsManager: SettingsManager,
     lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-    context: vscode.ExtensionContext,
+    context: vscode.ExtensionContext
   ) {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
@@ -104,7 +104,13 @@ export class LightSpeedAPI {
     try {
       this._completionRequestInProgress = true;
       this._inlineSuggestionFeedbackSent = false;
-      const requestData = { ...inputData, "metadata": { ...inputData.metadata, ansibleExtensionVersion: this._extensionVersion } }
+      const requestData = {
+        ...inputData,
+        metadata: {
+          ...inputData.metadata,
+          ansibleExtensionVersion: this._extensionVersion,
+        },
+      };
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
         requestData,
@@ -171,7 +177,10 @@ export class LightSpeedAPI {
     if (Object.keys(inputData).length === 0) {
       return {} as FeedbackResponseParams;
     }
-    const requestData = { ...inputData, "metadata": { ansibleExtensionVersion: this._extensionVersion } }
+    const requestData = {
+      ...inputData,
+      metadata: { ansibleExtensionVersion: this._extensionVersion },
+    };
     console.log(
       `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
         requestData
@@ -238,7 +247,10 @@ export class LightSpeedAPI {
       return {} as ContentMatchesResponseParams;
     }
     try {
-      const requestData = { ...inputData, "metadata": { ansibleExtensionVersion: this._extensionVersion } }
+      const requestData = {
+        ...inputData,
+        metadata: { ansibleExtensionVersion: this._extensionVersion },
+      };
       console.log(
         `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
           requestData
