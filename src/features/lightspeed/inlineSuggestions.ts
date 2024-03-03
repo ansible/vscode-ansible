@@ -843,13 +843,15 @@ export async function inlineSuggestionUserActionHandler(
   resetSuggestionData();
 }
 
-function inlineSuggestionPending(): boolean {
-  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-    return false;
-  }
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return false;
+function inlineSuggestionPending(checkActiveTextEditor = true): boolean {
+  if (checkActiveTextEditor) {
+    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+      return false;
+    }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return false;
+    }
   }
   if (!inlineSuggestionData["suggestionId"]) {
     return false;
@@ -872,6 +874,23 @@ export async function rejectPendingSuggestion() {
       await inlineSuggestionUserActionHandler(
         suggestionId!,
         UserAction.REJECTED
+      );
+    } else {
+      suggestionDisplayed.reset();
+    }
+  }
+}
+
+export async function ignorePendingSuggestion() {
+  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+    if (inlineSuggestionPending(false)) {
+      console.log(
+        "[inline-suggestions] Send a IGNORED feedback for a pending suggestion."
+      );
+      const suggestionId = inlineSuggestionData["suggestionId"];
+      await inlineSuggestionUserActionHandler(
+        suggestionId!,
+        UserAction.IGNORED
       );
     } else {
       suggestionDisplayed.reset();

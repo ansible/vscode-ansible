@@ -1,0 +1,5 @@
+---
+- name:
+  hosts: all
+  tasks:
+    - name: Create a file foo.txt

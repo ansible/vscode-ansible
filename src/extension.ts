@@ -41,6 +41,7 @@ import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
+  ignorePendingSuggestion,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
   inlineSuggestionTextDocumentChangeHandler,
@@ -233,6 +234,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     })
   );
 
+  // At window focus change, check if an inline suggestion is pending and ignore it if it exists.
+  context.subscriptions.push(
+    vscode.window.onDidChangeWindowState(async (state: vscode.WindowState) => {
+      if (!state.focused) {
+        ignorePendingSuggestion();
+      }
+    })
+  );
+
   // register ansible meta data in the statusbar tooltip (client-server)
   window.onDidChangeActiveTextEditor(
     async (editor: vscode.TextEditor | undefined) => {
@@ -246,6 +256,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
           editor.document,
           AnsibleContentUploadTrigger.TAB_CHANGE
         );
+      } else {
+        await ignorePendingSuggestion();
       }
     }
   );
@@ -280,6 +292,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       pythonInterpreterManager
     );
   });
+
+  context.subscriptions.push();
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
