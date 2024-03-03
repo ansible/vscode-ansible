@@ -234,52 +234,60 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // register ansible meta data in the statusbar tooltip (client-server)
-  window.onDidChangeActiveTextEditor(
-    async (editor: vscode.TextEditor | undefined) => {
+  context.subscriptions.push(
+    window.onDidChangeActiveTextEditor(
+      async (editor: vscode.TextEditor | undefined) => {
+        await updateAnsibleStatusBar(
+          metaData,
+          lightSpeedManager,
+          pythonInterpreterManager
+        );
+        if (editor) {
+          await lightSpeedManager.ansibleContentFeedback(
+            editor.document,
+            AnsibleContentUploadTrigger.TAB_CHANGE
+          );
+        }
+      }
+    )
+  );
+  context.subscriptions.push(
+    workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
       await updateAnsibleStatusBar(
         metaData,
         lightSpeedManager,
         pythonInterpreterManager
       );
-      if (editor) {
-        await lightSpeedManager.ansibleContentFeedback(
-          editor.document,
-          AnsibleContentUploadTrigger.TAB_CHANGE
-        );
-      }
-    }
+      lightSpeedManager.ansibleContentFeedback(
+        document,
+        AnsibleContentUploadTrigger.FILE_OPEN
+      );
+    })
   );
-  workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
-    await updateAnsibleStatusBar(
-      metaData,
-      lightSpeedManager,
-      pythonInterpreterManager
-    );
-    lightSpeedManager.ansibleContentFeedback(
-      document,
-      AnsibleContentUploadTrigger.FILE_OPEN
-    );
-  });
-  workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
-    await lightSpeedManager.ansibleContentFeedback(
-      document,
-      AnsibleContentUploadTrigger.FILE_CLOSE
-    );
-  });
+  context.subscriptions.push(
+    workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
+      await lightSpeedManager.ansibleContentFeedback(
+        document,
+        AnsibleContentUploadTrigger.FILE_CLOSE
+      );
+    })
+  );
 
-  workspace.onDidChangeConfiguration(async () => {
-    await updateConfigurationChanges(
-      metaData,
-      pythonInterpreterManager,
-      extSettings,
-      lightSpeedManager
-    );
-    await updateAnsibleStatusBar(
-      metaData,
-      lightSpeedManager,
-      pythonInterpreterManager
-    );
-  });
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration(async () => {
+      await updateConfigurationChanges(
+        metaData,
+        pythonInterpreterManager,
+        extSettings,
+        lightSpeedManager
+      );
+      await updateAnsibleStatusBar(
+        metaData,
+        lightSpeedManager,
+        pythonInterpreterManager
+      );
+    })
+  );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
