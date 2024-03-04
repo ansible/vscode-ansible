@@ -138,7 +138,6 @@ export function testLightspeed(): void {
           assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
-          feedbackRequestSpy.resetHistory();
         });
       });
 
@@ -158,12 +157,30 @@ export function testLightspeed(): void {
           assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
-          feedbackRequestSpy.resetHistory();
         });
+      });
+
+      tests.forEach(({ taskName, expectedModule }) => {
+        it(`Should send inlineSuggestionFeedback(REJECTED) with cursor movement for task prompt '${taskName}'`, async function () {
+          await testInlineSuggestion(taskName, expectedModule, false, "", true);
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 1);
+          const inputData: FeedbackRequestParams =
+            feedbackRequestSpy.args[0][0];
+          console.log(JSON.stringify(inputData, null, 2));
+          assert(inputData?.inlineSuggestion?.action === UserAction.REJECTED);
+          const ret = feedbackRequestSpy.returnValues[0];
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+        });
+      });
+
+      this.afterEach(() => {
+        feedbackRequestSpy.resetHistory();
       });
 
       after(async function () {
         feedbackRequestSpy.restore();
+        isAuthenticatedStub.restore();
         sinon.restore();
       });
     });

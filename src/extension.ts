@@ -41,12 +41,13 @@ import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
+  ignorePendingSuggestion,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
   inlineSuggestionTextDocumentChangeHandler,
   inlineSuggestionTriggerHandler,
   LightSpeedInlineSuggestionProvider,
-  suggestionDisplayed,
+  rejectPendingSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
@@ -228,66 +229,75 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // Listen for text selection changes
   context.subscriptions.push(
-    vscode.window.onDidChangeTextEditorSelection(() => {
-      const lightSpeedSettings =
-        lightSpeedManager.settingsManager.settings.lightSpeedService;
-      if (
-        suggestionDisplayed.get() &&
-        lightSpeedSettings.enabled &&
-        lightSpeedSettings.suggestions.enabled
-      ) {
-        suggestionDisplayed.reset();
+    vscode.window.onDidChangeTextEditorSelection(async () => {
+      rejectPendingSuggestion();
+    })
+  );
+
+  // At window focus change, check if an inline suggestion is pending and ignore it if it exists.
+  context.subscriptions.push(
+    vscode.window.onDidChangeWindowState(async (state: vscode.WindowState) => {
+      if (!state.focused) {
+        ignorePendingSuggestion();
       }
     })
   );
 
   // register ansible meta data in the statusbar tooltip (client-server)
-  window.onDidChangeActiveTextEditor(
-    async (editor: vscode.TextEditor | undefined) => {
+  context.subscriptions.push(
+    window.onDidChangeActiveTextEditor(
+      async (editor: vscode.TextEditor | undefined) => {
+        await updateAnsibleStatusBar(
+          metaData,
+          lightSpeedManager,
+          pythonInterpreterManager
+        );
+        if (editor) {
+          await lightSpeedManager.ansibleContentFeedback(
+            editor.document,
+            AnsibleContentUploadTrigger.TAB_CHANGE
+          );
+        }
+      }
+    )
+  );
+  context.subscriptions.push(
+    workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
       await updateAnsibleStatusBar(
         metaData,
         lightSpeedManager,
         pythonInterpreterManager
       );
-      if (editor) {
-        await lightSpeedManager.ansibleContentFeedback(
-          editor.document,
-          AnsibleContentUploadTrigger.TAB_CHANGE
-        );
-      }
-    }
+      lightSpeedManager.ansibleContentFeedback(
+        document,
+        AnsibleContentUploadTrigger.FILE_OPEN
+      );
+    })
   );
-  workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
-    await updateAnsibleStatusBar(
-      metaData,
-      lightSpeedManager,
-      pythonInterpreterManager
-    );
-    lightSpeedManager.ansibleContentFeedback(
-      document,
-      AnsibleContentUploadTrigger.FILE_OPEN
-    );
-  });
-  workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
-    await lightSpeedManager.ansibleContentFeedback(
-      document,
-      AnsibleContentUploadTrigger.FILE_CLOSE
-    );
-  });
+  context.subscriptions.push(
+    workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
+      await lightSpeedManager.ansibleContentFeedback(
+        document,
+        AnsibleContentUploadTrigger.FILE_CLOSE
+      );
+    })
+  );
 
-  workspace.onDidChangeConfiguration(async () => {
-    await updateConfigurationChanges(
-      metaData,
-      pythonInterpreterManager,
-      extSettings,
-      lightSpeedManager
-    );
-    await updateAnsibleStatusBar(
-      metaData,
-      lightSpeedManager,
-      pythonInterpreterManager
-    );
-  });
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration(async () => {
+      await updateConfigurationChanges(
+        metaData,
+        pythonInterpreterManager,
+        extSettings,
+        lightSpeedManager
+      );
+      await updateAnsibleStatusBar(
+        metaData,
+        lightSpeedManager,
+        pythonInterpreterManager
+      );
+    })
+  );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {

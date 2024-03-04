@@ -248,7 +248,8 @@ export async function testInlineSuggestion(
   prompt: string,
   expectedModule: string,
   multiTask = false,
-  insertText = ""
+  insertText = "",
+  typeOver = false
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -304,6 +305,10 @@ export async function testInlineSuggestion(
     await editor.edit((editBuilder) => {
       editBuilder.insert(editor!.selection.active, insertText);
     });
+  } else if (typeOver) {
+    // If typeOver is set to true, simulate typing a space character, which will
+    // trigger an inlineSuggestionFeedback event with UserAction.REJECTED
+    await vscode.commands.executeCommand("type", { text: " " });
   } else {
     await vscode.commands.executeCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
@@ -311,16 +316,20 @@ export async function testInlineSuggestion(
   }
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
-  // get the committed suggestion
-  const suggestionRange = new vscode.Range(
-    new vscode.Position(writePosition.line + 1, writePosition.character),
-    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
-  );
+  // If typeOver is set to true, the suggestion will disappear.
+  // Otherwise, the suggestion is inserted to the doc and we can verify the result.
+  if (!typeOver) {
+    // get the committed suggestion
+    const suggestionRange = new vscode.Range(
+      new vscode.Position(writePosition.line + 1, writePosition.character),
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    );
 
-  const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
+    const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
 
-  // assert
-  assert.include(docContentAfterSuggestion, expectedModule);
+    // assert
+    assert.include(docContentAfterSuggestion, expectedModule);
+  }
 }
 
 export async function testInlineSuggestionNotTriggered(
