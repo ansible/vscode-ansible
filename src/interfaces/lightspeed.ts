@@ -1,6 +1,7 @@
 import { AuthenticationSession } from "vscode";
 import {
   AnsibleContentUploadTrigger,
+  LIGHTSPEED_USER_TYPE,
   UserAction,
 } from "../definitions/lightspeed";
 
@@ -167,7 +168,7 @@ export interface IAdditionalContext {
 }
 
 export interface LightspeedSessionUserInfo {
-  userType?: "Licensed" | "Unlicensed";
+  userType?: LIGHTSPEED_USER_TYPE;
   role?: string;
   subscribed?: boolean;
 }

@@ -5,6 +5,7 @@ import { SettingsManager } from "../../settings";
 import {
   LightSpeedCommands,
   LIGHTSPEED_MODEL_DEFAULT,
+  LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
@@ -48,6 +49,7 @@ export class LightspeedStatusBar {
     );
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
+    lightSpeedStatusBarItem.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     this.getLightSpeedStatusBarText().then((text) => {
       lightSpeedStatusBarItem.text = text;
     });
@@ -66,12 +68,23 @@ export class LightspeedStatusBar {
       rhOrgHasSubscription =
         await this.lightSpeedAuthProvider.rhOrgHasSubscription();
     }
+    return this.getLightSpeedStatusBarTextSync(
+      rhOrgHasSubscription,
+      rhUserHasSeat
+    );
+  }
+
+  private getLightSpeedStatusBarTextSync(
+    rhUserHasSeat?: boolean,
+    rhOrgHasSubscription?: boolean
+  ): string {
     const userTypeLabel = getUserTypeLabel(
       rhOrgHasSubscription,
       rhUserHasSeat
     ).toLowerCase();
     return `Lightspeed (${userTypeLabel})`;
   }
+
   private handleStatusBar() {
     if (!this.client.isRunning()) {
       return;

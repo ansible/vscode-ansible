@@ -7,6 +7,7 @@ import {
   LightspeedSessionUserInfo,
   LightspeedSessionInfo,
 } from "../../../interfaces/lightspeed";
+import { LIGHTSPEED_USER_TYPE } from "../../../definitions/lightspeed";
 import { lightSpeedManager } from "../../../extension";
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
@@ -73,23 +74,26 @@ export function getBaseUri(settingsManager: SettingsManager) {
 export function getUserTypeLabel(
   rhOrgHasSubscription?: boolean,
   rhUserHasSeat?: boolean
-): "Licensed" | "Unlicensed" {
+): LIGHTSPEED_USER_TYPE {
+  if (rhOrgHasSubscription === undefined) {
+    return "Not logged in";
+  }
   return rhOrgHasSubscription && rhUserHasSeat ? "Licensed" : "Unlicensed";
 }
 
 export function getLoggedInSessionDetails(
-  sessionData: LightspeedAuthSession
+  sessionData?: LightspeedAuthSession
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};
   userInfo.userType = getUserTypeLabel(
-    sessionData.rhOrgHasSubscription,
-    sessionData.rhUserHasSeat
+    sessionData?.rhOrgHasSubscription,
+    sessionData?.rhUserHasSeat
   );
-  if (sessionData.rhUserIsOrgAdmin) {
+  if (sessionData?.rhUserIsOrgAdmin) {
     userInfo.role = "Administrator";
   }
-  if (sessionData.rhOrgHasSubscription) {
+  if (sessionData?.rhOrgHasSubscription) {
     userInfo.subscribed = true;
   }
   if (lightSpeedManager.currentModelValue) {
