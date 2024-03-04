@@ -41,6 +41,7 @@ import { registerCommandWithTelemetry } from "./utils/registerCommands";
 import { TreeDataProvider } from "./treeView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
+  ignorePendingSuggestion,
   inlineSuggestionCommitHandler,
   inlineSuggestionHideHandler,
   inlineSuggestionTextDocumentChangeHandler,
@@ -230,6 +231,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
       rejectPendingSuggestion();
+    })
+  );
+
+  // At window focus change, check if an inline suggestion is pending and ignore it if it exists.
+  context.subscriptions.push(
+    vscode.window.onDidChangeWindowState(async (state: vscode.WindowState) => {
+      if (!state.focused) {
+        ignorePendingSuggestion();
+      }
     })
   );
 
