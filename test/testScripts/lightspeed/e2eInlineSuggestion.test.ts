@@ -152,7 +152,10 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
     });
 
     it("Test an inline suggestion from another provider is committed", async function () {
-      const editor = await invokeInlineSuggestion(5, 4);
+      // Inline suggestion is triggered at (line, column) = (5, 4).  Note numbers are
+      // zero-origin. Since the file does not contain trailing blanks, we need to send
+      // four spaces through vscode API.
+      const editor = await invokeInlineSuggestion(5, 4, 4);
 
       // Issue Lightspeed's commit command, which is assigned to the Tab key, which
       // should issue vscode's commit command eventually
@@ -235,7 +238,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
       // Inline suggestion is triggered at (line, column) = (5, 4).  Note numbers are
       // zero-origin. Since the file does not contain trailing blanks, we need to send
       // four spaces through vscode API.
-      await invokeInlineSuggestion(5, 0, 4);
+      await invokeInlineSuggestion(5, 4, 4);
 
       await ignorePendingSuggestion();
       await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_IGNORE_WAIT_TIME);
