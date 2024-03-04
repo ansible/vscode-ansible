@@ -71,7 +71,8 @@ export class LightSpeedManager {
     }
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
-      this.lightSpeedAuthenticationProvider
+      this.lightSpeedAuthenticationProvider,
+      this.context
     );
     this.apiInstance
       .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
