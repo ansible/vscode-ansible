@@ -55,6 +55,7 @@ export class AnsiblePlaybookRunProvider {
   private addEEArgs(commandLineArgs: string[]): void {
     const eeSettings = this.settings.executionEnvironment;
     if (!eeSettings.enabled) {
+      commandLineArgs.push("--ee false");
       return;
     }
     commandLineArgs.push("--ee true");
