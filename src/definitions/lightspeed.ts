@@ -68,7 +68,8 @@ export const LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT = "Lightspeed (not logged in)";
 
 export const LIGHTSPEED_MODEL_DEFAULT = "default";
 
-export const LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT = "# Content suggestion provided by Ansible Lightspeed\n"
+export const LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT =
+  "# Content suggestion provided by Ansible Lightspeed\n";
 
 export const tasksInPlaybookKeywords = [
   /(?<!\S)tasks\s*:(?!\S)\s*$/,

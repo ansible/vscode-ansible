@@ -41,7 +41,10 @@ export class SettingsManager {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
-        disableContentSuggestionHeader: lightSpeedSettings.get("disableContentSuggestionHeader", false),
+        disableContentSuggestionHeader: lightSpeedSettings.get(
+          "disableContentSuggestionHeader",
+          false
+        ),
       },
     };
 

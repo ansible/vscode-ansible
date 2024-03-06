@@ -399,10 +399,10 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   result.predictions.forEach((prediction) => {
-    const leadingWhitespaceCount = prediction.search(/\S/)
-    let leadingWhitespace = ''
+    const leadingWhitespaceCount = prediction.search(/\S/);
+    let leadingWhitespace = "";
     if (leadingWhitespaceCount > 0) {
-      leadingWhitespace = ' '.repeat(leadingWhitespaceCount)
+      leadingWhitespace = " ".repeat(leadingWhitespaceCount);
     }
     let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
     insertText = adjustInlineSuggestionIndent(
@@ -416,7 +416,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
     inlineSuggestionItem.command = {
       title: "Replace Marker",
       command: LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
-      arguments: [inlinePosition.position]
+      arguments: [inlinePosition.position],
     };
 
     inlineSuggestionUserActionItems.push(inlineSuggestionItem);
@@ -471,10 +471,10 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   result.predictions.forEach((prediction) => {
-    const leadingWhitespaceCount = prediction.search(/\S/)
-    let leadingWhitespace = ''
+    const leadingWhitespaceCount = prediction.search(/\S/);
+    let leadingWhitespace = "";
     if (leadingWhitespaceCount > 0) {
-      leadingWhitespace = ' '.repeat(leadingWhitespaceCount)
+      leadingWhitespace = " ".repeat(leadingWhitespaceCount);
     }
     let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
     insertText = adjustInlineSuggestionIndent(
@@ -488,7 +488,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
     inlineSuggestionItem.command = {
       title: "Replace Marker",
       command: LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
-      arguments: [inlinePosition.position]
+      arguments: [inlinePosition.position],
     };
     inlineSuggestionUserActionItems.push(inlineSuggestionItem);
   });
@@ -788,7 +788,10 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   if (!editor) {
     return;
   }
-  if (!lightSpeedManager.settingsManager.settings.lightSpeedService.disableContentSuggestionHeader) {
+  if (
+    !lightSpeedManager.settingsManager.settings.lightSpeedService
+      .disableContentSuggestionHeader
+  ) {
     return;
   }
 
@@ -798,13 +801,20 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
   if (editor) {
     // Get the current text
-    const line = position.line
+    const line = position.line;
 
-    let text = editor.document.getText(new vscode.Range(new vscode.Position(line, 0), new vscode.Position(line+1, 0)));
+    const text = editor.document.getText(
+      new vscode.Range(
+        new vscode.Position(line, 0),
+        new vscode.Position(line + 1, 0)
+      )
+    );
     // Remove the prepended text
-    const commentPosition = text.indexOf(LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT);
+    const commentPosition = text.indexOf(
+      LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT
+    );
     if (commentPosition === -1) {
-      return
+      return;
     }
 
     // Update the editor with the new text
@@ -812,9 +822,9 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
       editBuilder.delete(
         new vscode.Range(
           new vscode.Position(line, 0),
-          new vscode.Position(line+1, 0)
-          )
-     );
+          new vscode.Position(line + 1, 0)
+        )
+      );
     });
   }
 }
