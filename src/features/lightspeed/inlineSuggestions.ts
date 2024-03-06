@@ -830,14 +830,6 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
 }
 
 export async function inlineSuggestionCommitHandler() {
-  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-    return;
-  }
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return;
-  }
-
   // Commit the suggestion, which might be provided by another provider
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
@@ -847,14 +839,6 @@ export async function inlineSuggestionCommitHandler() {
   }
 
   console.log("[inline-suggestions] User accepted the inline suggestion.");
-
-  vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
-  );
-
-  const suggestionId = inlineSuggestionData["suggestionId"];
-  // Send feedback for accepted suggestion
-  await inlineSuggestionUserActionHandler(suggestionId!, UserAction.ACCEPTED);
 }
 
 export async function inlineSuggestionHideHandler(userAction?: UserAction) {
@@ -994,6 +978,10 @@ export async function inlineSuggestionTextDocumentChangeHandler(
         await inlineSuggestionUserActionHandler(
           suggestionId!,
           UserAction.ACCEPTED
+        );
+        // Show training matches for the accepted suggestion.
+        vscode.commands.executeCommand(
+          LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
         );
       }
     });

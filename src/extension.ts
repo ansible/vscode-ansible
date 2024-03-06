@@ -268,6 +268,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
             editor.document,
             AnsibleContentUploadTrigger.TAB_CHANGE
           );
+        } else {
+          await ignorePendingSuggestion();
         }
       }
     )
