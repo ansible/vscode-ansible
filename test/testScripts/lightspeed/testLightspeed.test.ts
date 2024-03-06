@@ -273,13 +273,13 @@ export function testLightspeed(): void {
       });
     });
 
+    describe("Test ignore pending suggestions", () => {
+      testIgnorePendingSuggestion();
+    });
+
     describe("Test inline suggestion by another provider", () => {
       testInlineSuggestionByAnotherProvider();
       testInlineSuggestionProviderCoExistence();
-    });
-
-    describe("Test ignore pending suggestions", () => {
-      testIgnorePendingSuggestion();
     });
 
     describe("Test Ansible Lightspeed Functions", function () {
