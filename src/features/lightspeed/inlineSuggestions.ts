@@ -344,6 +344,9 @@ async function requestSuggestion(
     );
   const suggestionId = uuidv4();
   try {
+    // If there is a suggestion, whose feedback is pending, ignore it before making a new request
+    await ignorePendingSuggestion();
+
     const activityId = retrieveActivityIdFromTracker(
       documentInfo,
       inlinePosition

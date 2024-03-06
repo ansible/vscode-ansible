@@ -17,6 +17,7 @@ import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
   testInlineSuggestionProviderCoExistence,
+  testIgnorePendingSuggestion,
 } from "./e2eInlineSuggestion.test";
 import { UserAction } from "../../../src/definitions/lightspeed";
 import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
@@ -275,6 +276,10 @@ export function testLightspeed(): void {
     describe("Test inline suggestion by another provider", () => {
       testInlineSuggestionByAnotherProvider();
       testInlineSuggestionProviderCoExistence();
+    });
+
+    describe("Test ignore pending suggestions", () => {
+      testIgnorePendingSuggestion();
     });
 
     describe("Test Ansible Lightspeed Functions", function () {
