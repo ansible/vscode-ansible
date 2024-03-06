@@ -228,6 +228,8 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
+- `ansible.lightspeed.disableContentSuggestionHeader`: Do not include code comment
+  crediting Ansible Lightspeed when accepting a Lightspeed suggestion.
 
 ## Data and Telemetry
 

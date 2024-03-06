@@ -15,6 +15,7 @@ import {
 } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
+  LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
   LIGHTSPEED_SUGGESTION_TYPE,
   MULTI_TASK_REGEX_EP,
   SINGLE_TASK_REGEX_EP,
@@ -398,15 +399,26 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   result.predictions.forEach((prediction) => {
-    let insertText = prediction;
+    const leadingWhitespaceCount = prediction.search(/\S/)
+    let leadingWhitespace = ''
+    if (leadingWhitespaceCount > 0) {
+      leadingWhitespace = ' '.repeat(leadingWhitespaceCount)
+    }
+    let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
     insertText = adjustInlineSuggestionIndent(
-      prediction,
+      insertText,
       inlinePosition.position
     );
     insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, "");
     insertTexts.push(insertText);
 
     const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
+    inlineSuggestionItem.command = {
+      title: "Replace Marker",
+      command: LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
+      arguments: [inlinePosition.position]
+    };
+
     inlineSuggestionUserActionItems.push(inlineSuggestionItem);
   });
   // currentSuggestion is used in user action handlers
@@ -459,15 +471,25 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
   result.predictions.forEach((prediction) => {
-    let insertText = prediction;
+    const leadingWhitespaceCount = prediction.search(/\S/)
+    let leadingWhitespace = ''
+    if (leadingWhitespaceCount > 0) {
+      leadingWhitespace = ' '.repeat(leadingWhitespaceCount)
+    }
+    let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
     insertText = adjustInlineSuggestionIndent(
-      prediction,
+      insertText,
       inlinePosition.position
     );
     insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, "");
     insertTexts.push(insertText);
 
     const inlineSuggestionItem = new vscode.InlineCompletionItem(insertText);
+    inlineSuggestionItem.command = {
+      title: "Replace Marker",
+      command: LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
+      arguments: [inlinePosition.position]
+    };
     inlineSuggestionUserActionItems.push(inlineSuggestionItem);
   });
   // currentSuggestion is used in user action handlers
@@ -756,6 +778,45 @@ export async function inlineSuggestionTriggerHandler() {
     "[inline-suggestions] Inline Suggestion Handler triggered using command."
   );
   vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
+}
+
+export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    return;
+  }
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
+    return;
+  }
+  if (!lightSpeedManager.settingsManager.settings.lightSpeedService.disableContentSuggestionHeader) {
+    return;
+  }
+
+  console.log(
+    `[inline-suggestions] Inline Suggestion Marker Handler triggered using command at ${position.line}`
+  );
+  vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
+  if (editor) {
+    // Get the current text
+    const line = position.line
+
+    let text = editor.document.getText(new vscode.Range(new vscode.Position(line, 0), new vscode.Position(line+1, 0)));
+    // Remove the prepended text
+    const commentPosition = text.indexOf(LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT);
+    if (commentPosition === -1) {
+      return
+    }
+
+    // Update the editor with the new text
+    editor.edit((editBuilder) => {
+      editBuilder.delete(
+        new vscode.Range(
+          new vscode.Position(line, 0),
+          new vscode.Position(line+1, 0)
+          )
+     );
+    });
+  }
 }
 
 export async function inlineSuggestionCommitHandler() {
