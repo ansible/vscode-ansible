@@ -823,7 +823,7 @@
     "_coverage-all": "./tools/coverage-all.sh",
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all"
   },
-  "version": "2.12.0",
+  "version": "2.13.0",
   "packageManager": "yarn@4.0.2",
   "vsce": {
     "dependencies": false,
