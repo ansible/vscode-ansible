@@ -4,6 +4,26 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.13
+
+### Minor Changes
+
+- Send IGNORED feedback if feedback was pending (#1116) @TamiTakamiya
+- send ansible extension version in lightspeed requests (#1111) @robinbobbitt
+
+### Bugfixes
+
+- Fix terminal color and navigator command execution (#1118) @priyamsahoo
+- Do not send ACCEPTED feedback from commit handler (#1115) @TamiTakamiya
+- Re-enable Lightspeed UI tests (#1088) @TamiTakamiya
+- Send IGNORED suggestion feedback when active editor/window is changed (#1113)
+  @TamiTakamiya
+- Reject pending suggestion if text selection changes (#1107) @TamiTakamiya
+- No inlineSuggestionFeedback if user accepted it on widget (#1105)
+  @TamiTakamiya
+- Copilot tab completion does not work with v2.12 extension (#1109)
+  @TamiTakamiya
+
 ## v2.12
 
 ### Minor Changes

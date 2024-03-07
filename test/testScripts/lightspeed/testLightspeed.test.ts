@@ -17,6 +17,7 @@ import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
   testInlineSuggestionProviderCoExistence,
+  testIgnorePendingSuggestion,
 } from "./e2eInlineSuggestion.test";
 import { UserAction } from "../../../src/definitions/lightspeed";
 import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
@@ -270,6 +271,10 @@ export function testLightspeed(): void {
           await testValidJinjaBrackets(taskName, expectedValidJinjaInlineVar);
         });
       });
+    });
+
+    describe("Test ignore pending suggestions", () => {
+      testIgnorePendingSuggestion();
     });
 
     describe("Test inline suggestion by another provider", () => {
