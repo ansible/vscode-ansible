@@ -19,7 +19,7 @@ import {
   testInlineSuggestionProviderCoExistence,
   testIgnorePendingSuggestion,
 } from "./e2eInlineSuggestion.test";
-import { UserAction } from "../../../src/definitions/lightspeed";
+import { UserAction, LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT } from "../../../src/definitions/lightspeed";
 import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 
 function testSuggestionPrompts() {
@@ -40,8 +40,8 @@ function testSuggestionPrompts() {
 function testSuggestionExpectedInsertTexts() {
   // Based on the responses defined in the mock lightspeed server codes
   const insertTexts = [
-    "  ansible.builtin.debug:\n        msg: Hello World\n    ",
-    "  ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    ",
+    `  ${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}      ansible.builtin.debug:\n        msg: Hello World\n    `,
+    `  ${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}      ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    `,
   ];
 
   return insertTexts;
