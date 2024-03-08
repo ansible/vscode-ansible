@@ -19,7 +19,10 @@ import {
   testInlineSuggestionProviderCoExistence,
   testIgnorePendingSuggestion,
 } from "./e2eInlineSuggestion.test";
-import { UserAction, LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT } from "../../../src/definitions/lightspeed";
+import {
+  UserAction,
+  LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
+} from "../../../src/definitions/lightspeed";
 import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 
 function testSuggestionPrompts() {
