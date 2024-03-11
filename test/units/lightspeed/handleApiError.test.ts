@@ -158,9 +158,9 @@ describe("testing the error handling", () => {
     const msg = retrieveError(
       createError(403, { data: "Some string from CloudFront." }, { server: "CloudFront" })
     );
-    assert.equal(
+    assert.match(
       msg,
-      "CloudFront rejected the request. Please contact your administrator."
+      /Something in your editor content has caused your inline suggestion request to be blocked.*/
     );
   });
 

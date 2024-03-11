@@ -21,7 +21,9 @@ export function retrieveError(err: AxiosError): string {
       }
     } else if (err?.response?.status === 403) {
       if((err?.response?.headers["server"] || "").toLowerCase() === "cloudfront") {
-        return `CloudFront rejected the request. Please contact your administrator.`;
+        return 'Something in your editor content has caused your inline suggestion request to be blocked. \n' +
+          'Please open a ticket with Red Hat support and include the content of your editor up to the \n' + 
+          'line and column where you requested a suggestion.';
       } else {
         const responseErrorData = <AxiosError<{ message?: string }>>(
           err?.response?.data
