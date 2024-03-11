@@ -4,7 +4,11 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { retrieveError } from "../../../src/features/lightspeed/handleApiError";
 import assert from "assert";
 
-function createError(http_code: number, data = {}, err_headers = {}): AxiosError {
+function createError(
+  http_code: number,
+  data = {},
+  err_headers = {}
+): AxiosError {
   const request = { path: "/wisdom" };
   const headers = new AxiosHeaders({
     ...err_headers,
@@ -156,12 +160,15 @@ describe("testing the error handling", () => {
 
   it("err Bad Request from CloudFront", () => {
     const msg = retrieveError(
-      createError(403, { data: "Some string from CloudFront." }, { server: "CloudFront" })
+      createError(
+        403,
+        { data: "Some string from CloudFront." },
+        { server: "CloudFront" }
+      )
     );
     assert.match(
       msg,
       /Something in your editor content has caused your inline suggestion request to be blocked.*/
     );
   });
-
 });

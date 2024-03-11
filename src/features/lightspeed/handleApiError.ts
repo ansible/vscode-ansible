@@ -20,10 +20,14 @@ export function retrieveError(err: AxiosError): string {
         return "Bad Request response. Please try again.";
       }
     } else if (err?.response?.status === 403) {
-      if((err?.response?.headers["server"] || "").toLowerCase() === "cloudfront") {
-        return 'Something in your editor content has caused your inline suggestion request to be blocked. \n' +
-          'Please open a ticket with Red Hat support and include the content of your editor up to the \n' + 
-          'line and column where you requested a suggestion.';
+      if (
+        (err?.response?.headers["server"] || "").toLowerCase() === "cloudfront"
+      ) {
+        return (
+          "Something in your editor content has caused your inline suggestion request to be blocked. \n" +
+          "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
+          "line and column where you requested a suggestion."
+        );
       } else {
         const responseErrorData = <AxiosError<{ message?: string }>>(
           err?.response?.data
@@ -57,7 +61,7 @@ export function retrieveError(err: AxiosError): string {
           }
         } else {
           return "User not authorized to access Ansible Lightspeed.";
-        }  
+        }
       }
     } else if (err?.response?.status.toString().startsWith("5")) {
       return "Ansible Lightspeed encountered an error. Try again after some time.";
