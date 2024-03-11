@@ -1,0 +1,9 @@
+---
+authors:
+  - Ansible Devtools team
+license_file: LICENSE
+name: collection_1
+namespace: testorg
+readme: README.md
+description: "Test collection"
+version: 1.0.0
