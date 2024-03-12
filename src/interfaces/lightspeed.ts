@@ -74,6 +74,7 @@ export interface FeedbackRequestParams {
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
+  model?: string;
 }
 
 export interface IDocumentTrackerFields {
