@@ -164,6 +164,10 @@ jobs:
           # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
           TEST_LIGHTSPEED_URL:  "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
 
+          # Set environment variables using matrix properties.
+          SKIP_PODMAN: "${{ matrix.env.SKIP_PODMAN || '0' }}"
+          SKIP_DOCKER: "${{ matrix.env.SKIP_DOCKER || '0' }}"
+
           # For using an actual Lightspeed server instance, uncomment following two lines.
           # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
           # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
