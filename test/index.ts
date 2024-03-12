@@ -1,6 +1,7 @@
 import * as path from "path";
 import Mocha from "mocha";
 import { glob } from "glob";
+import { MochaOptions } from "vscode-extension-tester";
 
 function setupCoverage() {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -33,8 +34,7 @@ export async function run(): Promise<void> {
   //   console.log("Glob verification", await nyc.exclude.glob(nyc.cwd));
   // }
 
-  // Create the mocha test
-  const mocha = new Mocha({
+  const mochaOptions: MochaOptions = {
     color: true,
     ui: "bdd",
     timeout: 50000,
@@ -47,7 +47,14 @@ export async function run(): Promise<void> {
       cdn: true,
       charts: true,
     },
-  });
+  };
+
+  if (process.env.MOCHA_GREP) {
+    mochaOptions.grep = process.env.MOCHA_GREP;
+  }
+
+  // Create the mocha test
+  const mocha = new Mocha(mochaOptions);
 
   const testsRoot = path.resolve(__dirname, "..");
 
