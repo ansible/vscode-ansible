@@ -7,6 +7,7 @@ import {
   LightspeedSessionUserInfo,
   LightspeedSessionInfo,
 } from "../../../interfaces/lightspeed";
+import { LIGHTSPEED_USER_TYPE } from "../../../definitions/lightspeed";
 import { lightSpeedManager } from "../../../extension";
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
@@ -70,22 +71,29 @@ export function getBaseUri(settingsManager: SettingsManager) {
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
 
+export function getUserTypeLabel(
+  rhOrgHasSubscription?: boolean,
+  rhUserHasSeat?: boolean
+): LIGHTSPEED_USER_TYPE {
+  if (rhOrgHasSubscription === undefined) {
+    return "Not logged in";
+  }
+  return rhOrgHasSubscription && rhUserHasSeat ? "Licensed" : "Unlicensed";
+}
+
 export function getLoggedInSessionDetails(
-  sessionData: LightspeedAuthSession
+  sessionData?: LightspeedAuthSession
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};
-  if (sessionData.rhUserHasSeat) {
-    userInfo.userType = "Licensed";
-  } else if (sessionData.rhOrgHasSubscription && !sessionData.rhUserHasSeat) {
-    userInfo.userType = "No seat assigned";
-  } else {
-    userInfo.userType = "Tech Preview";
-  }
-  if (sessionData.rhUserIsOrgAdmin) {
+  userInfo.userType = getUserTypeLabel(
+    sessionData?.rhOrgHasSubscription,
+    sessionData?.rhUserHasSeat
+  );
+  if (sessionData?.rhUserIsOrgAdmin) {
     userInfo.role = "Administrator";
   }
-  if (sessionData.rhOrgHasSubscription) {
+  if (sessionData?.rhOrgHasSubscription) {
     userInfo.subscribed = true;
   }
   if (lightSpeedManager.currentModelValue) {

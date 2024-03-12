@@ -4,6 +4,62 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v2.13
+
+### Minor Changes
+
+- Send IGNORED feedback if feedback was pending (#1116) @TamiTakamiya
+- send ansible extension version in lightspeed requests (#1111) @robinbobbitt
+
+### Bugfixes
+
+- Fix terminal color and navigator command execution (#1118) @priyamsahoo
+- Do not send ACCEPTED feedback from commit handler (#1115) @TamiTakamiya
+- Re-enable Lightspeed UI tests (#1088) @TamiTakamiya
+- Send IGNORED suggestion feedback when active editor/window is changed (#1113)
+  @TamiTakamiya
+- Reject pending suggestion if text selection changes (#1107) @TamiTakamiya
+- No inlineSuggestionFeedback if user accepted it on widget (#1105)
+  @TamiTakamiya
+- Copilot tab completion does not work with v2.12 extension (#1109)
+  @TamiTakamiya
+
+## v2.12
+
+### Minor Changes
+
+- Update lightspeed doc link in README (#1097) @TamiTakamiya
+- Reject feedback API for unlicensed users after disabling tech preview (#1090)
+  @TamiTakamiya
+
+### Bugfixes
+
+- avoid duplicated suggestionFeedback event (#1099) @goneri
+- Unbound variable error in language server CI jobs (#1095) @TamiTakamiya
+- Update CI job to assign auto server number for xvfb execution (#1094)
+  @priyamsahoo
+
+## v2.11
+
+### Minor Changes
+
+- Lightspeed VSCode extension: Analytics telemetry opting-out support (#1078)
+  @hasys
+- Integrate code coverage & mock Lightspeed server into CI (#1067) @TamiTakamiya
+- Show Licensed or Unlicensed for user type (#1064) @TamiTakamiya
+- Mock Lightspeed Server for local test execution (#1062) @TamiTakamiya
+- lightspeed/inlineSuggestions: refactoring to simplify the testing (#1055)
+  @goneri
+- lightspeed: show a proper message when the user has no seat (#1059) @goneri
+- Enable code coverage on e2e tests (#1056) @TamiTakamiya
+
+### Bugfixes
+
+- handle command in python interpreter path (#1082) @robinbobbitt
+- avoid an exception during init if 'roles' is not a directory (#1085) @goneri
+- handle invalid python interpreter path (#1077) @robinbobbitt
+- enable lightspeed connect when ready (#1076) @robinbobbitt
+
 ## v2.10
 
 ### Major Changes

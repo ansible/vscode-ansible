@@ -71,9 +71,9 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    if (this.extensionSettings.settings.interpreterPath) {
-      const interpreterPath = this.extensionSettings.settings.interpreterPath;
-      const label = this.makeLabelFromPath(interpreterPath);
+    const interpreterPath = this.extensionSettings.settings.interpreterPath;
+    if (interpreterPath) {
+      const label = this.makeLabelFromPath(interpreterPath!);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;
         this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
@@ -81,6 +81,14 @@ export class PythonInterpreterManager {
           true
         );
         this.pythonInterpreterStatusBarItem.backgroundColor = "";
+      } else {
+        this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
+        this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
+          "statusBarItem.warningBackground"
+        );
+        console.error(
+          `The specified python interpreter path in settings does not exist: ${interpreterPath} `
+        );
       }
     } else {
       this.pythonInterpreterStatusBarItem.text = "Select python environment";
@@ -97,8 +105,15 @@ export class PythonInterpreterManager {
   }
 
   public makeLabelFromPath(interpreterPath: string): string | undefined {
-    const version = execSync(`${interpreterPath} -V`).toString().trim();
-
+    let version: string;
+    try {
+      version = execSync(`${interpreterPath} -V`).toString().trim();
+    } catch (error) {
+      console.error(
+        `Error gathering python version from ${interpreterPath}: ${error}`
+      );
+      return;
+    }
     let envLabel: string = version;
 
     const pythonInVenv = execSync(

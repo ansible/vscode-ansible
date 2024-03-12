@@ -86,7 +86,7 @@
           "name": "Lightspeed Training Matches",
           "type": "webview",
           "contextualTitle": "Ansible",
-          "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled",
+          "when": "redhat.ansible.lightspeedSuggestionsEnabled",
           "visibility": "visible",
           "retainContextWhenHidden": true
         }
@@ -99,7 +99,8 @@
       },
       {
         "view": "lightspeed-explorer-treeview",
-        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)"
+        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)",
+        "enablement": "lightspeedConnectReady"
       }
     ],
     "jsonValidation": [
@@ -936,7 +937,7 @@
     "express": "^4.18.2",
     "ini": "^4.1.1",
     "minimatch": "^9.0.3",
-    "untildify": "^5.0.0",
+    "start-server-and-test": "^2.0.3",
     "uuid": "^9.0.1",
     "vscode-languageclient": "^8.1.0",
     "vscode-uri": "^3.0.8",
@@ -952,6 +953,7 @@
     "@types/mocha": "^10.0.6",
     "@types/node": "^20.11.7",
     "@types/sinon": "^17.0.3",
+    "@types/tmp": "^0.2.6",
     "@types/uuid": "^9.0.8",
     "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.4",
@@ -981,7 +983,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "vscode-extension-tester": "^5.10.0",
+    "vscode-extension-tester": "^7.0.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.90.0",
     "webpack-cli": "^5.1.4",
@@ -1022,7 +1024,7 @@
     "package": "yarn run webpack && npx vsce package",
     "preinstall": "",
     "pretest": "yarn run compile",
-    "unit-tests": "nyc --reporter=html --reporter=text --reporter=lcov mocha --recursive test/units",
+    "unit-tests": "nyc mocha --recursive test/units",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "extest get-vscode -c max -s out/test-resources && extest get-chromedriver -c max -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
     "test-ui-oldest": "extest get-vscode -c min -s out/test-resources && extest get-chromedriver -c min -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
@@ -1040,9 +1042,11 @@
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner",
     "coverage-e2e-withserver": "COVERAGE=1 yarn run test-e2e-withserver",
     "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js",
-    "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js"
+    "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js",
+    "_coverage-all": "./tools/coverage-all.sh",
+    "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all"
   },
-  "version": "2.10.0",
+  "version": "2.13.0",
   "packageManager": "yarn@4.0.2",
   "vsce": {
     "dependencies": false,

@@ -77,8 +77,7 @@ export async function updateSettings(
   section = "ansible"
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration(section);
-  const useGlobalSettings = true;
-  return ansibleConfiguration.update(setting, value, useGlobalSettings);
+  return ansibleConfiguration.update(setting, value);
 }
 
 export function setFixtureAnsibleCollectionPathEnv(
@@ -118,6 +117,18 @@ export async function enableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", true);
   await updateSettings("lightspeed.suggestions.enabled", true);
   await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
+
+  // Make sure content matches panel is enabled in a timely manner
+  vscode.commands.executeCommand(
+    "setContext",
+    "redhat.ansible.lightspeedSuggestionsEnabled",
+    true
+  );
+
+  // Open content matches panel
+  await vscode.commands.executeCommand(
+    "ansible.lightspeed.trainingMatchPanel.focus"
+  );
 }
 
 export async function disableLightspeedSettings(): Promise<void> {
@@ -235,7 +246,10 @@ export async function testHover(
 
 export async function testInlineSuggestion(
   prompt: string,
-  expectedModule: string
+  expectedModule: string,
+  multiTask = false,
+  insertText = "",
+  typeOver = false
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -254,7 +268,10 @@ export async function testInlineSuggestion(
       writePosition,
       new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
     );
-    edit.replace(replaceRange, `- name: ${prompt}\n`);
+    edit.replace(
+      replaceRange,
+      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`
+    );
   });
 
   await vscode.commands.executeCommand("cursorMove", {
@@ -280,25 +297,44 @@ export async function testInlineSuggestion(
     LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
-  await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
-  );
+
+  if (insertText) {
+    // If insertText is specified, insertText at the current cursor position.
+    // It simulates the scenario that user clicks the accept button on widget.
+    assert(editor);
+    await editor.edit((editBuilder) => {
+      editBuilder.insert(editor!.selection.active, insertText);
+    });
+  } else if (typeOver) {
+    // If typeOver is set to true, simulate typing a space character, which will
+    // trigger an inlineSuggestionFeedback event with UserAction.REJECTED
+    await vscode.commands.executeCommand("type", { text: " " });
+  } else {
+    await vscode.commands.executeCommand(
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+    );
+  }
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
-  // get the committed suggestion
-  const suggestionRange = new vscode.Range(
-    new vscode.Position(writePosition.line + 1, writePosition.character),
-    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
-  );
+  // If typeOver is set to true, the suggestion will disappear.
+  // Otherwise, the suggestion is inserted to the doc and we can verify the result.
+  if (!typeOver) {
+    // get the committed suggestion
+    const suggestionRange = new vscode.Range(
+      new vscode.Position(writePosition.line + 1, writePosition.character),
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    );
 
-  const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
+    const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
 
-  // assert
-  assert.include(docContentAfterSuggestion, expectedModule);
+    // assert
+    assert.include(docContentAfterSuggestion, expectedModule);
+  }
 }
 
 export async function testInlineSuggestionNotTriggered(
-  prompt: string
+  prompt: string,
+  multiTask = false
 ): Promise<void> {
   const editor = vscode.window.activeTextEditor;
 
@@ -316,7 +352,10 @@ export async function testInlineSuggestionNotTriggered(
       writePosition,
       new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
     );
-    edit.replace(replaceRange, `${prompt}\n`);
+    edit.replace(
+      replaceRange,
+      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`
+    );
   });
 
   await vscode.commands.executeCommand("cursorMove", {

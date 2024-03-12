@@ -116,7 +116,7 @@ repos:
             syntaxes/external/jinja.tmLanguage.json|
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.38.0
+    rev: v0.39.0
     hooks:
       - id: markdownlint
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
@@ -125,7 +125,7 @@ repos:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-alpha.1
+    rev: v9.0.0-alpha.2
     hooks:
       - id: eslint
         args:

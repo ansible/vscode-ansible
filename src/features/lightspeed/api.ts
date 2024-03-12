@@ -26,15 +26,18 @@ export class LightSpeedAPI {
   private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
   private _completionRequestInProgress: boolean;
   private _inlineSuggestionFeedbackSent: boolean;
+  private _extensionVersion: string;
 
   constructor(
     settingsManager: SettingsManager,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider
+    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    context: vscode.ExtensionContext
   ) {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
     this._completionRequestInProgress = false;
     this._inlineSuggestionFeedbackSent = false;
+    this._extensionVersion = context.extension.packageJSON.version;
   }
 
   get completionRequestInProgress(): boolean {
@@ -101,9 +104,16 @@ export class LightSpeedAPI {
     try {
       this._completionRequestInProgress = true;
       this._inlineSuggestionFeedbackSent = false;
+      const requestData = {
+        ...inputData,
+        metadata: {
+          ...inputData.metadata,
+          ansibleExtensionVersion: this._extensionVersion,
+        },
+      };
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_COMPLETION_URL,
-        inputData,
+        requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
@@ -136,6 +146,7 @@ export class LightSpeedAPI {
 
   public async feedbackRequest(
     inputData: FeedbackRequestParams,
+    orgOptOutTelemetry = false,
     showAuthErrorMessage = false,
     showInfoMessage = false
   ): Promise<FeedbackResponseParams> {
@@ -153,7 +164,8 @@ export class LightSpeedAPI {
       return {} as FeedbackResponseParams;
     }
     const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
-    if (rhUserHasSeat) {
+
+    if (rhUserHasSeat && orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {
         delete inputData.inlineSuggestion;
       }
@@ -165,15 +177,19 @@ export class LightSpeedAPI {
     if (Object.keys(inputData).length === 0) {
       return {} as FeedbackResponseParams;
     }
+    const requestData = {
+      ...inputData,
+      metadata: { ansibleExtensionVersion: this._extensionVersion },
+    };
     console.log(
       `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
-        inputData
+        requestData
       )}`
     );
     try {
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
-        inputData,
+        requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }
@@ -184,10 +200,21 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: any = err?.response?.data;
       if (err && "response" in err) {
         if (err?.response?.status === 401) {
           vscode.window.showErrorMessage(
             "User not authorized to access Ansible Lightspeed."
+          );
+        } else if (
+          err?.response?.status === 403 &&
+          (data?.code === "permission_denied__user_with_no_seat" ||
+            data?.code ===
+              "permission_denied__org_not_ready_because_wca_not_configured")
+        ) {
+          vscode.window.showErrorMessage(
+            "You must be connected to a model to send Ansible Lightspeed feedback."
           );
         } else if (err?.response?.status === 400) {
           console.error(`Bad Request response. Please open an Github issue.`);
@@ -220,14 +247,18 @@ export class LightSpeedAPI {
       return {} as ContentMatchesResponseParams;
     }
     try {
+      const requestData = {
+        ...inputData,
+        metadata: { ansibleExtensionVersion: this._extensionVersion },
+      };
       console.log(
         `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
-          inputData
+          requestData
         )}`
       );
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
-        inputData,
+        requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
         }

@@ -1,14 +1,19 @@
 // "Mock" Lightspeed Server
 import express, { Application } from "express";
 import { completions } from "./completion";
+import { contentmatches } from "./contentmatches";
+import { feedback } from "./feedback";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 
 const API_VERSION = "v0";
 const API_ROOT = `/api/${API_VERSION}`;
 
-const PORT = process.env.MOCK_LIGHTSPEED_SERVER_PORT || "3000";
-const HOST = process.env.MOCK_LIGHTSPEED_SERVER_HOST || "127.0.0.1";
+let url = new URL("http://127.0.0.1:3000");
+// Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
+if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
+  url = new URL(process.env.TEST_LIGHTSPEED_URL);
+}
 
 export default class Server {
   constructor(app: Application) {
@@ -20,14 +25,17 @@ export default class Server {
     app.get("/", (req, res) => res.send("Lightspeed Mock"));
 
     app.post(`${API_ROOT}/ai/completions`, async (req, res) => {
-      await new Promise((r) => setTimeout(r, 100)); // fake 100ms latency
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
       return res.send(completions(req));
     });
 
+    app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      return res.send(contentmatches(req));
+    });
+
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {
-      const body = req.body;
-      console.log(JSON.stringify(body, null, 2));
-      return res.send({});
+      return feedback(req, res);
     });
 
     app.get(`${API_ROOT}/me`, (req, res) => {
@@ -46,11 +54,12 @@ export default class Server {
       res.send({
         access_token: "ACCESS_TOKEN",
         refresh_token: "REFRESH_TOKEN",
+        expires_in: 3600,
       })
     );
 
-    app.listen(parseInt(PORT), HOST, () => {
-      console.log(`Listening on port ${PORT} at ${HOST}`);
+    app.listen(parseInt(url.port), url.hostname, () => {
+      console.log(`Listening on port ${url.port} at ${url.hostname}`);
     });
   }
 }

@@ -29,12 +29,14 @@ import {
   ACCOUNT_SECRET_KEY,
   LoggedInUserInfo,
   getBaseUri,
+  getUserTypeLabel,
 } from "./utils/webUtils";
 import {
   LightSpeedCommands,
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
+  LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
@@ -147,19 +149,16 @@ export class LightSpeedAuthenticationProvider
         ? userinfo.rh_user_has_seat
         : false;
 
-      let label = userName;
-      if (rhUserHasSeat) {
-        label += " (licensed)";
-      } else if (rhOrgHasSubscription) {
-        label += " (no seat assigned)";
-      } else {
-        label += " (Tech Preview)";
-      }
+      const userTypeLabel = getUserTypeLabel(
+        rhOrgHasSubscription,
+        rhUserHasSeat
+      ).toLowerCase();
+      const label = `${userName} (${userTypeLabel})`;
       const session: LightspeedAuthSession = {
         id: identifier,
         accessToken: account.accessToken,
         account: {
-          label: label,
+          label,
           id: identifier,
         },
         // scopes: account.scope,
@@ -233,7 +232,8 @@ export class LightSpeedAuthenticationProvider
         );
       }
     }
-    lightSpeedManager.statusBarProvider.statusBar.text = "Lightspeed";
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
     lightSpeedManager.currentModelValue = undefined;
   }

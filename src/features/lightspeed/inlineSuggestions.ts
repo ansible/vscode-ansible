@@ -33,6 +33,7 @@ import { getAdditionalContext } from "./inlineSuggestion/additionalContext";
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
+let insertTexts: string[] = [];
 export const suggestionDisplayed = new SuggestionDisplayed();
 
 interface DocumentInfo {
@@ -343,6 +344,10 @@ async function requestSuggestion(
     );
   const suggestionId = uuidv4();
   try {
+    // If there is a suggestion, whose feedback is pending, send a feedback with IGNORED action
+    // before making a new request
+    await ignorePendingSuggestion();
+
     const activityId = retrieveActivityIdFromTracker(
       documentInfo,
       inlinePosition
@@ -377,7 +382,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition
 ) {
-  inlineSuggestionData = {};
+  resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
@@ -396,7 +401,6 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
     responseTime.getTime() - requestTime.getTime();
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
-  const insertTexts: string[] = [];
   result.predictions.forEach((prediction) => {
     let insertText = prediction;
     insertText = adjustInlineSuggestionIndent(
@@ -439,7 +443,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition
 ) {
-  inlineSuggestionData = {};
+  resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
@@ -458,7 +462,6 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
     responseTime.getTime() - requestTime.getTime();
 
   const inlineSuggestionUserActionItems: vscode.InlineCompletionItem[] = [];
-  const insertTexts: string[] = [];
   result.predictions.forEach((prediction) => {
     let insertText = prediction;
     insertText = adjustInlineSuggestionIndent(
@@ -760,30 +763,27 @@ export async function inlineSuggestionTriggerHandler() {
 }
 
 export async function inlineSuggestionCommitHandler() {
-  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-    return;
-  }
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) {
-    return;
-  }
-
-  // Commit the suggestion
-  console.log("[inline-suggestions] User accepted the inline suggestion.");
+  // Commit the suggestion, which might be provided by another provider
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
-  vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
-  );
+  // If the suggestion does not seem to be ours, exit early.
+  if (!inlineSuggestionData["suggestionId"]) {
+    return;
+  }
 
-  const suggestionId =
-    lightSpeedManager.contentMatchesProvider.suggestionDetails[0].suggestionId;
-  // Send feedback for accepted suggestion
-  await inlineSuggestionUserActionHandler(suggestionId, UserAction.ACCEPTED);
+  console.log("[inline-suggestions] User accepted the inline suggestion.");
 }
 
 export async function inlineSuggestionHideHandler(userAction?: UserAction) {
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    return;
+  }
+
+  // Hide the suggestion, which might be provided by another provider
+  vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
+
+  // If the suggestion does not seem to be ours, exit early.
+  if (!inlineSuggestionData["suggestionId"]) {
     return;
   }
   const action = userAction || UserAction.REJECTED;
@@ -801,14 +801,11 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
     }
   }
 
-  // Hide the suggestion
   console.log("[inline-suggestions] User ignored the inline suggestion.");
-  vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
-  const suggestionId =
-    lightSpeedManager.contentMatchesProvider.suggestionDetails[0].suggestionId;
+  const suggestionId = inlineSuggestionData["suggestionId"];
   // Send feedback for refused suggestion
-  await inlineSuggestionUserActionHandler(suggestionId, action);
+  await inlineSuggestionUserActionHandler(suggestionId!, action);
 }
 
 export async function inlineSuggestionUserActionHandler(
@@ -828,7 +825,98 @@ export async function inlineSuggestionUserActionHandler(
     inlineSuggestion: inlineSuggestionData,
   };
   lightSpeedManager.apiInstance.feedbackRequest(
-    inlineSuggestionFeedbackPayload
+    inlineSuggestionFeedbackPayload,
+    lightSpeedManager.orgTelemetryOptOut
   );
+  resetSuggestionData();
+}
+
+function inlineSuggestionPending(checkActiveTextEditor = true): boolean {
+  if (checkActiveTextEditor) {
+    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+      return false;
+    }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      return false;
+    }
+  }
+  if (!inlineSuggestionData["suggestionId"]) {
+    return false;
+  }
+  return true;
+}
+
+function resetSuggestionData(): void {
   inlineSuggestionData = {};
+  insertTexts = [];
+}
+
+export async function rejectPendingSuggestion() {
+  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+    if (inlineSuggestionPending()) {
+      console.log(
+        "[inline-suggestions] Send a REJECTED feedback for a pending suggestion."
+      );
+      const suggestionId = inlineSuggestionData["suggestionId"];
+      await inlineSuggestionUserActionHandler(
+        suggestionId!,
+        UserAction.REJECTED
+      );
+    } else {
+      suggestionDisplayed.reset();
+    }
+  }
+}
+
+export async function ignorePendingSuggestion() {
+  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+    if (inlineSuggestionPending(false)) {
+      console.log(
+        "[inline-suggestions] Send a IGNORED feedback for a pending suggestion."
+      );
+      const suggestionId = inlineSuggestionData["suggestionId"];
+      await inlineSuggestionUserActionHandler(
+        suggestionId!,
+        UserAction.IGNORED
+      );
+    } else {
+      suggestionDisplayed.reset();
+    }
+  }
+}
+
+export async function inlineSuggestionTextDocumentChangeHandler(
+  e: vscode.TextDocumentChangeEvent
+) {
+  // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
+  // command is not sent. This method checks if a text change that matches to the current
+  // suggestion was found. If such a change was detected, we assume that the user accepted
+  // the suggestion on the widget.
+  if (
+    lightSpeedManager.inlineSuggestionsEnabled &&
+    inlineSuggestionPending() &&
+    insertTexts &&
+    e.document.languageId === "ansible" &&
+    e.contentChanges.length > 0
+  ) {
+    const suggestionId = inlineSuggestionData["suggestionId"];
+
+    e.contentChanges.forEach(async (c) => {
+      if (c.text === insertTexts[0]) {
+        // If a matching change was found, send a feedback with the ACCEPTED user action.
+        console.log(
+          "[inline-suggestions] Detected a text change that matches to the current suggestion."
+        );
+        await inlineSuggestionUserActionHandler(
+          suggestionId!,
+          UserAction.ACCEPTED
+        );
+        // Show training matches for the accepted suggestion.
+        vscode.commands.executeCommand(
+          LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
+        );
+      }
+    });
+  }
 }

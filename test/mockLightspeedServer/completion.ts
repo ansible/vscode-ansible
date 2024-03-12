@@ -45,7 +45,23 @@ const PREDICTIONS = [
               - 8065:8065
         generate_systemd: "{{ foo_app.generate_systemd }}"
         ports: "{{ foo_app.ports }}"
-`],
+        `],
+  // prettier-ignore
+  ["&",
+`    - name: Install vim
+        ansible.builtin.package:
+          name: vim
+          state: present
+
+      - name: Install python3
+        ansible.builtin.package:
+          name: python3
+          state: present
+
+      - name: Debug OS version
+        ansible.builtin.debug:
+          msg: "{{ ansible_distribution }} {{ ansible_distribution_major_version }}"
+    `],
 ];
 
 export function completions(req: {

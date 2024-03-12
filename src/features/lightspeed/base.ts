@@ -11,17 +11,24 @@ import {
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
-import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
+import {
+  LIGHTSPEED_ME_AUTH_URL,
+  AnsibleContentUploadTrigger,
+} from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
+  getBaseUri,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
 import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
-import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import {
+  LightSpeedServiceSettings,
+  UserResponse,
+} from "../../interfaces/extensionSettings";
 
 export class LightSpeedManager {
   private context;
@@ -37,6 +44,7 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
+  public orgTelemetryOptOut = false;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -63,8 +71,17 @@ export class LightSpeedManager {
     }
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
-      this.lightSpeedAuthenticationProvider
+      this.lightSpeedAuthenticationProvider,
+      this.context
     );
+    this.apiInstance
+      .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
+      .then((userResponse: UserResponse) => {
+        this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
+      })
+      .catch((error) => {
+        console.error(error);
+      });
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
@@ -84,6 +101,9 @@ export class LightSpeedManager {
 
     // create workspace context for ansible roles
     this.setContext();
+
+    // set custom when clause for controlling visibility of views
+    this.setCustomWhenClauseContext();
   }
 
   public async reInitialize(): Promise<void> {
@@ -93,7 +113,7 @@ export class LightSpeedManager {
     const lightspeedEnabled = lightspeedSettings.enabled;
 
     if (!lightspeedEnabled) {
-      await this.resetContext();
+      this.resetContext();
       await this.lightSpeedAuthenticationProvider.dispose();
       this.statusBarProvider.statusBar.hide();
       return;
@@ -115,9 +135,12 @@ export class LightSpeedManager {
         }
       }
     }
+
+    // set custom when clause for controlling visibility of views
+    this.setCustomWhenClauseContext();
   }
 
-  private async resetContext(): Promise<void> {
+  private resetContext(): void {
     this.ansibleVarFilesCache = {};
     this.ansibleRolesCache = {};
   }
@@ -150,7 +173,10 @@ export class LightSpeedManager {
       return;
     }
 
-    if (await this.lightSpeedAuthenticationProvider.rhUserHasSeat()) {
+    const rhUserHasSeat =
+      await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
+
+    if (rhUserHasSeat && this.orgTelemetryOptOut) {
       return;
     }
 
@@ -206,6 +232,24 @@ export class LightSpeedManager {
       },
     };
     console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
-    this.apiInstance.feedbackRequest(inputData);
+    this.apiInstance.feedbackRequest(inputData, this.orgTelemetryOptOut);
+  }
+
+  get inlineSuggestionsEnabled() {
+    const lightspeedSettings = <LightSpeedServiceSettings>(
+      vscode.workspace.getConfiguration("ansible").get("lightspeed")
+    );
+    const lightspeedEnabled = lightspeedSettings?.enabled;
+    const lightspeedSuggestionsEnabled =
+      lightspeedSettings?.suggestions.enabled;
+    return lightspeedEnabled && lightspeedSuggestionsEnabled;
+  }
+
+  private setCustomWhenClauseContext(): void {
+    vscode.commands.executeCommand(
+      "setContext",
+      "redhat.ansible.lightspeedSuggestionsEnabled",
+      this.inlineSuggestionsEnabled
+    );
   }
 }
