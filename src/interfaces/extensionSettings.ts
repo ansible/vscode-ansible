@@ -39,4 +39,5 @@ export interface LightSpeedServiceSettings {
   URL: string;
   suggestions: { enabled: boolean };
   model: string | undefined;
+  disableContentSuggestionHeader: boolean;
 }

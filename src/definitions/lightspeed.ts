@@ -34,6 +34,8 @@ export namespace LightSpeedCommands {
     "ansible.lightspeed.inlineSuggest.hide";
   export const LIGHTSPEED_SUGGESTION_TRIGGER =
     "ansible.lightspeed.inlineSuggest.trigger";
+  export const LIGHTSPEED_SUGGESTION_MARKER =
+    "ansible.lightspeed.inlineSuggest.marker";
   export const LIGHTSPEED_STATUS_BAR_CLICK =
     "ansible.lightspeed.statusBar.click";
   export const LIGHTSPEED_FETCH_TRAINING_MATCHES =
@@ -65,6 +67,9 @@ export type LIGHTSPEED_USER_TYPE = "Licensed" | "Unlicensed" | "Not logged in";
 export const LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT = "Lightspeed (not logged in)";
 
 export const LIGHTSPEED_MODEL_DEFAULT = "default";
+
+export const LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT =
+  "# Content suggestion provided by Ansible Lightspeed\n";
 
 export const tasksInPlaybookKeywords = [
   /(?<!\S)tasks\s*:(?!\S)\s*$/,
