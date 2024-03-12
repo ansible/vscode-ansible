@@ -16,6 +16,8 @@ export class SettingsManager {
     );
     const lightSpeedSettings =
       vscode.workspace.getConfiguration("ansible.lightspeed");
+    const debuggerSettings =
+      vscode.workspace.getConfiguration("ansible.debugger");
     this.settings = {
       activationScript: (await ansibleSettings.get(
         "python.activationScript"
@@ -41,6 +43,10 @@ export class SettingsManager {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
+      },
+      debugger: {
+        logFile: debuggerSettings.get("logFile", null),
+        logLevel: debuggerSettings.get("logLevel", "info"),
       },
     };
 
