@@ -252,6 +252,14 @@
       {
         "command": "ansible.lightspeed.feedback",
         "title": "Ansible Lightspeed: Feedback"
+      },
+      {
+        "command": "ansible.lightspeed.showPlaybookGenerationPage",
+        "title": "Show Playbook Generation Page"
+      },
+      {
+        "command": "ansible.lightspeed.thumbsUpDown",
+        "title": "Send Lightspeed Thumbs Up/Down Feedback"
       }
     ],
     "configuration": [
@@ -360,6 +368,13 @@
             "default": "",
             "markdownDescription": "Command line arguments to be passed to ansible-lint.",
             "order": 3
+          },
+          "ansible.lightspeed.playbookGeneration.enabled": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Enable playbook generation feature.",
+            "order": 4
           }
         }
       },

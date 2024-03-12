@@ -1,0 +1,145 @@
+.playbookGenerationContainer {
+	box-sizing: border-box;
+	line-height: 22px;
+	position: relative;
+	overflow: hidden;
+	height: inherit;
+	width: 100%;
+	user-select: initial;
+	-webkit-user-select: initial;
+	outline: none;
+}
+
+.playbookGenerationContainer.loading {
+	display: none;
+}
+
+.playbookGenerationContainer a {
+	text-decoration: none;
+}
+
+.playbookGenerationContainer img {
+	max-width: 100%;
+	max-height: 100%;
+	object-fit: contain;
+	pointer-events: none;
+}
+
+.playbookGenerationContainer {
+	font-size: 13px;
+}
+
+.playbookGenerationContainer h1 {
+	padding: 5px 0 0;
+	margin: 0;
+	border: none;
+	font-weight: normal;
+	font-size: 2.7em;
+	white-space: nowrap;
+}
+
+.playbookGenerationContainer .title {
+	margin-top: 1em;
+	margin-bottom: 1em;
+	flex: 1 100%;
+}
+
+.playbookGenerationContainer .subtitle {
+	margin-top: .6em;
+	font-size: 2em;
+	display: block;
+}
+
+.monaco-workbench.hc-black .part.editor>.content .playbookGenerationContainer .subtitle,
+.monaco-workbench.hc-light .part.editor>.content .playbookGenerationContainer .subtitle {
+	font-weight: 200;
+}
+
+.playbookGenerationContainer h2 {
+	font-weight: 400;
+	margin-top: 0;
+	margin-bottom: 5px;
+	font-size: 1.5em;
+	line-height: initial;
+}
+
+.playbookGenerationContainer a:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+	text-decoration: underline;
+}
+
+.playbookGenerationContainer .playbookGenerationSlide {
+	width: 100%;
+	height: 100%;
+	padding: 0;
+	position: absolute;
+	box-sizing: border-box;
+	left: 0;
+	top: 0;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories {
+	padding: 12px 24px;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>* {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column>div {
+	margin-bottom: 32px;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column-left {
+	grid-area: left-column;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column-right {
+	grid-area: right-column;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+	display: grid;
+	height: 100%;
+	max-width: 1200px;
+	margin: 0 auto;
+	grid-template-rows: 30% minmax(min-content, auto) min-content;
+	grid-template-columns: 1fr 6fr 1fr 6fr 1fr;
+	grid-template-areas:
+		".  header header header ."
+		". left-column . right-column ."
+		". footer footer footer .";
+}
+
+.playbookGenerationContainer.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+	grid-template-rows: auto min-content minmax(min-content, auto) min-content;
+	grid-template-columns: 1fr;
+	grid-template-areas: "header" "left-column" "right-column" "footer";
+}
+
+.playbookGenerationContainer.height-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+	grid-template-rows: auto minmax(min-content, auto) min-content;
+	grid-template-areas: "header" "left-column right-column" "footer footer";
+}
+
+.playbookGenerationContainer.height-constrained.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
+	grid-template-rows: min-content minmax(min-content, auto) min-content;
+	grid-template-columns: 1fr;
+	grid-template-areas: "left-column" "right-column" "footer";
+}
+
+.playbookGenerationContainer.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header,
+.playbookGenerationContainer.height-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header {
+	display: none;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header {
+	grid-area: header;
+	align-self: end;
+}
+
+.playbookGenerationContainer .playbookGenerationSlideCategories .gap {
+	flex: 150px 0 1000
+}
