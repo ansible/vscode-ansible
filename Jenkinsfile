@@ -27,8 +27,7 @@ node('rhel8') {
 
   stage('package') {
     def packageJson = readJSON file: 'package.json'
-    // We always replace MAJOR.MINOR.PATCH from package.json with MAJOR.MINOR.BUILD
-    def version = packageJson.version[0..packageJson.version.lastIndexOf('.') - 1] + ".${env.BUILD_NUMBER}"
+    def version = packageJson.version
     sh "yarn run vsce package ${ params.publishPreRelease ? '--pre-release' : '' } --no-dependencies --no-git-tag-version --no-update-package-json ${ version }"
   }
 
