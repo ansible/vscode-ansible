@@ -1,0 +1,149 @@
+.playbookGeneration {
+  position: relative;
+  right: 0px;
+  bottom: 0px;
+}
+
+.playbookGeneration>h2 {
+  text-align: center
+}
+
+.playbookGeneration>h4 {
+  text-align: center
+}
+
+.editArea {
+  width: 100%;
+  position: relative;
+  right: 0px;
+  bottom: 0px;
+  border-style: none;
+  /* border-style: dotted; */
+}
+
+.editArea>vscode-text-area {
+  width: 100%;
+  border-style: none;
+}
+
+.editArea>button {
+  float: right;
+}
+
+.inputSection {
+  margin-top: 2em;
+}
+
+.inputArea {
+  margin-top: 1em;
+  width: 100%
+}
+
+.inputArea>vscode-text-field {
+  width: 100%
+}
+
+.bigIconButton {
+  width: 64px;
+  height: 48px;
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100;
+  display: flex;
+}
+
+.biggerButton {
+  margin: 0.2em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+}
+
+
+/* override the default .codicon class */
+.codicon[class*='codicon-'] {
+  font: normal normal normal 24px/1 codicon;
+  display: inline-block;
+  text-decoration: none;
+  text-rendering: auto;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  position: relative;
+  left: -3px;
+  bottom: 3px;
+}
+
+.editUndoFeedbackContainer {
+  position: absolute;
+  left: 0px;
+  bottom: 0px;
+  width: 100%;
+  display: none;
+}
+
+.editUndoContainer {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  display: block;
+}
+
+.feedbackContainer {
+  position: absolute;
+  right: 22px;
+  bottom: 20px;
+  display: flex;
+}
+
+.createPlaybookContainer {
+  margin-top: 3em;
+}
+
+.restartButtonContainer {
+  margin-top: 1em;
+}
+
+.examplesContainer {
+  margin-top: 1em;
+}
+
+.examplesButtonContainer {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.continueButtonContainer {
+  margin-top: 1em;
+  display: none;
+}
+
+.buttonBorder {
+  border-style: solid;
+  border-width: thin;
+}
+
+.iconButton {
+  margin: 0.2em;
+  padding: 0.5em;
+  border-style: solid;
+  border-width: thin;
+  border-radius: 50%;
+}
+
+.textFieldFullWidth {
+  width: 100%;
+}
+
+.awsExample {
+  display: flex;
+}
+
+.azureExample {
+  display: none;
+}

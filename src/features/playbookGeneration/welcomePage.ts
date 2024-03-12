@@ -29,7 +29,7 @@ export class AnsibleCreatorMenu {
     } else {
       const panel = vscode.window.createWebviewPanel(
         "content-creator-menu",
-        "Ansible Content Creator",
+        "Ansible Creator",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -66,20 +66,11 @@ export class AnsibleCreatorMenu {
     webview: vscode.Webview,
     extensionUri: vscode.Uri,
   ) {
-    const webviewUri = getUri(webview, extensionUri, [
-      "out",
-      "client",
-      "webview",
-      "apps",
-      "contentCreator",
-      "welcomePageApp.js",
-    ]);
-
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
-      "contentCreator",
-      "welcomePageStyle.css",
+      "playbookGeneration",
+      "playbookGeneration.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [
@@ -88,106 +79,99 @@ export class AnsibleCreatorMenu {
       "codicon.css",
     ]);
 
-    const contentCreatorIcon = getUri(webview, extensionUri, [
-      "media",
-      "contentCreator",
-      "icons",
-      "ansible-logo-red.png",
-    ]);
-
-    const initIcon = getUri(webview, extensionUri, [
-      "media",
-      "contentCreator",
-      "icons",
-      "ansible-creator-init.png",
-    ]);
-
-    const sampleIcon = getUri(webview, extensionUri, [
-      "media",
-      "contentCreator",
-      "icons",
-      "ansible-creator-sample.png",
-    ]);
-
-    const createIcon = getUri(webview, extensionUri, [
-      "media",
-      "contentCreator",
-      "icons",
-      "ansible-creator-create.png",
-    ]);
-
     return /*html*/ `
-      <html>
+    <html>
 
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource}; img-src ${webview.cspSource};">
-          <title>AAA</title>
-          <link rel="stylesheet" href="${styleUri}">
-          <link rel="stylesheet" href="${codiconsUri}">
-        </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource}; img-src ${webview.cspSource};">
+  <title>AAA</title>
+  <link rel="stylesheet" href="${styleUri}">
+  <link rel="stylesheet" href="${codiconsUri}">
+</head>
 
-        <body>
-          <div class="intro">
-            <div class="heading">
-              <img src="${contentCreatorIcon}" alt="Ansible Creator Icon">
-              <h1>nsible Content Creator</h1>
-            </div>
-
-            <p>A tool for scaffolding ansible content.
-              <vscode-link href="https://github.com/ansible-community/ansible-creator#ansible-creator">Read our docs</vscode-link>
-              to learn more about this tool.</p>
-
-            <div id="system-check">
-              <div class="icon">
-                <p>System requirements:</p>
-              </div>
-
-              <div id=install-status></div>
-
-              <div class="refresh-button-div">
-                <vscode-button id="refresh">
-                  <span class="codicon codicon-refresh"></span>
-                  &nbsp; Refresh
-                </vscode-button>
-              </div>
-
-            </div>
+<body>
+  <div class="playbookGenerationContainer">
+    <div class="playbookGenerationSlideCategories">
+      <div class="playbookGenerationCategoriesContainer">
+        <div class="header">
+          <h1 class="product-name caption">Ansible Creator</h1>
+          <p class="subtitle description">&nbsp;</p>
+        </div>
+        <div class="categories-column-left">
+          <div class="index-list start-container">
+            <h2>Create</h2>
+            <h3>
+              <a href="command:ansible.content-creator.create">
+                Environment
+              </a>
+            </h3>
+            <p>Provide a defined, consistent and portable environment for executing automation jobs.</p>
+            <h3>
+              <a href="command:ansible.lightspeed.showPlaybookGenerationPage">
+                Playbook
+              </a>
+            </h3>
+            <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
+            <h3>
+              <a href="command:ansible.content-creator.create">
+                Role
+              </a>
+            </h3>
+            <p>Provide a well-defined framework and structure for setting your tasks, variables, handlers, metadata,
+              templates,
+              and other files.</p>
+            <h3>
+              <a href="command:ansible.content-creator.init">
+                Collection
+              </a>
+            </h3>
+            <p>Create a distribution format for Ansible content that can include playbooks, roles, modules, and plugins.
+            </p>
           </div>
-
-          <vscode-divider role="presentation"></vscode-divider>
-
-          <div class="menu">
-            <div class="menu-item">
-              <vscode-link href="command:ansible.content-creator.init">
-                <img src="${initIcon}" alt="Ansible Creator Icon">
-              </vscode-link>
-                <p class="menu-item-heading">Initialize ansible collection</p>
-            </div>
-
-            <div class="menu-item">
-              <!--
-                <vscode-link href="command:ansible.content-creator.create">
-              -->
-              <vscode-link href="command:ansible.lightspeed.showPlaybookGenerationPage">
-                <img src="${createIcon}" alt="Ansible Creator Icon">
-              </vscode-link>
-                <p class="menu-item-heading">Create ansible content</p>
-            </div>
-
-            <div class="menu-item">
-              <vscode-link href="command:ansible.content-creator.sample">
-                <img src="${sampleIcon}" alt="Ansible Creator Icon">
-              </vscode-link>
-                <p class="menu-item-heading">Open sample manifest file</p>
-            </div>
+          <div class="index-list start-container"> <!--??? -->
+            <h2>Recent</h2>
+            <p>No recent activity</p>
           </div>
+          <div class="shadow"></div>
+          <div class="shadow"></div>
+          <div class="shadow"></div>
+        </div>
+        <div class="categories-column-right">
+          <div class="index-list getting-started">
+            <h2>Learn</h2>
+            <h3>
+              <a href="https://docs.ansible.com">
+                Ansible documentation
+                <span class="codicon codicon-link-external"></span>
+              </a>
+            </h3>
+            <p>Explore Ansible documentation, examples and more.</p>
+            <h3>
+              <a href="https://docs.ansible.com/ansible/latest/getting_started/index.html">
+                Learn Ansible Development
+                <span class="codicon codicon-link-external"></span>
+              </a>
+            </h3>
+            <p>End to end course that will help you become an Automation development master.</p>
+            <h3>Once you are in the YAML file:</h3>
+            <p>click Ctrl+L to fire the Ansible Lightspeed AI assistance for editing and explaining code.</p>
+          </div>
+          <div class="shadow"></div>
+          <div class="shadow"></div>
+          <div class="shadow"></div>
+        </div>
+        <div class="footer">
+          <p></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
 
-          <!-- Component registration code -->
-          <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
-        </body>
-      </html>
+</html>
     `;
   }
 

@@ -730,7 +730,9 @@ async function requestInlineSuggest(
 
   lightSpeedManager.statusBarProvider.statusBar.show();
   console.log(
-    `[inline-suggestions] completionData: \n${yaml.stringify(completionData)}\n`,
+    `[inline-suggestions] completionData: \n${yaml.stringify(
+      completionData,
+    )}\n`,
   );
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
