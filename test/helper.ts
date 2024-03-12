@@ -22,6 +22,7 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME =
   LIGHTSPEED_ACCESS_TOKEN === "dummy" ? 1000 : 10000;
 const LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME =
   LIGHTSPEED_ACCESS_TOKEN === "dummy" ? 200 : 2000;
+const LIGHTSPEED_INLINE_SUGGESTION_AFTER_TRIGGER_WAIT_TIME = 100;
 /**
  * Activates the redhat.ansible extension
  */
@@ -249,7 +250,8 @@ export async function testInlineSuggestion(
   expectedModule: string,
   multiTask = false,
   insertText = "",
-  typeOver = false
+  typeOver = false,
+  typeOverBeforeAPIReturn = false
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -296,7 +298,16 @@ export async function testInlineSuggestion(
   await vscode.commands.executeCommand(
     LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
   );
-  await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
+
+  // If typeOverBeforeAPIReturn flag is set, do not wait for long.
+  // Since the artificial delay time for mock server's completion API
+  // is set to 500 msecs, wait for 100 msecs to trigger the completion
+  // API call and resume execution before the API return.
+  await sleep(
+    typeOverBeforeAPIReturn
+      ? LIGHTSPEED_INLINE_SUGGESTION_AFTER_TRIGGER_WAIT_TIME
+      : LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME
+  );
 
   if (insertText) {
     // If insertText is specified, insertText at the current cursor position.
@@ -305,10 +316,12 @@ export async function testInlineSuggestion(
     await editor.edit((editBuilder) => {
       editBuilder.insert(editor!.selection.active, insertText);
     });
-  } else if (typeOver) {
+  } else if (typeOver || typeOverBeforeAPIReturn) {
     // If typeOver is set to true, simulate typing a space character, which will
     // trigger an inlineSuggestionFeedback event with UserAction.REJECTED
     await vscode.commands.executeCommand("type", { text: " " });
+    // Wait for allowing the code to send a feedback.
+    await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
   } else {
     await vscode.commands.executeCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
@@ -318,7 +331,7 @@ export async function testInlineSuggestion(
 
   // If typeOver is set to true, the suggestion will disappear.
   // Otherwise, the suggestion is inserted to the doc and we can verify the result.
-  if (!typeOver) {
+  if (!typeOver && !typeOverBeforeAPIReturn) {
     // get the committed suggestion
     const suggestionRange = new vscode.Range(
       new vscode.Position(writePosition.line + 1, writePosition.character),

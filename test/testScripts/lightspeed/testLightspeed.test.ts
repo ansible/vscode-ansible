@@ -181,7 +181,7 @@ export function testLightspeed(): void {
         });
       });
 
-      this.afterEach(() => {
+      afterEach(() => {
         feedbackRequestSpy.resetHistory();
       });
 
@@ -227,6 +227,79 @@ export function testLightspeed(): void {
       });
     });
 
+    describe("Test Ansible Lightspeed inline completion suggestions with keeping typing", function () {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let feedbackRequestSpy: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let isAuthenticatedStub: any;
+      const docUri1 = getDocUri("lightspeed/playbook_1.yml");
+
+      before(async function () {
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors"
+        );
+        await activate(docUri1);
+        feedbackRequestSpy = sinon.spy(
+          lightSpeedManager.apiInstance,
+          "feedbackRequest"
+        );
+        isAuthenticatedStub = sinon.stub(
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          "isAuthenticated"
+        );
+        isAuthenticatedStub.returns(Promise.resolve(true));
+      });
+
+      const tests = testSuggestionPrompts();
+
+      tests.forEach(({ taskName, expectedModule }) => {
+        it(`Should return an inline feedback with action=IGNORED '${taskName}'`, async function () {
+          await testInlineSuggestion(
+            taskName,
+            expectedModule,
+            false,
+            "",
+            true,
+            true
+          );
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 1);
+          const inputData: FeedbackRequestParams =
+            feedbackRequestSpy.args[0][0];
+          assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
+          const ret = feedbackRequestSpy.returnValues[0];
+          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+        });
+      });
+
+      tests.forEach(({ taskName, expectedModule }) => {
+        it(`Should not return an inline feedback '${taskName}'`, async function () {
+          await testInlineSuggestion(
+            // with the mock lightspeed server, adding "status=nnn" to prompt will
+            // return the specified status code in the response
+            taskName + " (status=204)",
+            expectedModule,
+            false,
+            "",
+            true,
+            true
+          );
+          const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+          assert.equal(feedbackRequestApiCalls.length, 0);
+        });
+      });
+
+      afterEach(() => {
+        feedbackRequestSpy.resetHistory();
+      });
+
+      after(async function () {
+        feedbackRequestSpy.restore();
+        isAuthenticatedStub.restore();
+        sinon.restore();
+      });
+    });
+
     describe("Test Ansible prompt not triggered", function () {
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
@@ -256,7 +329,7 @@ export function testLightspeed(): void {
       });
     });
 
-    describe("Test Ansible Lightspeed inline completion suggestions", function () {
+    describe("Test Ansible Lightspeed inline completion suggestions with Jinja brackets", function () {
       const docUri1 = getDocUri("lightspeed/playbook_with_vars.yml");
 
       before(async function () {

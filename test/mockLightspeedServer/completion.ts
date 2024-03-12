@@ -64,9 +64,19 @@ const PREDICTIONS = [
     `],
 ];
 
-export function completions(req: {
-  body: { model: string; prompt: string; suggestionId?: string };
-}) {
+export function completions(
+  req: { body: { model: string; prompt: string; suggestionId?: string } },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  res: any
+) {
+  // If the prompt contains "status=nnn" (like "status=204"), return the specified
+  // status code.
+  const index = req.body.prompt.search(/status=\d\d\d/);
+  if (index !== -1) {
+    const status = parseInt(req.body.prompt.substring(index+7, index+10));
+    return res.status(status).send();
+  }
+
   const model = req.body.model ? req.body.model : DEFAULT_MODEL_ID;
   const prompt = req.body.prompt.toLowerCase();
   const suggestionId = req.body.suggestionId ? req.body.suggestionId : uuidv4();
@@ -78,9 +88,9 @@ export function completions(req: {
     }
   });
 
-  return {
+  return res.send({
     predictions,
     model,
     suggestionId,
-  };
+  });
 }
