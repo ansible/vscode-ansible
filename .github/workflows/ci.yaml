@@ -28,6 +28,10 @@ jobs:
   build:
     name: ${{ matrix.name }}
     # ${{ matrix.name && matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
+    environment: ci # codecov needed
+    env:
+      SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
+      SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os }}
     # see https://github.com/containers/podman/issues/13609
@@ -64,7 +68,7 @@ jobs:
 
           - name: test (macos)
             task-name: test
-            os: macos-12
+            os: macos-13-large
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -130,6 +134,8 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: task setup
+        # starting podman machine can randomly get stuck on macos
+        timeout-minutes: 20
         run: task setup
 
       ## uncomment to debug on GHA runner
@@ -171,6 +177,7 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: out/coverage/lcov.info
           flags: unit
+          fail_ci_if_error: true
 
       - name: Upload vsix artifact
         if: ${{ github.event.number && matrix.upload-artifact }}
