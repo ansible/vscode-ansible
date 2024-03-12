@@ -1,0 +1,13 @@
+- name: Test playbook adjacent collection
+  hosts: localhost
+  vars:
+    play_var: 1
+    play_var_2: 2
+  tasks:
+    - name: Test
+      ansible.builtin.debug:
+        msg: Hello world!
+
+    - name: Test new playbook adjacent module
+      my_namespace.my_collection.my_test:
+        name: Hello World
