@@ -5,8 +5,9 @@ import { getUri } from "../utils/getUri";
 
 export function openNewPlaybookEditor() {
   const options = {
-    language: "ansible"
+    language: "ansible",
   };
+  // cSpell: disable
   const content = `---
   # Create an azure network...
   #   Description: "Create an azure network peering between VNET named VNET_1 and VNET named VNET_2"
@@ -32,7 +33,7 @@ export function openNewPlaybookEditor() {
           name: VNET_2
           address_prefixes: 10.10.0.80/16
 
-      - name: Create virual network peering
+      - name: Create virtual network peering
         azure.azcollection.azure_rm_virtualnetworkpeering:
           resource_group: "{{ resource_group }}"
           name: VNET_1_2
@@ -44,28 +45,31 @@ export function openNewPlaybookEditor() {
           allow_forwarded_traffic: true
           use_remote_gateways: true
 `;
+  // cSpell: enable
 
-return vscode.workspace.openTextDocument( {
-        language: options.language
-    } )
-    .then( doc => vscode.window.showTextDocument( doc ) )
-    .then( editor => {
-        let editBuilder = (textEdit: any) => {
-            textEdit.insert( new vscode.Position( 0, 0 ), String( content ) );
-        };
+  return vscode.workspace
+    .openTextDocument({
+      language: options.language,
+    })
+    .then((doc) => vscode.window.showTextDocument(doc))
+    .then((editor) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const editBuilder = (textEdit: any) => {
+        textEdit.insert(new vscode.Position(0, 0), String(content));
+      };
 
-        return editor.edit( editBuilder, {
-                undoStopBefore: true,
-                undoStopAfter: false
-            } )
-            .then( () => editor );
-    } );
+      return editor
+        .edit(editBuilder, {
+          undoStopBefore: true,
+          undoStopAfter: false,
+        })
+        .then(() => editor);
+    });
 }
 
 export function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   // Create a new panel and update the HTML
-  let panel: vscode.WebviewPanel | undefined;
-  panel  = vscode.window.createWebviewPanel(
+  const panel = vscode.window.createWebviewPanel(
     "noteDetailView",
     "Title",
     vscode.ViewColumn.One,
@@ -85,7 +89,11 @@ export function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
     const command = message.command;
     switch (command) {
       case "updateHtml":
-        panel!.webview.html =  getWebviewContent(panel!.webview, extensionUri, 2);
+        panel!.webview.html = getWebviewContent(
+          panel!.webview,
+          extensionUri,
+          2
+        );
         break;
       case "createPlaybook":
         openNewPlaybookEditor();
@@ -102,19 +110,23 @@ export function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
 }
 
-export function getWebviewContent(webview: Webview, extensionUri: Uri, index=1) {
+export function getWebviewContent(
+  webview: Webview,
+  extensionUri: Uri,
+  index = 1
+) {
   const webviewUri = getUri(webview, extensionUri, [
     "out",
     "client",
     "webview",
     "apps",
     "playbookGeneration",
-    "main.js"
+    "main.js",
   ]);
   const styleUri = getUri(webview, extensionUri, [
     "media",
     "playbookGeneration",
-    "style.css"
+    "style.css",
   ]);
   const codiconsUri = getUri(webview, extensionUri, [
     "media",
@@ -224,7 +236,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri, index=1) 
                   <vscode-text-field class="textFieldFullWidth" placeholder="localhost (default)">
                   </vscode-text-field>
                   <p>
-                      This will define hosts this playbook will run on, as speified in your
+                      This will define hosts this playbook will run on, as specified in your
                       <a href="https://redhat.com">inventory</a> file.
                       <a href="https://redhat.com">Learn more</a>
                   </p>

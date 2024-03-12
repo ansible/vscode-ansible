@@ -6,7 +6,7 @@ import { getUri } from "../utils/getUri";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
-  lsclient: LanguageClient,
+  lsClient: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider
 ) => {
   if (!vscode.window.activeTextEditor) {
@@ -19,7 +19,7 @@ export const playbookExplanation = async (
   const content = document.getText();
 
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
-  const explanation: string = await lsclient.sendRequest(
+  const explanation: string = await lsClient.sendRequest(
     "playbook/explanation",
     { accessToken: accessToken, content: content }
   );

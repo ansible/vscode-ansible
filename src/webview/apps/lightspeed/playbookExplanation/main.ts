@@ -10,7 +10,8 @@ const vscode = acquireVsCodeApi();
 
 window.addEventListener("load", main);
 
-function setListener(id: string, func: Function) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function setListener(id: string, func: any) {
   const button = document.getElementById(id) as Button;
   if (button) {
     button.addEventListener("click", () => func());

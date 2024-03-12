@@ -66,12 +66,11 @@ export class AnsibleCreatorMenu {
     webview: vscode.Webview,
     extensionUri: vscode.Uri
   ) {
-
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
       "playbookGeneration",
-      "playbookGeneration.css"
+      "playbookGeneration.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [

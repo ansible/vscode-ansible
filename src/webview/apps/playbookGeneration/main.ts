@@ -7,8 +7,6 @@ import {
   vsCodeTextField,
   TextArea,
 } from "@vscode/webview-ui-toolkit";
-import { update } from "lodash";
-import { TextDocumentSaveReason } from "vscode-languageclient";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -42,11 +40,12 @@ async function pause(): Promise<void> {
   return sleep(FAKE_DELAY);
 }
 
-function setListener(id: string, func: Function) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function setListener(id: string, func: any) {
   const button = document.getElementById(id) as Button;
   if (button) {
     button.addEventListener("click", async () => {
-      await func()
+      await func();
     });
   }
 }
@@ -56,7 +55,7 @@ function main() {
   setListener("create-button", createPlaybook);
   setListener("edit-button", editInput);
   setListener("undo-button", undoSuggestion);
-  setListener('thumbsup-button', sendThumbsup);
+  setListener("thumbsup-button", sendThumbsup);
   setListener("thumbsdown-button", sendThumbsdown);
   setListener("restart-button", updateExamples);
   setListener("continue-button", updateHtml);
@@ -66,8 +65,8 @@ function main() {
 }
 
 function changeDisplay(className: string, displayState: string) {
-  let elements = document.getElementsByClassName(className);
-  for(let i = 0; i < elements.length; i++) {
+  const elements = document.getElementsByClassName(className);
+  for (let i = 0; i < elements.length; i++) {
     const element = elements[i] as HTMLElement;
     element.style.display = displayState;
   }

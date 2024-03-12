@@ -118,6 +118,8 @@ taskfile
 testenv
 testhost
 testorg
+thumbsdown
+thumbsup
 timonwong
 tomaciazek
 towerhost
@@ -131,6 +133,7 @@ usermod
 uuidv4
 varInfiles
 venvs
+vnet
 vscoss
 vsix
 vyos
