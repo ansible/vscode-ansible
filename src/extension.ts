@@ -43,6 +43,7 @@ import { LightSpeedManager } from "./features/lightspeed/base";
 import {
   ignorePendingSuggestion,
   inlineSuggestionCommitHandler,
+  inlineSuggestionReplaceMarker,
   inlineSuggestionHideHandler,
   inlineSuggestionTextDocumentChangeHandler,
   inlineSuggestionTriggerHandler,
@@ -227,6 +228,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     )
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_MARKER,
+      (
+        textEditor: vscode.TextEditor,
+        edit: vscode.TextEditorEdit,
+        position: vscode.Position
+      ) => inlineSuggestionReplaceMarker(position)
+    )
+  );
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
