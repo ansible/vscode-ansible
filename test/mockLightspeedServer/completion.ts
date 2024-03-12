@@ -73,7 +73,7 @@ export function completions(
   // status code.
   const index = req.body.prompt.search(/status=\d\d\d/);
   if (index !== -1) {
-    const status = parseInt(req.body.prompt.substring(index+7, index+10));
+    const status = parseInt(req.body.prompt.substring(index + 7, index + 10));
     return res.status(status).send();
   }
 
