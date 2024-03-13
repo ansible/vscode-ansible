@@ -4,9 +4,14 @@ import { AxiosError, AxiosHeaders } from "axios";
 import { retrieveError } from "../../../src/features/lightspeed/handleApiError";
 import assert from "assert";
 
-function createError(http_code: number, data = {}): AxiosError {
+function createError(
+  http_code: number,
+  data = {},
+  err_headers = {}
+): AxiosError {
   const request = { path: "/wisdom" };
   const headers = new AxiosHeaders({
+    ...err_headers,
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
   });
@@ -150,6 +155,20 @@ describe("testing the error handling", () => {
     assert.equal(
       msg,
       "Failed to fetch inline suggestion from Ansible Lightspeed. Try again after some time."
+    );
+  });
+
+  it("err Bad Request from CloudFront", () => {
+    const msg = retrieveError(
+      createError(
+        403,
+        { data: "Some string from CloudFront." },
+        { server: "CloudFront" }
+      )
+    );
+    assert.match(
+      msg,
+      /Something in your editor content has caused your inline suggestion request to be blocked.*/
     );
   });
 });
