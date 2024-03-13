@@ -121,11 +121,7 @@ const onRefusedSuggestion: CallbackEntry = async function () {
 };
 
 const onRequestInProgress: CallbackEntry = async function () {
-  lightSpeedManager.apiInstance.inlineSuggestionFeedbackSent = true;
-  vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
-    UserAction.IGNORED
-  );
+  lightSpeedManager.apiInstance.inlineSuggestionFeedbackIgnoredPending = true;
   return [];
 };
 
@@ -221,7 +217,7 @@ export class LightSpeedInlineSuggestionProvider
     const state = getCompletionState(
       suggestionDisplayed,
       lightSpeedManager.apiInstance.completionRequestInProgress &&
-        !lightSpeedManager.apiInstance.inlineSuggestionFeedbackSent,
+        !lightSpeedManager.apiInstance.inlineSuggestionFeedbackIgnoredPending,
       (activeTextEditor && activeTextEditor.document.languageId) ||
         document.languageId,
       token.isCancellationRequested,

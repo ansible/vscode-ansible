@@ -14,10 +14,12 @@ import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
+  LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { UserAction } from "../../definitions/lightspeed";
 import { retrieveError } from "./handleApiError";
 
 export class LightSpeedAPI {
@@ -25,7 +27,7 @@ export class LightSpeedAPI {
   private settingsManager: SettingsManager;
   private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
   private _completionRequestInProgress: boolean;
-  private _inlineSuggestionFeedbackSent: boolean;
+  private _inlineSuggestionFeedbackIgnoredPending: boolean;
   private _extensionVersion: string;
 
   constructor(
@@ -36,7 +38,7 @@ export class LightSpeedAPI {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
     this._completionRequestInProgress = false;
-    this._inlineSuggestionFeedbackSent = false;
+    this._inlineSuggestionFeedbackIgnoredPending = false;
     this._extensionVersion = context.extension.packageJSON.version;
   }
 
@@ -44,12 +46,12 @@ export class LightSpeedAPI {
     return this._completionRequestInProgress;
   }
 
-  get inlineSuggestionFeedbackSent(): boolean {
-    return this._inlineSuggestionFeedbackSent;
+  get inlineSuggestionFeedbackIgnoredPending(): boolean {
+    return this._inlineSuggestionFeedbackIgnoredPending;
   }
 
-  set inlineSuggestionFeedbackSent(newValue: boolean) {
-    this._inlineSuggestionFeedbackSent = newValue;
+  set inlineSuggestionFeedbackIgnoredPending(newValue: boolean) {
+    this._inlineSuggestionFeedbackIgnoredPending = newValue;
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
@@ -103,7 +105,7 @@ export class LightSpeedAPI {
     );
     try {
       this._completionRequestInProgress = true;
-      this._inlineSuggestionFeedbackSent = false;
+      this._inlineSuggestionFeedbackIgnoredPending = false;
       const requestData = {
         ...inputData,
         metadata: {
@@ -124,6 +126,7 @@ export class LightSpeedAPI {
         // currently we only support one inline suggestion
         !response.data.predictions[0]
       ) {
+        this._inlineSuggestionFeedbackIgnoredPending = false;
         vscode.window.showInformationMessage(
           "Ansible Lightspeed does not have a suggestion based on your input."
         );
@@ -136,10 +139,18 @@ export class LightSpeedAPI {
       );
       return response.data;
     } catch (error) {
+      this._inlineSuggestionFeedbackIgnoredPending = false;
       const err = error as AxiosError;
       vscode.window.showErrorMessage(retrieveError(err));
       return {} as CompletionResponseParams;
     } finally {
+      if (this._inlineSuggestionFeedbackIgnoredPending) {
+        this._inlineSuggestionFeedbackIgnoredPending = false;
+        vscode.commands.executeCommand(
+          LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
+          UserAction.IGNORED
+        );
+      }
       this._completionRequestInProgress = false;
     }
   }

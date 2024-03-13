@@ -43,8 +43,11 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
     let isAuthenticatedStub: any;
 
     before(async () => {
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       // This file does not contain trigger keywords for Lightspeed
       const docUri = getDocUri("lightspeed/playbook_2.yml");
+      await activate(docUri);
+
       // Spy vscode's executeCommand API
       executeCommandSpy = sinon.spy(vscode.commands, "executeCommand");
       feedbackRequestSpy = sinon.spy(
@@ -63,8 +66,6 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
         { scheme: "file", language: "ansible" },
         new AnotherInlineSuggestionProvider(1, 8)
       );
-      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-      await activate(docUri);
     });
 
     it("Test an inline suggestion from another provider is committed", async function () {
@@ -127,8 +128,11 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
     let isAuthenticatedStub: any;
 
     before(async () => {
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       // This file does not contain trigger keywords for Lightspeed
       const docUri = getDocUri("lightspeed/playbook_3.yml");
+      await activate(docUri);
+
       // Spy vscode's executeCommand API
       executeCommandSpy = sinon.spy(vscode.commands, "executeCommand");
       feedbackRequestSpy = sinon.spy(
@@ -147,8 +151,6 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
         { scheme: "file", language: "ansible" },
         new AnotherInlineSuggestionProvider(5, 4)
       );
-      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-      await activate(docUri);
     });
 
     it("Test an inline suggestion from another provider is committed", async function () {
@@ -219,7 +221,11 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
     let isAuthenticatedStub: any;
 
     before(async () => {
+      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
+
       const docUri = getDocUri("lightspeed/playbook_3.yml");
+      await activate(docUri);
+
       feedbackRequestSpy = sinon.spy(
         lightSpeedManager.apiInstance,
         "feedbackRequest"
@@ -229,9 +235,6 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
         "isAuthenticated"
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
-
-      await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-      await activate(docUri);
     });
 
     it("Test ignorePendingSuggestion method", async () => {

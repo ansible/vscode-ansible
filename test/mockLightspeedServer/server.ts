@@ -26,7 +26,7 @@ export default class Server {
 
     app.post(`${API_ROOT}/ai/completions`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
-      return res.send(completions(req));
+      return completions(req, res);
     });
 
     app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
