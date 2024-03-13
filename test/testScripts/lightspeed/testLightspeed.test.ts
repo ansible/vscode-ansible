@@ -277,7 +277,7 @@ export function testLightspeed(): void {
           await testInlineSuggestion(
             // with the mock lightspeed server, adding "status=nnn" to prompt will
             // return the specified status code in the response
-            taskName + " (status=204)",
+            `${taskName} (status=204)`,
             expectedModule,
             false,
             "",
