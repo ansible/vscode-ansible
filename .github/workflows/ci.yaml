@@ -23,6 +23,9 @@ env:
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
 
+  # Override activation wait time (in msecs)
+  ACTIVATION_WAIT_TIME: '1000'
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
