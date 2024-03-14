@@ -214,11 +214,12 @@ export async function testDiagnostics(
   assert.strictEqual(actualDiagnostics.length, expectedDiagnostics.length);
 
   if (actualDiagnostics.length && expectedDiagnostics.length) {
-    const getKey = (diagnostic: vscode.Diagnostic) => JSON.stringify({
-      range: diagnostic.range,
-      severity: diagnostic.severity,
-      source: diagnostic.source
-    });
+    const getKey = (diagnostic: vscode.Diagnostic) =>
+      JSON.stringify({
+        range: diagnostic.range,
+        severity: diagnostic.severity,
+        source: diagnostic.source,
+      });
 
     const actualDiagnosticsMap = new Map<string, vscode.Diagnostic>();
     actualDiagnostics.forEach((actualDiagnostic) => {
@@ -227,7 +228,7 @@ export async function testDiagnostics(
       actualDiagnosticsMap.set(key, actualDiagnostic);
     });
 
-    expectedDiagnostics.forEach((expectedDiagnostic, i) => {
+    expectedDiagnostics.forEach((expectedDiagnostic) => {
       const key = getKey(expectedDiagnostic);
       assert(actualDiagnosticsMap.has(key));
       const actualDiagnostic = actualDiagnosticsMap.get(key);
