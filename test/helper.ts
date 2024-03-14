@@ -548,8 +548,7 @@ export async function testValidJinjaBrackets(
   assert.include(docContentAfterSuggestion, expectedValidJinjaInlineVar);
 }
 
-export async function waitForProcessCompletion(
-  processName: string,
+export async function waitForDiagnosisCompletion(
   interval = 100,
   timeout = 20000
 ) {
@@ -557,7 +556,7 @@ export async function waitForProcessCompletion(
   let done = false;
   let elapsed = 0;
   while (!done && elapsed < timeout) {
-    const processes = await findProcess("name", processName);
+    const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
     if (!started && processes.length > 0) {
       started = true;
     } else if (started && processes.length === 0) {
