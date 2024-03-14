@@ -123,6 +123,22 @@ function testFeedbackAPI(): void {
       // When an error is found, feedbackRequest() does not return a message
       assert.equal(response.message, undefined);
     });
+
+    it("Verify a sentiment feedback contains the model, if set", async function () {
+      lightSpeedManager.settingsManager.settings.lightSpeedService.model =
+        "testModel";
+      const apiInstance = lightSpeedManager.apiInstance;
+      const request = {
+        sentimentFeedback: {
+          value: 1,
+          feedback: "Great stuff",
+        },
+        model: "",
+      };
+      const response = await apiInstance.feedbackRequest(request);
+      console.log(JSON.stringify(response));
+      assert.equal(request.model, "testModel");
+    });
   });
 
   after(async function () {
