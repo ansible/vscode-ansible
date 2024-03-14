@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import sinon from "sinon";
 import { assert } from "chai";
+import findProcess from "find-process";
+
 import { LightSpeedCommands } from "../src/definitions/lightspeed";
 import { integer } from "vscode-languageclient";
 import axios from "axios";
@@ -47,10 +49,6 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  const activationWaitTime = parseInt(
-    process.env.ACTIVATION_WAIT_TIME || "20000"
-  );
-  await sleep(activationWaitTime); // Wait for server activation
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -544,4 +542,24 @@ export async function testValidJinjaBrackets(
 
   // assert
   assert.include(docContentAfterSuggestion, expectedValidJinjaInlineVar);
+}
+
+export async function waitForProcessCompletion(
+  processName: string,
+  interval = 100,
+  timeout = 20000
+) {
+  let started = false;
+  let done = false;
+  let elapsed = 0;
+  while (!done && elapsed < timeout) {
+    const processes = await findProcess("name", "ansible-lint");
+    if (!started && processes.length > 0) {
+      started = true;
+    } else if (started && processes.length === 0) {
+      done = true;
+    }
+    sleep(interval);
+    elapsed += interval;
+  }
 }

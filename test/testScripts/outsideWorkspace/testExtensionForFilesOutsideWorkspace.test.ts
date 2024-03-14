@@ -2,9 +2,9 @@ import { Position, Range, Uri, commands } from "vscode";
 import {
   activate,
   getDocUriOutsideWorkspace,
-  sleep,
   testDiagnostics,
   testHover,
+  waitForProcessCompletion,
 } from "../../helper";
 import { workspace } from "vscode";
 import { expect } from "chai";
@@ -49,7 +49,7 @@ export function testExtensionForFilesOutsideWorkspace() {
     describe("Test diagnostics functionality", function () {
       it("should complain about no task names", async () => {
         await commands.executeCommand("workbench.action.files.save");
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForProcessCompletion("ansible-lint"); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri, [
           {
