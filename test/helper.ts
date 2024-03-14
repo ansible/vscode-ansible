@@ -553,7 +553,7 @@ export async function waitForProcessCompletion(
   let done = false;
   let elapsed = 0;
   while (!done && elapsed < timeout) {
-    const processes = await findProcess("name", "ansible-lint");
+    const processes = await findProcess("name", processName);
     if (!started && processes.length > 0) {
       started = true;
     } else if (started && processes.length === 0) {
