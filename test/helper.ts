@@ -550,7 +550,8 @@ export async function testValidJinjaBrackets(
 
 export async function waitForDiagnosisCompletion(
   interval = 100,
-  timeout = 20000
+  timeout = 20000,
+  extraWaitTime = 1000
 ) {
   let started = false;
   let done = false;
@@ -565,4 +566,5 @@ export async function waitForDiagnosisCompletion(
     sleep(interval);
     elapsed += interval;
   }
+  sleep(extraWaitTime);
 }
