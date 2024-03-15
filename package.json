@@ -766,7 +766,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
-    "vscode-extension-tester": "^7.0.0",
+    "vscode-extension-tester": "^7.2.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.90.0",
     "webpack-cli": "^5.1.4",
@@ -830,7 +830,7 @@
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all"
   },
   "version": "2.13.0",
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.1",
   "vsce": {
     "dependencies": false,
     "yarn": false
