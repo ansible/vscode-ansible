@@ -177,11 +177,8 @@ export class LightSpeedAPI {
     }
     const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
 
-    const userProvidedModel =
+    inputData.model =
       lightSpeedManager.settingsManager.settings.lightSpeedService.model;
-    if (userProvidedModel && userProvidedModel !== "") {
-      inputData.model = userProvidedModel;
-    }
 
     if (rhUserHasSeat && orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {
