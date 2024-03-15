@@ -27,9 +27,7 @@
     "node": ">=14.0",
     "npm": ">=7.11.2"
   },
-  "bin": {
-    "ansible-language-server": "./bin/ansible-language-server"
-  },
+  "bin": "./bin/ansible-language-server",
   "main": "./out/server/src/server.js",
   "types": "./out/server/src/server.d.ts",
   "files": [
