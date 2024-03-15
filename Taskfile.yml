@@ -27,22 +27,6 @@ tasks:
     cmds:
       - echo {{.TASK}}
       - echo Done {{.VERSION}}!
-  devel:
-    desc: Updates the language server to latest from @main and run all tests
-    cmds:
-      - tools/clone-sibling.sh
-      - yarn link --relative ../ansible-language-server
-      - task: install
-      # - tools/dirty.sh
-      - >
-        bash -c 'git diff --quiet --exit-code || {
-        git add package.json yarn.lock &&
-        echo "Update ansible-language-server" |
-        git commit --file -
-        ;}'
-      - tools/dirty.sh
-      - task: test
-      - echo "Tests passed, you can now run "task pr" to create a pull request."
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
