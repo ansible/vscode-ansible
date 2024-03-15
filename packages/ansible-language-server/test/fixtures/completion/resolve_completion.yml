@@ -1,0 +1,26 @@
+- name: Test playbook
+  gather_facts: false
+  hosts: localhost
+  collections:
+    - org_1.coll_3
+  tasks:
+    - name: Builtin module
+      ansible.builtin.debug:
+        msg: "Hello World {{ item }}"
+
+    - name: Collection module
+      module_3:
+        opt_1:
+          - sub_opt_1: Hello-world
+            sub_opt_2:
+
+          - sub_opt_1:
+            sub_opt_2:
+              - sub_sub_opt_1:
+                sub_sub_opt_3:
+                  - sub_sub_sub_opt_1:
+
+    - name: Collection module with FQCN
+      org_1.coll_1.module_1:
+        opt_1:
+          - sub_opt_1: Hello-world-2

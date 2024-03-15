@@ -1,0 +1,20 @@
+- name: Test playbook
+  gather_facts: False
+  hosts: localhost
+  vars:
+    my_var: "test"
+  tasks:
+    - name: Builtin module
+      ansible.builtin.debug:
+        msg: "Hello World {{ item }}"
+        verbosity: 3
+      loop:
+        - one
+        - two
+      debugger: on_skipped
+
+    - name: Collection module
+      org_1.coll_4.module_1:
+        opt_1:
+          - sub_opt_1: choice_1
+            sub_opt_2:

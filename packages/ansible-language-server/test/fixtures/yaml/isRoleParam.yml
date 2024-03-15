@@ -1,0 +1,6 @@
+- name: Test play
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - name: role
+      when: condition
