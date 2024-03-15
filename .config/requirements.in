@@ -1,3 +1,5 @@
+# testing and linting, do not put version constraints here as they
+# conflict with the locked version taken from creator-ee requirements.txt
 cython>=3.0.5; python_version >= "3.12"
 ansible-core>=2.13.0
 ansible-lint>=6.8.7
@@ -5,3 +7,28 @@ mypy # used by vscode
 pip>=22.3.1
 pip-tools>=6.12.1
 pre-commit>=2.20
+# end-of dependencies for which we allow pre-releases
+click
+lxml
+pip-tools
+pre-commit
+pyparsing
+# vscode integration
+flake8  # vscode integration
+mypy  # vscode integration
+pylint  # vscode integration
+# docs
+argparse-manpage
+cairosvg
+markdown-include
+mkdocs
+mkdocs-exclude
+mkdocs-git-revision-date-localized-plugin
+mkdocs-material
+mkdocs-material-extensions
+mkdocs-multirepo-plugin
+mkdocstrings
+mkdocstrings-python
+pillow
+pymdown-extensions
+slugify

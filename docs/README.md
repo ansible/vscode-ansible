@@ -14,7 +14,7 @@ following projects:
 ![Syntax highlighting](https://github.com/ansible/ansible-language-server/raw/main/docs/images/syntax-highlighting.png)
 
 **Ansible keywords**, **module names** and **module options**, as well as
-standard YAML elements are recognized and highlighted distinctly. Jinja
+standard YAML elements, are recognized and highlighted distinctly. Jinja
 expressions are supported too, also those in Ansible conditionals (`when`,
 `failed_when`, `changed_when`, `check_mode`), which are not placed in double
 curly braces.
@@ -65,8 +65,7 @@ improve the user experience:
   collections configured with the [`collections` keyword] are honored. This
   behavior can be disabled in extension settings.
 
-[`collections` keyword]:
-  https://docs.ansible.com/ansible/latest/collections_guide/collections_using_playbooks.html#simplifying-module-names-with-the-collections-keyword
+[`collections` keyword]: https://docs.ansible.com/ansible/latest/collections_guide/collections_using_playbooks.html#simplifying-module-names-with-the-collections-keyword
 
 #### Auto-closing Jinja expressions
 
@@ -105,15 +104,14 @@ npm install -g @ansible/ansible-language-server
 ## Language Server Settings
 
 For details on settings, their descriptions and their default values refer to
-[settings](https://als.readthedocs.io/en/latest/settings/).
+[settings](https://ansible.readthedocs.io/projects/vscode-ansible/settings/).
 
 ## Developer support
 
 For details on setting up the development environment and debugging refer to the
 [development document].
 
-[development document]:
-  https://github.com/ansible/ansible-language-server/blob/main/docs/development.md
+[development document]: https://github.com/ansible/ansible-language-server/blob/main/docs/development.md
 
 ## Requirements
 

@@ -53,12 +53,17 @@ repos:
     rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
+        exclude: >
+          (?x)^(
+            docs/settings.md
+          )$
       - id: trailing-whitespace
         exclude: >
           (?x)^(
             .yarn/.*|
             examples/playbooks/(with-skip-tag-id|unicode).yml|
-            examples/playbooks/example.yml
+            examples/playbooks/example.yml|
+            docs/settings.md
           )$
       - id: mixed-line-ending
       - id: check-byte-order-marker
@@ -85,7 +90,8 @@ repos:
             .yarn/.*|
             .github/.*|
             CHANGELOG.md|
-            yarn.lock
+            yarn.lock|
+            docs/changelog.md
           )$
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.33.0
@@ -108,7 +114,9 @@ repos:
             .config/dictionary.txt|
             CHANGELOG.md|
             yarn.lock|
-            media/codicons/codicon.css
+            media/codicons/codicon.css|
+            docs/changelog.md|
+            docs/settings.md
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
@@ -120,11 +128,18 @@ repos:
           (?x)^(
             jinja-language-configuration.json|
             syntaxes/external/jinja.tmLanguage.json|
+            docs/settings.md
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.39.0
     hooks:
       - id: markdownlint
+        exclude: >
+          (?x)^(
+            docs/changelog-fragments\.d/\d+\.\w+\.md|
+            docs/settings.md
+          )$
+
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.11.0
     hooks:

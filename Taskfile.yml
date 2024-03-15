@@ -31,6 +31,17 @@ tasks:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
+  docs:
+    desc: Build the documentation
+    deps:
+      - setup
+    cmds:
+      # Retrieve possibly missing commits:
+      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
+      - git fetch --tags --force
+      - yarn workspace @ansible/ansible-language-server generate-settings-readme
+      - "source {{.VIRTUAL_ENV}}/bin/activate && mkdocs build --strict"
+      - git status -s
   setup:
     desc: Install dependencies
     env:
@@ -42,6 +53,7 @@ tasks:
       - bash ./tools/test-setup.sh
     sources:
       - tools/test-setup.sh
+      - .config/requirements.in
     generates:
       - out/log/manifest-{{.HOSTNAME}}.yml
     run: once

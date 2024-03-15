@@ -1,7 +1,7 @@
 # cspell: ignore pymdownx pymdown magiclink autorefs facelessuser superfences inlinehilite linenums fontawesome
-site_name: Ansible Language Server
-site_url: https://als.readthedocs.io/
-repo_url: https://github.com/ansible/ansible-language-server
+site_name: VsCode Ansible Extension
+site_url: https://ansible.readthedocs.io/projects/vscode-ansible/
+repo_url: https://github.com/ansible/vscode-ansible
 edit_uri: blob/main/docs/
 
 theme:
