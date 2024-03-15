@@ -1,0 +1,188 @@
+---
+# see https://taskfile.dev/#/
+version: "3"
+env: &env
+  # basically the same thing from .envrc file:
+  # Avoid undesired extra hints from docker when pulling images
+  DOCKER_CLI_HINTS: "false"
+vars:
+  EE_VERSION:
+    sh: ./tools/get-image-version
+  VIRTUAL_ENV:
+    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/${HOSTNAME:-localhost}}"
+tasks:
+  default:
+    desc: Run most commands
+    deps:
+      - setup
+    env:
+      VERSION:
+        sh: node -p "require('./package.json').version"
+    cmds:
+      - task: lint
+      - task: package
+      - task: docs
+      - echo Done {{.VERSION}}!
+  vscode:
+    desc: Run vscode-ansible tests using current code from ALS
+    deps:
+      - setup
+    cmds:
+      - ./tools/vscode.sh
+  docs:
+    desc: Build the documentation
+    deps:
+      - setup
+    cmds:
+      # Retrieve possibly missing commits:
+      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
+      - git fetch --tags --force
+      - npm run generate-settings-readme
+      - "source {{.VIRTUAL_ENV}}/bin/activate && mkdocs build --strict"
+
+  setup:
+    desc: Install dependencies
+    run: once
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
+    cmds:
+      - ./tools/test-setup.sh
+    sources:
+      - package.json
+      - package-lock.json
+      - .config/requirements.*
+      - setup.cfg
+      - tools/test-setup.sh
+      - .config/**/*.*
+    generates:
+      - out/log/manifest.yml
+  build:
+    desc: Build the project
+    deps:
+      - setup
+    cmds:
+      - npm run compile
+    sources:
+      - package-lock.json
+      - package.json
+      - src/**/*.*
+      - test/**/*.*
+      - tsconfig.json
+      - webpack.config.js
+  deps:
+    desc: Update dependencies
+    deps:
+      - setup
+    cmds:
+      - npm install -g npm@latest
+      # 1st node version is the implicit one and must match node version from
+      # vscode about dialog and be within supported range from https://www.npmjs.com/package/vscode-extension-tester
+      # as we want to avoid using different node versions across the projects.
+      # 2nd node version is used for preparing for new versions
+      - asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)
+      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit autoupdate"
+      - npm outdated
+      # bumps some developments dependencies
+      - npx ncu -u --dep dev
+      # running install after ncu is needed in order to update the lock file
+      - npm install
+  lint:
+    desc: Lint the project
+    deps:
+      - setup
+    env:
+      <<: *env
+      PRE_COMMIT_COLOR: always
+    cmds:
+      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit run -a"
+    silent: true
+    sources:
+      - "*.*"
+      - .config/**/*.*
+      - .github/**/*.*
+      - .vscode/**/*.*
+      - doc/**/*.*
+      - images/**/*.*
+      - src/**/*.*
+      - test/**/*.*
+      - tools/**/*.*
+  .test:
+    # Keep the desc empty to hide entry when listing
+    # desc: Run all tests
+    vars:
+      ENGINE:
+        sh: bash -c "command -v docker | head -n 1"
+    deps:
+      - build
+    cmds:
+      - "{{.ENGINE}} pull ghcr.io/ansible/creator-ee:{{ .EE_VERSION }}"
+      # Tests that container engine is functional and that we have the image:
+      - "{{.ENGINE}} run -i ghcr.io/ansible/creator-ee:{{ .EE_VERSION }} ansible-lint --version"
+      - >
+        source {{.VIRTUAL_ENV}}/bin/activate &&
+        command -v ansible-lint &&
+        npm run test
+    interactive: true
+  test:
+    desc: Run all tests using node (same version as vscode)
+    cmds:
+      - bash -c 'asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)'
+      - task: .test
+  test-node-lts:
+    desc: Run all tests using node-lts (future)
+    cmds:
+      # switch to node-lts
+      - bash -c 'asdf local nodejs latest:$(asdf nodejs resolve lts) latest:18'
+      - task: .test
+      - node --version
+      # restore implicit node version
+      - bash -c 'asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)'
+  test-with-ee:
+    desc: Run only ee tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source {{.VIRTUAL_ENV}}/bin/activate &&
+        bash -c 'npm run test-with-ee'
+    interactive: true
+  test-without-ee:
+    desc: Run only non-ee tests
+    deps:
+      - setup
+    cmds:
+      - >
+        source {{.VIRTUAL_ENV}}/bin/activate &&
+        bash -c 'npm run test-without-ee'
+    interactive: true
+  package:
+    desc: Package extension
+    deps:
+      - build
+    sources:
+      - docs/changelog.md
+      - docs/README.md
+      - package*.json
+      - out/**/*.*
+    generates:
+      - "*.vsix"
+    cmds:
+      - rm -f *.tgz
+      - bash -c 'npm pack'
+    silent: false
+  pr:
+    desc: Opens a pull request using gh
+    deps:
+      - lint
+    cmds:
+      - gh pr create
+    interactive: true
+  release:
+    desc: Create a new release (used by CI)
+    deps:
+      - setup
+    cmds:
+      - ./tools/release.sh
+    interactive: true

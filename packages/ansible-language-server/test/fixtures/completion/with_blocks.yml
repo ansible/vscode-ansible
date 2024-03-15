@@ -1,0 +1,9 @@
+- name: Hello World
+  hosts: localhost
+  gather_facts: False
+  tasks:
+    - block:
+        - name: List test directory content
+          ansible.builtin.command: "ls -l /test/"
+      become: True
+      become_user: root

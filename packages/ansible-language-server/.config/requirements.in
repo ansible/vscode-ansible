@@ -1,0 +1,29 @@
+# testing and linting, do not put version constraints here as they
+# conflict with the locked version taken from creator-ee requirements.txt
+ansible-core
+ansible-lint
+# end-of dependencies for which we allow pre-releases
+click
+lxml
+pip-tools
+pre-commit
+pyparsing
+# vscode integration
+flake8  # vscode integration
+mypy  # vscode integration
+pylint  # vscode integration
+# docs
+argparse-manpage
+cairosvg
+markdown-include
+mkdocs
+mkdocs-exclude
+mkdocs-git-revision-date-localized-plugin
+mkdocs-material
+mkdocs-material-extensions
+mkdocs-multirepo-plugin
+mkdocstrings
+mkdocstrings-python
+pillow
+pymdown-extensions
+slugify

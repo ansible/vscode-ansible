@@ -1,0 +1,100 @@
+{
+  "name": "@ansible/ansible-language-server",
+  "publisher": "RedHat Inc.",
+  "displayName": "Ansible",
+  "description": "Ansible language server",
+  "license": "MIT",
+  "version": "1.2.1",
+  "contributors": [
+    {
+      "name": "Tomasz Maciążek",
+      "email": "tomaciazek@gmail.com"
+    },
+    {
+      "name": "RedHat Inc."
+    },
+    {
+      "name": "Ganesh B. Nalawade",
+      "email": "gnalawad@redhat.com"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ansible/ansible-language-server.git"
+  },
+  "icon": "icon.png",
+  "engines": {
+    "node": ">=14.0",
+    "npm": ">=7.11.2"
+  },
+  "bin": {
+    "ansible-language-server": "./bin/ansible-language-server"
+  },
+  "main": "./out/server/src/server.js",
+  "types": "./out/server/src/server.d.ts",
+  "files": [
+    "docs/changelog.md",
+    "icon.png",
+    "out/server/src"
+  ],
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:ansible"
+  ],
+  "keywords": [
+    "ansible",
+    "LSP"
+  ],
+  "dependencies": {
+    "@flatten-js/interval-tree": "^1.1.2",
+    "antsibull-docs": "^1.0.0",
+    "glob": ">=9.3.2",
+    "ini": "^4.1.1",
+    "lodash": "^4.17.21",
+    "uuid": "^9.0.1",
+    "vscode-languageserver": "^8.1.0",
+    "vscode-languageserver-textdocument": "^1.0.11",
+    "vscode-uri": "^3.0.8",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.11",
+    "@types/glob": "^8.1.0",
+    "@types/ini": "^4.1.0",
+    "@types/lodash": "^4.14.202",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.7",
+    "@types/uuid": "^9.0.8",
+    "@types/vscode": "^1.76.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/parser": "^6.19.1",
+    "chai": "^4.4.1",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "fuse.js": "^7.0.0",
+    "handlebars": "^4.7.8",
+    "mocha": "^10.2.0",
+    "npm-check-updates": "^16.14.14",
+    "nyc": "^15.1.0",
+    "prettier": "^3.2.4",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "scripts": {
+    "clean": "rimraf out/server && rimraf lib",
+    "compile": "tsc -p .",
+    "coverage": "nyc report --reporter=text-lcov > out/coverage.lcov",
+    "prepack": "npm ci && npm run compile",
+    "//prepare": "Prepare is needed for installation from source",
+    "prepare": "npm run compile",
+    "watch": "tsc --watch -p .",
+    "test": "nyc -s -a mocha && nyc report --check-coverage",
+    "test-with-ee": "nyc -s -a mocha --grep @ee && nyc report --check-coverage",
+    "test-without-ee": "nyc -s -a mocha --grep @ee --invert && nyc report --check-coverage",
+    "generate-settings-readme": "ts-node tools/settings-doc-generator.ts"
+  },
+  "all": true
+}

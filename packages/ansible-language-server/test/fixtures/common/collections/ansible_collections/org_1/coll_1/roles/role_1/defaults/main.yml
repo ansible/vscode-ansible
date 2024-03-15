@@ -1,0 +1,3 @@
+---
+# defaults file for test_role
+test_manager: admin@test.com

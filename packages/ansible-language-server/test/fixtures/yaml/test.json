@@ -1,0 +1,17 @@
+[
+  {
+    "type": "issue",
+    "check_name": "[syntax-check] couldn't resolve module/action 'mymodule'. This often indicates a misspelling, missing collection, or incorrect module path.",
+    "categories": ["core"],
+    "severity": "blocker",
+    "description": "Running ansible-playbook --syntax-check ... reported an error.",
+    "fingerprint": "ef869ef9e247f7edd6bc37bb803cc9d158173db1d896be0664aa3456b4157621",
+    "location": {
+      "path": "getDeclaredCollections.yml",
+      "lines": { "begin": { "line": 8, "column": 7 } }
+    },
+    "content": {
+      "body": "[WARNING]: provided hosts list is empty, only localhost is available. Note that\nthe implicit localhost does not match 'all'\nERROR! couldn't resolve module/action 'mymodule'. This often indicates a misspelling, missing collection, or incorrect module path.\n\nThe error appears to be in '/mnt/c/Workspace/vscode-grammar-plist/vscode-ansible/server/src/test/data/utils/yaml/getDeclaredCollections.yml': line 8, column 7, but may\nbe elsewhere in the file depending on the exact syntax problem.\n\nThe offending line appears to be:\n\n  pre_tasks:\n    - name: PreTask name\n      ^ here\n"
+    }
+  }
+]

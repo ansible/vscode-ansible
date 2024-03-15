@@ -1,0 +1,125 @@
+---
+ci:
+  # format compatible with commitlint
+  autoupdate_commit_msg: "chore: pre-commit autoupdate"
+  autoupdate_schedule: monthly
+  autofix_commit_msg: |
+    chore: auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  skip:
+    # https://github.com/pre-commit-ci/issues/issues/55
+    - npm-ci
+    - codecov
+exclude: >
+  (?x)^(
+    .config/requirements.in|
+    .*.svg
+  )$
+repos:
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args:
+          - --color=always
+          - -e
+          - SC1091
+  - repo: local
+    hooks:
+      - id: npm-ci
+        name: Run 'npm ci' to ensure deps and versions are correct
+        entry: >-
+          bash -c 'npm ci --ignore-scripts &&
+          npm version --allow-same-version --no-commit-hooks
+          --no-git-tag-version $(npm pkg get version | sed "s/\"//g")'
+        language: node
+        files: "(package|package-lock).json$"
+        pass_filenames: false
+      - id: git-dirty
+        name: Check if git reports dirty
+        entry: git diff --exit-code
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: codecov
+        name: Check codecov.yml
+        # https://superuser.com/a/1587813/3004
+        entry: >
+          bash -c '[ $(
+          curl --silent -o /dev/stderr -w "%{http_code}" -X POST
+          --data-binary @codecov.yml https://codecov.io/validate
+          ) -eq 200 ]'
+        language: system
+        files: "codecov.yml"
+        pass_filenames: false
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v8.3.0
+    hooks:
+      - id: cspell
+        name: Spell check with cspell
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
+    rev: v4.5.0
+    hooks:
+      - id: end-of-file-fixer
+        exclude: >
+          (?x)^(
+            docs/settings.md
+          )$
+      - id: trailing-whitespace
+        exclude: >
+          (?x)^(
+            docs/settings.md
+          )$
+      - id: mixed-line-ending
+      - id: check-byte-order-marker
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: check-json
+        # https://github.com/pre-commit/pre-commit-hooks/issues/395
+        exclude: >
+          (?x)^(
+            .vscode/.*|
+            scripts/tsconfig.json|
+            scripts/tsconfig.esm.json|
+            scripts/tsconfig.umd.json|
+            tsconfig.json
+          )$
+
+      - id: debug-statements
+        language_version: python3
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    # keep it before markdownlint and eslint
+    rev: "v4.0.0-alpha.8"
+    hooks:
+      - id: prettier
+        additional_dependencies:
+          - prettier
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        exclude: >
+          (?x)^
+            docs/changelog-fragments\.d/\d+\.\w+\.md|
+            docs/settings.md
+          $
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v9.0.0-alpha.2
+    hooks:
+      - id: eslint
+        args:
+          - --fix
+          - --max-warnings
+          - "0"
+        additional_dependencies:
+          - "@typescript-eslint/eslint-plugin"
+          - "@typescript-eslint/parser"
+          - eslint@v8.28.0
+          - eslint-plugin-prettier
+          - eslint-config-prettier
+          - prettier
+          - typescript
+          - typescript-eslint
+        files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
+        types: [file]
