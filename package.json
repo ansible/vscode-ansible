@@ -712,7 +712,7 @@
     ]
   },
   "dependencies": {
-    "@ansible/ansible-language-server": "^1.2.1",
+    "@ansible/ansible-language-server": "workspace:^",
     "@redhat-developer/vscode-redhat-telemetry": "^0.7.1",
     "@types/ini": "^4.1.0",
     "@vscode/webview-ui-toolkit": "^1.4.0",
@@ -834,5 +834,8 @@
   "vsce": {
     "dependencies": false,
     "yarn": false
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }
