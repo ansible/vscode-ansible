@@ -23,6 +23,7 @@ import { doValidate } from "./providers/validationProvider";
 import { ValidationManager } from "./services/validationManager";
 import { WorkspaceManager } from "./services/workspaceManager";
 import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
+import axios from "axios";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -349,6 +350,29 @@ export class AnsibleLanguageService {
         ]);
       },
     );
+
+    this.connection.onRequest("playbook/explanation", async (params) => {
+      const accessToken: string = params["accessToken"];
+      const content: string = params["content"];
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const axiosInstance = axios.create({
+        baseURL: `http://localhost:8000/api/v0`,
+        headers: headers,
+      });
+
+      const explanation: string = await axiosInstance
+        .post("/ai/explanations/", { content: content })
+        .then((response) => {
+          return response.data.content;
+        });
+
+      return explanation;
+    });
   }
 
   private handleError(error: unknown, contextName: string) {

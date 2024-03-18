@@ -7,7 +7,7 @@ import * as marked from "marked";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
-  lsClient: LanguageClient,
+  client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider
 ) => {
   if (!vscode.window.activeTextEditor) {
@@ -20,7 +20,7 @@ export const playbookExplanation = async (
   const content = document.getText();
 
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
-  const explanation: string = await lsClient.sendRequest(
+  const explanation: string = await client.sendRequest(
     "playbook/explanation",
     { accessToken: accessToken, content: content }
   );

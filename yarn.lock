@@ -38,6 +38,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.19.1"
     "@typescript-eslint/parser": "npm:^6.19.1"
     antsibull-docs: "npm:^1.0.0"
+    axios: "npm:^1.6.7"
     chai: "npm:^4.4.1"
     eslint: "npm:^8.56.0"
     eslint-config-prettier: "npm:^9.1.0"
@@ -5918,7 +5919,7 @@ __metadata:
   resolution: "marked@npm:12.0.1"
   bin:
     marked: bin/marked.js
-  checksum: 34fd0044ebeda28b3f3f94f340e2388666408315557f125d561b59b49baec4c6e6777f54b6fb12aa5c2bf3b75a4aa9f1809679bfb6502da73053d0461c1a232d
+  checksum: 10/34fd0044ebeda28b3f3f94f340e2388666408315557f125d561b59b49baec4c6e6777f54b6fb12aa5c2bf3b75a4aa9f1809679bfb6502da73053d0461c1a232d
   languageName: node
   linkType: hard
 
