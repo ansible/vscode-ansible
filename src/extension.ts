@@ -157,6 +157,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   lightSpeedManager = new LightSpeedManager(
     context,
     client,
+    lsClient,
     extSettings,
     telemetry,
   );
