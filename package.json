@@ -804,6 +804,7 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
+    "generate-settings-readme": "ts-node tools/settings-doc-generator.ts",
     "package": "yarn run webpack && npx vsce package",
     "preinstall": "",
     "pretest": "yarn run compile",

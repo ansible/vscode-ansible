@@ -29,16 +29,6 @@ tasks:
       - setup
     cmds:
       - ./tools/vscode.sh
-  docs:
-    desc: Build the documentation
-    deps:
-      - setup
-    cmds:
-      # Retrieve possibly missing commits:
-      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
-      - git fetch --tags --force
-      - npm run generate-settings-readme
-      - "source {{.VIRTUAL_ENV}}/bin/activate && mkdocs build --strict"
 
   setup:
     desc: Install dependencies
