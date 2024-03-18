@@ -62,12 +62,6 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
 
-          - name: devel
-            # this job will install latest version of ansible-language-server
-            # instead of the one mentioned in lock file
-            task-name: devel
-            os: ubuntu-22.04
-
           - name: test (macos)
             task-name: test
             os: macos-13-large

@@ -1,0 +1,8 @@
+---
+- name:
+  hosts: localhost
+  tasks:
+  # This  following line is invalid and has been kept this way to test the YAML diagnostics features of extension.
+  # The file is ignored while running yammlint pre-commit hook.
+    - debug: msg="foo: bar"
+become: true

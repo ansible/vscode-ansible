@@ -21,6 +21,7 @@ import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { UserAction } from "../../definitions/lightspeed";
 import { retrieveError } from "./handleApiError";
+import { lightSpeedManager } from "../../extension";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -175,6 +176,9 @@ export class LightSpeedAPI {
       return {} as FeedbackResponseParams;
     }
     const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+
+    inputData.model =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.model;
 
     if (rhUserHasSeat && orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {

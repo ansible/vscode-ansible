@@ -1,0 +1,4 @@
+- name: play name
+  tasks:
+    - name: task 1
+      debug:

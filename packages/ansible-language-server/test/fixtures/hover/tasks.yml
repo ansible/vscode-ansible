@@ -1,0 +1,15 @@
+- name: Hello World
+  hosts: localhost
+  gather_facts: False
+  tasks:
+    - ansible.builtin.debug:
+        msg: Happy testing !
+      register: result
+
+    - block:
+        - name: List test directory content
+          ansible.builtin.command: "ls -l /test/"
+      become: True
+
+    - improper_module:
+        improper_option: invalid_value

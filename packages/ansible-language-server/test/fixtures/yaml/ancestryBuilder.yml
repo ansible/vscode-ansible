@@ -1,0 +1,14 @@
+- name: Block name
+  become: yes
+  block:
+    - name: Task name
+      lineinfile:
+        path: some/path
+
+        line: line contents
+
+    - name: Task2 name
+      lineinfile:
+        path: some_other/path
+
+        line: line2 contents
