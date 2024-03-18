@@ -738,6 +738,7 @@
     "axios": "^1.6.7",
     "express": "^4.19.2",
     "ini": "^4.1.1",
+    "marked": "^12.0.1",
     "minimatch": "^9.0.3",
     "start-server-and-test": "^2.0.3",
     "uuid": "^9.0.1",

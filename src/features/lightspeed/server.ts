@@ -23,17 +23,17 @@ connection.onRequest("playbook/explanation", async (params) => {
     Authorization: `Bearer ${accessToken}`,
   };
   const axiosInstance = axios.create({
-    baseURL: `https://c.ai.ansible.redhat.com/api/v0`,
+    baseURL: `http://localhost:8000/api/v0`,
     headers: headers,
   });
-  const userResponse: UserResponse = await axiosInstance
-    .get("/me/")
-    .then((response) => {
-      return response.data;
-    });
-  const username: string = userResponse.username;
 
-  return `<p>bip bip, I'm a LSP server, and I just received a request for an explanation of:</p><div><pre><code>${content}</code></pre></div>  by user: ${username}`;
+  const explanation: string = await axiosInstance
+    .post("/ai/explanations/", { content: content })
+    .then((response) => {
+      return response.data.explanation;
+    });
+
+  return explanation;
 });
 
 connection.listen();
