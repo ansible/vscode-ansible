@@ -3,6 +3,7 @@ import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
+import * as marked from "marked";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
@@ -141,6 +142,8 @@ export class PlaybookExplanationPanel {
       "codicon.css",
     ]);
     const nonce = getNonce();
+    const markdown = explanation;
+    const html = marked.parse(markdown);
     return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
@@ -152,28 +155,9 @@ export class PlaybookExplanationPanel {
 				<title>Playbook explanation</title>
 			</head>
 			<body>
-      <div class="playbookGeneration">
-        <div>
-          <p>Here a summary of the playbook.</p>
-          <p>And an explanation of the purpose of each task:
-          <ul>
-            <li><p>My first task  does this.</p></li>
-            <li><p>My second task is also doing that/p></li>
-          </ul>
-            ${explanation}
-          </p>
+        <div class="playbookGeneration">
+          ${html}
         </div>
-        <div class="feedbackContainer">
-          <vscode-button class="iconButton" appearance="icon" id="thumbsup-button">
-              <span class="codicon codicon-thumbsup"></span>
-          </vscode-button>
-          <vscode-button class="iconButton" appearance="icon" id="thumbsdown-button">
-              <span class="codicon codicon-thumbsdown"></span>
-          </vscode-button>
-        </div>
-      </div>
-
-
         <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
 			</body>
 			</html>`;
