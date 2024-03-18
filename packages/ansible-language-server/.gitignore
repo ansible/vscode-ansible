@@ -1,0 +1,29 @@
+.DS_Store
+.ignore/
+node_modules
+*.vsix
+*.tgz
+out/server
+out/.doctrees
+out/docs_out
+tsconfig.tsbuildinfo
+vscode-ansible
+.nyc_output
+*.lcov
+.env
+.tox
+.python-version
+__pycache__
+.temp
+UNKNOWN.egg-info
+# Used on GHA to generate changelogs:
+change-notes-*.md
+
+# Ignored because we support multiple versions and switch between them
+.node-version
+.task
+.venv
+out/next.md
+out/log
+site
+.cache

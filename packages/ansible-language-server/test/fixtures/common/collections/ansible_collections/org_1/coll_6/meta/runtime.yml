@@ -1,0 +1,10 @@
+---
+
+plugin_routing:
+  modules:
+    module_1:
+      redirect: org_1.coll_6.sub_coll_1.module_1
+    sub_coll_1.module_2:
+      redirect: org_1.coll_6.module_2
+      deprecation:
+        warning_text: "Usage of org_1.coll_6.sub_coll_1.module_2 is deprecated."

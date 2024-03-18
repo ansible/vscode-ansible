@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  roles:
+    - role: org_1.coll_1.role_1
+      test_manager: admin@test.com
+      become: True
+      tags: typeA

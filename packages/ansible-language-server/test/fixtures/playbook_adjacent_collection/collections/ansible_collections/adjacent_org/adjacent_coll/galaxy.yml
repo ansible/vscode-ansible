@@ -1,0 +1,9 @@
+---
+authors:
+  - "Ansible devtools team"
+description: "test adjacent collection"
+license_file: LICENSE
+name: coll_1
+namespace: org_1
+readme: README.md
+version: 1.0.0

@@ -1,0 +1,26 @@
+---
+- name: Test play
+  hosts: localhost
+  vars:
+    MY_VAR: faulty
+  tasks:
+    - ansible.builtin.debug:
+        msg: Happy debugging
+
+    - name: Comparison
+      ansible.builtin.ping:
+        data: 10101
+      when: MY_VAR != ''
+
+    - name: This would typically fire deprecated-command-syntax
+      command: warn=no chmod 644 X
+
+    - name: Copy the CA certificate
+      ansible.builtin.copy:
+        src: ../../files/certs/ca.crt
+        dest: /root/ca.crt
+        owner: root
+        group: root
+        mode: "0644"
+      tags:
+        - certs

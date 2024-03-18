@@ -1,0 +1,47 @@
+- name: Play name
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - mynamespace.mycollection
+    - mynamespace2.mycollection2
+  pre_tasks:
+    - name: PreTask name
+      mymodule:
+        option1: value1
+  tasks:
+    - name: Task name
+      mymodule:
+        option1: value1
+    - name: Block name
+      block:
+        - name: Task2 name
+          mymodule2:
+            option1: value1
+        - name: Nested block name
+          block:
+            - name: Task3 name
+              mymodule3:
+                option1: value1
+      rescue:
+        - name: Rescue task
+          mymodule2:
+            option1: value1
+      always:
+        - name: Always task
+          mymodule2:
+            option1: value1
+- name: Play name2
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Task name
+      mymodule:
+        option1: value1
+- name: Play name3
+  hosts: localhost
+  gather_facts: false
+  collections:
+  tasks:
+    - name: Task name
+      mymodule:
+        option1: value1

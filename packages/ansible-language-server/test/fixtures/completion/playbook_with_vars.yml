@@ -1,0 +1,52 @@
+---
+- name: Test the variable auto-completion
+  hosts: localhost
+  vars:
+    - os: fedora
+    - home: /home/ansible
+  vars_prompt:
+    - name: username
+      prompt: What is your username?
+      private: false
+    - name: password
+      prompt: What is your password?
+
+  tasks:
+    - name: The task belongs to {{  }}"
+      ansible.builtin.debug:
+        msg: "{{  }}"
+
+    - name: Functional block
+      vars:
+        - block_var_1: ["element_1", "element_2"]
+        - block_var_2:
+            object_1:
+              sub_object: option
+      block:
+        - name: Variables used in deeply nested module options
+          org_1.coll_1.module_1:
+            opt_1:
+              - sub_opt_1:
+                sub_opt_2:
+                  - sub_sub_opt_1: Hello {{ var }}
+          vars:
+            - task_var: "Hello world"
+
+    - name: Download apache
+      ansible.builtin.get_url:
+        url: "{{  }}"
+        mode: 0644
+      vars:
+        url: http://example.com/apache
+
+- name: Second play that involves a vars file
+  hosts: localhost
+  vars:
+    - mode: 0644
+    - filepath: /some/file/path
+  vars_files:
+    - default_vars.yml
+  tasks:
+    - name: Simple task
+      ansible.builtin.debug:
+        msg: "The log file is {{  }}"

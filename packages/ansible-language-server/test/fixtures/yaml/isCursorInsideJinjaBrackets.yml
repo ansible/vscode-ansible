@@ -1,0 +1,11 @@
+- name: Test play with tasks
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Test task {{  }}
+      some_module:
+        - opt: "{{  }}"
+
+    - name: Complex task {{ message }} name {{  }}
+      some_other_module:
+        - other_opt: { {} } # improper syntax
