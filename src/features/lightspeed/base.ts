@@ -33,7 +33,6 @@ import {
 export class LightSpeedManager {
   private context;
   public client;
-  public lsClient;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
   public apiInstance: LightSpeedAPI;
@@ -50,13 +49,11 @@ export class LightSpeedManager {
   constructor(
     context: vscode.ExtensionContext,
     client: LanguageClient,
-    lsClient: LanguageClient,
     settingsManager: SettingsManager,
     telemetry: TelemetryManager,
   ) {
     this.context = context;
     this.client = client;
-    this.lsClient = lsClient;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
