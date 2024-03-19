@@ -556,7 +556,11 @@ export async function waitForDiagnosisCompletion(
   let started = false;
   let done = false;
   let elapsed = 0;
-  while (!done && elapsed < timeout) {
+  // If either ansible-lint or ansible-playbook has started within the
+  // specified timeout value (default: 2000 msecs), we'll wait until
+  // it completes. Otherwise (e.g. when the validation is disabled),
+  // exit after the timeout.
+  while (!done && (started || elapsed < timeout)) {
     const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
     if (!started && processes.length > 0) {
       started = true;
