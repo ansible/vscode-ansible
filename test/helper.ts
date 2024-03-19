@@ -209,7 +209,7 @@ function diagnosticsToString(diagnostics: vscode.Diagnostic[]) {
   const array: {
     range: vscode.Range;
     message: string;
-    source?: string,
+    source?: string;
     severity: vscode.DiagnosticSeverity;
   }[] = [];
   for (const diagnostic of diagnostics) {
