@@ -84,15 +84,7 @@ export async function updateSettings(
   section = "ansible"
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration(section);
-  await ansibleConfiguration.update(setting, value);
-  // Make sure the new value is correctly set.
-  while (true) {
-    const newValue = ansibleConfiguration.get(setting);
-    if (newValue === value) {
-      break;
-    }
-    await sleep(100);
-  }
+  return ansibleConfiguration.update(setting, value);
 }
 
 export function setFixtureAnsibleCollectionPathEnv(
