@@ -205,77 +205,24 @@ export async function canRunLightspeedTests(): Promise<boolean> {
   return result === 200;
 }
 
-function diagnosticsToString(diagnostics: vscode.Diagnostic[]) {
-  const array: {
-    range: vscode.Range;
-    message: string;
-    source?: string;
-    severity: vscode.DiagnosticSeverity;
-  }[] = [];
-  for (const diagnostic of diagnostics) {
-    array.push({
-      range: diagnostic.range,
-      severity: diagnostic.severity,
-      source: diagnostic.source,
-      message: diagnostic.message,
-    });
-  }
-  return JSON.stringify(array);
-}
-
 export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[]
 ): Promise<void> {
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
-  assert.strictEqual(
-    actualDiagnostics.length,
-    expectedDiagnostics.length,
-    `The actual diagnostics are different from the expected: ${diagnosticsToString(
-      actualDiagnostics
-    )}`
-  );
+  assert.strictEqual(actualDiagnostics.length, expectedDiagnostics.length);
 
   if (actualDiagnostics.length && expectedDiagnostics.length) {
-    const getKey = (diagnostic: vscode.Diagnostic) =>
-      JSON.stringify({
-        range: diagnostic.range,
-        severity: diagnostic.severity,
-        source: diagnostic.source,
-      });
-
-    const actualDiagnosticsMap = new Map<string, vscode.Diagnostic>();
-    actualDiagnostics.forEach((actualDiagnostic) => {
-      const key = getKey(actualDiagnostic);
-      assert(
-        !actualDiagnosticsMap.has(key),
-        `${key} is not found in the actual diagnostics: ${diagnosticsToString(
-          actualDiagnostics
-        )}`
+    expectedDiagnostics.forEach((expectedDiagnostic, i) => {
+      const actualDiagnostic = actualDiagnostics[i];
+      assert.include(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
+      assert.deepEqual(actualDiagnostic.range, expectedDiagnostic.range);
+      assert.strictEqual(
+        actualDiagnostic.severity,
+        expectedDiagnostic.severity
       );
-
-      actualDiagnosticsMap.set(key, actualDiagnostic);
-    });
-
-    expectedDiagnostics.forEach((expectedDiagnostic) => {
-      const key = getKey(expectedDiagnostic);
-      assert(
-        actualDiagnosticsMap.has(key),
-        `${key} is not found in the actual diagnostics: ${diagnosticsToString(
-          actualDiagnostics
-        )}`
-      );
-      const actualDiagnostic = actualDiagnosticsMap.get(key);
-      assert(
-        actualDiagnostic,
-        `The diagnostic returned for key ${key} is empty`
-      );
-      assert.include(
-        actualDiagnostic.message,
-        expectedDiagnostic.message,
-        `${expectedDiagnostic.message} does not include ${actualDiagnostic.message}`
-      ); // subset of expected message
+      assert.strictEqual(actualDiagnostic.source, expectedDiagnostic.source);
     });
   }
 }
