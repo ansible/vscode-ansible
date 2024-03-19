@@ -22,8 +22,6 @@ env:
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
-  # Override activation wait time (in msecs)
-  ACTIVATION_WAIT_TIME: '2000'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
