@@ -788,6 +788,17 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   if (!editor) {
     return;
   }
+
+  // Clear the line of extra whitespace after the suggestion
+  // that causes ansible-lint errors
+  const selection = editor.selection;
+  const lineText = editor.document.lineAt(selection.active.line).text;
+  if (/^\s*$/.test(lineText)) {
+      editor.edit(editBuilder => {
+          editBuilder.delete(new vscode.Range(selection.active.line, 0, selection.active.line, lineText.length));
+      });
+  }
+
   if (
     !lightSpeedManager.settingsManager.settings.lightSpeedService
       .disableContentSuggestionHeader
@@ -798,7 +809,6 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   console.log(
     `[inline-suggestions] Inline Suggestion Marker Handler triggered using command at ${position.line}`
   );
-  vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
   if (editor) {
     // Get the current text
     const line = position.line;
