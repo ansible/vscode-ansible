@@ -205,13 +205,35 @@ export async function canRunLightspeedTests(): Promise<boolean> {
   return result === 200;
 }
 
+function diagnosticsToString(diagnostics: vscode.Diagnostic[]) {
+  const array: {
+    range: vscode.Range;
+    message: string;
+    severity: vscode.DiagnosticSeverity;
+  }[] = [];
+  for (const diagnostic of diagnostics) {
+    array.push({
+      range: diagnostic.range,
+      severity: diagnostic.severity,
+      message: diagnostic.message,
+    });
+  }
+  return JSON.stringify(array);
+}
+
 export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[]
 ): Promise<void> {
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
-  assert.strictEqual(actualDiagnostics.length, expectedDiagnostics.length);
+  assert.strictEqual(
+    actualDiagnostics.length,
+    expectedDiagnostics.length,
+    `The actual diagnostics are different from the expected: ${diagnosticsToString(
+      actualDiagnostics
+    )}`
+  );
 
   if (actualDiagnostics.length && expectedDiagnostics.length) {
     const getKey = (diagnostic: vscode.Diagnostic) =>
@@ -224,16 +246,34 @@ export async function testDiagnostics(
     const actualDiagnosticsMap = new Map<string, vscode.Diagnostic>();
     actualDiagnostics.forEach((actualDiagnostic) => {
       const key = getKey(actualDiagnostic);
-      assert(!actualDiagnosticsMap.has(key));
+      assert(
+        !actualDiagnosticsMap.has(key),
+        `${key} is not found in the actual diagnostics: ${diagnosticsToString(
+          actualDiagnostics
+        )}`
+      );
+
       actualDiagnosticsMap.set(key, actualDiagnostic);
     });
 
     expectedDiagnostics.forEach((expectedDiagnostic) => {
       const key = getKey(expectedDiagnostic);
-      assert(actualDiagnosticsMap.has(key));
+      assert(
+        actualDiagnosticsMap.has(key),
+        `${key} is not found in the actual diagnostics: ${diagnosticsToString(
+          actualDiagnostics
+        )}`
+      );
       const actualDiagnostic = actualDiagnosticsMap.get(key);
-      assert(actualDiagnostic);
-      assert.include(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
+      assert(
+        actualDiagnostic,
+        `The diagnostic returned for key ${key} is empty`
+      );
+      assert.include(
+        actualDiagnostic.message,
+        expectedDiagnostic.message,
+        `${expectedDiagnostic.message} does not include ${actualDiagnostic.message}`
+      ); // subset of expected message
     });
   }
 }
@@ -562,7 +602,7 @@ export async function testValidJinjaBrackets(
 
 export async function waitForDiagnosisCompletion(
   interval = 100,
-  timeout = 20000
+  timeout = 2000
 ) {
   let started = false;
   let done = false;
@@ -574,7 +614,7 @@ export async function waitForDiagnosisCompletion(
     } else if (started && processes.length === 0) {
       done = true;
     }
-    sleep(interval);
+    await sleep(interval);
     elapsed += interval;
   }
 }
