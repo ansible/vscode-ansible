@@ -797,47 +797,53 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
     lightSpeedManager.settingsManager.settings.lightSpeedService
       .disableContentSuggestionHeader
   ) {
-      // Get the current text
-      const line = position.line;
+    // Get the current text
+    const line = position.line;
 
-      const text = editor.document.getText(
+    const text = editor.document.getText(
+      new vscode.Range(
+        new vscode.Position(line, 0),
+        new vscode.Position(line + 1, 0)
+      )
+    );
+    // Remove the prepended text
+    const commentPosition = text.indexOf(
+      LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT
+    );
+    if (commentPosition === -1) {
+      return;
+    }
+
+    // Update the editor with the new text
+    await editor.edit((editBuilder) => {
+      editBuilder.delete(
         new vscode.Range(
           new vscode.Position(line, 0),
           new vscode.Position(line + 1, 0)
         )
       );
-      // Remove the prepended text
-      const commentPosition = text.indexOf(
-        LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT
-      );
-      if (commentPosition === -1) {
-        return;
-      }
-  
-      // Update the editor with the new text
-      await editor.edit((editBuilder) => {
-        editBuilder.delete(
-          new vscode.Range(
-            new vscode.Position(line, 0),
-            new vscode.Position(line + 1, 0)
-          )
-        );
-      });
+    });
   }
   console.log(
-    '[inline-suggestions] Inline Suggestion Marker Handler removing extra whitespace'
+    "[inline-suggestions] Inline Suggestion Marker Handler removing extra whitespace"
   );
-  
+
   // Clear the line of extra whitespace after the suggestion
   // that causes ansible-lint errors
   const selection = editor.selection;
   const lineText = editor.document.lineAt(selection.active.line).text;
   if (/^\s*$/.test(lineText)) {
-      editor.edit(editBuilder => {
-          editBuilder.delete(new vscode.Range(selection.active.line, 0, selection.active.line, lineText.length));
-      });
+    editor.edit((editBuilder) => {
+      editBuilder.delete(
+        new vscode.Range(
+          selection.active.line,
+          0,
+          selection.active.line,
+          lineText.length
+        )
+      );
+    });
   }
-
 }
 
 export async function inlineSuggestionCommitHandler() {
