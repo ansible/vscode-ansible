@@ -161,7 +161,7 @@ describe("testing the error handling", () => {
     const msg = retrieveError(createError(401));
     assert.equal(
       msg,
-      "User not authorized to access Ansible Lightspeed. Please contact your administrator."
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
     );
   });
   // =================================
@@ -177,7 +177,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       msg,
-      `You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.`
+      "You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat."
     );
   });
 
@@ -201,7 +201,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       msg,
-      `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant by moving to one of the paid plans.`
+      "Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant by moving to one of the paid plans."
     );
   });
 
@@ -213,7 +213,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       msg,
-      `Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.`
+      "Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization."
     );
   });
 
@@ -221,7 +221,7 @@ describe("testing the error handling", () => {
     const msg = retrieveError(createError(403));
     assert.equal(
       msg,
-      `User not authorized to access Ansible Lightspeed. Please contact your administrator.`
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
     );
   });
 
@@ -283,7 +283,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       msg,
-      "The Terms of Use have not been accepted. Please accept the terms before proceeding."
+      "You have not accepted the Terms of Use. Please accept them before proceeding."
     );
   });
 
@@ -295,7 +295,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       msg,
-      "The User does not have a subscription. Please contact your administrator."
+      "Your organization does not have a subscription. Please contact your administrator."
     );
   });
   // =================================
@@ -319,7 +319,7 @@ describe("testing the error handling", () => {
     const msg = retrieveError(createError(500));
     assert.equal(
       msg,
-      `An error occurred attempting to complete your request. Please try again later.`
+      "An error occurred attempting to complete your request. Please try again later."
     );
   });
 
@@ -327,7 +327,7 @@ describe("testing the error handling", () => {
     const msg = retrieveError(createError(500, { code: "internal_server" }));
     assert.equal(
       msg,
-      `An error occurred attempting to complete your request. Please try again later.`
+      "An error occurred attempting to complete your request. Please try again later."
     );
   });
 

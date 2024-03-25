@@ -40,7 +40,7 @@ export const ERRORS = new Errors();
 
 export const ERRORS_UNAUTHORIZED = new ErrorHolder(
   "fallback__unauthorized",
-  "User not authorized to access Ansible Lightspeed. Please contact your administrator."
+  "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
 );
 export const ERRORS_TOO_MANY_REQUESTS = new ErrorHolder(
   "fallback__too_many_requests",
@@ -143,21 +143,21 @@ ERRORS.addError(
   403,
   new ErrorHolder(
     "permission_denied__terms_of_use_not_accepted",
-    "The Terms of Use have not been accepted. Please accept the terms before proceeding."
+    "You have not accepted the Terms of Use. Please accept them before proceeding."
   )
 );
 ERRORS.addError(
   403,
   new ErrorHolder(
     "permission_denied__user_not_org_administrator",
-    "The User is not an Administrator of the Organization."
+    "You are not an Administrator of the Organization."
   )
 );
 ERRORS.addError(
   403,
   new ErrorHolder(
     "permission_denied__user_has_no_subscription",
-    "The User does not have a subscription. Please contact your administrator."
+    "Your organization does not have a subscription. Please contact your administrator."
   )
 );
 ERRORS.addError(
