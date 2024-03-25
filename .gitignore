@@ -25,3 +25,4 @@ coverage
 *.pyc
 
 test/testFixtures/.vscode/
+examples/.vscode/
