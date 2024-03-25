@@ -1,5 +1,4 @@
 .playbookGeneration {
-  position: relative;
   right: 0px;
   bottom: 0px;
 }
@@ -13,12 +12,8 @@
 }
 
 .editArea {
-  width: 100%;
   position: relative;
-  right: 0px;
-  bottom: 0px;
   border-style: none;
-  /* border-style: dotted; */
 }
 
 .editArea>vscode-text-area {
@@ -43,13 +38,19 @@
   width: 100%
 }
 
-.bigIconButton {
-  width: 64px;
+.bigIconButtonContainer {
+  position: relative;
+  margin: 0.5em;
+  width: 100%;
   height: 48px;
+  display: block;
+}
+
+.bigIconButton {
+  width: 56px;
+  height: 42px;
   position: absolute;
   right: 20px;
-  bottom: 20px;
-  z-index: 100;
   display: flex;
 }
 
@@ -79,43 +80,48 @@
   bottom: 3px;
 }
 
-.editUndoFeedbackContainer {
-  position: absolute;
-  left: 0px;
-  bottom: 0px;
+.resetFeedbackContainer {
+  margin: 0.25em;
+  position: relative;
   width: 100%;
+  height: 36px;
   display: none;
 }
 
-.editUndoContainer {
+.resetContainer {
   position: absolute;
-  left: 20px;
-  bottom: 20px;
-  display: block;
+  left: 0px;
+  bottom: 5px;
+  display: flow;
 }
 
 .feedbackContainer {
   position: absolute;
-  right: 22px;
-  bottom: 20px;
+  right: 20px;
+  bottom: 0px;
   display: flex;
 }
 
-.createPlaybookContainer {
+.generatePlaybookContainer {
   margin-top: 3em;
-}
-
-.restartButtonContainer {
-  margin-top: 1em;
+  display: none;
 }
 
 .examplesContainer {
   margin-top: 1em;
 }
 
-.examplesButtonContainer {
-  display: flex;
-  flex-wrap: wrap;
+.exampleTextContainer {
+  margin: 0.5em;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  border-style: solid;
+  border-width: thin;
+  border-radius: 8px;
+  width: fit-content;
+  max-width: 90%;
 }
 
 .continueButtonContainer {
@@ -129,21 +135,19 @@
 }
 
 .iconButton {
+  width: 36px;
+  height: 36px;
   margin: 0.2em;
-  padding: 0.5em;
-  border-style: solid;
-  border-width: thin;
-  border-radius: 50%;
 }
 
 .textFieldFullWidth {
   width: 100%;
 }
 
-.awsExample {
-  display: flex;
+.firstMessage {
+  display: block;
 }
 
-.azureExample {
+.secondMessage {
   display: none;
 }
