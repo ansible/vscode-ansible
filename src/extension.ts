@@ -418,7 +418,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal
         ) {
           terminal = vscode.window.terminals.find(
-            (terminal) => terminal.name === "Ansible Terminal",
+            (terminal) => terminal.name === "Ansible Terminal"
           ) as vscode.Terminal;
         }
         terminal = vscode.window.createTerminal({
