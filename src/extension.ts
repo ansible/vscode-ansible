@@ -64,7 +64,7 @@ import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
-import { AnsibleCreatorInit } from "./features/contentCreator/initPage";
+import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { LightspeedAuthSession } from "./interfaces/lightspeed";

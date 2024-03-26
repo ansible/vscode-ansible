@@ -19,12 +19,12 @@
 !media/contentCreator/icons/ansible-creator-init.png
 !media/contentCreator/icons/ansible-creator-sample.png
 !media/contentCreator/icons/ansible-logo-red.png
-!media/contentCreator/initPageStyle.css
+!media/contentCreator/scaffoldCollectionPageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !out/client/src/extension.js
 !out/client/webview/apps/lightspeed/main.js
 !out/client/webview/apps/contentCreator/welcomePageApp.js
-!out/client/webview/apps/contentCreator/initPageApp.js
+!out/client/webview/apps/contentCreator/scaffoldCollectionPageApp.js
 !out/server/src/server.js
 !package.json
 !package.nls.json

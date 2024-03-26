@@ -29,8 +29,8 @@ export class AnsibleCreatorInit {
       AnsibleCreatorInit.currentPanel._panel.reveal(vscode.ViewColumn.One);
     } else {
       const panel = vscode.window.createWebviewPanel(
-        "content-creator-init",
-        "Ansible Content Creator: Init",
+        "scaffold-ansible-collection",
+        "Scaffold Ansible Collection",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -73,14 +73,14 @@ export class AnsibleCreatorInit {
       "webview",
       "apps",
       "contentCreator",
-      "initPageApp.js",
+      "scaffoldCollectionPageApp.js",
     ]);
 
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
       "contentCreator",
-      "initPageStyle.css",
+      "scaffoldCollectionPageStyle.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [
@@ -105,7 +105,7 @@ export class AnsibleCreatorInit {
         </head>
 
         <body>
-            <h1>Ansible Creator: Init</h1>
+            <h1>Scaffold Ansible Collection</h1>
             <form id="init-form">
               <section class="component-container">
 
