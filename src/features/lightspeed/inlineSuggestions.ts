@@ -833,7 +833,7 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   const selection = editor.selection;
   const lineText = editor.document.lineAt(selection.active.line).text;
   if (/^\s*$/.test(lineText)) {
-    editor.edit((editBuilder) => {
+    await editor.edit((editBuilder) => {
       editBuilder.delete(
         new vscode.Range(
           selection.active.line,
