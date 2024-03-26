@@ -4,11 +4,13 @@ import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import * as marked from "marked";
+import { SettingsManager } from "../../settings";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider
+  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  settingsManager: SettingsManager
 ) => {
   if (!vscode.window.activeTextEditor) {
     return;
@@ -20,10 +22,11 @@ export const playbookExplanation = async (
   const content = document.getText();
 
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
-  const explanation: string = await client.sendRequest(
-    "playbook/explanation",
-    { accessToken: accessToken, content: content }
-  );
+  const explanation: string = await client.sendRequest("playbook/explanation", {
+    accessToken: accessToken,
+    URL: settingsManager.settings.lightSpeedService.URL,
+    content: content,
+  });
 
   PlaybookExplanationPanel.createOrShow(extensionUri, explanation);
 };

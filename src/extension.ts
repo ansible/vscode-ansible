@@ -249,7 +249,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await playbookExplanation(
           context.extensionUri,
           client,
-          lightSpeedManager.lightSpeedAuthenticationProvider
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.settingsManager
         );
       }
     )

@@ -24,6 +24,7 @@ import { ValidationManager } from "./services/validationManager";
 import { WorkspaceManager } from "./services/workspaceManager";
 import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
 import axios from "axios";
+import { getBaseUri } from "./utils/webUtils";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -353,6 +354,7 @@ export class AnsibleLanguageService {
 
     this.connection.onRequest("playbook/explanation", async (params) => {
       const accessToken: string = params["accessToken"];
+      const URL: string = params["URL"];
       const content: string = params["content"];
 
       const headers = {
@@ -361,7 +363,7 @@ export class AnsibleLanguageService {
       };
 
       const axiosInstance = axios.create({
-        baseURL: `http://localhost:8000/api/v0`,
+        baseURL: `${getBaseUri(URL)}/api/v0`,
         headers: headers,
       });
 
