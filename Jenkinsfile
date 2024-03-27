@@ -21,6 +21,7 @@ node('rhel8') {
 
   stage('build') {
     sh 'yarn install'
+    sh 'yarn run als-compile'
     sh 'yarn run compile'
     sh 'yarn run webpack'
   }
