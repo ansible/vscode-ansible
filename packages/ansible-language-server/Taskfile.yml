@@ -82,7 +82,7 @@ tasks:
       # as we want to avoid using different node versions across the projects.
       # 2nd node version is used for preparing for new versions
       - asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)
-      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit autoupdate"
+      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - npm outdated
       # bumps some developments dependencies
       - npx ncu -u --dep dev
@@ -96,7 +96,7 @@ tasks:
       <<: *env
       PRE_COMMIT_COLOR: always
     cmds:
-      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit run -a"
+      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
     silent: true
     sources:
       - "*.*"
