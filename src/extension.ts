@@ -498,6 +498,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
       window.showInformationMessage("Thank you for your feedback!");
     }),
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.enableExperimentalFeatures",
+      () => {
+        vscode.commands.executeCommand(
+          "setContext",
+          "redhat.ansible.lightspeedExperimentalEnabled",
+          true
+        );
+      }
+    )
+  );
 }
 
 const startClient = async (

@@ -251,5 +251,10 @@ export class LightSpeedManager {
       "redhat.ansible.lightspeedSuggestionsEnabled",
       this.inlineSuggestionsEnabled,
     );
+    vscode.commands.executeCommand(
+      "setContext",
+      "redhat.ansible.enableExperimentalFeatures",
+      false
+    );
   }
 }
