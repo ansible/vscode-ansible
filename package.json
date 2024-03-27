@@ -255,15 +255,22 @@
       },
       {
         "command": "ansible.lightspeed.showPlaybookGenerationPage",
-        "title": "Show Playbook Generation Page"
+        "title": "Show Playbook Generation Page",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
       },
       {
         "command": "ansible.lightspeed.thumbsUpDown",
-        "title": "Send Lightspeed Thumbs Up/Down Feedback"
+        "title": "Send Lightspeed Thumbs Up/Down Feedback",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
       },
       {
         "command": "ansible.lightspeed.playbookExplanation",
-        "title": "Ansible Lightspeed: Playbook explanation"
+        "title": "Ansible Lightspeed: Playbook explanation",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+      },
+      {
+        "command": "ansible.lightspeed.enableExperimentalFeatures",
+        "title": "Ansible Lightspeed: Enable experimental features"
       }
     ],
     "configuration": [
