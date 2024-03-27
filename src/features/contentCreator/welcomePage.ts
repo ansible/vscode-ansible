@@ -272,6 +272,16 @@ export class AnsibleCreatorMenu {
         .trim();
     }
 
+    // get ansible-creator version
+    const ansibleDevEnvironmentVersion = await this.getBinDetail(
+      "ade",
+      "--version"
+    );
+    if (ansibleDevEnvironmentVersion !== "failed") {
+      systemInfo["ansible-dev-environment version"] =
+        ansibleDevEnvironmentVersion.toString().trim();
+    }
+
     // send the system details to the webview
     webView.postMessage({ command: "systemDetails", arguments: systemInfo });
   }
