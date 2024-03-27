@@ -111,9 +111,37 @@ const contentCreatorInitWebviewConfig = {
   },
 };
 
+const playbookGenerationWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/playbookGeneration/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/playbookGeneration/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+const playbookExplanationWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/playbookExplanation/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/playbookExplanation/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 module.exports = [
   config,
   webviewConfig,
   contentCreatorMenuWebviewConfig,
   contentCreatorInitWebviewConfig,
+  playbookGenerationWebviewConfig,
+  playbookExplanationWebviewConfig,
 ];
