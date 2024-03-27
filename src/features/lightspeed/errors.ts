@@ -1,50 +1,86 @@
+import { AxiosError } from "axios";
 import { IError } from "../../interfaces/lightspeed";
 
 class Error implements IError {
   readonly code: string;
   readonly message?: string;
   readonly detail?: unknown;
+  readonly check: (err: AxiosError) => boolean;
 
-  public constructor(code: string, message?: string, detail?: unknown) {
+  private getCode(err: AxiosError): string {
+    const responseErrorData = <AxiosError<{ code?: string; message?: string }>>(
+      err?.response?.data
+    );
+    const code: string = responseErrorData.hasOwnProperty("code")
+      ? (responseErrorData.code as string)
+      : "unknown";
+    return code;
+  }
+
+  public constructor(
+    code: string,
+    message?: string,
+    detail?: unknown,
+    check?: (err: AxiosError) => boolean
+  ) {
     this.code = code;
     this.message = message;
     this.detail = detail;
-  }
-
-  public withMessage(message?: string): Error {
-    return new Error(this.code, message, this.detail);
+    if (check) {
+      this.check = check;
+    } else {
+      this.check = (err: AxiosError) => {
+        return this.code === this.getCode(err);
+      };
+    }
   }
 
   public withDetail(detail?: unknown): Error {
-    return new Error(this.code, this.message, detail);
+    // Clone the Error to preserve the original definition
+    return new Error(this.code, this.message, detail, this.check);
   }
 }
 
 class Errors {
-  private errors: Map<number, Array<IError>> = new Map();
+  private errors: Map<number, Array<Error>> = new Map();
 
-  public addError(statusCode: number, error: IError) {
+  public addError(statusCode: number, error: Error) {
     if (!this.errors.has(statusCode)) {
       this.errors.set(statusCode, []);
     }
     this.errors.get(statusCode)?.push(error);
   }
 
-  public getError(statusCode: number, code: string): Error | undefined {
-    if (!this.errors.has(statusCode)) {
+  public getError(err: AxiosError): Error | undefined {
+    if (err && !("response" in err)) {
       return undefined;
     }
-    const errors: Array<IError> | undefined = this.errors.get(statusCode);
+
+    const statusCode: number = err.response?.status ?? 500;
+    const errors: Array<Error> | undefined = this.errors.get(statusCode);
     if (!errors) {
       return undefined;
     }
-    const e: IError | undefined = errors.find(function (el: IError) {
-      return el.code === code;
+    const e: Error | undefined = errors.find(function (el: Error) {
+      return el.check(err);
     });
+
     if (e) {
-      // Clone the object as we may update the associated message
-      return new Error(e.code, e.message);
+      // If the Error does not have a default message use the payload message
+      let message = e.message;
+      if (message === undefined) {
+        const responseErrorData = <
+          AxiosError<{ code?: string; message?: string }>
+        >err?.response?.data;
+        message = responseErrorData.hasOwnProperty("message")
+          ? (responseErrorData.message as string)
+          : "unknown";
+      }
+      // Clone the Error to preserve the original definition
+      const detail = err.response?.data;
+      return new Error(e.code, message, detail, e.check);
     }
+
     return undefined;
   }
 }
@@ -74,12 +110,6 @@ export const ERRORS_UNKNOWN = new Error(
 export const ERRORS_CONNECTION_TIMEOUT = new Error(
   "fallback__connection_timeout",
   "Ansible Lightspeed connection timeout. Please try again later.",
-);
-export const ERRORS_CLOUDFRONT = new Error(
-  "permission_denied__cloudfront",
-  "Something in your editor content has caused your inline suggestion request to be blocked. \n" +
-    "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
-    "line and column where you requested a suggestion.",
 );
 
 ERRORS.addError(
@@ -203,6 +233,34 @@ ERRORS.addError(
     "permission_denied__user_with_no_seat",
     "You don't have access to IBM watsonx Code Assistant. Please contact your administrator.",
   ),
+);
+ERRORS.addError(
+  403,
+  new Error(
+    "permission_denied__cloudfront",
+    "Something in your editor content has caused your inline suggestion request to be blocked. \n" +
+      "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
+      "line and column where you requested a suggestion.",
+    undefined,
+    (err: AxiosError) => {
+      const body: unknown = err?.response?.data;
+      let bodyContainsCloudFront: boolean = false;
+      let bodyContainsCloudFrontBlocked: boolean = false;
+      const headerContainsCloudFrontServer: boolean =
+        (err?.response?.headers["server"] || "").toLowerCase() === "cloudfront";
+      if (typeof body === "string") {
+        bodyContainsCloudFront =
+          (body.toLowerCase().match("cloudfront")?.length || 0) > 0;
+        bodyContainsCloudFrontBlocked =
+          (body.toLowerCase().match("blocked")?.length || 0) > 0;
+      }
+      return (
+        bodyContainsCloudFront &&
+        bodyContainsCloudFrontBlocked &&
+        headerContainsCloudFrontServer
+      );
+    }
+  )
 );
 
 ERRORS.addError(

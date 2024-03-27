@@ -6,8 +6,8 @@ import assert from "assert";
 
 function createError(
   http_code: number,
-  data = {},
-  err_headers = {},
+  data: unknown | string = {},
+  err_headers = {}
 ): AxiosError {
   const request = { path: "/wisdom" };
   const headers = new AxiosHeaders({
@@ -229,13 +229,31 @@ describe("testing the error handling", () => {
     const error = mapError(
       createError(
         403,
-        { data: "Some string from CloudFront." },
-        { server: "CloudFront" },
-      ),
+        "<html><body><p>Blocked by CloudFront.</p></body></html>",
+        { server: "CloudFront" }
+      )
     );
     assert.match(
       error.message ?? "",
       /Something in your editor content has caused your inline suggestion request to be blocked.*/,
+    );
+  });
+
+  it("err Not a Bad Request from CloudFront", () => {
+    const error = mapError(
+      createError(
+        403,
+        { data: "something else happened" },
+        { server: "CloudFront" }
+      )
+    );
+    assert.doesNotMatch(
+      error.message ?? "",
+      /Something in your editor content has caused your inline suggestion request to be blocked.*/
+    );
+    assert.equal(
+      error.message,
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
     );
   });
 
