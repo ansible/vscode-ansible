@@ -9,6 +9,7 @@ import {
   FeedbackResponseParams,
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
+  IError,
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
@@ -20,8 +21,10 @@ import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { UserAction } from "../../definitions/lightspeed";
-import { retrieveError } from "./handleApiError";
+import { mapError } from "./handleApiError";
 import { lightSpeedManager } from "../../extension";
+
+const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -142,7 +145,8 @@ export class LightSpeedAPI {
     } catch (error) {
       this._inlineSuggestionFeedbackIgnoredPending = false;
       const err = error as AxiosError;
-      vscode.window.showErrorMessage(retrieveError(err));
+      const mappedError: IError = mapError(err);
+      vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
       return {} as CompletionResponseParams;
     } finally {
       if (this._inlineSuggestionFeedbackIgnoredPending) {
@@ -215,14 +219,20 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      vscode.window.showErrorMessage(retrieveError(err));
+      const mappedError: IError = mapError(err);
+      const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
+      if (showInfoMessage) {
+        vscode.window.showErrorMessage(errorMessage);
+      } else {
+        console.error(errorMessage);
+      }
       return {} as FeedbackResponseParams;
     }
   }
 
   public async contentMatchesRequest(
     inputData: ContentMatchesRequestParams
-  ): Promise<ContentMatchesResponseParams> {
+  ): Promise<ContentMatchesResponseParams | IError> {
     // return early if the user is not authenticated
     if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
       vscode.window.showErrorMessage(
@@ -256,8 +266,8 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      vscode.window.showErrorMessage(retrieveError(err));
-      return {} as ContentMatchesResponseParams;
+      const mappedError: IError = mapError(err);
+      return mappedError;
     }
   }
 }

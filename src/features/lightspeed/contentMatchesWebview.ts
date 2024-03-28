@@ -9,6 +9,7 @@ import {
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
+  IError,
 } from "../../interfaces/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import * as yaml from "yaml";
@@ -61,7 +62,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   async requestInlineSuggestContentMatches(
     suggestion: string,
     suggestionId: string
-  ): Promise<ContentMatchesResponseParams> {
+  ): Promise<ContentMatchesResponseParams | IError> {
     const taskArray = suggestion
       .trim()
       .split(/\n\s*\n/)
@@ -83,7 +84,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       )}`
     );
 
-    const outputData: ContentMatchesResponseParams =
+    const outputData: ContentMatchesResponseParams | IError =
       await this.apiInstance.contentMatchesRequest(contentMatchesRequestData);
     this.log(
       `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
@@ -107,22 +108,88 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     this._view.webview.html = "";
   }
 
+  public isError(
+    contentMatchResponses: ContentMatchesResponseParams | IError
+  ): contentMatchResponses is IError {
+    return (contentMatchResponses as IError).code !== undefined;
+  }
+
   private async getWebviewContent(): Promise<string> {
-    const noContentMatchesFoundHtml = `<html><body>No training matches found for the latest accepted suggestion.</body></html>`;
+    const noActiveSuggestionHtml = `
+      <html>
+        <body>
+          <p>Training matches will be displayed here after you accept an inline suggestion.</p>
+        </body>
+      </html>`;
     if (
       this.suggestionDetails.length === 0 ||
       !this.suggestionDetails[0].suggestion
     ) {
-      return noContentMatchesFoundHtml;
+      return noActiveSuggestionHtml;
     }
+
     const suggestion = this.suggestionDetails[0].suggestion;
     const suggestionId = this.suggestionDetails[0].suggestionId;
-
     const contentMatchResponses = await this.requestInlineSuggestContentMatches(
       suggestion,
       suggestionId
     );
     this.log(contentMatchResponses);
+
+    if (this.isError(contentMatchResponses)) {
+      return this.getErrorWebviewContent(contentMatchResponses);
+    } else {
+      return this.getContentMatchWebviewContent(
+        suggestion,
+        contentMatchResponses
+      );
+    }
+  }
+
+  private async getErrorWebviewContent(error: IError) {
+    let detail: unknown = error.detail;
+    if (typeof error.detail === "string") {
+      detail = error.detail as string;
+    } else if (typeof error.detail === "object") {
+      detail = JSON.stringify(error.detail, undefined, "  ");
+    }
+    let htmlDetail: string | undefined = undefined;
+    if (detail !== undefined) {
+      htmlDetail = `
+        <details>
+          <summary><b>Detail:</b></summary>
+          <p>${detail}</p>
+        </details>
+      `;
+    }
+
+    const errorHtml = `
+      <html>
+        <head>
+          <!-- https://code.visualstudio.com/api/extension-guides/webview#content-security-policy -->
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none';">
+        </head>
+        <body>
+        <p>An error occurred trying to retrieve the training matches.</p>
+        <p><b>Message:</b> ${error.message}</p>
+        ${htmlDetail}
+        </body>
+      </html>
+    `;
+    return errorHtml;
+  }
+
+  private async getContentMatchWebviewContent(
+    suggestion: string,
+    contentMatchResponses: ContentMatchesResponseParams
+  ) {
+    const noContentMatchesFoundHtml = `
+      <html>
+        <body>
+          <p>No training matches found for the latest accepted suggestion.</p>
+        </body>
+      </html>
+    `;
     if (
       Object.keys(contentMatchResponses).length === 0 ||
       contentMatchResponses.contentmatches.length === 0
@@ -168,12 +235,13 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
         rhUserHasSeat === true
       );
     }
-    const html = `<html>
+    const html = `
+      <html>
         <body>
           ${contentMatchesHtml}
         </body>
       </html>
-      `;
+    `;
     return html;
   }
 
