@@ -118,7 +118,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     const noActiveSuggestionHtml = `
       <html>
         <body>
-          <p>Training matches cannot be retrieved. No active suggestion found.</p>
+          <p>Training matches will be displayed here after you accept an inline suggestion.</p>
         </body>
       </html>`;
     if (
@@ -153,6 +153,15 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     } else if (typeof error.detail === "object") {
       detail = JSON.stringify(error.detail, undefined, "  ");
     }
+    let htmlDetail: string | undefined = undefined;
+    if (detail !== undefined) {
+      htmlDetail = `
+        <details>
+          <summary><b>Detail:</b></summary>
+          <p>${detail}</p>
+        </details>
+      `;
+    }
 
     const errorHtml = `
       <html>
@@ -163,10 +172,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
         <body>
         <p>An error occurred trying to retrieve the training matches.</p>
         <p><b>Message:</b> ${error.message}</p>
-        <details>
-          <summary><b>Detail:</b></summary>
-          <p>${detail}</p>
-        </details>
+        ${htmlDetail}
         </body>
       </html>
     `;
