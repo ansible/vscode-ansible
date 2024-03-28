@@ -1,3 +1,4 @@
+// Function-level tests for Lightspeed
 import sinon from "sinon";
 import { getLoggedInSessionDetails } from "../../../src/features/lightspeed/utils/webUtils";
 import { LightspeedAuthSession } from "../../../src/interfaces/lightspeed";
