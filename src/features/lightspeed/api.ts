@@ -220,7 +220,12 @@ export class LightSpeedAPI {
     } catch (error) {
       const err = error as AxiosError;
       const mappedError: IError = mapError(err);
-      vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
+      if (showInfoMessage) {
+        vscode.window.showErrorMessage(errorMessage);
+      } else {
+        console.error(errorMessage);
+      }
       return {} as FeedbackResponseParams;
     }
   }
@@ -262,7 +267,6 @@ export class LightSpeedAPI {
     } catch (error) {
       const err = error as AxiosError;
       const mappedError: IError = mapError(err);
-      vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
       return mappedError;
     }
   }

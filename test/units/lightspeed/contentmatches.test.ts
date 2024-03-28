@@ -113,7 +113,7 @@ describe("GetWebviewContent", () => {
     assert.match(
       res,
       new RegExp(
-        "Training matches cannot be retrieved. No active suggestion found."
+        "Training matches will be displayed here after you accept an inline suggestion."
       )
     );
   });
@@ -239,5 +239,27 @@ describe("GetWebviewContent", () => {
     );
     assert.match(res, new RegExp("An error occurred"));
     assert.match(res, new RegExp('{\n  "cheese": "edam"\n}'));
+  });
+
+  it("no suggestion with error - undefined", async function () {
+    const cmw = createContentMatchesWebview();
+    cmw.suggestionDetails = [
+      {
+        suggestion: "- name: foo\n  my.mod:\n",
+        suggestionId: "bar",
+      } as ISuggestionDetails,
+    ];
+    cmw.apiInstance.contentMatchesRequest = async (
+      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+    ): Promise<IError> => {
+      return createMatchErrorResponse(undefined);
+    };
+
+    const res = await cmw["getWebviewContent"]();
+    assert.match(
+      res,
+      new RegExp("An error occurred trying to retrieve the training matches.")
+    );
+    assert.doesNotMatch(res, new RegExp("<details>"));
   });
 });
