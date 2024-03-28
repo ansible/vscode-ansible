@@ -25,6 +25,7 @@ let initCreateButton: Button;
 let initClearButton: Button;
 
 let forceCheckbox: Checkbox;
+let editableModeInstall: Checkbox;
 
 let logToFileCheckbox: Checkbox;
 let logToFileOptionsDiv: HTMLElement | null;
@@ -61,6 +62,9 @@ function main() {
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
 
   forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
+  editableModeInstall = document.getElementById(
+    "editable-mode-checkbox"
+  ) as Checkbox;
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox"
   ) as Checkbox;
@@ -119,6 +123,8 @@ function main() {
   initCollectionPathElement = document.createElement("p");
   initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
+
+  toggleEditableModeInstallCheckBox();
 }
 
 function openExplorer(event: any) {
@@ -191,6 +197,24 @@ function toggleCreateButton() {
   }
 }
 
+function toggleEditableModeInstallCheckBox() {
+  vscode.postMessage({
+    command: "check-ade-presence",
+  });
+
+  window.addEventListener("message", (event) => {
+    const message = event.data; // The JSON data our extension sent
+
+    if (message.command === "ADEPresence") {
+      if (message.arguments) {
+        editableModeInstall.disabled = false;
+      } else {
+        editableModeInstall.disabled = true;
+      }
+    }
+  });
+}
+
 function handleInitClearClick() {
   initNamespaceNameTextField.value = "";
   initCollectionNameTextField.value = "";
@@ -200,6 +224,7 @@ function handleInitClearClick() {
   initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
 
   forceCheckbox.checked = false;
+  editableModeInstall.checked = false;
   verboseDropdown.currentValue = "Off";
 
   initCreateButton.disabled = true;
@@ -238,11 +263,12 @@ function handleInitCreateClick() {
       logFileAppend: logFileAppendCheckbox.checked,
       logLevel: logLevelDropdown.currentValue.trim(),
       isForced: forceCheckbox.checked,
+      isEditableModeInstall: editableModeInstall.checked,
     } as AnsibleCreatorInitInterface,
   });
 
-  window.addEventListener("message", (event) => {
-    const message = event.data;
+  window.addEventListener("message", async (event) => {
+    const message = await event.data;
 
     switch (message.command) {
       case "execution-log":
@@ -263,7 +289,7 @@ function handleInitCreateClick() {
 
         scaffoldedFolderUrl = message.arguments.collectionUrl;
 
-        break;
+        return;
     }
   });
 }
