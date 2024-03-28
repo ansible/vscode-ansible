@@ -10,7 +10,7 @@ export const playbookExplanation = async (
   extensionUri: vscode.Uri,
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-  settingsManager: SettingsManager
+  settingsManager: SettingsManager,
 ) => {
   if (!vscode.window.activeTextEditor) {
     return;
@@ -19,16 +19,34 @@ export const playbookExplanation = async (
   if (document?.languageId !== "ansible") {
     return;
   }
+  const currentPanel = PlaybookExplanationPanel.createOrShow(extensionUri);
+  currentPanel.setContent(
+    `<div id="icons">
+        <span class="codicon codicon-loading codicon-modifier-spin"></span>
+        Loading the explanation for ${document.fileName.split("/").at(-1)}
+      </div>`,
+  );
+
   const content = document.getText();
 
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
-  const explanation: string = await client.sendRequest("playbook/explanation", {
-    accessToken: accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content: content,
-  });
+  let markdown = "";
+  try {
+    markdown = await client.sendRequest("playbook/explanation", {
+      accessToken: accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content: content,
+    });
+  } catch (e) {
+    console.log(e);
+    currentPanel.setContent(
+      `<p><span class="codicon codicon-error"></span>Cannot load the explanation: <code>${e}</code></p>`,
+    );
+    return;
+  }
 
-  PlaybookExplanationPanel.createOrShow(extensionUri, explanation);
+  const html_snippet = await marked.parse(markdown);
+  currentPanel.setContent(html_snippet, true);
 };
 
 export class PlaybookExplanationPanel {
@@ -40,7 +58,7 @@ export class PlaybookExplanationPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
 
-  public static createOrShow(extensionUri: vscode.Uri, explanation: string) {
+  public static createOrShow(extensionUri: vscode.Uri) {
     const panel = vscode.window.createWebviewPanel(
       PlaybookExplanationPanel.viewType,
       "Explanation",
@@ -53,7 +71,7 @@ export class PlaybookExplanationPanel {
         ],
         enableCommandUris: true,
         retainContextWhenHidden: true,
-      }
+      },
     );
 
     panel.webview.onDidReceiveMessage((message) => {
@@ -66,27 +84,13 @@ export class PlaybookExplanationPanel {
       }
     });
 
-    PlaybookExplanationPanel.currentPanel = new PlaybookExplanationPanel(
-      panel,
-      extensionUri,
-      explanation
-    );
+    return new PlaybookExplanationPanel(panel, extensionUri);
   }
 
-  private constructor(
-    panel: vscode.WebviewPanel,
-    extensionUri: vscode.Uri,
-    explanation: string
-  ) {
+  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
     this._extensionUri = extensionUri;
 
-    this._refreshExplanation(this._panel.webview, explanation);
-    // Listen for when the panel is disposed
-    // This happens when the user closes the panel or when the panel is closed programmatically
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-
-    // Handle messages from the webview
     this._panel.webview.onDidReceiveMessage(
       (message) => {
         switch (message.command) {
@@ -96,35 +100,19 @@ export class PlaybookExplanationPanel {
         }
       },
       null,
-      this._disposables
+      this._disposables,
     );
   }
 
-  public doRefactor() {
-    // Send a message to the webview webview.
-    // You can send any JSON serializable data.
-    this._panel.webview.postMessage({ command: "refactor" });
+  public setContent(html_snippet: string, showFeedbackBox = false) {
+    this._panel.webview.html = this.buildFullHtml(
+      html_snippet,
+      showFeedbackBox,
+    );
   }
 
-  public dispose() {
-    PlaybookExplanationPanel.currentPanel = undefined;
-
-    // Clean up our resources
-    this._panel.dispose();
-
-    while (this._disposables.length) {
-      const x = this._disposables.pop();
-      if (x) {
-        x.dispose();
-      }
-    }
-  }
-
-  private _refreshExplanation(webview: vscode.Webview, explanation: string) {
-    this._panel.webview.html = this.getHtmlForWebview(webview, explanation);
-  }
-
-  private getHtmlForWebview(webview: vscode.Webview, explanation: string) {
+  private buildFullHtml(html_snippet: string, showFeedbackBox = false) {
+    const webview = this._panel.webview;
     const webviewUri = getUri(webview, this._extensionUri, [
       "out",
       "client",
@@ -145,22 +133,34 @@ export class PlaybookExplanationPanel {
       "codicon.css",
     ]);
     const nonce = getNonce();
-    const markdown = explanation;
-    const html = marked.parse(markdown);
+
+    const feedbackBoxSnippet = `<div class="feedbackContainer">
+    <vscode-button class="iconButton" appearance="icon" id="thumbsup-button">
+        <span class="codicon codicon-thumbsup"></span>
+    </vscode-button>
+    <vscode-button class="iconButton" appearance="icon" id="thumbsdown-button">
+        <span class="codicon codicon-thumbsdown"></span>
+    </vscode-button>
+    </div>`;
+
     return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
 				<meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${
+          webview.cspSource
+        }; font-src ${webview.cspSource};">
         <link rel="stylesheet" href="${codiconsUri}">
         <link rel="stylesheet" href="${styleUri}">
 				<title>Playbook explanation</title>
 			</head>
 			<body>
         <div class="playbookGeneration">
-          ${html}
+          ${html_snippet}
         </div>
+        ${showFeedbackBox ? feedbackBoxSnippet : ""}
+
         <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
 			</body>
 			</html>`;

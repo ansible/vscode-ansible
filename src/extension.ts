@@ -250,10 +250,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
           context.extensionUri,
           client,
           lightSpeedManager.lightSpeedAuthenticationProvider,
-          lightSpeedManager.settingsManager
+          lightSpeedManager.settingsManager,
         );
-      }
-    )
+      },
+    ),
   );
 
   // Listen for text selection changes
@@ -506,10 +506,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
         vscode.commands.executeCommand(
           "setContext",
           "redhat.ansible.lightspeedExperimentalEnabled",
-          true
+          true,
         );
-      }
-    )
+      },
+    ),
   );
 }
 
