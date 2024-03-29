@@ -4,9 +4,9 @@ import { integer } from "vscode-languageclient";
 import {
   getDocUri,
   activate,
-  sleep,
   testDiagnostics,
   updateSettings,
+  waitForDiagnosisCompletion,
 } from "../../helper";
 
 export function testDiagnosticsYAMLWithoutEE(): void {
@@ -20,7 +20,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     describe("YAML diagnostics in the presence of ansible-lint", () => {
       it("should provide diagnostics with YAML validation (with ansible-lint)", async () => {
         await activate(docUri1);
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -87,8 +87,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       it("should provide diagnostics with YAML validation (with --syntax-check)", async () => {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -157,8 +156,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       it("should provide no diagnostics with invalid YAML file", async () => {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, []);
       });

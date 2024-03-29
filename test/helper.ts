@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import sinon from "sinon";
 import { assert } from "chai";
+import findProcess from "find-process";
+
 import { LightSpeedCommands } from "../src/definitions/lightspeed";
 import { integer } from "vscode-languageclient";
 import axios from "axios";
@@ -33,6 +35,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
+    await waitForDiagnosisCompletion();
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
@@ -47,7 +50,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(20000); // Wait for server activation
+  await sleep(2000); //  Wait for server activation (reduced from 20000 to 2000)
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -541,4 +544,27 @@ export async function testValidJinjaBrackets(
 
   // assert
   assert.include(docContentAfterSuggestion, expectedValidJinjaInlineVar);
+}
+
+export async function waitForDiagnosisCompletion(
+  interval = 100,
+  timeout = 2000
+) {
+  let started = false;
+  let done = false;
+  let elapsed = 0;
+  // If either ansible-lint or ansible-playbook has started within the
+  // specified timeout value (default: 2000 msecs), we'll wait until
+  // it completes. Otherwise (e.g. when the validation is disabled),
+  // exit after the timeout.
+  while (!done && (started || elapsed < timeout)) {
+    const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
+    if (!started && processes.length > 0) {
+      started = true;
+    } else if (started && processes.length === 0) {
+      done = true;
+    }
+    await sleep(interval);
+    elapsed += interval;
+  }
 }
