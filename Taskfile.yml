@@ -107,7 +107,7 @@ tasks:
       - install
     cmds:
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
-      - $VIRTUAL_ENV/bin/python -m pre_commit run -a
+      - $VIRTUAL_ENV/bin/python3 -m pre_commit run -a
       - tools/dirty.sh
     silent: true
     sources:
