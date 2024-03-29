@@ -828,7 +828,8 @@
     "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js",
     "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js",
     "_coverage-all": "./tools/coverage-all.sh",
-    "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all"
+    "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",
+    "als-compile": "yarn workspace @ansible/ansible-language-server compile"
   },
   "version": "2.13.0",
   "packageManager": "yarn@4.1.1",
