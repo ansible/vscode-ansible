@@ -29,7 +29,7 @@ export class LightspeedStatusBar {
     lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
     context: vscode.ExtensionContext,
     client: LanguageClient,
-    settingsManager: SettingsManager
+    settingsManager: SettingsManager,
   ) {
     this.apiInstance = apiInstance;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
@@ -45,7 +45,7 @@ export class LightspeedStatusBar {
     // create a new status bar item that we can manage
     const lightSpeedStatusBarItem = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Right,
-      100
+      100,
     );
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
@@ -59,7 +59,7 @@ export class LightspeedStatusBar {
 
   public async getLightSpeedStatusBarText(
     rhUserHasSeat?: boolean,
-    rhOrgHasSubscription?: boolean
+    rhOrgHasSubscription?: boolean,
   ): Promise<string> {
     if (rhUserHasSeat === undefined) {
       rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
@@ -70,17 +70,17 @@ export class LightspeedStatusBar {
     }
     return this.getLightSpeedStatusBarTextSync(
       rhOrgHasSubscription,
-      rhUserHasSeat
+      rhUserHasSeat,
     );
   }
 
   private getLightSpeedStatusBarTextSync(
     rhUserHasSeat?: boolean,
-    rhOrgHasSubscription?: boolean
+    rhOrgHasSubscription?: boolean,
   ): string {
     const userTypeLabel = getUserTypeLabel(
       rhOrgHasSubscription,
-      rhUserHasSeat
+      rhUserHasSeat,
     ).toLowerCase();
     return `Lightspeed (${userTypeLabel})`;
   }
@@ -94,11 +94,11 @@ export class LightspeedStatusBar {
       this.settingsManager.settings.lightSpeedService.suggestions.enabled
     ) {
       this.statusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.prominentForeground"
+        "statusBarItem.prominentForeground",
       );
     } else {
       this.statusBar.backgroundColor = new vscode.ThemeColor(
-        "statusBarItem.warningBackground"
+        "statusBarItem.warningBackground",
       );
     }
     this.setLightSpeedStatusBarTooltip();
@@ -122,7 +122,7 @@ export class LightspeedStatusBar {
   }
 
   public async setLightSpeedStatusBarTooltip(
-    session?: LightspeedAuthSession
+    session?: LightspeedAuthSession,
   ): Promise<void> {
     if (session === undefined) {
       session = <LightspeedAuthSession>await vscode.authentication.getSession(
@@ -130,7 +130,7 @@ export class LightspeedStatusBar {
         [],
         {
           createIfNone: false,
-        }
+        },
       );
     }
     const statusBarInfo = getLoggedInSessionDetails(session);

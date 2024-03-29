@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 export function adjustInlineSuggestionIndent(
   suggestion: string,
-  position: vscode.Position
+  position: vscode.Position,
 ): string {
   const lines = suggestion.split("\n");
   const editor = vscode.window.activeTextEditor;
@@ -50,7 +50,7 @@ export function convertToSnippetString(suggestion: string): string {
     counter = counter + 1;
     modifiedSuggestion = modifiedSuggestion.replace(
       exactMatch,
-      `\$\{${counter}:${exactMatch}\}`
+      `\$\{${counter}:${exactMatch}\}`,
     ); // replace the exact match in the modified suggestion with tab stop syntax according to vscode snippet string
   });
 

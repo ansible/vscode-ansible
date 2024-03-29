@@ -3,7 +3,7 @@ import { sync } from "glob";
 /**
  * A glob utility function that that accepts array of patterns and also
  * excludes matching patterns that begin with '!' from the returned array
- * @param arrayOfPatterns array of patterns
+ * @param arrayOfPatterns - array of patterns
  * @returns matched files
  */
 export function globArray(arrayOfPatterns: string[]): string[] {

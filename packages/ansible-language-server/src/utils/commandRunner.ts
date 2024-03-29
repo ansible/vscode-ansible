@@ -77,7 +77,7 @@ export class CommandRunner {
 
   /**
    * A method to return the path to the provided executable
-   * @param executable String representing the name of the executable
+   * @param executable - String representing the name of the executable
    * @returns Complete path of the executable (string) or undefined depending upon the presence of the executable
    */
   public async getExecutablePath(

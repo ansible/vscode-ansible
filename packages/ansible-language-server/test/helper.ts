@@ -89,8 +89,8 @@ export function isWindows(): boolean {
 /**
  * A function that tries to imitate the filtering of the completion items done in the respective client extension
  * when the user starts typing against the provided auto-completions
- * @param completionList list with completion items
- * @param triggerCharacter string against which fuzzy search is to be done
+ * @param completionList - list with completion items
+ * @param triggerCharacter - string against which fuzzy search is to be done
  * @returns list after sorting and filtering
  */
 export function smartFilter(completionList, triggerCharacter) {
@@ -129,7 +129,7 @@ export function smartFilter(completionList, triggerCharacter) {
 
 /**
  * A function that initiates the connection object with ipc that can be used to create a workspace manager for testing purposes
- * @returns {WorkspaceManager} object to serve as a workspace manager for testing purposes
+ * @returns WorkspaceManager - object to serve as a workspace manager for testing purposes
  */
 export function createTestWorkspaceManager(): WorkspaceManager {
   process.argv.push("--node-ipc");

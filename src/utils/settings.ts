@@ -7,7 +7,7 @@ export async function updateConfigurationChanges(
   metaData: MetadataManager,
   pythonInterpreter: PythonInterpreterManager,
   extSettings: SettingsManager,
-  lightSpeedManager: LightSpeedManager
+  lightSpeedManager: LightSpeedManager,
 ): Promise<void> {
   await metaData.updateAnsibleInfoInStatusbar();
   await lightSpeedManager.reInitialize();

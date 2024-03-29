@@ -60,7 +60,7 @@ function createContentMatchesWebview(): ContentMatchesWebview {
     m_client as LanguageClient,
     m_settings as SettingsManager,
     m_api_instance as LightSpeedAPI,
-    m_l_auth_provider as LightSpeedAuthenticationProvider
+    m_l_auth_provider as LightSpeedAuthenticationProvider,
   );
   return cmw;
 }
@@ -69,7 +69,7 @@ describe("ContentMatches view", () => {
   it("with normal input", async function () {
     const cmw = createContentMatchesWebview();
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams
+      inputData: ContentMatchesRequestParams,
     ): Promise<ContentMatchesResponseParams> => {
       assert.equal(inputData.model, undefined);
       return createMatchResponse();
@@ -81,7 +81,7 @@ describe("ContentMatches view", () => {
       res as ContentMatchesResponseParams;
     assert.equal(
       contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
-      "ansible.ansible"
+      "ansible.ansible",
     );
   });
 
@@ -89,7 +89,7 @@ describe("ContentMatches view", () => {
     const cmw = createContentMatchesWebview();
     cmw.settingsManager.settings.lightSpeedService.model = "the_model";
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams
+      inputData: ContentMatchesRequestParams,
     ): Promise<ContentMatchesResponseParams> => {
       assert.equal(inputData.model, "the_model");
       return createMatchResponse();
@@ -101,7 +101,7 @@ describe("ContentMatches view", () => {
       res as ContentMatchesResponseParams;
     assert.equal(
       contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
-      "ansible.ansible"
+      "ansible.ansible",
     );
   });
 });
@@ -113,8 +113,8 @@ describe("GetWebviewContent", () => {
     assert.match(
       res,
       new RegExp(
-        "Training matches will be displayed here after you accept an inline suggestion."
-      )
+        "Training matches will be displayed here after you accept an inline suggestion.",
+      ),
     );
   });
 
@@ -127,7 +127,7 @@ describe("GetWebviewContent", () => {
       } as ISuggestionDetails,
     ];
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<ContentMatchesResponseParams> => {
       const res = createMatchResponse();
       res.contentmatches = [];
@@ -146,7 +146,7 @@ describe("GetWebviewContent", () => {
       } as ISuggestionDetails,
     ];
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<ContentMatchesResponseParams> => {
       return createMatchResponse();
     };
@@ -156,8 +156,8 @@ describe("GetWebviewContent", () => {
     spiedConsole.restore();
     assert.ok(
       console_log_calls.find((item) =>
-        String(item.firstArg).includes("YAMLParseError: Unexpected scalar")
-      )
+        String(item.firstArg).includes("YAMLParseError: Unexpected scalar"),
+      ),
     );
     assert.match(res, new RegExp("No training matches found"));
   });
@@ -171,7 +171,7 @@ describe("GetWebviewContent", () => {
       } as ISuggestionDetails,
     ];
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<ContentMatchesResponseParams> => {
       return createMatchResponse();
     };
@@ -204,7 +204,7 @@ describe("GetWebviewContent", () => {
       } as ISuggestionDetails,
     ];
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<IError> => {
       return createMatchErrorResponse("Something went wrong");
     };
@@ -212,7 +212,7 @@ describe("GetWebviewContent", () => {
     const res = await cmw["getWebviewContent"]();
     assert.match(
       res,
-      new RegExp("An error occurred trying to retrieve the training matches.")
+      new RegExp("An error occurred trying to retrieve the training matches."),
     );
     assert.match(res, new RegExp("An error occurred"));
     assert.match(res, new RegExp("Something went wrong"));
@@ -227,7 +227,7 @@ describe("GetWebviewContent", () => {
       } as ISuggestionDetails,
     ];
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<IError> => {
       return createMatchErrorResponse({ cheese: "edam" });
     };
@@ -235,7 +235,7 @@ describe("GetWebviewContent", () => {
     const res = await cmw["getWebviewContent"]();
     assert.match(
       res,
-      new RegExp("An error occurred trying to retrieve the training matches.")
+      new RegExp("An error occurred trying to retrieve the training matches."),
     );
     assert.match(res, new RegExp("An error occurred"));
     assert.match(res, new RegExp('{\n  "cheese": "edam"\n}'));
@@ -250,7 +250,7 @@ describe("GetWebviewContent", () => {
       } as ISuggestionDetails,
     ];
     cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams // eslint-disable-line @typescript-eslint/no-unused-vars
+      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
     ): Promise<IError> => {
       return createMatchErrorResponse(undefined);
     };
@@ -258,7 +258,7 @@ describe("GetWebviewContent", () => {
     const res = await cmw["getWebviewContent"]();
     assert.match(
       res,
-      new RegExp("An error occurred trying to retrieve the training matches.")
+      new RegExp("An error occurred trying to retrieve the training matches."),
     );
     assert.doesNotMatch(res, new RegExp("<details>"));
   });

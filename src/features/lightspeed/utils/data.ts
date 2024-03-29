@@ -23,7 +23,7 @@ import {
 
 export function shouldRequestInlineSuggestions(
   parsedAnsibleDocument: yaml.YAMLMap[],
-  ansibleFileType: IAnsibleFileType
+  ansibleFileType: IAnsibleFileType,
 ): boolean {
   const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
   if (typeof lastObject !== "object") {
@@ -47,7 +47,7 @@ export function shouldRequestInlineSuggestions(
   if (
     ansibleFileType === "playbook" &&
     !["tasks", "pre_tasks", "post_tasks", "handlers"].some((key) =>
-      objectKeys.includes(key)
+      objectKeys.includes(key),
     )
   ) {
     return false;
@@ -58,7 +58,7 @@ export function shouldRequestInlineSuggestions(
 export function getVarsFilesContext(
   lightSpeedManager: LightSpeedManager,
   parsedAnsibleDocument: yaml.YAMLMap[],
-  basePath: string
+  basePath: string,
 ): IVarsFileContext | undefined {
   const varFilesContext: IVarsFileContext = {};
   // Check if the last play in parsedAnsibleDocument has a vars_files key
@@ -111,7 +111,7 @@ export function getIncludeVarsContext(
   lightSpeedManager: LightSpeedManager,
   parsedAnsibleDocument: yaml.YAMLMap[],
   basePath: string,
-  ansibleFileType: string
+  ansibleFileType: string,
 ): IIncludeVarsContext | undefined {
   let tasksLists: [] = [];
   const includeVarsContext: IIncludeVarsContext = {};
@@ -134,7 +134,7 @@ export function getIncludeVarsContext(
   }
   for (const task of tasksLists) {
     const matchingKey = Object.keys(task).find((key) =>
-      IncludeVarValidTaskName.includes(key)
+      IncludeVarValidTaskName.includes(key),
     );
     if (!matchingKey) {
       continue;
@@ -175,11 +175,11 @@ export function getIncludeVarsContext(
             return path.basename(file) === task["files_matching"];
           });
           includeVarsFiles.push(
-            ...matchingFiles.map((file) => path.join(dirPath, file))
+            ...matchingFiles.map((file) => path.join(dirPath, file)),
           );
         } else {
           includeVarsFiles.push(
-            ...files.map((file) => path.join(dirPath, file))
+            ...files.map((file) => path.join(dirPath, file)),
           );
         }
       }
@@ -213,7 +213,7 @@ export function getIncludeVarsContext(
             varData = <string>yaml.stringify({ [varTopLevel]: parsedVarData });
           } catch (err) {
             console.error(
-              `Failed to add ${varTopLevel} to ${varData} with error ${err}`
+              `Failed to add ${varTopLevel} to ${varData} with error ${err}`,
             );
           }
         }
@@ -227,7 +227,7 @@ export function getIncludeVarsContext(
 
 export function updateRolesCache(
   uri: vscode.Uri,
-  lightSpeedManager: LightSpeedManager
+  lightSpeedManager: LightSpeedManager,
 ) {
   let dirPath = uri.fsPath;
   const stats = fs.statSync(dirPath);
@@ -243,7 +243,7 @@ export function updateRolesCache(
       updateRolesContext(
         lightSpeedManager.ansibleRolesCache,
         dirPath,
-        workspaceFolder
+        workspaceFolder,
       );
     }
   }
@@ -252,7 +252,7 @@ export function updateRolesCache(
 export function getRelativePath(
   documentDir: string,
   workSpaceRoot: string,
-  absPath: string
+  absPath: string,
 ): string {
   let relativePath = documentDir;
   if (documentDir && documentDir.startsWith(workSpaceRoot)) {
@@ -268,7 +268,7 @@ export function getRolePathFromPathWithinRole(roleFilePath: string): string {
     `${path.sep}roles${path.sep}`.length;
   const roleNamePath = roleFilePath.substring(
     0,
-    roleFilePath.indexOf(path.sep, rolesIndex)
+    roleFilePath.indexOf(path.sep, rolesIndex),
   );
   return roleNamePath;
 }
@@ -276,14 +276,14 @@ export function getRolePathFromPathWithinRole(roleFilePath: string): string {
 export function shouldTriggerMultiTaskSuggestion(
   documentContent: string,
   spacesBeforePromptStart: number,
-  ansibleFileType: IAnsibleFileType
+  ansibleFileType: IAnsibleFileType,
 ): boolean {
   const documentLines = documentContent.trim().split("\n");
   if (ansibleFileType === "playbook") {
     if (
       shouldTriggerMultiTaskSuggestionForPlaybook(
         documentLines,
-        spacesBeforePromptStart
+        spacesBeforePromptStart,
       )
     ) {
       return true;
@@ -294,7 +294,7 @@ export function shouldTriggerMultiTaskSuggestion(
     if (
       shouldTriggerMultiTaskSuggestionForTaskFile(
         documentLines,
-        spacesBeforePromptStart
+        spacesBeforePromptStart,
       )
     ) {
       return true;
@@ -306,7 +306,7 @@ export function shouldTriggerMultiTaskSuggestion(
 
 function shouldTriggerMultiTaskSuggestionForTaskFile(
   documentLines: string[],
-  spacesBeforePromptStart: number
+  spacesBeforePromptStart: number,
 ): boolean {
   let firstMatchKeywordIndent = -1;
   const validSuggestionTriggerIndents: number[] = [];
@@ -401,7 +401,7 @@ function shouldTriggerMultiTaskSuggestionForTaskFile(
 
 function shouldTriggerMultiTaskSuggestionForPlaybook(
   documentLines: string[],
-  spacesBeforePromptStart: number
+  spacesBeforePromptStart: number,
 ): boolean {
   let firstMatchKeywordIndent = -1;
   const validSuggestionTriggerIndents: number[] = [];

@@ -24,7 +24,7 @@ export class PythonInterpreterManager {
     context: ExtensionContext,
     client: LanguageClient,
     telemetry: TelemetryManager,
-    extensionSettings: SettingsManager
+    extensionSettings: SettingsManager,
   ) {
     this.context = context;
     this.client = client;
@@ -38,7 +38,7 @@ export class PythonInterpreterManager {
     // create a new status bar item that we can manage
     const interpreterStatusBarItem = window.createStatusBarItem(
       StatusBarAlignment.Right,
-      100
+      100,
     );
     this.context.subscriptions.push(interpreterStatusBarItem);
     return interpreterStatusBarItem;
@@ -67,7 +67,7 @@ export class PythonInterpreterManager {
     }
     this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
       ` Change environment `,
-      true
+      true,
     );
     this.pythonInterpreterStatusBarItem.show();
 
@@ -78,22 +78,22 @@ export class PythonInterpreterManager {
         this.pythonInterpreterStatusBarItem.text = label;
         this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
           `#### Change environment\nCurrent python path: ${interpreterPath}`,
-          true
+          true,
         );
         this.pythonInterpreterStatusBarItem.backgroundColor = "";
       } else {
         this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
         this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-          "statusBarItem.warningBackground"
+          "statusBarItem.warningBackground",
         );
         console.error(
-          `The specified python interpreter path in settings does not exist: ${interpreterPath} `
+          `The specified python interpreter path in settings does not exist: ${interpreterPath} `,
         );
       }
     } else {
       this.pythonInterpreterStatusBarItem.text = "Select python environment";
       this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(
-        "statusBarItem.warningBackground"
+        "statusBarItem.warningBackground",
       );
     }
 
@@ -110,14 +110,14 @@ export class PythonInterpreterManager {
       version = execSync(`${interpreterPath} -V`).toString().trim();
     } catch (error) {
       console.error(
-        `Error gathering python version from ${interpreterPath}: ${error}`
+        `Error gathering python version from ${interpreterPath}: ${error}`,
       );
       return;
     }
     let envLabel: string = version;
 
     const pythonInVenv = execSync(
-      `${interpreterPath} -c "import sys;in_venv = sys.prefix != sys.base_prefix;print(in_venv)"`
+      `${interpreterPath} -c "import sys;in_venv = sys.prefix != sys.base_prefix;print(in_venv)"`,
     )
       .toString()
       .trim();
@@ -126,7 +126,7 @@ export class PythonInterpreterManager {
 
     if (inVenv) {
       const sysPrefix = execSync(
-        `${interpreterPath} -c "import sys;print(sys.prefix.split('/').pop())"`
+        `${interpreterPath} -c "import sys;print(sys.prefix.split('/').pop())"`,
       )
         .toString()
         .trim();

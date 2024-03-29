@@ -612,9 +612,9 @@ function atEndOfLine(document: TextDocument, position: Position): boolean {
 
 /**
  * A utility function to check if the item is the first element of a list or not
- * @param document current document
- * @param nodeRange range of the keyword in the document
- * @returns {boolean} true if the key is the first element of the list, else false
+ * @param document - current document
+ * @param nodeRange - range of the keyword in the document
+ * @returns boolean true if the key is the first element of the list, else false
  */
 function firstElementOfList(document: TextDocument, nodeRange: Range): boolean {
   const checkNodeRange = {

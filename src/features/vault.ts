@@ -40,7 +40,7 @@ async function askForVaultId(ansibleCfg: utilAnsibleCfg.AnsibleVaultConfig) {
 
 function displayInvalidConfigError(): void {
   vscode.window.showErrorMessage(
-    "no valid ansible vault config found, cannot de/-encrypt"
+    "no valid ansible vault config found, cannot de/-encrypt",
   );
 }
 
@@ -64,7 +64,7 @@ export const toggleEncrypt = async (): Promise<void> => {
 
   // Read `ansible.cfg` or environment variable
   const rootPath: string | undefined = utilAnsibleCfg.getRootPath(
-    editor.document.uri
+    editor.document.uri,
   );
   const ansibleConfig = await utilAnsibleCfg.getAnsibleCfg(rootPath);
 
@@ -77,7 +77,7 @@ export const toggleEncrypt = async (): Promise<void> => {
 
   console.log(`Getting vault keyfile from ${ansibleConfig.path}`);
   vscode.window.showInformationMessage(
-    `Getting vault keyfile from ${ansibleConfig.path}`
+    `Getting vault keyfile from ${ansibleConfig.path}`,
   );
 
   const text = editor.document.getText(selection);
@@ -108,7 +108,7 @@ export const toggleEncrypt = async (): Promise<void> => {
           vaultId,
           indentationLevel,
           tabSize,
-          config
+          config,
         );
       } catch (e) {
         vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
@@ -118,7 +118,7 @@ export const toggleEncrypt = async (): Promise<void> => {
       editor.edit((editBuilder) => {
         editBuilder.replace(
           selection,
-          encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`)
+          encryptedText.replace(/\n\s*/g, `\n${leadingSpaces}`),
         );
       });
     } else if (type === "encrypted") {
@@ -130,7 +130,7 @@ export const toggleEncrypt = async (): Promise<void> => {
           rootPath,
           indentationLevel,
           tabSize, // tabSize is always defined
-          config
+          config,
         );
       } catch (e) {
         vscode.window.showErrorMessage(`Inline decryption failed: ${e}`);
@@ -157,11 +157,11 @@ export const toggleEncrypt = async (): Promise<void> => {
       try {
         await encryptFile(doc.fileName, rootPath, vaultId, config);
         vscode.window.showInformationMessage(
-          `File encrypted: '${doc.fileName}'`
+          `File encrypted: '${doc.fileName}'`,
         );
       } catch (e) {
         vscode.window.showErrorMessage(
-          `Encryption of ${doc.fileName} failed: ${e}`
+          `Encryption of ${doc.fileName} failed: ${e}`,
         );
       }
     } else if (type === "encrypted") {
@@ -170,11 +170,11 @@ export const toggleEncrypt = async (): Promise<void> => {
       try {
         await decryptFile(doc.fileName, rootPath, config);
         vscode.window.showInformationMessage(
-          `File decrypted: '${doc.fileName}'`
+          `File decrypted: '${doc.fileName}'`,
         );
       } catch (e) {
         vscode.window.showErrorMessage(
-          `Decryption of ${doc.fileName} failed: ${e}`
+          `Decryption of ${doc.fileName} failed: ${e}`,
         );
       }
     }
@@ -202,13 +202,13 @@ const encryptInline = async (
   vaultId: string | undefined,
   indentationLevel: number,
   tabSize = 0,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ) => {
   const encryptedText = await encryptText(
     handleMultiline(text, indentationLevel, tabSize),
     rootPath,
     vaultId,
-    config
+    config,
   );
   console.debug(`encryptedText == '${encryptedText}'`);
 
@@ -220,7 +220,7 @@ const decryptInline = async (
   rootPath: string | undefined,
   indentationLevel: number,
   tabSize = 0,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ) => {
   // Delete inline vault prefix, then trim spaces and newline from the entire string and, at last, trim the spaces in the multiline string.
   text = text
@@ -231,7 +231,7 @@ const decryptInline = async (
   const decryptedText = reindentText(
     await decryptText(text, rootPath, config),
     indentationLevel,
-    tabSize
+    tabSize,
   );
   return decryptedText;
 };
@@ -239,7 +239,7 @@ const decryptInline = async (
 const pipeTextThroughCmd = (
   text: string,
   rootPath: string | undefined,
-  cmd: string
+  cmd: string,
 ): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
     const child = !!rootPath ? cp.exec(cmd, { cwd: rootPath }) : cp.exec(cmd);
@@ -270,7 +270,7 @@ const encryptText = (
   text: string,
   rootPath: string | undefined,
   vaultId: string | undefined,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ): Promise<string> => {
   let cmd = `${ansibleVaultPath(config)} encrypt_string`;
   if (vaultId) {
@@ -282,7 +282,7 @@ const encryptText = (
 const decryptText = (
   text: string,
   rootPath: string | undefined,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ): Promise<string> => {
   const cmd = `${ansibleVaultPath(config)} decrypt`;
   return pipeTextThroughCmd(text, rootPath, cmd);
@@ -292,13 +292,13 @@ const encryptFile = (
   f: string,
   rootPath: string | undefined,
   vaultId: string | undefined,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ) => {
   console.log(`Encrypt file: ${f}`);
 
   const cmd = !!vaultId
     ? `${ansibleVaultPath(
-        config
+        config,
       )} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
     : `${ansibleVaultPath(config)} encrypt "${f}"`;
 
@@ -308,7 +308,7 @@ const encryptFile = (
 const decryptFile = (
   f: string,
   rootPath: string | undefined,
-  config: vscode.WorkspaceConfiguration
+  config: vscode.WorkspaceConfiguration,
 ) => {
   console.log(`Decrypt file: ${f}`);
 
@@ -331,12 +331,12 @@ const execCwd = (cmd: string, cwd: string | undefined) => {
 
 const getIndentationLevel = (
   editor: vscode.TextEditor,
-  selection: vscode.Selection
+  selection: vscode.Selection,
 ): number => {
   if (!editor.options.tabSize) {
     // according to VS code docs, tabSize is always defined when getting options of an editor
     throw new Error(
-      "The `tabSize` option is not defined, this should never happen."
+      "The `tabSize` option is not defined, this should never happen.",
     );
   }
   const startLine = editor.document.lineAt(selection.start.line).text;
@@ -349,7 +349,7 @@ const foldedMultilineReducer = (
   accumulator: string,
   currentValue: string,
   currentIndex: number,
-  array: string[]
+  array: string[],
 ): string => {
   if (
     currentValue === "" ||
@@ -366,7 +366,7 @@ const foldedMultilineReducer = (
 
 const handleLiteralMultiline = (
   lines: string[],
-  leadingSpacesCount: number
+  leadingSpacesCount: number,
 ) => {
   const text = prepareMultiline(lines, leadingSpacesCount).join("\n");
   const chompingStyle = getChompingStyle(lines);
@@ -381,7 +381,7 @@ const handleLiteralMultiline = (
 
 const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
   const text = prepareMultiline(lines, leadingSpacesCount).reduce(
-    foldedMultilineReducer
+    foldedMultilineReducer,
   );
   const chompingStyle = getChompingStyle(lines);
   if (chompingStyle === ChompingStyle.Strip) {
@@ -396,7 +396,7 @@ const handleFoldedMultiline = (lines: string[], leadingSpacesCount: number) => {
 const handleMultiline = (
   text: string,
   indentationLevel: number,
-  tabSize: number
+  tabSize: number,
 ) => {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   if (lines.length > 1) {
@@ -416,7 +416,7 @@ const handleMultiline = (
 const reindentText = (
   text: string,
   indentationLevel: number,
-  tabSize: number
+  tabSize: number,
 ) => {
   const leadingSpacesCount = (indentationLevel + 1) * tabSize;
   const lines = text.split("\n");

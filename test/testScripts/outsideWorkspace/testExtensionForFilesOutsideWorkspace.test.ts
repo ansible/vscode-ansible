@@ -57,7 +57,7 @@ export function testExtensionForFilesOutsideWorkspace() {
             message: "All tasks should be named.",
             range: new Range(
               new Position(3, 0),
-              new Position(3, integer.MAX_VALUE)
+              new Position(3, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },

@@ -88,26 +88,6 @@ tasks:
       - npx ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file
       - npm install
-  lint:
-    desc: Lint the project
-    deps:
-      - setup
-    env:
-      <<: *env
-      PRE_COMMIT_COLOR: always
-    cmds:
-      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
-    silent: true
-    sources:
-      - "*.*"
-      - .config/**/*.*
-      - .github/**/*.*
-      - .vscode/**/*.*
-      - doc/**/*.*
-      - images/**/*.*
-      - src/**/*.*
-      - test/**/*.*
-      - tools/**/*.*
   .test:
     # Keep the desc empty to hide entry when listing
     # desc: Run all tests

@@ -38,7 +38,7 @@ export type AnsibleVaultConfig = {
 };
 
 export async function scanAnsibleCfg(
-  rootPath: string | undefined = undefined
+  rootPath: string | undefined = undefined,
 ): Promise<AnsibleVaultConfig | undefined> {
   /*
    * Reading order (based on the documentation: https://docs.ansible.com/ansible/latest/reference_appendices/config.html#ansible-configuration-settings):
@@ -60,23 +60,23 @@ export async function scanAnsibleCfg(
   const cfgs = await Promise.all(
     cfgFiles
       .map((cf) => untildify(cf))
-      .map(async (cp) => await getValueByCfg(cp))
+      .map(async (cp) => await getValueByCfg(cp)),
   )?.catch(() => undefined);
   const cfg = cfgs?.find(
     (c) =>
-      !!c?.defaults?.vault_identity_list || !!c?.defaults?.vault_password_file
+      !!c?.defaults?.vault_identity_list || !!c?.defaults?.vault_password_file,
   );
   console.log(
     typeof cfg != "undefined"
       ? `Found 'defaults.vault_identity_list' within '${cfg.path}'`
-      : "Found no 'defaults.vault_identity_list' within config files"
+      : "Found no 'defaults.vault_identity_list' within config files",
   );
 
   return cfg;
 }
 
 export async function getValueByCfg(
-  path: string
+  path: string,
 ): Promise<AnsibleVaultConfig | undefined> {
   console.log(`Reading '${path}'...`);
 
@@ -101,7 +101,7 @@ export async function getValueByCfg(
 }
 
 export async function getAnsibleCfg(
-  path: string | undefined
+  path: string | undefined,
 ): Promise<AnsibleVaultConfig | undefined> {
   if (!!process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
     return {

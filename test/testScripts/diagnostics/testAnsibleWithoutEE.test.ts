@@ -30,7 +30,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
             message: "All tasks should be named",
             range: new vscode.Range(
               new vscode.Position(3, 0),
-              new vscode.Position(3, integer.MAX_VALUE)
+              new vscode.Position(3, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },
@@ -49,7 +49,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
               "Unexpected error code 4 from execution of: ansible-playbook -i localhost, --syntax-check",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, integer.MAX_VALUE)
+              new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },
@@ -61,7 +61,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       before(async () => {
         await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
       });
 
@@ -88,7 +88,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
             message: "the field 'hosts' is required but was not set",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, integer.MAX_VALUE)
+              new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "Ansible",
           },
@@ -100,7 +100,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       before(async () => {
         await updateSettings("validation.enabled", false);
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
       });
 

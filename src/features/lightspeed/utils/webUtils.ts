@@ -73,7 +73,7 @@ export function getBaseUri(settingsManager: SettingsManager) {
 
 export function getUserTypeLabel(
   rhOrgHasSubscription?: boolean,
-  rhUserHasSeat?: boolean
+  rhUserHasSeat?: boolean,
 ): LIGHTSPEED_USER_TYPE {
   if (rhOrgHasSubscription === undefined) {
     return "Not logged in";
@@ -82,13 +82,13 @@ export function getUserTypeLabel(
 }
 
 export function getLoggedInSessionDetails(
-  sessionData?: LightspeedAuthSession
+  sessionData?: LightspeedAuthSession,
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};
   userInfo.userType = getUserTypeLabel(
     sessionData?.rhOrgHasSubscription,
-    sessionData?.rhUserHasSeat
+    sessionData?.rhUserHasSeat,
   );
   if (sessionData?.rhUserIsOrgAdmin) {
     userInfo.role = "Administrator";

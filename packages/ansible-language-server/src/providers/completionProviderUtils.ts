@@ -8,8 +8,8 @@ import { parseDocument } from "yaml";
 
 /**
  * A function that computes the possible variable auto-completions scope-wise for a given position
- * @param documentUri uri of the document
- * @param path array of nodes leading to that position
+ * @param documentUri - uri of the document
+ * @param path - array of nodes leading to that position
  * @returns a list of completion items
  */
 export function getVarsCompletion(

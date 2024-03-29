@@ -42,8 +42,8 @@ export class AnsibleToxProvider implements vscode.TaskProvider {
         definition.ansible,
         AnsibleToxProvider.toxType,
         new vscode.ShellExecution(
-          `${ANSIBLE_TOX_RUN_COMMAND} ${definition.ansible} --ansible --conf tox-ansible.ini`
-        )
+          `${ANSIBLE_TOX_RUN_COMMAND} ${definition.ansible} --ansible --conf tox-ansible.ini`,
+        ),
       );
     }
     return undefined;
@@ -107,8 +107,8 @@ async function getToxTestTasks(): Promise<vscode.Task[]> {
           toxTestenv,
           AnsibleToxProvider.toxType,
           new vscode.ShellExecution(
-            `${ANSIBLE_TOX_RUN_COMMAND} ${toxTestenv} --ansible --conf tox-ansible.ini`
-          )
+            `${ANSIBLE_TOX_RUN_COMMAND} ${toxTestenv} --ansible --conf tox-ansible.ini`,
+          ),
         );
         task.group = inferTaskGroup(toxTestenv.toLowerCase());
         result.push(task);

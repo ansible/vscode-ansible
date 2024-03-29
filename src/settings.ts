@@ -12,16 +12,16 @@ export class SettingsManager {
   public async initialize(): Promise<void> {
     const ansibleSettings = vscode.workspace.getConfiguration("ansible");
     const eeSettings = vscode.workspace.getConfiguration(
-      "ansible.executionEnvironment"
+      "ansible.executionEnvironment",
     );
     const lightSpeedSettings =
       vscode.workspace.getConfiguration("ansible.lightspeed");
     this.settings = {
       activationScript: (await ansibleSettings.get(
-        "python.activationScript"
+        "python.activationScript",
       )) as string,
       interpreterPath: (await ansibleSettings.get(
-        "python.interpreterPath"
+        "python.interpreterPath",
       )) as string,
       executionEnvironment: {
         enabled: eeSettings.get("enabled", false),
@@ -43,7 +43,7 @@ export class SettingsManager {
         model: lightSpeedSettings.get("modelIdOverride", undefined),
         disableContentSuggestionHeader: lightSpeedSettings.get(
           "disableContentSuggestionHeader",
-          false
+          false,
         ),
       },
     };

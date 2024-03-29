@@ -61,7 +61,7 @@ export class AnsibleInventory {
 /**
  * A utility function to parse the hosts object from ansible-inventory executable
  * to a more usable structure that can be used during auto-completions
- * @param hostObj nested object of hosts
+ * @param hostObj - nested object of hosts
  * @returns an array of object with host and priority as keys
  */
 function parseInventoryHosts(hostObj) {

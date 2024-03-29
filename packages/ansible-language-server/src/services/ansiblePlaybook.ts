@@ -21,8 +21,8 @@ export class AnsiblePlaybook {
 
   /**
    *
-   * @param connection establishes connection with the client
-   * @param context provides workspace context of the client
+   * @param connection - establishes connection with the client
+   * @param context - provides workspace context of the client
    */
 
   constructor(

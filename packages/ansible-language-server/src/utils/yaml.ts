@@ -544,7 +544,7 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
 /**
  * For a given yaml file that is recognized as Ansible file, the function
  * checks whether the file is a playbook or not
- * @param textDocument the text document to check
+ * @param textDocument - the text document to check
  */
 export function isPlaybook(textDocument: TextDocument): boolean {
   // Check for empty file
@@ -598,9 +598,9 @@ export function isPlaybook(textDocument: TextDocument): boolean {
 
 /**
  * A function to check if the cursor is present inside valid jinja inline brackets in a yaml file
- * @param document text document on which the function is to be checked
- * @param position current cursor position
- * @param path array of nodes leading to that position
+ * @param document - text document on which the function is to be checked
+ * @param position - current cursor position
+ * @param path - array of nodes leading to that position
  * @returns boolean true if the cursor is inside valid jinja inline brackets, else false
  */
 export function isCursorInsideJinjaBrackets(
@@ -638,7 +638,7 @@ export function isCursorInsideJinjaBrackets(
     ),
   );
 
-  // this is a safety check incase of multiple jinja inline brackets in a single line
+  // this is a safety check in case of multiple jinja inline brackets in a single line
   let jinjaInlineBracketEndIndex = lineAfterCursor.indexOf(" }}");
   if (
     lineAfterCursor.indexOf("{{ ") !== -1 &&

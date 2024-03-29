@@ -10,7 +10,7 @@ import { VarType } from "../../../interfaces/lightspeed";
 
 function getVarsFromRoles(
   rolePath: string,
-  varType: VarType
+  varType: VarType,
 ): IVarsContext | undefined {
   const varsRootPath = path.join(rolePath, varType);
   if (!fs.existsSync(varsRootPath)) {
@@ -53,7 +53,7 @@ function getVarsFromRoles(
 export function updateRolesContext(
   ansibleRolesCache: IWorkSpaceRolesContext,
   rolesRootPath: string,
-  workSpaceRoot: string
+  workSpaceRoot: string,
 ): IWorkSpaceRolesContext | undefined {
   if (!fs.existsSync(rolesRootPath) || !rolesRootPath.endsWith("roles")) {
     return;
@@ -67,7 +67,7 @@ export function updateRolesContext(
   }
 
   const roleNames = dirContent.filter((name) =>
-    fs.statSync(path.join(rolesRootPath, name)).isDirectory()
+    fs.statSync(path.join(rolesRootPath, name)).isDirectory(),
   );
   for (const roleName of roleNames) {
     const rolePath = path.join(rolesRootPath, roleName);
@@ -77,7 +77,7 @@ export function updateRolesContext(
 export function updateRoleContext(
   ansibleRolesCache: IWorkSpaceRolesContext,
   rolePath: string,
-  workSpaceRoot: string
+  workSpaceRoot: string,
 ) {
   if (!ansibleRolesCache[workSpaceRoot]) {
     ansibleRolesCache[workSpaceRoot] = {};

@@ -18,7 +18,7 @@ export function extensionUIAssetsTest(): void {
     before(async function () {
       this.timeout(WAIT_TIME);
       view = (await new ActivityBar().getViewControl(
-        "Extensions"
+        "Extensions",
       )) as ViewControl;
       sideBar = await view.openView();
     });
