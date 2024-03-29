@@ -6,11 +6,15 @@ import {
   ERRORS_BAD_REQUEST,
   ERRORS_UNKNOWN,
   ERRORS_CONNECTION_TIMEOUT,
+  ERRORS_CLOUDFRONT,
+  ERRORS_NOT_FOUND,
 } from "./errors";
+import { IError } from "../../interfaces/lightspeed";
 
-export function retrieveError(err: AxiosError): string {
+export function mapError(err: AxiosError): IError {
+  const detail = err.response?.data;
   if (err && "response" in err) {
-    const responseErrorData = <AxiosError<{ message?: string }>>(
+    const responseErrorData = <AxiosError<{ code?: string; message?: string }>>(
       err?.response?.data
     );
     // Lookup _known_ errors
@@ -21,42 +25,45 @@ export function retrieveError(err: AxiosError): string {
     const message = responseErrorData.hasOwnProperty("message")
       ? (responseErrorData.message as string)
       : "unknown";
-    const mappedError = ERRORS.getError(status, code);
+    let mappedError = ERRORS.getError(status, code);
     if (mappedError) {
-      return mappedError.message || message;
+      if (mappedError.message === undefined) {
+        mappedError = mappedError.withMessage(message);
+      }
+      return mappedError;
     }
 
     // If the error is unknown fallback to defaults
     if (status === 400) {
-      return ERRORS_BAD_REQUEST.message || message;
+      return ERRORS_BAD_REQUEST.withDetail(detail);
     }
     if (status === 401) {
-      return ERRORS_UNAUTHORIZED.message || message;
+      return ERRORS_UNAUTHORIZED.withDetail(detail);
     }
     if (status === 403) {
       // Special case where the error is not from the backend service
       if (
         (err?.response?.headers["server"] || "").toLowerCase() === "cloudfront"
       ) {
-        return (
-          "Something in your editor content has caused your inline suggestion request to be blocked. \n" +
-          "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
-          "line and column where you requested a suggestion."
-        );
+        return ERRORS_CLOUDFRONT.withDetail(detail);
       } else {
-        return ERRORS_UNAUTHORIZED.message || message;
+        return ERRORS_UNAUTHORIZED.withDetail(detail);
       }
     }
+    if (status === 404) {
+      return ERRORS_NOT_FOUND.withDetail(detail);
+    }
     if (status === 429) {
-      return ERRORS_TOO_MANY_REQUESTS.message || message;
+      return ERRORS_TOO_MANY_REQUESTS.withDetail(detail);
     }
     if (status === 500) {
-      return ERRORS_UNKNOWN.message || message;
+      return ERRORS_UNKNOWN.withDetail(detail);
     }
   }
 
   if (err.code === AxiosError.ECONNABORTED) {
-    return ERRORS_CONNECTION_TIMEOUT.message as string;
+    return ERRORS_CONNECTION_TIMEOUT.withDetail(detail);
   }
-  return ERRORS_UNKNOWN.message as string;
+
+  return ERRORS_UNKNOWN.withDetail(detail);
 }
