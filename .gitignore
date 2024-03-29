@@ -26,3 +26,5 @@ coverage
 
 test/testFixtures/.vscode/
 examples/.vscode/
+.cache
+site
