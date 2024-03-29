@@ -2,7 +2,9 @@
 # see https://taskfile.dev/#/
 version: "3"
 includes:
-  "als": ./packages/ansible-language-server
+  als:
+    taskfile: ./packages/ansible-language-server
+    dir: ./packages/ansible-language-server
 output: prefixed # do not use "group" due to impact on CI
 env: &env
   FORCE_COLOR: "true"
@@ -172,6 +174,8 @@ tasks:
     desc: Package extension
     deps:
       - build
+      # while not a real dependency, we want to build both all the time:
+      - als:package
     sources:
       - CHANGELOG.md
       - README.md
