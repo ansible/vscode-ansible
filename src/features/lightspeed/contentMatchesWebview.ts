@@ -30,7 +30,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     client: LanguageClient,
     settingsManager: SettingsManager,
     apiInstance: LightSpeedAPI,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider
+    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
   ) {
     this.context = context;
     this.client = client;
@@ -43,7 +43,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public async resolveWebviewView(
     webviewView: vscode.WebviewView,
     webviewResolveContext: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
+    _token: vscode.CancellationToken,
   ) {
     this._view = webviewView;
     if (_token.isCancellationRequested) {
@@ -61,7 +61,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
   async requestInlineSuggestContentMatches(
     suggestion: string,
-    suggestionId: string
+    suggestionId: string,
   ): Promise<ContentMatchesResponseParams | IError> {
     const taskArray = suggestion
       .trim()
@@ -80,16 +80,16 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     this.log(
       `${getCurrentUTCDateTime().toISOString()}: request content matches from Ansible Lightspeed:\n${JSON.stringify(
-        contentMatchesRequestData
-      )}`
+        contentMatchesRequestData,
+      )}`,
     );
 
     const outputData: ContentMatchesResponseParams | IError =
       await this.apiInstance.contentMatchesRequest(contentMatchesRequestData);
     this.log(
       `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
-        outputData
-      )}`
+        outputData,
+      )}`,
     );
     return outputData;
   }
@@ -109,7 +109,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   }
 
   public isError(
-    contentMatchResponses: ContentMatchesResponseParams | IError
+    contentMatchResponses: ContentMatchesResponseParams | IError,
   ): contentMatchResponses is IError {
     return (contentMatchResponses as IError).code !== undefined;
   }
@@ -132,7 +132,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     const suggestionId = this.suggestionDetails[0].suggestionId;
     const contentMatchResponses = await this.requestInlineSuggestContentMatches(
       suggestion,
-      suggestionId
+      suggestionId,
     );
     this.log(contentMatchResponses);
 
@@ -141,7 +141,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     } else {
       return this.getContentMatchWebviewContent(
         suggestion,
-        contentMatchResponses
+        contentMatchResponses,
       );
     }
   }
@@ -181,7 +181,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
   private async getContentMatchWebviewContent(
     suggestion: string,
-    contentMatchResponses: ContentMatchesResponseParams
+    contentMatchResponses: ContentMatchesResponseParams,
   ) {
     const noContentMatchesFoundHtml = `
       <html>
@@ -232,7 +232,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
         <IContentMatchParams[]>(<IContentMatch>contentMatchValue).contentmatch,
         taskNameDescription || "",
-        rhUserHasSeat === true
+        rhUserHasSeat === true,
       );
     }
     const html = `
@@ -247,7 +247,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
   private renderContentMatches(
     contentMatchResponse: IContentMatchParams,
-    rhUserHasSeat: boolean
+    rhUserHasSeat: boolean,
   ): string {
     const licenseLine = rhUserHasSeat
       ? `<li>License: ${contentMatchResponse.license}</li>`
@@ -269,13 +269,13 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private renderContentMatchWithTasKDescription(
     contentMatchesResponse: IContentMatchParams[],
     taskDescription: string,
-    rhUserHasSeat: boolean
+    rhUserHasSeat: boolean,
   ): string {
     let taskContentMatch = "";
     for (let index = 0; index < contentMatchesResponse.length; index++) {
       taskContentMatch += `${this.renderContentMatches(
         contentMatchesResponse[index],
-        rhUserHasSeat
+        rhUserHasSeat,
       )}`;
     }
 

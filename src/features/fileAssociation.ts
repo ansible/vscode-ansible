@@ -12,7 +12,7 @@ import { configureModelines, searchModelines } from "./utils/applyModelines";
  * @param context - The extension context
  */
 export async function languageAssociation(
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
 ): Promise<void> {
   // Listen for new documents being opened
   context.subscriptions.push(
@@ -35,7 +35,7 @@ export async function languageAssociation(
       const tryApplyFileInspectionForKeywords =
         async function (): Promise<boolean> {
           const editor = vscode.window.visibleTextEditors.find(
-            (e) => e.document === doc
+            (e) => e.document === doc,
           );
           if (editor) {
             await applyFileInspectionForKeywords(editor);
@@ -53,17 +53,17 @@ export async function languageAssociation(
           }, 500);
         }
       }, 100);
-    })
+    }),
   );
 
   // Listen for saves and change settings if necessary
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(async function (doc) {
       const editor = vscode.window.visibleTextEditors.find(
-        (e) => e.document === doc
+        (e) => e.document === doc,
       );
       if (editor) await applyFileInspectionForKeywords(editor);
-    })
+    }),
   );
 
   setImmediate(async function () {

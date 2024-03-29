@@ -45,7 +45,7 @@ export class TelemetryManager {
    * @returns when the telemetry event has been sent
    */
   public async sendCommandSucceededTelemetry(
-    commandName: string
+    commandName: string,
   ): Promise<void> {
     await this.sendCommandTelemetry(commandName, true);
   }
@@ -60,7 +60,7 @@ export class TelemetryManager {
    */
   public async sendCommandFailedTelemetry(
     commandName: string,
-    msg?: string
+    msg?: string,
   ): Promise<void> {
     await this.sendCommandTelemetry(commandName, false, msg);
   }
@@ -75,7 +75,7 @@ export class TelemetryManager {
   public async sendCommandTelemetry(
     commandName: string,
     succeeded: boolean,
-    msg?: string
+    msg?: string,
   ): Promise<void> {
     if (!this.isTelemetryInit) {
       throw new Error("Telemetry has not been initialized yet");
@@ -110,7 +110,7 @@ export class TelemetryManager {
 
   async sendStartupTelemetryEvent(
     isInitialized: boolean,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const startUpData: any = {
@@ -130,7 +130,7 @@ export class TelemetryErrorHandler implements ErrorHandler {
   constructor(
     private readonly telemetry: TelemetryService,
     private readonly name: string,
-    private readonly maxRestartCount: number
+    private readonly maxRestartCount: number,
   ) {}
 
   error(error: Error, message: Message, count: number): ErrorHandlerResult {
@@ -159,7 +159,7 @@ export class TelemetryErrorHandler implements ErrorHandler {
         vscode.window.showErrorMessage(
           `The ${this.name} server crashed ${
             this.maxRestartCount + 1
-          } times in the last 3 minutes. The server will not be restarted.`
+          } times in the last 3 minutes. The server will not be restarted.`,
         );
         action = CloseAction.DoNotRestart;
       } else {
@@ -181,7 +181,7 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
   private throttleTimeout: vscode.Disposable | undefined;
   constructor(
     private readonly delegate: vscode.OutputChannel,
-    private readonly telemetry: TelemetryService
+    private readonly telemetry: TelemetryService,
   ) {}
 
   get name(): string {
@@ -219,7 +219,7 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
         this.errors = [];
       }, 50);
       this.throttleTimeout = new vscode.Disposable(() =>
-        clearTimeout(timeoutHandle)
+        clearTimeout(timeoutHandle),
       );
     }
   }
@@ -246,7 +246,7 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
     for (const value of this.errors) {
       if (value.startsWith("[Error")) {
         result.push(
-          value.substring(value.indexOf("]") + 1, value.length).trim()
+          value.substring(value.indexOf("]") + 1, value.length).trim(),
         );
       } else {
         result.push(value);

@@ -76,14 +76,14 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
 
 export function setWebviewMessageListener(
   webview: Webview,
-  disposables: Disposable[] = []
+  disposables: Disposable[] = [],
 ) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webview.onDidReceiveMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (message: any) => {
       console.log(
-        `User feedback message received: ${JSON.stringify(message)}}`
+        `User feedback message received: ${JSON.stringify(message)}}`,
       );
       const error = message.error;
       let userFeedback: FeedbackRequestParams | undefined;
@@ -136,11 +136,11 @@ export function setWebviewMessageListener(
           userFeedback,
           lightSpeedManager.orgTelemetryOptOut,
           true,
-          true
+          true,
         );
       }
     },
     undefined,
-    disposables
+    disposables,
   );
 }

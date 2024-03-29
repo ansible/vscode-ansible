@@ -13,7 +13,7 @@ import { IAnsibleFileType } from "../../interfaces/lightspeed";
 
 export function getAnsibleFileType(
   filePath: string,
-  documentContent: string
+  documentContent: string,
 ): IAnsibleFileType {
   let parsedAnsibleDocument;
   for (const pattern in AnsibleFileTypes) {
@@ -67,10 +67,10 @@ export function getCustomRolePaths(workspacePath?: string): string[] {
 export function getCommonRoles(): string[] {
   const rolePaths: string[] = [];
   const expandedPaths = StandardRolePaths.map((p) =>
-    path.join(path.parse(p).root, path.normalize(p).slice(1))
+    path.join(path.parse(p).root, path.normalize(p).slice(1)),
   );
   const standardRolePaths = expandedPaths.filter(
-    (p) => fs.existsSync(p) && fs.statSync(p).isDirectory()
+    (p) => fs.existsSync(p) && fs.statSync(p).isDirectory(),
   );
   rolePaths.push(...standardRolePaths);
 

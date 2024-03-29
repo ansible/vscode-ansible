@@ -23,7 +23,7 @@ export class LightspeedFeedbackWebviewProvider {
     // Set the HTML content for the webview panel
     this._panel.webview.html = this._getWebviewContent(
       this._panel.webview,
-      extensionUri
+      extensionUri,
     );
 
     // Set an event listener to listen for messages passed from the webview context
@@ -34,7 +34,7 @@ export class LightspeedFeedbackWebviewProvider {
     if (LightspeedFeedbackWebviewProvider.currentPanel) {
       // If the webview panel already exists reveal it
       LightspeedFeedbackWebviewProvider.currentPanel._panel.reveal(
-        ViewColumn.One
+        ViewColumn.One,
       );
     } else {
       // If a webview panel does not already exist create and show a new one
@@ -50,7 +50,7 @@ export class LightspeedFeedbackWebviewProvider {
             Uri.joinPath(extensionUri, "out"),
             Uri.joinPath(extensionUri, "media"),
           ],
-        }
+        },
       );
 
       LightspeedFeedbackWebviewProvider.currentPanel =

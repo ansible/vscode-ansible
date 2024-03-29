@@ -10,7 +10,7 @@ import { LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from "../../../src/definitions/lig
 function getLightSpeedAuthSession(
   rhUserHasSeat: boolean,
   rhOrgHasSubscription: boolean,
-  rhUserIsOrgAdmin: boolean
+  rhUserIsOrgAdmin: boolean,
 ): LightspeedAuthSession {
   const identifier = uuid();
   const session: LightspeedAuthSession = {
@@ -91,7 +91,7 @@ function testFeedbackAPI(): void {
   before(async function () {
     isAuthenticated = sinon.stub(
       lightSpeedManager.lightSpeedAuthenticationProvider,
-      "isAuthenticated"
+      "isAuthenticated",
     );
     isAuthenticated.returns(Promise.resolve(true));
   });

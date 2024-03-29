@@ -37,7 +37,7 @@ export function lightspeedUIAssetsTest(): void {
         });
 
       expect(welcomeMessage).to.contain(
-        "Welcome to Ansible Lightspeed for Visual Studio Code."
+        "Welcome to Ansible Lightspeed for Visual Studio Code.",
       );
     });
 
@@ -48,7 +48,7 @@ export function lightspeedUIAssetsTest(): void {
 
       // The following lines replaced the original code that was using ExtensionsViewSection APIs.
       const loginButton = await welcomeContent?.findElement(
-        By.xpath("//a[.//span/text()='Connect']")
+        By.xpath("//a[.//span/text()='Connect']"),
       );
       expect(loginButton).not.undefined;
     });
@@ -78,8 +78,8 @@ export function lightspeedUIAssetsTest(): void {
       const items = await statusBar.findElements(
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
-            ".//a/text()='Lightspeed (not logged in))']"
-        )
+            ".//a/text()='Lightspeed (not logged in))']",
+        ),
       );
       expect(items.length).equals(0);
     });
@@ -95,8 +95,8 @@ export function lightspeedUIAssetsTest(): void {
           "//div[contains(@class, 'statusbar-item') and " +
             "contains(@class, 'has-background-color') and " +
             "contains(@class, 'warning-kind') and " +
-            ".//a/text()='Lightspeed (not logged in)']"
-        )
+            ".//a/text()='Lightspeed (not logged in)']",
+        ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
     });
@@ -106,7 +106,7 @@ export function lightspeedUIAssetsTest(): void {
       await updateSettings(
         settingsEditor,
         "ansible.lightspeed.suggestions.enabled",
-        true
+        true,
       );
       await editorView.openEditor(file);
 
@@ -115,8 +115,8 @@ export function lightspeedUIAssetsTest(): void {
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
             "not (contains(@class, 'has-background-color')) and " +
-            ".//a/text()='Lightspeed (not logged in)']"
-        )
+            ".//a/text()='Lightspeed (not logged in)']",
+        ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
     });

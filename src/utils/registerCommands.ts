@@ -18,7 +18,7 @@ export async function registerCommandWithTelemetry(
   commandName: string,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   commandAction: (thisArg?: any) => Promise<any>,
-  skipSuccess?: boolean
+  skipSuccess?: boolean,
 ): Promise<void> {
   context.subscriptions.push(
     commands.registerCommand(commandName, async () => {
@@ -32,6 +32,6 @@ export async function registerCommandWithTelemetry(
         await window.showErrorMessage(msg);
         await telemetry.sendCommandFailedTelemetry(commandName, msg);
       }
-    })
+    }),
   );
 }

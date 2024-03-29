@@ -18,7 +18,7 @@ export class AnsibleCreatorInit {
     this._panel = panel;
     this._panel.webview.html = this._getWebviewContent(
       this._panel.webview,
-      extensionUri
+      extensionUri,
     );
     this._setWebviewMessageListener(this._panel.webview);
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -40,12 +40,12 @@ export class AnsibleCreatorInit {
           ],
           enableCommandUris: true,
           retainContextWhenHidden: true,
-        }
+        },
       );
 
       AnsibleCreatorInit.currentPanel = new AnsibleCreatorInit(
         panel,
-        extensionUri
+        extensionUri,
       );
     }
   }
@@ -65,7 +65,7 @@ export class AnsibleCreatorInit {
 
   private _getWebviewContent(
     webview: vscode.Webview,
-    extensionUri: vscode.Uri
+    extensionUri: vscode.Uri,
   ) {
     const webviewUri = getUri(webview, extensionUri, [
       "out",
@@ -235,7 +235,7 @@ export class AnsibleCreatorInit {
           case "open-explorer":
             payload = message.payload;
             const selectedUri = await this.openExplorerDialog(
-              payload.selectOption
+              payload.selectOption,
             );
             webview.postMessage({
               command: "file-uri",
@@ -252,7 +252,7 @@ export class AnsibleCreatorInit {
             payload = message.payload;
             vscode.env.clipboard.writeText(payload.initExecutionLogs);
             await vscode.window.showInformationMessage(
-              "Logs copied to clipboard"
+              "Logs copied to clipboard",
             );
             return;
 
@@ -268,7 +268,7 @@ export class AnsibleCreatorInit {
         }
       },
       undefined,
-      this._disposables
+      this._disposables,
     );
   }
 
@@ -293,7 +293,7 @@ export class AnsibleCreatorInit {
 
   public async runInitCommand(
     payload: AnsibleCreatorInitInterface,
-    webView: vscode.Webview
+    webView: vscode.Webview,
   ) {
     const {
       namespaceName,
@@ -362,7 +362,7 @@ export class AnsibleCreatorInit {
     const [command, runEnv] = withInterpreter(
       extSettings.settings,
       ansibleCreatorInitCommand,
-      ""
+      "",
     );
 
     let commandOutput = "";
@@ -371,7 +371,7 @@ export class AnsibleCreatorInit {
     const collectionUrl = vscode.Uri.joinPath(
       vscode.Uri.parse(initPathUrl),
       namespaceName,
-      collectionName
+      collectionName,
     ).fsPath;
 
     const commandExecution = cp.exec(command, {
@@ -439,13 +439,13 @@ export class AnsibleCreatorInit {
         ? vscode.workspace.workspaceFolders.length
         : 0,
       null,
-      { uri: folderUri }
+      { uri: folderUri },
     );
 
     // open the galaxy file in the editor
     const galaxyFileUrl = vscode.Uri.joinPath(
       vscode.Uri.parse(folderUrl),
-      "galaxy.yml"
+      "galaxy.yml",
     ).fsPath;
     console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${galaxyFileUrl}`);

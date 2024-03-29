@@ -17,7 +17,7 @@ export class AnsibleCreatorMenu {
     this._panel = panel;
     this._panel.webview.html = this._getWebviewContent(
       this._panel.webview,
-      extensionUri
+      extensionUri,
     );
     this._setWebviewMessageListener(this._panel.webview);
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
@@ -39,12 +39,12 @@ export class AnsibleCreatorMenu {
           ],
           enableCommandUris: true,
           retainContextWhenHidden: true,
-        }
+        },
       );
 
       AnsibleCreatorMenu.currentPanel = new AnsibleCreatorMenu(
         panel,
-        extensionUri
+        extensionUri,
       );
     }
   }
@@ -64,7 +64,7 @@ export class AnsibleCreatorMenu {
 
   private _getWebviewContent(
     webview: vscode.Webview,
-    extensionUri: vscode.Uri
+    extensionUri: vscode.Uri,
   ) {
     const webviewUri = getUri(webview, extensionUri, [
       "out",
@@ -203,13 +203,13 @@ export class AnsibleCreatorMenu {
         }
       },
       undefined,
-      this._disposables
+      this._disposables,
     );
   }
 
   private async refreshPage() {
     await vscode.commands.executeCommand(
-      "workbench.action.webview.reloadWebviewAction"
+      "workbench.action.webview.reloadWebviewAction",
     );
   }
 
@@ -255,7 +255,7 @@ export class AnsibleCreatorMenu {
     // get python path
     const pythonPathResult = await this.getBinDetail(
       "python3",
-      '-c "import sys; print(sys.executable)"'
+      '-c "import sys; print(sys.executable)"',
     );
     if (pythonPathResult !== "failed") {
       systemInfo["python location"] = pythonPathResult.toString().trim();
@@ -264,7 +264,7 @@ export class AnsibleCreatorMenu {
     // get ansible-creator version
     const ansibleCreatorVersion = await this.getBinDetail(
       "ansible-creator",
-      "--version"
+      "--version",
     );
     if (ansibleCreatorVersion !== "failed") {
       systemInfo["ansible-creator version"] = ansibleCreatorVersion

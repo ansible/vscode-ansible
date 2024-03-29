@@ -23,7 +23,7 @@ export class LightspeedFeedbackWebviewViewProvider
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: WebviewViewResolveContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _token: CancellationToken
+    _token: CancellationToken,
   ) {
     // Allow scripts in the webview
     webviewView.webview.options = {
@@ -42,7 +42,7 @@ export class LightspeedFeedbackWebviewViewProvider
     // Set the HTML content that will fill the webview view
     webviewView.webview.html = this._getWebviewContent(
       webviewView.webview,
-      this._extensionUri
+      this._extensionUri,
     );
 
     // Sets up an event listener to listen for messages passed from the webview view context

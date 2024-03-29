@@ -23,7 +23,7 @@ export function getAdditionalContext(
   documentDirPath: string,
   documentFilePath: string,
   ansibleFileType: IAnsibleFileType,
-  workspaceFolders: readonly WorkspaceFolder[] | undefined
+  workspaceFolders: readonly WorkspaceFolder[] | undefined,
 ): IAdditionalContext {
   let workSpaceRoot = undefined;
   const playbookContext: IPlaybookContext = {};
@@ -36,7 +36,7 @@ export function getAdditionalContext(
     const varsFilesContext = getVarsFilesContext(
       lightSpeedManager,
       parsedAnsibleDocument,
-      documentDirPath
+      documentDirPath,
     );
     playbookContext["varInfiles"] = varsFilesContext || {};
     const rolesCache: IRolesContext = {};
@@ -56,7 +56,7 @@ export function getAdditionalContext(
           const relativeRolePath = getRelativePath(
             documentDirPath,
             workSpaceRoot,
-            absRolePath
+            absRolePath,
           );
           rolesCache[relativeRolePath] = workspaceRolesCache[absRolePath];
         }
@@ -85,7 +85,7 @@ export function getAdditionalContext(
       lightSpeedManager,
       parsedAnsibleDocument,
       documentDirPath,
-      ansibleFileType
+      ansibleFileType,
     ) || {};
 
   if (ansibleFileType === "playbook") {

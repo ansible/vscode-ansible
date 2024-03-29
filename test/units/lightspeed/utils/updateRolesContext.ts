@@ -47,8 +47,8 @@ describe("testing updateRolesContext", () => {
 
     assert.ok(
       console_log_calls.find((item) =>
-        String(item.firstArg).includes("Cannot read the directory")
-      )
+        String(item.firstArg).includes("Cannot read the directory"),
+      ),
     );
 
     assert.equal(Object.keys(ansibleRolesCache).length, 0);
@@ -61,7 +61,7 @@ describe("testing updateRolesContext", () => {
     fs.mkdirSync(`${root_dir}/roles/my_role/tasks`, { recursive: true });
     fs.writeFileSync(
       `${root_dir}/roles/my_role/tasks/main.yaml`,
-      "---\n- debug:\n  var=1\n"
+      "---\n- debug:\n  var=1\n",
     );
 
     updateRolesContext(ansibleRolesCache, `${root_dir}/roles`, "my_workSpace");
@@ -85,7 +85,7 @@ describe("testing updateRolesContext", () => {
     fs.mkdirSync(`${root_dir}/roles/my_role`, { recursive: true });
     fs.writeFileSync(
       `${root_dir}/roles/my_role/tasks`,
-      "nothing in particular"
+      "nothing in particular",
     );
 
     const spiedConsole = sinon.spy(console, "error");
@@ -96,9 +96,9 @@ describe("testing updateRolesContext", () => {
     assert.ok(
       console_log_calls.find((item) =>
         String(item.firstArg).includes(
-          'Failed to read "tasks" directory with error'
-        )
-      )
+          'Failed to read "tasks" directory with error',
+        ),
+      ),
     );
   });
 
@@ -110,11 +110,11 @@ describe("testing updateRolesContext", () => {
     fs.mkdirSync(`${root_dir}/roles/my_role/vars`, { recursive: true });
     fs.writeFileSync(
       `${root_dir}/roles/my_role/tasks/main.yaml`,
-      "---\n- debug:\n  var=1\n"
+      "---\n- debug:\n  var=1\n",
     );
     fs.writeFileSync(
       `${root_dir}/roles/my_role/vars/main.yaml`,
-      "---\nsome_var: 1\n"
+      "---\nsome_var: 1\n",
     );
 
     updateRolesContext(ansibleRolesCache, `${root_dir}/roles`, "my_workSpace");
@@ -149,9 +149,9 @@ describe("testing updateRolesContext", () => {
     assert.ok(
       console_log_calls.find((item) =>
         String(item.firstArg).includes(
-          "Failed to read a var directory with error"
-        )
-      )
+          "Failed to read a var directory with error",
+        ),
+      ),
     );
   });
   it("with a role where 'defaults' is a file, not a directory, but 'vars' is a directory as expected", () => {
@@ -162,7 +162,7 @@ describe("testing updateRolesContext", () => {
     fs.writeFileSync(`${root_dir}/roles/my_role/defaults`, "some content");
     fs.writeFileSync(
       `${root_dir}/roles/my_role/vars/main.yaml`,
-      '---\nsome_var: ""\n'
+      '---\nsome_var: ""\n',
     );
 
     const spiedConsole = sinon.spy(console, "error");
@@ -173,9 +173,9 @@ describe("testing updateRolesContext", () => {
     assert.ok(
       console_log_calls.find((item) =>
         String(item.firstArg).includes(
-          "Failed to read a var directory with error"
-        )
-      )
+          "Failed to read a var directory with error",
+        ),
+      ),
     );
 
     const cacheEntry =

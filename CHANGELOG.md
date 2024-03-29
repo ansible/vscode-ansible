@@ -70,8 +70,8 @@
 ### Minor Changes
 
 - Show model ID to be used in statusbar tooltip (#1046) @TamiTakamiya
-- Rename files and vars to use camel case inline with the naming conven… (#1048)
-  @ganeshrn
+- Rename files and vars to use camel case inline with the naming conventions
+  (#1048) @ganeshrn
 - unit-test coverage for contentMatchesWebview (#1041) @goneri
 - AAP-18228: Handle user's trial expiry (#1037) @hasys
 - GitHub Codespaces/code-server support (#1012) @TamiTakamiya
@@ -144,13 +144,13 @@
 
 ### Minor Changes
 
-- Categorise extension settings and fix ansible language configurations (#961)
+- Categorize extension settings and fix ansible language configurations (#961)
   @priyamsahoo
 
 ### Bugfixes
 
-- Unchange insertText to snippetstring (#962) @priyamsahoo
-- Categorise extension settings and fix ansible language configurations (#961)
+- Revert insertText to snippet string (#962) @priyamsahoo
+- Categorize extension settings and fix ansible language configurations (#961)
   @priyamsahoo
 
 ## v2.6

@@ -1,6 +1,8 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
+includes:
+  "als": ./packages/ansible-language-server
 output: prefixed # do not use "group" due to impact on CI
 env: &env
   FORCE_COLOR: "true"
@@ -52,7 +54,7 @@ tasks:
     cmds:
       - yarn install
     sources:
-      - package.json
+      - "**/package.json"
       - yarn.lock
       - node_modules/**/*
     interactive: true
@@ -140,7 +142,7 @@ tasks:
       - package
     cmds:
       - $VIRTUAL_ENV/bin/python3 --version
-      - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run _coverage-all'"
+      - '{{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn run _coverage-all'''
     interactive: true
   test-ui:
     desc: Run UI tests

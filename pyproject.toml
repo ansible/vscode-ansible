@@ -1,0 +1,6 @@
+[tool.codespell]
+builtin = "clear,rare,code"
+check-filenames = true
+check-hidden = true
+ignore-words = ".config/dictionary.txt"
+skip = "out,node_modules,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,.yarn,dictionary.txt,settings.md"

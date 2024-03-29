@@ -25,7 +25,7 @@ export async function getInterpreterDetails(): Promise<IInterpreterDetails> {
   const exports = await pythonExtension?.exports;
 
   const environment = await exports?.environments.resolveEnvironment(
-    exports?.environments.getActiveEnvironmentPath()
+    exports?.environments.getActiveEnvironmentPath(),
   );
 
   if (environment?.executable.uri) {

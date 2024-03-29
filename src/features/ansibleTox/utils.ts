@@ -29,7 +29,7 @@ export function findProjectDir() {
 
 export function getTerminal(
   projDir: string | undefined = findProjectDir(),
-  name = "Ansible Tox"
+  name = "Ansible Tox",
 ): vscode.Terminal {
   for (const terminal of vscode.window.terminals) {
     if (terminal.name === name) {

@@ -84,7 +84,7 @@ export class ValidationManager {
   }
 
   /**
-   * Saves the diagnostics in a cache for later re-use in quick validation.
+   * Saves the diagnostics in a cache for later reuse in quick validation.
    */
   public cacheDiagnostics(
     originFileUri: string,

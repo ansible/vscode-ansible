@@ -16,15 +16,15 @@ const exec = util.promisify(child_process.exec);
 
 export async function getToxEnvs(
   projDir: string,
-  command: string = ANSIBLE_TOX_LIST_ENV_COMMAND
+  command: string = ANSIBLE_TOX_LIST_ENV_COMMAND,
 ) {
   const newEnv = { ...process.env };
   const ansibleSettings = vscode.workspace.getConfiguration("ansible");
   const activationScript = (await ansibleSettings.get(
-    "python.activationScript"
+    "python.activationScript",
   )) as string;
   const interpreterPath = (await ansibleSettings.get(
-    "python.interpreterPath"
+    "python.interpreterPath",
   )) as string;
 
   if (activationScript) {
@@ -55,7 +55,7 @@ export async function getToxEnvs(
     channel.appendLine(err.stdout || "");
     if (err.stderr.includes("unrecognized arguments: --ansible")) {
       channel.appendLine(
-        "Ansible Tox plugin is not installed in Python environment. Install tox-ansible plugin by running command 'pip install tox-ansible'."
+        "Ansible Tox plugin is not installed in Python environment. Install tox-ansible plugin by running command 'pip install tox-ansible'.",
       );
     }
     channel.appendLine("Failed to detect Ansible tox environment.");
@@ -69,7 +69,7 @@ export function runTox(
   envs: string[],
   toxArguments: string,
   terminal: vscode.Terminal = getTerminal(),
-  command: string = ANSIBLE_TOX_RUN_COMMAND
+  command: string = ANSIBLE_TOX_RUN_COMMAND,
 ) {
   const envArg = envs.join(",");
   terminal.show(true);

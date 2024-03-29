@@ -20,7 +20,7 @@ export class AnsiblePlaybookRunProvider {
   constructor(
     private vsCodeExtCtx: vscode.ExtensionContext,
     settings: ExtensionSettings,
-    telemetry: TelemetryManager
+    telemetry: TelemetryManager,
   ) {
     this.settings = settings;
     this.telemetry = telemetry;
@@ -37,7 +37,7 @@ export class AnsiblePlaybookRunProvider {
       this.telemetry,
       AnsibleCommands.ANSIBLE_PLAYBOOK_RUN,
       (fileObj) => this.invokeViaAnsiblePlaybook(fileObj),
-      false
+      false,
     );
     console.log('Added a "Run Ansible Playbook" command...');
 
@@ -46,7 +46,7 @@ export class AnsiblePlaybookRunProvider {
       this.telemetry,
       AnsibleCommands.ANSIBLE_NAVIGATOR_RUN,
       (fileObj) => this.invokeViaAnsibleNavigator(fileObj),
-      false
+      false,
     );
 
     console.log('Added a "Run with Ansible Navigator" command...');
@@ -60,7 +60,7 @@ export class AnsiblePlaybookRunProvider {
     }
     commandLineArgs.push("--ee true");
     commandLineArgs.push(
-      `--ce ${getContainerEngine(eeSettings.containerEngine)}`
+      `--ce ${getContainerEngine(eeSettings.containerEngine)}`,
     );
     commandLineArgs.push(`--eei ${eeSettings.image}`);
     if (eeSettings.containerOptions !== "") {
@@ -95,11 +95,11 @@ export class AnsiblePlaybookRunProvider {
    * A property representing the target terminal for running playbooks in.
    */
   private createTerminal(
-    runEnv: NodeJS.ProcessEnv | undefined
+    runEnv: NodeJS.ProcessEnv | undefined,
   ): vscode.Terminal {
     if (vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal) {
       const reuse_terminal = vscode.window.terminals.find(
-        (terminal) => terminal.name === "Ansible Terminal"
+        (terminal) => terminal.name === "Ansible Terminal",
       );
       if (reuse_terminal) {
         return reuse_terminal as vscode.Terminal;
@@ -115,7 +115,7 @@ export class AnsiblePlaybookRunProvider {
         if (term !== terminal) {
           return;
         }
-      })
+      }),
     );
     return terminal as vscode.Terminal;
   }
@@ -141,7 +141,7 @@ export class AnsiblePlaybookRunProvider {
     const playbookFsPath = extractTargetFsPath(...fileObj);
     if (typeof playbookFsPath === "undefined") {
       vscode.window.showErrorMessage(
-        `No Ansible playbook file has been specified to be executed with ansible-playbook.`
+        `No Ansible playbook file has been specified to be executed with ansible-playbook.`,
       );
       return;
     }
@@ -151,7 +151,7 @@ export class AnsiblePlaybookRunProvider {
     const [command, runEnv] = withInterpreter(
       this.settings,
       runExecutable,
-      cmdArgs
+      cmdArgs,
     );
 
     console.debug(`Running command: ${command}`);
@@ -170,7 +170,7 @@ export class AnsiblePlaybookRunProvider {
     const playbookFsPath = extractTargetFsPath(...fileObj);
     if (typeof playbookFsPath === "undefined") {
       vscode.window.showErrorMessage(
-        `No Ansible playbook file has been specified to be executed with ansible-navigator run.`
+        `No Ansible playbook file has been specified to be executed with ansible-navigator run.`,
       );
       return;
     }
@@ -183,7 +183,7 @@ export class AnsiblePlaybookRunProvider {
     const [command, runEnv] = withInterpreter(
       this.settings,
       runExecutable,
-      runCmdArgs
+      runCmdArgs,
     );
     console.debug(`Running command: ${command}`);
     this.invokeInTerminal(command, runEnv);

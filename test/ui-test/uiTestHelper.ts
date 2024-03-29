@@ -13,8 +13,8 @@ export function getFilePath(file: string): string {
       "test",
       "testFixtures",
       "lightspeed",
-      file
-    )
+      file,
+    ),
   );
 }
 
@@ -25,7 +25,7 @@ export async function sleep(ms: number): Promise<void> {
 export async function updateSettings(
   settingsEditor: SettingsEditor,
   setting: string,
-  value: any
+  value: any,
 ) {
   let settingArray = setting.split(".");
   settingArray = settingArray.map((item) => capitalizeFirstLetter(item));

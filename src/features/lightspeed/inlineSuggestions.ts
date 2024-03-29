@@ -64,19 +64,19 @@ interface InlinePosition {
 export interface CallbackEntry {
   (
     suggestionDisplayed: SuggestionDisplayed,
-    inlinePosition: InlinePosition
+    inlinePosition: InlinePosition,
   ): Promise<vscode.InlineCompletionItem[]>;
 }
 
 export const onTextEditorNotActive: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed
+  suggestionDisplayed: SuggestionDisplayed,
 ) {
   suggestionDisplayed.reset();
   return [];
 };
 
 const onNotForMe: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed
+  suggestionDisplayed: SuggestionDisplayed,
 ) {
   lightSpeedManager.statusBarProvider.statusBar.hide();
   suggestionDisplayed.reset();
@@ -84,14 +84,14 @@ const onNotForMe: CallbackEntry = async function (
 };
 
 const onCancellationRequested: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed
+  suggestionDisplayed: SuggestionDisplayed,
 ) {
   suggestionDisplayed.reset();
   return [];
 };
 
 const onLightspeedIsDisabled: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed
+  suggestionDisplayed: SuggestionDisplayed,
 ) {
   console.debug("[ansible-lightspeed] Ansible Lightspeed is disabled.");
   lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
@@ -100,17 +100,17 @@ const onLightspeedIsDisabled: CallbackEntry = async function (
 };
 
 const onLightspeedURLMisconfigured: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed
+  suggestionDisplayed: SuggestionDisplayed,
 ) {
   vscode.window.showErrorMessage(
-    "Ansible Lightspeed URL is empty. Please provide a URL."
+    "Ansible Lightspeed URL is empty. Please provide a URL.",
   );
   suggestionDisplayed.reset();
   return [];
 };
 
 const onCacheSuggestion: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed
+  suggestionDisplayed: SuggestionDisplayed,
 ) {
   return suggestionDisplayed.cachedCompletionItem;
 };
@@ -127,7 +127,7 @@ const onRequestInProgress: CallbackEntry = async function () {
 
 const onDefault: CallbackEntry = function (
   suggestionDisplayed: SuggestionDisplayed,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ) {
   const suggestionItems = getInlineSuggestionItems(inlinePosition);
   return suggestionItems;
@@ -152,7 +152,7 @@ function getCompletionState(
   languageId: string,
   isCancellationRequested: boolean,
   lightSpeedSetting: LightSpeedServiceSettings,
-  positionHasChanged?: boolean
+  positionHasChanged?: boolean,
 ): CompletionState {
   if (completionRequestInProgress) {
     return CompletionState.RequestInProgress;
@@ -206,7 +206,7 @@ export class LightSpeedInlineSuggestionProvider
     document: vscode.TextDocument,
     position: vscode.Position,
     context: vscode.InlineCompletionContext,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ):
     | vscode.ProviderResult<vscode.InlineCompletionItem[]>
     | Promise<vscode.InlineCompletionItem[]> {
@@ -222,7 +222,7 @@ export class LightSpeedInlineSuggestionProvider
         document.languageId,
       token.isCancellationRequested,
       lightSpeedSetting,
-      !_.isEqual(position, previousTriggerPosition)
+      !_.isEqual(position, previousTriggerPosition),
     );
     return state(suggestionDisplayed, {
       document: document,
@@ -234,7 +234,7 @@ export class LightSpeedInlineSuggestionProvider
 
 const onUnexpectedPromptWithNoSeat: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ) {
   suggestionDisplayed.reset();
   // If the user has triggered the inline suggestion by pressing the configured keys,
@@ -250,7 +250,7 @@ const onUnexpectedPromptWithNoSeat: CallbackEntry = async function (
       !suggestionMatchInfo.currentLineText.isEmptyOrWhitespace
     ) {
       vscode.window.showInformationMessage(
-        "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion."
+        "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion.",
       );
     } else if (
       suggestionMatchInfo.taskMatchedPattern &&
@@ -259,7 +259,7 @@ const onUnexpectedPromptWithNoSeat: CallbackEntry = async function (
         suggestionMatchInfo.spacesBeforeCursor
     ) {
       vscode.window.showInformationMessage(
-        `Cursor must be in column ${suggestionMatchInfo.spacesBeforePromptStart} to trigger an inline suggestion.`
+        `Cursor must be in column ${suggestionMatchInfo.spacesBeforePromptStart} to trigger an inline suggestion.`,
       );
     }
   }
@@ -268,7 +268,7 @@ const onUnexpectedPromptWithNoSeat: CallbackEntry = async function (
 
 const onUnexpectedPromptWithSeat: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ) {
   suggestionDisplayed.reset();
   // If the user has triggered the inline suggestion by pressing the configured keys,
@@ -285,7 +285,7 @@ const onUnexpectedPromptWithSeat: CallbackEntry = async function (
     ) {
       vscode.window.showInformationMessage(
         "Cursor should be positioned on the line after the task name " +
-          "or a comment line within task context to trigger an inline suggestion."
+          "or a comment line within task context to trigger an inline suggestion.",
       );
     } else if (
       suggestionMatchInfo.suggestionMatchType &&
@@ -295,7 +295,7 @@ const onUnexpectedPromptWithSeat: CallbackEntry = async function (
     ) {
       vscode.window.showInformationMessage(
         `Cursor must be in column ${suggestionMatchInfo.spacesBeforePromptStart} ` +
-          `to trigger an inline suggestion.`
+          `to trigger an inline suggestion.`,
       );
     }
   }
@@ -304,7 +304,7 @@ const onUnexpectedPromptWithSeat: CallbackEntry = async function (
 
 const onMultiTaskWithNoSeat: CallbackEntry = async function () {
   console.debug(
-    "[inline-suggestions] Multitask suggestions not supported for a non seat user."
+    "[inline-suggestions] Multitask suggestions not supported for a non seat user.",
   );
   return [];
 };
@@ -315,7 +315,7 @@ const onShouldNotTriggerSuggestion: CallbackEntry = async function () {
 
 function retrieveActivityIdFromTracker(
   documentInfo: DocumentInfo,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ): string {
   if (
     !(documentInfo.documentUri in lightSpeedManager.lightSpeedActivityTracker)
@@ -331,13 +331,13 @@ function retrieveActivityIdFromTracker(
 
 async function requestSuggestion(
   documentInfo: DocumentInfo,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ): Promise<CompletionResponseParams> {
   const rhUserHasSeat =
     await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
   const lightSpeedStatusbarText =
     await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-      rhUserHasSeat
+      rhUserHasSeat,
     );
   const suggestionId = uuidv4();
   try {
@@ -347,7 +347,7 @@ async function requestSuggestion(
 
     const activityId = retrieveActivityIdFromTracker(
       documentInfo,
-      inlinePosition
+      inlinePosition,
     );
     inlineSuggestionData["suggestionId"] = suggestionId;
     inlineSuggestionData["documentUri"] = documentInfo.documentUri;
@@ -363,7 +363,7 @@ async function requestSuggestion(
       documentInfo.documentDirPath,
       documentInfo.documentFilePath,
       documentInfo.ansibleFileType,
-      suggestionId
+      suggestionId,
     );
   } catch (error) {
     inlineSuggestionData["error"] = `${error}`;
@@ -377,13 +377,13 @@ async function requestSuggestion(
 
 const onDoSingleTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ) {
   resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
-    "[inline-suggestions] Inline suggestions triggered by user edits."
+    "[inline-suggestions] Inline suggestions triggered by user edits.",
   );
   const documentInfo = loadFile(inlinePosition);
   const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
@@ -407,7 +407,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
     let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
     insertText = adjustInlineSuggestionIndent(
       insertText,
-      inlinePosition.position
+      inlinePosition.position,
     );
     insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, "");
     insertTexts.push(insertText);
@@ -430,7 +430,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
   previousTriggerPosition = inlinePosition.position;
 
   console.log(
-    `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
+    `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`,
   );
   const contentMatchesForSuggestion = `${suggestionMatchInfo.lineToExtractPrompt.text.trimEnd()}\n${currentSuggestion}`;
   lightSpeedManager.contentMatchesProvider.suggestionDetails = [
@@ -449,13 +449,13 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
 
 const onDoMultiTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ) {
   resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
   console.log(
-    "[inline-suggestions] Inline suggestions triggered by user edits."
+    "[inline-suggestions] Inline suggestions triggered by user edits.",
   );
   const documentInfo = loadFile(inlinePosition);
 
@@ -479,7 +479,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
     let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
     insertText = adjustInlineSuggestionIndent(
       insertText,
-      inlinePosition.position
+      inlinePosition.position,
     );
     insertText = insertText.replace(/^[ \t]+(?=\r?\n)/gm, "");
     insertTexts.push(insertText);
@@ -501,7 +501,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
   previousTriggerPosition = inlinePosition.position;
 
   console.log(
-    `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`
+    `[inline-suggestions] Received Inline Suggestion\n:${currentSuggestion}`,
   );
   const contentMatchesForSuggestion = currentSuggestion;
   lightSpeedManager.contentMatchesProvider.suggestionDetails = [
@@ -519,12 +519,12 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
 };
 
 function getSuggestionMatchType(
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ): SuggestionMatchInfo {
   let suggestionMatchType: LIGHTSPEED_SUGGESTION_TYPE | undefined = undefined;
 
   const lineToExtractPrompt = inlinePosition.document.lineAt(
-    inlinePosition.position.line - 1
+    inlinePosition.position.line - 1,
   );
   const spacesBeforePromptStart =
     lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
@@ -532,7 +532,7 @@ function getSuggestionMatchType(
   const taskMatchedPattern =
     lineToExtractPrompt.text.match(SINGLE_TASK_REGEX_EP);
   const currentLineText = inlinePosition.document.lineAt(
-    inlinePosition.position
+    inlinePosition.position,
   );
   const spacesBeforeCursor =
     currentLineText?.text
@@ -562,7 +562,7 @@ function getSuggestionMatchType(
 function loadFile(inlinePosition: InlinePosition): DocumentInfo {
   const range = new vscode.Range(
     new vscode.Position(0, 0),
-    inlinePosition.position
+    inlinePosition.position,
   );
   const documentContent = range.isEmpty
     ? ""
@@ -574,7 +574,7 @@ function loadFile(inlinePosition: InlinePosition): DocumentInfo {
   const documentFilePath = URI.parse(documentUri).path;
   const ansibleFileType: IAnsibleFileType = getAnsibleFileType(
     documentFilePath,
-    documentContent
+    documentContent,
   );
 
   try {
@@ -583,7 +583,7 @@ function loadFile(inlinePosition: InlinePosition): DocumentInfo {
     });
   } catch (err) {
     vscode.window.showErrorMessage(
-      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`
+      `Ansible Lightspeed expects valid YAML syntax to provide inline suggestions. Error: ${err}`,
     );
     throw err;
   }
@@ -611,7 +611,7 @@ type InlineSuggestionState =
   (typeof InlineSuggestionState)[keyof typeof InlineSuggestionState];
 
 async function getInlineSuggestionState(
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ): Promise<CallbackEntry> {
   const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
   const rhUserHasSeat =
@@ -642,11 +642,11 @@ async function getInlineSuggestionState(
     shouldTriggerMultiTaskSuggestion(
       documentInfo.documentContent,
       suggestionMatchInfo.spacesBeforePromptStart,
-      documentInfo.ansibleFileType
+      documentInfo.ansibleFileType,
     ) ||
     shouldRequestInlineSuggestions(
       documentInfo.parsedAnsibleDocument,
-      documentInfo.ansibleFileType
+      documentInfo.ansibleFileType,
     );
 
   if (!hasValidPrompt) {
@@ -676,7 +676,7 @@ async function getInlineSuggestionState(
 }
 
 export async function getInlineSuggestionItems(
-  inlinePosition: InlinePosition
+  inlinePosition: InlinePosition,
 ): Promise<vscode.InlineCompletionItem[]> {
   const state = await getInlineSuggestionState(inlinePosition);
 
@@ -693,7 +693,7 @@ async function requestInlineSuggest(
   documentDirPath: string,
   documentFilePath: string,
   ansibleFileType: IAnsibleFileType,
-  suggestionId: string
+  suggestionId: string,
 ): Promise<CompletionResponseParams> {
   const hash = crypto.createHash("sha256").update(documentUri).digest("hex");
   const completionData: CompletionRequestParams = {
@@ -718,24 +718,24 @@ async function requestInlineSuggest(
       documentDirPath,
       documentFilePath,
       ansibleFileType,
-      vscode.workspace.workspaceFolders
+      vscode.workspace.workspaceFolders,
     );
     if (completionData.metadata) {
       completionData.metadata.additionalContext = additionalContext;
     }
   }
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`,
   );
 
   lightSpeedManager.statusBarProvider.statusBar.show();
   console.log(
-    `[inline-suggestions] completionData: \n${yaml.stringify(completionData)}\n`
+    `[inline-suggestions] completionData: \n${yaml.stringify(completionData)}\n`,
   );
   const outputData: CompletionResponseParams =
     await lightSpeedManager.apiInstance.completionRequest(completionData);
   console.log(
-    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`
+    `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion response received from Ansible Lightspeed.`,
   );
   if (outputData.model) {
     // If model name is returned by server is different from the one previously used
@@ -754,7 +754,7 @@ async function requestInlineSuggest(
         vscode.window.showWarningMessage(
           `Ansible Lightspeed is using the model ${outputData.model} ` +
             `for suggestions instead of ${userProvidedModel}. ` +
-            `Please contact your administrator.`
+            `Please contact your administrator.`,
         );
       }
     }
@@ -775,7 +775,7 @@ export async function inlineSuggestionTriggerHandler() {
 
   // Trigger the suggestion explicitly
   console.log(
-    "[inline-suggestions] Inline Suggestion Handler triggered using command."
+    "[inline-suggestions] Inline Suggestion Handler triggered using command.",
   );
   vscode.commands.executeCommand("editor.action.inlineSuggest.trigger");
 }
@@ -790,7 +790,7 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   }
 
   console.log(
-    `[inline-suggestions] Inline Suggestion Marker Handler triggered using command at ${position.line}`
+    `[inline-suggestions] Inline Suggestion Marker Handler triggered using command at ${position.line}`,
   );
 
   if (
@@ -803,12 +803,12 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
     const text = editor.document.getText(
       new vscode.Range(
         new vscode.Position(line, 0),
-        new vscode.Position(line + 1, 0)
-      )
+        new vscode.Position(line + 1, 0),
+      ),
     );
     // Remove the prepended text
     const commentPosition = text.indexOf(
-      LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT
+      LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
     );
     if (commentPosition === -1) {
       return;
@@ -819,13 +819,13 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
       editBuilder.delete(
         new vscode.Range(
           new vscode.Position(line, 0),
-          new vscode.Position(line + 1, 0)
-        )
+          new vscode.Position(line + 1, 0),
+        ),
       );
     });
   }
   console.log(
-    "[inline-suggestions] Inline Suggestion Marker Handler removing extra whitespace"
+    "[inline-suggestions] Inline Suggestion Marker Handler removing extra whitespace",
   );
 
   // Clear the line of extra whitespace after the suggestion
@@ -839,8 +839,8 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
           selection.active.line,
           0,
           selection.active.line,
-          lineText.length
-        )
+          lineText.length,
+        ),
       );
     });
   }
@@ -880,7 +880,7 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
     }
     default: {
       console.log(
-        "[inline-suggestions] User didn't accept the inline suggestion."
+        "[inline-suggestions] User didn't accept the inline suggestion.",
       );
     }
   }
@@ -894,7 +894,7 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
 
 export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
-  isSuggestionAccepted: UserAction = UserAction.REJECTED
+  isSuggestionAccepted: UserAction = UserAction.REJECTED,
 ) {
   inlineSuggestionData["userActionTime"] =
     getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
@@ -910,7 +910,7 @@ export async function inlineSuggestionUserActionHandler(
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload,
-    lightSpeedManager.orgTelemetryOptOut
+    lightSpeedManager.orgTelemetryOptOut,
   );
   resetSuggestionData();
 }
@@ -940,12 +940,12 @@ export async function rejectPendingSuggestion() {
   if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
     if (inlineSuggestionPending()) {
       console.log(
-        "[inline-suggestions] Send a REJECTED feedback for a pending suggestion."
+        "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
       );
       const suggestionId = inlineSuggestionData["suggestionId"];
       await inlineSuggestionUserActionHandler(
         suggestionId!,
-        UserAction.REJECTED
+        UserAction.REJECTED,
       );
     } else {
       suggestionDisplayed.reset();
@@ -957,12 +957,12 @@ export async function ignorePendingSuggestion() {
   if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
     if (inlineSuggestionPending(false)) {
       console.log(
-        "[inline-suggestions] Send a IGNORED feedback for a pending suggestion."
+        "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
       );
       const suggestionId = inlineSuggestionData["suggestionId"];
       await inlineSuggestionUserActionHandler(
         suggestionId!,
-        UserAction.IGNORED
+        UserAction.IGNORED,
       );
     } else {
       suggestionDisplayed.reset();
@@ -971,7 +971,7 @@ export async function ignorePendingSuggestion() {
 }
 
 export async function inlineSuggestionTextDocumentChangeHandler(
-  e: vscode.TextDocumentChangeEvent
+  e: vscode.TextDocumentChangeEvent,
 ) {
   // If the user accepted a suggestion on the widget, ansible.lightspeed.inlineSuggest.accept
   // command is not sent. This method checks if a text change that matches to the current
@@ -990,15 +990,15 @@ export async function inlineSuggestionTextDocumentChangeHandler(
       if (c.text === insertTexts[0]) {
         // If a matching change was found, send a feedback with the ACCEPTED user action.
         console.log(
-          "[inline-suggestions] Detected a text change that matches to the current suggestion."
+          "[inline-suggestions] Detected a text change that matches to the current suggestion.",
         );
         await inlineSuggestionUserActionHandler(
           suggestionId!,
-          UserAction.ACCEPTED
+          UserAction.ACCEPTED,
         );
         // Show training matches for the accepted suggestion.
         vscode.commands.executeCommand(
-          LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
+          LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
         );
       }
     });

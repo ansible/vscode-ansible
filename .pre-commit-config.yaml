@@ -11,16 +11,28 @@ ci:
     #- yarn-audit
     #- yarn-audit-fix
     - yarn-dedupe
+    - codecov
 exclude: >
   (?x)^(
     .config/requirements.in|
-    .*.svg|
-    packages/ansible-language-server/.*
+    .*.svg
   )$
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
+  - repo: https://github.com/streetsidesoftware/cspell-cli
+    rev: v8.6.1
+    hooks:
+      - id: cspell
+        # name: Spell check with cspell
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.6
+    hooks:
+      - id: codespell
+        pass_filenames: false # we want to use its own config
+        additional_dependencies:
+          - tomli
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.9.0.6
+    rev: v0.10.0.1
     hooks:
       - id: shellcheck
         args:
@@ -41,6 +53,17 @@ repos:
       #   pass_filenames: false
       #   files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
       #   entry: npx yarn run yarn-audit-fix
+      - id: codecov
+        name: Check codecov.yml
+        # https://superuser.com/a/1587813/3004
+        entry: >
+          bash -c '[ $(
+          curl --silent -o /dev/stderr -w "%{http_code}" -X POST
+          --data-binary @codecov.yml https://codecov.io/validate
+          ) -eq 200 ]'
+        language: system
+        files: "codecov.yml"
+        pass_filenames: false
   - repo: https://github.com/ScribeMD/pre-commit-hooks
     rev: 0.16.3
     hooks:
@@ -53,12 +76,17 @@ repos:
     rev: v4.5.0
     hooks:
       - id: end-of-file-fixer
+        exclude: >
+          (?x)^(
+            packages/ansible-language-server/docs/settings.md
+          )$
       - id: trailing-whitespace
         exclude: >
           (?x)^(
             .yarn/.*|
             examples/playbooks/(with-skip-tag-id|unicode).yml|
-            examples/playbooks/example.yml
+            examples/playbooks/example.yml|
+            packages/ansible-language-server/docs/settings.md
           )$
       - id: mixed-line-ending
       - id: check-byte-order-marker
@@ -70,25 +98,17 @@ repos:
           (?x)^(
             .vscode/settings.json|
             jinja-language-configuration.json|
-            ansible-language-configuration.json
+            ansible-language-configuration.json|
+            packages/ansible-language-server/.vscode/.*|
+            packages/ansible-language-server/scripts/tsconfig.json|
+            packages/ansible-language-server/scripts/tsconfig.esm.json|
+            packages/ansible-language-server/scripts/tsconfig.umd.json|
+            packages/ansible-language-server/tsconfig.json
           )$
       - id: debug-statements
         language_version: python3
-  - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.3.0
-    hooks:
-      - id: cspell
-        name: Spell check with cspell
-        exclude: >
-          (?x)^(
-            .vscode/settings.json|
-            .yarn/.*|
-            .github/.*|
-            CHANGELOG.md|
-            yarn.lock
-          )$
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.33.0
+    rev: v1.35.1
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -96,19 +116,9 @@ repos:
         entry: yamllint --strict
         exclude: >
           (?x)^(
-            test/testFixtures/diagnostics/yaml/invalid_yaml.yml
-          )$
-  - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
-    hooks:
-      - id: codespell
-        exclude: >
-          (?x)^(
-            .yarn/.*|
-            .config/dictionary.txt|
-            CHANGELOG.md|
-            yarn.lock|
-            media/codicons/codicon.css
+            test/testFixtures/diagnostics/yaml/invalid_yaml.yml|
+            packages/ansible-language-server/test/testFixtures/diagnostics/yaml/invalid_yaml.yml|
+            packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
           )$
   - repo: https://github.com/pre-commit/mirrors-prettier
     # keep it before markdownlint and eslint
@@ -120,18 +130,24 @@ repos:
           (?x)^(
             jinja-language-configuration.json|
             syntaxes/external/jinja.tmLanguage.json|
+            packages/ansible-language-server/docs/settings.md
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.39.0
     hooks:
       - id: markdownlint
+        exclude: >
+          (?x)^
+            packages/ansible-language-server/docs/changelog-fragments\.d/\d+\.\w+\.md|
+            packages/ansible-language-server/docs/settings.md
+          $
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.11.0
+    rev: v9.13.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-alpha.2
+    rev: v9.0.0-rc.0
     hooks:
       - id: eslint
         args:

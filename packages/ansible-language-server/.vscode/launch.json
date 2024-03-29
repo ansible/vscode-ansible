@@ -16,8 +16,8 @@
       "sourceMaps": true,
       "outFiles": ["${workspaceRoot}/out/server/**/*.ts"],
       "protocol": "inspector",
-      "trace": true,
-    },
+      "trace": true
+    }
     // {
     //   "name": "Language Server E2E Test",
     //   "type": "extensionHost",
@@ -30,5 +30,5 @@
     //   ],
     //   "outFiles": ["${workspaceRoot}/client/out/test/**/*.js"]
     // }
-  ],
+  ]
 }

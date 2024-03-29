@@ -1,13 +1,13 @@
 {
   "editor.formatOnSave": true,
   "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "files.exclude": {
     "**/.git": true,
@@ -23,9 +23,9 @@
     "**/out/coverage.lcov": true,
     "**/out/docs_out": true,
     "**/out/next.md": true,
-    "**/out/vscode-ansible": true,
+    "**/out/vscode-ansible": true
   },
   "explorerExclude.backup": null,
   "python.defaultInterpreterPath": "${workspaceFolder}/out/venvs/${env:HOSTNAME}/bin/python",
-  "mypy.configFile": ".config/mypy.ini",
+  "mypy.configFile": ".config/mypy.ini"
 }

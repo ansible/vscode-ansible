@@ -67,7 +67,7 @@ const PREDICTIONS = [
 export function completions(
   req: { body: { model: string; prompt: string; suggestionId?: string } },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  res: any
+  res: any,
 ) {
   // If the prompt contains "status=nnn" (like "status=204"), return the specified
   // status code.

@@ -265,12 +265,6 @@ command -v npm  >/dev/null 2>&1 || {
     log notice "Installing nodejs stable."
     asdf install
 }
-# Check if npm has permissions to install packages (system installed does not)
-# Share https://stackoverflow.com/a/59227497/99834
-test -w "$(npm config get prefix)" || {
-    log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
-    npm config set prefix "${HOME}/.local/"
-}
 
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || {
@@ -333,14 +327,7 @@ creator-ee:
   ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
 EOF
 
-if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn --version
-    CMD="yarn install --immutable"
-    # --immutable-cache --check-cache
-else
-    CMD="npm ci --no-audit"
-fi
+CMD="yarn install --immutable"
 log notice "Install node deps using: ${CMD}"
 $CMD
 

@@ -55,7 +55,7 @@ export default class Server {
         access_token: "ACCESS_TOKEN",
         refresh_token: "REFRESH_TOKEN",
         expires_in: 3600,
-      })
+      }),
     );
 
     app.listen(parseInt(url.port), url.hostname, () => {

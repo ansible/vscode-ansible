@@ -41,7 +41,7 @@ export class MetadataManager {
     context: ExtensionContext,
     client: LanguageClient,
     telemetry: TelemetryManager,
-    extensionSettings: SettingsManager
+    extensionSettings: SettingsManager,
   ) {
     this.context = context;
     this.client = client;
@@ -55,7 +55,7 @@ export class MetadataManager {
     // create a new status bar item that we can manage
     const metadataStatusBarItem = window.createStatusBarItem(
       StatusBarAlignment.Right,
-      100
+      100,
     );
     this.context.subscriptions.push(metadataStatusBarItem);
     return metadataStatusBarItem;
@@ -84,7 +84,7 @@ export class MetadataManager {
     }
     this.metadataStatusBarItem.tooltip = new MarkdownString(
       ` $(sync~spin) Fetching... `,
-      true
+      true,
     );
     this.metadataStatusBarItem.show();
     this.client.onNotification(
@@ -105,7 +105,7 @@ export class MetadataManager {
           if (!ansibleMetaData.ansibleLintPresent) {
             this.metadataStatusBarItem.text = `$(warning) ${this.cachedAnsibleVersion}`;
             this.metadataStatusBarItem.backgroundColor = new ThemeColor(
-              "statusBarItem.warningBackground"
+              "statusBarItem.warningBackground",
             );
           }
 
@@ -135,19 +135,19 @@ export class MetadataManager {
           this.metadataStatusBarItem.text = "$(error) Ansible";
           this.metadataStatusBarItem.tooltip = ansibleMetaData.markdown;
           this.metadataStatusBarItem.backgroundColor = new ThemeColor(
-            "statusBarItem.errorBackground"
+            "statusBarItem.errorBackground",
           );
           this.metadataStatusBarItem.show();
           this.telemetry.sendTelemetry("ansibleMetadata", {
             error: "Ansible not found in the workspace",
           });
         }
-      }
+      },
     );
     const activeFileUri = window.activeTextEditor?.document.uri.toString();
     this.client.sendNotification(
       new NotificationType(`update/ansible-metadata`),
-      [activeFileUri]
+      [activeFileUri],
     );
 
     return;

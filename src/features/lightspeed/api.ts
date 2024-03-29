@@ -37,7 +37,7 @@ export class LightSpeedAPI {
   constructor(
     settingsManager: SettingsManager,
     lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-    context: vscode.ExtensionContext
+    context: vscode.ExtensionContext,
   ) {
     this.settingsManager = settingsManager;
     this.lightSpeedAuthProvider = lightSpeedAuthProvider;
@@ -95,7 +95,7 @@ export class LightSpeedAPI {
   }
 
   public async completionRequest(
-    inputData: CompletionRequestParams
+    inputData: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
@@ -104,8 +104,8 @@ export class LightSpeedAPI {
     }
     console.log(
       `[ansible-lightspeed] Completion request sent to lightspeed: ${JSON.stringify(
-        inputData
-      )}`
+        inputData,
+      )}`,
     );
     try {
       this._completionRequestInProgress = true;
@@ -122,7 +122,7 @@ export class LightSpeedAPI {
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-        }
+        },
       );
       if (
         response.status === 204 ||
@@ -132,14 +132,14 @@ export class LightSpeedAPI {
       ) {
         this._inlineSuggestionFeedbackIgnoredPending = false;
         vscode.window.showInformationMessage(
-          "Ansible Lightspeed does not have a suggestion based on your input."
+          "Ansible Lightspeed does not have a suggestion based on your input.",
         );
         return {} as CompletionResponseParams;
       }
       console.log(
         `[ansible-lightspeed] Completion response: ${JSON.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
       return response.data;
     } catch (error) {
@@ -153,7 +153,7 @@ export class LightSpeedAPI {
         this._inlineSuggestionFeedbackIgnoredPending = false;
         vscode.commands.executeCommand(
           LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
-          UserAction.IGNORED
+          UserAction.IGNORED,
         );
       }
       this._completionRequestInProgress = false;
@@ -164,7 +164,7 @@ export class LightSpeedAPI {
     inputData: FeedbackRequestParams,
     orgOptOutTelemetry = false,
     showAuthErrorMessage = false,
-    showInfoMessage = false
+    showInfoMessage = false,
   ): Promise<FeedbackResponseParams> {
     // return early if the user is not authenticated
     if (
@@ -202,8 +202,8 @@ export class LightSpeedAPI {
     };
     console.log(
       `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
-        requestData
-      )}`
+        requestData,
+      )}`,
     );
     try {
       const response = await axiosInstance.post(
@@ -211,7 +211,7 @@ export class LightSpeedAPI {
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-        }
+        },
       );
       if (showInfoMessage) {
         vscode.window.showInformationMessage("Thanks for your feedback!");
@@ -231,12 +231,12 @@ export class LightSpeedAPI {
   }
 
   public async contentMatchesRequest(
-    inputData: ContentMatchesRequestParams
+    inputData: ContentMatchesRequestParams,
   ): Promise<ContentMatchesResponseParams | IError> {
     // return early if the user is not authenticated
     if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
       vscode.window.showErrorMessage(
-        "User not authenticated to use Ansible Lightspeed."
+        "User not authenticated to use Ansible Lightspeed.",
       );
       return {} as ContentMatchesResponseParams;
     }
@@ -253,15 +253,15 @@ export class LightSpeedAPI {
       };
       console.log(
         `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
-          requestData
-        )}`
+          requestData,
+        )}`,
       );
       const response = await axiosInstance.post(
         LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-        }
+        },
       );
       return response.data;
     } catch (error) {

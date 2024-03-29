@@ -21,7 +21,7 @@ export function getContainerEngine(containerEngine: string): string {
   }
   if (!isCEFound) {
     console.error(
-      "Supported container engine not found, set it explicitly to podman"
+      "Supported container engine not found, set it explicitly to podman",
     );
     engine = "podman";
   }
