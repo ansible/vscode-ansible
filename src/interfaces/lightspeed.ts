@@ -51,6 +51,7 @@ export interface AnsibleContentEvent {
   trigger: AnsibleContentUploadTrigger;
   activityId: string | undefined;
 }
+
 export interface SentimentEvent {
   value: number;
   feedback: string;
@@ -62,6 +63,7 @@ export interface SuggestionQualityEvent {
   expectedSuggestion: string;
   additionalComment: string;
 }
+
 export interface IssueFeedbackEvent {
   type: "bug-report" | "feature-request";
   title: string;
@@ -138,12 +140,14 @@ export interface IRoleVarsContext {
   defaults: IVarsFileContext;
   vars: IVarsFileContext;
 }
+
 export interface IRoleContext {
   name?: string;
   tasks?: string[];
   roleVars?: IRoleVarsContext;
   includeVars?: IIncludeVarsContext;
 }
+
 export interface IRolesContext {
   [rolePath: string]: IRoleContext;
 }
@@ -162,6 +166,7 @@ export interface IPlaybookContext {
   taskFileNames?: string[];
   includeVars?: IIncludeVarsContext;
 }
+
 export interface IAdditionalContext {
   playbookContext?: IPlaybookContext;
   roleContext?: IRoleContext;
@@ -177,7 +182,14 @@ export interface LightspeedSessionUserInfo {
 export interface LightspeedSessionModelInfo {
   model?: string;
 }
+
 export interface LightspeedSessionInfo {
   userInfo?: LightspeedSessionUserInfo;
   modelInfo?: LightspeedSessionModelInfo;
+}
+
+export interface IError {
+  code: string;
+  message?: string;
+  detail?: unknown;
 }

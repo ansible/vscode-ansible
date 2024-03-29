@@ -1,7 +1,7 @@
 require("assert");
 
 import { AxiosError, AxiosHeaders } from "axios";
-import { retrieveError } from "../../../src/features/lightspeed/handleApiError";
+import { mapError } from "../../../src/features/lightspeed/handleApiError";
 import assert from "assert";
 
 function createError(
@@ -37,129 +37,196 @@ function createError(
 }
 
 describe("testing the error handling", () => {
+  // =================================
+  // HTTP 200
+  // ---------------------------------
   it("err generic", () => {
-    const msg = retrieveError(createError(200));
+    const error = mapError(createError(200));
     assert.equal(
-      msg,
-      "Failed to fetch inline suggestion from Ansible Lightspeed with status code: 200. Try again after some time."
+      error.message,
+      "An error occurred attempting to complete your request. Please try again later."
     );
   });
-  it("err Unauthorized", () => {
-    const msg = retrieveError(createError(401));
-    assert.equal(msg, "User not authorized to access Ansible Lightspeed.");
-  });
-  it("err Too Many Requests", () => {
-    const msg = retrieveError(createError(429));
+  // =================================
+
+  // =================================
+  // HTTP 204
+  // ---------------------------------
+  it("err Postprocessing error", () => {
+    const error = mapError(
+      createError(204, {
+        code: "postprocess_error",
+      })
+    );
     assert.equal(
-      msg,
-      "Too many requests to Ansible Lightspeed. Please try again after some time."
+      error.message,
+      "An error occurred post-processing the inline suggestion. Please contact your administrator."
     );
   });
+
+  it("err Model timeout", () => {
+    const error = mapError(
+      createError(204, {
+        code: "model_timeout",
+      })
+    );
+    assert.equal(
+      error.message,
+      "Ansible Lightspeed timed out processing your request. Please try again later."
+    );
+  });
+
+  it("err WCA Bad Request", () => {
+    const error = mapError(
+      createError(204, {
+        code: "error__wca_bad_request",
+      })
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant returned a bad request response. Please contact your administrator."
+    );
+  });
+
+  it("err WCA Empty Response", () => {
+    const error = mapError(
+      createError(204, {
+        code: "error__wca_empty_response",
+      })
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant returned an empty response. Please contact your administrator."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 400
+  // ---------------------------------
   it("err Bad Request from Cloudflare", () => {
-    const msg = retrieveError(
-      createError(400, { message: "Some string from Cloudflare." })
+    const error = mapError(
+      createError(400, { code: "error__wca_cloud_flare_rejection" })
     );
     assert.equal(
-      msg,
+      error.message,
       "Cloudflare rejected the request. Please contact your administrator."
     );
   });
+
   it("err Bad Request", () => {
-    const msg = retrieveError(createError(400));
-    assert.equal(msg, "Bad Request response. Please try again.");
+    const error = mapError(createError(400));
+    assert.equal(error.message, "Bad Request response. Please try again.");
   });
-  it("err Forbidden - WCA Model ID is invalid", () => {
-    const msg = retrieveError(
-      createError(403, { message: "WCA Model ID is invalid" })
+
+  it("err Postprocessing error", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__preprocess_invalid_yaml",
+      })
     );
     assert.equal(
-      msg,
-      `Model ID is invalid. Please contact your administrator.`
+      error.message,
+      "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator."
     );
   });
-  it("err Forbidden - No seat", () => {
-    const msg = retrieveError(
+
+  it("err Feedback validation error", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__feedback_validation",
+        message: "A field was invalid.",
+      })
+    );
+    assert.equal(error.message, "A field was invalid.");
+  });
+
+  it("err WCA Suggestion Correlation failure", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__wca_suggestion_correlation_failed",
+      })
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 401
+  // ---------------------------------
+  it("err Unauthorized", () => {
+    const error = mapError(createError(401));
+    assert.equal(
+      error.message,
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 403
+  // ---------------------------------
+  it("err Forbidden - Org ready, No seat", () => {
+    const error = mapError(
       createError(403, {
         code: "permission_denied__org_ready_user_has_no_seat",
       })
     );
     assert.equal(
-      msg,
-      `You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.`
+      error.message,
+      "You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat."
     );
   });
-  it("err Forbidden - Trial expired", () => {
-    const msg = retrieveError(
-      createError(403, {
-        code: "permission_denied__user_trial_expired",
-      })
-    );
-    assert.equal(
-      msg,
-      `Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant by moving to one of the paid plans.`
-    );
-  });
-  it("err Forbidden - WCA not ready", () => {
-    const msg = retrieveError(
-      createError(403, {
-        code: "permission_denied__org_not_ready_because_wca_not_configured",
-      })
-    );
-    assert.equal(
-      msg,
-      `Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.`
-    );
-  });
+
   it("err Forbidden - No Seat", () => {
-    const msg = retrieveError(
+    const error = mapError(
       createError(403, {
         code: "permission_denied__user_with_no_seat",
       })
     );
     assert.equal(
-      msg,
-      "You don't have access to IBM watsonx Code Assistant. Contact your administrator."
+      error.message,
+      "You don't have access to IBM watsonx Code Assistant. Please contact your administrator."
+    );
+  });
+
+  it("err Forbidden - Trial expired", () => {
+    const error = mapError(
+      createError(403, {
+        code: "permission_denied__user_trial_expired",
+      })
+    );
+    assert.equal(
+      error.message,
+      "Your trial to the generative AI model has expired. Refer to your IBM Cloud Account to re-enable access to the IBM watsonx Code Assistant by moving to one of the paid plans."
+    );
+  });
+
+  it("err Forbidden - WCA not ready", () => {
+    const error = mapError(
+      createError(403, {
+        code: "permission_denied__org_not_ready_because_wca_not_configured",
+      })
+    );
+    assert.equal(
+      error.message,
+      "Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization."
     );
   });
 
   it("err Forbidden", () => {
-    const msg = retrieveError(createError(403));
-    assert.equal(msg, `User not authorized to access Ansible Lightspeed.`);
-  });
-  it("err Internal Server Error", () => {
-    const msg = retrieveError(createError(500));
+    const error = mapError(createError(403));
     assert.equal(
-      msg,
-      `Ansible Lightspeed encountered an error. Try again after some time.`
-    );
-  });
-  it("err Unexpected Err code", () => {
-    const msg = retrieveError(createError(999));
-    assert.equal(
-      msg,
-      "Failed to fetch inline suggestion from Ansible Lightspeed with status code: 999. Try again after some time."
-    );
-  });
-  it("err Timeout", () => {
-    const err = createError(0);
-    err.code = AxiosError.ECONNABORTED;
-    const msg = retrieveError(err);
-    assert.equal(
-      msg,
-      "Ansible Lightspeed connection timeout. Try again after some time."
-    );
-  });
-
-  it("err Unexpected Client error", () => {
-    const msg = retrieveError(createError(0));
-    assert.equal(
-      msg,
-      "Failed to fetch inline suggestion from Ansible Lightspeed. Try again after some time."
+      error.message,
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
     );
   });
 
   it("err Bad Request from CloudFront", () => {
-    const msg = retrieveError(
+    const error = mapError(
       createError(
         403,
         { data: "Some string from CloudFront." },
@@ -167,8 +234,183 @@ describe("testing the error handling", () => {
       )
     );
     assert.match(
-      msg,
+      error.message ?? "",
       /Something in your editor content has caused your inline suggestion request to be blocked.*/
     );
   });
+
+  it("err WCA API Key missing", () => {
+    const error = mapError(
+      createError(403, {
+        code: "error__wca_key_not_found",
+      })
+    );
+    assert.equal(
+      error.message,
+      "Could not find an API Key for IBM watsonx Code Assistant. Please contact your administrator."
+    );
+  });
+
+  it("err WCA Model Id missing", () => {
+    const error = mapError(
+      createError(403, {
+        code: "error__wca_model_id_not_found",
+      })
+    );
+    assert.equal(
+      error.message,
+      "Could not find a Model Id for IBM watsonx Code Assistant. Please contact your administrator."
+    );
+  });
+
+  it("err WCA Model Id is invalid", () => {
+    const error = mapError(
+      createError(403, {
+        code: "error__wca_invalid_model_id",
+      })
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant Model ID is invalid. Please contact your administrator."
+    );
+  });
+
+  it("err Terms of Use not accepted", () => {
+    const error = mapError(
+      createError(403, {
+        code: "permission_denied__terms_of_use_not_accepted",
+      })
+    );
+    assert.equal(
+      error.message,
+      "You have not accepted the Terms of Use. Please accept them before proceeding."
+    );
+  });
+
+  it("err User has no subscription", () => {
+    const error = mapError(
+      createError(403, {
+        code: "permission_denied__user_has_no_subscription",
+      })
+    );
+    assert.equal(
+      error.message,
+      "Your organization does not have a subscription. Please contact your administrator."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 404
+  // ---------------------------------
+  it("err Not found", () => {
+    const error = mapError(createError(404));
+    assert.equal(
+      error.message,
+      "The resource could not be found. Please try again later."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 429
+  // ---------------------------------
+  it("err Too Many Requests", () => {
+    const error = mapError(createError(429));
+    assert.equal(
+      error.message,
+      "Too many requests to Ansible Lightspeed. Please try again later."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 500
+  // ---------------------------------
+  it("err Internal Server Error - Generic", () => {
+    const error = mapError(createError(500));
+    assert.equal(
+      error.message,
+      "An error occurred attempting to complete your request. Please try again later."
+    );
+  });
+
+  it("err Internal Server Error - Codified", () => {
+    const error = mapError(createError(500, { code: "internal_server" }));
+    assert.equal(
+      error.message,
+      "An error occurred attempting to complete your request. Please try again later."
+    );
+  });
+
+  it("err Error submitting feedback", () => {
+    const error = mapError(
+      createError(500, {
+        code: "error__feedback_internal_server",
+      })
+    );
+    assert.equal(
+      error.message,
+      "An error occurred attempting to submit your feedback. Please try again later."
+    );
+  });
+  // =================================
+
+  // =================================
+  // HTTP 503
+  // ---------------------------------
+  it("err Attribution error", () => {
+    const error = mapError(
+      createError(503, {
+        code: "error__attribution_exception",
+      })
+    );
+    assert.equal(
+      error.message,
+      "An error occurred attempting to complete your request. Please try again later."
+    );
+  });
+
+  it("err Service unavailable", () => {
+    const error = mapError(
+      createError(503, {
+        code: "service_unavailable",
+      })
+    );
+    assert.equal(
+      error.message,
+      "The IBM watsonx Code Assistant is unavailable. Please try again later."
+    );
+  });
+  // =================================
+
+  // =================================
+  // Miscellaneous
+  // ---------------------------------
+  it("err Timeout", () => {
+    const err = createError(0);
+    err.code = AxiosError.ECONNABORTED;
+    const error = mapError(err);
+    assert.equal(
+      error.message,
+      "Ansible Lightspeed connection timeout. Please try again later."
+    );
+  });
+
+  it("err Unexpected Client error", () => {
+    const error = mapError(createError(0));
+    assert.equal(
+      error.message,
+      "An error occurred attempting to complete your request. Please try again later."
+    );
+  });
+
+  it("err Unexpected Err code", () => {
+    const error = mapError(createError(999));
+    assert.equal(
+      error.message,
+      "An error occurred attempting to complete your request. Please try again later."
+    );
+  });
+  // =================================
 });
