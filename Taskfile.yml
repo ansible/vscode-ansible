@@ -10,8 +10,8 @@ env: &env
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
   # basically the same thing from .envrc file:
-  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/{{.HOSTNAME}}}"
+  VIRTUAL_ENV:
+    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
