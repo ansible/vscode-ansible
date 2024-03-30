@@ -47,15 +47,12 @@ jobs:
           - ubuntu-22.04
         task-name:
           - test
-        upload-artifact:
-          - false
         name:
           - test
         include:
           - name: lint
             task-name: lint
             os: ubuntu-22.04
-            upload-artifact: true
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -178,12 +175,22 @@ jobs:
           fail_ci_if_error: true
 
       - name: Upload vsix artifact
-        if: ${{ github.event.number && matrix.upload-artifact }}
+        if: ${{ matrix.name == 'test' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-extension-from-pr-${{ github.event.number }}.vsix
+          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.vsix
           path: ansible-*.vsix
-          retention-days: 15
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload ansible-language-server npm package
+        if: ${{ matrix.name == 'test' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.ref_name }}.tgz"
+          path: packages/ansible-language-server/*.tgz
+          if-no-files-found: error
+          retention-days: 90
 
       - name: Upload test logs
         if: ${{ always() }}
@@ -196,22 +203,22 @@ jobs:
             out/test-resources/settings/logs
             out/userdata/logs
           if-no-files-found: ignore
-          retention-days: 15
+          retention-days: 90
 
-      - name: Stop services
-        if: "contains(matrix.os, 'macos')"
-        # Stopping podman machine is needed or caching it will fail
-        run: |
-          command -v podman && {
-          podman machine stop
-          while [[ "$(podman machine ls --format '{{.Running}}' \
-                --noheading || true)" != "false" ]]; do
-            sleep 1
-            echo -n .
-          done
-          echo .
-          }
-        continue-on-error: true
+      # - name: Stop services
+      #   if: "contains(matrix.os, 'macos')"
+      #   # Stopping podman machine is needed or caching it will fail
+      #   run: |
+      #     command -v podman && {
+      #     podman machine stop
+      #     while [[ "$(podman machine ls --format '{{.Running}}' \
+      #           --noheading || true)" != "false" ]]; do
+      #       sleep 1
+      #       echo -n .
+      #     done
+      #     echo .
+      #     }
+      #   continue-on-error: true
 
       ## commented out for future use to debug on the GHA node if required
       # - name: Setup tmate session
@@ -227,6 +234,14 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+
+      - name: Merge logs into a single archive
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: logs.zip
+          pattern: logs*.zip
+          delete-merged: true
+
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1
         with:
