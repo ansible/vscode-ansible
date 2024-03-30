@@ -42,5 +42,6 @@ export function mapError(err: AxiosError): IError {
     return ERRORS_CONNECTION_TIMEOUT.withDetail(detail);
   }
 
+  console.log(`Lightspeed request failed with unknown error ${err}`);
   return ERRORS_UNKNOWN.withDetail(detail);
 }

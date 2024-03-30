@@ -7,7 +7,7 @@ import assert from "assert";
 function createError(
   http_code: number,
   data: unknown | string = {},
-  err_headers = {}
+  err_headers = {},
 ): AxiosError {
   const request = { path: "/wisdom" };
   const headers = new AxiosHeaders({
@@ -230,8 +230,8 @@ describe("testing the error handling", () => {
       createError(
         403,
         "<html><body><p>Blocked by CloudFront.</p></body></html>",
-        { server: "CloudFront" }
-      )
+        { server: "CloudFront" },
+      ),
     );
     assert.match(
       error.message ?? "",
@@ -244,16 +244,16 @@ describe("testing the error handling", () => {
       createError(
         403,
         { data: "something else happened" },
-        { server: "CloudFront" }
-      )
+        { server: "CloudFront" },
+      ),
     );
     assert.doesNotMatch(
       error.message ?? "",
-      /Something in your editor content has caused your inline suggestion request to be blocked.*/
+      /Something in your editor content has caused your inline suggestion request to be blocked.*/,
     );
     assert.equal(
       error.message,
-      "You are not authorized to access Ansible Lightspeed. Please contact your administrator."
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator.",
     );
   });
 

@@ -21,7 +21,7 @@ class Error implements IError {
     code: string,
     message?: string,
     detail?: unknown,
-    check?: (err: AxiosError) => boolean
+    check?: (err: AxiosError) => boolean,
   ) {
     this.code = code;
     this.message = message;
@@ -259,8 +259,8 @@ ERRORS.addError(
         bodyContainsCloudFrontBlocked &&
         headerContainsCloudFrontServer
       );
-    }
-  )
+    },
+  ),
 );
 
 ERRORS.addError(
