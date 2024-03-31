@@ -181,7 +181,7 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
 fi
 
 # if a virtualenv is already active, ensure is the expected one
-EXPECTED_VENV="${PWD}/out/venvs/${HOSTNAME}"
+EXPECTED_VENV="${HOME}/.local/share/virtualenvs/vsa"
 if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
      log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
 fi

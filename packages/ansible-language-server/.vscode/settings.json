@@ -26,6 +26,6 @@
     "**/out/vscode-ansible": true
   },
   "explorerExclude.backup": null,
-  "python.defaultInterpreterPath": "${workspaceFolder}/out/venvs/${env:HOSTNAME}/bin/python",
+  "python.defaultInterpreterPath": "${userHome}/.local/share/virtualenvs/vsa/bin/python3",
   "mypy.configFile": ".config/mypy.ini"
 }

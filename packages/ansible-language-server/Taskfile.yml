@@ -9,7 +9,7 @@ vars:
   EE_VERSION:
     sh: ./tools/get-image-version
   VIRTUAL_ENV:
-    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/${HOSTNAME:-localhost}}"
+    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 tasks:
   default:
     desc: Run most commands
