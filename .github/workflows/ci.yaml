@@ -19,7 +19,7 @@ env:
   PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
-  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
 
@@ -32,8 +32,11 @@ jobs:
     env:
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     strategy:
@@ -50,8 +53,15 @@ jobs:
         name:
           - test
         include:
+          # - name: test-node-lts
+          #   task-name: test
+          #   task-name-als: als:test-node-lts
+          # - name: docs
+          #   task-name: docs
+          #   task-name-als: ""
           - name: lint
             task-name: lint
+            task-name-als: ""
             os: ubuntu-22.04
             env:
               SKIP_PODMAN: 1
@@ -59,6 +69,7 @@ jobs:
 
           - name: test (macos)
             task-name: test
+            task-name-als: als:test-without-ee
             os: macos-13-large
             env:
               SKIP_PODMAN: 1
@@ -67,27 +78,70 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
+          - name: als:test-without-ee (wsl)
+            # runner does not support running container
+            task-name: als:test-without-ee
+            log-name: als-test-without-ee
+            # https://github.com/actions/virtual-environments/issues/5151
+            os: windows-2022
+            shell: "wsl-bash {0}"
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
     steps:
-      - name: Disable autocrlf
-        if: contains(matrix.os, 'windows')
-        run: |-
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-        shell: bash # <-- keep it here to avoid using default shell
 
       - uses: actions/checkout@v4
 
+      # https://github.com/marketplace/actions/setup-wsl
+      - name: Activate WSL
+        if: contains(matrix.shell, 'wsl')
+        uses: Vampire/setup-wsl@v3.0.0
+        with:
+          distribution: Ubuntu-22.04
+          set-as-default: 'true'
+          # '-i' seems to be the only option that loads .bashrc file that we need
+          # https://github.com/Vampire/setup-wsl/discussions/54
+          wsl-shell-command: "bash -i -eo pipefail"
+          # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
+          wsl-conf: |
+            [automount]
+            enabled = true
+            root = /
+            options = "metadata,umask=077"
+            [interop]
+            enabled = false
+            appendWindowsPath = false
+            [network]
+            hostname = wsl
+          additional-packages:
+            curl
+            dirmngr
+            gawk
+            git
+            gpg
+            gpg-agent
+            make
+            python3-dev
+            python3-full
+            python3-venv
+            qemu-user-static
+            tar
+            unzip
+            xvfb
+          # asdf nodejs plugin requires: dirmngr gpg curl gawk
+
       - name: Setup asdf
-        if: "!contains(matrix.shell, 'wsl')"
+        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: asdf-vm/actions/install@v3
 
       - name: Setup python
+        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
       - name: Install asdf inside WSL
-        if: "contains(matrix.shell, 'wsl')"
+        if: contains(matrix.shell, 'wsl')
         run: |
           set -ex
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
@@ -100,10 +154,16 @@ jobs:
           asdf plugin add task
           asdf plugin add yarn
           asdf install
+          direnv --version
+          task --version
+          yarn --version
+          node --version
+          python3 --version
 
       - name: Activate direnv
+        if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
-          set -ex
+          set -x
           asdf direnv setup --shell bash --version latest
           asdf current
           asdf exec direnv allow
@@ -113,8 +173,10 @@ jobs:
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
       - name: Ensure virtualenv is active (direnv)
+        if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
-          test "${VIRTUAL_ENV}" = "${HOME}/.local/share/virtualenvs/vsa"
+          set -x
+          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa"
           test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3"
 
       - name: Enable caching
@@ -180,6 +242,13 @@ jobs:
           # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
         run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
+      - name: task ${{ matrix.task-name-als }}
+        if: ${{ (matrix.task-name-als || '') != '' }}
+        env:
+          SKIP_PODMAN: "${{ matrix.env.SKIP_PODMAN || '0' }}"
+          SKIP_DOCKER: "${{ matrix.env.SKIP_DOCKER || '0' }}"
+        run: task ${{ matrix.task-name-als }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+
       - name: Upload coverage data
         if: ${{ startsWith(matrix.name, 'test') }}
         uses: codecov/codecov-action@v4
@@ -212,7 +281,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: logs-${{ matrix.os }}-${{ matrix.task-name }}.zip
+          name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
           path: |
             out/e2eTestReport
             out/log
@@ -241,11 +310,16 @@ jobs:
       #   if: ${{ always() }}
       #   uses: mxschmitt/action-tmate@v3
 
+  ack:
+    uses: ansible/team-devtools/.github/workflows/ack.yml@main
+    secrets: inherit
+
   check: # This job does nothing and is only used for the branch protection
     if: always()
 
     needs:
       - build
+      - ack
 
     runs-on: ubuntu-22.04
 
