@@ -36,6 +36,7 @@ __metadata:
     "@types/uuid": "npm:^9.0.8"
     "@types/vscode": "npm:^1.76.0"
     antsibull-docs: "npm:^1.0.0"
+    axios: "npm:^1.6.7"
     chai: "npm:^4.4.1"
     fuse.js: "npm:^7.0.0"
     glob: "npm:>=9.3.2"
@@ -1977,6 +1978,7 @@ __metadata:
     glob: "npm:^10.3.10"
     ini: "npm:^4.1.1"
     lodash: "npm:^4.17.21"
+    marked: "npm:^12.0.1"
     minimatch: "npm:^9.0.3"
     mocha: "npm:^10.2.0"
     mochawesome: "npm:^7.1.3"
@@ -5932,6 +5934,15 @@ __metadata:
   bin:
     markdown-it: bin/markdown-it.js
   checksum: 10/d83d794bfb9f5e05750b25db401d9c1f9b97c6bbabb6cfd78988bb98652c62c24417435487238e2b91fd4e495547ae8c9429fb4c69e9f5bf49bd0dd292d53f24
+  languageName: node
+  linkType: hard
+
+"marked@npm:^12.0.1":
+  version: 12.0.1
+  resolution: "marked@npm:12.0.1"
+  bin:
+    marked: bin/marked.js
+  checksum: 10/34fd0044ebeda28b3f3f94f340e2388666408315557f125d561b59b49baec4c6e6777f54b6fb12aa5c2bf3b75a4aa9f1809679bfb6502da73053d0461c1a232d
   languageName: node
   linkType: hard
 

@@ -202,6 +202,8 @@ taskfile
 testenv
 testhost
 testorg
+thumbsdown
+thumbsup
 timonwong
 tls
 toctree
@@ -223,6 +225,7 @@ uuidv4
 varInfiles
 venvs
 vscodeignore
+vnet
 vscoss
 vsix
 vyos

@@ -252,6 +252,25 @@
       {
         "command": "ansible.lightspeed.feedback",
         "title": "Ansible Lightspeed: Feedback"
+      },
+      {
+        "command": "ansible.lightspeed.showPlaybookGenerationPage",
+        "title": "Show Playbook Generation Page",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+      },
+      {
+        "command": "ansible.lightspeed.thumbsUpDown",
+        "title": "Send Lightspeed Thumbs Up/Down Feedback",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+      },
+      {
+        "command": "ansible.lightspeed.playbookExplanation",
+        "title": "Ansible Lightspeed: Playbook explanation",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+      },
+      {
+        "command": "ansible.lightspeed.enableExperimentalFeatures",
+        "title": "Ansible Lightspeed: Enable experimental features"
       }
     ],
     "configuration": [
@@ -360,6 +379,13 @@
             "default": "",
             "markdownDescription": "Command line arguments to be passed to ansible-lint.",
             "order": 3
+          },
+          "ansible.lightspeed.playbookGeneration.enabled": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Enable playbook generation feature.",
+            "order": 4
           }
         }
       },
@@ -719,6 +745,7 @@
     "axios": "^1.6.7",
     "express": "^4.19.2",
     "ini": "^4.1.1",
+    "marked": "^12.0.1",
     "minimatch": "^9.0.3",
     "start-server-and-test": "^2.0.3",
     "uuid": "^9.0.1",

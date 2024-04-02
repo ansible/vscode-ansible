@@ -50,6 +50,7 @@ import {
   LightSpeedInlineSuggestionProvider,
   rejectPendingSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
+import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
@@ -64,10 +65,12 @@ import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
+import { AnsibleCreatorMenu as AnsibleCreatorMenuPlaybookGeneration } from "./features/playbookGeneration/welcomePage";
 import { AnsibleCreatorInit } from "./features/contentCreator/initPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { LightspeedAuthSession } from "./interfaces/lightspeed";
+import { showPlaybookGenerationPage } from "./features/playbookGeneration/playbookGenerationPage";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -238,6 +241,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
       ) => inlineSuggestionReplaceMarker(position),
     ),
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      LightSpeedCommands.LIGHTSPEED_PLAYBOOK_EXPLANATION,
+      async () => {
+        await playbookExplanation(
+          context.extensionUri,
+          client,
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.settingsManager,
+        );
+      },
+    ),
+  );
+
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
@@ -428,9 +446,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // open ansible-creator menu
   context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.content-creator.menu", () => {
-      AnsibleCreatorMenu.render(context.extensionUri);
-    }),
+    vscode.commands.registerCommand(
+      "ansible.content-creator.menu",
+      async () => {
+        if (
+          await workspace
+            .getConfiguration("ansible")
+            .get("lightspeed.playbookGeneration.enabled")
+        ) {
+          AnsibleCreatorMenuPlaybookGeneration.render(context.extensionUri);
+        } else {
+          AnsibleCreatorMenu.render(context.extensionUri);
+        }
+      },
+    ),
   );
 
   // open ansible-creator init
@@ -452,6 +481,35 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand("ansible.content-creator.sample", () => {
       window.showInformationMessage("This feature is coming soon. Stay tuned.");
     }),
+  );
+
+  // Command to render a webview-based note view
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.showPlaybookGenerationPage",
+      () => {
+        showPlaybookGenerationPage(context.extensionUri);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.lightspeed.thumbsUpDown", () => {
+      window.showInformationMessage("Thank you for your feedback!");
+    }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.enableExperimentalFeatures",
+      () => {
+        vscode.commands.executeCommand(
+          "setContext",
+          "redhat.ansible.lightspeedExperimentalEnabled",
+          true,
+        );
+      },
+    ),
   );
 }
 
