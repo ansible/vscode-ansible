@@ -5,6 +5,7 @@ import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import * as marked from "marked";
 import { SettingsManager } from "../../settings";
+import { lightSpeedManager } from "../../extension";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
@@ -28,9 +29,12 @@ export const playbookExplanation = async (
   );
 
   const content = document.getText();
+  const lightSpeedStatusbarText =
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(true);
 
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
   let markdown = "";
+  lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
   try {
     markdown = await client.sendRequest("playbook/explanation", {
       accessToken: accessToken,
@@ -43,6 +47,9 @@ export const playbookExplanation = async (
       `<p><span class="codicon codicon-error"></span>Cannot load the explanation: <code>${e}</code></p>`,
     );
     return;
+  } finally {
+    lightSpeedManager.statusBarProvider.statusBar.text =
+      lightSpeedStatusbarText;
   }
 
   const html_snippet = await marked.parse(markdown);
