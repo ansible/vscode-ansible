@@ -2,7 +2,7 @@
 name: ack
 on:
   pull_request_target:
-    types: [opened, labeled, unlabeled, synchronize]
+    types: [opened, labeled, unlabeled]
 
 jobs:
   ack:

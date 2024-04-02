@@ -5,6 +5,10 @@ includes:
   als:
     taskfile: ./packages/ansible-language-server
     dir: ./packages/ansible-language-server
+  shared:
+    taskfile: ./.config/Taskfile_shared.yml
+    internal: true
+
 output: prefixed # do not use "group" due to impact on CI
 env: &env
   FORCE_COLOR: "true"
@@ -31,28 +35,17 @@ tasks:
     cmds:
       - echo {{.TASK}}
       - echo Done {{.VERSION}}!
+  setup:
+    desc: Install dependencies
+    deps:
+      - shared:setup
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
-  setup:
-    desc: Install dependencies
-    env:
-      # used inside test-setup.sh
-      OS: "{{OS}}"
-      ARCH: "{{ARCH}}"
-    cmds:
-      - python3 ./tools/precheck.py
-      - bash ./tools/test-setup.sh
-    sources:
-      - tools/test-setup.sh
-    generates:
-      - out/log/manifest-{{.HOSTNAME}}.yml
-    run: once
-    interactive: true
   install:
     deps:
-      - setup
+      - shared:setup
     cmds:
       - yarn install
     sources:
