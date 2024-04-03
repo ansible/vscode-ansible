@@ -9,7 +9,7 @@
 ### Minor Changes
 
 - AAP-22175: Make CloudFront check more robust (#1168) @manstis
-- Playbook explanation and generation UI (#1133) @goneri
+- Playbook explanation and generation UI (#1133) @goneri @TamiTakamiya
 - AAP-19001: No training matches found for the latest accepted suggestion.
   (#1166) @manstis
 - AAP-19228: Refactor error handling in wisdom service and vscode extension
