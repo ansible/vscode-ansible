@@ -4,6 +4,30 @@
 
 <!-- KEEP-THIS-COMMENT -->
 
+## v24.4.0
+
+### Minor Changes
+
+- AAP-22175: Make CloudFront check more robust (#1168) @manstis
+- Playbook explanation and generation UI (#1133) @goneri
+- AAP-19001: No training matches found for the latest accepted suggestion.
+  (#1166) @manstis
+- AAP-19228: Refactor error handling in wisdom service and vscode extension
+  (#1165) @manstis
+- AAP-21329: Capture relevant model in feedback events (#1131) @romartin
+- Add comment crediting Ansible Lightspeed to suggestion ghost text (#1117)
+  @robinbobbitt
+- Add example to show feature support for playbook adjacent collection (#1123)
+  @priyamsahoo
+
+### Bugfixes
+
+- Remove extra whitespace after lightspeed suggestion (#1163) @robinbobbitt
+- Do not send inlineSuggestionFeedback when completion API returns a non-200
+  status (#1129) @TamiTakamiya
+- Address 'User not authorized to access Ansible Lightspeed' when request is
+  blocked by CloudFront (#1122) @manstis
+
 ## v2.13
 
 ### Minor Changes
