@@ -153,7 +153,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     } else if (typeof error.detail === "object") {
       detail = JSON.stringify(error.detail, undefined, "  ");
     }
-    let htmlDetail: string | undefined = undefined;
+    let htmlDetail: string = "";
     if (detail !== undefined) {
       htmlDetail = `
         <details>
