@@ -112,6 +112,19 @@ const contentCreatorInitWebviewConfig = {
   },
 };
 
+const playbookExplorerWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/explorer/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/explorer/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 const playbookGenerationWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -143,6 +156,7 @@ module.exports = [
   webviewConfig,
   contentCreatorMenuWebviewConfig,
   contentCreatorInitWebviewConfig,
+  playbookExplorerWebviewConfig,
   playbookGenerationWebviewConfig,
   playbookExplanationWebviewConfig,
 ];
