@@ -70,6 +70,7 @@ compat
 contentmatch
 contentmatches
 copyfiles
+corepack
 customizer
 cygwin
 cython
