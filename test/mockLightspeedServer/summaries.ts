@@ -4,7 +4,7 @@ export function summaries(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  res: any
+  res: any,
 ) {
   const summaryId = req.body.summaryId ? req.body.summaryId : uuidv4();
   const format = "plaintext";

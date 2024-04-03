@@ -4,7 +4,7 @@ export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  res: any
+  res: any,
 ) {
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
   const format = "yaml";
