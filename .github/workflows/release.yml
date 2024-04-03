@@ -27,6 +27,8 @@ jobs:
         with:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup asdf
+        uses: asdf-vm/actions/install@v3
 
       - run: task release -v
         env:
