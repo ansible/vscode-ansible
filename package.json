@@ -770,7 +770,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vscode/test-electron": "^2.3.9",
-    "@vscode/vsce": "^2.23.0",
+    "@vscode/vsce": "^2.24.0",
     "axios": "^1.6.7",
     "chai": "^4.4.1",
     "copyfiles": "^2.4.1",
@@ -832,7 +832,7 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
-    "package": "yarn run webpack && npx vsce package",
+    "package": "./tools/package.sh",
     "preinstall": "",
     "pretest": "yarn run compile",
     "unit-tests": "nyc mocha --recursive test/units",
