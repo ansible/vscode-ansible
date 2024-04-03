@@ -10,7 +10,7 @@ async function openNewPlaybookEditor(
   content: string,
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-  settingsManager: SettingsManager
+  settingsManager: SettingsManager,
 ) {
   const options = {
     language: "ansible",
@@ -42,7 +42,7 @@ async function summarizeInput(
   content: string,
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-  settingsManager: SettingsManager
+  settingsManager: SettingsManager,
 ) {
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
   const summary: string = await client.sendRequest("playbook/summary", {
@@ -58,7 +58,7 @@ export function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-  settingsManager: SettingsManager
+  settingsManager: SettingsManager,
 ) {
   // Create a new panel and update the HTML
   const panel = vscode.window.createWebviewPanel(
@@ -74,7 +74,7 @@ export function showPlaybookGenerationPage(
       ],
       enableCommandUris: true,
       retainContextWhenHidden: true,
-    }
+    },
   );
 
   panel.webview.onDidReceiveMessage(async (message) => {
@@ -85,7 +85,7 @@ export function showPlaybookGenerationPage(
           message.content,
           client,
           lightSpeedAuthProvider,
-          settingsManager
+          settingsManager,
         );
         panel?.dispose();
         break;
@@ -95,7 +95,7 @@ export function showPlaybookGenerationPage(
           message.content,
           client,
           lightSpeedAuthProvider,
-          settingsManager
+          settingsManager,
         );
         panel.webview.postMessage({ command: "summary", summary });
         break;

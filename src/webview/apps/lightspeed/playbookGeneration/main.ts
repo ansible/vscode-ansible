@@ -12,7 +12,7 @@ provideVSCodeDesignSystem().register(
   vsCodeButton(),
   vsCodeTag(),
   vsCodeTextArea(),
-  vsCodeTextField()
+  vsCodeTextField(),
 );
 
 let savedInput: string;
@@ -21,7 +21,7 @@ let savedSummary: string;
 const vscode = acquireVsCodeApi();
 
 window.addEventListener("load", main);
-window.addEventListener("message", event => {
+window.addEventListener("message", (event) => {
   const message = event.data;
 
   switch (message.command) {
@@ -40,7 +40,6 @@ window.addEventListener("message", event => {
       element.value = savedSummary;
       break;
     }
-
   }
 });
 
@@ -90,7 +89,6 @@ async function submitInput() {
   element.focus();
 }
 
-
 function reset() {
   const element = document.getElementById("playbook-text-area") as TextArea;
   element.value = savedSummary;
@@ -116,7 +114,6 @@ function back() {
   element.focus();
 }
 
-
 async function generatePlaybook() {
   const element = document.getElementById("playbook-text-area") as TextArea;
   const content = element.value;
@@ -125,7 +122,9 @@ async function generatePlaybook() {
 
 function sendThumbsup() {
   const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
-  const thumbsDownButton = document.getElementById("thumbsdown-button") as Button;
+  const thumbsDownButton = document.getElementById(
+    "thumbsdown-button",
+  ) as Button;
   thumbsUpButton.appearance = "primary";
   thumbsDownButton.appearance = "icon";
   vscode.postMessage({ command: "thumbsUp" });
@@ -133,7 +132,9 @@ function sendThumbsup() {
 
 function sendThumbsdown() {
   const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
-  const thumbsDownButton = document.getElementById("thumbsdown-button") as Button;
+  const thumbsDownButton = document.getElementById(
+    "thumbsdown-button",
+  ) as Button;
   thumbsUpButton.appearance = "icon";
   thumbsDownButton.appearance = "primary";
   vscode.postMessage({ command: "thumbsDown" });

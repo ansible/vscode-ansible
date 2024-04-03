@@ -423,7 +423,6 @@ export class AnsibleLanguageService {
 
       return result;
     });
-
   }
 
   private handleError(error: unknown, contextName: string) {
