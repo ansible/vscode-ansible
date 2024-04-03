@@ -24,9 +24,6 @@ vars:
     sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
 tasks:
   default:
-    vars:
-      VERSION:
-        sh: node -p "require('./package.json').version"
     desc: Run most commands
     deps:
       - install
@@ -34,7 +31,6 @@ tasks:
       - package
     cmds:
       - echo {{.TASK}}
-      - echo Done {{.VERSION}}!
   setup:
     desc: Install dependencies
     deps:
@@ -161,9 +157,6 @@ tasks:
       - npm run unit-tests
     interactive: true
   package:
-    vars:
-      VERSION:
-        sh: node -p "require('./package.json').version"
     desc: Package extension
     deps:
       - build
@@ -179,15 +172,7 @@ tasks:
     generates:
       - "*.vsix"
     cmds:
-      - rm -f *.vsix
-      - yarn run webpack
-      # --pre-release not supported until we do VS Code >=1.63
-      # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - yarn run vsce package --pre-release --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}
-      # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
-      - zipinfo -1 *.vsix
-      - tools/dirty.sh
-      - ls -la *.vsix
+      - ./tools/package.sh
     silent: true
   pr:
     desc: Opens a pull request using gh

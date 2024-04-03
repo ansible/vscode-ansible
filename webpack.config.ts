@@ -67,7 +67,7 @@ const config = {
   stats: {
     errorDetails: true,
     moduleTrace: true,
-    preset: "minimal",
+    preset: "errors-warnings",
   },
   target: "node", // vscode extensions run in a Node.js-context
 };

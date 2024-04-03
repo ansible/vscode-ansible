@@ -91,6 +91,9 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
@@ -263,7 +266,7 @@ jobs:
         if: ${{ matrix.name == 'test' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.vsix
+          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
           path: ansible-*.vsix
           if-no-files-found: error
           retention-days: 90

@@ -197,6 +197,7 @@ stdout
 stopendy
 suboption
 suboptions
+subshells
 sysninja
 taskfile
 testenv
@@ -224,8 +225,8 @@ uuidv
 uuidv4
 varInfiles
 venvs
-vscodeignore
 vnet
+vscodeignore
 vscoss
 vsix
 vyos
