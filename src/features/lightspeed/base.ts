@@ -256,10 +256,5 @@ export class LightSpeedManager {
       "redhat.ansible.enableExperimentalFeatures",
       false,
     );
-    vscode.commands.executeCommand(
-      "setContext",
-      "redhat.ansible.enableExperimentalFeatures",
-      false
-    );
   }
 }
