@@ -7,11 +7,13 @@ name: ci
 on:
   push:
     branches: ["main", "devel/*"]
+    tags:
+      - 'v*.*'
   pull_request:
     branches: ["main", "devel/*"]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
 
 env:
@@ -27,7 +29,6 @@ env:
 jobs:
   build:
     name: ${{ matrix.name }}
-    # ${{ matrix.name && matrix.name || format('{0} ({1})', matrix.task-name, matrix.os) }}
     environment: ci # codecov needed
     env:
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
@@ -91,6 +92,9 @@ jobs:
     steps:
 
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
@@ -263,7 +267,7 @@ jobs:
         if: ${{ matrix.name == 'test' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.vsix
+          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
           path: ansible-*.vsix
           if-no-files-found: error
           retention-days: 90
@@ -311,6 +315,7 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
 
   ack:
+    if: github.event_name == 'pull_request'
     uses: ansible/team-devtools/.github/workflows/ack.yml@main
     secrets: inherit
 
@@ -319,7 +324,6 @@ jobs:
 
     needs:
       - build
-      - ack
 
     runs-on: ubuntu-22.04
 
@@ -336,3 +340,37 @@ jobs:
         uses: re-actors/alls-green@release/v1
         with:
           jobs: ${{ toJSON(needs) }}
+
+  publish:
+    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: release # manual approval
+    needs:
+      - check
+    steps:
+
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - run: corepack enable
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Download the artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
+
+      - run: |
+          yarn install --immutable
+          ls -la *.vsix
+
+      - name: Publish to extension to marketplaces
+        run: |
+          ./tools/publish.sh
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}

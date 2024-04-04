@@ -261,5 +261,6 @@ describe("GetWebviewContent", () => {
       new RegExp("An error occurred trying to retrieve the training matches."),
     );
     assert.doesNotMatch(res, new RegExp("<details>"));
+    assert.doesNotMatch(res, new RegExp("undefined"));
   });
 });

@@ -1460,7 +1460,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/vsce@npm:^2.19.0, @vscode/vsce@npm:^2.23.0, @vscode/vsce@npm:^2.24.0":
+"@vscode/vsce@npm:^2.19.0, @vscode/vsce@npm:^2.24.0":
   version: 2.24.0
   resolution: "@vscode/vsce@npm:2.24.0"
   dependencies:
@@ -1963,7 +1963,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.21.0"
     "@typescript-eslint/parser": "npm:^6.21.0"
     "@vscode/test-electron": "npm:^2.3.9"
-    "@vscode/vsce": "npm:^2.23.0"
+    "@vscode/vsce": "npm:^2.24.0"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"
     axios: "npm:^1.6.7"
     chai: "npm:^4.4.1"

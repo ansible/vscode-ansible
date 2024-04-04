@@ -621,6 +621,11 @@
           "group": "2_main@1",
           "submenu": "ansible.playbook.run",
           "when": "isFileSystemResource && editorLangId == ansible"
+        },
+        {
+          "group": "2_main@1",
+          "command": "ansible.lightspeed.playbookExplanation",
+          "when": "editorTextFocus && redhat.ansible.lightspeedExperimentalEnabled && editorLangId == ansible"
         }
       ],
       "explorer/context": [
@@ -770,7 +775,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "@vscode/test-electron": "^2.3.9",
-    "@vscode/vsce": "^2.23.0",
+    "@vscode/vsce": "^2.24.0",
     "axios": "^1.6.7",
     "chai": "^4.4.1",
     "copyfiles": "^2.4.1",
@@ -832,7 +837,7 @@
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
-    "package": "yarn run webpack && npx vsce package",
+    "package": "./tools/package.sh",
     "preinstall": "",
     "pretest": "yarn run compile",
     "unit-tests": "nyc mocha --recursive test/units",
@@ -858,8 +863,9 @@
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",
     "als-compile": "yarn workspace @ansible/ansible-language-server compile"
   },
-  "version": "2.13.0",
+  "version": "24.4.0",
   "packageManager": "yarn@4.1.1",
+  "preview": true,
   "vsce": {
     "dependencies": false,
     "yarn": false
