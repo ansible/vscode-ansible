@@ -747,7 +747,7 @@
     "minimatch": "^9.0.4",
     "start-server-and-test": "^2.0.3",
     "uuid": "^9.0.1",
-    "vscode-languageclient": "^8.1.0",
+    "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.0.8",
     "yaml": "^2.4.1"
   },
