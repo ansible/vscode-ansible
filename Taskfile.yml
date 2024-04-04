@@ -169,6 +169,7 @@ tasks:
       - out/
       - webpack.config.ts
       - Taskfile.yml
+      - ./tools/package.sh
     generates:
       - "*.vsix"
     cmds:
