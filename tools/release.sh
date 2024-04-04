@@ -11,7 +11,7 @@ if [[ -n $(git status -s) ]]; then
 fi
 
 RELEASE_NAME=$(gh api 'repos/{owner}/{repo}/releases' --jq '.[0].name')
-echo "${RELEASE_NAME}" | grep -Eq "^v\d+\.\d+\$" || {
+echo "${RELEASE_NAME}" | grep -Pq "^v\d+\.\d+\$" || {
     echo "Release name (${RELEASE_NAME}) is not valid, must be only in X.Y format." 1>&2
     exit 99
 }
