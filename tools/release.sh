@@ -1,6 +1,9 @@
 #!/bin/bash
 set -eo pipefail
 
+# Remove any local-only tags, avoid failures to incomplete previous release attempts.
+git fetch --prune --prune-tags
+
 # Fail if repo is dirty
 if [[ -n $(git status -s) ]]; then
   echo 'ERROR: Release script requires a clean git repo.'
@@ -8,32 +11,16 @@ if [[ -n $(git status -s) ]]; then
 fi
 
 RELEASE_NAME=$(gh api 'repos/{owner}/{repo}/releases' --jq '.[0].name')
-echo -e "\n## ${RELEASE_NAME}\n" > out/next.md
-# /releases endpoint returns all releases in inverse chronologic order,
-# including drafts, so last release is not always first element.
-# /releases/latest does retrieve only the last published release
-gh api "repos/{owner}/{repo}/releases/latest" --jq '.body' | \
-    sed -e's/[[:space:]]*$//' \
-    >> out/next.md
-
-# Remove last newline to avoid double newlines on injection
-truncate -s -1 out/next.md
-
-# inject the temp nodes into the CHANGELOG.md
-if [[ "${OSTYPE}" == "darwin"* ]]; then
-    sed -i '' -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' CHANGELOG.md
-else
-    sed -i -e '/<!-- KEEP-THIS-COMMENT -->/r out/next.md' CHANGELOG.md
-fi
-
-# use prettier to reformat the changelog, like rewrapping long lines
-yarn exec prettier --loglevel error -w CHANGELOG.md
+echo "${RELEASE_NAME}" | grep -Eq "^v\d+\.\d+\$" || {
+    echo "Release name (${RELEASE_NAME}) is not valid, must be only in X.Y format." 1>&2
+    exit 99
+}
 
 # update version
 yarn version --immediate "${RELEASE_NAME}.0"
 
 # commit the release
-git add package.json CHANGELOG.md
+git add package.json
 
 # run 'task lint' to ensure validity
 task lint --silent
