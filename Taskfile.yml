@@ -87,6 +87,7 @@ tasks:
       - yarn set version latest
       # bumps some developments dependencies
       - yarn upgrade-interactive
+      - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - yarn install
       # check deps
