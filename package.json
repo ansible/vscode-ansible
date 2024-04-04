@@ -379,13 +379,6 @@
             "default": "",
             "markdownDescription": "Command line arguments to be passed to ansible-lint.",
             "order": 3
-          },
-          "ansible.lightspeed.playbookGeneration.enabled": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Enable playbook generation feature.",
-            "order": 4
           }
         }
       },
