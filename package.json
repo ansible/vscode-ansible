@@ -621,6 +621,11 @@
           "group": "2_main@1",
           "submenu": "ansible.playbook.run",
           "when": "isFileSystemResource && editorLangId == ansible"
+        },
+        {
+          "group": "2_main@1",
+          "command": "ansible.lightspeed.playbookExplanation",
+          "when": "editorTextFocus && redhat.ansible.lightspeedExperimentalEnabled && editorLangId == ansible"
         }
       ],
       "explorer/context": [
