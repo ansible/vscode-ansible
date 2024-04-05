@@ -1,5 +1,8 @@
+# https://github.com/yarnpkg/yarn/issues/3368
 ignores:
   - "@ansible/ansible-language-server"
+  # determined by (package.json).engines.vscode
+  - "@types/vscode"
   - "@types/vscode-webview" # provides VSCodeAPI
   - "@vscode/vsce"
   - depcheck

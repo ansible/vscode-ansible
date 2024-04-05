@@ -13,6 +13,8 @@ updates:
       dependencies:
         patterns:
           - "*"
+        exclude-patterns:
+          - "@types/vscode"
   - package-ecosystem: npm
     directory: /packages/ansible-language-server/
     schedule:
@@ -26,6 +28,8 @@ updates:
       dependencies:
         patterns:
           - "*"
+        exclude-patterns:
+          - "@types/vscode"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
