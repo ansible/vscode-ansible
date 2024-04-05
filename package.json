@@ -770,7 +770,7 @@
     "@vscode/test-electron": "^2.3.9",
     "@vscode/vsce": "^2.24.0",
     "axios": "^1.6.8",
-    "chai": "^4.4.1",
+    "chai": "^5.1.0",
     "copyfiles": "^2.4.1",
     "depcheck": "^1.4.7",
     "eslint": "^8.57.0",
