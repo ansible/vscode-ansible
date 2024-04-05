@@ -110,7 +110,7 @@ export class AnsibleCreatorMenu {
             </h3>
             <p>Provide a defined, consistent and portable environment for executing automation jobs.</p>
             <h3>
-              <a href="command:ansible.lightspeed.showPlaybookGenerationPage">
+              <a href="command:ansible.lightspeed.playbookGeneration">
                 Playbook
               </a>
             </h3>

@@ -2,7 +2,10 @@
 import express, { Application } from "express";
 import { completions } from "./completion";
 import { contentmatches } from "./contentmatches";
+import { explanations } from "./explanations";
 import { feedback } from "./feedback";
+import { generations } from "./generations";
+import { summaries } from "./summaries";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 
@@ -32,6 +35,21 @@ export default class Server {
     app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
       return res.send(contentmatches(req));
+    });
+
+    app.post(`${API_ROOT}/ai/summaries`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      return summaries(req, res);
+    });
+
+    app.post(`${API_ROOT}/ai/generations`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      return generations(req, res);
+    });
+
+    app.post(`${API_ROOT}/ai/explanations`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      return explanations(req, res);
     });
 
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {

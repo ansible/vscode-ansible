@@ -375,6 +375,54 @@ export class AnsibleLanguageService {
 
       return explanation;
     });
+
+    this.connection.onRequest("playbook/summary", async (params) => {
+      const accessToken: string = params["accessToken"];
+      const URL: string = params["URL"];
+      const content: string = params["content"];
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const axiosInstance = axios.create({
+        baseURL: `${getBaseUri(URL)}/api/v0`,
+        headers: headers,
+      });
+
+      const result: string = await axiosInstance
+        .post("/ai/summaries/", { content: content })
+        .then((response) => {
+          return response.data.content;
+        });
+
+      return result;
+    });
+
+    this.connection.onRequest("playbook/generation", async (params) => {
+      const accessToken: string = params["accessToken"];
+      const URL: string = params["URL"];
+      const content: string = params["content"];
+
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      const axiosInstance = axios.create({
+        baseURL: `${getBaseUri(URL)}/api/v0`,
+        headers: headers,
+      });
+
+      const result: string = await axiosInstance
+        .post("/ai/generations/", { content: content })
+        .then((response) => {
+          return response.data.content;
+        });
+
+      return result;
+    });
   }
 
   private handleError(error: unknown, contextName: string) {

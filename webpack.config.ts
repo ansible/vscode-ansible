@@ -114,11 +114,11 @@ const contentCreatorInitWebviewConfig = {
 const playbookGenerationWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
-  entry: "./src/webview/apps/playbookGeneration/main.ts",
+  entry: "./src/webview/apps/lightspeed/playbookGeneration/main.ts",
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/playbookGeneration/main.js",
+    filename: "./client/webview/apps/lightspeed/playbookGeneration/main.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
