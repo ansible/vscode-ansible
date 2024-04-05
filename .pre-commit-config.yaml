@@ -12,6 +12,7 @@ ci:
     #- yarn-audit-fix
     - yarn-dedupe
     - codecov
+    - depcheck
 exclude: >
   (?x)^(
     .config/requirements.in|
@@ -41,6 +42,12 @@ repos:
           - SC1091
   - repo: local
     hooks:
+      - id: depcheck
+        name: depcheck
+        entry: yarn dlx depcheck
+        language: system
+        pass_filenames: false
+        always_run: true
       - id: git-dirty
         name: Check if git reports dirty
         entry: git diff --exit-code
