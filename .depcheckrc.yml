@@ -1,10 +1,18 @@
+# https://github.com/yarnpkg/yarn/issues/3368
 ignores:
   - "@ansible/ansible-language-server"
+  # determined by (package.json).engines.vscode
+  - "@types/vscode"
+  - "@types/vscode-webview" # provides VSCodeAPI
   - "@vscode/vsce"
   - depcheck
   - mochawesome
   - mochawesome-report-generator
   - ovsx
+  - rimraf
+  - start-server-and-test
+  - tmp
+  - ts-loader
   - vscode
   - webpack-cli
   - yarn-audit-fix

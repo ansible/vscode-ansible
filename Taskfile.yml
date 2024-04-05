@@ -82,11 +82,17 @@ tasks:
     desc: Update dependencies
     deps:
       - install
+    env:
+      VSCODE_VERSION:
+        sh: node -p "require('./package.json').engines.vscode"
     cmds:
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
       - yarn upgrade-interactive
+      # restores a potential update of @types/vscode
+      - yarn up "@types/vscode@${VSCODE_VERSION}"
+      - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - yarn install
       # check deps

@@ -181,6 +181,7 @@ pyup
 reindent
 reindented
 relogin
+rimraf
 ritwickdey
 ro
 rulebooks
