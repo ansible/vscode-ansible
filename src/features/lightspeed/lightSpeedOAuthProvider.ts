@@ -243,12 +243,7 @@ export class LightSpeedAuthenticationProvider
    */
   public async dispose() {
     if (this._disposable) {
-      const account = await this.isAuthenticated();
-
-      if (account) {
-        const sessionId = account.id;
-        this.removeSession(sessionId);
-      }
+      this.removeSessionIfExists();
 
       console.log("[ansible-lightspeed-oauth] Disposing auth provider");
       await this._disposable.dispose();
@@ -520,9 +515,16 @@ export class LightSpeedAuthenticationProvider
       );
 
       if (!result) {
-        window.showErrorMessage(
-          "Failed to refresh token. Please log out and log in again",
+        const selection = await window.showErrorMessage(
+          "Failed to refresh token. Please log in again\n",
+          "Login",
         );
+
+        this.removeSessionIfExists();
+
+        if (selection === "Login") {
+          commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
+        }
         return;
       }
 
@@ -660,6 +662,15 @@ export class LightSpeedAuthenticationProvider
         `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does not have an Org with a subscription.`,
       );
       return false;
+    }
+  }
+
+  private async removeSessionIfExists(): Promise<void> {
+    const account = await this.isAuthenticated();
+
+    if (account) {
+      const sessionId = account.id;
+      this.removeSession(sessionId);
     }
   }
 }
