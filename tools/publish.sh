@@ -2,10 +2,13 @@
 # (cspell: disable-next-line)
 set -Eeuo pipefail
 
-VERSION="$(./tools/get-marketplace-version.sh)"
-publish_args=()
-if [[ "$VERSION" != *.0 ]]; then
-    publish_args+=("--pre-release")
-fi
-yarn run vsce publish "${publish_args[@]}" --skip-duplicate --packagePath ./*.vsix
-yarn run ovsx publish "${publish_args[@]}" --skip-duplicate ./*.vsix
+for FILE in ./*.vsix; do
+    VERSION=$(unzip -p "${FILE}" extension/package.json | jq -r .version)
+    publish_args=()
+    if [[ "$VERSION" != *.0 ]]; then
+        publish_args+=("--pre-release")
+    fi
+    echo "Publishing ${VERSION}" "${publish_args[@]}"
+    yarn run vsce publish "${publish_args[@]}" --skip-duplicate --packagePath "${FILE}"
+    yarn run ovsx publish "${publish_args[@]}" --skip-duplicate "${FILE}"
+done
