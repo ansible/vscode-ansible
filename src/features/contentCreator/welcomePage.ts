@@ -160,7 +160,7 @@ export class AnsibleCreatorMenu {
 
           <div class="menu">
             <div class="menu-item">
-              <vscode-link href="command:ansible.content-creator.init">
+              <vscode-link href="command:ansible.content-creator.scaffold-ansible-collection">
                 <img src="${initIcon}" alt="Ansible Creator Icon">
               </vscode-link>
                 <p class="menu-item-heading">Initialize ansible collection</p>
@@ -278,7 +278,7 @@ export class AnsibleCreatorMenu {
     // get ansible-creator version
     const ansibleDevEnvironmentVersion = await this.getBinDetail(
       "ade",
-      "--version"
+      "--version",
     );
     if (ansibleDevEnvironmentVersion !== "failed") {
       systemInfo["ansible-dev-environment version"] =

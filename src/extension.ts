@@ -452,9 +452,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // open ansible-creator init
   context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.content-creator.init", () => {
-      AnsibleCreatorInit.render(context.extensionUri);
-    }),
+    vscode.commands.registerCommand(
+      "ansible.content-creator.scaffold-ansible-collection",
+      () => {
+        AnsibleCreatorInit.render(context.extensionUri);
+      },
+    ),
   );
 
   // open ansible-creator create
