@@ -1,13 +1,21 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
+includes:
+  als:
+    taskfile: ./packages/ansible-language-server
+    dir: ./packages/ansible-language-server
+  shared:
+    taskfile: ./.config/Taskfile_shared.yml
+    internal: true
+
 output: prefixed # do not use "group" due to impact on CI
 env: &env
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
   # basically the same thing from .envrc file:
-  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/{{.HOSTNAME}}}"
+  VIRTUAL_ENV:
+    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
@@ -16,9 +24,6 @@ vars:
     sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
 tasks:
   default:
-    vars:
-      VERSION:
-        sh: node -p "require('./package.json').version"
     desc: Run most commands
     deps:
       - install
@@ -26,33 +31,21 @@ tasks:
       - package
     cmds:
       - echo {{.TASK}}
-      - echo Done {{.VERSION}}!
+  setup:
+    desc: Install dependencies
+    deps:
+      - shared:setup
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
-  setup:
-    desc: Install dependencies
-    env:
-      # used inside test-setup.sh
-      OS: "{{OS}}"
-      ARCH: "{{ARCH}}"
-    cmds:
-      - python3 ./tools/precheck.py
-      - bash ./tools/test-setup.sh
-    sources:
-      - tools/test-setup.sh
-    generates:
-      - out/log/manifest-{{.HOSTNAME}}.yml
-    run: once
-    interactive: true
   install:
     deps:
-      - setup
+      - shared:setup
     cmds:
       - yarn install
     sources:
-      - package.json
+      - "**/package.json"
       - yarn.lock
       - node_modules/**/*
     interactive: true
@@ -64,7 +57,7 @@ tasks:
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
       - yarn run clean
-      - yarn workspace @ansible/ansible-language-server compile
+      - yarn run als-compile
       - yarn run compile
       - npx tsc -p ./
     sources:
@@ -89,11 +82,17 @@ tasks:
     desc: Update dependencies
     deps:
       - install
+    env:
+      VSCODE_VERSION:
+        sh: node -p "require('./package.json').engines.vscode"
     cmds:
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
       - yarn upgrade-interactive
+      # restores a potential update of @types/vscode
+      - yarn up "@types/vscode@${VSCODE_VERSION}"
+      - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - yarn install
       # check deps
@@ -107,7 +106,7 @@ tasks:
       - install
     cmds:
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
-      - $VIRTUAL_ENV/bin/python -m pre_commit run -a
+      - $VIRTUAL_ENV/bin/python3 -m pre_commit run -a
       - tools/dirty.sh
     silent: true
     sources:
@@ -140,7 +139,7 @@ tasks:
       - package
     cmds:
       - $VIRTUAL_ENV/bin/python3 --version
-      - "{{.XVFB}} bash -c 'source \"${VIRTUAL_ENV}/bin/activate\" && yarn run _coverage-all'"
+      - '{{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn run _coverage-all'''
     interactive: true
   test-ui:
     desc: Run UI tests
@@ -164,12 +163,11 @@ tasks:
       - npm run unit-tests
     interactive: true
   package:
-    vars:
-      VERSION:
-        sh: node -p "require('./package.json').version"
     desc: Package extension
     deps:
       - build
+      # while not a real dependency, we want to build both all the time:
+      - als:package
     sources:
       - CHANGELOG.md
       - README.md
@@ -177,18 +175,11 @@ tasks:
       - out/
       - webpack.config.ts
       - Taskfile.yml
+      - ./tools/package.sh
     generates:
       - "*.vsix"
     cmds:
-      - rm -f *.vsix
-      - yarn run webpack
-      # --pre-release not supported until we do VS Code >=1.63
-      # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-      - yarn run vsce package --pre-release --no-dependencies --no-git-tag-version --no-update-package-json {{.VERSION}}
-      # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
-      - zipinfo -1 *.vsix
-      - tools/dirty.sh
-      - ls -la *.vsix
+      - ./tools/package.sh
     silent: true
   pr:
     desc: Opens a pull request using gh

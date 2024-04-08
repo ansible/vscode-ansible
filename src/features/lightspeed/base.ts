@@ -50,7 +50,7 @@ export class LightSpeedManager {
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager,
-    telemetry: TelemetryManager
+    telemetry: TelemetryManager,
   ) {
     this.context = context;
     this.client = client;
@@ -64,7 +64,7 @@ export class LightSpeedManager {
         this.context,
         this.settingsManager,
         ANSIBLE_LIGHTSPEED_AUTH_ID,
-        ANSIBLE_LIGHTSPEED_AUTH_NAME
+        ANSIBLE_LIGHTSPEED_AUTH_NAME,
       );
     if (this.settingsManager.settings.lightSpeedService.enabled) {
       this.lightSpeedAuthenticationProvider.initialize();
@@ -72,7 +72,7 @@ export class LightSpeedManager {
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
-      this.context
+      this.context,
     );
     this.apiInstance
       .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
@@ -87,7 +87,7 @@ export class LightSpeedManager {
       this.client,
       this.settingsManager,
       this.apiInstance,
-      this.lightSpeedAuthenticationProvider
+      this.lightSpeedAuthenticationProvider,
     );
 
     // create a new project lightspeed status bar item that we can manage
@@ -96,7 +96,7 @@ export class LightSpeedManager {
       this.lightSpeedAuthenticationProvider,
       context,
       client,
-      settingsManager
+      settingsManager,
     );
 
     // create workspace context for ansible roles
@@ -130,7 +130,7 @@ export class LightSpeedManager {
         const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
         if (copilotEnableForAnsible) {
           vscode.window.showInformationMessage(
-            "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed."
+            "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed.",
           );
         }
       }
@@ -163,7 +163,7 @@ export class LightSpeedManager {
   }
   public async ansibleContentFeedback(
     document: vscode.TextDocument,
-    trigger: AnsibleContentUploadTrigger
+    trigger: AnsibleContentUploadTrigger,
   ): Promise<void> {
     if (
       document.languageId !== "ansible" ||
@@ -199,7 +199,7 @@ export class LightSpeedManager {
 
       if (previousFileContent === currentFileContent) {
         console.log(
-          `[ansible-lightspeed-feedback] Event ansibleContent not sent as the content of file ${documentUri} is same as previous event.`
+          `[ansible-lightspeed-feedback] Event ansibleContent not sent as the content of file ${documentUri} is same as previous event.`,
         );
         return;
       }
@@ -218,7 +218,7 @@ export class LightSpeedManager {
 
     if (!currentFileContent.trim()) {
       console.log(
-        `[ansible-lightspeed-feedback] Event ansibleContent is not sent as the content of file ${documentUri} is empty.`
+        `[ansible-lightspeed-feedback] Event ansibleContent is not sent as the content of file ${documentUri} is empty.`,
       );
       return;
     }
@@ -249,7 +249,12 @@ export class LightSpeedManager {
     vscode.commands.executeCommand(
       "setContext",
       "redhat.ansible.lightspeedSuggestionsEnabled",
-      this.inlineSuggestionsEnabled
+      this.inlineSuggestionsEnabled,
+    );
+    vscode.commands.executeCommand(
+      "setContext",
+      "redhat.ansible.enableExperimentalFeatures",
+      false,
     );
   }
 }

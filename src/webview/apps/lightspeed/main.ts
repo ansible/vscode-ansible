@@ -21,10 +21,10 @@ window.addEventListener("load", main);
 // Main function that gets executed once the webview DOM loads
 function main() {
   const feedbackForm = document.getElementById(
-    "feedback-form"
+    "feedback-form",
   ) as HTMLFormElement;
   const issueTypeDropdown = document.getElementById(
-    "issue-type-dropdown"
+    "issue-type-dropdown",
   ) as Dropdown;
 
   const bugReportSection = document.createElement("section");
@@ -122,15 +122,15 @@ function handleSentimentFeedback() {
   let sentimentValue: string | undefined = undefined;
 
   const sentimentCommentTextArea = document.getElementById(
-    "sentiment-comment"
+    "sentiment-comment",
   ) as TextArea;
 
   const sentimentSendButton = document.getElementById(
-    "sentiment-submit"
+    "sentiment-submit",
   ) as Button;
 
   const sentimentDataSharingCheckbox = document.getElementById(
-    "sentiment-data-sharing-checkbox"
+    "sentiment-data-sharing-checkbox",
   ) as Checkbox;
 
   sentimentDataSharingCheckbox.addEventListener("change", () => {
@@ -139,10 +139,10 @@ function handleSentimentFeedback() {
 
   sentimentSendButton.addEventListener("click", () => {
     const sentimentSelector = document.querySelector(
-      ".sentiment-selector"
+      ".sentiment-selector",
     ) as HTMLDivElement;
     const selectedOption = sentimentSelector.querySelector(
-      "input[type=radio]:checked"
+      "input[type=radio]:checked",
     ) as HTMLInputElement;
 
     if (selectedOption) {
@@ -174,23 +174,23 @@ function handleSentimentFeedback() {
 
 function handleIssueFeedback() {
   const issueSubmitButton = document.getElementById(
-    "issue-submit-button"
+    "issue-submit-button",
   ) as Button;
 
   const issueTypeDropdown = document.getElementById(
-    "issue-type-dropdown"
+    "issue-type-dropdown",
   ) as Dropdown;
 
   const issueTitleTextArea = document.getElementById(
-    "issue-title"
+    "issue-title",
   ) as TextField;
 
   const issueDescriptionTextArea = document.getElementById(
-    "issue-description"
+    "issue-description",
   ) as TextArea;
 
   const feedbackDataSharingCheckbox = document.getElementById(
-    "feedback-data-sharing-checkbox"
+    "feedback-data-sharing-checkbox",
   ) as Checkbox;
 
   feedbackDataSharingCheckbox.addEventListener("change", () => {
@@ -228,19 +228,19 @@ function handleIssueFeedback() {
       issueDescriptionTextArea.value = "";
     } else if (issueTypeDropdown.value === "suggestion-feedback") {
       const suggestionPromptTextArea = document.getElementById(
-        "suggestion-prompt"
+        "suggestion-prompt",
       ) as TextArea;
 
       const suggestionProvidedTextArea = document.getElementById(
-        "suggestion-provided"
+        "suggestion-provided",
       ) as TextArea;
 
       const suggestionExpectedTextArea = document.getElementById(
-        "suggestion-expected"
+        "suggestion-expected",
       ) as TextArea;
 
       const suggestionAdditionalCommentTextArea = document.getElementById(
-        "suggestion-additional-comment"
+        "suggestion-additional-comment",
       ) as TextArea;
 
       if (suggestionPromptTextArea.value === "") {

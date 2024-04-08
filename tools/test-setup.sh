@@ -245,7 +245,7 @@ if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
 fi
 
 # if a virtualenv is already active, ensure is the expected one
-EXPECTED_VENV="${PWD}/out/venvs/${HOSTNAME}"
+EXPECTED_VENV="${HOME}/.local/share/virtualenvs/vsa"
 if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
      log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
 fi
@@ -354,8 +354,8 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         exit 1
     fi
     log notice "Pull our test container image with docker."
-    docker pull --quiet "${IMAGE}" >/dev/null || {
-        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it."
+    pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
+        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it.\n${pull_output}"
         exit 1
     }
     # without running we will never be sure it works (no arm64 image yet)
@@ -413,7 +413,10 @@ fi
 PODMAN_VERSION="$(get_version podman || echo null)"
 if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     log notice "Pull our test container image with podman."
-    podman pull --quiet "${IMAGE}" >/dev/null
+    pull_output=$(podman pull --quiet "${IMAGE}" 2>&1 >/dev/null) || {
+        log error "Failed to pull image.\n${pull_output}"
+        exit 1
+    }
     # without running we will never be sure it works
     log notice "Retrieving ansible version from ee"
     EE_ANSIBLE_VERSION=$(get_version \

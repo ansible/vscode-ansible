@@ -2,6 +2,8 @@ import * as vscode from "vscode";
 import * as path from "path";
 import sinon from "sinon";
 import { assert } from "chai";
+import findProcess from "find-process";
+
 import { LightSpeedCommands } from "../src/definitions/lightspeed";
 import { integer } from "vscode-languageclient";
 import axios from "axios";
@@ -15,7 +17,7 @@ export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
-  "collections"
+  "collections",
 );
 const LIGHTSPEED_ACCESS_TOKEN = process.env.LIGHTSPEED_ACCESS_TOKEN || "dummy";
 const LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME =
@@ -33,6 +35,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
+    await waitForDiagnosisCompletion();
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
@@ -47,7 +50,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(20000); // Wait for server activation
+  await sleep(2000); //  Wait for server activation (reduced from 20000 to 2000)
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -57,14 +60,21 @@ export async function sleep(ms: number): Promise<void> {
 export const getDocPath = (p: string): string => {
   return path.resolve(
     __dirname,
-    path.join("..", "..", "..", "test", "testFixtures", p)
+    path.join("..", "..", "..", "test", "testFixtures", p),
   );
 };
 
 export const getDocUriOutsideWorkspace = (fileName: string): string => {
   return path.resolve(
     __dirname,
-    path.join("..", "..", "..", "test", "testFixtureOutsideWorkspace", fileName)
+    path.join(
+      "..",
+      "..",
+      "..",
+      "test",
+      "testFixtureOutsideWorkspace",
+      fileName,
+    ),
   );
 };
 
@@ -75,14 +85,14 @@ export const getDocUri = (p: string): vscode.Uri => {
 export async function updateSettings(
   setting: string,
   value: unknown,
-  section = "ansible"
+  section = "ansible",
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration(section);
   return ansibleConfiguration.update(setting, value);
 }
 
 export function setFixtureAnsibleCollectionPathEnv(
-  prePendPath: string | undefined = undefined
+  prePendPath: string | undefined = undefined,
 ): void {
   if (prePendPath) {
     process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
@@ -123,12 +133,12 @@ export async function enableLightspeedSettings(): Promise<void> {
   vscode.commands.executeCommand(
     "setContext",
     "redhat.ansible.lightspeedSuggestionsEnabled",
-    true
+    true,
   );
 
   // Open content matches panel
   await vscode.commands.executeCommand(
-    "ansible.lightspeed.trainingMatchPanel.focus"
+    "ansible.lightspeed.trainingMatchPanel.focus",
   );
 }
 
@@ -142,14 +152,14 @@ export async function canRunLightspeedTests(): Promise<boolean> {
   // first check if environment variable is set or not
   if (!process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
     console.warn(
-      "Skipping lightspeed tests because TEST_LIGHTSPEED_ACCESS_TOKEN variable is not set."
+      "Skipping lightspeed tests because TEST_LIGHTSPEED_ACCESS_TOKEN variable is not set.",
     );
     return false;
   }
 
   if (!process.env.TEST_LIGHTSPEED_URL) {
     console.warn(
-      "Skipping lightspeed tests because TEST_LIGHTSPEED_URL variable is not set."
+      "Skipping lightspeed tests because TEST_LIGHTSPEED_URL variable is not set.",
     );
     return false;
   }
@@ -164,7 +174,7 @@ export async function canRunLightspeedTests(): Promise<boolean> {
 
   if (!ansibleLightspeedURL) {
     console.warn(
-      "Skipping lightspeed tests because project lightspeed path path not set."
+      "Skipping lightspeed tests because project lightspeed path path not set.",
     );
     return false;
   }
@@ -177,19 +187,19 @@ export async function canRunLightspeedTests(): Promise<boolean> {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     result = status;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error(
         "Skipping lightspeed tests because of the following error message: ",
-        error.message
+        error.message,
       );
     } else {
       console.error(
         "Skipping lightspeed tests because of unexpected error: ",
-        error
+        error,
       );
     }
     return false;
@@ -201,7 +211,7 @@ export async function canRunLightspeedTests(): Promise<boolean> {
 
 export async function testDiagnostics(
   docUri: vscode.Uri,
-  expectedDiagnostics: vscode.Diagnostic[]
+  expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
@@ -214,7 +224,7 @@ export async function testDiagnostics(
       assert.deepEqual(actualDiagnostic.range, expectedDiagnostic.range);
       assert.strictEqual(
         actualDiagnostic.severity,
-        expectedDiagnostic.severity
+        expectedDiagnostic.severity,
       );
       assert.strictEqual(actualDiagnostic.source, expectedDiagnostic.source);
     });
@@ -224,12 +234,12 @@ export async function testDiagnostics(
 export async function testHover(
   docUri: vscode.Uri,
   position: vscode.Position,
-  expectedHover: vscode.Hover[]
+  expectedHover: vscode.Hover[],
 ): Promise<void> {
   const actualHover = (await vscode.commands.executeCommand(
     "vscode.executeHoverProvider",
     docUri,
-    position
+    position,
   )) as vscode.Hover[];
 
   assert.strictEqual(actualHover.length, expectedHover.length);
@@ -239,7 +249,7 @@ export async function testHover(
       const actualItem = actualHover[i];
       assert.include(
         (actualItem.contents[i] as vscode.MarkdownString).value,
-        expectedItem.contents[i].toString()
+        expectedItem.contents[i].toString(),
       );
     });
   }
@@ -251,7 +261,7 @@ export async function testInlineSuggestion(
   multiTask = false,
   insertText = "",
   typeOver = false,
-  typeOverBeforeAPIReturn = false
+  typeOverBeforeAPIReturn = false,
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -268,11 +278,11 @@ export async function testInlineSuggestion(
   await editor.edit(async (edit) => {
     const replaceRange = new vscode.Range(
       writePosition,
-      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
     );
     edit.replace(
       replaceRange,
-      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`
+      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`,
     );
   });
 
@@ -296,7 +306,7 @@ export async function testInlineSuggestion(
     editor.revealRange(new vscode.Range(newPosition, newPosition));
   }
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
   );
 
   // If typeOverBeforeAPIReturn flag is set, do not wait for long.
@@ -306,7 +316,7 @@ export async function testInlineSuggestion(
   await sleep(
     typeOverBeforeAPIReturn
       ? LIGHTSPEED_INLINE_SUGGESTION_AFTER_TRIGGER_WAIT_TIME
-      : LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME
+      : LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME,
   );
 
   if (insertText) {
@@ -324,7 +334,7 @@ export async function testInlineSuggestion(
     await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
   } else {
     await vscode.commands.executeCommand(
-      LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+      LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
     );
   }
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
@@ -335,7 +345,7 @@ export async function testInlineSuggestion(
     // get the committed suggestion
     const suggestionRange = new vscode.Range(
       new vscode.Position(writePosition.line + 1, writePosition.character),
-      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
     );
 
     const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
@@ -347,7 +357,7 @@ export async function testInlineSuggestion(
 
 export async function testInlineSuggestionNotTriggered(
   prompt: string,
-  multiTask = false
+  multiTask = false,
 ): Promise<void> {
   const editor = vscode.window.activeTextEditor;
 
@@ -363,11 +373,11 @@ export async function testInlineSuggestionNotTriggered(
   await editor.edit(async (edit) => {
     const replaceRange = new vscode.Range(
       writePosition,
-      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
     );
     edit.replace(
       replaceRange,
-      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`
+      multiTask ? `# ${prompt}\n` : `- name: ${prompt}\n`,
     );
   });
 
@@ -387,18 +397,18 @@ export async function testInlineSuggestionNotTriggered(
   editor.selection = new vscode.Selection(newPosition, newPosition);
   editor.revealRange(new vscode.Range(newPosition, newPosition));
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
   // get the committed suggestion
   const suggestionRange = new vscode.Range(
     new vscode.Position(writePosition.line + 1, writePosition.character),
-    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
   );
 
   const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
@@ -408,13 +418,13 @@ export async function testInlineSuggestionNotTriggered(
   assert.include(docContentAfterSuggestion, "");
   assert.isFalse(
     getInlineSuggestionItemsSpy.called,
-    "getInlineSuggestionItems should not be called"
+    "getInlineSuggestionItems should not be called",
   );
 }
 
 export async function testInlineSuggestionCursorPositions(
   prompt: string,
-  newLineSpaces: number
+  newLineSpaces: number,
 ): Promise<void> {
   const editor = vscode.window.activeTextEditor;
 
@@ -430,7 +440,7 @@ export async function testInlineSuggestionCursorPositions(
   await editor.edit(async (edit) => {
     const replaceRange = new vscode.Range(
       writePosition,
-      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
     );
     edit.replace(replaceRange, `${prompt}\n`);
   });
@@ -453,19 +463,19 @@ export async function testInlineSuggestionCursorPositions(
   editor.revealRange(new vscode.Range(newPosition, newPosition));
 
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
   );
 
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
   // get the committed suggestion
   const suggestionRange = new vscode.Range(
     new vscode.Position(writePosition.line + 1, writePosition.character),
-    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
   );
 
   const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
@@ -475,13 +485,13 @@ export async function testInlineSuggestionCursorPositions(
   assert.include(docContentAfterSuggestion, "");
   assert.isFalse(
     getInlineSuggestionItemsSpy.called,
-    "getInlineSuggestionItems should not be called"
+    "getInlineSuggestionItems should not be called",
   );
 }
 
 export async function testValidJinjaBrackets(
   prompt: string,
-  expectedValidJinjaInlineVar: string
+  expectedValidJinjaInlineVar: string,
 ): Promise<void> {
   let editor = vscode.window.activeTextEditor;
 
@@ -498,7 +508,7 @@ export async function testValidJinjaBrackets(
   await editor.edit(async (edit) => {
     const replaceRange = new vscode.Range(
       writePosition,
-      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+      new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
     );
     edit.replace(replaceRange, `- name: ${prompt}\n`);
   });
@@ -523,22 +533,45 @@ export async function testValidJinjaBrackets(
     editor.revealRange(new vscode.Range(newPosition, newPosition));
   }
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME);
   await vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+    LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
   );
   await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
   // get the committed suggestion
   const suggestionRange = new vscode.Range(
     new vscode.Position(writePosition.line + 1, writePosition.character),
-    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE)
+    new vscode.Position(integer.MAX_VALUE, integer.MAX_VALUE),
   );
 
   const docContentAfterSuggestion = doc.getText(suggestionRange).trim();
 
   // assert
   assert.include(docContentAfterSuggestion, expectedValidJinjaInlineVar);
+}
+
+export async function waitForDiagnosisCompletion(
+  interval = 100,
+  timeout = 2000,
+) {
+  let started = false;
+  let done = false;
+  let elapsed = 0;
+  // If either ansible-lint or ansible-playbook has started within the
+  // specified timeout value (default: 2000 msecs), we'll wait until
+  // it completes. Otherwise (e.g. when the validation is disabled),
+  // exit after the timeout.
+  while (!done && (started || elapsed < timeout)) {
+    const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
+    if (!started && processes.length > 0) {
+      started = true;
+    } else if (started && processes.length === 0) {
+      done = true;
+    }
+    await sleep(interval);
+    elapsed += interval;
+  }
 }

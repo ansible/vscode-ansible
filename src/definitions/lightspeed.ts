@@ -43,6 +43,10 @@ export namespace LightSpeedCommands {
   export const LIGHTSPEED_CLEAR_TRAINING_MATCHES =
     "ansible.lightspeed.clearTrainingMatches";
   export const LIGHTSPEED_FEEDBACK = "ansible.lightspeed.feedback";
+  export const LIGHTSPEED_PLAYBOOK_EXPLANATION =
+    "ansible.lightspeed.playbookExplanation";
+  export const LIGHTSPEED_PLAYBOOK_GENERATION =
+    "ansible.lightspeed.playbookGeneration";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";

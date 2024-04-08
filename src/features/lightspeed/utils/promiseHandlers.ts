@@ -6,7 +6,7 @@ export interface PromiseAdapter<T, U> {
   (
     value: T,
     resolve: (value: U | PromiseLike<U>) => void,
-    reject: (reason: any) => void
+    reject: (reason: any) => void,
   ): any;
 }
 
@@ -29,7 +29,7 @@ const passthrough = (value: any, resolve: (value?: any) => void) =>
  */
 export function promiseFromEvent<T, U>(
   event: Event<T>,
-  adapter: PromiseAdapter<T, U> = passthrough
+  adapter: PromiseAdapter<T, U> = passthrough,
 ): { promise: Promise<U>; cancel: EventEmitter<void> } {
   let subscription: Disposable;
   const cancel = new EventEmitter<void>();
@@ -52,7 +52,7 @@ export function promiseFromEvent<T, U>(
       (error) => {
         subscription.dispose();
         throw error;
-      }
+      },
     ),
     cancel,
   };

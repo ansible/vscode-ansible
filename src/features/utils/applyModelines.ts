@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 
 export async function configureModelines(
   context: vscode.ExtensionContext,
-  doc: vscode.TextDocument
+  doc: vscode.TextDocument,
 ): Promise<void> {
   // Listen for new documents being opened
 
@@ -14,7 +14,7 @@ export async function configureModelines(
 
       const tryApplyModelines = async (): Promise<boolean> => {
         const editor = vscode.window.visibleTextEditors.find(
-          (e) => e.document === doc
+          (e) => e.document === doc,
         );
         if (editor) {
           await applyModeLines(editor);
@@ -32,21 +32,21 @@ export async function configureModelines(
           }, 500);
         }
       }, 100);
-    })
+    }),
   );
 
   // Listen for saves and change settings if necessary
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument(async (doc) => {
       const editor = vscode.window.visibleTextEditors.find(
-        (e) => e.document === doc
+        (e) => e.document === doc,
       );
       if (editor) await applyModeLines(editor);
-    })
+    }),
   );
 
   setImmediate(
-    async () => await applyModeLines(vscode.window.activeTextEditor)
+    async () => await applyModeLines(vscode.window.activeTextEditor),
   );
 }
 
@@ -57,7 +57,7 @@ export async function configureModelines(
  * @param editor - textEditor
  */
 export async function applyModeLines(
-  editor: vscode.TextEditor | undefined
+  editor: vscode.TextEditor | undefined,
 ): Promise<void> {
   if (!editor || !editor.document || editor.document.isUntitled) {
     return;
@@ -73,11 +73,11 @@ export async function applyModeLines(
         console.log("[modelines] language set by modelines");
         await vscode.languages.setTextDocumentLanguage(
           editor.document,
-          language
+          language,
         );
       } else {
         vscode.window.showWarningMessage(
-          'Supported languages are "ansible" and "yaml"'
+          'Supported languages are "ansible" and "yaml"',
         );
       }
     }

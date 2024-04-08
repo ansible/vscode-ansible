@@ -67,7 +67,7 @@ const config = {
   stats: {
     errorDetails: true,
     moduleTrace: true,
-    preset: "minimal",
+    preset: "errors-warnings",
   },
   target: "node", // vscode extensions run in a Node.js-context
 };
@@ -111,9 +111,37 @@ const contentCreatorInitWebviewConfig = {
   },
 };
 
+const playbookGenerationWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/playbookGeneration/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/playbookGeneration/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+const playbookExplanationWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/playbookExplanation/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/playbookExplanation/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 module.exports = [
   config,
   webviewConfig,
   contentCreatorMenuWebviewConfig,
   contentCreatorInitWebviewConfig,
+  playbookGenerationWebviewConfig,
+  playbookExplanationWebviewConfig,
 ];

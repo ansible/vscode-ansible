@@ -50,6 +50,7 @@ import {
   LightSpeedInlineSuggestionProvider,
   rejectPendingSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
+import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
@@ -68,6 +69,7 @@ import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollection
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { LightspeedAuthSession } from "./interfaces/lightspeed";
+import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -94,14 +96,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry,
     AnsibleCommands.ANSIBLE_VAULT,
     toggleEncrypt,
-    true
+    true,
   );
   await registerCommandWithTelemetry(
     context,
     telemetry,
     AnsibleCommands.ANSIBLE_INVENTORY_RESYNC,
     resyncAnsibleInventory,
-    true
+    true,
   );
 
   await registerCommandWithTelemetry(
@@ -109,7 +111,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry,
     AnsibleCommands.ANSIBLE_PYTHON_SET_INTERPRETER,
     setPythonInterpreterWithCommand,
-    true
+    true,
   );
 
   await registerCommandWithTelemetry(
@@ -117,7 +119,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     telemetry,
     LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
     getAuthToken,
-    true
+    true,
   );
 
   // start the client and the server
@@ -140,7 +142,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     client,
     telemetry,
-    extSettings
+    extSettings,
   );
   try {
     await pythonInterpreterManager.updatePythonInfoInStatusbar();
@@ -155,7 +157,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     client,
     extSettings,
-    telemetry
+    telemetry,
   );
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
@@ -164,15 +166,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK,
       () =>
-        lightSpeedManager.statusBarProvider.lightSpeedStatusBarClickHandler()
-    )
+        lightSpeedManager.statusBarProvider.lightSpeedStatusBarClickHandler(),
+    ),
   );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       ContentMatchesWebview.viewType,
-      lightSpeedManager.contentMatchesProvider
-    )
+      lightSpeedManager.contentMatchesProvider,
+    ),
   );
 
   context.subscriptions.push(
@@ -180,8 +182,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
       LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
       () => {
         lightSpeedManager.contentMatchesProvider.showContentMatches();
-      }
-    )
+      },
+    ),
   );
 
   context.subscriptions.push(
@@ -189,23 +191,23 @@ export async function activate(context: ExtensionContext): Promise<void> {
       LightSpeedCommands.LIGHTSPEED_CLEAR_TRAINING_MATCHES,
       () => {
         lightSpeedManager.contentMatchesProvider.clearContentMatches();
-      }
-    )
+      },
+    ),
   );
 
   const lightSpeedSuggestionProvider = new LightSpeedInlineSuggestionProvider();
   context.subscriptions.push(
     vscode.languages.registerInlineCompletionItemProvider(
       { scheme: "file", language: "ansible" },
-      lightSpeedSuggestionProvider
-    )
+      lightSpeedSuggestionProvider,
+    ),
   );
 
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
-      inlineSuggestionCommitHandler
-    )
+      inlineSuggestionCommitHandler,
+    ),
   );
 
   context.subscriptions.push(
@@ -214,18 +216,18 @@ export async function activate(context: ExtensionContext): Promise<void> {
       async (
         textEditor: vscode.TextEditor,
         edit: vscode.TextEditorEdit,
-        userAction?: UserAction
+        userAction?: UserAction,
       ) => {
         await inlineSuggestionHideHandler(userAction);
-      }
-    )
+      },
+    ),
   );
 
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_SUGGESTION_TRIGGER,
-      inlineSuggestionTriggerHandler
-    )
+      inlineSuggestionTriggerHandler,
+    ),
   );
 
   context.subscriptions.push(
@@ -234,15 +236,30 @@ export async function activate(context: ExtensionContext): Promise<void> {
       (
         textEditor: vscode.TextEditor,
         edit: vscode.TextEditorEdit,
-        position: vscode.Position
-      ) => inlineSuggestionReplaceMarker(position)
-    )
+        position: vscode.Position,
+      ) => inlineSuggestionReplaceMarker(position),
+    ),
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      LightSpeedCommands.LIGHTSPEED_PLAYBOOK_EXPLANATION,
+      async () => {
+        await playbookExplanation(
+          context.extensionUri,
+          client,
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.settingsManager,
+        );
+      },
+    ),
+  );
+
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
       rejectPendingSuggestion();
-    })
+    }),
   );
 
   // At window focus change, check if an inline suggestion is pending and ignore it if it exists.
@@ -251,7 +268,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!state.focused) {
         ignorePendingSuggestion();
       }
-    })
+    }),
   );
 
   // register ansible meta data in the statusbar tooltip (client-server)
@@ -261,39 +278,39 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await updateAnsibleStatusBar(
           metaData,
           lightSpeedManager,
-          pythonInterpreterManager
+          pythonInterpreterManager,
         );
         if (editor) {
           await lightSpeedManager.ansibleContentFeedback(
             editor.document,
-            AnsibleContentUploadTrigger.TAB_CHANGE
+            AnsibleContentUploadTrigger.TAB_CHANGE,
           );
         } else {
           await ignorePendingSuggestion();
         }
-      }
-    )
+      },
+    ),
   );
   context.subscriptions.push(
     workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
       await updateAnsibleStatusBar(
         metaData,
         lightSpeedManager,
-        pythonInterpreterManager
+        pythonInterpreterManager,
       );
       lightSpeedManager.ansibleContentFeedback(
         document,
-        AnsibleContentUploadTrigger.FILE_OPEN
+        AnsibleContentUploadTrigger.FILE_OPEN,
       );
-    })
+    }),
   );
   context.subscriptions.push(
     workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
       await lightSpeedManager.ansibleContentFeedback(
         document,
-        AnsibleContentUploadTrigger.FILE_CLOSE
+        AnsibleContentUploadTrigger.FILE_CLOSE,
       );
-    })
+    }),
   );
 
   context.subscriptions.push(
@@ -302,20 +319,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
         metaData,
         pythonInterpreterManager,
         extSettings,
-        lightSpeedManager
+        lightSpeedManager,
       );
       await updateAnsibleStatusBar(
         metaData,
         lightSpeedManager,
-        pythonInterpreterManager
+        pythonInterpreterManager,
       );
-    })
+    }),
   );
 
   context.subscriptions.push(
     workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
       inlineSuggestionTextDocumentChangeHandler(e);
-    })
+    }),
   );
 
   let session: vscode.AuthenticationSession | undefined;
@@ -329,19 +346,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
   if (session) {
     window.registerTreeDataProvider(
       "lightspeed-explorer-treeview",
-      new TreeDataProvider(<LightspeedAuthSession>session)
+      new TreeDataProvider(<LightspeedAuthSession>session),
     );
   }
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
-    context.extensionUri
+    context.extensionUri,
   );
 
   // Register the Lightspeed provider for a Webview View
   const lightspeedFeedbackDisposable = window.registerWebviewViewProvider(
     LightspeedFeedbackWebviewViewProvider.viewType,
-    lightspeedFeedbackProvider
+    lightspeedFeedbackProvider,
   );
 
   context.subscriptions.push(lightspeedFeedbackDisposable);
@@ -351,7 +368,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     LightSpeedCommands.LIGHTSPEED_FEEDBACK,
     () => {
       LightspeedFeedbackWebviewProvider.render(context.extensionUri);
-    }
+    },
   );
 
   context.subscriptions.push(lightspeedFeedbackCommand);
@@ -369,8 +386,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context.subscriptions.push(
       vscode.tasks.registerTaskProvider(
         AnsibleToxProvider.toxType,
-        testProvider
-      )
+        testProvider,
+      ),
     );
   }
 
@@ -392,7 +409,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const [command, runEnv] = withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-creator`,
-          "--no-input"
+          "--no-input",
         );
 
         let terminal;
@@ -400,7 +417,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           vscode.workspace.getConfiguration("ansible.ansible").reuseTerminal
         ) {
           terminal = vscode.window.terminals.find(
-            (terminal) => terminal.name === "Ansible Terminal"
+            (terminal) => terminal.name === "Ansible Terminal",
           ) as vscode.Terminal;
         }
         terminal = vscode.window.createTerminal({
@@ -409,8 +426,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
         });
         terminal.show();
         terminal.sendText(command);
-      }
-    )
+      },
+    ),
   );
 
   // open ansible-python workspace settings directly
@@ -420,47 +437,81 @@ export async function activate(context: ExtensionContext): Promise<void> {
       async () => {
         await vscode.commands.executeCommand(
           "workbench.action.openWorkspaceSettings",
-          "ansible.python"
+          "ansible.python",
         );
-      }
-    )
+      },
+    ),
   );
 
   // open ansible-creator menu
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.menu", () => {
       AnsibleCreatorMenu.render(context.extensionUri);
-    })
+    }),
   );
 
   // open ansible-creator init
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.init", () => {
       AnsibleCreatorInit.render(context.extensionUri);
-    })
+    }),
   );
 
   // open ansible-creator create
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.create", () => {
       window.showInformationMessage("This feature is coming soon. Stay tuned.");
-    })
+    }),
   );
 
   // open ansible-creator sample
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.sample", () => {
       window.showInformationMessage("This feature is coming soon. Stay tuned.");
-    })
+    }),
+  );
+
+  // Command to render a webview-based note view
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
+      () => {
+        showPlaybookGenerationPage(
+          context.extensionUri,
+          client,
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.settingsManager,
+        );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.lightspeed.thumbsUpDown", () => {
+      window.showInformationMessage("Thank you for your feedback!");
+    }),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.enableExperimentalFeatures",
+      () => {
+        vscode.commands.executeCommand(
+          "setContext",
+          "redhat.ansible.lightspeedExperimentalEnabled",
+          true,
+        );
+      },
+    ),
   );
 }
 
 const startClient = async (
   context: ExtensionContext,
-  telemetry: TelemetryManager
+  telemetry: TelemetryManager,
 ) => {
   const serverModule = context.asAbsolutePath(
-    path.join("out", "server", "src", "server.js")
+    path.join("out", "server", "src", "server.js"),
   );
 
   // server is run at port 6009 for debugging
@@ -478,7 +529,7 @@ const startClient = async (
   const telemetryErrorHandler = new TelemetryErrorHandler(
     telemetry.telemetryService,
     lsName,
-    4
+    4,
   );
   const outputChannel = window.createOutputChannel(lsName);
 
@@ -489,7 +540,7 @@ const startClient = async (
     errorHandler: telemetryErrorHandler,
     outputChannel: new TelemetryOutputChannel(
       outputChannel,
-      telemetry.telemetryService
+      telemetry.telemetryService,
     ),
   };
 
@@ -497,13 +548,13 @@ const startClient = async (
     "ansibleServer",
     "Ansible Server",
     serverOptions,
-    clientOptions
+    clientOptions,
   );
 
   context.subscriptions.push(
     client.onTelemetry((e) => {
       telemetry.telemetryService.send(e);
-    })
+    }),
   );
 
   try {
@@ -536,7 +587,7 @@ export function deactivate(): Thenable<void> | undefined {
 async function updateAnsibleStatusBar(
   metaData: MetadataManager,
   lightSpeedManager: LightSpeedManager,
-  pythonInterpreterManager: PythonInterpreterManager
+  pythonInterpreterManager: PythonInterpreterManager,
 ) {
   await metaData.updateAnsibleInfoInStatusbar();
   await lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
@@ -564,7 +615,7 @@ async function resyncAnsibleInventory(): Promise<void> {
       new NotificationType(`resync/ansible-inventory`),
       (event) => {
         console.log("resync ansible inventory event ->", event);
-      }
+      },
     );
     client.sendNotification(new NotificationType(`resync/ansible-inventory`));
   }
@@ -576,7 +627,7 @@ async function getAuthToken(): Promise<void> {
     !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
   ) {
     await window.showErrorMessage(
-      "Enable lightspeed services from settings to use the feature."
+      "Enable lightspeed services from settings to use the feature.",
     );
     return;
   }
@@ -586,11 +637,11 @@ async function getAuthToken(): Promise<void> {
     [],
     {
       createIfNone: true,
-    }
+    },
   );
   window.registerTreeDataProvider(
     "lightspeed-explorer-treeview",
-    new TreeDataProvider(<LightspeedAuthSession>session)
+    new TreeDataProvider(<LightspeedAuthSession>session),
   );
 
   if (session) {

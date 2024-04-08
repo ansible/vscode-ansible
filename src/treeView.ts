@@ -42,7 +42,7 @@ export class TreeDataProvider implements vscode.TreeDataProvider<TreeItem> {
   }
 
   getChildren(
-    element?: TreeItem | undefined
+    element?: TreeItem | undefined,
   ): vscode.ProviderResult<TreeItem[]> {
     if (element === undefined) {
       return this.data;
@@ -59,7 +59,7 @@ class TreeItem extends vscode.TreeItem {
       label,
       children === undefined
         ? vscode.TreeItemCollapsibleState.None
-        : vscode.TreeItemCollapsibleState.Expanded
+        : vscode.TreeItemCollapsibleState.Expanded,
     );
     this.children = children;
   }

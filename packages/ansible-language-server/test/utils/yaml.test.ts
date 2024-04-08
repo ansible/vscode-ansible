@@ -1,3 +1,4 @@
+// codespell:ignore isPlay
 import { expect } from "chai";
 import { Position } from "vscode-languageserver";
 import { Node, Scalar, YAMLMap, YAMLSeq } from "yaml";
@@ -403,7 +404,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(true);
     });
 
-    it("can confirm cursor within jinja bracket incase of multiple bracket pairs", async () => {
+    it("can confirm cursor within jinja bracket in case of multiple bracket pairs", async () => {
       const line = 9;
       const character = 48;
       const position = Position.create(line - 1, character - 1);
@@ -433,7 +434,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("can negate cursor within jinja bracket incase of invalid yaml syntax", async () => {
+    it("can negate cursor within jinja bracket in case of invalid yaml syntax", async () => {
       const line = 11;
       const character = 25;
       const position = Position.create(line - 1, character - 1);

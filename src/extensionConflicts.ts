@@ -32,7 +32,7 @@ export function getConflictingExtensions(): Extension<any>[] {
       .map((x) => extensions.getExtension(x))
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter<Extension<any>>((ext): ext is Extension<any> =>
-        isExtensionPresent(ext)
+        isExtensionPresent(ext),
       )
   );
 }
@@ -42,7 +42,7 @@ export function getConflictingExtensions(): Extension<any>[] {
  */
 export async function showUninstallConflictsNotification(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  conflictingExts: Extension<any>[]
+  conflictingExts: Extension<any>[],
 ): Promise<void> {
   // Add all available conflicting extensions to the uninstalling IDs map
   for (const ext of conflictingExts) {
@@ -74,7 +74,7 @@ export async function showUninstallConflictsNotification(
       for (const ext of conflictingExts) {
         commands.executeCommand(
           "workbench.extensions.uninstallExtension",
-          ext.id
+          ext.id,
         );
         uninstallingIDs.delete(ext.id);
       }

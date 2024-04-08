@@ -16,3 +16,10 @@ ignorePaths:
   - syntaxes/external/*.*
   - media
   - package.json
+  - test/testFixtures/lightspeed/*.yml
+  - .yarn/
+  - "**/requirements.in"
+  - syntaxes
+ignoreRegExpList:
+  # ignore github usernames like @foo
+  - "@[\\w]+"

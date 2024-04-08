@@ -120,7 +120,7 @@ export function formatAnsibleMetaData(ansibleMetaData: any) {
 
   if (!ansibleLintPresent) {
     markdown.appendMarkdown(
-      `\n<p><span ${WARNING_STYLE}>$(warning) Warning(s):</p></h5>`
+      `\n<p><span ${WARNING_STYLE}>$(warning) Warning(s):</p></h5>`,
     );
     markdown.appendMarkdown(`Ansible lint is missing in the environment`);
   }

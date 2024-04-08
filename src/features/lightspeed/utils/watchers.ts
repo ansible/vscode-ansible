@@ -14,7 +14,7 @@ import { StandardRolePaths } from "../../../definitions/constants";
 export async function watchAnsibleFile(
   lightSpeedManager: LightSpeedManager,
   filePath: string,
-  ansibleType: IAnsibleType
+  ansibleType: IAnsibleType,
 ) {
   try {
     if (!isFile(filePath)) {
@@ -64,7 +64,7 @@ export async function watchAnsibleFile(
 export function watchRolesDirectory(
   lightSpeedManager: LightSpeedManager,
   rolesPath: string,
-  workspaceRoot?: string
+  workspaceRoot?: string,
 ) {
   if (!workspaceRoot) {
     workspaceRoot = "common";
@@ -78,20 +78,20 @@ export function watchRolesDirectory(
     updateRolesContext(
       lightSpeedManager.ansibleRolesCache,
       rolesPath,
-      workspaceRoot
+      workspaceRoot,
     );
     return;
   } else {
     updateRolesContext(
       lightSpeedManager.ansibleRolesCache,
       rolesPath,
-      workspaceRoot
+      workspaceRoot,
     );
     console.log(`Created roles cache for ${rolesPath}`);
   }
 
   const watcher = vscode.workspace.createFileSystemWatcher(
-    path.join(rolesPath, "**/*")
+    path.join(rolesPath, "**/*"),
   );
 
   watcher.onDidChange((uri) => {
@@ -102,7 +102,7 @@ export function watchRolesDirectory(
       updateRoleContext(
         lightSpeedManager.ansibleRolesCache,
         rolePath,
-        workspaceRoot
+        workspaceRoot,
       );
       console.log(`Directory ${uri.fsPath} has been changed`);
     }
@@ -136,7 +136,7 @@ export function watchRolesDirectory(
       updateRoleContext(
         lightSpeedManager.ansibleRolesCache,
         rolePath,
-        workspaceRoot
+        workspaceRoot,
       );
       console.log(`Directory ${uri.fsPath} has been changed`);
     }

@@ -5,8 +5,8 @@ import {
   getDocUri,
   activate,
   testDiagnostics,
-  sleep,
   updateSettings,
+  waitForDiagnosisCompletion,
 } from "../../helper";
 
 export function testDiagnosticsAnsibleWithoutEE(): void {
@@ -22,8 +22,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should complain about no task names", async () => {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -31,7 +30,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
             message: "All tasks should be named",
             range: new vscode.Range(
               new vscode.Position(3, 0),
-              new vscode.Position(3, integer.MAX_VALUE)
+              new vscode.Position(3, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },
@@ -41,8 +40,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should complain about command syntax-check failed", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, [
           {
@@ -51,7 +49,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
               "Unexpected error code 4 from execution of: ansible-playbook -i localhost, --syntax-check",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, integer.MAX_VALUE)
+              new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },
@@ -63,7 +61,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       before(async () => {
         await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
       });
 
@@ -74,8 +72,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should return no diagnostics", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, []);
       });
@@ -83,8 +80,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should complain about missing `hosts` key", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, [
           {
@@ -92,7 +88,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
             message: "the field 'hosts' is required but was not set",
             range: new vscode.Range(
               new vscode.Position(0, 0),
-              new vscode.Position(0, integer.MAX_VALUE)
+              new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "Ansible",
           },
@@ -104,7 +100,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       before(async () => {
         await updateSettings("validation.enabled", false);
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
       });
 
@@ -115,8 +111,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should return no diagnostics even when `hosts` key is missing", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
-
-        await sleep(2000); // Wait for the diagnostics to compute on this file
+        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, []);
       });

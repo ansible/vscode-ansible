@@ -17,7 +17,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
   describe("TEST EXTENSION IN LOCAL ENVIRONMENT", () => {
     before(async () => {
       setFixtureAnsibleCollectionPathEnv(
-        "/home/runner/.ansible/collections:/usr/share/ansible/collections"
+        "/home/runner/.ansible/collections:/usr/share/ansible/collections",
       );
       await updateSettings("trace.server", "verbose", "ansibleServer");
     });
@@ -39,7 +39,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
     describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible/collections"
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         await enableExecutionEnvironmentSettings();
       });

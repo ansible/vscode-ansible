@@ -6,9 +6,19 @@ overrides:
       - "*.yml"
     options:
       singleQuote: false
-  - files:
-      - "*.md"
+  - # json with comments
+    files:
+      - ".vscode/*.json"
+      - "scripts/*.json"
+      - "tsconfig.json"
     options:
+      parser: json5
+      quoteProps: preserve
+      singleQuote: false
+  - files:
+      - "**/*.md"
+    options:
+      # compatibility with markdownlint
       proseWrap: always
       printWidth: 80
   - files:
@@ -16,4 +26,4 @@ overrides:
     options:
       trailingComma: none
 semi: true
-trailingComma: es5 # needed to force prettier 3.x to use 2.x settings and avoid conflict with eslint
+trailingComma: all # needed to force prettier 3.x to use 2.x settings and avoid conflict with eslint

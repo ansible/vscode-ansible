@@ -10,7 +10,7 @@ export async function setPythonInterpreter() {
 
   const ansibleSettings = workspace.getConfiguration("ansible");
   const pythonExistingInterpreterPath = await ansibleSettings.get(
-    "python.interpreterPath"
+    "python.interpreterPath",
   );
 
   // initially identify the correct python interpreter if the interpreter path
@@ -25,12 +25,12 @@ export async function setPythonInterpreter() {
       await ansibleSettings.update(
         "python.interpreterPath",
         interpreter,
-        false
+        false,
       );
 
       window.showInformationMessage(
         `Python interpreter set: ${interpreter} at User level \n
-        You  can change it by selecting a different interpreter anytime.`
+        You  can change it by selecting a different interpreter anytime.`,
       );
     }
   }
@@ -52,7 +52,7 @@ export async function setPythonInterpreterWithCommand() {
   await ansibleSettings.update(
     "python.interpreterPath",
     currentPythonExtensionDetails.path,
-    false
+    false,
   );
 
   if (

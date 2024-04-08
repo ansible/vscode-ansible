@@ -118,16 +118,16 @@ export function testLightspeed(): void {
 
       before(async function () {
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
         await activate(docUri1);
         feedbackRequestSpy = sinon.spy(
           lightSpeedManager.apiInstance,
-          "feedbackRequest"
+          "feedbackRequest",
         );
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
-          "isAuthenticated"
+          "isAuthenticated",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
       });
@@ -155,7 +155,7 @@ export function testLightspeed(): void {
             taskName,
             expectedModule,
             false,
-            expectedInsertTexts[i]
+            expectedInsertTexts[i],
           );
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
           assert.equal(feedbackRequestApiCalls.length, 1);
@@ -199,12 +199,12 @@ export function testLightspeed(): void {
 
       before(async function () {
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
         await activate(docUri1);
         rhUserHasSeatStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
-          "rhUserHasSeat"
+          "rhUserHasSeat",
         );
       });
 
@@ -236,16 +236,16 @@ export function testLightspeed(): void {
 
       before(async function () {
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
         await activate(docUri1);
         feedbackRequestSpy = sinon.spy(
           lightSpeedManager.apiInstance,
-          "feedbackRequest"
+          "feedbackRequest",
         );
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
-          "isAuthenticated"
+          "isAuthenticated",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
       });
@@ -260,7 +260,7 @@ export function testLightspeed(): void {
             false,
             "",
             true,
-            true
+            true,
           );
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
           assert.equal(feedbackRequestApiCalls.length, 1);
@@ -282,7 +282,7 @@ export function testLightspeed(): void {
             false,
             "",
             true,
-            true
+            true,
           );
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
           assert.equal(feedbackRequestApiCalls.length, 0);
@@ -305,7 +305,7 @@ export function testLightspeed(): void {
 
       before(async function () {
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
         await activate(docUri1);
       });
@@ -323,7 +323,7 @@ export function testLightspeed(): void {
         it(`Should not give inline suggestion for task prompt '${taskName}' with new line spaces ${newLineSpaces}`, async function () {
           await testInlineSuggestionCursorPositions(
             taskName,
-            newLineSpaces as number
+            newLineSpaces as number,
           );
         });
       });
@@ -334,7 +334,7 @@ export function testLightspeed(): void {
 
       before(async function () {
         await vscode.commands.executeCommand(
-          "workbench.action.closeAllEditors"
+          "workbench.action.closeAllEditors",
         );
         await activate(docUri1);
       });

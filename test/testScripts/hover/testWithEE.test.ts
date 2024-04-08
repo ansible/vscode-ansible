@@ -14,7 +14,7 @@ export function testHoverEE(): void {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
       setFixtureAnsibleCollectionPathEnv(
-        "/home/runner/.ansible/collections:/usr/share/ansible/collections"
+        "/home/runner/.ansible/collections:/usr/share/ansible/collections",
       );
     });
 

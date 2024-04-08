@@ -52,11 +52,11 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       executeCommandSpy = sinon.spy(vscode.commands, "executeCommand");
       feedbackRequestSpy = sinon.spy(
         lightSpeedManager.apiInstance,
-        "feedbackRequest"
+        "feedbackRequest",
       );
       isAuthenticatedStub = sinon.stub(
         lightSpeedManager.lightSpeedAuthenticationProvider,
-        "isAuthenticated"
+        "isAuthenticated",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
 
@@ -64,7 +64,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       // activated at (line, column) = (1, 8). Note numbers are zero-origin.
       disposable = vscode.languages.registerInlineCompletionItemProvider(
         { scheme: "file", language: "ansible" },
-        new AnotherInlineSuggestionProvider(1, 8)
+        new AnotherInlineSuggestionProvider(1, 8),
       );
     });
 
@@ -74,7 +74,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       // Issue Lightspeed's commit command, which is assigned to the Tab key, which
       // should issue vscode's commit command eventually
       await vscode.commands.executeCommand(
-        LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+        LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
       );
       await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
@@ -93,7 +93,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       assert(currentPosition.character === 8 + INSERT_TEXT.length);
       const suggestionRange = new Range(
         new Position(currentPosition.line, 8),
-        new Position(currentPosition.line, currentPosition.character)
+        new Position(currentPosition.line, currentPosition.character),
       );
       const committedSuggestion = editor.document
         .getText(suggestionRange)
@@ -137,11 +137,11 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       executeCommandSpy = sinon.spy(vscode.commands, "executeCommand");
       feedbackRequestSpy = sinon.spy(
         lightSpeedManager.apiInstance,
-        "feedbackRequest"
+        "feedbackRequest",
       );
       isAuthenticatedStub = sinon.stub(
         lightSpeedManager.lightSpeedAuthenticationProvider,
-        "isAuthenticated"
+        "isAuthenticated",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
 
@@ -149,7 +149,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       // activated at (line, column) = (5, 4). Note numbers are zero-origin.
       disposable = vscode.languages.registerInlineCompletionItemProvider(
         { scheme: "file", language: "ansible" },
-        new AnotherInlineSuggestionProvider(5, 4)
+        new AnotherInlineSuggestionProvider(5, 4),
       );
     });
 
@@ -162,7 +162,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       // Issue Lightspeed's commit command, which is assigned to the Tab key, which
       // should issue vscode's commit command eventually
       await vscode.commands.executeCommand(
-        LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT
+        LightSpeedCommands.LIGHTSPEED_SUGGESTION_COMMIT,
       );
       await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
@@ -189,7 +189,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       assert(currentPosition.character === 4 + INSERT_TEXT.length);
       const suggestionRange = new Range(
         new Position(currentPosition.line, 4),
-        new Position(currentPosition.line, currentPosition.character)
+        new Position(currentPosition.line, currentPosition.character),
       );
       const committedSuggestion = editor.document
         .getText(suggestionRange)
@@ -228,11 +228,11 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
 
       feedbackRequestSpy = sinon.spy(
         lightSpeedManager.apiInstance,
-        "feedbackRequest"
+        "feedbackRequest",
       );
       isAuthenticatedStub = sinon.stub(
         lightSpeedManager.lightSpeedAuthenticationProvider,
-        "isAuthenticated"
+        "isAuthenticated",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
     });
@@ -269,7 +269,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
 async function invokeInlineSuggestion(
   lineToActivate: integer,
   columnToActivate: integer,
-  spaces = 1
+  spaces = 1,
 ): Promise<vscode.TextEditor> {
   const editor = vscode.window.activeTextEditor;
   assert(editor);
@@ -304,7 +304,7 @@ class AnotherInlineSuggestionProvider implements InlineCompletionItemProvider {
     document: TextDocument,
     position: Position,
     _context: InlineCompletionContext, // eslint-disable-line @typescript-eslint/no-unused-vars
-    _token: CancellationToken // eslint-disable-line @typescript-eslint/no-unused-vars
+    _token: CancellationToken, // eslint-disable-line @typescript-eslint/no-unused-vars
   ): ProviderResult<InlineCompletionList> {
     const result: InlineCompletionList = {
       items: [],

@@ -53,10 +53,10 @@ let collectionUrl = "";
 function main() {
   // elements for init interface
   initNamespaceNameTextField = document.getElementById(
-    "namespace-name"
+    "namespace-name",
   ) as TextField;
   initCollectionNameTextField = document.getElementById(
-    "collection-name"
+    "collection-name",
   ) as TextField;
   initPathUrlTextField = document.getElementById("path-url") as TextField;
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
@@ -66,7 +66,7 @@ function main() {
     "editable-mode-checkbox"
   ) as Checkbox;
   logToFileCheckbox = document.getElementById(
-    "log-to-file-checkbox"
+    "log-to-file-checkbox",
   ) as Checkbox;
   logToFileCheckbox.addEventListener("change", toggleLogToFileOptions);
 
@@ -75,7 +75,7 @@ function main() {
   logFilePath = document.getElementById("log-file-path") as TextField;
   fileExplorerButton = document.getElementById("file-explorer") as Button;
   logFileAppendCheckbox = document.getElementById(
-    "log-file-append-checkbox"
+    "log-file-append-checkbox",
   ) as Checkbox;
   logLevelDropdown = document.getElementById("log-level-dropdown") as Dropdown;
 
@@ -86,11 +86,11 @@ function main() {
   initLogsTextArea = document.getElementById("log-text-area") as TextArea;
   initClearLogsButton = document.getElementById("clear-logs-button") as Button;
   initOpenLogFileButton = document.getElementById(
-    "open-log-file-button"
+    "open-log-file-button",
   ) as Button;
   initCopyLogsButton = document.getElementById("copy-logs-button") as Button;
   initOpenScaffoldedFolderButton = document.getElementById(
-    "open-folder-button"
+    "open-folder-button",
   ) as Button;
 
   initNamespaceNameTextField?.addEventListener("input", toggleCreateButton);
@@ -110,7 +110,7 @@ function main() {
   initCopyLogsButton?.addEventListener("click", handleInitCopyLogsClick);
   initOpenScaffoldedFolderButton?.addEventListener(
     "click",
-    handleInitOpenScaffoldedFolderClick
+    handleInitOpenScaffoldedFolderClick,
   );
 
   initCollectionNameDiv = document.getElementById("full-collection-name");

@@ -13,7 +13,7 @@ export class AnsibleToxController {
   constructor() {
     this.controller = vscode.tests.createTestController(
       "ansibleToxController",
-      "Ansible Tox"
+      "Ansible Tox",
     );
   }
 
@@ -30,7 +30,7 @@ export class AnsibleToxController {
       vscode.TestRunProfileKind.Run,
       (request, token) => {
         this.runHandler(request, token);
-      }
+      },
     );
     this.controller.refreshHandler = async () => {
       await this.discoverAllFilesInWorkspace();
@@ -56,15 +56,15 @@ export class AnsibleToxController {
     for (const workspaceFolder of vscode.workspace.workspaceFolders) {
       const pattern = new vscode.RelativePattern(
         workspaceFolder,
-        ANSIBLE_TOX_FILE_NAME
+        ANSIBLE_TOX_FILE_NAME,
       );
       const watcher = vscode.workspace.createFileSystemWatcher(pattern);
       watcher.onDidCreate((uri) => this.getOrCreateFile(uri));
       watcher.onDidChange((uri) =>
-        this.parseTestsInFileContents(this.getOrCreateFile(uri))
+        this.parseTestsInFileContents(this.getOrCreateFile(uri)),
       );
       watcher.onDidDelete((uri) =>
-        this.controller.items.delete(uri.toString())
+        this.controller.items.delete(uri.toString()),
       );
       const files = await vscode.workspace.findFiles(pattern);
       files.forEach(this.getOrCreateFile);
@@ -95,7 +95,7 @@ export class AnsibleToxController {
 
   async parseTestsInFileContents(
     file: vscode.TestItem,
-    contents?: string
+    contents?: string,
   ): Promise<vscode.TestItem[]> {
     if (file.uri === undefined) {
       return [];
@@ -131,11 +131,11 @@ export class AnsibleToxController {
             const newTestItem = this.controller.createTestItem(
               envName,
               envName,
-              file.uri
+              file.uri,
             );
             newTestItem.range = new vscode.Range(
               new vscode.Position(lineNo, 0),
-              new vscode.Position(lineNo, regexResult[0].length)
+              new vscode.Position(lineNo, regexResult[0].length),
             );
             listOfChildren.push(newTestItem);
             toxTests.splice(testNo, 1);
@@ -148,11 +148,11 @@ export class AnsibleToxController {
         const newTestItem = this.controller.createTestItem(
           toxTest,
           toxTest,
-          file.uri
+          file.uri,
         );
         newTestItem.range = new vscode.Range(
           new vscode.Position(0, 0),
-          new vscode.Position(0, 0)
+          new vscode.Position(0, 0),
         );
         listOfChildren.push(newTestItem);
       }
@@ -163,7 +163,7 @@ export class AnsibleToxController {
 
   async parseTestsInAnsibleToxFile(
     document: vscode.TextDocument,
-    filename: string = ANSIBLE_TOX_FILE_NAME
+    filename: string = ANSIBLE_TOX_FILE_NAME,
   ) {
     if (
       document.uri.scheme === "file" &&
@@ -179,7 +179,7 @@ export class AnsibleToxController {
 
   async runHandler(
     request: vscode.TestRunRequest,
-    token: vscode.CancellationToken
+    token: vscode.CancellationToken,
   ) {
     const run = this.controller.createTestRun(request);
     const queue: vscode.TestItem[] = [...(request.include || [])];
@@ -199,7 +199,7 @@ export class AnsibleToxController {
         runTox(
           [test.label.split("->")[0].trim()],
           "",
-          getTerminal(cwd, getRootParentLabelDesc(test))
+          getTerminal(cwd, getRootParentLabelDesc(test)),
         );
         run.passed(test, Date.now() - start);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -15,7 +15,7 @@ import { ExtensionSettings } from "../../interfaces/extensionSettings";
 export function withInterpreter(
   settings: ExtensionSettings,
   runExecutable: string,
-  cmdArgs: string
+  cmdArgs: string,
 ): [string, NodeJS.ProcessEnv | undefined] {
   let command = `${runExecutable} ${cmdArgs}`; // base case
 

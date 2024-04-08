@@ -1,0 +1,153 @@
+.playbookGeneration {
+  right: 0px;
+  bottom: 0px;
+}
+
+.playbookGeneration>h2 {
+  text-align: center
+}
+
+.playbookGeneration>h4 {
+  text-align: center
+}
+
+.editArea {
+  position: relative;
+  border-style: none;
+}
+
+.editArea>vscode-text-area {
+  width: 100%;
+  border-style: none;
+}
+
+.editArea>button {
+  float: right;
+}
+
+.inputSection {
+  margin-top: 2em;
+}
+
+.inputArea {
+  margin-top: 1em;
+  width: 100%
+}
+
+.inputArea>vscode-text-field {
+  width: 100%
+}
+
+.bigIconButtonContainer {
+  position: relative;
+  margin: 0.5em;
+  width: 100%;
+  height: 48px;
+  display: block;
+}
+
+.bigIconButton {
+  width: 56px;
+  height: 42px;
+  position: absolute;
+  right: 20px;
+  display: flex;
+}
+
+.biggerButton {
+  margin: 0.2em;
+  padding-top: 0.4em;
+  padding-bottom: 0.4em;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+}
+
+
+/* override the default .codicon class */
+.codicon[class*='codicon-'] {
+  font: normal normal normal 24px/1 codicon;
+  display: inline-block;
+  text-decoration: none;
+  text-rendering: auto;
+  text-align: center;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  position: relative;
+  left: -3px;
+  bottom: 3px;
+}
+
+.resetFeedbackContainer {
+  margin: 0.25em;
+  position: relative;
+  width: 100%;
+  height: 36px;
+  display: none;
+}
+
+.resetContainer {
+  position: absolute;
+  left: 0px;
+  bottom: 5px;
+  display: flow;
+}
+
+.feedbackContainer {
+  position: absolute;
+  right: 20px;
+  bottom: 0px;
+  display: flex;
+}
+
+.generatePlaybookContainer {
+  margin-top: 3em;
+  display: none;
+}
+
+.examplesContainer {
+  margin-top: 1em;
+}
+
+.exampleTextContainer {
+  margin: 0.5em;
+  padding-top: 0.3em;
+  padding-bottom: 0.3em;
+  padding-left: 0.8em;
+  padding-right: 0.8em;
+  border-style: solid;
+  border-width: thin;
+  border-radius: 8px;
+  width: fit-content;
+  max-width: 90%;
+}
+
+.continueButtonContainer {
+  margin-top: 1em;
+  display: none;
+}
+
+.buttonBorder {
+  border-style: solid;
+  border-width: thin;
+}
+
+.iconButton {
+  width: 36px;
+  height: 36px;
+  margin: 0.2em;
+}
+
+.textFieldFullWidth {
+  width: 100%;
+}
+
+.firstMessage {
+  display: block;
+}
+
+.secondMessage {
+  display: none;
+}

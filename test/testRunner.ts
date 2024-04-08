@@ -11,7 +11,7 @@ export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
-  "collections"
+  "collections",
 );
 const PRETEST_ERR_RC = 2;
 
@@ -42,7 +42,7 @@ async function main(): Promise<void> {
     const downloadPlatform = getDownloadPlatform(process.platform);
     const cliPath = resolveCliPathFromVSCodeExecutablePath(
       executable,
-      downloadPlatform
+      downloadPlatform,
     );
     const userDataPath = path.resolve(__dirname, "../../userdata");
     const extPath = path.resolve(__dirname, "../../ext");
@@ -63,7 +63,7 @@ async function main(): Promise<void> {
       "..",
       "test",
       "testFixtures",
-      "settings.json"
+      "settings.json",
     );
 
     const settings_dst = path.join(
@@ -74,7 +74,7 @@ async function main(): Promise<void> {
       "out",
       "userdata",
       "User",
-      "settings.json"
+      "settings.json",
     );
     fs.mkdirSync(path.dirname(settings_dst), { recursive: true });
     fs.copyFileSync(settings_src, settings_dst);
@@ -84,14 +84,14 @@ async function main(): Promise<void> {
     for (const dep of dependencies) {
       const installLog = cp.execSync(
         `"${cliPath}" ${cliArgs.join(" ")} --install-extension ${dep} --force`,
-        { env: env }
+        { env: env },
       );
       console.log(installLog.toString());
     }
 
     // Display active extensions
     const cmd = `"${cliPath}" ${cliArgs.join(
-      " "
+      " ",
     )} --list-extensions --show-versions`;
     const extLog = cp.execSync(cmd);
     console.warn("%s\n%s", cmd, extLog.toString());
