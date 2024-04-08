@@ -48,7 +48,7 @@ let initCopyLogsButton: Button;
 let initOpenScaffoldedFolderButton: Button;
 
 let logFileUrl = "";
-let scaffoldedFolderUrl = "";
+let collectionUrl = "";
 
 function main() {
   // elements for init interface
@@ -281,13 +281,13 @@ function handleInitCreateClick() {
           initOpenLogFileButton.disabled = true;
         }
 
-        if (message.arguments.status && message.arguments.status === "pass") {
+        if (message.arguments.status && message.arguments.status === "passed") {
           initOpenScaffoldedFolderButton.disabled = false;
         } else {
           initOpenScaffoldedFolderButton.disabled = true;
         }
 
-        scaffoldedFolderUrl = message.arguments.collectionUrl;
+        collectionUrl = message.arguments.collectionUrl;
 
         return;
     }
@@ -320,7 +320,7 @@ function handleInitOpenScaffoldedFolderClick() {
   vscode.postMessage({
     command: "init-open-scaffolded-folder",
     payload: {
-      scaffoldedFolderUrl: scaffoldedFolderUrl,
+      collectionUrl: collectionUrl,
     },
   });
 }

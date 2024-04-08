@@ -274,7 +274,7 @@ export class AnsibleCreatorInit {
 
           case "init-open-scaffolded-folder":
             payload = message.payload;
-            await this.openFolderInWorkspace(payload.scaffoldedFolderUrl);
+            await this.openFolderInWorkspace(payload.collectionUrl);
             return;
         }
       },
@@ -335,13 +335,20 @@ export class AnsibleCreatorInit {
       ? initPath
       : `${os.homedir()}/.ansible/collections/ansible_collections`;
 
-    const collectionUrl = vscode.Uri.joinPath(
-      vscode.Uri.parse(initPathUrl),
-      namespaceName,
-      collectionName
-    ).fsPath;
-
     let ansibleCreatorInitCommand = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
+
+    // adjust collection url for using it in ade and opening it in workspace
+    // NOTE: this is done in order to syncronize the behavior of ade and extension
+    // with the behavior of ansible-creator CLI tool
+
+    const collectionUrl = initPath.endsWith("/collections/ansible_collections")
+      ? vscode.Uri.joinPath(
+          vscode.Uri.parse(initPathUrl),
+          namespaceName,
+          collectionName
+        ).fsPath
+      : initPath;
+
     let adeCommand = `ade install --editable ${collectionUrl} --no-ansi`;
 
     if (isForced) {
@@ -401,12 +408,13 @@ export class AnsibleCreatorInit {
     let commandOutput = "";
 
     // execute ansible-creator command
-    const ansibleCreatorExecutionOutput = await this.runCommand(
+    const ansibleCreatorExecutionResult = await this.runCommand(
       command,
       runEnv
     );
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
-    commandOutput += ansibleCreatorExecutionOutput;
+    commandOutput += ansibleCreatorExecutionResult.output;
+    const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
 
     if (isEditableModeInstall) {
       // ade command inherits only the verbosity options from ansible-creator command
@@ -419,9 +427,9 @@ export class AnsibleCreatorInit {
       );
 
       // execute ade command
-      const adeExecultionOutput = await this.runCommand(command, runEnv);
+      const adeExecultionResult = await this.runCommand(command, runEnv);
       commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
-      commandOutput += adeExecultionOutput;
+      commandOutput += adeExecultionResult.output;
     }
 
     await webView.postMessage({
@@ -429,6 +437,8 @@ export class AnsibleCreatorInit {
       arguments: {
         commandOutput: commandOutput,
         logFileUrl: logFilePathUrl,
+        collectionUrl: collectionUrl,
+        status: ansibleCreatorCommandPassed,
       },
     });
   }
@@ -476,7 +486,7 @@ export class AnsibleCreatorInit {
   private async runCommand(
     command: string,
     runEnv: NodeJS.ProcessEnv | undefined
-  ) {
+  ): Promise<{ output: string; status: string }> {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
@@ -487,10 +497,10 @@ export class AnsibleCreatorInit {
           cwd: os.homedir(),
         })
         .toString();
-      return result;
+      return { output: result, status: "passed" };
     } catch (err: any) {
       const errorMessage = err.stderr.toString();
-      return errorMessage;
+      return { output: errorMessage, status: "failed" };
     }
   }
 
