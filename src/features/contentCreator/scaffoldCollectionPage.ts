@@ -128,7 +128,7 @@ export class AnsibleCreatorInit {
                 </vscode-text-field>
 
                 <div id="full-collection-path" class="full-collection-name">
-                  <p>Collection path:&nbsp</p>
+                  <p>Default collection path:&nbsp</p>
                 </div>
 
                 <div class="verbose-div">
@@ -181,12 +181,12 @@ export class AnsibleCreatorInit {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="editable-mode-checkbox" form="init-form">Install collection from source code (editable mode) <br><i>This will 
-                    allow immediate reflection of content changes without having to reinstalling it. <br> 
+                  <vscode-checkbox id="editable-mode-checkbox" form="init-form">Install collection from source code (editable mode) <br><i>This will
+                    allow immediate reflection of content changes without having to reinstalling it. <br>
                     (NOTE: Requires ansible-dev-environment installed in the environment.)</i></vscode-checkbox>
                     <vscode-link id="ade-docs-link"href="https://ansible.readthedocs.io/projects/dev-environment/">Learn more.</vscode-link>
                 </div>
-                
+
                 <div class="group-buttons">
                   <vscode-button id="clear-button" form="init-form" appearance="secondary">
                     <span class="codicon codicon-clear-all"></span>
@@ -338,14 +338,14 @@ export class AnsibleCreatorInit {
     let ansibleCreatorInitCommand = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
 
     // adjust collection url for using it in ade and opening it in workspace
-    // NOTE: this is done in order to syncronize the behavior of ade and extension
+    // NOTE: this is done in order to synchronize the behavior of ade and extension
     // with the behavior of ansible-creator CLI tool
 
     const collectionUrl = initPath.endsWith("/collections/ansible_collections")
       ? vscode.Uri.joinPath(
           vscode.Uri.parse(initPathUrl),
           namespaceName,
-          collectionName
+          collectionName,
         ).fsPath
       : initPath;
 
@@ -410,7 +410,7 @@ export class AnsibleCreatorInit {
     // execute ansible-creator command
     const ansibleCreatorExecutionResult = await this.runCommand(
       command,
-      runEnv
+      runEnv,
     );
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
@@ -423,13 +423,13 @@ export class AnsibleCreatorInit {
       const [command, runEnv] = withInterpreter(
         extSettings.settings,
         adeCommand,
-        ""
+        "",
       );
 
       // execute ade command
-      const adeExecultionResult = await this.runCommand(command, runEnv);
+      const adeExecutionResult = await this.runCommand(command, runEnv);
       commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
-      commandOutput += adeExecultionResult.output;
+      commandOutput += adeExecutionResult.output;
     }
 
     await webView.postMessage({
@@ -444,7 +444,7 @@ export class AnsibleCreatorInit {
   }
 
   public async openLogFile(fileUrl: string) {
-    const logFileUrl = vscode.Uri.file(fileUrl).fsPath;
+    const logFileUrl = vscode.Uri.file(this.expandPath(fileUrl)).fsPath;
     console.log(`[ansible-creator] New Log file url: ${logFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
     console.log(`[ansible-creator] Parsed log file url: ${parsedUrl}`);
@@ -452,7 +452,7 @@ export class AnsibleCreatorInit {
   }
 
   public async openFolderInWorkspace(folderUrl: string) {
-    const folderUri = vscode.Uri.joinPath(vscode.Uri.parse(folderUrl), "..");
+    const folderUri = vscode.Uri.parse(this.expandPath(folderUrl));
 
     // add folder to workspace
     vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
@@ -476,16 +476,35 @@ export class AnsibleCreatorInit {
   }
 
   public openFileInEditor(fileUrl: string) {
-    const re = /~/gi;
-    const updatedUrl = fileUrl.replace(re, os.homedir());
+    const updatedUrl = this.expandPath(fileUrl);
+
     console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
 
-    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+    // vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+  }
+
+  /**
+   * A function to expand the path similar to how os.expanduser() and os.expandvars() work in python
+   * @param pathUrl - original path url (string)
+   * @returns updatedUrl - updated and expanded path url (string)
+   */
+  private expandPath(pathUrl: string): string {
+    let updatedUrl = pathUrl;
+
+    // expand `~` to home directory.
+    const re1 = /~/gi;
+    updatedUrl = updatedUrl.replace(re1, os.homedir());
+
+    // expand `$HOME` to home directory
+    const re2 = /\$HOME/gi;
+    updatedUrl = updatedUrl.replace(re2, os.homedir());
+
+    return updatedUrl;
   }
 
   private async runCommand(
     command: string,
-    runEnv: NodeJS.ProcessEnv | undefined
+    runEnv: NodeJS.ProcessEnv | undefined,
   ): Promise<{ output: string; status: string }> {
     const extSettings = new SettingsManager();
     await extSettings.initialize();

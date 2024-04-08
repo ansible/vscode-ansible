@@ -63,7 +63,7 @@ function main() {
 
   forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
   editableModeInstall = document.getElementById(
-    "editable-mode-checkbox"
+    "editable-mode-checkbox",
   ) as Checkbox;
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox",
@@ -170,23 +170,6 @@ function toggleCreateButton() {
     initCollectionNameElement.innerHTML = `${initNamespaceNameTextField.value.trim()}.${initCollectionNameTextField.value.trim()}`;
   }
 
-  //   update collection path <p> tag
-  if (!initPathUrlTextField.value.trim()) {
-    initCollectionPathElement.innerHTML = `${
-      initPathUrlTextField.placeholder
-    }/${initNamespaceNameTextField.value.trim()}/${initCollectionNameTextField.value.trim()}`;
-
-    if (
-      !initNamespaceNameTextField.value.trim() &&
-      !initCollectionNameTextField.value.trim()
-    ) {
-      initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
-    }
-  } else {
-    initCollectionPathElement.innerHTML = ` ${initPathUrlTextField.value.trim()}/${initNamespaceNameTextField.value.trim()}/${initCollectionNameTextField.value.trim()}`;
-    initCollectionPathElement.innerHTML = ` ${initPathUrlTextField.value.trim()}/${initNamespaceNameTextField.value.trim()}/${initCollectionNameTextField.value.trim()}`;
-  }
-
   if (
     initNamespaceNameTextField.value.trim() &&
     initCollectionNameTextField.value.trim()
@@ -221,7 +204,6 @@ function handleInitClearClick() {
   initPathUrlTextField.value = "";
 
   initCollectionNameElement.innerHTML = "namespace.collection";
-  initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
 
   forceCheckbox.checked = false;
   editableModeInstall.checked = false;

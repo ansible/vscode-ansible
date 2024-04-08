@@ -105,7 +105,8 @@ const contentCreatorInitWebviewConfig = {
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/scaffoldCollectionPageApp.js",
+    filename:
+      "./client/webview/apps/contentCreator/scaffoldCollectionPageApp.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
