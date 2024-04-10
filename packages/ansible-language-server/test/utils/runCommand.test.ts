@@ -80,7 +80,7 @@ describe("commandRunner", () => {
       const workspaceManager = new WorkspaceManager(connection);
       const textDoc = await getDoc("yaml/ancestryBuilder.yml");
       const context = workspaceManager.getContext(textDoc.uri);
-      var settings = await context.documentSettings.get(textDoc.uri);
+      const settings = await context.documentSettings.get(textDoc.uri);
       if (pythonInterpreterPath) {
         settings.python.interpreterPath = pythonInterpreterPath;
       }
