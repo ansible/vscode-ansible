@@ -174,7 +174,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="bigIconButtonContainer">
             <vscode-button class="bigIconButton" id="submit-button">
-              <span class="codicon codicon-run-all" id="submit-icon"></span>
+              <span class="codicon codicon-send" id="submit-icon"></span>
            </vscode-button>
           </div>
           <div class="resetFeedbackContainer">
