@@ -48,8 +48,12 @@ export class AnsiblePlaybook {
     const progressTracker = this.useProgressTracker
       ? await this.connection.window.createWorkDoneProgress()
       : {
-          begin: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-          done: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+          begin: () => {
+            // do nothing
+          },
+          done: () => {
+            // do nothing
+          },
         };
 
     const workingDirectory = URI.parse(this.context.workspaceFolder.uri).path;

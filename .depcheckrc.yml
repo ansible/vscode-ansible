@@ -6,6 +6,8 @@ ignores:
   - "@types/vscode-webview" # provides VSCodeAPI
   - "@vscode/vsce"
   - depcheck
+  - eslint-formatter-gha
+  - eslint-formatter-unix
   - mochawesome
   - mochawesome-report-generator
   - ovsx

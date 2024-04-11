@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable tsdoc/syntax */
+
 import { Disposable, Event, EventEmitter } from "vscode";
 
 export interface PromiseAdapter<T, U> {
@@ -23,8 +23,8 @@ const passthrough = (value: any, resolve: (value?: any) => void) =>
  *
  * The default adapter is the passthrough function `(value, resolve) => resolve(value)`.
  *
- * @param event the event
- * @param adapter controls resolution of the returned promise
+ * @param event - the event
+ * @param adapter - controls resolution of the returned promise
  * @returns a promise that resolves or rejects as specified by the adapter
  */
 export function promiseFromEvent<T, U>(

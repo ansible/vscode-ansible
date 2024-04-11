@@ -230,7 +230,7 @@ function testAnsibleSyntaxCheckNoHost(
       diagnosticReport: [
         {
           severity: 1,
-          // eslint-disable-next-line quotes
+
           message: "the field 'hosts' is required but was not set",
           range: {
             start: { line: 0, character: 0 } as Position,

@@ -79,8 +79,12 @@ export class AnsibleLint {
     const progressTracker = this.useProgressTracker
       ? await this.connection.window.createWorkDoneProgress()
       : {
-          begin: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
-          done: () => {}, // eslint-disable-line @typescript-eslint/no-empty-function
+          begin: () => {
+            // do nothing
+          },
+          done: () => {
+            // do nothing
+          },
         };
 
     progressTracker.begin("ansible-lint", undefined, "Processing files...");

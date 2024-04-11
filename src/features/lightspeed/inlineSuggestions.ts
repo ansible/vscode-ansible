@@ -876,9 +876,11 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
   switch (action) {
     case UserAction.REJECTED: {
       console.log("[inline-suggestions] User rejected the inline suggestion.");
+      break;
     }
     case UserAction.IGNORED: {
       console.log("[inline-suggestions] User ignored the inline suggestion.");
+      break;
     }
     default: {
       console.log(
