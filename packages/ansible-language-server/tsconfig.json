@@ -2,15 +2,15 @@
   "compilerOptions": {
     "alwaysStrict": true,
     "declaration": true,
+    "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2016"],
+    "lib": ["ES2020"],
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "./out/server",
+    "skipLibCheck": true,
     "sourceMap": true,
-    "target": "es6",
-    "esModuleInterop": true,
-    "skipLibCheck": true
+    "target": "ES2020"
   },
   "exclude": ["node_modules", "out", "vscode-ansible"]
 }

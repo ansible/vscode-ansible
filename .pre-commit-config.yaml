@@ -13,6 +13,7 @@ ci:
     - yarn-dedupe
     - codecov
     - depcheck
+    - eslint
 exclude: >
   (?x)^(
     .config/requirements.in|
@@ -21,7 +22,7 @@ exclude: >
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.6.1
+    rev: v8.7.0
     hooks:
       - id: cspell
         # name: Spell check with cspell
@@ -48,6 +49,22 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
+      - id: eslint
+        name: eslint
+        entry: npx eslint
+        language: system
+        verbose: true # do not remove, as this allows warnings to be displayed on GHA
+        args:
+          # default format is not vscode friendly
+          - --color
+          - --format=gha
+          - --format=unix
+          - --fix
+          # - --max-warnings
+          # - "0"
+        files: \.m?[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
+        types: [file]
+
       - id: git-dirty
         name: Check if git reports dirty
         entry: git diff --exit-code
@@ -80,7 +97,7 @@ repos:
       #   entry: npx yarn npm audit
 
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: end-of-file-fixer
         exclude: >
@@ -153,26 +170,3 @@ repos:
     hooks:
       - id: commitlint
         stages: [commit-msg]
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.0.0-rc.0
-    hooks:
-      - id: eslint
-        args:
-          # default format is not vscode friendly
-          - --color
-          - --format=unix
-          - --fix
-          - --max-warnings
-          - "0"
-        additional_dependencies:
-          - "@typescript-eslint/eslint-plugin"
-          - "@typescript-eslint/parser"
-          - eslint
-          - eslint-config-prettier
-          - eslint-plugin-prettier
-          - eslint-plugin-tsdoc
-          - prettier
-          - typescript
-          - typescript-eslint
-        files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
-        types: [file]

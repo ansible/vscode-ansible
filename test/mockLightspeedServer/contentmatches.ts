@@ -43,7 +43,6 @@ const NO_MATCHES = {
   ],
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function contentmatches(_req: {
   body: { model: string; suggestions: [string]; suggestionId?: string };
 }) {

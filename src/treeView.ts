@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import * as vscode from "vscode";
 import {
   LightspeedAuthSession,

@@ -49,11 +49,11 @@ export async function scanAnsibleCfg(
    */
   const cfgFiles = ["~/.ansible.cfg", "/etc/ansible/ansible.cfg"];
 
-  if (!!rootPath) {
+  if (rootPath) {
     cfgFiles.unshift(`${rootPath}/ansible.cfg`);
   }
 
-  if (!!process.env.ANSIBLE_CONFIG) {
+  if (process.env.ANSIBLE_CONFIG) {
     cfgFiles.unshift(process.env.ANSIBLE_CONFIG);
   }
 
@@ -103,7 +103,7 @@ export async function getValueByCfg(
 export async function getAnsibleCfg(
   path: string | undefined,
 ): Promise<AnsibleVaultConfig | undefined> {
-  if (!!process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
+  if (process.env.ANSIBLE_VAULT_IDENTITY_LIST) {
     return {
       path: "ANSIBLE_VAULT_IDENTITY_LIST",
       defaults: {

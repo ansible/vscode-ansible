@@ -238,7 +238,7 @@ describe("GetWebviewContent", () => {
       new RegExp("An error occurred trying to retrieve the training matches."),
     );
     assert.match(res, new RegExp("An error occurred"));
-    assert.match(res, new RegExp('{\n  "cheese": "edam"\n}'));
+    assert.match(res, new RegExp('{\n {2}"cheese": "edam"\n}'));
   });
 
   it("no suggestion with error - undefined", async function () {

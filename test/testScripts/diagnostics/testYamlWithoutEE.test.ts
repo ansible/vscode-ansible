@@ -1,4 +1,3 @@
-/* eslint-disable quotes */
 import * as vscode from "vscode";
 import { integer } from "vscode-languageclient";
 import {

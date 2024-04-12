@@ -624,7 +624,6 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function getAuthToken(): Promise<void> {
   if (
     !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
