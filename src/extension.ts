@@ -42,6 +42,7 @@ import {
   inlineSuggestionTriggerHandler,
   LightSpeedInlineSuggestionProvider,
   rejectPendingSuggestion,
+  setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
@@ -290,6 +291,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
         pythonInterpreterManager,
       );
     }),
+  );
+  context.subscriptions.push(
+    workspace.onDidChangeTextDocument(
+      (event: vscode.TextDocumentChangeEvent) => {
+        if (
+          event.document === vscode.window.activeTextEditor?.document &&
+          event.contentChanges.length > 0 &&
+          event.contentChanges[0].text[0] !== "\n"
+        ) {
+          setDocumentChanged(true);
+        }
+      },
+    ),
   );
 
   context.subscriptions.push(

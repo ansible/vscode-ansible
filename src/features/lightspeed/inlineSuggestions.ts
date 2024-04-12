@@ -35,6 +35,7 @@ let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 let insertTexts: string[] = [];
+let _documentChanged = false;
 export const suggestionDisplayed = new SuggestionDisplayed();
 
 interface DocumentInfo {
@@ -373,10 +374,30 @@ async function requestSuggestion(
   }
 }
 
+export function setDocumentChanged(value: boolean) {
+  _documentChanged = value;
+}
+
+async function isDocumentChangedImmediately(): Promise<boolean> {
+  const delay =
+    lightSpeedManager.settingsManager.settings.lightSpeedService.suggestions
+      .waitWindow;
+  if (delay > 0) {
+    setDocumentChanged(false);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return _documentChanged;
+  } else {
+    return Promise.resolve(false);
+  }
+}
+
 const onDoSingleTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition,
 ) {
+  if (await isDocumentChangedImmediately()) {
+    return [];
+  }
   resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
@@ -449,6 +470,9 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition,
 ) {
+  if (await isDocumentChangedImmediately()) {
+    return [];
+  }
   resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
