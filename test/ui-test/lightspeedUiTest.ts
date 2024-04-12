@@ -171,13 +171,13 @@ export function lightspeedUIAssetsTest(): void {
         ).not.to.be.undefined;
 
         // Set input text and invoke summaries API
-        const textArea = await webView!.findWebElement(
+        const textArea = await webView.findWebElement(
           By.xpath("//vscode-text-area"),
         );
         expect(textArea, "textArea should not be undefined").not.to.be
           .undefined;
-        await textArea!.sendKeys("Create an azure network.");
-        const submitButton = await webView!.findWebElement(
+        await textArea.sendKeys("Create an azure network.");
+        const submitButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='submit-button']"),
         );
         expect(submitButton, "submitButton should not be undefined").not.to.be
@@ -190,10 +190,10 @@ export function lightspeedUIAssetsTest(): void {
         // Test Reset button
         let text = await textArea.getText();
         expect(text.includes('Name: "Create an azure network..."'));
-        await textArea!.sendKeys("# COMMENT\n");
+        await textArea.sendKeys("# COMMENT\n");
         text = await textArea.getText();
         expect(text.includes("# COMMENT\n"));
-        const resetButton = await webView!.findWebElement(
+        const resetButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='reset-button']"),
         );
         expect(resetButton, "resetButton should not be undefined").not.to.be
@@ -206,7 +206,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(!text.includes("# COMMENT\n"));
 
         // Test Back button
-        const backButton = await webView!.findWebElement(
+        const backButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='back-button']"),
         );
         expect(backButton, "backButton should not be undefined").not.to.be
@@ -226,7 +226,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(text.includes('Name: "Create an azure network..."'));
 
         // Click Generate playbook button to invoke the generations API
-        const generatePlaybookButton = await webView!.findWebElement(
+        const generatePlaybookButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='generate-button']"),
         );
         expect(
@@ -284,7 +284,7 @@ export function lightspeedUIAssetsTest(): void {
         ).not.to.be.undefined;
 
         // Find the main div element of the webview and verify the expected text is found.
-        const mainDiv = await webView!.findWebElement(
+        const mainDiv = await webView.findWebElement(
           By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
         );
         expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
