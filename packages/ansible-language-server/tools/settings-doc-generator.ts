@@ -65,13 +65,11 @@ const settingsReadmeFileUri = path.join(__dirname, "..", "docs", "settings.md");
 // Register a special function for handlebars to deal with comparison of stringed value of false
 // Else, normal #if treats it as boolean, even after converting booleans to strings in typescript
 Handlebars.registerHelper("ifEqualsFalse", function (arg1, options) {
-  // eslint-disable-next-line eqeqeq
   return arg1.toString() === "false" ? options.fn(this) : options.inverse(this);
 });
 
 // Register a special function for handlebars to deal with the checking of "list" as value type of settings
 Handlebars.registerHelper("ifValueArray", function (arg1, options) {
-  // eslint-disable-next-line eqeqeq
   return arg1.toString() === "list" ? options.fn(this) : options.inverse(this);
 });
 

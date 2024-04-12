@@ -85,7 +85,7 @@ export const toggleEncrypt = async (): Promise<void> => {
   const useVaultIDs = !!ansibleConfig.defaults.vault_identity_list;
 
   // Go encrypt / decrypt
-  if (!!text) {
+  if (text) {
     const type = getInlineTextType(text);
     const indentationLevel = getIndentationLevel(editor, selection);
     const tabSize = Number(editor.options.tabSize);
@@ -242,7 +242,7 @@ const pipeTextThroughCmd = (
   cmd: string,
 ): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
-    const child = !!rootPath ? cp.exec(cmd, { cwd: rootPath }) : cp.exec(cmd);
+    const child = rootPath ? cp.exec(cmd, { cwd: rootPath }) : cp.exec(cmd);
     child.stdout?.setEncoding("utf8");
     let outputText = "";
     let errorText = "";
@@ -296,7 +296,7 @@ const encryptFile = (
 ) => {
   console.log(`Encrypt file: ${f}`);
 
-  const cmd = !!vaultId
+  const cmd = vaultId
     ? `${ansibleVaultPath(
         config,
       )} encrypt --encrypt-vault-id="${vaultId}" "${f}"`

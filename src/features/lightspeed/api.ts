@@ -84,14 +84,10 @@ export class LightSpeedAPI {
       console.error("Ansible Lightspeed instance is not initialized.");
       return;
     }
-    try {
-      const response = await axiosInstance.get(urlPath, {
-        timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-      });
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await axiosInstance.get(urlPath, {
+      timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+    });
+    return response.data;
   }
 
   public async completionRequest(
