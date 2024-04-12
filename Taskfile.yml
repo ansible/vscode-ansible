@@ -29,6 +29,7 @@ tasks:
       - install
       - lint
       - package
+      - docs
     cmds:
       - echo {{.TASK}}
   setup:
@@ -100,6 +101,17 @@ tasks:
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
       - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
     interactive: true
+  docs:
+    dir: "{{ .TASKFILE_DIR }}"
+    desc: Build the documentation
+    deps:
+      - setup
+    cmds:
+      # Retrieve possibly missing commits:
+      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
+      - git fetch --tags --force
+      - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
+      - "source {{.VIRTUAL_ENV}}/bin/activate && mkdocs build --strict"
   lint:
     desc: Lint the project
     deps:

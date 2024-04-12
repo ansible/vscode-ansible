@@ -1,41 +1,47 @@
 # cspell: ignore pymdownx pymdown magiclink autorefs facelessuser superfences inlinehilite linenums fontawesome
-site_name: Ansible Language Server
-site_url: https://als.readthedocs.io/
-repo_url: https://github.com/ansible/ansible-language-server
+site_name: Ansible VS Code Extension
+site_url: https://ansible.readthedocs.io/projects/vscode-ansible/
+repo_url: https://github.com/ansible/vscode-ansible
 edit_uri: blob/main/docs/
 
 theme:
-  name: "material"
-  logo: images/logo.svg
-  favicon: images/favicon.ico
+  name: ansible
   features:
-    - content.code.copy
+    - announce.dismiss
     - content.action.edit
-  palette:
-    - media: "(prefers-color-scheme: light)"
-      primary: teal
-      accent: blue
-      scheme: default
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: teal
-      accent: blue
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.path
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.integrate
 extra:
   social:
     - icon: fontawesome/brands/github-alt
-      link: https://github.com/ansible/ansible-language-server
+      link: https://github.com/ansible/vscode-ansible
 
 nav:
-  - home: README.md
-  - changelog.md
-  - development.md
-  - settings.md
+  - Extension: README.md
+  - Ansible Language Server:
+    - index: als/README.md
+    - Settings: als/settings.md
+    - Development: als/development.md
+    - Changelog: als/changelog.md
   - Contributing: contributing.md
 
 plugins:
@@ -44,9 +50,9 @@ plugins:
   - exclude:
       glob:
         - changelog-fragments.d/*
-  - social
+  - material/social
+  - material/tags
   - git-revision-date-localized:
-      enable_creation_date: true
 
 markdown_extensions:
   - admonition
