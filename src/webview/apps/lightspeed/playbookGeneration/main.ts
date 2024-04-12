@@ -31,6 +31,17 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "summary": {
+      const button = document.getElementById("submit-icon") as Button;
+      button.setAttribute("class", "codicon codicon-run-all");
+
+      changeDisplay("spinnerContainer", "none");
+      changeDisplay("bigIconButtonContainer", "none");
+      changeDisplay("examplesContainer", "none");
+      changeDisplay("resetFeedbackContainer", "block");
+      changeDisplay("firstMessage", "none");
+      changeDisplay("secondMessage", "block");
+      changeDisplay("generatePlaybookContainer", "block");
+
       const element = document.getElementById("playbook-text-area") as TextArea;
       savedSummary = message.summary;
       const lines = savedSummary.split(/\n/).length;
@@ -74,16 +85,10 @@ function changeDisplay(className: string, displayState: string) {
 }
 
 async function submitInput() {
-  changeDisplay("bigIconButtonContainer", "none");
-  changeDisplay("examplesContainer", "none");
-  changeDisplay("resetFeedbackContainer", "block");
-  changeDisplay("firstMessage", "none");
-  changeDisplay("secondMessage", "block");
-  changeDisplay("generatePlaybookContainer", "block");
-
   const element = document.getElementById("playbook-text-area") as TextArea;
   savedInput = element.value;
-  element.value = "";
+
+  changeDisplay("spinnerContainer", "block");
 
   vscode.postMessage({ command: "summarizeInput", content: savedInput });
   element.focus();
@@ -117,6 +122,9 @@ function back() {
 async function generatePlaybook() {
   const element = document.getElementById("playbook-text-area") as TextArea;
   const content = element.value;
+
+  changeDisplay("spinnerContainer", "block");
+
   vscode.postMessage({ command: "generatePlaybook", content });
 }
 
