@@ -8,6 +8,8 @@ import {
   enableLightspeedSettings,
   disableLightspeedSettings,
   canRunLightspeedTests,
+  resetInlineSuggestionsWaitWindow,
+  setInlineSuggestionsWaitWindow,
   testInlineSuggestionNotTriggered,
   testInlineSuggestionCursorPositions,
   testValidJinjaBrackets,
@@ -231,7 +233,11 @@ export function testLightspeed(): void {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let feedbackRequestSpy: any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let completionRequestSpy: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let isAuthenticatedStub: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let rhUserHasSeatStub: any;
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
       before(async function () {
@@ -243,14 +249,23 @@ export function testLightspeed(): void {
           lightSpeedManager.apiInstance,
           "feedbackRequest",
         );
+        completionRequestSpy = sinon.spy(
+          lightSpeedManager.apiInstance,
+          "completionRequest",
+        );
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
           "isAuthenticated",
+        );
+        rhUserHasSeatStub = sinon.stub(
+          lightSpeedManager.lightSpeedAuthenticationProvider,
+          "rhUserHasSeat",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
       });
 
       const tests = testSuggestionPrompts();
+      const multiTaskTests = testMultiTaskSuggestionPrompts();
 
       tests.forEach(({ taskName, expectedModule }) => {
         it(`Should return an inline feedback with action=IGNORED '${taskName}'`, async function () {
@@ -262,6 +277,8 @@ export function testLightspeed(): void {
             true,
             true,
           );
+          const completionRequestApiCalls = completionRequestSpy.getCalls();
+          assert.equal(completionRequestApiCalls.length, 1);
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
@@ -269,6 +286,51 @@ export function testLightspeed(): void {
           assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
+        });
+      });
+
+      tests.forEach(({ taskName, expectedModule }) => {
+        it(`Should not call completion API with a keystroke before Wait Window '${taskName}'`, async function () {
+          try {
+            await setInlineSuggestionsWaitWindow();
+            await testInlineSuggestion(
+              taskName,
+              expectedModule,
+              false,
+              "",
+              true,
+              true,
+            );
+            const completionRequestApiCalls = completionRequestSpy.getCalls();
+            assert.equal(completionRequestApiCalls.length, 0);
+            const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+            assert.equal(feedbackRequestApiCalls.length, 0);
+          } finally {
+            await resetInlineSuggestionsWaitWindow();
+          }
+        });
+      });
+
+      multiTaskTests.forEach(({ taskName, expectedModule }) => {
+        it(`Should not call completion API with a keystroke before Wait Window (multi task) '${taskName}'`, async function () {
+          try {
+            rhUserHasSeatStub.returns(Promise.resolve(true));
+            await setInlineSuggestionsWaitWindow();
+            await testInlineSuggestion(
+              taskName,
+              expectedModule,
+              true,
+              "",
+              true,
+              true,
+            );
+            const completionRequestApiCalls = completionRequestSpy.getCalls();
+            assert.equal(completionRequestApiCalls.length, 0);
+            const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+            assert.equal(feedbackRequestApiCalls.length, 0);
+          } finally {
+            await resetInlineSuggestionsWaitWindow();
+          }
         });
       });
 
@@ -284,6 +346,8 @@ export function testLightspeed(): void {
             true,
             true,
           );
+          const completionRequestApiCalls = completionRequestSpy.getCalls();
+          assert.equal(completionRequestApiCalls.length, 1);
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
           assert.equal(feedbackRequestApiCalls.length, 0);
         });
@@ -291,11 +355,14 @@ export function testLightspeed(): void {
 
       afterEach(() => {
         feedbackRequestSpy.resetHistory();
+        completionRequestSpy.resetHistory();
       });
 
       after(async function () {
         feedbackRequestSpy.restore();
+        completionRequestSpy.restore();
         isAuthenticatedStub.restore();
+        rhUserHasSeatStub.restore();
         sinon.restore();
       });
     });

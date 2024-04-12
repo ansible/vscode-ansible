@@ -37,7 +37,7 @@ export interface UserResponse {
 export interface LightSpeedServiceSettings {
   enabled: boolean;
   URL: string;
-  suggestions: { enabled: boolean };
+  suggestions: { enabled: boolean; waitWindow: number };
   model: string | undefined;
   disableContentSuggestionHeader: boolean;
 }

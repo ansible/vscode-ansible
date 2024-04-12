@@ -224,6 +224,9 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
   watsonx Code Assistant inline suggestions.
+- `ansible.lightspeed.suggestions.waitWindow`: Delay (in milliseconds) prior to
+  sending an inline suggestion request to Ansible Lightspeed with watsonx Code
+  Assistant.
 - `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
