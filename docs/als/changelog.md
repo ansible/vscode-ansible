@@ -1,8 +1,8 @@
 <!-- markdownlint-disable no-duplicate-heading no-multiple-blanks -->
 
-# Change Log
+# Ansible Language Server Change Log
 
-All notable changes to the Ansible VS Code extension will be documented in this
+All notable changes to the Ansible Language Server will be documented in this
 file.
 
 !!! note

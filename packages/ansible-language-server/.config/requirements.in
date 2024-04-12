@@ -12,18 +12,3 @@ pyparsing
 flake8  # vscode integration
 mypy  # vscode integration
 pylint  # vscode integration
-# docs
-argparse-manpage
-cairosvg
-markdown-include
-mkdocs
-mkdocs-exclude
-mkdocs-git-revision-date-localized-plugin
-mkdocs-material
-mkdocs-material-extensions
-mkdocs-multirepo-plugin
-mkdocstrings
-mkdocstrings-python
-pillow
-pymdown-extensions
-slugify

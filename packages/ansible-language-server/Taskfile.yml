@@ -24,17 +24,7 @@ tasks:
         sh: node -p "require('./package.json').version"
     cmds:
       - task: package
-      - task: docs
       - echo Done {{.VERSION}}!
-  docs:
-    dir: "{{ .TASKFILE_DIR }}"
-    desc: Build the documentation
-    cmds:
-      # Retrieve possibly missing commits:
-      - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
-      - git fetch --tags --force
-      - npm run generate-settings-readme
-      - "source {{.VIRTUAL_ENV}}/bin/activate && mkdocs build --strict"
   build:
     dir: "{{ .TASKFILE_DIR }}"
     deps:

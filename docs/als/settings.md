@@ -20,7 +20,7 @@ _default value:
 `""`_
 
 - **ansible.python.activationScript**:
-Path to a custom activation script, which is to be used instead of te settings above to run in a python virtual environment \
+Path to a custom activation script, which is to be used instead of the settings above to run in a python virtual environment \
 _default value:
 `""`_
 

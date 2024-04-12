@@ -87,8 +87,7 @@
     "watch": "tsc --watch -p .",
     "test": "nyc -s -a mocha && nyc report --check-coverage",
     "test-with-ee": "nyc -s -a mocha --grep @ee && nyc report --check-coverage",
-    "test-without-ee": "nyc -s -a mocha --grep @ee --invert && nyc report --check-coverage",
-    "generate-settings-readme": "ts-node tools/settings-doc-generator.ts"
+    "test-without-ee": "nyc -s -a mocha --grep @ee --invert && nyc report --check-coverage"
   },
   "all": true
 }
