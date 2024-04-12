@@ -8,7 +8,7 @@ on:
   push:
     branches: ["main", "devel/*"]
     tags:
-      - 'v*.*'
+      - "v*.*"
   pull_request:
     branches: ["main", "devel/*"]
 
@@ -57,9 +57,9 @@ jobs:
           # - name: test-node-lts
           #   task-name: test
           #   task-name-als: als:test-node-lts
-          # - name: docs
-          #   task-name: docs
-          #   task-name-als: ""
+          - name: docs
+            task-name: docs
+            task-name-als: ""
           - name: lint
             task-name: lint
             task-name-als: ""
@@ -90,7 +90,6 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
@@ -102,7 +101,7 @@ jobs:
         uses: Vampire/setup-wsl@v3.0.0
         with:
           distribution: Ubuntu-22.04
-          set-as-default: 'true'
+          set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
           wsl-shell-command: "bash -i -eo pipefail"
@@ -117,8 +116,7 @@ jobs:
             appendWindowsPath = false
             [network]
             hostname = wsl
-          additional-packages:
-            curl
+          additional-packages: curl
             dirmngr
             gawk
             git
@@ -235,7 +233,7 @@ jobs:
           #
           # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use
           # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
-          TEST_LIGHTSPEED_URL:  "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
+          TEST_LIGHTSPEED_URL: "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
 
           # Set environment variables using matrix properties.
           SKIP_PODMAN: "${{ matrix.env.SKIP_PODMAN || '0' }}"
@@ -328,7 +326,6 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-
       - name: Merge logs into a single archive
         uses: actions/upload-artifact/merge@v4
         with:
@@ -348,7 +345,6 @@ jobs:
     needs:
       - check
     steps:
-
       - name: Checkout Source
         uses: actions/checkout@v4
 

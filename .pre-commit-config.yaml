@@ -102,7 +102,7 @@ repos:
       - id: end-of-file-fixer
         exclude: >
           (?x)^(
-            packages/ansible-language-server/docs/settings.md
+            docs/als/settings.md
           )$
       - id: trailing-whitespace
         exclude: >
@@ -110,7 +110,7 @@ repos:
             .yarn/.*|
             examples/playbooks/(with-skip-tag-id|unicode).yml|
             examples/playbooks/example.yml|
-            packages/ansible-language-server/docs/settings.md
+            docs/als/settings.md
           )$
       - id: mixed-line-ending
       - id: check-byte-order-marker
@@ -154,7 +154,7 @@ repos:
           (?x)^(
             jinja-language-configuration.json|
             syntaxes/external/jinja.tmLanguage.json|
-            packages/ansible-language-server/docs/settings.md
+            docs/als/settings.md
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.39.0
@@ -162,8 +162,7 @@ repos:
       - id: markdownlint
         exclude: >
           (?x)^
-            packages/ansible-language-server/docs/changelog-fragments\.d/\d+\.\w+\.md|
-            packages/ansible-language-server/docs/settings.md
+            docs/als/settings.md
           $
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.14.0

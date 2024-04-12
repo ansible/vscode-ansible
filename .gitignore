@@ -2,6 +2,7 @@
 node_modules
 *.vsix
 out
+.pytest_cache
 .python-version
 test-resources
 test-resources-oldest
