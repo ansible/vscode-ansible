@@ -1,0 +1,84 @@
+# cspell: ignore pymdownx pymdown magiclink autorefs facelessuser superfences inlinehilite linenums fontawesome autohide
+site_name: Ansible VS Code Extension
+site_url: https://ansible.readthedocs.io/projects/vscode-ansible/
+repo_url: https://github.com/ansible/vscode-ansible
+edit_uri: blob/main/docs/
+
+theme:
+  name: ansible
+  features:
+    - announce.dismiss
+    - content.action.edit
+    - content.action.view
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - content.tooltips
+    - header.autohide
+    - navigation.expand
+    - navigation.footer
+    - navigation.indexes
+    - navigation.instant
+    - navigation.path
+    - navigation.prune
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    - toc.integrate
+extra:
+  social:
+    - icon: fontawesome/brands/github-alt
+      link: https://github.com/ansible/vscode-ansible
+
+nav:
+  - Extension: README.md
+  - Ansible Language Server:
+      - index: als/README.md
+      - Settings: als/settings.md
+      - Development: als/development.md
+      - Changelog: als/changelog.md
+  - Developer Guide:
+      - development.md
+      - Contributing: contributing.md
+  - FAQ:
+      - faq/integrate-ansible-lint-with-language-server-venv.md
+      - usage-data.md
+plugins:
+  - autorefs
+  - search
+  - exclude:
+      glob:
+        - changelog-fragments.d/*
+  - material/social
+  - material/tags
+  - git-revision-date-localized:
+
+markdown_extensions:
+  - admonition
+  - def_list
+  - footnotes
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.magiclink:
+      repo_url_shortener: true
+      repo_url_shorthand: true
+      social_url_shorthand: true
+      social_url_shortener: true
+      user: ansible
+      repo: ansible-language-server
+      normalize_issue_symbols: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      # reduced to keep TOC nice under Changelog page
+      toc_depth: 2
+      permalink: true

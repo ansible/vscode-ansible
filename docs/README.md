@@ -120,7 +120,7 @@ improve user experience:
   shown last, otherwise ordering from the documentation is preserved
 - FQCNs (fully qualified collection names) are inserted only when necessary;
   collections configured with the
-  [`collections` keyword](<[LINK](https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#simplifying-module-names-with-the-collections-keyword)>)
+  [`collections` keyword](https://docs.ansible.com/ansible/latest/collections_guide/index.html#simplifying-module-names-with-the-collections-keyword)
   are honored. This behavior can be disabled in extension settings.
 
 #### Auto-closing Jinja expressions
@@ -233,7 +233,7 @@ any level (User, Remote, Workspace and/or Folder).
 
 ## Data and Telemetry
 
-The `vscode-ansible` extension collects anonymous [usage data](USAGE_DATA.md)
+The `vscode-ansible` extension collects anonymous [usage data](usage-data.md)
 and sends it to Red Hat servers to help improve our products and services. Read
 our
 [privacy statement](https://developers.redhat.com/article/tool-data-collection)

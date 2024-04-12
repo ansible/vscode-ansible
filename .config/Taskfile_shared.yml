@@ -25,6 +25,7 @@ tasks:
       - bash ./tools/test-setup.sh
     sources:
       - tools/test-setup.sh
+      - .config/requirements.in
     generates:
       - out/log/manifest-{{.HOSTNAME}}.yml
     run: once
