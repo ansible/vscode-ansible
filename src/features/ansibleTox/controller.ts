@@ -80,10 +80,13 @@ export class AnsibleToxController {
     }
 
     const splittedPath = uri.path.split("/");
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const fileName = splittedPath.pop()!;
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const parentFolderName = splittedPath.pop()!;
+
+    const fileName = splittedPath.pop();
+    if (fileName === undefined) {
+      throw new TypeError(`Expected filename as string from ${splittedPath}`);
+    }
+
+    const parentFolderName = splittedPath.pop();
 
     const file = this.controller.createTestItem(uri.toString(), fileName, uri);
     file.description = `(${parentFolderName})`;
@@ -185,8 +188,10 @@ export class AnsibleToxController {
     const queue: vscode.TestItem[] = [...(request.include || [])];
 
     while (queue.length > 0 && !token.isCancellationRequested) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const test = queue.pop()!;
+      const test = queue.pop();
+      if (test === undefined || test.uri === undefined) {
+        continue;
+      }
 
       if (request.exclude?.includes(test)) {
         continue;
@@ -194,8 +199,7 @@ export class AnsibleToxController {
 
       const start = Date.now();
       try {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const cwd = vscode.workspace.getWorkspaceFolder(test.uri!)?.uri.path;
+        const cwd = vscode.workspace.getWorkspaceFolder(test.uri)?.uri.path;
         runTox(
           [test.label.split("->")[0].trim()],
           "",
