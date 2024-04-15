@@ -3,8 +3,7 @@
 This extension adds language support for Ansible to
 [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible)
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
-by leveraging
-[ansible-language-server](https://github.com/ansible/ansible-language-server).
+by leveraging [ansible-language-server](als/README.md).
 
 ## Language association to yaml files
 
