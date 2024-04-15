@@ -830,7 +830,7 @@
   "qna": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/ansible/vscode-ansible.git"
+    "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",

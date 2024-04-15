@@ -75,7 +75,7 @@ __metadata:
     vscode-uri: "npm:^3.0.8"
     yaml: "npm:^2.4.1"
   bin:
-    ansible-language-server: ./bin/ansible-language-server
+    ansible-language-server: bin/ansible-language-server
   languageName: unknown
   linkType: soft
 

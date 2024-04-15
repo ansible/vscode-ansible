@@ -4,7 +4,7 @@
   "displayName": "Ansible",
   "description": "Ansible language server",
   "license": "MIT",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "contributors": [
     {
       "name": "Tomasz Maciążek",
@@ -20,18 +20,17 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ansible/vscode-ansible.git"
+    "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
   "icon": "icon.png",
   "engines": {
     "node": ">=14.0",
     "npm": ">=7.11.2"
   },
-  "bin": "./bin/ansible-language-server",
+  "bin": "bin/ansible-language-server",
   "main": "./out/server/src/server.js",
   "types": "./out/server/src/server.d.ts",
   "files": [
-    "docs/changelog.md",
     "icon.png",
     "out/server/src"
   ],

@@ -1,4 +1,4 @@
 # Ansible Language Server
 
-Documentation for Ansible Language Server can be found at
-[als.readthedocs.io](https://als.readthedocs.io/).
+Documentation for the Ansible Language Server can be found
+[here](https://ansible.readthedocs.io/projects/vscode-ansible/als/).
