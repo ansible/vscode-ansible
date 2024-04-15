@@ -17,39 +17,40 @@ const settingsInDotNotation = toDotNotation(defaultSettings);
 const arrayOfDefaultSettings = structureSettings(settingsInDotNotation);
 
 // Use handlebars.js to generate doc file with `defaultSettings.handlebars` as template
+
+// ## [`ansible.ansible.path`](#xxx) {: #xxx }
 const TEMPLATE = `
 # Language Server Settings
 
 The following are the default values of the settings provided by the Ansible Language Server:
 
 {{#each arrayOfDefaultSettings}}
-- **{{setting}}**:
+## [\`{{ setting }}\`](#{{ slug }}) { #{{ slug }} data-toc-label={{ slug }} }
 {{#if description}}
-{{description}} \\
+{{description}}
 {{/if}}
 {{#ifValueArray valueType}}
 {{#each this.defaultValue}}
-  - **{{key}}**: {{description}}
-  _default value:
+  - **{{key}}**: {{description}}. Default value:
 {{#if defaultValue}}
-\`{{defaultValue}}\`_
+\`{{defaultValue}}\`
 {{else}}
 {{#ifEqualsFalse defaultValue}}
-\`false\`_
+\`false\`
 {{else}}
-\`""\`_
+\`""\`
 {{/ifEqualsFalse}}
 {{/if}}
 {{/each}}
 {{else}}
-_default value:
+. Default value:
 {{#if defaultValue}}
-\`{{defaultValue}}\`_
+\`\`{{defaultValue}}\`\`
 {{else}}
 {{#ifEqualsFalse defaultValue}}
-\`false\`_
+\`\`false\`\`
 {{else}}
-\`""\`_
+\`\`""\`\`
 {{/ifEqualsFalse}}
 {{/if}}
 {{/ifValueArray}}
@@ -175,6 +176,7 @@ export function structureSettings(settingsInDotNotation) {
           : "",
         description: settingsInDotNotation[`${key}.description`],
         valueType: typeof settingsInDotNotation[`${key}.default`],
+        slug: key.replace("ansible.", ""),
       };
 
       settingsArray.push(obj);
@@ -193,6 +195,7 @@ export function structureSettings(settingsInDotNotation) {
       setting: k,
       defaultValue: arrayObjFinal[k],
       valueType: "list",
+      slug: k.replace("ansible.", ""),
     };
 
     settingsArray.push(obj);

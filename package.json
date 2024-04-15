@@ -68,8 +68,9 @@
           "name": "Ansible Creator"
         },
         {
-          "id": "lightspeed-explorer-treeview",
-          "name": "Ansible Lightspeed Login"
+          "id": "lightspeed-explorer-webview",
+          "name": "Ansible Lightspeed",
+          "type": "webview"
         },
         {
           "id": "lightspeed-feedback-webview",
@@ -93,11 +94,6 @@
       {
         "view": "ansible-creator",
         "contents": "Welcome to Ansible Creator. Elevate automation with a toolkit for efficient ansible content creation. [Learn more](https://github.com/ansible-community/ansible-creator)\n[Get started](command:ansible.content-creator.menu)"
-      },
-      {
-        "view": "lightspeed-explorer-treeview",
-        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)",
-        "enablement": "lightspeedConnectReady"
       }
     ],
     "jsonValidation": [
@@ -830,7 +826,7 @@
   "qna": false,
   "repository": {
     "type": "git",
-    "url": "https://github.com/ansible/vscode-ansible.git"
+    "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
     "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",

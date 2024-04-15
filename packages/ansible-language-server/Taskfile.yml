@@ -110,8 +110,8 @@ tasks:
     deps:
       - build
     sources:
-      - docs/changelog.md
-      - docs/README.md
+      - ../../docs/als/changelog.md
+      - README.md
       - package*.json
       - out/**/*.*
     generates:
@@ -119,6 +119,7 @@ tasks:
     cmds:
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
       - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - ./tools/can-release.sh
     silent: false
   release:
     desc: Create a new release (used by CI)

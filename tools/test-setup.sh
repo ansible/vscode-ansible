@@ -37,6 +37,8 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
+        # prevents npm runtime warning if both NO_COLOR and FORCE_COLOR are present
+        unset FORCE_COLOR
         # Keep the `tail -n +1` and the silencing of 141 error code because otherwise
         # the called tool might fail due to premature closure of /dev/stdout
         # made by `--head n1`. See https://superuser.com/a/642932/3004
@@ -404,10 +406,10 @@ if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
         is_podman_running
         }
     # validation is done later
-    podman info
-    podman run hello-world
-    du -ahc ~/.config/containers ~/.local/share/containers || true
-    podman machine inspect
+    podman info >out/podman.log 2>&1
+    podman run hello-world >out/podman.log 2>&1
+    du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
+    podman machine inspect >out/podman.log 2>&1
 fi
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
@@ -430,7 +432,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
 fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
-    sudo apparmor_status || true
+    echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
 log notice "Install node deps using either yarn or npm"

@@ -7,6 +7,9 @@ following projects:
 - [Ansible extension for vim and neovim](https://github.com/yaegassy/coc-ansible)
 - [Ansible client for Emacs LSP](https://emacs-lsp.github.io/lsp-mode/page/lsp-ansible/)
 
+Releases are published to
+[npmjs registry](https://www.npmjs.com/package/@ansible/ansible-language-server).
+
 ## Features
 
 ### Syntax highlighting

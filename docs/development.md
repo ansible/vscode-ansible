@@ -49,11 +49,6 @@ If you hit an odd compilation or debugger problem, don't hesitate to clean the
 output directory by running `yarn run clean`. You should also run it whenever
 you are switching between debug/compilation modes.
 
-## Marketplace admin interface
-
-The current link to edit the extension presence on the marketplace is
-<https://marketplace.visualstudio.com/manage/publishers/redhat>
-
 ## Package extension
 
 ```shell
@@ -62,13 +57,9 @@ task package
 
 ## Release and publication of extension
 
-Any push made to the `main` branch will trigger an
-[jenkins job](https://studio-jenkins-csb-codeready.apps.ocp-c1.prod.psi.redhat.com/job/ansible/job/vscode-ansible/)
-that produces an artifact. The new version will be uploaded to
-[marketplace.visualstudio.com](https://marketplace.visualstudio.com/) and
-[open-vsx.org](https://open-vsx.org/) stores only when the pipeline is approved
-by a core developer from Jenkins interface.
+Github Actions pipeline has two publishing jobs, one for marketplace publishing
+and another one of publishing ansible-language-server to npm registry. Both of
+these require manual approval from one of the core maintainers.
 
-To be able to approve the release, you need to be login using kerberos, which is
-documented on
-[Red Hat IAM Wiki](https://source.redhat.com/groups/public/identity-access-management/identity__access_management_wiki/how_to_install_idm_client).
+Admin interface for
+[VS Code Marketplace](https://marketplace.visualstudio.com/manage/publishers/redhat).
