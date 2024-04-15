@@ -52,7 +52,7 @@ __metadata:
     "@types/ini": "npm:^4.1.0"
     "@types/lodash": "npm:^4.17.0"
     "@types/mocha": "npm:^10.0.6"
-    "@types/node": "npm:^20.12.4"
+    "@types/node": "npm:^20.12.7"
     "@types/uuid": "npm:^9.0.8"
     "@types/vscode": "npm:^1.85.0"
     antsibull-docs: "npm:^1.0.1"
@@ -1215,12 +1215,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^20.12.4":
+"@types/node@npm:*":
   version: 20.12.4
   resolution: "@types/node@npm:20.12.4"
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10/eab4ed07774b96ea77fc23eb27508dbfe094b52c8326764f5044c609c036a1570fd8708ba770e13db7ad7b69d8a834bf3a4e59fc2f1ade31d6501db76cf5a39b
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.12.7":
+  version: 20.12.7
+  resolution: "@types/node@npm:20.12.7"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 10/b4a28a3b593a9bdca5650880b6a9acef46911d58cf7cfa57268f048e9a7157a7c3196421b96cea576850ddb732e3b54bc982c8eb5e1e5ef0635d4424c2fce801
   languageName: node
   linkType: hard
 
@@ -1515,6 +1524,42 @@ __metadata:
   bin:
     vsce: vsce
   checksum: 10/74473cb6715effcdc41381851582a7c5f643d707be01913153c79cd2a5c84266ef68e2ed81c2f282a5c7127dfbcc4b16378b4a73526ababe59190cef867dafe4
+  languageName: node
+  linkType: hard
+
+"@vscode/vsce@npm:^2.25.0":
+  version: 2.25.0
+  resolution: "@vscode/vsce@npm:2.25.0"
+  dependencies:
+    azure-devops-node-api: "npm:^12.5.0"
+    chalk: "npm:^2.4.2"
+    cheerio: "npm:^1.0.0-rc.9"
+    cockatiel: "npm:^3.1.2"
+    commander: "npm:^6.2.1"
+    form-data: "npm:^4.0.0"
+    glob: "npm:^7.0.6"
+    hosted-git-info: "npm:^4.0.2"
+    jsonc-parser: "npm:^3.2.0"
+    keytar: "npm:^7.7.0"
+    leven: "npm:^3.1.0"
+    markdown-it: "npm:^12.3.2"
+    mime: "npm:^1.3.4"
+    minimatch: "npm:^3.0.3"
+    parse-semver: "npm:^1.1.1"
+    read: "npm:^1.0.7"
+    semver: "npm:^7.5.2"
+    tmp: "npm:^0.2.1"
+    typed-rest-client: "npm:^1.8.4"
+    url-join: "npm:^4.0.1"
+    xml2js: "npm:^0.5.0"
+    yauzl: "npm:^2.3.1"
+    yazl: "npm:^2.2.2"
+  dependenciesMeta:
+    keytar:
+      optional: true
+  bin:
+    vsce: vsce
+  checksum: 10/5d9dd206789e8c8dfef5913357543c839b20d760d8b40292c01fd8b018c8cb17c14c14ef8ac7260461b82d4131e7f8c1aa5bd13b3728b19c8b142f462171fc48
   languageName: node
   linkType: hard
 
@@ -1979,7 +2024,7 @@ __metadata:
     "@types/lodash": "npm:^4.17.0"
     "@types/minimatch": "npm:^5.1.2"
     "@types/mocha": "npm:^10.0.6"
-    "@types/node": "npm:^20.12.4"
+    "@types/node": "npm:^20.12.7"
     "@types/sinon": "npm:^17.0.3"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^9.0.8"
@@ -1988,7 +2033,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^7.6.0"
     "@typescript-eslint/parser": "npm:^7.6.0"
     "@vscode/test-electron": "npm:^2.3.9"
-    "@vscode/vsce": "npm:^2.24.0"
+    "@vscode/vsce": "npm:^2.25.0"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"
     axios: "npm:^1.6.8"
     chai: "npm:^4.4.1"
@@ -2188,6 +2233,16 @@ __metadata:
     tunnel: "npm:0.0.6"
     typed-rest-client: "npm:^1.8.4"
   checksum: 10/a01ee699e2488a3dce7ec99994db97c8124f7b793a0d9affacdbdb30235009c4e2151ebc2ec75eadbe91c2ea849d2a591f3535945343eaf235d1943253045aee
+  languageName: node
+  linkType: hard
+
+"azure-devops-node-api@npm:^12.5.0":
+  version: 12.5.0
+  resolution: "azure-devops-node-api@npm:12.5.0"
+  dependencies:
+    tunnel: "npm:0.0.6"
+    typed-rest-client: "npm:^1.8.4"
+  checksum: 10/68eb7bef399fec259cdd9ab52bb662281a5bb63b0eb5c76447a3c0b723e94fe40d1fa2282aaebf5bfdcfb4cbac6e96686bd2bb76364ba5b82ac786a2c2b9d4bd
   languageName: node
   linkType: hard
 
@@ -2795,6 +2850,13 @@ __metadata:
     kind-of: "npm:^6.0.2"
     shallow-clone: "npm:^3.0.0"
   checksum: 10/770f912fe4e6f21873c8e8fbb1e99134db3b93da32df271d00589ea4a29dbe83a9808a322c93f3bcaf8584b8b4fa6fc269fc8032efbaa6728e0c9886c74467d2
+  languageName: node
+  linkType: hard
+
+"cockatiel@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "cockatiel@npm:3.1.2"
+  checksum: 10/52d8fd0038fc5fe5579962947243fe971fa827db5ad1acecec5dbde854d7018696d3c6967a4860d8399e39d0f53e9d762c00cad5e2b3694c554d19e7d08b3f6a
   languageName: node
   linkType: hard
 
