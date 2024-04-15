@@ -1,4 +1,4 @@
-export type AnsibleCreatorInitInterface = {
+export type AnsibleCollectionFormInterface = {
   namespaceName: string;
   collectionName: string;
   initPath: string;
@@ -11,7 +11,7 @@ export type AnsibleCreatorInitInterface = {
   isEditableModeInstall: boolean;
 };
 
-export type AnsibleProjectInterface = {
+export type AnsibleProjectFormInterface = {
   destinationPath: string;
   scmOrgName: string;
   scmProjectName: string;

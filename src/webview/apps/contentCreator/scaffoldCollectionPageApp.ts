@@ -9,7 +9,7 @@ import {
   provideVSCodeDesignSystem,
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
-import { AnsibleCreatorInitInterface } from "../../../features/contentCreator/types";
+import { AnsibleCollectionFormInterface } from "../../../features/contentCreator/types";
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -246,7 +246,7 @@ function handleInitCreateClick() {
       logLevel: logLevelDropdown.currentValue.trim(),
       isForced: forceCheckbox.checked,
       isEditableModeInstall: editableModeInstall.checked,
-    } as AnsibleCreatorInitInterface,
+    } as AnsibleCollectionFormInterface,
   });
 
   window.addEventListener("message", async (event) => {

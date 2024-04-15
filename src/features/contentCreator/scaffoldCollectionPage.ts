@@ -5,7 +5,7 @@ import * as cp from "child_process";
 import * as os from "os";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { AnsibleCreatorInitInterface } from "./types";
+import { AnsibleCollectionFormInterface } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 
@@ -255,7 +255,7 @@ export class AnsibleCreatorInit {
             return;
 
           case "init-create":
-            payload = message.payload as AnsibleCreatorInitInterface;
+            payload = message.payload as AnsibleCollectionFormInterface;
             await this.runInitCommand(payload, webview);
             return;
 
@@ -315,7 +315,7 @@ export class AnsibleCreatorInit {
   }
 
   public async runInitCommand(
-    payload: AnsibleCreatorInitInterface,
+    payload: AnsibleCollectionFormInterface,
     webView: vscode.Webview,
   ) {
     const {
