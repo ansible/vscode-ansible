@@ -8,4 +8,5 @@ export type AnsibleCreatorInitInterface = {
   logFileAppend: boolean;
   logLevel: string;
   isForced: boolean;
+  isEditableModeInstall: boolean;
 };

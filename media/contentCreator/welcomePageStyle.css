@@ -54,6 +54,11 @@ body {
   content: "✗ ";
 }
 
+.not-found-optional::before {
+  color: yellow;
+  content: "⚠ ";
+}
+
 .refresh-button-div {
   margin-top: 8px;
   width: 100%;

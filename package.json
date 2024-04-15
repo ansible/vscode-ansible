@@ -218,8 +218,8 @@
         "title": "Install Ansible Content Creator"
       },
       {
-        "command": "ansible.content-creator.init",
-        "title": "Ansible Content Creator: Init"
+        "command": "ansible.content-creator.scaffold-ansible-collection",
+        "title": "Scaffold Ansible Collection"
       },
       {
         "command": "ansible.content-creator.create",

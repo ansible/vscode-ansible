@@ -75,6 +75,11 @@ vscode-checkbox i {
     font-size: small;
 }
 
+#ade-docs-link {
+    margin-left: 30px;
+    font-style: italic;
+}
+
 .dropdown-container {
     box-sizing: border-box;
     display: flex;
