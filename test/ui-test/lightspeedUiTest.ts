@@ -4,7 +4,6 @@ import {
   By,
   SideBarView,
   ViewControl,
-  ExtensionsViewSection,
   Workbench,
   StatusBar,
   VSBrowser,
@@ -12,45 +11,55 @@ import {
   SettingsEditor,
   WebView,
   ModalDialog,
+  WebviewView,
 } from "vscode-extension-tester";
 import { getFilePath, updateSettings } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 export function lightspeedUIAssetsTest(): void {
   describe("Verify the presence of lightspeed login button in the activity bar", () => {
+    let workbench: Workbench;
     let view: ViewControl;
     let sideBar: SideBarView;
-    let lightspeedServiceSection: ExtensionsViewSection;
+    let webviewView: InstanceType<typeof WebviewView>;
 
     before(async function () {
+      workbench = new Workbench();
+      const settingsEditor = await workbench.openSettings();
+      await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
+
       view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
       sideBar = await view.openView();
 
-      lightspeedServiceSection = (await sideBar
-        .getContent()
-        .getSection("Ansible Lightspeed Login")) as ExtensionsViewSection;
+      await sideBar.getContent().getSection("Ansible Lightspeed");
+
+      await workbench.executeCommand(
+        "Ansible: Focus on Ansible Lightspeed View",
+      );
+      webviewView = new WebviewView();
+      expect(webviewView).not.undefined;
+      await webviewView.switchToFrame(1000);
+    });
+
+    after(async function () {
+      if (webviewView) {
+        await webviewView.switchBack();
+      }
+      const settingsEditor = await workbench.openSettings();
+      await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);
     });
 
     it("Ansible Lightspeed welcome message is present", async function () {
-      const welcomeMessage = await lightspeedServiceSection
-        .findWelcomeContent()
-        .then(async (val) => {
-          return val?.getText();
-        });
-
+      const body = await webviewView.findWebElement(By.xpath("//body"));
+      const welcomeMessage = await body.getText();
       expect(welcomeMessage).to.contain(
         "Welcome to Ansible Lightspeed for Visual Studio Code.",
       );
     });
 
     it("Ansible Lightspeed login button is present", async function () {
-      const welcomeContent =
-        await lightspeedServiceSection.findWelcomeContent();
-      expect(welcomeContent).not.undefined;
-
-      // The following lines replaced the original code that was using ExtensionsViewSection APIs.
-      const loginButton = await welcomeContent?.findElement(
-        By.xpath("//a[.//span/text()='Connect']"),
+      const loginButton = await webviewView.findWebElement(
+        By.xpath("//vscode-button[text()='Connect']"),
       );
       expect(loginButton).not.undefined;
     });
