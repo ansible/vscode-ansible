@@ -12,7 +12,6 @@ export type AnsibleCreatorInitInterface = {
 };
 
 export type AnsibleProjectInterface = {
-  // projectName: string;
   destinationPath: string;
   scmOrgName: string;
   scmProjectName: string;
