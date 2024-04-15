@@ -24,7 +24,7 @@ export function hasOwnProperty<X, Y extends PropertyKey>(
   obj: X,
   prop: Y,
 ): obj is X & Record<Y, unknown> {
-  return isObject(obj) && obj.hasOwnProperty(prop);
+  return isObject(obj) && Object.prototype.hasOwnProperty.call(obj, prop);
 }
 
 /**

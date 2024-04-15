@@ -124,7 +124,7 @@ export class AnsibleCreatorMenu {
               templates,
               and other files.</p>
             <h3>
-              <a href="command:ansible.content-creator.init">
+              <a href="command:ansible.content-creator.scaffold-ansible-collection">
                 Collection
               </a>
             </h3>

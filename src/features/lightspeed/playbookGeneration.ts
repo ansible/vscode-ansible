@@ -6,12 +6,7 @@ import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
 
-async function openNewPlaybookEditor(
-  content: string,
-  client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
-  settingsManager: SettingsManager,
-) {
+async function openNewPlaybookEditor(playbook: string) {
   const options = {
     language: "ansible",
   };
@@ -21,13 +16,6 @@ async function openNewPlaybookEditor(
   });
   const editor = await vscode.window.showTextDocument(doc);
 
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
-  const playbook: string = await client.sendRequest("playbook/generation", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const editBuilder = (textEdit: any) => {
     textEdit.insert(new vscode.Position(0, 0), String(playbook));
@@ -36,6 +24,22 @@ async function openNewPlaybookEditor(
     undoStopBefore: true,
     undoStopAfter: false,
   });
+}
+
+async function generatePlaybook(
+  content: string,
+  client: LanguageClient,
+  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  settingsManager: SettingsManager,
+) {
+  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  const playbook: string = await client.sendRequest("playbook/generation", {
+    accessToken,
+    URL: settingsManager.settings.lightSpeedService.URL,
+    content,
+  });
+
+  return playbook;
 }
 
 async function summarizeInput(
@@ -81,13 +85,15 @@ export function showPlaybookGenerationPage(
     const command = message.command;
     switch (command) {
       case "generatePlaybook":
-        await openNewPlaybookEditor(
+        const playbook = await generatePlaybook(
+          // TODO
           message.content,
           client,
           lightSpeedAuthProvider,
           settingsManager,
         );
         panel?.dispose();
+        await openNewPlaybookEditor(playbook);
         break;
       case "summarizeInput":
         const summary = await summarizeInput(
@@ -156,30 +162,35 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
         <div class="secondMessage">
           <h3>Does this look like the right playbook for you?</h3>
         </div>
-        <div class="editArea">
+        <div class="mainContainer">
+          <div class="editArea">
             <vscode-text-area rows=5 resize="both"
                 placeholder="Describe the goal in your own words."
                 id="playbook-text-area">
             </vscode-text-area>
-            <div class="bigIconButtonContainer">
-              <vscode-button class="bigIconButton" id="submit-button">
-                <span class="codicon codicon-run-all"></span>
-             </vscode-button>
+            <div class="spinnerContainer">
+              <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>
             </div>
-            <div class="resetFeedbackContainer">
-              <div class="resetContainer">
-                  <vscode-button class="buttonBorder" appearance="secondary" id="reset-button">
-                      Reset
-                  </vscode-button>
-              </div>
-              <div class="feedbackContainer">
-                  <vscode-button class="iconButton" appearance="icon" id="thumbsup-button">
-                      <span class="codicon codicon-thumbsup"></span>
-                  </vscode-button>
-                  <vscode-button class="iconButton" appearance="icon" id="thumbsdown-button">
-                      <span class="codicon codicon-thumbsdown"></span>
-                  </vscode-button>
-              </div>
+          </div>
+          <div class="bigIconButtonContainer">
+            <vscode-button class="bigIconButton" id="submit-button">
+              <span class="codicon codicon-send" id="submit-icon"></span>
+           </vscode-button>
+          </div>
+          <div class="resetFeedbackContainer">
+            <div class="resetContainer">
+                <vscode-button class="buttonBorder" appearance="secondary" id="reset-button">
+                    Reset
+                </vscode-button>
+            </div>
+            <div class="feedbackContainer">
+              <vscode-button class="iconButton" appearance="icon" id="thumbsup-button">
+                <span class="codicon codicon-thumbsup"></span>
+              </vscode-button>
+              <vscode-button class="iconButton" appearance="icon" id="thumbsdown-button">
+                <span class="codicon codicon-thumbsdown"></span>
+              </vscode-button>
+            </div>
             </div>
         </div>
         <div class="examplesContainer">

@@ -78,7 +78,6 @@ export function setWebviewMessageListener(
   webview: Webview,
   disposables: Disposable[] = [],
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   webview.onDidReceiveMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (message: any) => {

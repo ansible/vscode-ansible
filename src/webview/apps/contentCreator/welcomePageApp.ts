@@ -17,6 +17,7 @@ let ansibleLocationStatusText: HTMLElement;
 let pythonVersionStatusText: HTMLElement;
 let pythonLocationStatusText: HTMLElement;
 let ansibleCreatorVersionStatusText: HTMLElement;
+let ansibleDevEnvironmentStatusText: HTMLElement;
 let refreshButton: Button;
 
 function main() {
@@ -29,6 +30,7 @@ function main() {
   ansibleLocationStatusText = document.createElement("section");
   pythonVersionStatusText = document.createElement("section");
   pythonLocationStatusText = document.createElement("section");
+  ansibleDevEnvironmentStatusText = document.createElement("section");
   ansibleCreatorVersionStatusText = document.createElement("section");
 
   refreshButton = document.getElementById("refresh") as Button;
@@ -59,6 +61,8 @@ function updateAnsibleCreatorAvailabilityStatus() {
         const pythonVersion = systemDetails["python version"];
         const pythonLocation = systemDetails["python location"];
         const ansibleCreatorVersion = systemDetails["ansible-creator version"];
+        const ansibleDevEnvironmentVersion =
+          systemDetails["ansible-dev-environment version"];
 
         if (ansibleVersion) {
           ansibleVersionStatusText.innerHTML = `<p class='found'>ansible version: ${ansibleVersion}</p>`;
@@ -102,6 +106,14 @@ function updateAnsibleCreatorAvailabilityStatus() {
           `;
         }
         installStatusDiv?.appendChild(ansibleCreatorVersionStatusText);
+
+        // ade version text
+        if (ansibleDevEnvironmentVersion) {
+          ansibleDevEnvironmentStatusText.innerHTML = `<p class='found'>[optional] ansible-dev-environment version: ${ansibleDevEnvironmentVersion}</p>`;
+        } else {
+          ansibleDevEnvironmentStatusText.innerHTML = `<p class='not-found-optional'>[optional] ansible-dev-environment version: Not found</p>`;
+        }
+        installStatusDiv?.appendChild(ansibleDevEnvironmentStatusText);
 
       // <p>&#x2717; python version: ${pythonVersion}</p>
       // <p>&#x2717; python location: ${pythonLocation}</p>

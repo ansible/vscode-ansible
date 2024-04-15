@@ -131,7 +131,9 @@ export class TelemetryErrorHandler implements ErrorHandler {
     private readonly telemetry: TelemetryService,
     private readonly name: string,
     private readonly maxRestartCount: number,
-  ) {}
+  ) {
+    // do nothing
+  }
 
   error(error: Error, message: Message, count: number): ErrorHandlerResult {
     this.telemetry.send({
@@ -182,7 +184,9 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
   constructor(
     private readonly delegate: vscode.OutputChannel,
     private readonly telemetry: TelemetryService,
-  ) {}
+  ) {
+    // do nothing
+  }
 
   get name(): string {
     return this.delegate.name;

@@ -16,7 +16,9 @@ export class LightspeedFeedbackWebviewViewProvider
 {
   public static readonly viewType = "lightspeed-feedback-webview";
 
-  constructor(private readonly _extensionUri: Uri) {}
+  constructor(private readonly _extensionUri: Uri) {
+    // do nothing
+  }
 
   public resolveWebviewView(
     webviewView: WebviewView,

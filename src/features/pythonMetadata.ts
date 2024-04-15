@@ -1,4 +1,3 @@
-/* eslint-disable  @typescript-eslint/no-explicit-any */
 import {
   ExtensionContext,
   window,
@@ -73,7 +72,7 @@ export class PythonInterpreterManager {
 
     const interpreterPath = this.extensionSettings.settings.interpreterPath;
     if (interpreterPath) {
-      const label = this.makeLabelFromPath(interpreterPath!);
+      const label = this.makeLabelFromPath(interpreterPath);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;
         this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
