@@ -15,12 +15,12 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 
 export default tseslint.config(
   {
-    ignores: ["**/out/", ".yarn/*", "media/*"],
+    ignores: ["**/out/", ".yarn/*", "media/*", "site/*"],
   },
   {
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended,
+      ...tseslint.configs.recommended, // TODO: switch to strictTypeChecked
       prettierRecommendedConfig,
     ],
     files: [
@@ -52,6 +52,15 @@ export default tseslint.config(
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": "error",
+      // Needed for tseslint.configs.strictTypeChecked
+      // "@typescript-eslint/require-await": "error",
+      // "@typescript-eslint/await-thenable": "error",
+      // "@typescript-eslint/unbound-method": "error",
+      // "@typescript-eslint/no-unsafe-member-access": "error",
+      // "@typescript-eslint/no-floating-promises": "error",
+      // "@typescript-eslint/restrict-template-expressions": "error",
+      // "@typescript-eslint/no-unsafe-argument": "error",
+      // "@typescript-eslint/no-unsafe-return": "error",
       // Fix temporary off/warn made during eslint v9 upgrade:
       "no-empty-function": "warn",
       "no-case-declarations": "off",
