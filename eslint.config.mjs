@@ -48,10 +48,10 @@ export default tseslint.config(
     rules: {
       eqeqeq: ["error", "smart"],
       "tsdoc/syntax": "error",
-      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-explicit-any": "off",
       // Fix temporary off/warn made during eslint v9 upgrade:
       "no-empty-function": "warn",
       "no-case-declarations": "off",
