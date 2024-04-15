@@ -324,7 +324,7 @@ export async function testInlineSuggestion(
     // It simulates the scenario that user clicks the accept button on widget.
     assert(editor);
     await editor.edit((editBuilder) => {
-      editBuilder.insert(editor!.selection.active, insertText);
+      editBuilder.insert(editor.selection.active, insertText);
     });
   } else if (typeOver || typeOverBeforeAPIReturn) {
     // If typeOver is set to true, simulate typing a space character, which will

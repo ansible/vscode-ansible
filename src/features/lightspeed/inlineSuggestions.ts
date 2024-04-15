@@ -893,7 +893,7 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
 
   const suggestionId = inlineSuggestionData["suggestionId"];
   // Send feedback for refused suggestion
-  await inlineSuggestionUserActionHandler(suggestionId!, action);
+  await inlineSuggestionUserActionHandler(suggestionId, action);
 }
 
 export async function inlineSuggestionUserActionHandler(
@@ -946,9 +946,9 @@ export async function rejectPendingSuggestion() {
       console.log(
         "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
       );
-      const suggestionId = inlineSuggestionData["suggestionId"];
+      const suggestionId = inlineSuggestionData["suggestionId"] || "";
       await inlineSuggestionUserActionHandler(
-        suggestionId!,
+        suggestionId,
         UserAction.REJECTED,
       );
     } else {
@@ -963,11 +963,8 @@ export async function ignorePendingSuggestion() {
       console.log(
         "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
       );
-      const suggestionId = inlineSuggestionData["suggestionId"];
-      await inlineSuggestionUserActionHandler(
-        suggestionId!,
-        UserAction.IGNORED,
-      );
+      const suggestionId = inlineSuggestionData["suggestionId"] || "";
+      await inlineSuggestionUserActionHandler(suggestionId, UserAction.IGNORED);
     } else {
       suggestionDisplayed.reset();
     }
@@ -988,7 +985,7 @@ export async function inlineSuggestionTextDocumentChangeHandler(
     e.document.languageId === "ansible" &&
     e.contentChanges.length > 0
   ) {
-    const suggestionId = inlineSuggestionData["suggestionId"];
+    const suggestionId = inlineSuggestionData["suggestionId"] || "";
 
     e.contentChanges.forEach(async (c) => {
       if (c.text === insertTexts[0]) {
@@ -997,7 +994,7 @@ export async function inlineSuggestionTextDocumentChangeHandler(
           "[inline-suggestions] Detected a text change that matches to the current suggestion.",
         );
         await inlineSuggestionUserActionHandler(
-          suggestionId!,
+          suggestionId,
           UserAction.ACCEPTED,
         );
         // Show training matches for the accepted suggestion.

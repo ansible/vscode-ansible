@@ -50,9 +50,9 @@ export default tseslint.config(
       "tsdoc/syntax": "error",
       "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/no-namespace": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": "error",
       // Fix temporary off/warn made during eslint v9 upgrade:
-      "@typescript-eslint/no-non-null-assertion": "warn",
       "no-empty-function": "warn",
       "no-case-declarations": "off",
       "no-constant-condition": "off",

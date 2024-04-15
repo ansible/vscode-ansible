@@ -5,3 +5,20 @@ mypy # used by vscode
 pip>=22.3.1
 pip-tools>=6.12.1
 pre-commit>=2.20
+# docs
+argparse-manpage
+cairosvg
+markdown-include
+mkdocs
+mkdocs-ansible
+mkdocs-autorefs
+mkdocs-exclude
+mkdocs-git-revision-date-localized-plugin
+mkdocs-material
+mkdocs-material-extensions
+mkdocs-multirepo-plugin
+mkdocstrings
+mkdocstrings-python
+pillow
+pymdown-extensions
+slugify
