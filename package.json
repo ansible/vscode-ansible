@@ -68,8 +68,9 @@
           "name": "Ansible Creator"
         },
         {
-          "id": "lightspeed-explorer-treeview",
-          "name": "Ansible Lightspeed Login"
+          "id": "lightspeed-explorer-webview",
+          "name": "Ansible Lightspeed",
+          "type": "webview"
         },
         {
           "id": "lightspeed-feedback-webview",
@@ -93,11 +94,6 @@
       {
         "view": "ansible-creator",
         "contents": "Welcome to Ansible Creator. Elevate automation with a toolkit for efficient ansible content creation. [Learn more](https://github.com/ansible-community/ansible-creator)\n[Get started](command:ansible.content-creator.menu)"
-      },
-      {
-        "view": "lightspeed-explorer-treeview",
-        "contents": "Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. [Learn more](https://www.redhat.com/en/engage/project-wisdom)\nLet's simplify your workflow by connecting VS Code with Ansible Lightspeed.\n[Connect](command:ansible.lightspeed.oauth)",
-        "enablement": "lightspeedConnectReady"
       }
     ],
     "jsonValidation": [
@@ -760,16 +756,16 @@
     "@types/lodash": "^4.17.0",
     "@types/minimatch": "^5.1.2",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.12.4",
+    "@types/node": "^20.12.7",
     "@types/sinon": "^17.0.3",
     "@types/tmp": "^0.2.6",
     "@types/uuid": "^9.0.8",
     "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.5",
-    "@typescript-eslint/eslint-plugin": "^7.6.0",
-    "@typescript-eslint/parser": "^7.6.0",
+    "@typescript-eslint/eslint-plugin": "^7.7.0",
+    "@typescript-eslint/parser": "^7.7.0",
     "@vscode/test-electron": "^2.3.9",
-    "@vscode/vsce": "^2.24.0",
+    "@vscode/vsce": "^2.25.0",
     "axios": "^1.6.8",
     "chai": "^4.4.1",
     "copyfiles": "^2.4.1",
@@ -796,7 +792,7 @@
     "ts-loader": "^9.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.6.0",
+    "typescript-eslint": "^7.7.0",
     "vscode-extension-tester": "^8.0.2",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.91.0",
