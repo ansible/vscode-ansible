@@ -47,6 +47,10 @@ export namespace LightSpeedCommands {
     "ansible.lightspeed.playbookExplanation";
   export const LIGHTSPEED_PLAYBOOK_GENERATION =
     "ansible.lightspeed.playbookGeneration";
+  export const LIGHTSPEED_SIGN_IN_WITH_REDHAT =
+    "ansible.lightspeed.signInWithRedHat";
+  export const LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED =
+    "ansible.lightspeed.signInWithLightspeed";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";

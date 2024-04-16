@@ -12,7 +12,6 @@ import {
   ProgressLocation,
   Uri,
   window,
-  commands,
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
@@ -31,11 +30,9 @@ import {
   getUserTypeLabel,
 } from "./utils/webUtils";
 import {
-  LightSpeedCommands,
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
-  LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
@@ -45,6 +42,22 @@ const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
 
 // Grace time for sending request to refresh token
 const GRACE_TIME = 10;
+
+const VALID_DESKTOP_CALLBACK_SCHEMES = [
+  "vscode",
+  "vscodium",
+  "vscode-insiders",
+  "checode",
+];
+export function isSupportedCallback(uri: Uri) {
+  return (
+    VALID_DESKTOP_CALLBACK_SCHEMES.includes(uri.scheme) ||
+    // openshift devspaces
+    /\.openshiftapps\.com$/.test(uri.authority) ||
+    // github codespaces
+    /\.github\.dev$/.test(uri.authority)
+  );
+}
 
 export class LightSpeedAuthenticationProvider
   implements AuthenticationProvider, Disposable
@@ -91,13 +104,22 @@ export class LightSpeedAuthenticationProvider
   }
 
   async setExternalRedirectUri() {
-    const callbackUri = await env.asExternalUri(Uri.parse(this.redirectUri));
+    const callbackUri =
+      await LightSpeedAuthenticationProvider.getExternalRedirectUri(
+        this.context,
+      );
     this._externalRedirectUri = callbackUri.toString(true);
   }
 
-  get redirectUri() {
-    const publisher = this.context.extension.packageJSON.publisher;
-    const name = this.context.extension.packageJSON.name;
+  public static async getExternalRedirectUri(context: ExtensionContext) {
+    return await env.asExternalUri(
+      Uri.parse(LightSpeedAuthenticationProvider.getRedirectUri(context)),
+    );
+  }
+
+  private static getRedirectUri(context: ExtensionContext) {
+    const publisher = context.extension.packageJSON.publisher;
+    const name = context.extension.packageJSON.name;
 
     return `${env.uriScheme}://${publisher}.${name}`;
   }
@@ -181,15 +203,17 @@ export class LightSpeedAuthenticationProvider
         changed: [],
       });
 
-      lightSpeedManager.statusBarProvider.statusBar.text =
-        await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-          rhUserHasSeat,
-          rhOrgHasSubscription,
-        );
+      // moved to extension.ts activate with listener - might be problematic because there it's not necessarily on create?
+      // lightSpeedManager.statusBarProvider.statusBar.text =
+      //   await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
+      //     rhUserHasSeat,
+      //     rhOrgHasSubscription,
+      //   );
 
-      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
-        session,
-      );
+      // moved to extension.ts activate with listener
+      // lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
+      //   session,
+      // );
 
       console.log("[ansible-lightspeed-oauth] Session created...");
 
@@ -227,10 +251,6 @@ export class LightSpeedAuthenticationProvider
         });
       }
     }
-    lightSpeedManager.statusBarProvider.statusBar.text =
-      LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
-    lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
-    lightSpeedManager.currentModelValue = undefined;
   }
 
   /**
@@ -464,30 +484,8 @@ export class LightSpeedAuthenticationProvider
    * The method also checks if the token is expired or not, if so,
    * it requests for a new token and updates the secret store
    */
-  public async grantAccessToken() {
-    console.log("[ansible-lightspeed-oauth] Granting access token...");
-
-    if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
-      console.log("[oauth] Test access token returned");
-      return process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
-    }
-
-    // check if the user is authenticated or not
-    const session = await this.isAuthenticated();
-
-    if (!session) {
-      console.log("[ansible-lightspeed-oauth] Session not found. Returning...");
-      const selection = await window.showWarningMessage(
-        "You must be logged in to use the Ansible Lightspeed.\n",
-        "Login",
-      );
-      if (selection === "Login") {
-        commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
-      }
-      return;
-    }
-
-    console.log("[ansible-lightspeed-oauth] Session found");
+  public async refreshAccessToken(session: AuthenticationSession) {
+    console.log("[ansible-lightspeed-oauth] Getting access token...");
 
     const sessionId = session.id;
 
@@ -558,25 +556,6 @@ export class LightSpeedAuthenticationProvider
     return tokenToBeReturned;
   }
 
-  public async getLightSpeedAuthSession(): Promise<
-    LightspeedAuthSession | undefined
-  > {
-    let lightSpeedAuthSession = undefined;
-    const session = await this.isAuthenticated();
-    // change the session id of the existing session
-    const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
-    if (allSessions) {
-      const lightspeedSessions = JSON.parse(
-        allSessions,
-      ) as LightspeedAuthSession[];
-      const sessionIdx = lightspeedSessions.findIndex(
-        (s) => s.id === session?.id,
-      );
-      lightSpeedAuthSession = lightspeedSessions[sessionIdx];
-    }
-    return lightSpeedAuthSession;
-  }
-
   /* Get the user info from server */
   private async getUserInfo(token: string) {
     console.log(
@@ -609,52 +588,12 @@ export class LightSpeedAuthenticationProvider
   }
 
   /* Return session info if user is authenticated, else undefined */
-  public async isAuthenticated(): Promise<AuthenticationSession | undefined> {
+  private async isAuthenticated(): Promise<AuthenticationSession | undefined> {
     // check if the user is authenticated
     const userAuth = await authentication.getSession(this._authId, [], {
       createIfNone: false,
     });
 
     return userAuth;
-  }
-
-  public async rhUserHasSeat(): Promise<boolean | undefined> {
-    const authSession = await this.getLightSpeedAuthSession();
-    if (authSession === undefined) {
-      console.log(
-        "[ansible-lightspeed-oauth] User authentication session not found.",
-      );
-      return undefined;
-    } else if (authSession?.rhUserHasSeat) {
-      console.log(
-        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has a seat.`,
-      );
-      return true;
-    } else {
-      console.log(
-        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does not have a seat.`,
-      );
-      return false;
-    }
-  }
-
-  public async rhOrgHasSubscription(): Promise<boolean | undefined> {
-    const authSession = await this.getLightSpeedAuthSession();
-    if (authSession === undefined) {
-      console.log(
-        "[ansible-lightspeed-oauth] User authentication session not found.",
-      );
-      return undefined;
-    } else if (authSession?.rhOrgHasSubscription) {
-      console.log(
-        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has an Org with a subscription.`,
-      );
-      return true;
-    } else {
-      console.log(
-        `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" does not have an Org with a subscription.`,
-      );
-      return false;
-    }
   }
 }
