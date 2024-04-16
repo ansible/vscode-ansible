@@ -2,7 +2,10 @@ import * as child_process from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { URI } from "vscode-uri";
-import { Connection } from "vscode-languageserver";
+import {
+  Connection,
+  WorkDoneProgressServerReporter,
+} from "vscode-languageserver";
 import { v4 as uuidv4 } from "uuid";
 import { AnsibleConfig } from "./ansibleConfig";
 import { ImagePuller } from "../utils/imagePuller";
@@ -88,7 +91,7 @@ export class ExecutionEnvironment {
       /[^a-z0-9]/gi,
       "_",
     )}`;
-    let progressTracker;
+    let progressTracker: WorkDoneProgressServerReporter;
 
     try {
       const containerImageIdCommand = `${this._container_engine} images ${this._container_image} --format="{{.ID}}" | head -n 1`;

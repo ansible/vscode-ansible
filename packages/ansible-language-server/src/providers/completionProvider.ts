@@ -278,7 +278,7 @@ export async function doCompletion(
           .map((option, index) => {
             // translate option documentation to CompletionItem
             const details = getDetails(option.specs);
-            let priority;
+            let priority: number;
             if (isAlias(option)) {
               priority = priorityMap.aliasOption;
             } else if (option.specs.required) {
@@ -363,7 +363,7 @@ export async function doCompletion(
             choices.push(defaultChoice);
           }
           return choices.map((choice, index) => {
-            let priority;
+            let priority: number;
             if (choice === defaultChoice) {
               priority = priorityMap.defaultChoice;
             } else {

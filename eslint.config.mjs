@@ -56,7 +56,7 @@ export default tseslint.config(
       // "@typescript-eslint/require-await": "error",
       // "@typescript-eslint/await-thenable": "error",
       // "@typescript-eslint/unbound-method": "error",
-      // "@typescript-eslint/no-unsafe-member-access": "error",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
       // "@typescript-eslint/no-floating-promises": "error",
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",

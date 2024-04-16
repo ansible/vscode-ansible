@@ -3,6 +3,19 @@ import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 import { URI } from "vscode-uri";
 
+type AnsibleHost = {
+  host: string;
+  priority: number;
+};
+
+type AnsibleHostObject = {
+  [name: string]: {
+    hosts?: string[];
+    children?: string[];
+  };
+  _meta: object;
+};
+// & { _meta?: never };
 /**
  * Class to extend ansible-inventory executable as a service
  */
@@ -41,9 +54,11 @@ export class AnsibleInventory {
       defaultHostListPath,
     );
 
-    let inventoryHostsObject = [];
+    let inventoryHostsObject: AnsibleHostObject;
     try {
-      inventoryHostsObject = JSON.parse(ansibleInventoryResult.stdout);
+      inventoryHostsObject = JSON.parse(
+        ansibleInventoryResult.stdout,
+      ) as AnsibleHostObject;
     } catch (error) {
       this.connection.console.error(
         `Exception in AnsibleInventory service: ${JSON.stringify(error)}`,
@@ -64,7 +79,7 @@ export class AnsibleInventory {
  * @param hostObj - nested object of hosts
  * @returns an array of object with host and priority as keys
  */
-function parseInventoryHosts(hostObj) {
+function parseInventoryHosts(hostObj: AnsibleHostObject) {
   const topLevelGroups = hostObj.all.children.filter(
     (item: string) => item !== "ungrouped",
   );
@@ -77,16 +92,16 @@ function parseInventoryHosts(hostObj) {
 
   // Set priorities: top level groups (1), other groups (2), ungrouped (3), hosts for groups (4), localhost (5)
   const topLevelGroupsObjList = topLevelGroups.map((item) => {
-    return { host: item, priority: 1 };
+    return { host: item, priority: 1 } as AnsibleHost;
   });
 
   const otherGroupsObjList = otherGroups.map((item) => {
-    return { host: item, priority: 2 };
+    return { host: item, priority: 2 } as AnsibleHost;
   });
 
   const allGroups = [...topLevelGroupsObjList, ...otherGroupsObjList];
 
-  let ungroupedHostsObjList = [];
+  let ungroupedHostsObjList: AnsibleHost[] = [];
   if (hostObj.ungrouped) {
     ungroupedHostsObjList = hostObj.ungrouped.hosts.map((item) => {
       return { host: item, priority: 3 };
@@ -94,15 +109,15 @@ function parseInventoryHosts(hostObj) {
   }
 
   // Add 'localhost' and 'all' to the inventory list
-  const localhostObj = { host: "localhost", priority: 5 };
-  const allHostObj = { host: "all", priority: 6 };
+  const localhostObj = { host: "localhost", priority: 5 } as AnsibleHost;
+  const allHostObj = { host: "all", priority: 6 } as AnsibleHost;
 
   let allHosts = [localhostObj, allHostObj, ...ungroupedHostsObjList];
 
   for (const group of allGroups) {
     if (hostObj[`${group.host}`] && hostObj[`${group.host}`].hosts) {
       const hostsObj = hostObj[`${group.host}`].hosts.map((item) => {
-        return { host: item, priority: 4 };
+        return { host: item, priority: 4 } as AnsibleHost;
       });
       allHosts = [...allHosts, ...hostsObj];
     }

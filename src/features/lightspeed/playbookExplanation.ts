@@ -7,6 +7,8 @@ import * as marked from "marked";
 import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
 
+import { PlaybookExplanation } from "@ansible/ansible-language-server/src/ansibleLanguageService";
+
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
   client: LanguageClient,
@@ -40,7 +42,7 @@ export const playbookExplanation = async (
       accessToken: accessToken,
       URL: settingsManager.settings.lightSpeedService.URL,
       content: content,
-    });
+    } as PlaybookExplanation);
   } catch (e) {
     console.log(e);
     currentPanel.setContent(

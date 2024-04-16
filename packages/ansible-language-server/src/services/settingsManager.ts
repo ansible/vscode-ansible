@@ -225,7 +225,7 @@ export class SettingsManager {
    */
   private _settingsAdjustment(settingsObject) {
     for (const key in settingsObject) {
-      const value = settingsObject[key];
+      const value: any = settingsObject[key];
 
       if (value && typeof value === "object") {
         if (value.default !== undefined) {

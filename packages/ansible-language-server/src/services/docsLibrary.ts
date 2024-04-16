@@ -127,7 +127,7 @@ export class DocsLibrary {
     );
 
     // check routing
-    let moduleRoute;
+    let moduleRoute: IPluginRoute | undefined;
     for (const fqcn of candidateFqcns) {
       moduleRoute = this.getModuleRoute(fqcn);
       if (moduleRoute) {
@@ -137,7 +137,7 @@ export class DocsLibrary {
     }
 
     // find module
-    let module;
+    let module: IModuleMetadata;
     if (moduleRoute && moduleRoute.redirect) {
       module = this.modules.get(moduleRoute.redirect);
     } else {

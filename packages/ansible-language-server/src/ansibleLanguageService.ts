@@ -1,4 +1,5 @@
 import {
+  CompletionItem,
   Connection,
   DidChangeConfigurationNotification,
   DidChangeWatchedFilesNotification,
@@ -26,6 +27,11 @@ import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
 import axios from "axios";
 import { getBaseUri } from "./utils/webUtils";
 
+export type PlaybookExplanation = {
+  accessToken: string;
+  URL: string;
+  content: string;
+};
 /**
  * Initializes the connection and registers all lifecycle event handlers.
  *
@@ -281,21 +287,23 @@ export class AnsibleLanguageService {
       return null;
     });
 
-    this.connection.onCompletionResolve(async (completionItem) => {
-      try {
-        if (completionItem.data?.documentUri) {
-          const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri,
-          );
-          if (context) {
-            return await doCompletionResolve(completionItem, context);
+    this.connection.onCompletionResolve(
+      async (completionItem: CompletionItem) => {
+        try {
+          if (completionItem.data?.documentUri) {
+            const context = this.workspaceManager.getContext(
+              completionItem.data?.documentUri,
+            );
+            if (context) {
+              return await doCompletionResolve(completionItem, context);
+            }
           }
+        } catch (error) {
+          this.handleError(error, "onCompletionResolve");
         }
-      } catch (error) {
-        this.handleError(error, "onCompletionResolve");
-      }
-      return completionItem;
-    });
+        return completionItem;
+      },
+    );
 
     this.connection.onDefinition(async (params) => {
       try {
@@ -352,29 +360,32 @@ export class AnsibleLanguageService {
       },
     );
 
-    this.connection.onRequest("playbook/explanation", async (params) => {
-      const accessToken: string = params["accessToken"];
-      const URL: string = params["URL"];
-      const content: string = params["content"];
+    this.connection.onRequest(
+      "playbook/explanation",
+      async (params: PlaybookExplanation) => {
+        const accessToken: string = params["accessToken"];
+        const URL: string = params["URL"];
+        const content: string = params["content"];
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        };
 
-      const axiosInstance = axios.create({
-        baseURL: `${getBaseUri(URL)}/api/v0`,
-        headers: headers,
-      });
-
-      const explanation: string = await axiosInstance
-        .post("/ai/explanations/", { content: content })
-        .then((response) => {
-          return response.data.content;
+        const axiosInstance = axios.create({
+          baseURL: `${getBaseUri(URL)}/api/v0`,
+          headers: headers,
         });
 
-      return explanation;
-    });
+        const explanation: string = await axiosInstance
+          .post("/ai/explanations/", { content: content })
+          .then((response) => {
+            return response.data.content;
+          });
+
+        return explanation;
+      },
+    );
 
     this.connection.onRequest("playbook/summary", async (params) => {
       const accessToken: string = params["accessToken"];

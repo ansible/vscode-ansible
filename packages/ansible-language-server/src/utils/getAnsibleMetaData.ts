@@ -7,6 +7,14 @@ import * as child_process from "child_process";
 let context: WorkspaceFolderContext;
 let connection: Connection;
 
+type AnsibleMetaData = {
+  "ansible information": AnsibleInfo;
+};
+
+type AnsibleInfo = {
+  x: string;
+};
+
 export async function getAnsibleMetaData(
   contextLocal: WorkspaceFolderContext,
   connectionLocal: Connection,
@@ -14,7 +22,7 @@ export async function getAnsibleMetaData(
   context = contextLocal;
   connection = connectionLocal;
 
-  const ansibleMetaData = {};
+  const ansibleMetaData = {} as AnsibleMetaData;
 
   ansibleMetaData["ansible information"] = await getAnsibleInfo();
   ansibleMetaData["python information"] = await getPythonInfo();
@@ -40,9 +48,8 @@ export async function getResultsThroughCommandRunner(cmd, arg) {
   const workingDirectory = URI.parse(context.workspaceFolder.uri).path;
   const mountPaths = new Set([workingDirectory]);
 
-  let result;
   try {
-    result = await commandRunner.runCommand(
+    const result = await commandRunner.runCommand(
       cmd,
       arg,
       workingDirectory,
@@ -56,17 +63,18 @@ export async function getResultsThroughCommandRunner(cmd, arg) {
       return result;
     }
   } catch (error) {
+    const msg = error instanceof Error ? error.message : (error as string);
     console.log(
-      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${error.toString()}`,
+      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${msg}`,
     );
     return undefined;
   }
 
-  return result;
+  return undefined;
 }
 
 async function getAnsibleInfo() {
-  const ansibleInfo = {};
+  const ansibleInfo = {} as AnsibleInfo;
 
   const ansibleVersionObj = (await context.ansibleConfig).ansible_meta_data;
   const ansibleVersionObjKeys = Object.keys(ansibleVersionObj);
@@ -76,7 +84,7 @@ async function getAnsibleInfo() {
     return ansibleInfo;
   }
 
-  let ansibleCoreVersion;
+  let ansibleCoreVersion: string[];
   if (ansibleVersionObjKeys[0].includes(" [")) {
     ansibleCoreVersion = ansibleVersionObjKeys[0].split(" [");
   } else {
@@ -136,7 +144,7 @@ async function getPythonInfo() {
 async function getAnsibleLintInfo() {
   const ansibleLintInfo = {};
 
-  let ansibleLintVersionResult = await getResultsThroughCommandRunner(
+  const ansibleLintVersionResult = await getResultsThroughCommandRunner(
     "ansible-lint",
     "--version",
   );
@@ -153,10 +161,12 @@ async function getAnsibleLintInfo() {
   // ansible-lint version reports if a newer version of the ansible-lint is available or not
   // along with the current version itself
   // so the following lines of code are to segregate the two information into to keys
-  ansibleLintVersionResult = ansibleLintVersionResult.stdout.trim().split("\n");
-  const ansibleLintVersion = ansibleLintVersionResult[0];
-  const ansibleLintUpgradeStatus = ansibleLintVersionResult[1]
-    ? ansibleLintVersionResult[1]
+  const ansibleLintVersionArray = ansibleLintVersionResult.stdout
+    .trim()
+    .split("\n");
+  const ansibleLintVersion = ansibleLintVersionArray[0];
+  const ansibleLintUpgradeStatus = ansibleLintVersionArray[1]
+    ? ansibleLintVersionArray[1]
     : undefined;
 
   ansibleLintInfo["version"] = ansibleLintVersion
@@ -186,7 +196,7 @@ async function getExecutionEnvironmentInfo() {
   eeInfo["container image ID"] = basicDetails.containerImageId;
 
   let eeServiceWorking = false;
-  let inspectResult;
+  let inspectResult: unknown;
   try {
     inspectResult = JSON.parse(
       child_process

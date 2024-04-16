@@ -405,7 +405,7 @@ export async function getPossibleOptionsForPath(
   const taskParamNode = taskParamPath[taskParamPath.length - 1];
   if (!isScalar(taskParamNode)) return null;
 
-  let module;
+  let module: IModuleMetadata | undefined;
   // Module options can either be directly under module or in 'args'
   if (taskParamNode.value === "args") {
     module = await findProvidedModule(taskParamPath, document, docsLibrary);
