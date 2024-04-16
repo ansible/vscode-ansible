@@ -15,7 +15,11 @@ export function getWebviewContentWithLoginForm(
     "explorer",
     "main.js",
   ]);
-  const styleUri = getUri(webview, extensionUri, ["media", "style.css"]);
+  const styleUri = getUri(webview, extensionUri, [
+    "media",
+    "lightspeedExplorerView",
+    "style.css",
+  ]);
   const nonce = getNonce();
 
   return /*html*/ `
@@ -29,15 +33,17 @@ export function getWebviewContentWithLoginForm(
       <title>Ansible Lightspeed Explorer!</title>
     </head>
     <body>
-    Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. <a href="https://www.redhat.com/en/engage/project-wisdom">Learn more</a><br />Let's simplify your workflow by connecting VS Code with Ansible Lightspeed.<br />
-    <form id="playbook-explanation-form">
-      <div class="component-container">
-        <section class="component-section">
-          <vscode-button id="lightspeed-explorer-connect">Connect</vscode-button>
-        </section>
-      </section>
-      <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
-    </form>
+    <div id="lightspeedExplorerView">
+      Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. <a href="https://www.redhat.com/en/engage/project-wisdom">Learn more</a><br />Let's simplify your workflow by connecting VS Code with Ansible Lightspeed.<br />
+      <form id="playbook-explanation-form">
+        <div class="button-container">
+          <section class="component-section">
+            <vscode-button id="lightspeed-explorer-connect">Connect</vscode-button>
+          </section>
+        </div>
+        <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
+      </form>
+    </div>
     </body>
   </html>
         `;
@@ -61,12 +67,18 @@ export function getWebviewContentWithActiveSession(
     "explorer",
     "main.js",
   ]);
-  const styleUri = getUri(webview, extensionUri, ["media", "style.css"]);
+  const styleUri = getUri(webview, extensionUri, [
+    "media",
+    "lightspeedExplorerView",
+    "style.css",
+  ]);
   const nonce = getNonce();
   const explainForm = `<div class="button-container">
   <form id="playbook-explanation-form">
     <vscode-button id="lightspeed-explorer-playbook-explanation-submit" ${
-      has_playbook_opened ? "" : "disabled"
+      has_playbook_opened
+        ? ""
+        : "disabled title='The file in the active editor view is not an Ansible playbook' "
     }>Explain the current playbook</vscode-button>
   <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
   </form>
@@ -85,11 +97,13 @@ export function getWebviewContentWithActiveSession(
       <title>Ansible Lightspeed Explorer!</title>
     </head>
     <body>
-
-    Logged in as: ${userName}<br />
-    User Type: ${userType}<br />
-    Role: ${userRole}<br />
-    ${lightspeedExperimentalEnabled ? explainForm : ""}
+    <body>
+    <div id="lightspeedExplorerView">
+      Logged in as: ${userName}<br />
+      User Type: ${userType}<br />
+      Role: ${userRole}<br />
+      ${lightspeedExperimentalEnabled ? explainForm : ""}
+    </div>
     </body>
   </html>
         `;
