@@ -31,9 +31,8 @@ tasks:
     run: once
     interactive: true
   install:
-    deps:
-      - setup
     cmds:
+      - task: setup
       - yarn install
     sources:
       - "**/package.json"

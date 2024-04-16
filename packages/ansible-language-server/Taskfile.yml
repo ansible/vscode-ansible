@@ -27,10 +27,9 @@ tasks:
       - echo Done {{.VERSION}}!
   build:
     dir: "{{ .TASKFILE_DIR }}"
-    deps:
-      - shared:setup
     desc: Build the project
     cmds:
+      - task: shared:setup
       - yarn install
       - yarn run compile
     sources:
@@ -60,9 +59,8 @@ tasks:
     vars:
       ENGINE:
         sh: bash -c "command -v docker | head -n 1"
-    deps:
-      - build
     cmds:
+      - task: build
       - "{{.ENGINE}} pull ghcr.io/ansible/creator-ee:{{ .EE_VERSION }}"
       # Tests that container engine is functional and that we have the image:
       - "{{.ENGINE}} run -i ghcr.io/ansible/creator-ee:{{ .EE_VERSION }} ansible-lint --version"
@@ -77,9 +75,8 @@ tasks:
   test-node-lts:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Run all tests using node-lts (future)
-    deps:
-      - shared:install
     cmds:
+      - task: shared:install
       # switch to last nodejs version listed in .tool-versions
       - git clean -dxf
       - bash -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
@@ -107,8 +104,6 @@ tasks:
   package:
     desc: Package extension
     dir: "{{ .TASKFILE_DIR }}"
-    deps:
-      - build
     sources:
       - ../../docs/als/changelog.md
       - README.md
@@ -117,6 +112,7 @@ tasks:
     generates:
       - "*.tgz"
     cmds:
+      - task: build
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
       - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
       - ./tools/can-release.sh
