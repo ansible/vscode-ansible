@@ -45,7 +45,11 @@ function displayInvalidConfigError(): void {
 }
 
 function ansibleVaultPath(config: vscode.WorkspaceConfiguration): string {
-  return `${config.ansible.path || "ansible"}-vault`;
+  const path = config.get("ansible.path");
+  if (typeof path === "string") {
+    return `${path || "ansible"}-vault`;
+  }
+  return "ansible-vault";
 }
 
 export const toggleEncrypt = async (): Promise<void> => {

@@ -1,17 +1,17 @@
 # Data collection
 
-vscode-ansible has opt-in telemetry collection, provided by
+`vscode-ansible` has opt-in telemetry collection, provided by
 [vscode-redhat-telemetry](https://github.com/redhat-developer/vscode-redhat-telemetry).
 
 ## What's included in the vscode-ansible telemetry data
 
 - ansible-language-server start
-- errors during ansible-language-server start
+- errors during `ansible-language-server` start
 - any errors from LSP requests
 - Ansible core version
 - ansible-lint version if installed and enabled
-- ansible-playbook command runs successfully or fails.
-- ansible-navigator run command runs successfully or fails.
+- `ansible-playbook` command runs successfully or fails.
+- `ansible-navigator` run command runs successfully or fails.
 - Ansible vault (ansible-vault) command run in case it fails.
 - Resync Ansible inventory (ansible-inventory) command run in case it fails.
 - Execution environment enabled or disabled
