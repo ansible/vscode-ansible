@@ -5,6 +5,7 @@ import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
+import { isLightspeedEnabled } from "../../extension";
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -31,8 +32,13 @@ async function generatePlaybook(
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
   settingsManager: SettingsManager,
+  panel: vscode.WebviewPanel,
 ) {
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  if (!accessToken) {
+    panel.webview.postMessage({ command: "exception" });
+  }
+
   const playbook: string = await client.sendRequest("playbook/generation", {
     accessToken,
     URL: settingsManager.settings.lightSpeedService.URL,
@@ -47,8 +53,13 @@ async function summarizeInput(
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
   settingsManager: SettingsManager,
+  panel: vscode.WebviewPanel,
 ) {
   const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  if (!accessToken) {
+    panel.webview.postMessage({ command: "exception" });
+  }
+
   const summary: string = await client.sendRequest("playbook/summary", {
     accessToken,
     URL: settingsManager.settings.lightSpeedService.URL,
@@ -58,12 +69,17 @@ async function summarizeInput(
   return summary;
 }
 
-export function showPlaybookGenerationPage(
+export async function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
   client: LanguageClient,
   lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
   settingsManager: SettingsManager,
 ) {
+  // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
+  if (!(await isLightspeedEnabled())) {
+    return;
+  }
+
   // Create a new panel and update the HTML
   const panel = vscode.window.createWebviewPanel(
     "noteDetailView",
@@ -91,6 +107,7 @@ export function showPlaybookGenerationPage(
           client,
           lightSpeedAuthProvider,
           settingsManager,
+          panel,
         );
         panel?.dispose();
         await openNewPlaybookEditor(playbook);
@@ -102,6 +119,7 @@ export function showPlaybookGenerationPage(
           client,
           lightSpeedAuthProvider,
           settingsManager,
+          panel,
         );
         panel.webview.postMessage({ command: "summary", summary });
         break;
@@ -173,7 +191,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </div>
           </div>
           <div class="bigIconButtonContainer">
-            <vscode-button class="bigIconButton" id="submit-button">
+            <vscode-button class="bigIconButton" id="submit-button" disabled>
               <span class="codicon codicon-send" id="submit-icon"></span>
            </vscode-button>
           </div>
