@@ -21,6 +21,7 @@
 !media/contentCreator/icons/ansible-logo-red.png
 !media/contentCreator/scaffoldCollectionPageStyle.css
 !media/contentCreator/welcomePageStyle.css
+!media/lightspeedExplorerView/style.css
 !media/playbookGeneration/playbookGeneration.css
 !media/playbookGeneration/style.css
 !out/client/src/extension.js

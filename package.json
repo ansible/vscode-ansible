@@ -261,7 +261,7 @@
       },
       {
         "command": "ansible.lightspeed.playbookExplanation",
-        "title": "Ansible Lightspeed: Playbook explanation",
+        "title": "Explain the playbook with Ansible Lightspeed",
         "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
       },
       {
