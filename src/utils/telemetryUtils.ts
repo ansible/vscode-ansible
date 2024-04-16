@@ -112,12 +112,10 @@ export class TelemetryManager {
     isInitialized: boolean,
     errorMessage?: string,
   ): Promise<void> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const startUpData: any = {
-      "ansible.server.initialized": isInitialized,
-    };
+    const startUpData: Map<string, string | boolean> = new Map();
+    startUpData.set("ansible.server.initialized", isInitialized);
     if (errorMessage) {
-      startUpData["error"] = errorMessage;
+      startUpData.set("error", errorMessage);
     }
     await this.sendTelemetry("startup", startUpData);
   }

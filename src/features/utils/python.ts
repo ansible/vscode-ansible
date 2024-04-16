@@ -22,18 +22,22 @@ export async function activatePythonExtension() {
 /** Get python interpreter details */
 export async function getInterpreterDetails(): Promise<IInterpreterDetails> {
   const pythonExtension = await activatePythonExtension();
-  const exports = await pythonExtension?.exports;
+  if (pythonExtension !== undefined) {
+    const exports = await pythonExtension.exports;
 
-  const environment = await exports?.environments.resolveEnvironment(
-    exports?.environments.getActiveEnvironmentPath(),
-  );
+    if (exports !== undefined) {
+      const environment = await exports?.environments.resolveEnvironment(
+        exports?.environments.getActiveEnvironmentPath(),
+      );
 
-  if (environment?.executable.uri) {
-    return {
-      path: environment?.executable.uri.fsPath,
-      environment: environment.environment?.name,
-      version: `${environment.version.major}.${environment.version.minor}.${environment.version.micro}`,
-    };
+      if (environment?.executable.uri) {
+        return {
+          path: environment?.executable.uri.fsPath,
+          environment: environment.environment?.name,
+          version: `${environment.version.major}.${environment.version.minor}.${environment.version.micro}`,
+        };
+      }
+    }
   }
   return {
     path: undefined,
