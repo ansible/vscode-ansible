@@ -29,8 +29,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
     cmds:
-      - task: shared:setup
-      - yarn install
+      - task: shared:install
       - yarn run compile
     sources:
       - package-lock.json
