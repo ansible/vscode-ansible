@@ -133,8 +133,8 @@ function sendThumbsup() {
   const thumbsDownButton = document.getElementById(
     "thumbsdown-button",
   ) as Button;
-  thumbsUpButton.appearance = "primary";
-  thumbsDownButton.appearance = "icon";
+  thumbsUpButton.setAttribute("class", "iconButtonSelected");
+  thumbsDownButton.setAttribute("class", "iconButton");
   vscode.postMessage({ command: "thumbsUp" });
 }
 
@@ -143,7 +143,7 @@ function sendThumbsdown() {
   const thumbsDownButton = document.getElementById(
     "thumbsdown-button",
   ) as Button;
-  thumbsUpButton.appearance = "icon";
-  thumbsDownButton.appearance = "primary";
+  thumbsUpButton.setAttribute("class", "iconButton");
+  thumbsDownButton.setAttribute("class", "iconButtonSelected");
   vscode.postMessage({ command: "thumbsDown" });
 }

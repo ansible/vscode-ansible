@@ -112,7 +112,7 @@ export function showPlaybookGenerationPage(
     }
   });
 
-  panel.title = "Create a playbook";
+  panel.title = "Generate a playbook";
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "focus" });
 }
@@ -155,12 +155,12 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
 
 <body>
     <div class="playbookGeneration">
-        <h2>Create a playbook</h2>
+        <h2>Generate a playbook with Ansible Lightspeed</h2>
         <div class="firstMessage">
-          <h3>What would you want the playbook to accomplish?</h3>
+          <h3>What do you want the playbook to accomplish?</h3>
         </div>
         <div class="secondMessage">
-          <h3>Does this look like the right playbook for you?</h3>
+          <h3>Do the following steps look right to you?</h3>
         </div>
         <div class="mainContainer">
           <div class="editArea">
