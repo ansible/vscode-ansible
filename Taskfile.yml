@@ -25,26 +25,23 @@ vars:
 tasks:
   default:
     desc: Run most commands
-    deps:
-      - install
-      - lint
-      - package
-      - docs
     cmds:
+      - task: install
+      - task: lint
+      - task: package
+      - task: docs
       - echo {{.TASK}}
   setup:
     desc: Install dependencies
-    deps:
-      - shared:setup
+    cmds:
+      - task: shared:setup
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
   install:
-    deps:
-      - shared:setup
     cmds:
-      - yarn install
+      - task: shared:install
     sources:
       - "**/package.json"
       - yarn.lock
@@ -52,9 +49,8 @@ tasks:
     interactive: true
   build:
     desc: Build the project
-    deps:
-      - install
     cmds:
+      - task: install
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
       - yarn run clean
@@ -93,7 +89,7 @@ tasks:
       - yarn up "@types/vscode@${VSCODE_VERSION}"
       - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
-      - yarn install
+      - task: shared:install
       # check deps
       - yarn dlx depcheck
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
