@@ -23,24 +23,28 @@ import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { UserAction } from "../../definitions/lightspeed";
 import { mapError } from "./handleApiError";
 import { lightSpeedManager } from "../../extension";
+import { LightSpeedManager, LightspeedAccessDenied } from "./base";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  private lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
+  private lightSpeedManager: LightSpeedManager;
   private _completionRequestInProgress: boolean;
   private _inlineSuggestionFeedbackIgnoredPending: boolean;
   private _extensionVersion: string;
 
   constructor(
     settingsManager: SettingsManager,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider,
+    lightSpeedManager: LightSpeedManager,
     context: vscode.ExtensionContext,
   ) {
     this.settingsManager = settingsManager;
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightSpeedAuthenticationProvider = lightSpeedAuthenticationProvider;
+    this.lightSpeedManager = lightSpeedManager;
     this._completionRequestInProgress = false;
     this._inlineSuggestionFeedbackIgnoredPending = false;
     this._extensionVersion = context.extension.packageJSON.version;
@@ -58,36 +62,52 @@ export class LightSpeedAPI {
     this._inlineSuggestionFeedbackIgnoredPending = newValue;
   }
 
-  private async getApiInstance(): Promise<AxiosInstance | undefined> {
-    const authToken = await this.lightSpeedAuthProvider.grantAccessToken();
-    if (authToken === undefined) {
-      console.error("Ansible Lightspeed authentication failed.");
-      return;
-    }
+  private async getApiInstance(): Promise<AxiosInstance> {
+    const authToken =
+      await this.lightSpeedAuthenticationProvider.grantAccessToken();
     const headers = {
       "Content-Type": "application/json",
     };
-    if (authToken !== undefined) {
-      Object.assign(headers, { Authorization: `Bearer ${authToken}` });
-    }
+    Object.assign(headers, { Authorization: `Bearer ${authToken}` });
     this.axiosInstance = axios.create({
       baseURL: `${getBaseUri(this.settingsManager)}/api`,
       headers: headers,
     });
+    if (this.axiosInstance === undefined) {
+      throw new Error("Cannot create new Axios instance.");
+    }
     return this.axiosInstance;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async getData(urlPath: string): Promise<any> {
     const axiosInstance = await this.getApiInstance();
-    if (axiosInstance === undefined) {
-      console.error("Ansible Lightspeed instance is not initialized.");
-      return;
-    }
-    const response = await axiosInstance.get(urlPath, {
-      timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-    });
-    return response.data;
+
+    return axiosInstance
+      .get(urlPath, {
+        timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+      })
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        if (
+          axios.isAxiosError(error) &&
+          error.response &&
+          error.response.status === 401
+        ) {
+          throw new LightspeedAccessDenied(error.message);
+        } else if (axios.isAxiosError(error)) {
+          console.error(
+            "[ansible-lightspeed-oauth] error message: ",
+            error.message,
+          );
+          throw new Error(error.message);
+        } else {
+          console.error("[api] unexpected error: ", error);
+          throw new Error("An unexpected error occurred");
+        }
+      });
   }
 
   public async completionRequest(
@@ -142,7 +162,20 @@ export class LightSpeedAPI {
       this._inlineSuggestionFeedbackIgnoredPending = false;
       const err = error as AxiosError;
       const mappedError: IError = mapError(err);
-      vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      if (
+        mappedError.code === "fallback__unauthorized" &&
+        (await this.lightSpeedManager.shouldReconnect())
+      ) {
+        this.lightSpeedManager.attemptReconnect();
+      } else if (
+        mappedError.code === "fallback__unauthorized" &&
+        (await this.lightSpeedManager.shouldConnect())
+      ) {
+        this.lightSpeedManager.attemptConnect();
+      } else {
+        vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      }
+
       return {} as CompletionResponseParams;
     } finally {
       if (this._inlineSuggestionFeedbackIgnoredPending) {
@@ -164,18 +197,15 @@ export class LightSpeedAPI {
   ): Promise<FeedbackResponseParams> {
     // return early if the user is not authenticated
     if (
-      !(await this.lightSpeedAuthProvider.isAuthenticated()) &&
+      !this.lightSpeedAuthenticationProvider.userIsConnected &&
       !showAuthErrorMessage
     ) {
       return {} as FeedbackResponseParams;
     }
 
     const axiosInstance = await this.getApiInstance();
-    if (axiosInstance === undefined) {
-      console.error("Ansible Lightspeed instance is not initialized.");
-      return {} as FeedbackResponseParams;
-    }
-    const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+    const rhUserHasSeat =
+      await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
 
     inputData.model =
       lightSpeedManager.settingsManager.settings.lightSpeedService.model;
@@ -230,7 +260,7 @@ export class LightSpeedAPI {
     inputData: ContentMatchesRequestParams,
   ): Promise<ContentMatchesResponseParams | IError> {
     // return early if the user is not authenticated
-    if (!(await this.lightSpeedAuthProvider.isAuthenticated())) {
+    if (!this.lightSpeedAuthenticationProvider.userIsConnected) {
       vscode.window.showErrorMessage(
         "User not authenticated to use Ansible Lightspeed.",
       );

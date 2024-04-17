@@ -336,9 +336,7 @@ async function requestSuggestion(
   const rhUserHasSeat =
     await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
   const lightSpeedStatusbarText =
-    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-      rhUserHasSeat,
-    );
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
   const suggestionId = uuidv4();
   try {
     // If there is a suggestion, whose feedback is pending, send a feedback with IGNORED action
@@ -689,7 +687,7 @@ async function requestInlineSuggest(
   parsedAnsibleDocument: any,
   documentUri: string,
   activityId: string,
-  rhUserHasSeat: boolean | undefined,
+  rhUserHasSeat: boolean,
   documentDirPath: string,
   documentFilePath: string,
   ansibleFileType: IAnsibleFileType,

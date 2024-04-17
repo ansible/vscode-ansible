@@ -116,9 +116,6 @@ export function setWebviewMessageListener(
   webview.onDidReceiveMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (message: any) => {
-      console.log(
-        `Lightspeed explorer - Message received: ${JSON.stringify(message)}}`,
-      );
       const command = message.command;
 
       switch (command) {

@@ -68,8 +68,6 @@ import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollection
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
-import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
-
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
 export const globalFileSystemWatcher: IFileSystemWatchers = {};
@@ -158,8 +156,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     extSettings,
     telemetry,
   );
-
-  vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
+  lightSpeedManager.refreshUserInfo();
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -287,7 +284,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         } else {
           await ignorePendingSuggestion();
         }
-        lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
@@ -344,24 +341,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     lightSpeedManager.lightSpeedAuthenticationProvider.onDidChangeSessions(
       async () => {
-        if (lightspeedExplorerProvider.webviewView) {
-          lightspeedExplorerProvider.refreshWebView();
-        }
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
       },
     ),
   );
-
-  const lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
-    context.extensionUri,
-    lightSpeedManager.lightSpeedAuthenticationProvider,
-  );
-
-  // Register the Lightspeed provider for a Webview View
-  const lightspeedExplorerDisposable = window.registerWebviewViewProvider(
-    LightspeedExplorerWebviewViewProvider.viewType,
-    lightspeedExplorerProvider,
-  );
-  context.subscriptions.push(lightspeedExplorerDisposable);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
@@ -517,8 +501,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "redhat.ansible.lightspeedExperimentalEnabled",
           true,
         );
-        lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
-        lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled =
+          true;
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
@@ -660,11 +645,14 @@ async function getAuthToken(): Promise<void> {
     ANSIBLE_LIGHTSPEED_AUTH_ID,
     [],
     {
-      createIfNone: true,
+      //createIfNone: true,
+      forceNewSession:
+        !lightSpeedManager.lightSpeedAuthenticationProvider.userIsConnected,
     },
   );
 
   if (session) {
     window.showInformationMessage(`Welcome back ${session.account.label}`);
+    lightSpeedManager.refreshUserInfo();
   }
 }

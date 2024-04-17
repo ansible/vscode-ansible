@@ -14,6 +14,7 @@ import {
 import {
   LIGHTSPEED_ME_AUTH_URL,
   AnsibleContentUploadTrigger,
+  LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
@@ -29,6 +30,21 @@ import {
   LightSpeedServiceSettings,
   UserResponse,
 } from "../../interfaces/extensionSettings";
+import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
+
+export class LightspeedAccessDenied extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LightspeedAccessDenied";
+  }
+}
+
+export class LightspeedNoLocalSession extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LightspeedNoLocalSession";
+  }
+}
 
 export class LightSpeedManager {
   private context;
@@ -45,6 +61,7 @@ export class LightSpeedManager {
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
   public orgTelemetryOptOut = false;
+  public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -72,16 +89,10 @@ export class LightSpeedManager {
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
+      this,
       this.context,
     );
-    this.apiInstance
-      .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
-      .then((userResponse: UserResponse) => {
-        this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
@@ -98,12 +109,66 @@ export class LightSpeedManager {
       client,
       settingsManager,
     );
+    this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
+      context.extensionUri,
+      this.lightSpeedAuthenticationProvider,
+    );
+    const lightspeedExplorerDisposable =
+      vscode.window.registerWebviewViewProvider(
+        LightspeedExplorerWebviewViewProvider.viewType,
+        this.lightspeedExplorerProvider,
+      );
+    context.subscriptions.push(lightspeedExplorerDisposable);
 
     // create workspace context for ansible roles
     this.setContext();
 
     // set custom when clause for controlling visibility of views
     this.setCustomWhenClauseContext();
+  }
+
+  /* Update the state of the local user and show the Connect button if needed */
+  public async refreshUserInfo() {
+    console.log(
+      "[LightSpeedManager] Sending request for logged-in user info...",
+    );
+
+    try {
+      const data: UserResponse = await this.apiInstance.getData(
+        `${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
+      );
+      console.log(`refreshUserInfo: ${data}`);
+      console.log(`userIsconnected!, lets'refresh`);
+      this.lightSpeedAuthenticationProvider.userIsConnected = true;
+      this.lightspeedExplorerProvider.refreshWebView();
+      this.statusBarProvider.updateLightSpeedStatusbar();
+      // NOTE: This lightspeedConnectReady doesn't seem to be actually used
+      vscode.commands.executeCommand(
+        "setContext",
+        "lightspeedConnectReady",
+        true,
+      );
+
+      return data;
+    } catch (error) {
+      if (
+        error instanceof LightspeedAccessDenied ||
+        error instanceof LightspeedNoLocalSession
+      ) {
+        console.log("New to log in again!");
+        if (this.lightSpeedAuthenticationProvider.userIsConnected) {
+          console.log(`userIs Disconnected!, lets'refresh`);
+          this.lightSpeedAuthenticationProvider.userIsConnected = false;
+          this.lightspeedExplorerProvider.refreshWebView();
+          // NOTE: This lightspeedConnectReady doesn't seem to be actually used
+          vscode.commands.executeCommand(
+            "setContext",
+            "lightspeedConnectReady",
+            false,
+          );
+        }
+      }
+    }
   }
 
   public async reInitialize(): Promise<void> {
@@ -256,5 +321,69 @@ export class LightSpeedManager {
       "redhat.ansible.enableExperimentalFeatures",
       false,
     );
+  }
+
+  public async shouldReconnect(): Promise<boolean> {
+    /* return True if user session has expired */
+    await this.refreshUserInfo();
+    if (this.lightSpeedAuthenticationProvider.userIsConnected) {
+      return false;
+    }
+    try {
+      return Boolean(this.lightSpeedAuthenticationProvider.getLocalSession());
+    } catch (error) {
+      if (error instanceof LightspeedNoLocalSession) {
+        return false;
+      } else {
+        console.log(error);
+      }
+    }
+    return false;
+  }
+
+  public async shouldConnect(): Promise<boolean> {
+    /* return True if user has yet to connect to the server */
+    await this.refreshUserInfo();
+    if (this.lightSpeedAuthenticationProvider.userIsConnected) {
+      return false;
+    }
+    try {
+      return !this.lightSpeedAuthenticationProvider.getLocalSession();
+    } catch (error) {
+      if (error instanceof LightspeedNoLocalSession) {
+        return true;
+      } else {
+        console.log(error);
+      }
+    }
+    return true;
+  }
+
+  public async attemptReconnect() {
+    /* expose a message asking the user to Reconnect */
+    const action = "Reconnect";
+    vscode.window
+      .showInformationMessage("Your Lightspeed session has expired", action)
+      .then((selection) => {
+        if (selection === action) {
+          vscode.commands.executeCommand(
+            LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
+          );
+        }
+      });
+  }
+
+  public async attemptConnect() {
+    /* expose a message asking the user to Connect */
+    const action = "Connect";
+    vscode.window
+      .showInformationMessage("Please connect to LightSpeed", action)
+      .then((selection) => {
+        if (selection === action) {
+          vscode.commands.executeCommand(
+            LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
+          );
+        }
+      });
   }
 }

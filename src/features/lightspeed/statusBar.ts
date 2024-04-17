@@ -15,10 +15,11 @@ import {
   getUserTypeLabel,
 } from "./utils/webUtils";
 import { lightSpeedManager } from "../../extension";
+import { LightspeedNoLocalSession } from "./base";
 
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  private lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   private context;
   public client;
   public settingsManager: SettingsManager;
@@ -26,13 +27,13 @@ export class LightspeedStatusBar {
 
   constructor(
     apiInstance: LightSpeedAPI,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider,
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager,
   ) {
     this.apiInstance = apiInstance;
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightSpeedAuthenticationProvider = lightSpeedAuthenticationProvider;
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
@@ -50,28 +51,29 @@ export class LightspeedStatusBar {
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
     lightSpeedStatusBarItem.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
-    this.getLightSpeedStatusBarText().then((text) => {
-      lightSpeedStatusBarItem.text = text;
-    });
+
     this.context.subscriptions.push(lightSpeedStatusBarItem);
     return lightSpeedStatusBarItem;
   }
 
-  public async getLightSpeedStatusBarText(
-    rhUserHasSeat?: boolean,
-    rhOrgHasSubscription?: boolean,
-  ): Promise<string> {
-    if (rhUserHasSeat === undefined) {
-      rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+  public async getLightSpeedStatusBarText(): Promise<string> {
+    try {
+      const rhUserHasSeat =
+        await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
+      const rhOrgHasSubscription =
+        await this.lightSpeedAuthenticationProvider.rhOrgHasSubscription();
+      return this.getLightSpeedStatusBarTextSync(
+        rhOrgHasSubscription,
+        rhUserHasSeat,
+      );
+    } catch (error) {
+      if (error instanceof LightspeedNoLocalSession) {
+        return "Lightspeed (Not logged in)";
+      } else {
+        console.log(error);
+      }
     }
-    if (rhOrgHasSubscription === undefined) {
-      rhOrgHasSubscription =
-        await this.lightSpeedAuthProvider.rhOrgHasSubscription();
-    }
-    return this.getLightSpeedStatusBarTextSync(
-      rhOrgHasSubscription,
-      rhUserHasSeat,
-    );
+    return "Lightspeed (Not logged in)";
   }
 
   private getLightSpeedStatusBarTextSync(
@@ -89,6 +91,21 @@ export class LightspeedStatusBar {
     if (!this.client.isRunning()) {
       return;
     }
+
+    if (this.lightSpeedAuthenticationProvider.userIsConnected) {
+      try {
+        this.getLightSpeedStatusBarText().then((text) => {
+          this.statusBar.text = text;
+        });
+        this.setLightSpeedStatusBarTooltip();
+      } catch (error) {
+        console.log(`something went wrong: ${error}`);
+      }
+    } else {
+      this.statusBar.text = "Lightspeed (Not logged in)";
+      this.statusBar.tooltip = undefined;
+    }
+
     if (
       this.settingsManager.settings.lightSpeedService.enabled &&
       this.settingsManager.settings.lightSpeedService.suggestions.enabled
@@ -101,7 +118,6 @@ export class LightspeedStatusBar {
         "statusBarItem.warningBackground",
       );
     }
-    this.setLightSpeedStatusBarTooltip();
     this.statusBar.show();
   }
 
@@ -118,7 +134,13 @@ export class LightspeedStatusBar {
   }
 
   public async lightSpeedStatusBarClickHandler() {
-    vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
+    if (this.lightSpeedAuthenticationProvider.userIsConnected) {
+      vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
+    } else {
+      vscode.commands.executeCommand(
+        LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
+      );
+    }
   }
 
   public async setLightSpeedStatusBarTooltip(

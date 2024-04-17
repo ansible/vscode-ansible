@@ -72,13 +72,13 @@ function testGetLightSpeedStatusBarText(): void {
       let text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT);
 
-      text = await statusBarProvider.getLightSpeedStatusBarText(true, true);
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (licensed)");
-      text = await statusBarProvider.getLightSpeedStatusBarText(true, false);
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (unlicensed)");
-      text = await statusBarProvider.getLightSpeedStatusBarText(false, true);
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (unlicensed)");
-      text = await statusBarProvider.getLightSpeedStatusBarText(false, false);
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (unlicensed)");
     });
   });
@@ -91,7 +91,7 @@ function testFeedbackAPI(): void {
   before(async function () {
     isAuthenticated = sinon.stub(
       lightSpeedManager.lightSpeedAuthenticationProvider,
-      "isAuthenticated",
+      "getLocalSession",
     );
     isAuthenticated.returns(Promise.resolve(true));
   });

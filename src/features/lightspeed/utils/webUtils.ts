@@ -75,9 +75,6 @@ export function getUserTypeLabel(
   rhOrgHasSubscription?: boolean,
   rhUserHasSeat?: boolean,
 ): LIGHTSPEED_USER_TYPE {
-  if (rhOrgHasSubscription === undefined) {
-    return "Not logged in";
-  }
   return rhOrgHasSubscription && rhUserHasSeat ? "Licensed" : "Unlicensed";
 }
 

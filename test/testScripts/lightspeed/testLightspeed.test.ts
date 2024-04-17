@@ -127,7 +127,7 @@ export function testLightspeed(): void {
         );
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
-          "isAuthenticated",
+          "getLocalSession",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
       });
@@ -250,7 +250,7 @@ export function testLightspeed(): void {
         );
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightSpeedAuthenticationProvider,
-          "isAuthenticated",
+          "getLocalSession",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
       });

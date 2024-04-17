@@ -16,22 +16,22 @@ import {
 import { getLoggedInSessionDetails } from "./utils/webUtils";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 
+import { LightspeedAccessDenied, LightspeedNoLocalSession } from "./base";
+
 export class LightspeedExplorerWebviewViewProvider
   implements WebviewViewProvider
 {
   public static readonly viewType = "lightspeed-explorer-webview";
+  private lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
 
-  //sessionInfo: LightspeedSessionInfo = {};
-  //sessionData: LightspeedAuthSession = {} as LightspeedAuthSession;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
   public webviewView: WebviewView | undefined;
   public lightspeedExperimentalEnabled: boolean = false;
 
   constructor(
     private readonly _extensionUri: Uri,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider,
   ) {
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightSpeedAuthenticationProvider = lightSpeedAuthenticationProvider;
   }
 
   public async refreshWebView() {
@@ -68,9 +68,14 @@ export class LightspeedExplorerWebviewViewProvider
   }
 
   private async _getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const session =
-      await this.lightSpeedAuthProvider.getLightSpeedAuthSession();
-    if (session) {
+    if (!this.lightSpeedAuthenticationProvider.userIsConnected) {
+      return getWebviewContentWithLoginForm(webview, extensionUri);
+    }
+
+    try {
+      const session =
+        await this.lightSpeedAuthenticationProvider.getLightSpeedAuthSession();
+      //this.lightSpeedAuthProvider.getUserInfo(session.accessToken);
       const sessionInfo = getLoggedInSessionDetails(session);
       const userName = session.account.label;
       const userType = sessionInfo.userInfo?.userType || "";
@@ -87,9 +92,14 @@ export class LightspeedExplorerWebviewViewProvider
         window.activeTextEditor?.document.languageId === "ansible",
         this.lightspeedExperimentalEnabled,
       );
-    } else {
-      return getWebviewContentWithLoginForm(webview, extensionUri);
+    } catch (error) {
+      if (error instanceof LightspeedAccessDenied) {
+        return getWebviewContentWithLoginForm(webview, extensionUri);
+      } else if (error instanceof LightspeedNoLocalSession) {
+        return getWebviewContentWithLoginForm(webview, extensionUri);
+      }
     }
+    return getWebviewContentWithLoginForm(webview, extensionUri);
   }
 
   private async _setWebviewMessageListener(webview: Webview) {

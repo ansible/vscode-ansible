@@ -12,7 +12,6 @@ import {
   ProgressLocation,
   Uri,
   window,
-  commands,
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
@@ -31,14 +30,13 @@ import {
   getUserTypeLabel,
 } from "./utils/webUtils";
 import {
-  LightSpeedCommands,
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
-  LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
+import { LightspeedNoLocalSession } from "./base";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -57,6 +55,7 @@ export class LightSpeedAuthenticationProvider
   private _authId: string;
   private _authName: string;
   private _externalRedirectUri: string;
+  public userIsConnected: boolean = false;
 
   constructor(
     private readonly context: ExtensionContext,
@@ -181,17 +180,8 @@ export class LightSpeedAuthenticationProvider
         changed: [],
       });
 
-      lightSpeedManager.statusBarProvider.statusBar.text =
-        await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-          rhUserHasSeat,
-          rhOrgHasSubscription,
-        );
-
-      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
-        session,
-      );
-
       console.log("[ansible-lightspeed-oauth] Session created...");
+      this.userIsConnected = true;
 
       return session;
     } catch (e) {
@@ -225,12 +215,9 @@ export class LightSpeedAuthenticationProvider
           removed: [session],
           changed: [],
         });
+        this.userIsConnected = false;
       }
     }
-    lightSpeedManager.statusBarProvider.statusBar.text =
-      LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
-    lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
-    lightSpeedManager.currentModelValue = undefined;
   }
 
   /**
@@ -238,7 +225,7 @@ export class LightSpeedAuthenticationProvider
    */
   public async dispose() {
     if (this._disposable) {
-      const account = await this.isAuthenticated();
+      const account = await this.getLocalSession();
 
       if (account) {
         const sessionId = account.id;
@@ -472,21 +459,7 @@ export class LightSpeedAuthenticationProvider
       return process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
     }
 
-    // check if the user is authenticated or not
-    const session = await this.isAuthenticated();
-
-    if (!session) {
-      console.log("[ansible-lightspeed-oauth] Session not found. Returning...");
-      const selection = await window.showWarningMessage(
-        "You must be logged in to use the Ansible Lightspeed.\n",
-        "Login",
-      );
-      if (selection === "Login") {
-        commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
-      }
-      return;
-    }
-
+    const session = await this.getLocalSession();
     console.log("[ansible-lightspeed-oauth] Session found");
 
     const sessionId = session.id;
@@ -554,27 +527,28 @@ export class LightSpeedAuthenticationProvider
         });
       }
     }
-
     return tokenToBeReturned;
   }
 
-  public async getLightSpeedAuthSession(): Promise<
-    LightspeedAuthSession | undefined
-  > {
-    let lightSpeedAuthSession = undefined;
-    const session = await this.isAuthenticated();
+  public async getLightSpeedAuthSession(): Promise<LightspeedAuthSession> {
+    const session = await this.getLocalSession();
     // change the session id of the existing session
     const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
-    if (allSessions) {
-      const lightspeedSessions = JSON.parse(
-        allSessions,
-      ) as LightspeedAuthSession[];
-      const sessionIdx = lightspeedSessions.findIndex(
-        (s) => s.id === session?.id,
-      );
-      lightSpeedAuthSession = lightspeedSessions[sessionIdx];
+    if (allSessions === undefined) {
+      throw new LightspeedNoLocalSession("SecretStorage is undefined");
     }
-    return lightSpeedAuthSession;
+    const lightspeedSessions = JSON.parse(
+      allSessions,
+    ) as LightspeedAuthSession[];
+    const sessionIdx = lightspeedSessions.findIndex(
+      (s) => s.id === session?.id,
+    );
+    if (sessionIdx === -1) {
+      throw new LightspeedNoLocalSession(
+        "No entry in SecretStorage for this session.id",
+      );
+    }
+    return lightspeedSessions[sessionIdx];
   }
 
   /* Get the user info from server */
@@ -595,37 +569,29 @@ export class LightSpeedAuthenticationProvider
 
       return data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "[ansible-lightspeed-oauth] error message: ",
-          error.message,
-        );
-        throw new Error(error.message);
-      } else {
-        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
-        throw new Error("An unexpected error occurred");
-      }
+      console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
+      throw new Error("An unexpected error occurred");
     }
   }
 
-  /* Return session info if user is authenticated, else undefined */
-  public async isAuthenticated(): Promise<AuthenticationSession | undefined> {
+  /* Return session info if user is authenticated or an LightspeedNoLocalSession exception */
+  public async getLocalSession(): Promise<AuthenticationSession> {
     // check if the user is authenticated
     const userAuth = await authentication.getSession(this._authId, [], {
       createIfNone: false,
     });
+    if (userAuth === undefined) {
+      throw new LightspeedNoLocalSession(
+        "authentication.getSession() returned undefined",
+      );
+    }
 
     return userAuth;
   }
 
-  public async rhUserHasSeat(): Promise<boolean | undefined> {
+  public async rhUserHasSeat(): Promise<boolean> {
     const authSession = await this.getLightSpeedAuthSession();
-    if (authSession === undefined) {
-      console.log(
-        "[ansible-lightspeed-oauth] User authentication session not found.",
-      );
-      return undefined;
-    } else if (authSession?.rhUserHasSeat) {
+    if (authSession?.rhUserHasSeat) {
       console.log(
         `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has a seat.`,
       );
@@ -638,14 +604,9 @@ export class LightSpeedAuthenticationProvider
     }
   }
 
-  public async rhOrgHasSubscription(): Promise<boolean | undefined> {
+  public async rhOrgHasSubscription(): Promise<boolean> {
     const authSession = await this.getLightSpeedAuthSession();
-    if (authSession === undefined) {
-      console.log(
-        "[ansible-lightspeed-oauth] User authentication session not found.",
-      );
-      return undefined;
-    } else if (authSession?.rhOrgHasSubscription) {
+    if (authSession?.rhOrgHasSubscription) {
       console.log(
         `[ansible-lightspeed-oauth] User "${authSession?.account?.label}" has an Org with a subscription.`,
       );

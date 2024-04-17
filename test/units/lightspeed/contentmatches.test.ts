@@ -177,11 +177,10 @@ describe("GetWebviewContent", () => {
     };
 
     function setRhUserHasSeat(has_seat: boolean) {
-      cmw["lightSpeedAuthProvider"].rhUserHasSeat = async (): Promise<
-        boolean | undefined
-      > => {
-        return has_seat;
-      };
+      cmw["lightSpeedAuthProvider"].rhUserHasSeat =
+        async (): Promise<boolean> => {
+          return has_seat;
+        };
     }
 
     setRhUserHasSeat(false);

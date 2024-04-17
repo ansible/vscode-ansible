@@ -56,7 +56,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       );
       isAuthenticatedStub = sinon.stub(
         lightSpeedManager.lightSpeedAuthenticationProvider,
-        "isAuthenticated",
+        "getLocalSession",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
 
@@ -141,7 +141,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       );
       isAuthenticatedStub = sinon.stub(
         lightSpeedManager.lightSpeedAuthenticationProvider,
-        "isAuthenticated",
+        "getLocalSession",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
 
@@ -232,7 +232,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
       );
       isAuthenticatedStub = sinon.stub(
         lightSpeedManager.lightSpeedAuthenticationProvider,
-        "isAuthenticated",
+        "getLocalSession",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
     });
