@@ -491,8 +491,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
-      () => {
-        showPlaybookGenerationPage(
+      async () => {
+        await showPlaybookGenerationPage(
           context.extensionUri,
           client,
           lightSpeedManager.lightSpeedAuthenticationProvider,
@@ -639,13 +639,20 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-async function getAuthToken(): Promise<void> {
+export async function isLightspeedEnabled(): Promise<boolean> {
   if (
     !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
   ) {
     await window.showErrorMessage(
       "Enable lightspeed services from settings to use the feature.",
     );
+    return false;
+  }
+  return true;
+}
+
+async function getAuthToken(): Promise<void> {
+  if (!(await isLightspeedEnabled())) {
     return;
   }
   lightSpeedManager.currentModelValue = undefined;
