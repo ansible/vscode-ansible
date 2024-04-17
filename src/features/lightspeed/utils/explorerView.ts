@@ -34,7 +34,7 @@ export function getWebviewContentWithLoginForm(
     </head>
     <body>
     <div id="lightspeedExplorerView">
-      Welcome to Ansible Lightspeed for Visual Studio Code.\nExperience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. <a href="https://www.redhat.com/en/engage/project-wisdom">Learn more</a><br />Let's simplify your workflow by connecting VS Code with Ansible Lightspeed.<br />
+      Experience smarter automation using Ansible Lightspeed with watsonx Code Assistant solutions for your playbook. <a href="https://www.redhat.com/en/engage/project-wisdom">Learn more</a><br />
       <form id="playbook-explanation-form">
         <div class="button-container">
           <section class="component-section">
