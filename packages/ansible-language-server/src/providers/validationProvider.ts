@@ -25,7 +25,7 @@ export async function doValidate(
   context?: WorkspaceFolderContext,
   connection?: Connection,
 ): Promise<Map<string, Diagnostic[]>> {
-  let diagnosticsByFile;
+  let diagnosticsByFile: Map<string, Diagnostic[]> | undefined;
   if (quick || !context) {
     // get validation from cache
     diagnosticsByFile =
@@ -34,6 +34,7 @@ export async function doValidate(
   } else {
     // full validation with ansible-lint or ansible syntax-check (if ansible-lint is not installed or disabled)
 
+    let diagnosticsByFile: Map<string, Diagnostic[]>;
     const settings = await context.documentSettings.get(textDocument.uri);
     if (!settings.validation.enabled) {
       connection?.console.log("Validation disabled");

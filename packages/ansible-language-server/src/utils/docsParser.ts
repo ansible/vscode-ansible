@@ -247,7 +247,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
     if (!this._contents) {
       this._contents = new Map<string, Record<string, unknown>>();
       const contents = fs.readFileSync(this.source, { encoding: "utf8" });
-      let m;
+      let m: RegExpExecArray | null;
       while ((m = LazyModuleDocumentation.docsRegex.exec(contents)) !== null) {
         if (m && m.groups && m.groups.name && m.groups.doc && m.groups.pre) {
           if (m.groups.name === DOCUMENTATION) {

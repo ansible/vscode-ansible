@@ -18,7 +18,7 @@ const conflictingIDs = [
 const uninstallingIDs = new Set();
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isExtensionPresent(obj: any): obj is Extension<any> {
+function isExtensionPresent(obj: Extension<any> | undefined): boolean {
   return typeof obj !== "undefined" && !uninstallingIDs.has(obj.id);
 }
 
@@ -49,6 +49,9 @@ export async function showUninstallConflictsNotification(
     uninstallingIDs.add(ext.id);
   }
 
+  function getExtName<T>(ext: Extension<T>): string {
+    return ext?.packageJSON?.["displayName"] ?? "<unknown>";
+  }
   const uninstallMsg = "Uninstall";
 
   if (!conflictingExts.length) {
@@ -57,10 +60,10 @@ export async function showUninstallConflictsNotification(
   // Gather all the conflicting display names
   let conflictMsg = "";
   if (conflictingExts.length === 1) {
-    conflictMsg = `${conflictingExts[0].packageJSON.displayName} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
+    conflictMsg = `${getExtName(conflictingExts[0])} (${conflictingExts[0].id}) extension is incompatible with redhat.ansible. Please uninstall it.`;
   } else {
     const extNames: string = conflictingExts
-      .map((ext) => `${ext.packageJSON.displayName} (${ext.id})`)
+      .map((ext) => `${getExtName(ext)} (${ext.id})`)
       .join(", ");
     conflictMsg = `The ${extNames} extensions are incompatible with redhat.ansible. Please uninstall them.`;
   }

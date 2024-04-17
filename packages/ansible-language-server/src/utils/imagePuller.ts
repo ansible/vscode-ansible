@@ -1,5 +1,8 @@
 import * as child_process from "child_process";
-import { Connection } from "vscode-languageserver";
+import {
+  Connection,
+  WorkDoneProgressServerReporter,
+} from "vscode-languageserver";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 
 export class ImagePuller {
@@ -35,7 +38,7 @@ export class ImagePuller {
     const imagePresent = this.checkForImage();
     const pullRequired = this.determinePull(imagePresent, imageTag);
 
-    let progressTracker;
+    let progressTracker: WorkDoneProgressServerReporter;
     if (this.useProgressTracker) {
       progressTracker = await this.connection.window.createWorkDoneProgress();
     }

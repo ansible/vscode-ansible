@@ -20,7 +20,7 @@ export async function findDocumentation(
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return [];
   }
-  let files;
+  let files: string[];
   switch (kind) {
     case "builtin":
       files = await globArray([`${dir}/**/*.py`, "!/**/_*.py"]);
@@ -90,7 +90,7 @@ export async function findPluginRouting(
   if (!fs.existsSync(dir) || fs.lstatSync(dir).isFile()) {
     return pluginRouting;
   }
-  let files;
+  let files: string[];
   switch (kind) {
     case "builtin":
       files = await globArray([`${dir}/config/ansible_builtin_runtime.yml`]);

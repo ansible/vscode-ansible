@@ -76,7 +76,7 @@ if [[ -z "${HOSTNAME:-}" ]]; then
 fi
 
 log notice "Install required build tools"
-for PLUGIN in yarn nodejs task python; do
+for PLUGIN in yarn nodejs task python direnv; do
     asdf plugin add $PLUGIN
 done
 asdf install
@@ -357,7 +357,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     fi
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
-        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it.\n${pull_output}"
+        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
         exit 1
     }
     # without running we will never be sure it works (no arm64 image yet)

@@ -1,4 +1,5 @@
 import {
+  CompletionItem,
   Connection,
   DidChangeConfigurationNotification,
   DidChangeWatchedFilesNotification,
@@ -281,21 +282,23 @@ export class AnsibleLanguageService {
       return null;
     });
 
-    this.connection.onCompletionResolve(async (completionItem) => {
-      try {
-        if (completionItem.data?.documentUri) {
-          const context = this.workspaceManager.getContext(
-            completionItem.data?.documentUri,
-          );
-          if (context) {
-            return await doCompletionResolve(completionItem, context);
+    this.connection.onCompletionResolve(
+      async (completionItem: CompletionItem) => {
+        try {
+          if (completionItem.data?.documentUri) {
+            const context = this.workspaceManager.getContext(
+              completionItem.data?.documentUri,
+            );
+            if (context) {
+              return await doCompletionResolve(completionItem, context);
+            }
           }
+        } catch (error) {
+          this.handleError(error, "onCompletionResolve");
         }
-      } catch (error) {
-        this.handleError(error, "onCompletionResolve");
-      }
-      return completionItem;
-    });
+        return completionItem;
+      },
+    );
 
     this.connection.onDefinition(async (params) => {
       try {
