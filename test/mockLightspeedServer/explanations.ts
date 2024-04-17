@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "./server";
 
 export function explanations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -10,7 +11,7 @@ export function explanations(
     ? req.body.explanationId
     : uuidv4();
   const format = "markdown";
-  console.log(req.body.content);
+  logger.info(req.body.content);
   // cSpell: disable
   const content = `
 ## Playbook Overview and Structure
