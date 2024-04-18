@@ -19,12 +19,6 @@ export enum UserAction {
   IGNORED = 2, // ignored the suggestion or didn't wait for suggestion to be displayed
 }
 
-export enum AnsibleContentUploadTrigger {
-  FILE_OPEN = 0,
-  FILE_CLOSE = 1,
-  TAB_CHANGE = 2,
-}
-
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace LightSpeedCommands {
   export const LIGHTSPEED_AUTH_REQUEST = "ansible.lightspeed.oauth";
