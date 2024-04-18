@@ -124,6 +124,7 @@ kimbernator
 koalaman
 lcov
 lextudio
+libgbm
 libyaml
 lightspeed
 lineinfile

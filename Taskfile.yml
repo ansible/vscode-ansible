@@ -138,7 +138,7 @@ tasks:
       - tools/dirty.sh
     interactive: true
   test-e2e:
-    desc: Run e2e tests
+    desc: Run e2e tests {{.XVFB}}
     cmds:
       - task: package
       - $VIRTUAL_ENV/bin/python3 --version
@@ -173,6 +173,8 @@ tasks:
       - webpack.config.ts
       - Taskfile.yml
       - ./tools/package.sh
+      - src/**/*
+      - test/**/*
     generates:
       - "*.vsix"
     cmds:

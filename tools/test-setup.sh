@@ -76,7 +76,7 @@ if [[ -z "${HOSTNAME:-}" ]]; then
 fi
 
 log notice "Install required build tools"
-for PLUGIN in yarn nodejs task python; do
+for PLUGIN in yarn nodejs task python direnv; do
     asdf plugin add $PLUGIN
 done
 asdf install
@@ -114,7 +114,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -357,7 +357,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     fi
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
-        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it.\n${pull_output}"
+        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
         exit 1
     }
     # without running we will never be sure it works (no arm64 image yet)
