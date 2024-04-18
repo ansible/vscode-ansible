@@ -33,9 +33,16 @@ export class CommandRunner {
     let command: string;
     let runEnv: NodeJS.ProcessEnv | undefined;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
-    const interpreterPath = isEEEnabled
-      ? "python3"
-      : this.settings.python.interpreterPath;
+    let interpreterPathFromConfig = this.settings.python.interpreterPath;
+    if (interpreterPathFromConfig.includes("${workspaceFolder}")) {
+      const workspaceFolder = URI.parse(this.context.workspaceFolder.uri).path;
+      interpreterPathFromConfig = interpreterPathFromConfig.replace(
+        "${workspaceFolder}",
+        workspaceFolder,
+      );
+    }
+
+    const interpreterPath = isEEEnabled ? "python3" : interpreterPathFromConfig;
     if (executable.startsWith("ansible")) {
       executablePath = isEEEnabled
         ? executable
