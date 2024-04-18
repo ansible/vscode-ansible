@@ -84,6 +84,13 @@ asdf install
 log notice "Report current build tool versions..."
 asdf current
 
+if [[ "${OSTYPE:-}" != darwin* ]]; then
+    pgrep dbus-daemon >/dev/null || {
+        log error "dbus-daemon was not detecting as running and that would interfere with testing (xvfb)."
+        exit 55
+    }
+fi
+
 is_podman_running() {
     if [[ "$(podman machine ls --format '{{.Name}} {{.Running}}' --noheading 2>/dev/null)" == *"podman-machine-default* true"* ]]; then
         log notice "Podman machine is running."
