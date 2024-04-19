@@ -174,10 +174,15 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          console.log(JSON.stringify(inputData, null, 2));
-          assert(inputData?.inlineSuggestion?.action === UserAction.REJECTED);
+          assert(
+            inputData?.inlineSuggestion?.action === UserAction.REJECTED,
+            JSON.stringify(inputData, null),
+          );
           const ret = feedbackRequestSpy.returnValues[0];
-          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+          assert(
+            Object.keys(ret).length === 0,
+            JSON.stringify(inputData, null),
+          ); // ret should be equal to {}
         });
       });
 

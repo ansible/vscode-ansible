@@ -67,7 +67,6 @@ function getExecutionEnvironmentTestInfo() {
       dest: "/fixtures/common/collections",
     },
   ];
-  console.log("test data ->", eeInfo);
   return eeInfo;
 }
 
