@@ -106,8 +106,11 @@ function testFeedbackAPI(): void {
         },
       };
       const response = await apiInstance.feedbackRequest(request);
-      console.log(JSON.stringify(response));
-      assert.equal(response.message, "Thanks for your feedback!");
+      assert.equal(
+        response.message,
+        "Thanks for your feedback!",
+        JSON.stringify(response),
+      );
     });
 
     it("Verify a sentiment feedback fails when permission is denied", async function () {
@@ -120,9 +123,8 @@ function testFeedbackAPI(): void {
         },
       };
       const response = await apiInstance.feedbackRequest(request);
-      console.log(JSON.stringify(response));
       // When an error is found, feedbackRequest() does not return a message
-      assert.equal(response.message, undefined);
+      assert.equal(response.message, undefined, JSON.stringify(response));
     });
 
     it("Verify a sentiment feedback contains the model, if set", async function () {
@@ -137,8 +139,7 @@ function testFeedbackAPI(): void {
         model: "",
       };
       const response = await apiInstance.feedbackRequest(request);
-      console.log(JSON.stringify(response));
-      assert.equal(request.model, "testModel");
+      assert.equal(request.model, "testModel", JSON.stringify(response));
     });
   });
 
