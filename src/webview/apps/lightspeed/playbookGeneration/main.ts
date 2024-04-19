@@ -15,12 +15,28 @@ provideVSCodeDesignSystem().register(
   vsCodeTextField(),
 );
 
+const TEXTAREA_MAX_HEIGHT = 500;
+
 let savedInput: string;
+let savedInputHeight: string | undefined;
 let savedSummary: string;
 
 const vscode = acquireVsCodeApi();
 
-window.addEventListener("load", main);
+window.addEventListener("load", () => {
+  setListener("submit-button", submitInput);
+  setListener("generate-button", generatePlaybook);
+  setListener("reset-button", reset);
+  setListener("thumbsup-button", sendThumbsup);
+  setListener("thumbsdown-button", sendThumbsdown);
+  setListener("back-button", back);
+
+  setListenerOnTextArea();
+
+  savedInput = "";
+  savedSummary = "";
+});
+
 window.addEventListener("message", (event) => {
   const message = event.data;
 
@@ -43,12 +59,10 @@ window.addEventListener("message", (event) => {
       changeDisplay("generatePlaybookContainer", "block");
 
       const element = document.getElementById("playbook-text-area") as TextArea;
-      savedSummary = message.summary;
-      const lines = savedSummary.split(/\n/).length;
-      if (lines > 5) {
-        element.rows = Math.min(lines, 15);
-      }
-      element.value = savedSummary;
+      savedSummary = element.value = message.summary;
+      resetTextAreaHeight();
+      element.rows = 25;
+
       break;
     }
     // When summaries or generations API was processed normally (e.g., API error)
@@ -77,22 +91,10 @@ function setListenerOnTextArea() {
     textArea.addEventListener("input", async () => {
       const input = textArea.value;
       submitButton.disabled = input.length === 0;
+
+      adjustTextAreaHeight();
     });
   }
-}
-
-function main() {
-  setListener("submit-button", submitInput);
-  setListener("generate-button", generatePlaybook);
-  setListener("reset-button", reset);
-  setListener("thumbsup-button", sendThumbsup);
-  setListener("thumbsdown-button", sendThumbsdown);
-  setListener("back-button", back);
-
-  setListenerOnTextArea();
-
-  savedInput = "";
-  savedSummary = "";
 }
 
 function changeDisplay(className: string, displayState: string) {
@@ -106,6 +108,7 @@ function changeDisplay(className: string, displayState: string) {
 async function submitInput() {
   const element = document.getElementById("playbook-text-area") as TextArea;
   savedInput = element.value;
+  savedInputHeight = getInputHeight();
 
   changeDisplay("spinnerContainer", "block");
 
@@ -131,10 +134,9 @@ function back() {
   if (savedInput) {
     element.value = savedInput;
   }
-  const lines = savedInput.split(/\n/).length;
-  if (lines <= 5) {
-    element.rows = Math.max(lines, 5);
-  }
+  resetTextAreaHeight(savedInputHeight);
+  element.rows = 5;
+
   element.focus();
 }
 
@@ -165,4 +167,38 @@ function sendThumbsdown() {
   thumbsUpButton.setAttribute("class", "iconButton");
   thumbsDownButton.setAttribute("class", "iconButtonSelected");
   vscode.postMessage({ command: "thumbsDown" });
+}
+
+function getTextAreaInShadowDOM() {
+  const shadowRoot = document.querySelector("vscode-text-area")?.shadowRoot;
+  return shadowRoot?.querySelector("textarea");
+}
+
+function getInputHeight(): string | undefined {
+  const textarea = getTextAreaInShadowDOM();
+  return textarea?.style.height;
+}
+
+function resetTextAreaHeight(savedInputHeight = "") {
+  const textarea = getTextAreaInShadowDOM();
+  if (textarea) {
+    textarea.style.height = savedInputHeight;
+  }
+}
+
+function adjustTextAreaHeight() {
+  const textarea = getTextAreaInShadowDOM();
+  if (textarea?.scrollHeight) {
+    const scrollHeight = textarea?.scrollHeight;
+    if (scrollHeight < TEXTAREA_MAX_HEIGHT) {
+      if (textarea?.style.height) {
+        const height = parseInt(textarea?.style.height);
+        if (height >= scrollHeight) {
+          return;
+        }
+      }
+      // +2 was needed to eliminate scrollbar...
+      textarea.style.height = `${scrollHeight + 2}px`;
+    }
+  }
 }
