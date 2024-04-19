@@ -120,7 +120,7 @@ export async function findModulesUtils(
 }
 
 export async function getModuleFqcnsUtils(
-  playbookAdjacentCollectionsPath,
+  playbookAdjacentCollectionsPath: string,
 ): Promise<Set<string>> {
   const playbookAdjacentModules = new Map<string, IModuleMetadata>();
   const playbookAdjacentModuleFqcns = new Set<string>();

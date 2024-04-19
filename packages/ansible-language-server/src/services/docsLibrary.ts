@@ -167,7 +167,7 @@ export class DocsLibrary {
     return [module, hitFqcn];
   }
 
-  private async findDocumentationInModulesPath(modulesPath) {
+  private async findDocumentationInModulesPath(modulesPath: string) {
     (await findDocumentation(modulesPath, "builtin")).forEach((doc) => {
       this.modules.set(doc.fqcn, doc);
       this._moduleFqcns.add(doc.fqcn);
@@ -180,7 +180,7 @@ export class DocsLibrary {
     );
   }
 
-  private async findDocumentationInCollectionsPath(collectionsPath) {
+  private async findDocumentationInCollectionsPath(collectionsPath: string) {
     (await findDocumentation(collectionsPath, "collection")).forEach((doc) => {
       this.modules.set(doc.fqcn, doc);
       this._moduleFqcns.add(doc.fqcn);

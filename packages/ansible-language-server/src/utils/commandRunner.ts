@@ -6,12 +6,12 @@ import { WorkspaceFolderContext } from "../services/workspaceManager";
 import { ExtensionSettings } from "../interfaces/extensionSettings";
 
 export class CommandRunner {
-  private connection: Connection;
+  private connection: Connection | undefined;
   private context: WorkspaceFolderContext;
   private settings: ExtensionSettings;
 
   constructor(
-    connection: Connection,
+    connection: Connection | undefined,
     context: WorkspaceFolderContext,
     settings: ExtensionSettings,
   ) {
@@ -30,7 +30,7 @@ export class CommandRunner {
     stderr: string;
   }> {
     let executablePath: string;
-    let command: string;
+    let command: string | undefined;
     let runEnv: NodeJS.ProcessEnv | undefined;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
     let interpreterPathFromConfig = this.settings.python.interpreterPath;
@@ -68,6 +68,9 @@ export class CommandRunner {
       );
       runEnv = undefined;
     }
+    if (command === undefined) {
+      return { stdout: "", stderr: "" };
+    }
 
     const currentWorkingDirectory = workingDirectory
       ? workingDirectory
@@ -89,7 +92,7 @@ export class CommandRunner {
    */
   public async getExecutablePath(
     executable: string,
-  ): Promise<string> | undefined {
+  ): Promise<string | undefined> {
     try {
       const executablePath = await this.runCommand(
         "command",
