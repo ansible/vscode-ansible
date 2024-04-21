@@ -3,13 +3,64 @@ import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 import { URI } from "vscode-uri";
 
+/* Example of minimal inventory object, anything else may be missing.
+
+{
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+
+Example of more complex inventory.
+{
+    "_meta": {
+        "hostvars": {
+            "foo.example.com": {
+                "var_bool": true,
+                "var_number": 1,
+                "var_str": "bar"
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "webservers",
+            "others"
+        ]
+    },
+    "ungrouped": {
+        "hosts": [
+            "zoo"
+        ]
+    },
+    "webservers": {
+        "children": [
+            "webservers-east",
+            "webservers-west"
+        ],
+        "hosts": [
+            "foo.example.com",
+            "www01.example.com",
+            "www02.example.com",
+            "www03.example.com",
+        ]
+    }
+}
+*/
+
 /**
  * Class to extend ansible-inventory executable as a service
  */
 export class AnsibleInventory {
   private connection: Connection;
   private context: WorkspaceFolderContext;
-  private _hostList = [];
+  private _hostList: unknown[];
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -64,7 +115,17 @@ export class AnsibleInventory {
  * @param hostObj - nested object of hosts
  * @returns an array of object with host and priority as keys
  */
-function parseInventoryHosts(hostObj) {
+function parseInventoryHosts(hostObj: object): unknown[] {
+  if (
+    !(
+      "all" in hostObj &&
+      typeof hostObj.all === "object" &&
+      "children" in hostObj.all &&
+      Array.isArray(hostObj.all.children)
+    )
+  ) {
+    return [];
+  }
   const topLevelGroups = hostObj.all.children.filter(
     (item: string) => item !== "ungrouped",
   );
@@ -87,7 +148,14 @@ function parseInventoryHosts(hostObj) {
   const allGroups = [...topLevelGroupsObjList, ...otherGroupsObjList];
 
   let ungroupedHostsObjList = [];
-  if (hostObj.ungrouped) {
+
+  if (
+    "ungrouped" in hostObj &&
+    typeof hostObj.ungrouped === "object" &&
+    "hosts" in hostObj.ungrouped &&
+    Array.isArray(hostObj.ungrouped.hosts) &&
+    hostObj.ungrouped
+  ) {
     ungroupedHostsObjList = hostObj.ungrouped.hosts.map((item) => {
       return { host: item, priority: 3 };
     });
