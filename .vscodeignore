@@ -21,10 +21,12 @@
 !media/contentCreator/icons/ansible-logo-red.png
 !media/contentCreator/scaffoldCollectionPageStyle.css
 !media/contentCreator/welcomePageStyle.css
+!media/lightspeedExplorerView/style.css
 !media/playbookGeneration/playbookGeneration.css
 !media/playbookGeneration/style.css
 !out/client/src/extension.js
 !out/client/webview/apps/lightspeed/main.js
+!out/client/webview/apps/lightspeed/explorer/main.js
 !out/client/webview/apps/lightspeed/playbookExplanation/main.js
 !out/client/webview/apps/lightspeed/playbookGeneration/main.js
 !out/client/webview/apps/contentCreator/welcomePageApp.js

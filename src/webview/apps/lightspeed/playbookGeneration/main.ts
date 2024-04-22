@@ -51,6 +51,12 @@ window.addEventListener("message", (event) => {
       element.value = savedSummary;
       break;
     }
+    // When summaries or generations API was processed normally (e.g., API error)
+    // dismiss the spinner icon here.
+    case "exception": {
+      changeDisplay("spinnerContainer", "none");
+      break;
+    }
   }
 });
 
@@ -64,6 +70,17 @@ function setListener(id: string, func: any) {
   }
 }
 
+function setListenerOnTextArea() {
+  const textArea = document.getElementById("playbook-text-area") as TextArea;
+  const submitButton = document.getElementById("submit-button") as Button;
+  if (textArea) {
+    textArea.addEventListener("input", async () => {
+      const input = textArea.value;
+      submitButton.disabled = input.length === 0;
+    });
+  }
+}
+
 function main() {
   setListener("submit-button", submitInput);
   setListener("generate-button", generatePlaybook);
@@ -71,6 +88,8 @@ function main() {
   setListener("thumbsup-button", sendThumbsup);
   setListener("thumbsdown-button", sendThumbsdown);
   setListener("back-button", back);
+
+  setListenerOnTextArea();
 
   savedInput = "";
   savedSummary = "";
@@ -133,8 +152,8 @@ function sendThumbsup() {
   const thumbsDownButton = document.getElementById(
     "thumbsdown-button",
   ) as Button;
-  thumbsUpButton.appearance = "primary";
-  thumbsDownButton.appearance = "icon";
+  thumbsUpButton.setAttribute("class", "iconButtonSelected");
+  thumbsDownButton.setAttribute("class", "iconButton");
   vscode.postMessage({ command: "thumbsUp" });
 }
 
@@ -143,7 +162,7 @@ function sendThumbsdown() {
   const thumbsDownButton = document.getElementById(
     "thumbsdown-button",
   ) as Button;
-  thumbsUpButton.appearance = "icon";
-  thumbsDownButton.appearance = "primary";
+  thumbsUpButton.setAttribute("class", "iconButton");
+  thumbsDownButton.setAttribute("class", "iconButtonSelected");
   vscode.postMessage({ command: "thumbsDown" });
 }

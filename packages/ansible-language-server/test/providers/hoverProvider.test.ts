@@ -238,9 +238,10 @@ function testNonPlaybookAdjacentCollection(
       if (!doc) {
         expect(actualHover).to.be.null;
       } else {
-        console.log("actual hover -> ", actualHover);
-
-        expect(actualHover.contents["value"]).includes(doc);
+        expect(
+          actualHover.contents["value"],
+          `actual hover -> ${actualHover}`,
+        ).includes(doc);
       }
     });
   });

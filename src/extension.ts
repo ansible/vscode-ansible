@@ -38,7 +38,6 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
-import { TreeDataProvider } from "./treeView";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
   ignorePendingSuggestion,
@@ -68,9 +67,9 @@ import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
 import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
-import { LightspeedAuthSession } from "./interfaces/lightspeed";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { ScaffoldAnsibleProject } from "./features/contentCreator/scaffoldAnsibleProjectPage";
+import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -289,6 +288,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         } else {
           await ignorePendingSuggestion();
         }
+        lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
@@ -336,20 +336,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
-  let session: vscode.AuthenticationSession | undefined;
+  context.subscriptions.push(
+    workspace.onDidChangeTextDocument((e: vscode.TextDocumentChangeEvent) => {
+      inlineSuggestionTextDocumentChangeHandler(e);
+    }),
+  );
 
-  if (await workspace.getConfiguration("ansible").get("lightspeed.enabled")) {
-    session = await authentication.getSession(ANSIBLE_LIGHTSPEED_AUTH_ID, [], {
-      createIfNone: false,
-    });
-  }
+  context.subscriptions.push(
+    lightSpeedManager.lightSpeedAuthenticationProvider.onDidChangeSessions(
+      async () => {
+        if (lightspeedExplorerProvider.webviewView) {
+          lightspeedExplorerProvider.refreshWebView();
+        }
+      },
+    ),
+  );
 
-  if (session) {
-    window.registerTreeDataProvider(
-      "lightspeed-explorer-treeview",
-      new TreeDataProvider(<LightspeedAuthSession>session),
-    );
-  }
+  const lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
+    context.extensionUri,
+    lightSpeedManager.lightSpeedAuthenticationProvider,
+  );
+
+  // Register the Lightspeed provider for a Webview View
+  const lightspeedExplorerDisposable = window.registerWebviewViewProvider(
+    LightspeedExplorerWebviewViewProvider.viewType,
+    lightspeedExplorerProvider,
+  );
+  context.subscriptions.push(lightspeedExplorerDisposable);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
@@ -489,8 +502,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
-      () => {
-        showPlaybookGenerationPage(
+      async () => {
+        await showPlaybookGenerationPage(
           context.extensionUri,
           client,
           lightSpeedManager.lightSpeedAuthenticationProvider,
@@ -515,6 +528,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "redhat.ansible.lightspeedExperimentalEnabled",
           true,
         );
+        lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
+        lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
@@ -635,13 +650,20 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-async function getAuthToken(): Promise<void> {
+export async function isLightspeedEnabled(): Promise<boolean> {
   if (
     !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
   ) {
     await window.showErrorMessage(
       "Enable lightspeed services from settings to use the feature.",
     );
+    return false;
+  }
+  return true;
+}
+
+async function getAuthToken(): Promise<void> {
+  if (!(await isLightspeedEnabled())) {
     return;
   }
   lightSpeedManager.currentModelValue = undefined;
@@ -651,10 +673,6 @@ async function getAuthToken(): Promise<void> {
     {
       createIfNone: true,
     },
-  );
-  window.registerTreeDataProvider(
-    "lightspeed-explorer-treeview",
-    new TreeDataProvider(<LightspeedAuthSession>session),
   );
 
   if (session) {

@@ -22,3 +22,19 @@ export type AnsibleProjectFormInterface = {
   logLevel: string;
   isForced: boolean;
 };
+
+export type PostMessageEvent =
+  | {
+      command: "ADEPresence";
+      arguments: boolean;
+    }
+  | {
+      command: "execution-log";
+      arguments: {
+        commandOutput: string;
+        logFileUrl: string;
+        collectionUrl: string;
+        status: string;
+      };
+      data?: string;
+    };

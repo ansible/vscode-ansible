@@ -5,7 +5,7 @@ import * as cp from "child_process";
 import * as os from "os";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { AnsibleCollectionFormInterface } from "./types";
+import { AnsibleCollectionFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 
@@ -306,11 +306,17 @@ export class AnsibleCreatorInit {
     const ADEVersion = await this.getBinDetail("ade", "--version");
     if (ADEVersion === "failed") {
       // send the system details to the webview
-      webView.postMessage({ command: "ADEPresence", arguments: false });
+      webView.postMessage({
+        command: "ADEPresence",
+        arguments: false,
+      } as PostMessageEvent);
       return;
     }
     // send the system details to the webview
-    webView.postMessage({ command: "ADEPresence", arguments: true });
+    webView.postMessage({
+      command: "ADEPresence",
+      arguments: true,
+    } as PostMessageEvent);
     return;
   }
 
@@ -440,7 +446,7 @@ export class AnsibleCreatorInit {
         collectionUrl: collectionUrl,
         status: ansibleCreatorCommandPassed,
       },
-    });
+    } as PostMessageEvent);
   }
 
   public async openLogFile(fileUrl: string) {

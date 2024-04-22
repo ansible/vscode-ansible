@@ -24,7 +24,7 @@ export class AnsibleLint {
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
-  private _ansibleLintConfigFilePath: string;
+  private _ansibleLintConfigFilePath: string | undefined = undefined;
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;

@@ -9,7 +9,10 @@ import {
   provideVSCodeDesignSystem,
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
-import { AnsibleCollectionFormInterface } from "../../../features/contentCreator/types";
+import {
+  AnsibleCollectionFormInterface,
+  PostMessageEvent,
+} from "../../../features/contentCreator/types";
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -185,17 +188,20 @@ function toggleEditableModeInstallCheckBox() {
     command: "check-ade-presence",
   });
 
-  window.addEventListener("message", (event) => {
-    const message = event.data; // The JSON data our extension sent
+  window.addEventListener(
+    "message",
+    (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data; // The JSON data our extension sent
 
-    if (message.command === "ADEPresence") {
-      if (message.arguments) {
-        editableModeInstall.disabled = false;
-      } else {
-        editableModeInstall.disabled = true;
+      if (message.command === "ADEPresence") {
+        if (message.arguments) {
+          editableModeInstall.disabled = false;
+        } else {
+          editableModeInstall.disabled = true;
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 function handleInitClearClick() {
@@ -249,31 +255,37 @@ function handleInitCreateClick() {
     } as AnsibleCollectionFormInterface,
   });
 
-  window.addEventListener("message", async (event) => {
-    const message = await event.data;
+  window.addEventListener(
+    "message",
+    async (event: MessageEvent<PostMessageEvent>) => {
+      const message = await event.data;
 
-    switch (message.command) {
-      case "execution-log":
-        initLogsTextArea.value = message.arguments.commandOutput;
-        logFileUrl = message.arguments.logFileUrl;
+      switch (message.command) {
+        case "execution-log":
+          initLogsTextArea.value = message.arguments.commandOutput;
+          logFileUrl = message.arguments.logFileUrl;
 
-        if (logFileUrl) {
-          initOpenLogFileButton.disabled = false;
-        } else {
-          initOpenLogFileButton.disabled = true;
-        }
+          if (logFileUrl) {
+            initOpenLogFileButton.disabled = false;
+          } else {
+            initOpenLogFileButton.disabled = true;
+          }
 
-        if (message.arguments.status && message.arguments.status === "passed") {
-          initOpenScaffoldedFolderButton.disabled = false;
-        } else {
-          initOpenScaffoldedFolderButton.disabled = true;
-        }
+          if (
+            message.arguments.status &&
+            message.arguments.status === "passed"
+          ) {
+            initOpenScaffoldedFolderButton.disabled = false;
+          } else {
+            initOpenScaffoldedFolderButton.disabled = true;
+          }
 
-        collectionUrl = message.arguments.collectionUrl;
+          collectionUrl = message.arguments.collectionUrl;
 
-        return;
-    }
-  });
+          return;
+      }
+    },
+  );
 }
 
 function handleInitClearLogsClick() {

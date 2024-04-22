@@ -66,7 +66,7 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 }
 
 /* Get base uri in a correct formatted way */
-export function getBaseUri(settingsManager: SettingsManager) {
+export function getBaseUri(settingsManager: SettingsManager): string {
   const baseUri = settingsManager.settings.lightSpeedService.URL.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }

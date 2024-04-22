@@ -24,34 +24,50 @@ describe("commandRunner", () => {
       rc: 0,
       stdout: `${pkgJSON["version"]}`,
       stderr: "",
+      pythonInterpreterPath: "",
     },
     {
       args: ["ansible-config", "dump"],
       rc: 0,
       stdout: "ANSIBLE_FORCE_COLOR",
       stderr: "",
+      pythonInterpreterPath: "",
     },
     {
       args: ["ansible", "--version"],
       rc: 0,
       stdout: "configured module search path",
       stderr: "",
+      pythonInterpreterPath: "",
     },
     {
       args: ["ansible-lint", "--version"],
       rc: 0,
       stdout: "using ansible",
       stderr: "",
+      pythonInterpreterPath: "",
     },
     {
       args: ["ansible-playbook", "missing-file"],
       rc: 1,
       stdout: "",
       stderr: "ERROR! the playbook: missing-file could not be found",
+      pythonInterpreterPath: "",
+    },
+    {
+      args: [
+        "python",
+        "-c",
+        "\"import os; print(os.environ.get('VIRTUAL_ENV'))\"",
+      ],
+      rc: 0,
+      stdout: "path-before-python",
+      stderr: "",
+      pythonInterpreterPath: "path-before-python/bin/python",
     },
   ];
 
-  tests.forEach(({ args, rc, stdout, stderr }) => {
+  tests.forEach(({ args, rc, stdout, stderr, pythonInterpreterPath }) => {
     it(`call ${args.join(" ")}`, async function () {
       this.timeout(10000);
 
@@ -65,6 +81,9 @@ describe("commandRunner", () => {
       const textDoc = await getDoc("yaml/ancestryBuilder.yml");
       const context = workspaceManager.getContext(textDoc.uri);
       const settings = await context.documentSettings.get(textDoc.uri);
+      if (pythonInterpreterPath) {
+        settings.python.interpreterPath = pythonInterpreterPath;
+      }
 
       const commandRunner = new CommandRunner(connection, context, settings);
       try {

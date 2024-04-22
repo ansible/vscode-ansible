@@ -4,15 +4,9 @@ version: "3"
 env: &env
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
-  # basically the same thing from .envrc file:
-  VIRTUAL_ENV: # "{{.VIRTUAL_ENV}}"
-    sh: echo "${VIRTUAL_ENV:-${PWD}/out/venvs/{{.HOSTNAME}}}"
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
-  XVFB:
-    # prefix to add to allow execution of test in headless machines (CI)
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
 tasks:
   setup:
     desc: Install dependencies
@@ -31,13 +25,15 @@ tasks:
     run: once
     interactive: true
   install:
-    deps:
-      - setup
     cmds:
+      - task: setup
       - yarn install
     sources:
-      - "**/package.json"
+      - "package.json"
+      - "packages/*/package.json"
+      - "packages/*/package-lock.json"
       - yarn.lock
       - node_modules/**/*
       - .tool-versions
+    run: once
     interactive: true

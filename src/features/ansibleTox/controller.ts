@@ -206,9 +206,14 @@ export class AnsibleToxController {
           getTerminal(cwd, getRootParentLabelDesc(test)),
         );
         run.passed(test, Date.now() - start);
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (e: any) {
-        run.failed(test, new vscode.TestMessage(e.message), Date.now() - start);
+      } catch (e: unknown) {
+        let msg;
+        if (e instanceof Error) {
+          msg = e.message;
+        } else {
+          msg = `${e}`;
+        }
+        run.failed(test, new vscode.TestMessage(msg), Date.now() - start);
       }
     }
 

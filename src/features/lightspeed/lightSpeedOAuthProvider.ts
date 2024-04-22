@@ -17,7 +17,6 @@ import {
 import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
 import axios from "axios";
-import { TreeDataProvider } from "../../treeView";
 import { SettingsManager } from "../../settings";
 import {
   generateCodeVerifier,
@@ -226,10 +225,6 @@ export class LightSpeedAuthenticationProvider
           removed: [session],
           changed: [],
         });
-        window.registerTreeDataProvider(
-          "lightspeed-explorer-treeview",
-          new TreeDataProvider(undefined),
-        );
       }
     }
     lightSpeedManager.statusBarProvider.statusBar.text =

@@ -40,7 +40,6 @@ nav:
   - Ansible Language Server:
       - index: als/README.md
       - Settings: als/settings.md
-      - Development: als/development.md
       - Changelog: als/changelog.md
   - Developer Guide:
       - development.md
@@ -60,6 +59,7 @@ plugins:
 
 markdown_extensions:
   - admonition
+  - attr_list
   - def_list
   - footnotes
   - pymdownx.highlight:
