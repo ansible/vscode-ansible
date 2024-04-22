@@ -84,7 +84,13 @@ export class MetadataLibrary {
           }
         });
       } catch (error) {
-        this.connection.window.showErrorMessage(error);
+        let msg: string = "";
+        if (error instanceof Error) {
+          msg = error.message;
+        } else {
+          msg = `${error}`;
+        }
+        this.connection.window.showErrorMessage(msg);
       }
     }
     return metadata;

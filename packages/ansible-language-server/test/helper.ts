@@ -2,7 +2,11 @@ import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
 import { readFileSync } from "fs";
 import { WorkspaceManager } from "../src/services/workspaceManager";
-import { createConnection, TextDocuments } from "vscode-languageserver/node";
+import {
+  CompletionItem,
+  createConnection,
+  TextDocuments,
+} from "vscode-languageserver/node";
 import { ValidationManager } from "../src/services/validationManager";
 import { ExtensionSettings } from "../src/interfaces/extensionSettings";
 
@@ -93,7 +97,10 @@ export function isWindows(): boolean {
  * @param triggerCharacter - string against which fuzzy search is to be done
  * @returns list after sorting and filtering
  */
-export function smartFilter(completionList, triggerCharacter) {
+export function smartFilter(
+  completionList: CompletionItem[],
+  triggerCharacter: string,
+): CompletionItem[] {
   if (!completionList) {
     return [];
   }
@@ -108,7 +115,12 @@ export function smartFilter(completionList, triggerCharacter) {
   });
 
   let filteredCompletionList = triggerCharacter
-    ? searcher.search(triggerCharacter).slice(0, 5)
+    ? searcher
+        .search(triggerCharacter)
+        .slice(0, 5)
+        .map((completion) => {
+          return completion.item;
+        })
     : completionList.slice(0, 5);
 
   if (filteredCompletionList.length === 0) {
@@ -118,9 +130,13 @@ export function smartFilter(completionList, triggerCharacter) {
       keys: ["label"],
       threshold: 0.2,
     });
-
     filteredCompletionList = triggerCharacter
-      ? newSearcher.search(triggerCharacter).slice(0, 5)
+      ? newSearcher
+          .search(triggerCharacter)
+          .slice(0, 5)
+          .map((completion) => {
+            return completion.item;
+          })
       : completionList.slice(0, 5);
   }
 
