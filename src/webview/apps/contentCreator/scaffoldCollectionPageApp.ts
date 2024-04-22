@@ -148,18 +148,24 @@ function openExplorer(event: any) {
     },
   });
 
-  window.addEventListener("message", (event) => {
-    const message = event.data;
-    const selectedUri = message.arguments.selectedUri;
+  window.addEventListener(
+    "message",
+    (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data;
 
-    if (selectedUri) {
-      if (source === "folder-explorer") {
-        initPathUrlTextField.value = selectedUri;
-      } else {
-        logFilePath.value = selectedUri;
+      if (message.command === "file-uri") {
+        const selectedUri = message.arguments.selectedUri;
+
+        if (selectedUri) {
+          if (source === "folder-explorer") {
+            initPathUrlTextField.value = selectedUri;
+          } else {
+            logFilePath.value = selectedUri;
+          }
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 function toggleCreateButton() {
@@ -258,7 +264,7 @@ function handleInitCreateClick() {
   window.addEventListener(
     "message",
     async (event: MessageEvent<PostMessageEvent>) => {
-      const message = await event.data;
+      const message = event.data;
 
       switch (message.command) {
         case "execution-log":
@@ -280,7 +286,9 @@ function handleInitCreateClick() {
             initOpenScaffoldedFolderButton.disabled = true;
           }
 
-          collectionUrl = message.arguments.collectionUrl;
+          collectionUrl = message.arguments.collectionUrl
+            ? message.arguments.collectionUrl
+            : "";
 
           return;
       }

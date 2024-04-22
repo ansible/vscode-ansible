@@ -33,8 +33,13 @@ export type PostMessageEvent =
       arguments: {
         commandOutput: string;
         logFileUrl: string;
-        collectionUrl: string;
+        collectionUrl?: string;
+        projectUrl?: string;
         status: string;
       };
       data?: string;
+    }
+  | {
+      command: "file-uri";
+      arguments: { selectedUri: string | undefined };
     };

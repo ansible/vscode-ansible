@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import * as os from "os";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { AnsibleProjectFormInterface } from "./types";
+import { AnsibleProjectFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, runCommand } from "./utils";
@@ -235,7 +235,7 @@ export class ScaffoldAnsibleProject {
             webview.postMessage({
               command: "file-uri",
               arguments: { selectedUri: selectedUri },
-            });
+            } as PostMessageEvent);
             return;
 
           case "init-create":
@@ -267,7 +267,9 @@ export class ScaffoldAnsibleProject {
     );
   }
 
-  public async openExplorerDialog(selectOption: string) {
+  public async openExplorerDialog(
+    selectOption: string,
+  ): Promise<string | undefined> {
     const options: vscode.OpenDialogOptions = {
       canSelectMany: false,
       openLabel: "Select",
@@ -276,7 +278,7 @@ export class ScaffoldAnsibleProject {
       defaultUri: vscode.Uri.parse(os.homedir()),
     };
 
-    let selectedUri;
+    let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
       if (fileUri && fileUri[0]) {
         selectedUri = fileUri[0].fsPath;
@@ -305,11 +307,6 @@ export class ScaffoldAnsibleProject {
     const destinationPathUrl = destinationPath
       ? destinationPath
       : `${os.homedir()}/${scmOrgName}-${scmProjectName}`;
-
-    // const projectDirectoryUrl = vscode.Uri.joinPath(
-    //   vscode.Uri.parse(initPathUrl),
-    //   projectName,
-    // ).fsPath;
 
     let ansibleCreatorInitCommand = `ansible-creator init --project=ansible-project --init-path=${destinationPathUrl} --scm-org=${scmOrgName} --scm-project=${scmProjectName} --no-ansi`;
 
@@ -379,7 +376,7 @@ export class ScaffoldAnsibleProject {
         projectUrl: destinationPathUrl,
         status: commandPassed,
       },
-    });
+    } as PostMessageEvent);
   }
 
   public async openLogFile(fileUrl: string) {

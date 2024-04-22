@@ -247,7 +247,7 @@ export class AnsibleCreatorInit {
             webview.postMessage({
               command: "file-uri",
               arguments: { selectedUri: selectedUri },
-            });
+            } as PostMessageEvent);
             return;
 
           case "check-ade-presence":
@@ -283,7 +283,9 @@ export class AnsibleCreatorInit {
     );
   }
 
-  public async openExplorerDialog(selectOption: string) {
+  public async openExplorerDialog(
+    selectOption: string,
+  ): Promise<string | undefined> {
     const options: vscode.OpenDialogOptions = {
       canSelectMany: false,
       openLabel: "Select",
@@ -292,7 +294,7 @@ export class AnsibleCreatorInit {
       defaultUri: vscode.Uri.parse(os.homedir()),
     };
 
-    let selectedUri;
+    let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
       if (fileUri && fileUri[0]) {
         selectedUri = fileUri[0].fsPath;
@@ -347,13 +349,15 @@ export class AnsibleCreatorInit {
     // NOTE: this is done in order to synchronize the behavior of ade and extension
     // with the behavior of ansible-creator CLI tool
 
-    const collectionUrl = initPath.endsWith("/collections/ansible_collections")
+    const collectionUrl = initPathUrl.endsWith(
+      "/collections/ansible_collections",
+    )
       ? vscode.Uri.joinPath(
           vscode.Uri.parse(initPathUrl),
           namespaceName,
           collectionName,
         ).fsPath
-      : initPath;
+      : initPathUrl;
 
     let adeCommand = `ade install --editable ${collectionUrl} --no-ansi`;
 

@@ -34,6 +34,7 @@ export async function runCommand(
       })
       .toString();
     return { output: result, status: "passed" };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     const errorMessage = err.stderr.toString();
     return { output: errorMessage, status: "failed" };

@@ -9,7 +9,10 @@ import {
   provideVSCodeDesignSystem,
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
-import { AnsibleProjectFormInterface } from "../../../features/contentCreator/types";
+import {
+  AnsibleProjectFormInterface,
+  PostMessageEvent,
+} from "../../../features/contentCreator/types";
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -138,19 +141,25 @@ function openExplorer(event: any) {
     },
   });
 
-  window.addEventListener("message", (event) => {
-    const message = event.data;
-    const selectedUri = message.arguments.selectedUri;
+  window.addEventListener(
+    "message",
+    (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data;
 
-    if (selectedUri) {
-      if (source === "folder-explorer") {
-        destinationPathUrlTextField.value = selectedUri;
-        initCollectionPathElement.innerHTML = selectedUri;
-      } else {
-        logFilePath.value = selectedUri;
+      if (message.command === "file-uri") {
+        const selectedUri = message.arguments.selectedUri;
+
+        if (selectedUri) {
+          if (source === "folder-explorer") {
+            destinationPathUrlTextField.value = selectedUri;
+            initCollectionPathElement.innerHTML = selectedUri;
+          } else {
+            logFilePath.value = selectedUri;
+          }
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 function toggleCreateButton() {
@@ -233,31 +242,39 @@ function handleInitCreateClick() {
     } as AnsibleProjectFormInterface,
   });
 
-  window.addEventListener("message", async (event) => {
-    const message = await event.data;
+  window.addEventListener(
+    "message",
+    async (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data;
 
-    switch (message.command) {
-      case "execution-log":
-        initLogsTextArea.value = message.arguments.commandOutput;
-        logFileUrl = message.arguments.logFileUrl;
+      switch (message.command) {
+        case "execution-log":
+          initLogsTextArea.value = message.arguments.commandOutput;
+          logFileUrl = message.arguments.logFileUrl;
 
-        if (logFileUrl) {
-          initOpenLogFileButton.disabled = false;
-        } else {
-          initOpenLogFileButton.disabled = true;
-        }
+          if (logFileUrl) {
+            initOpenLogFileButton.disabled = false;
+          } else {
+            initOpenLogFileButton.disabled = true;
+          }
 
-        if (message.arguments.status && message.arguments.status === "passed") {
-          initOpenScaffoldedFolderButton.disabled = false;
-        } else {
-          initOpenScaffoldedFolderButton.disabled = true;
-        }
+          if (
+            message.arguments.status &&
+            message.arguments.status === "passed"
+          ) {
+            initOpenScaffoldedFolderButton.disabled = false;
+          } else {
+            initOpenScaffoldedFolderButton.disabled = true;
+          }
 
-        projectUrl = message.arguments.projectUrl;
+          projectUrl = message.arguments.projectUrl
+            ? message.arguments.projectUrl
+            : "";
 
-        return;
-    }
-  });
+          return;
+      }
+    },
+  );
 }
 
 function handleInitClearLogsClick() {
