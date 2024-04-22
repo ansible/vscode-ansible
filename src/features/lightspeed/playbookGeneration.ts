@@ -182,7 +182,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
         </div>
         <div class="mainContainer">
           <div class="editArea">
-            <vscode-text-area rows=5 resize="both"
+            <vscode-text-area rows=5 resize="vertical"
                 placeholder="Describe the goal in your own words."
                 id="playbook-text-area">
             </vscode-text-area>
@@ -215,7 +215,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             <h4>Examples</h4>
             <div class="exampleTextContainer">
               <p>
-                Create IIS websites on port 8080 and 8081 an open firewall
+                Create IIS websites on port 8080 and 8081 and open firewall
               </p>
             </div>
             <div class="exampleTextContainer">
