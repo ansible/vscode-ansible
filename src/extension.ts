@@ -68,6 +68,7 @@ import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollection
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
+import { ScaffoldAnsibleProject } from "./features/contentCreator/scaffoldAnsibleProjectPage";
 import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 
 export let client: LanguageClient;
@@ -469,6 +470,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.scaffold-ansible-collection",
       () => {
         AnsibleCreatorInit.render(context.extensionUri);
+      },
+    ),
+  );
+
+  // open ansible-creator ansible project scaffolding
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.scaffold-ansible-project",
+      () => {
+        ScaffoldAnsibleProject.render(context.extensionUri);
       },
     ),
   );

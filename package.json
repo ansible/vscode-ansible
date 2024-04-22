@@ -218,6 +218,10 @@
         "title": "Scaffold Ansible Collection"
       },
       {
+        "command": "ansible.content-creator.scaffold-ansible-project",
+        "title": "Scaffold Ansible Project"
+      },
+      {
         "command": "ansible.content-creator.create",
         "title": "Ansible Content Creator: Create"
       },
