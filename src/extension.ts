@@ -450,7 +450,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const pythonInterpreter = extSettings.settings.interpreterPath;
 
         // specify the current python interpreter path in the pip installation
-        const [command, runEnv] = withInterpreter(
+        const { command, env } = withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-creator`,
           "--no-input",
@@ -466,7 +466,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
         terminal = vscode.window.createTerminal({
           name: "Ansible Terminal",
-          env: runEnv,
+          env: env,
         });
         terminal.show();
         terminal.sendText(command);
@@ -652,7 +652,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const pythonInterpreter = extSettings.settings.interpreterPath;
 
         // specify the current python interpreter path in the pip installation
-        const [command, runEnv] = withInterpreter(
+        const { command, env } = withInterpreter(
           extSettings.settings,
           `${pythonInterpreter} -m pip install ansible-dev-tools`,
           "--no-input",
@@ -678,7 +678,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
             try {
               const result = execSync(command, {
-                env: runEnv,
+                env: env,
               }).toString();
               commandOutput = result;
               outputChannel.append(commandOutput);

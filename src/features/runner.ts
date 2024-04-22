@@ -153,14 +153,14 @@ export class AnsiblePlaybookRunProvider {
     // replace spaces in file name with escape sequence '\ '
     commandLineArgs.push(playbookFsPath.replace(/(\s)/, "\\ "));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
-    const [command, runEnv] = withInterpreter(
+    const { command, env } = withInterpreter(
       this.extensionSettings.settings,
       runExecutable,
       cmdArgs,
     );
 
     console.debug(`Running command: ${command}`);
-    this.invokeInTerminal(command, runEnv);
+    this.invokeInTerminal(command, env);
   }
 
   /**
@@ -185,13 +185,13 @@ export class AnsiblePlaybookRunProvider {
 
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const runCmdArgs = `run ${cmdArgs}`;
-    const [command, runEnv] = withInterpreter(
+    const { command, env } = withInterpreter(
       this.extensionSettings.settings,
       runExecutable,
       runCmdArgs,
     );
     console.debug(`Running command: ${command}`);
-    this.invokeInTerminal(command, runEnv);
+    this.invokeInTerminal(command, env);
   }
 }
 
