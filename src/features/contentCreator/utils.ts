@@ -34,9 +34,20 @@ export async function runCommand(
       })
       .toString();
     return { output: result, status: "passed" };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (err: any) {
-    const errorMessage = err.stderr.toString();
+  } catch (error) {
+    let errorMessage: string;
+    if (error instanceof Error) {
+      const execError = error as cp.ExecException & {
+        // according to the docs, these are always available
+        stdout: string;
+        stderr: string;
+      };
+
+      errorMessage = execError.stdout ? execError.stdout : execError.stderr;
+      errorMessage += execError.message;
+    } else {
+      errorMessage = `Exception: ${JSON.stringify(error)}`;
+    }
     return { output: errorMessage, status: "failed" };
   }
 }
