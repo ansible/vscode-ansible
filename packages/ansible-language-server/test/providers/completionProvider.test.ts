@@ -50,15 +50,8 @@ function testPlayKeywords(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -95,15 +88,8 @@ function testRoleKeywords(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -140,15 +126,8 @@ function testBlockKeywords(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -185,15 +164,8 @@ function testTaskKeywords(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -266,15 +238,8 @@ function testModuleNames(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).to.contain(completion);
-          expect(filteredCompletion[0].textEdit.newText).to.contain(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.contain(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).to.contain(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).to.contain(completion);
+        expect(filteredCompletion[0].textEdit.newText).to.contain(completion);
       }
     });
   });
@@ -335,15 +300,8 @@ function testModuleOptions(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -394,11 +352,7 @@ function testModuleOptionsValues(
         actualCompletion,
         triggerCharacter,
       ).map((completion) => {
-        if (!completion.item) {
-          return completion.label;
-        } else {
-          return completion.item.label;
-        }
+        return completion.label;
       });
 
       if (!completion) {
@@ -411,11 +365,7 @@ function testModuleOptionsValues(
         actualCompletion,
         triggerCharacter,
       ).map((completion) => {
-        if (!completion.item) {
-          return completion.textEdit.newText;
-        } else {
-          return completion.item.textEdit.newText;
-        }
+        return completion.textEdit.newText;
       });
 
       if (!completion) {
@@ -479,15 +429,8 @@ function testModuleNamesWithoutFQCN(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).to.be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -530,15 +473,8 @@ function testPlaybookAdjacentCollection(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -575,15 +511,8 @@ function testNonPlaybookAdjacentCollection(
       if (!completion) {
         expect(filteredCompletion.length).be.equal(0);
       } else {
-        if (!filteredCompletion[0].item) {
-          expect(filteredCompletion[0].label).be.equal(completion);
-          expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
-        } else {
-          expect(filteredCompletion[0].item.label).to.be.equal(completion);
-          expect(filteredCompletion[0].item.textEdit.newText).be.equal(
-            completion,
-          );
-        }
+        expect(filteredCompletion[0].label).be.equal(completion);
+        expect(filteredCompletion[0].textEdit.newText).be.equal(completion);
       }
     });
   });
@@ -628,11 +557,7 @@ function testHostValues(
         actualCompletion,
         triggerCharacter,
       ).map((completion) => {
-        if (!completion.item) {
-          return completion.label;
-        } else {
-          return completion.item.label;
-        }
+        return completion.label;
       });
 
       if (!completion) {
@@ -689,11 +614,7 @@ function testVarsCompletionInsideJinja(
         actualCompletion,
         triggerCharacter,
       ).map((completion) => {
-        if (!completion.item) {
-          return completion.label;
-        } else {
-          return completion.item.label;
-        }
+        return completion.label;
       });
 
       if (!completion) {
