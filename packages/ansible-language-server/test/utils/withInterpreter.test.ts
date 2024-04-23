@@ -67,6 +67,7 @@ describe("withInterpreter", () => {
 
           expectedKeys.forEach((key) => {
             expect(actualCommand[1]).to.haveOwnProperty(key);
+            expect(typeof actualCommand[1] === "object");
             expect(actualCommand[1][key]).to.include(expectedEnv[key]);
           });
         }
