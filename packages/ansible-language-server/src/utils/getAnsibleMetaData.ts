@@ -5,20 +5,38 @@ import { CommandRunner } from "./commandRunner";
 import * as child_process from "child_process";
 
 let context: WorkspaceFolderContext;
-let connection: Connection;
+let connection: Connection | undefined;
+
+export interface ansibleMetaDataEntryType {
+  [name: string]:
+    | {
+        [name: string]: string | string[] | undefined | object[];
+      }
+    | string
+    | string[]
+    | object[]
+    | undefined;
+}
+
+export interface ansibleMetaDataType {
+  "ansible information"?: ansibleMetaDataEntryType;
+  "python information"?: ansibleMetaDataEntryType;
+  "ansible-lint information"?: ansibleMetaDataEntryType;
+  "execution environment information"?: ansibleMetaDataEntryType | undefined;
+}
 
 export async function getAnsibleMetaData(
   contextLocal: WorkspaceFolderContext,
-  connectionLocal: Connection,
-) {
+  connectionLocal: Connection | undefined,
+): Promise<ansibleMetaDataType> {
   context = contextLocal;
   connection = connectionLocal;
 
-  const ansibleMetaData = {};
-
-  ansibleMetaData["ansible information"] = await getAnsibleInfo();
-  ansibleMetaData["python information"] = await getPythonInfo();
-  ansibleMetaData["ansible-lint information"] = await getAnsibleLintInfo();
+  const ansibleMetaData: ansibleMetaDataType = {
+    "ansible information": await getAnsibleInfo(),
+    "python information": await getPythonInfo(),
+    "ansible-lint information": await getAnsibleLintInfo(),
+  };
 
   const settings = await context.documentSettings.get(
     context.workspaceFolder.uri,
@@ -32,7 +50,7 @@ export async function getAnsibleMetaData(
   return ansibleMetaData;
 }
 
-export async function getResultsThroughCommandRunner(cmd, arg) {
+export async function getResultsThroughCommandRunner(cmd: string, arg: string) {
   const settings = await context.documentSettings.get(
     context.workspaceFolder.uri,
   );
@@ -56,8 +74,14 @@ export async function getResultsThroughCommandRunner(cmd, arg) {
       return result;
     }
   } catch (error) {
+    let errorMessage: string;
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else {
+      errorMessage = String(error);
+    }
     console.log(
-      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${error.toString()}`,
+      `cmd '${cmd} ${arg}' was not executed with the following error: ' ${errorMessage}`,
     );
     return undefined;
   }
@@ -66,7 +90,7 @@ export async function getResultsThroughCommandRunner(cmd, arg) {
 }
 
 async function getAnsibleInfo() {
-  const ansibleInfo = {};
+  const ansibleInfo: ansibleMetaDataEntryType = {};
 
   const ansibleVersionObj = (await context.ansibleConfig).ansible_meta_data;
   const ansibleVersionObjKeys = Object.keys(ansibleVersionObj);
@@ -76,21 +100,25 @@ async function getAnsibleInfo() {
     return ansibleInfo;
   }
 
-  let ansibleCoreVersion;
+  let ansibleCoreVersion: string[] = [];
   if (ansibleVersionObjKeys[0].includes(" [")) {
     ansibleCoreVersion = ansibleVersionObjKeys[0].split(" [");
   } else {
     ansibleCoreVersion = ansibleVersionObjKeys[0].split(" ");
   }
   ansibleInfo["core version"] = ansibleCoreVersion[1]
-    .slice(0, -1)
-    .split(" ")
-    .pop()
-    .trim();
+    ?.slice(0, -1)
+    ?.split(" ")
+    ?.pop()
+    ?.trim();
 
   ansibleInfo["location"] = (await context.ansibleConfig).ansible_location;
 
-  ansibleInfo["config file path"] = ansibleVersionObj["config file"];
+  if ("config file" in ansibleVersionObj) {
+    ansibleInfo["config file path"] = ansibleVersionObj[
+      "config file"
+    ] as string;
+  }
 
   ansibleInfo["collections location"] = (
     await context.ansibleConfig
@@ -108,7 +136,7 @@ async function getAnsibleInfo() {
 }
 
 async function getPythonInfo() {
-  const pythonInfo = {};
+  const pythonInfo: ansibleMetaDataEntryType = {};
 
   const pythonVersionResult = await getResultsThroughCommandRunner(
     "python3",
@@ -118,25 +146,25 @@ async function getPythonInfo() {
     return pythonInfo;
   }
 
-  pythonInfo["version"] = pythonVersionResult.stdout
-    .trim()
-    .split(" ")
-    .pop()
-    .trim();
+  pythonInfo["version"] = pythonVersionResult?.stdout
+    ?.trim()
+    ?.split(" ")
+    ?.pop()
+    ?.trim();
 
   const pythonPathResult = await getResultsThroughCommandRunner(
     "python3",
     '-c "import sys; print(sys.executable)"',
   );
-  pythonInfo["location"] = pythonPathResult.stdout.trim();
+  pythonInfo["location"] = pythonPathResult?.stdout?.trim();
 
   return pythonInfo;
 }
 
 async function getAnsibleLintInfo() {
-  const ansibleLintInfo = {};
+  const ansibleLintInfo: ansibleMetaDataEntryType = {};
 
-  let ansibleLintVersionResult = await getResultsThroughCommandRunner(
+  const ansibleLintVersionResult = await getResultsThroughCommandRunner(
     "ansible-lint",
     "--version",
   );
@@ -153,21 +181,20 @@ async function getAnsibleLintInfo() {
   // ansible-lint version reports if a newer version of the ansible-lint is available or not
   // along with the current version itself
   // so the following lines of code are to segregate the two information into to keys
-  ansibleLintVersionResult = ansibleLintVersionResult.stdout.trim().split("\n");
-  const ansibleLintVersion = ansibleLintVersionResult[0];
-  const ansibleLintUpgradeStatus = ansibleLintVersionResult[1]
-    ? ansibleLintVersionResult[1]
-    : undefined;
-
-  ansibleLintInfo["version"] = ansibleLintVersion
-    .split("using")[0]
+  const ansibleLintVersionStdout = ansibleLintVersionResult.stdout
     .trim()
-    .split(" ")
-    .pop()
-    .trim();
-  ansibleLintInfo["upgrade status"] = ansibleLintUpgradeStatus;
+    .split("\n");
+  const ansibleLintVersion = ansibleLintVersionStdout[0];
+  if (ansibleLintVersionStdout.length >= 2) {
+    ansibleLintInfo["upgrade status"] = ansibleLintVersionStdout[1];
+  }
 
-  ansibleLintInfo["location"] = ansibleLintPathResult.stdout.trim();
+  ansibleLintInfo["version"] =
+    ansibleLintVersion?.split("using")[0]?.trim()?.split(" ")?.pop()?.trim() ||
+    undefined;
+
+  ansibleLintInfo["location"] =
+    ansibleLintPathResult?.stdout?.trim() || undefined;
 
   ansibleLintInfo["config file path"] =
     context.ansibleLint.ansibleLintConfigFilePath;
@@ -176,12 +203,12 @@ async function getAnsibleLintInfo() {
 }
 
 async function getExecutionEnvironmentInfo() {
-  const eeInfo = {};
+  const eeInfo: ansibleMetaDataEntryType = {};
 
   const basicDetails = (await context.executionEnvironment)
     .getBasicContainerAndImageDetails;
 
-  eeInfo["container engine"] = basicDetails.containerEngine;
+  eeInfo["container engine"] = String(basicDetails.containerEngine);
   eeInfo["container image"] = basicDetails.containerImage;
   eeInfo["container image ID"] = basicDetails.containerImageId;
 
