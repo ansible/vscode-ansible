@@ -724,6 +724,10 @@
           "site.yaml"
         ],
         "firstLine": "# code: language=ansible",
+        "icon": {
+          "dark": "images/ansible-fileicon.svg",
+          "light": "images/ansible-fileicon.svg"
+        },
         "configuration": "./ansible-language-configuration.json"
       },
       {
