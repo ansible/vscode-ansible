@@ -106,7 +106,9 @@ export function smartFilter(
   }
 
   // Sort completion list based on `sortText` property of the completion item
-  completionList.sort((a, b) => a.sortText.localeCompare(b.sortText));
+  completionList.sort((a: CompletionItem, b: CompletionItem) =>
+    a.sortText && b.sortText ? a.sortText.localeCompare(b?.sortText) : 0,
+  );
 
   // Construct a new Fuse object to do fuzzy search with key as `filterText` property of the completion item
   const searcher = new Fuse(completionList, {

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "alwaysStrict": true,
+    // "strict": true,
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

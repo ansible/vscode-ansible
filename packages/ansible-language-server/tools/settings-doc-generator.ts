@@ -1,11 +1,12 @@
-import Handlebars = require("handlebars");
+import * as Handlebars from "handlebars";
 import * as fs from "fs";
 import { SettingsManager } from "../src/services/settingsManager";
 import * as path from "path";
 import * as _ from "lodash";
+import { ExtensionSettingsWithDescriptionBase } from "../src/interfaces/extensionSettings";
 
 // Get the default settings values from settingsManager class
-const settingsManager = new SettingsManager(null, null);
+const settingsManager = new SettingsManager(null, false);
 const defaultSettings = {
   ansible: settingsManager.defaultSettingsWithDescription,
 };
@@ -73,14 +74,22 @@ const settingsReadmeFileUri = path.join(
 
 // Register a special function for handlebars to deal with comparison of stringed value of false
 // Else, normal #if treats it as boolean, even after converting booleans to strings in typescript
-Handlebars.registerHelper("ifEqualsFalse", function (arg1, options) {
-  return arg1.toString() === "false" ? options.fn(this) : options.inverse(this);
-});
+Handlebars.registerHelper(
+  "ifEqualsFalse",
+  function (this: unknown, arg1: unknown, options: Handlebars.HelperOptions) {
+    return String(arg1) === "false" ? options.fn(this) : options.inverse(this);
+  },
+);
 
 // Register a special function for handlebars to deal with the checking of "list" as value type of settings
-Handlebars.registerHelper("ifValueArray", function (arg1, options) {
-  return arg1.toString() === "list" ? options.fn(this) : options.inverse(this);
-});
+Handlebars.registerHelper(
+  "ifValueArray",
+  function (this: unknown, arg1, options: Handlebars.HelperOptions) {
+    return arg1.toString() === "list"
+      ? options.fn(this)
+      : options.inverse(this);
+  },
+);
 
 const template = Handlebars.compile(TEMPLATE);
 const output = template({ arrayOfDefaultSettings });
@@ -91,7 +100,11 @@ console.log(
 );
 console.log(`File: ${settingsReadmeFileUri}`);
 
-export function toDotNotation(obj, res = {}, current = "") {
+export function toDotNotation(
+  obj: ExtensionSettingsWithDescriptionBase,
+  res: ExtensionSettingsWithDescriptionBase = {},
+  current = "",
+): ExtensionSettingsWithDescriptionBase {
   for (const key in obj) {
     const value = obj[key];
     const newKey = current ? `${current}.${key}` : key; // joined key with dot
@@ -99,7 +112,11 @@ export function toDotNotation(obj, res = {}, current = "") {
       if (_.isArray(value) && value[0]) {
         toDotNotation(value[0], res, `${newKey}._array`); // it's an array object, so do it again (to identify array '._array' is added)
       } else {
-        toDotNotation(value, res, newKey); // it's a nested object, so do it again
+        toDotNotation(
+          value as ExtensionSettingsWithDescriptionBase,
+          res,
+          newKey,
+        ); // it's a nested object, so do it again
       }
     } else {
       res[newKey] = value; // it's not an object, so set the property
@@ -108,7 +125,17 @@ export function toDotNotation(obj, res = {}, current = "") {
   return res;
 }
 
-export function structureSettings(settingsInDotNotation) {
+type SettingEntry = {
+  parent?: SettingEntry;
+  key?: string;
+  setting: string;
+  defaultValue: string | string[];
+  valueType: string;
+  slug: string;
+};
+export function structureSettings(
+  settingsInDotNotation: ExtensionSettingsWithDescriptionBase,
+) {
   // Form an appropriate structure so that it is easier to iterate over it in the template
   // Structure is as follows:
   //
@@ -141,8 +168,8 @@ export function structureSettings(settingsInDotNotation) {
   //   }
   // ]
 
-  const settingsArray = [];
-  const objWithArrayValues = [];
+  const settingsArray: SettingEntry[] = [];
+  const objWithArrayValues: SettingEntry[] = [];
   const keysWithArrayValues = []; // keep track of keys whose elements are array
   for (const k in settingsInDotNotation) {
     const keyArray = k.split(".");
@@ -164,7 +191,7 @@ export function structureSettings(settingsInDotNotation) {
           ? settingsInDotNotation[`${key}.default`]
           : "",
         description: settingsInDotNotation[`${key}.description`],
-      };
+      } as unknown as SettingEntry;
 
       objWithArrayValues.push(arrayObj);
       // break;
@@ -177,7 +204,7 @@ export function structureSettings(settingsInDotNotation) {
         description: settingsInDotNotation[`${key}.description`],
         valueType: typeof settingsInDotNotation[`${key}.default`],
         slug: key.replace("ansible.", ""),
-      };
+      } as SettingEntry;
 
       settingsArray.push(obj);
     }
@@ -196,7 +223,7 @@ export function structureSettings(settingsInDotNotation) {
       defaultValue: arrayObjFinal[k],
       valueType: "list",
       slug: k.replace("ansible.", ""),
-    };
+    } as unknown as SettingEntry;
 
     settingsArray.push(obj);
   }
@@ -204,7 +231,9 @@ export function structureSettings(settingsInDotNotation) {
   return makeSettingsUnique(settingsArray);
 }
 
-export function makeSettingsUnique(arrayObject) {
+export function makeSettingsUnique(
+  arrayObject: SettingEntry[],
+): SettingEntry[] {
   const uniqueSettings = arrayObject.filter((value, index) => {
     const _value = JSON.stringify(value);
     return (

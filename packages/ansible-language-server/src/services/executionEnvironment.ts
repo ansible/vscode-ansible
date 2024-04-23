@@ -16,17 +16,18 @@ import { IVolumeMounts } from "../interfaces/extensionSettings";
 
 export class ExecutionEnvironment {
   public isServiceInitialized: boolean = false;
-  private settings: ExtensionSettings;
+  private settings: ExtensionSettings | undefined = undefined;
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
   private successFileMarker = "SUCCESS";
   private settingsVolumeMounts: string[] = [];
-  private settingsContainerOptions: string;
-  private _container_engine: IContainerEngine;
-  private _container_image: string;
-  private _container_image_id: string;
-  private _container_volume_mounts: Array<IVolumeMounts>;
+  private settingsContainerOptions: string | undefined = undefined;
+  private _container_engine: IContainerEngine | undefined = undefined;
+  private _container_image: string | undefined = undefined;
+  private _container_image_id: string | undefined = undefined;
+  private _container_volume_mounts: Array<IVolumeMounts> | undefined =
+    undefined;
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -78,7 +79,7 @@ export class ExecutionEnvironment {
   }
 
   public async fetchPluginDocs(ansibleConfig: AnsibleConfig): Promise<void> {
-    if (!this.isServiceInitialized) {
+    if (!this.isServiceInitialized || !this._container_image) {
       this.connection.console.error(
         `ExecutionEnvironment service not correctly initialized. Failed to fetch plugin docs`,
       );
@@ -196,7 +197,11 @@ export class ExecutionEnvironment {
     command: string,
     mountPaths?: Set<string>,
   ): string | undefined {
-    if (!this.isServiceInitialized) {
+    if (
+      !this.isServiceInitialized ||
+      !this._container_engine ||
+      !this._container_image
+    ) {
       this.connection.console.error(
         "ExecutionEnvironment service not correctly initialized.",
       );
@@ -257,7 +262,9 @@ export class ExecutionEnvironment {
       // docker does not support this option
       containerCommand.push("--quiet");
     } else {
-      containerCommand.push(`--user=${process.getuid()}`);
+      if (process.getuid) {
+        containerCommand.push(`--user=${process.getuid()}`);
+      }
     }
 
     // handle container options setting from client
@@ -284,6 +291,12 @@ export class ExecutionEnvironment {
   }
 
   private async pullContainerImage(): Promise<boolean> {
+    if (!this._container_engine || !this._container_image || !this.settings) {
+      this.connection.window.showErrorMessage(
+        "Execution environment not properly initialized.",
+      );
+      return false;
+    }
     const imagePuller = new ImagePuller(
       this.connection,
       this.context,
@@ -304,6 +317,13 @@ export class ExecutionEnvironment {
   }
 
   private setContainerEngine(): boolean {
+    if (!this._container_engine) {
+      this.connection.window.showErrorMessage(
+        "Unable to setContainerEngine with incompletely initialized settings.",
+      );
+      return false;
+    }
+
     if (this._container_engine === "auto") {
       for (const ce of ["podman", "docker"]) {
         try {
@@ -422,7 +442,13 @@ export class ExecutionEnvironment {
         .trim();
       return result.trim() !== "";
     } catch (error) {
-      this.connection.console.error(error);
+      let message: string;
+      if (error instanceof Error) {
+        message = error.message;
+      } else {
+        message = JSON.stringify(error);
+      }
+      this.connection.console.error(message);
       return false;
     }
   }

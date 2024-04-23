@@ -1,4 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { Position } from "vscode-languageserver";
 import { expect } from "chai";
 import {
   createTestWorkspaceManager,
@@ -9,7 +10,6 @@ import {
   setFixtureAnsibleCollectionPathEnv,
 } from "../helper";
 import { doHover } from "../../src/providers/hoverProvider";
-import { Position } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
 
 function testPlayKeywords(
@@ -254,7 +254,8 @@ describe("doHover()", () => {
   let context = workspaceManager.getContext(fixtureFileUri);
 
   let textDoc = getDoc(fixtureFilePath);
-  let docSettings = context.documentSettings.get(textDoc.uri);
+  let docSettings = context?.documentSettings.get(textDoc.uri);
+  expect(docSettings !== undefined);
 
   describe("Play keywords hover", () => {
     describe("With EE enabled @ee", () => {
@@ -262,24 +263,32 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
-
-      testPlayKeywords(context, textDoc);
+      if (context) {
+        testPlayKeywords(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
-
-      testPlayKeywords(context, textDoc);
+      if (context) {
+        testPlayKeywords(context, textDoc);
+      }
     });
   });
 
@@ -289,24 +298,32 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
-
-      testTaskKeywords(context, textDoc);
+      if (context) {
+        testTaskKeywords(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
-
-      testTaskKeywords(context, textDoc);
+      if (context) {
+        testTaskKeywords(context, textDoc);
+      }
     });
   });
 
@@ -316,33 +333,42 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testBlockKeywords(context, textDoc);
+      if (context) {
+        testBlockKeywords(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testBlockKeywords(context, textDoc);
+      if (context) {
+        testBlockKeywords(context, textDoc);
+      }
     });
   });
-
   fixtureFilePath = "hover/roles.yml";
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
 
   textDoc = getDoc(fixtureFilePath);
-  docSettings = context.documentSettings.get(textDoc.uri);
+  docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Role keywords hover", () => {
     describe("With EE enabled @ee", () => {
@@ -350,24 +376,34 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testRoleKeywords(context, textDoc);
+      if (context) {
+        testRoleKeywords(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testRoleKeywords(context, textDoc);
+      if (context) {
+        testRoleKeywords(context, textDoc);
+      }
     });
   });
 
@@ -376,7 +412,7 @@ describe("doHover()", () => {
   context = workspaceManager.getContext(fixtureFileUri);
 
   textDoc = getDoc(fixtureFilePath);
-  docSettings = context.documentSettings.get(textDoc.uri);
+  docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Module name and options hover", () => {
     describe("With EE enabled @ee", () => {
@@ -384,24 +420,34 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testModuleNames(context, textDoc);
+      if (context) {
+        testModuleNames(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testModuleNames(context, textDoc);
+      if (context) {
+        testModuleNames(context, textDoc);
+      }
     });
   });
 
@@ -411,24 +457,34 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testNoHover(context, textDoc);
+      if (context) {
+        testNoHover(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testNoHover(context, textDoc);
+      if (context) {
+        testNoHover(context, textDoc);
+      }
     });
   });
 
@@ -436,7 +492,7 @@ describe("doHover()", () => {
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
   textDoc = getDoc(fixtureFilePath);
-  docSettings = context.documentSettings.get(textDoc.uri);
+  docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Hover for playbook adjacent collection", () => {
     describe("With EE enabled @ee", () => {
@@ -444,24 +500,34 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testPlaybookAdjacentCollection(context, textDoc);
+      if (context) {
+        testPlaybookAdjacentCollection(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testPlaybookAdjacentCollection(context, textDoc);
+      if (context) {
+        testPlaybookAdjacentCollection(context, textDoc);
+      }
     });
   });
 
@@ -470,7 +536,7 @@ describe("doHover()", () => {
   fixtureFileUri = resolveDocUri(fixtureFilePath);
   context = workspaceManager.getContext(fixtureFileUri);
   textDoc = getDoc(fixtureFilePath);
-  docSettings = context.documentSettings.get(textDoc.uri);
+  docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Negate hover for non playbook adjacent collection", () => {
     describe("With EE enabled @ee", () => {
@@ -478,24 +544,34 @@ describe("doHover()", () => {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testNonPlaybookAdjacentCollection(context, textDoc);
+      if (context) {
+        testNonPlaybookAdjacentCollection(context, textDoc);
+      }
 
       after(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testNonPlaybookAdjacentCollection(context, textDoc);
+      if (context) {
+        testNonPlaybookAdjacentCollection(context, textDoc);
+      }
     });
   });
 });
