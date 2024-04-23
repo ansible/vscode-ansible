@@ -4,6 +4,7 @@ import { DidChangeConfigurationParams } from "vscode-languageserver-protocol";
 import {
   ExtensionSettingsWithDescription,
   ExtensionSettings,
+  SettingsEntry,
 } from "../interfaces/extensionSettings";
 
 export class SettingsManager {
@@ -130,7 +131,7 @@ export class SettingsManager {
   // Structure the settings similar to the ExtensionSettings interface for usage in the code
   private defaultSettings: ExtensionSettings = this._settingsAdjustment(
     _.cloneDeep(this.defaultSettingsWithDescription),
-  );
+  ) as unknown as ExtensionSettings;
 
   public globalSettings: ExtensionSettings = this.defaultSettings;
 
@@ -223,18 +224,24 @@ export class SettingsManager {
    * @param settingsObject - settings object with `default` and `description` as keys
    * @returns settings - object with a structure similar to ExtensionSettings interface
    */
-  private _settingsAdjustment(settingsObject) {
+  private _settingsAdjustment(
+    settingsObject: ExtensionSettingsWithDescription | SettingsEntry,
+  ): ExtensionSettingsWithDescription {
     for (const key in settingsObject) {
       const value = settingsObject[key];
 
-      if (value && typeof value === "object") {
-        if (value.default !== undefined) {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        if (
+          Object.hasOwn(value, "default") &&
+          value.default !== undefined &&
+          typeof value.default != "object"
+        ) {
           settingsObject[key] = value.default;
         } else {
           this._settingsAdjustment(value);
         }
       }
     }
-    return settingsObject;
+    return settingsObject as ExtensionSettingsWithDescription;
   }
 }
