@@ -10,7 +10,12 @@ export type IContainerEngine = "auto" | "podman" | "docker";
 
 export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
-export interface ExtensionSettingsWithDescription {
+interface ExtensionSettingsWithDescriptionBase {
+  [key: string]: SettingsEntry | string | boolean;
+}
+
+export interface ExtensionSettingsWithDescription
+  extends ExtensionSettingsWithDescriptionBase {
   ansible: AnsibleSettingsWithDescription;
   completion: CompletionSettingsWithDescription;
   validation: ValidationSettingsWithDescription;
@@ -18,7 +23,18 @@ export interface ExtensionSettingsWithDescription {
   python: PythonSettingsWithDescription;
 }
 
-export interface ExtensionSettings {
+export interface ExtensionSettingsType {
+  [name: string]:
+    | ExtensionSettingsType
+    | string
+    | boolean
+    | string[]
+    | IContainerEngine
+    | IPullPolicy
+    | IVolumeMounts[];
+}
+
+export interface ExtensionSettings extends ExtensionSettingsType {
   ansible: {
     path: string;
     useFullyQualifiedCollectionNames: boolean;
@@ -45,7 +61,7 @@ export interface ExtensionSettings {
 /**
  * Interface for execution environment settings
  */
-interface ExecutionEnvironmentSettingsWithDescription {
+interface ExecutionEnvironmentSettingsWithDescription extends SettingsEntry {
   containerEngine: {
     default: IContainerEngine;
     description: string;
@@ -73,7 +89,23 @@ export interface IVolumeMounts {
 /**
  * Interface for ansible settings
  */
-interface AnsibleSettingsWithDescription {
+export interface SettingsEntry {
+  [name: string]:
+    | {
+        default: string | boolean;
+        description: string;
+      }
+    | SettingsEntry
+    | string
+    | boolean
+    | Array<{
+        src: { default: string; description: string };
+        dest: { default: string; description: string };
+        options: { default: string; description: string };
+      }>;
+}
+
+interface AnsibleSettingsWithDescription extends SettingsEntry {
   path: {
     default: string;
     description: string;
@@ -87,7 +119,7 @@ interface AnsibleSettingsWithDescription {
 /**
  * Interface for python settings
  */
-interface PythonSettingsWithDescription {
+interface PythonSettingsWithDescription extends SettingsEntry {
   interpreterPath: {
     default: string;
     description: string;
@@ -101,7 +133,7 @@ interface PythonSettingsWithDescription {
 /**
  * Interface for completion settings
  */
-interface CompletionSettingsWithDescription {
+interface CompletionSettingsWithDescription extends SettingsEntry {
   provideRedirectModules: {
     default: boolean;
     description: string;
@@ -115,7 +147,7 @@ interface CompletionSettingsWithDescription {
 /**
  * Interface for validation settings
  */
-interface ValidationSettingsWithDescription {
+interface ValidationSettingsWithDescription extends SettingsEntry {
   enabled: {
     default: boolean;
     description: string;

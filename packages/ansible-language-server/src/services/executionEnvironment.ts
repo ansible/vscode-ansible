@@ -15,7 +15,7 @@ import {
 import { IVolumeMounts } from "../interfaces/extensionSettings";
 
 export class ExecutionEnvironment {
-  public isServiceInitialized: boolean;
+  public isServiceInitialized: boolean = false;
   private settings: ExtensionSettings;
   private connection: Connection;
   private context: WorkspaceFolderContext;
