@@ -9,7 +9,9 @@ export class Log {
   private output: vscode.LogOutputChannel;
 
   constructor() {
-    this.output = vscode.window.createOutputChannel("Ansible Lightspeed", { log: true });
+    this.output = vscode.window.createOutputChannel("Ansible Lightspeed", {
+      log: true,
+    });
   }
 
   public trace(message: string): void {
