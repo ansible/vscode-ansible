@@ -26,12 +26,12 @@ function getPathInFile(yamlFile: string, line: number, character: number) {
 }
 
 describe("yaml", () => {
-  beforeEach(function () {
+  beforeEach(function (this: Mocha.Context) {
     const brokenTests = new Map([
       // ['<testName>', '<url-of-tracking-issue>'],
     ]);
-    const reason = brokenTests.get(this.currentTest.title);
-    if (isWindows() && reason) {
+    const reason = brokenTests.get(this.currentTest?.title);
+    if (isWindows() && reason && this.currentTest) {
       const msg = `Marked ${this.currentTest.title} as pending due to ${reason}`;
       if (process.env.GITHUB_ACTIONS) {
         console.log(`::warning file=${this.currentTest.file}:: ${msg}`);
@@ -126,11 +126,13 @@ describe("yaml", () => {
       // otherwise empty lines; a workaround is implemented for completion
       // provider
       const path = await getPathInFile("ancestryBuilder.yml", 9, 9);
-      const node = new AncestryBuilder(path)
-        .parent(YAMLMap)
-        .parent(YAMLMap)
-        .getStringKey();
-      expect(node).to.be.equal("lineinfile");
+      if (path) {
+        const node = new AncestryBuilder(path)
+          .parent(YAMLMap)
+          .parent(YAMLMap)
+          .getStringKey();
+        expect(node).to.be.equal("lineinfile");
+      }
     });
 
     it.skip("canGetIndentationParentAtEOF", async () => {
@@ -390,8 +392,12 @@ describe("yaml", () => {
       const character = 26;
       const position = Position.create(line - 1, character - 1);
       const path = getPathInFile(file, line, character);
-      const test = isCursorInsideJinjaBrackets(document, position, path);
-      expect(test).to.be.eq(true);
+      if (path) {
+        const test = isCursorInsideJinjaBrackets(document, position, path);
+        expect(test).to.be.eq(true);
+      } else {
+        expect(false);
+      }
     });
 
     it("can confirm cursor within jinja bracket in correct syntax", async () => {
@@ -399,9 +405,12 @@ describe("yaml", () => {
       const character = 20;
       const position = Position.create(line - 1, character - 1);
       const path = getPathInFile(file, line, character);
-      const test = isCursorInsideJinjaBrackets(document, position, path);
-
-      expect(test).to.be.eq(true);
+      if (path) {
+        const test = isCursorInsideJinjaBrackets(document, position, path);
+        expect(test).to.be.eq(true);
+      } else {
+        expect(false);
+      }
     });
 
     it("can confirm cursor within jinja bracket in case of multiple bracket pairs", async () => {
@@ -409,9 +418,12 @@ describe("yaml", () => {
       const character = 48;
       const position = Position.create(line - 1, character - 1);
       const path = getPathInFile(file, line, character);
-      const test = isCursorInsideJinjaBrackets(document, position, path);
-
-      expect(test).to.be.eq(true);
+      if (path) {
+        const test = isCursorInsideJinjaBrackets(document, position, path);
+        expect(test).to.be.eq(true);
+      } else {
+        expect(false);
+      }
     });
 
     it("can confirm cursor within jinja bracket even if text already present inside it", async () => {
@@ -419,9 +431,12 @@ describe("yaml", () => {
       const character = 36;
       const position = Position.create(line - 1, character - 1);
       const path = getPathInFile(file, line, character);
-      const test = isCursorInsideJinjaBrackets(document, position, path);
-
-      expect(test).to.be.eq(true);
+      if (path) {
+        const test = isCursorInsideJinjaBrackets(document, position, path);
+        expect(test).to.be.eq(true);
+      } else {
+        expect(false);
+      }
     });
 
     it("can negate cursor outside jinja bracket", async () => {

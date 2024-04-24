@@ -59,7 +59,7 @@ export async function doCompletion(
   document: TextDocument,
   position: Position,
   context: WorkspaceFolderContext,
-): Promise<CompletionItem[] | null> {
+): Promise<CompletionItem[]> {
   isAnsiblePlaybook = isPlaybook(document);
 
   let preparedText = document.getText();
@@ -437,7 +437,7 @@ export async function doCompletion(
       }
     }
   }
-  return null;
+  return [];
 }
 
 function getKeywordCompletion(
