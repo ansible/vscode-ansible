@@ -3,7 +3,22 @@ import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 import { URI } from "vscode-uri";
 
+type HostType = { host: string; priority: number };
+
+type inventoryHostEntry = {
+  children: string[];
+  hosts: string[];
+};
+
+type inventoryType = Omit<
+  {
+    [name: string]: inventoryHostEntry;
+  },
+  "_meta"
+>;
+
 /* Example of minimal inventory object, anything else may be missing.
+
 
 {
     "_meta": {
@@ -60,7 +75,7 @@ Example of more complex inventory.
 export class AnsibleInventory {
   private connection: Connection;
   private context: WorkspaceFolderContext;
-  private _hostList: unknown[];
+  private _hostList: HostType[] = [];
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -92,9 +107,11 @@ export class AnsibleInventory {
       defaultHostListPath,
     );
 
-    let inventoryHostsObject = [];
+    let inventoryHostsObject = {} as inventoryType;
     try {
-      inventoryHostsObject = JSON.parse(ansibleInventoryResult.stdout);
+      inventoryHostsObject = JSON.parse(
+        ansibleInventoryResult.stdout,
+      ) as inventoryType;
     } catch (error) {
       this.connection.console.error(
         `Exception in AnsibleInventory service: ${JSON.stringify(error)}`,
@@ -115,7 +132,7 @@ export class AnsibleInventory {
  * @param hostObj - nested object of hosts
  * @returns an array of object with host and priority as keys
  */
-function parseInventoryHosts(hostObj: object): unknown[] {
+function parseInventoryHosts(hostObj: inventoryType): HostType[] {
   if (
     !(
       "all" in hostObj &&
@@ -145,9 +162,12 @@ function parseInventoryHosts(hostObj: object): unknown[] {
     return { host: item, priority: 2 };
   });
 
-  const allGroups = [...topLevelGroupsObjList, ...otherGroupsObjList];
+  const allGroups: HostType[] = [
+    ...topLevelGroupsObjList,
+    ...otherGroupsObjList,
+  ];
 
-  let ungroupedHostsObjList = [];
+  let ungroupedHostsObjList: HostType[] = [];
 
   if (
     "ungrouped" in hostObj &&
@@ -157,13 +177,13 @@ function parseInventoryHosts(hostObj: object): unknown[] {
     hostObj.ungrouped
   ) {
     ungroupedHostsObjList = hostObj.ungrouped.hosts.map((item) => {
-      return { host: item, priority: 3 };
+      return { host: item, priority: 3 } as HostType;
     });
   }
 
   // Add 'localhost' and 'all' to the inventory list
-  const localhostObj = { host: "localhost", priority: 5 };
-  const allHostObj = { host: "all", priority: 6 };
+  const localhostObj: HostType = { host: "localhost", priority: 5 };
+  const allHostObj: HostType = { host: "all", priority: 6 };
 
   let allHosts = [localhostObj, allHostObj, ...ungroupedHostsObjList];
 
@@ -179,7 +199,11 @@ function parseInventoryHosts(hostObj: object): unknown[] {
   return [...allGroups, ...allHosts];
 }
 
-function getChildGroups(groupList, hostObj, res = []) {
+function getChildGroups(
+  groupList: string[],
+  hostObj: inventoryType,
+  res: string[] = [],
+): string[] {
   for (const host of groupList) {
     if (hostObj[`${host}`].children) {
       getChildGroups(hostObj[`${host}`].children, hostObj, res);
