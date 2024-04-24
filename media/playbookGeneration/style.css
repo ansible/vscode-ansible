@@ -135,6 +135,11 @@
   display: flow;
 }
 
+.stickyFeedbackContainer {
+  position: sticky;
+  bottom: 0px;
+}
+
 .feedbackContainer {
   position: absolute;
   right: 0px;
