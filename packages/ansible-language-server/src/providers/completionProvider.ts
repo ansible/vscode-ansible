@@ -156,7 +156,7 @@ export async function doCompletion(
           const inlineCollections = getDeclaredCollections(path);
           const cursorAtEndOfLine = atEndOfLine(document, position);
 
-          let textEdit: TextEdit | undefined;
+          let textEdit: TextEdit;
           const nodeRange = getNodeRange(node, document);
           if (nodeRange) {
             textEdit = {
@@ -347,47 +347,49 @@ export async function doCompletion(
           const nodeRange = getNodeRange(node, document);
 
           const option = keyOptions.get(keyNode.value as string);
-          const choices = [];
-          let defaultChoice = option.default;
-          if (option.type === "bool" && typeof option.default === "string") {
-            // the YAML parser does not recognize values such as 'Yes'/'no' as booleans
-            defaultChoice =
-              option.default.toLowerCase() === "yes" ? true : false;
-          }
-          if (option.choices) {
-            choices.push(...option.choices);
-          } else if (option.type === "bool") {
-            choices.push(true);
-            choices.push(false);
-          } else if (defaultChoice !== undefined) {
-            choices.push(defaultChoice);
-          }
-          return choices.map((choice, index) => {
-            let priority;
-            if (choice === defaultChoice) {
-              priority = priorityMap.defaultChoice;
-            } else {
-              priority = priorityMap.choice;
+          if (option) {
+            const choices = [];
+            let defaultChoice = option.default;
+            if (option.type === "bool" && typeof option.default === "string") {
+              // the YAML parser does not recognize values such as 'Yes'/'no' as booleans
+              defaultChoice =
+                option.default.toLowerCase() === "yes" ? true : false;
             }
-            const insertValue = new String(choice).toString();
-            const completionItem: CompletionItem = {
-              label: insertValue,
-              detail: choice === defaultChoice ? "default" : undefined,
-              // using index preserves order from the specification
-              // except when overridden by the priority
-              sortText: priority.toString() + index.toString().padStart(3),
-              kind: CompletionItemKind.Value,
-            };
-            if (nodeRange) {
-              completionItem.textEdit = {
-                range: nodeRange,
-                newText: insertValue,
+            if (option.choices) {
+              choices.push(...option.choices);
+            } else if (option.type === "bool") {
+              choices.push(true);
+              choices.push(false);
+            } else if (defaultChoice !== undefined) {
+              choices.push(defaultChoice);
+            }
+            return choices.map((choice, index) => {
+              let priority;
+              if (choice === defaultChoice) {
+                priority = priorityMap.defaultChoice;
+              } else {
+                priority = priorityMap.choice;
+              }
+              const insertValue = new String(choice).toString();
+              const completionItem: CompletionItem = {
+                label: insertValue,
+                detail: choice === defaultChoice ? "default" : undefined,
+                // using index preserves order from the specification
+                // except when overridden by the priority
+                sortText: priority.toString() + index.toString().padStart(3),
+                kind: CompletionItemKind.Value,
               };
-            } else {
-              completionItem.insertText = insertValue;
-            }
-            return completionItem;
-          });
+              if (nodeRange) {
+                completionItem.textEdit = {
+                  range: nodeRange,
+                  newText: insertValue,
+                };
+              } else {
+                completionItem.insertText = insertValue;
+              }
+              return completionItem;
+            });
+          }
         }
       }
 
@@ -616,7 +618,13 @@ function atEndOfLine(document: TextDocument, position: Position): boolean {
  * @param nodeRange - range of the keyword in the document
  * @returns boolean true if the key is the first element of the list, else false
  */
-function firstElementOfList(document: TextDocument, nodeRange: Range): boolean {
+function firstElementOfList(
+  document: TextDocument,
+  nodeRange: Range | undefined,
+): boolean {
+  if (!nodeRange) {
+    return false;
+  }
   const checkNodeRange = {
     start: { line: nodeRange.start.line, character: 0 },
     end: nodeRange.start,

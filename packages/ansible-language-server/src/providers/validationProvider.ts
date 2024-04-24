@@ -25,7 +25,10 @@ export async function doValidate(
   context?: WorkspaceFolderContext,
   connection?: Connection,
 ): Promise<Map<string, Diagnostic[]>> {
-  let diagnosticsByFile;
+  let diagnosticsByFile: Map<string, Diagnostic[]> = new Map<
+    string,
+    Diagnostic[]
+  >();
   if (quick || !context) {
     // get validation from cache
     diagnosticsByFile =
@@ -106,13 +109,8 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
     yDoc.errors.forEach((error) => {
       const [errStart, errEnd] = error.pos;
       if (errStart) {
-        const start = textDocument.positionAt(
-          errStart !== undefined ? errStart : null,
-        );
-
-        const end = textDocument.positionAt(
-          errEnd !== undefined ? errEnd : null,
-        );
+        const start = textDocument.positionAt(errStart);
+        const end = textDocument.positionAt(errEnd);
 
         const range = Range.create(start, end);
 
@@ -128,7 +126,15 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
             severity = DiagnosticSeverity.Information;
             break;
         }
-        rangeTree.insert([error.linePos[0].line, error.linePos[1].line], {
+        let a: number = 0;
+        let b: number = 0;
+        if (error.linePos) {
+          a = error.linePos[0].line;
+          if (error.linePos[1]) {
+            b = error.linePos[1].line;
+          }
+        }
+        rangeTree.insert([a, b], {
           message: error.message,
           range: range || Range.create(0, 0, 0, 0),
           severity: severity,

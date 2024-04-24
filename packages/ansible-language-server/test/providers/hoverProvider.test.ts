@@ -1,5 +1,5 @@
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { Position } from "vscode-languageserver";
+import { Hover, MarkupContent, Position } from "vscode-languageserver";
 import { expect } from "chai";
 import {
   createTestWorkspaceManager,
@@ -12,6 +12,18 @@ import {
 import { doHover } from "../../src/providers/hoverProvider";
 import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
 
+function get_hover_value(hover: Hover | undefined | null): string {
+  if (hover) {
+    if (Array.isArray(hover)) {
+      return "";
+    } else {
+      if (Object.hasOwn(hover.contents as object, "value")) {
+        return (hover.contents as MarkupContent)["value"];
+      }
+    }
+  }
+  return "";
+}
 function testPlayKeywords(
   context: WorkspaceFolderContext,
   textDoc: TextDocument,
@@ -41,7 +53,11 @@ function testPlayKeywords(
         position,
         await context.docsLibrary,
       );
-      expect(actualHover.contents["value"]).includes(doc);
+      if (actualHover) {
+        expect(get_hover_value(actualHover)).includes(doc);
+      } else {
+        expect(false);
+      }
     });
   });
 }
@@ -65,7 +81,11 @@ function testTaskKeywords(
         position,
         await context.docsLibrary,
       );
-      expect(actualHover.contents["value"]).includes(doc);
+      if (actualHover) {
+        expect(get_hover_value(actualHover)).includes(doc);
+      } else {
+        expect(false);
+      }
     });
   });
 }
@@ -89,7 +109,11 @@ function testBlockKeywords(
         position,
         await context.docsLibrary,
       );
-      expect(actualHover.contents["value"]).includes(doc);
+      if (actualHover) {
+        expect(get_hover_value(actualHover)).includes(doc);
+      } else {
+        expect(false);
+      }
     });
   });
 }
@@ -113,7 +137,11 @@ function testRoleKeywords(
         position,
         await context.docsLibrary,
       );
-      expect(actualHover.contents["value"]).includes(doc);
+      if (actualHover) {
+        expect(get_hover_value(actualHover)).includes(doc);
+      } else {
+        expect(false);
+      }
     });
   });
 }
@@ -142,7 +170,7 @@ function testModuleNames(
         position,
         await context.docsLibrary,
       );
-      expect(actualHover.contents["value"]).includes(doc);
+      expect(get_hover_value(actualHover)).includes(doc);
     });
   });
 }
@@ -205,7 +233,7 @@ function testPlaybookAdjacentCollection(
         position,
         await context.docsLibrary,
       );
-      expect(actualHover.contents["value"]).includes(doc);
+      expect(get_hover_value(actualHover)).includes(doc);
     });
   });
 }
@@ -239,7 +267,7 @@ function testNonPlaybookAdjacentCollection(
         expect(actualHover).to.be.null;
       } else {
         expect(
-          actualHover.contents["value"],
+          get_hover_value(actualHover),
           `actual hover -> ${actualHover}`,
         ).includes(doc);
       }
