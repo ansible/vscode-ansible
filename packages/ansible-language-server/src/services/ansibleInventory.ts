@@ -3,7 +3,7 @@ import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 import { URI } from "vscode-uri";
 
-type HostType = { host: string; priority: number };
+export type HostType = { host: string; priority: number };
 
 type inventoryHostEntry = {
   children: string[];

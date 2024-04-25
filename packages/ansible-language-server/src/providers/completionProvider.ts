@@ -37,6 +37,7 @@ import {
   isPlaybook,
 } from "../utils/yaml";
 import { getVarsCompletion } from "./completionProviderUtils";
+import { HostType } from "../services/ansibleInventory";
 
 const priorityMap = {
   nameKeyword: 1,
@@ -480,7 +481,7 @@ function getKeywordCompletion(
   });
 }
 
-function getHostCompletion(hostObjectList): CompletionItem[] {
+function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
   return hostObjectList.map(({ host, priority }) => {
     const completionItem: CompletionItem = {
       label: host,

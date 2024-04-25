@@ -11,6 +11,7 @@ import {
   Pair,
   parseDocument,
   ParseOptions,
+  Schema,
   SchemaOptions,
   YAMLMap,
   YAMLSeq,
@@ -45,7 +46,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
    * up.
    */
   parent<X extends Node | Pair>(
-    type?: new (...args: unknown[]) => X,
+    type?: new (...args: Schema[]) => X,
   ): AncestryBuilder<X> {
     this._index--;
     if (isPair(this.get())) {
@@ -313,7 +314,7 @@ function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
     if (isSeq(collectionsNode)) {
       for (const collectionNode of collectionsNode.items) {
         if (isScalar(collectionNode)) {
-          declaredCollections.push(collectionNode.value.toString());
+          declaredCollections.push(String(collectionNode.value));
         }
       }
     }
@@ -565,7 +566,7 @@ export function isPlaybook(textDocument: TextDocument): boolean {
     return false;
   }
 
-  const playbookKeysSet = new Set();
+  const playbookKeysSet: Set<string> = new Set();
   const playbookJSON = path[0].toJSON();
 
   Object.keys(playbookJSON).forEach(function (key) {
