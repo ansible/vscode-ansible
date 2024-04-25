@@ -8,7 +8,7 @@ import {
   TextEdit,
 } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
-import { isScalar, Node, YAMLMap } from "yaml";
+import { isNode, isScalar, Node, YAMLMap } from "yaml";
 import { IOption } from "../interfaces/module";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import {
@@ -37,6 +37,7 @@ import {
   isPlaybook,
 } from "../utils/yaml";
 import { getVarsCompletion } from "./completionProviderUtils";
+import { HostType } from "../services/ansibleInventory";
 
 const priorityMap = {
   nameKeyword: 1,
@@ -395,11 +396,8 @@ export async function doCompletion(
 
       // check for 'hosts' keyword and 'ansible_host keyword under vars' to provide inventory auto-completion
       let keyPathForHosts: Node[] | null;
-
-      if (
-        new AncestryBuilder(path).parent(YAMLMap).getValue() &&
-        new AncestryBuilder(path).parent(YAMLMap).getValue()["value"] === null
-      ) {
+      const element = new AncestryBuilder(path).parent(YAMLMap).getValue();
+      if (isNode(element) && isScalar(element) && element["value"] === null) {
         keyPathForHosts = new AncestryBuilder(path)
           .parent(YAMLMap) // compensates for DUMMY MAPPING
           .parent(YAMLMap)
@@ -413,9 +411,12 @@ export async function doCompletion(
         const keyNodeForHosts = keyPathForHosts[keyPathForHosts.length - 1];
 
         const conditionForHostsKeyword =
-          isPlayParam(keyPathForHosts) && keyNodeForHosts["value"] === "hosts";
+          isPlayParam(keyPathForHosts) &&
+          isScalar(keyNodeForHosts) &&
+          keyNodeForHosts["value"] === "hosts";
 
         const conditionForAnsibleHostKeyword =
+          isScalar(keyNodeForHosts) &&
           keyNodeForHosts["value"] === "ansible_host" &&
           new AncestryBuilder(keyPathForHosts)
             .parent()
@@ -480,7 +481,7 @@ function getKeywordCompletion(
   });
 }
 
-function getHostCompletion(hostObjectList): CompletionItem[] {
+function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
   return hostObjectList.map(({ host, priority }) => {
     const completionItem: CompletionItem = {
       label: host,

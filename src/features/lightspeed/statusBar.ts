@@ -7,18 +7,13 @@ import {
   LIGHTSPEED_MODEL_DEFAULT,
   LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
-import { LightspeedAuthSession } from "../../interfaces/lightspeed";
-import {
-  ANSIBLE_LIGHTSPEED_AUTH_ID,
-  getLoggedInSessionDetails,
-  getUserTypeLabel,
-} from "./utils/webUtils";
+import { getLoggedInUserDetails, getUserTypeLabel } from "./utils/webUtils";
 import { lightSpeedManager } from "../../extension";
+import { LightspeedUser } from "./lightspeedUser";
 
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  private lightspeedAuthenticatedUser: LightspeedUser;
   private context;
   public client;
   public settingsManager: SettingsManager;
@@ -26,13 +21,13 @@ export class LightspeedStatusBar {
 
   constructor(
     apiInstance: LightSpeedAPI,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightspeedAuthenticatedUser: LightspeedUser,
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager,
   ) {
     this.apiInstance = apiInstance;
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
@@ -62,11 +57,11 @@ export class LightspeedStatusBar {
     rhOrgHasSubscription?: boolean,
   ): Promise<string> {
     if (rhUserHasSeat === undefined) {
-      rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+      rhUserHasSeat = await this.lightspeedAuthenticatedUser.rhUserHasSeat();
     }
     if (rhOrgHasSubscription === undefined) {
       rhOrgHasSubscription =
-        await this.lightSpeedAuthProvider.rhOrgHasSubscription();
+        await this.lightspeedAuthenticatedUser.rhOrgHasSubscription();
     }
     return this.getLightSpeedStatusBarTextSync(
       rhOrgHasSubscription,
@@ -121,19 +116,10 @@ export class LightspeedStatusBar {
     vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
   }
 
-  public async setLightSpeedStatusBarTooltip(
-    session?: LightspeedAuthSession,
-  ): Promise<void> {
-    if (session === undefined) {
-      session = <LightspeedAuthSession>await vscode.authentication.getSession(
-        ANSIBLE_LIGHTSPEED_AUTH_ID,
-        [],
-        {
-          createIfNone: false,
-        },
-      );
-    }
-    const statusBarInfo = getLoggedInSessionDetails(session);
+  public async setLightSpeedStatusBarTooltip(): Promise<void> {
+    const userDetails =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
+    const statusBarInfo = getLoggedInUserDetails(userDetails);
     const userType = statusBarInfo.userInfo?.userType;
     const role = statusBarInfo.userInfo?.role;
     let mdString = "";

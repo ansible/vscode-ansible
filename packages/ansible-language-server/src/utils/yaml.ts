@@ -11,6 +11,7 @@ import {
   Pair,
   parseDocument,
   ParseOptions,
+  Schema,
   SchemaOptions,
   YAMLMap,
   YAMLSeq,
@@ -45,7 +46,7 @@ export class AncestryBuilder<N extends Node | Pair = Node> {
    * up.
    */
   parent<X extends Node | Pair>(
-    type?: new (...args: unknown[]) => X,
+    type?: new (...args: Schema[]) => X,
   ): AncestryBuilder<X> {
     this._index--;
     if (isPair(this.get())) {
@@ -313,7 +314,7 @@ function getDeclaredCollectionsForMap(playNode: YAMLMap | null): string[] {
     if (isSeq(collectionsNode)) {
       for (const collectionNode of collectionsNode.items) {
         if (isScalar(collectionNode)) {
-          declaredCollections.push(collectionNode.value.toString());
+          declaredCollections.push(String(collectionNode.value));
         }
       }
     }
@@ -508,24 +509,26 @@ export async function findProvidedModule(
 }
 
 export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
-  return mapNode.items.map((pair) => {
-    if (pair.key && isScalar(pair.key)) {
-      return pair.key.value.toString();
-    }
-  });
+  return mapNode.items
+    .map((pair) => {
+      if (pair.key && isScalar(pair.key)) {
+        return String(pair.key.value);
+      }
+    })
+    .filter((e) => !!e) as string[];
 }
 
 export function getOrigRange(
   node: Node | null | undefined,
-): [number, number] | null | undefined {
-  if (node.range) {
+): [number, number] | undefined {
+  if (node?.range) {
     const range = node.range;
-    return [
-      range[0] !== undefined ? range[0] : null,
-      range[1] !== undefined ? range[1] : null,
-    ];
+    if (range[0] === undefined || range[1] === undefined) {
+      return undefined;
+    }
+    return [range[0], range[1]];
   } else {
-    return [node?.range?.[0], node?.range?.[1]];
+    return undefined;
   }
 }
 
@@ -565,14 +568,12 @@ export function isPlaybook(textDocument: TextDocument): boolean {
     return false;
   }
 
-  const playbookKeysSet = new Set();
+  const playbookKeysSet: Set<string> = new Set();
   const playbookJSON = path[0].toJSON();
 
-  Object.keys(playbookJSON).forEach(function (key) {
-    if (playbookJSON[key]) {
-      Object.keys(playbookJSON[key]).forEach((item) =>
-        playbookKeysSet.add(item),
-      );
+  playbookJSON.forEach((item) => {
+    if (item) {
+      Object.keys(item).forEach((item) => playbookKeysSet.add(item));
     }
   });
 

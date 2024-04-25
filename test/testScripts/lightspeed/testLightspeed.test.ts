@@ -13,6 +13,7 @@ import {
   testValidJinjaBrackets,
 } from "../../helper";
 import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
+import { testLightspeedUser } from "./testLightspeedUser.test";
 import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
@@ -126,7 +127,7 @@ export function testLightspeed(): void {
           "feedbackRequest",
         );
         isAuthenticatedStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "isAuthenticated",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
@@ -208,7 +209,7 @@ export function testLightspeed(): void {
         );
         await activate(docUri1);
         rhUserHasSeatStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "rhUserHasSeat",
         );
       });
@@ -249,7 +250,7 @@ export function testLightspeed(): void {
           "feedbackRequest",
         );
         isAuthenticatedStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "isAuthenticated",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
@@ -365,6 +366,10 @@ export function testLightspeed(): void {
 
     describe("Test Ansible Lightspeed Functions", function () {
       testLightspeedFunctions();
+    });
+
+    describe("Test LightspeedUser", function () {
+      testLightspeedUser();
     });
 
     after(async function () {
