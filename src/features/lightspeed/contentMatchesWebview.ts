@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { SettingsManager } from "../../settings";
 import {
   ContentMatchesRequestParams,
@@ -13,13 +12,14 @@ import {
 } from "../../interfaces/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import * as yaml from "yaml";
+import { LightspeedUser } from "./lightspeedUser";
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
   private _view?: vscode.WebviewView;
   private _extensionUri: vscode.Uri;
   private context;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  private lightspeedAuthenticatedUser: LightspeedUser;
   public client;
   public settingsManager: SettingsManager;
   public apiInstance: LightSpeedAPI;
@@ -30,14 +30,14 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     client: LanguageClient,
     settingsManager: SettingsManager,
     apiInstance: LightSpeedAPI,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightspeedAuthenticatedUser: LightspeedUser,
   ) {
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
     this.apiInstance = apiInstance;
     this._extensionUri = context.extensionUri;
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
   }
 
   public async resolveWebviewView(
@@ -221,7 +221,8 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return noContentMatchesFoundHtml;
     }
 
-    const rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
+    const rhUserHasSeat =
+      await this.lightspeedAuthenticatedUser.rhUserHasSeat();
     for (let taskIndex = 0; taskIndex < suggestedTasks.length; taskIndex++) {
       let taskNameDescription = suggestedTasks[taskIndex].name;
       if (!taskNameDescription) {

@@ -10,6 +10,14 @@ export interface LightspeedAuthSession extends AuthenticationSession {
   rhOrgHasSubscription: boolean;
   rhUserIsOrgAdmin: boolean;
 }
+export interface LightspeedUserDetails {
+  rhUserHasSeat: boolean;
+  rhOrgHasSubscription: boolean;
+  rhUserIsOrgAdmin: boolean;
+  displayName: string;
+  displayNameWithUserType: string;
+  orgOptOutTelemetry: boolean;
+}
 
 export interface CompletionResponseParams {
   predictions: string[];
