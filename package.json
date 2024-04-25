@@ -836,7 +836,7 @@
     "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
-    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out",
+    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out && ./tools/fix-als-js-map.sh",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "package": "./tools/package.sh",
     "preinstall": "",
