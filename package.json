@@ -781,7 +781,6 @@
     "@vscode/vsce": "^2.26.0",
     "axios": "^1.6.8",
     "chai": "^4.4.1",
-    "copyfiles": "^2.4.1",
     "depcheck": "^1.4.7",
     "eslint": "^9.1.0",
     "eslint-config-prettier": "^9.1.0",
@@ -844,7 +843,7 @@
     "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
   "scripts": {
-    "compile": "tsc -b && copyfiles -u 4 'node_modules/@ansible/ansible-language-server/out/server/**/*' out && ./tools/fix-als-js-map.sh",
+    "compile": "tsc -b",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "package": "./tools/package.sh",
     "preinstall": "",
@@ -858,8 +857,9 @@
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
-    "webpack": "yarn run clean && yarn run compile && webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run clean && webpack --mode development --config ./webpack.config.ts",
+    "_webpack": "yarn als:clean && yarn als:compile && yarn clean && yarn compile && webpack --mode ${WEBPACK_MODE} --config ./webpack.config.ts",
+    "webpack": "WEBPACK_MODE=production yarn _webpack",
+    "webpack-dev": "WEBPACK_MODE=development yarn _webpack",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo coverage .nyc_output",
     "test-compile": "yarn run clean && yarn run compile && tsc -p ./",
@@ -872,7 +872,9 @@
     "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js",
     "_coverage-all": "./tools/coverage-all.sh",
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",
-    "als-compile": "yarn workspace @ansible/ansible-language-server compile"
+    "_als": "yarn workspace @ansible/ansible-language-server ${ALS_SCRIPT}",
+    "als:clean": "ALS_SCRIPT=clean yarn _als",
+    "als:compile": "ALS_SCRIPT=compile yarn _als"
   },
   "version": "24.4.0",
   "packageManager": "yarn@4.1.1",

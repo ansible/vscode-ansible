@@ -54,7 +54,7 @@ tasks:
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
       - yarn run clean
-      - yarn run als-compile
+      - yarn run als:compile
       - yarn run compile
       - npx tsc -p ./
     sources:
