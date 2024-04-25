@@ -24,6 +24,7 @@ import { watchRolesDirectory } from "./utils/watchers";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { LightspeedUser } from "./lightspeedUser";
 import { Log } from "../../utils/logger";
+import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
 
 export class LightSpeedManager {
   private context;
@@ -40,6 +41,7 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
+  public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
   private _logger: Log;
 
   constructor(
@@ -72,22 +74,11 @@ export class LightSpeedManager {
       this.lightSpeedAuthenticationProvider,
       this._logger,
     );
-    if (this.settingsManager.settings.lightSpeedService.enabled) {
-      this.lightspeedAuthenticatedUser.initialize();
-    }
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightspeedAuthenticatedUser,
       this.context,
     );
-    // this.apiInstance
-    //   .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
-    //   .then((userResponse: UserResponse) => {
-    //     this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
-    //   })
-    //   .catch((error) => {
-    //     console.error(error);
-    //   });
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
@@ -104,6 +95,17 @@ export class LightSpeedManager {
       client,
       settingsManager,
     );
+
+    this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
+      context.extensionUri,
+      this.lightspeedAuthenticatedUser,
+    );
+    const lightspeedExplorerDisposable =
+      vscode.window.registerWebviewViewProvider(
+        LightspeedExplorerWebviewViewProvider.viewType,
+        this.lightspeedExplorerProvider,
+      );
+    context.subscriptions.push(lightspeedExplorerDisposable);
 
     // create workspace context for ansible roles
     this.setContext();

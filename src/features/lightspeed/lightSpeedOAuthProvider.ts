@@ -5,6 +5,7 @@ import {
   AuthenticationProvider,
   AuthenticationProviderAuthenticationSessionsChangeEvent,
   AuthenticationSession,
+  commands,
   Disposable,
   env,
   EventEmitter,
@@ -33,6 +34,7 @@ import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
   LIGHTSPEED_ME_AUTH_URL,
+  LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
@@ -202,18 +204,6 @@ export class LightSpeedAuthenticationProvider
         removed: [],
         changed: [],
       });
-
-      // moved to extension.ts activate with listener - might be problematic because there it's not necessarily on create?
-      // lightSpeedManager.statusBarProvider.statusBar.text =
-      //   await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-      //     rhUserHasSeat,
-      //     rhOrgHasSubscription,
-      //   );
-
-      // moved to extension.ts activate with listener
-      // lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip(
-      //   session,
-      // );
 
       console.log("[ansible-lightspeed-oauth] Session created...");
 
@@ -513,9 +503,14 @@ export class LightSpeedAuthenticationProvider
       );
 
       if (!result) {
-        window.showErrorMessage(
-          "Failed to refresh token. Please log out and log in again",
+        await this.removeSession(sessionId);
+        const selection = await window.showWarningMessage(
+          "Your Ansible Lightspeed session has expired.\n",
+          "Reconnect",
         );
+        if (selection === "Reconnect") {
+          commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
+        }
         return;
       }
 

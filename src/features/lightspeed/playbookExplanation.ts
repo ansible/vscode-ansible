@@ -30,7 +30,7 @@ export const playbookExplanation = async (
 
   const content = document.getText();
   const lightSpeedStatusbarText =
-    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(true);
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
   const accessToken =
     await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
