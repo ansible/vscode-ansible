@@ -55,7 +55,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
         "feedbackRequest",
       );
       isAuthenticatedStub = sinon.stub(
-        lightSpeedManager.lightSpeedAuthenticationProvider,
+        lightSpeedManager.lightspeedAuthenticatedUser,
         "isAuthenticated",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
@@ -140,7 +140,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
         "feedbackRequest",
       );
       isAuthenticatedStub = sinon.stub(
-        lightSpeedManager.lightSpeedAuthenticationProvider,
+        lightSpeedManager.lightspeedAuthenticatedUser,
         "isAuthenticated",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));
@@ -231,7 +231,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
         "feedbackRequest",
       );
       isAuthenticatedStub = sinon.stub(
-        lightSpeedManager.lightSpeedAuthenticationProvider,
+        lightSpeedManager.lightspeedAuthenticatedUser,
         "isAuthenticated",
       );
       isAuthenticatedStub.returns(Promise.resolve(true));

@@ -11,10 +11,8 @@ export const mochaHooks = (): Mocha.RootHookObject => {
       consoleOutput.capture();
     },
 
-    afterEach() {
-      if (this.currentTest.state !== "passed") {
-        consoleOutput.release();
-      }
+    afterEach(this: Mocha.Context) {
+      console.log(this.currentTest?.title);
     },
   };
 };

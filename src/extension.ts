@@ -1,13 +1,7 @@
 /* "stdlib" */
 import * as vscode from "vscode";
 import * as path from "path";
-import {
-  authentication,
-  ExtensionContext,
-  extensions,
-  window,
-  workspace,
-} from "vscode";
+import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
 import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
@@ -52,7 +46,6 @@ import {
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
 import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
-import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
 import {
   setPythonInterpreter,
   setPythonInterpreterWithCommand,
@@ -70,6 +63,10 @@ import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { ScaffoldAnsibleProject } from "./features/contentCreator/scaffoldAnsibleProjectPage";
 import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
+import {
+  LightspeedUser,
+  AuthProviderType,
+} from "./features/lightspeed/lightspeedUser";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -118,7 +115,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     telemetry,
     LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
-    getAuthToken,
+    lightspeedLogin,
     true,
   );
 
@@ -248,7 +245,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await playbookExplanation(
           context.extensionUri,
           client,
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           lightSpeedManager.settingsManager,
         );
       },
@@ -343,18 +340,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(
-    lightSpeedManager.lightSpeedAuthenticationProvider.onDidChangeSessions(
-      async () => {
-        if (lightspeedExplorerProvider.webviewView) {
-          lightspeedExplorerProvider.refreshWebView();
-        }
-      },
-    ),
+    vscode.authentication.onDidChangeSessions(async (e) => {
+      if (!LightspeedUser.isLightspeedUserAuthProviderType(e.provider.id)) {
+        return;
+      }
+      await lightSpeedManager.lightspeedAuthenticatedUser.refreshLightspeedUser();
+      if (!lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated()) {
+        lightSpeedManager.currentModelValue = undefined;
+      }
+      if (lightspeedExplorerProvider.webviewView) {
+        lightspeedExplorerProvider.refreshWebView();
+      }
+      const rhUserHasSeat =
+        await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
+      const rhOrgHasSubscription =
+        await lightSpeedManager.lightspeedAuthenticatedUser.rhOrgHasSubscription();
+      lightSpeedManager.statusBarProvider.statusBar.text =
+        await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
+          rhUserHasSeat,
+          rhOrgHasSubscription,
+        );
+      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip();
+    }),
   );
 
   const lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
     context.extensionUri,
-    lightSpeedManager.lightSpeedAuthenticationProvider,
+    lightSpeedManager.lightspeedAuthenticatedUser,
   );
 
   // Register the Lightspeed provider for a Webview View
@@ -386,6 +398,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(lightspeedFeedbackCommand);
+
+  // Register the Sign in with Red Hat command
+  const lightspeedSignInWithRedHatCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_SIGN_IN_WITH_REDHAT,
+    async () => {
+      // NOTE: We can't gate this check on if this extension is active,
+      // because it only activates on an authentication request.
+      if (
+        !(await vscode.extensions.getExtension("redhat.vscode-redhat-account"))
+      ) {
+        window.showErrorMessage(
+          "You must install the Red Hat Authentication extension to sign in with Red Hat.",
+        );
+        return;
+      }
+      lightspeedLogin(AuthProviderType.rhsso);
+    },
+  );
+  context.subscriptions.push(lightspeedSignInWithRedHatCommand);
+
+  // Register the Sign in with Lightspeed command
+  const lightspeedSignInWithLightspeedCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED,
+    () => {
+      lightspeedLogin(AuthProviderType.lightspeed);
+    },
+  );
+  context.subscriptions.push(lightspeedSignInWithLightspeedCommand);
 
   /**
    * Handle "Ansible Tox" in the extension
@@ -506,7 +546,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await showPlaybookGenerationPage(
           context.extensionUri,
           client,
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           lightSpeedManager.settingsManager,
         );
       },
@@ -662,20 +702,21 @@ export async function isLightspeedEnabled(): Promise<boolean> {
   return true;
 }
 
-async function getAuthToken(): Promise<void> {
+async function lightspeedLogin(
+  providerType: AuthProviderType | undefined,
+): Promise<void> {
   if (!(await isLightspeedEnabled())) {
     return;
   }
   lightSpeedManager.currentModelValue = undefined;
-  const session = await authentication.getSession(
-    ANSIBLE_LIGHTSPEED_AUTH_ID,
-    [],
-    {
-      createIfNone: true,
-    },
-  );
-
-  if (session) {
-    window.showInformationMessage(`Welcome back ${session.account.label}`);
+  const authenticatedUser =
+    await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserDetails(
+      true,
+      providerType,
+    );
+  if (authenticatedUser) {
+    window.showInformationMessage(
+      `Welcome back ${authenticatedUser.displayNameWithUserType}`,
+    );
   }
 }

@@ -254,6 +254,14 @@
         "title": "Ansible Lightspeed: Feedback"
       },
       {
+        "command": "ansible.lightspeed.signInWithRedHat",
+        "title": "Ansible Lightspeed: Sign in with Red Hat"
+      },
+      {
+        "command": "ansible.lightspeed.signInWithLightspeed",
+        "title": "Ansible Lightspeed: Sign in with Lightspeed"
+      },
+      {
         "command": "ansible.lightspeed.playbookGeneration",
         "title": "Ansible Lightspeed: Playbook generation",
         "enablement": "redhat.ansible.lightspeedExperimentalEnabled"

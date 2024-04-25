@@ -11,24 +11,19 @@ import {
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
-import {
-  LIGHTSPEED_ME_AUTH_URL,
-  AnsibleContentUploadTrigger,
-} from "../../definitions/lightspeed";
+import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
-  getBaseUri,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
 import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
-import {
-  LightSpeedServiceSettings,
-  UserResponse,
-} from "../../interfaces/extensionSettings";
+import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import { LightspeedUser } from "./lightspeedUser";
+import { Log } from "../../utils/logger";
 
 export class LightSpeedManager {
   private context;
@@ -37,6 +32,7 @@ export class LightSpeedManager {
   public telemetry: TelemetryManager;
   public apiInstance: LightSpeedAPI;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
+  public lightspeedAuthenticatedUser: LightspeedUser;
   public lightSpeedActivityTracker: IDocumentTracker;
   public contentMatchesProvider: ContentMatchesWebview;
   public statusBarProvider: LightspeedStatusBar;
@@ -44,7 +40,7 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
-  public orgTelemetryOptOut = false;
+  private _logger: Log;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -58,6 +54,7 @@ export class LightSpeedManager {
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
+    this._logger = new Log();
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
@@ -69,31 +66,40 @@ export class LightSpeedManager {
     if (this.settingsManager.settings.lightSpeedService.enabled) {
       this.lightSpeedAuthenticationProvider.initialize();
     }
-    this.apiInstance = new LightSpeedAPI(
+    this.lightspeedAuthenticatedUser = new LightspeedUser(
+      this.context,
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
+      this._logger,
+    );
+    if (this.settingsManager.settings.lightSpeedService.enabled) {
+      this.lightspeedAuthenticatedUser.initialize();
+    }
+    this.apiInstance = new LightSpeedAPI(
+      this.settingsManager,
+      this.lightspeedAuthenticatedUser,
       this.context,
     );
-    this.apiInstance
-      .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
-      .then((userResponse: UserResponse) => {
-        this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+    // this.apiInstance
+    //   .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
+    //   .then((userResponse: UserResponse) => {
+    //     this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
+    //   })
+    //   .catch((error) => {
+    //     console.error(error);
+    //   });
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
       this.settingsManager,
       this.apiInstance,
-      this.lightSpeedAuthenticationProvider,
+      this.lightspeedAuthenticatedUser,
     );
 
     // create a new project lightspeed status bar item that we can manage
     this.statusBarProvider = new LightspeedStatusBar(
       this.apiInstance,
-      this.lightSpeedAuthenticationProvider,
+      this.lightspeedAuthenticatedUser,
       context,
       client,
       settingsManager,
@@ -174,9 +180,11 @@ export class LightSpeedManager {
     }
 
     const rhUserHasSeat =
-      await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
+      await this.lightspeedAuthenticatedUser.rhUserHasSeat();
+    const orgTelemetryOptOut =
+      await this.lightspeedAuthenticatedUser.orgOptOutTelemetry();
 
-    if (rhUserHasSeat && this.orgTelemetryOptOut) {
+    if (rhUserHasSeat && orgTelemetryOptOut) {
       return;
     }
 
@@ -232,7 +240,7 @@ export class LightSpeedManager {
       },
     };
     console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
-    this.apiInstance.feedbackRequest(inputData, this.orgTelemetryOptOut);
+    this.apiInstance.feedbackRequest(inputData);
   }
 
   get inlineSuggestionsEnabled() {

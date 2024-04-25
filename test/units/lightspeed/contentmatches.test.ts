@@ -1,7 +1,6 @@
 require("assert");
 
 import { ContentMatchesWebview } from "../../../src/features/lightspeed/contentMatchesWebview";
-import { LightSpeedAuthenticationProvider } from "../../../src/features/lightspeed/lightSpeedOAuthProvider";
 import { SettingsManager } from "../../../src/settings";
 import { LanguageClient } from "vscode-languageclient/node";
 import sinon from "sinon";
@@ -22,6 +21,7 @@ import {
   IError,
   ISuggestionDetails,
 } from "../../../src/interfaces/lightspeed";
+import { LightspeedUser } from "../../../src/features/lightspeed/lightspeedUser";
 
 function createMatchResponse(): ContentMatchesResponseParams {
   const contentMatchParams = {
@@ -54,13 +54,13 @@ function createContentMatchesWebview(): ContentMatchesWebview {
   m_settings.settings = {} as ExtensionSettings;
   m_settings.settings.lightSpeedService = {} as LightSpeedServiceSettings;
   const m_api_instance: Partial<LightSpeedAPI> = {};
-  const m_l_auth_provider: Partial<LightSpeedAuthenticationProvider> = {};
+  const m_l_user: Partial<LightspeedUser> = {};
   const cmw = new ContentMatchesWebview(
     m_context as ExtensionContext,
     m_client as LanguageClient,
     m_settings as SettingsManager,
     m_api_instance as LightSpeedAPI,
-    m_l_auth_provider as LightSpeedAuthenticationProvider,
+    m_l_user as LightspeedUser,
   );
   return cmw;
 }
@@ -177,7 +177,7 @@ describe("GetWebviewContent", () => {
     };
 
     function setRhUserHasSeat(has_seat: boolean) {
-      cmw["lightSpeedAuthProvider"].rhUserHasSeat = async (): Promise<
+      cmw["lightspeedAuthenticatedUser"].rhUserHasSeat = async (): Promise<
         boolean | undefined
       > => {
         return has_seat;
