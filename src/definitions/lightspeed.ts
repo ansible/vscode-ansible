@@ -72,7 +72,7 @@ export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
 export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
 
 export type LIGHTSPEED_USER_TYPE = "Licensed" | "Unlicensed" | "Not logged in";
-export const LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT = "Lightspeed (not logged in)";
+export const LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT = "Lightspeed (Not logged in)";
 
 export const LIGHTSPEED_MODEL_DEFAULT = "default";
 
