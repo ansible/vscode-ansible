@@ -512,7 +512,6 @@ export class LightSpeedAuthenticationProvider
           commands.executeCommand(LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST);
         }
         return;
-        return;
       }
 
       const newAccount: OAuthAccount = result;
