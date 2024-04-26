@@ -263,7 +263,7 @@ export function testLightspeed(): void {
           "isAuthenticated",
         );
         rhUserHasSeatStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "rhUserHasSeat",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
