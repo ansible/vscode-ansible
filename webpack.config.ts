@@ -7,8 +7,7 @@ const config = {
   devtool: "source-map",
   entry: {
     client: "./src/extension.ts",
-    server:
-      "./node_modules/@ansible/ansible-language-server/out/server/src/server.js",
+    server: "./packages/ansible-language-server/src/server.ts",
   },
   externals: {
     vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed
