@@ -4,7 +4,7 @@
   "displayName": "Ansible",
   "description": "Ansible language server",
   "license": "MIT",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "contributors": [
     {
       "name": "Tomasz Maciążek",
@@ -32,7 +32,7 @@
   "types": "./out/server/src/server.d.ts",
   "files": [
     "icon.png",
-    "out/server/src"
+    "./out/server/src/**/*"
   ],
   "categories": [
     "Programming Languages"
