@@ -47,10 +47,12 @@ export default tseslint.config(
     },
     rules: {
       eqeqeq: ["error", "smart"],
-      "tsdoc/syntax": "error",
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": "error",
+      "no-control-regex": "error",
+      "no-prototype-builtins": "error",
+      "tsdoc/syntax": "error",
       // Needed for tseslint.configs.strictTypeChecked
       // "@typescript-eslint/require-await": "error",
       // "@typescript-eslint/await-thenable": "error",
@@ -64,8 +66,6 @@ export default tseslint.config(
       "no-empty-function": "warn",
       "no-case-declarations": "off",
       "no-constant-condition": "off",
-      "no-control-regex": "off",
-      "no-prototype-builtins": "off",
     },
   },
 );

@@ -199,7 +199,10 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     let contentMatchesHtml = "";
     if (
-      !contentMatchResponses.contentmatches[0].hasOwnProperty("contentmatch")
+      !Object.prototype.hasOwnProperty.call(
+        contentMatchResponses.contentmatches[0],
+        "contentmatch",
+      )
     ) {
       return noContentMatchesFoundHtml;
     }
