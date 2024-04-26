@@ -9,12 +9,10 @@ import {
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
-import { LIGHTSPEED_ME_AUTH_URL } from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
-  getBaseUri,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
 import { IVarsFileContext } from "../../interfaces/lightspeed";
