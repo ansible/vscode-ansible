@@ -856,7 +856,7 @@
     "test-ui-with-mock-lightspeed-server": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' ./tools/run-ui-test-with-mock-lightspeed-server.sh",
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
-    "_webpack": "yarn als:clean && yarn als:compile && yarn clean && yarn compile && webpack --mode ${WEBPACK_MODE} --config ./webpack.config.ts",
+    "_webpack": "yarn als:clean && yarn clean && webpack --mode ${WEBPACK_MODE} --config ./webpack.config.ts",
     "webpack": "WEBPACK_MODE=production yarn _webpack",
     "webpack-dev": "WEBPACK_MODE=development yarn _webpack",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",

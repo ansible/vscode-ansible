@@ -17,7 +17,7 @@ const config = {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /packages/],
         use: [
           {
             // configure TypeScript loader:
@@ -26,7 +26,27 @@ const config = {
             loader: "ts-loader",
             options: {
               compilerOptions: {
+                configFile: "./tsconfig.json",
                 sourceMap: true,
+              },
+            },
+          },
+        ],
+      },
+      {
+        test: /\.ts$/,
+        include: /packages/,
+        use: [
+          {
+            // configure TypeScript loader:
+            // * enable sources maps for end-to-end source maps
+            // * does not work for server code
+            loader: "ts-loader",
+            options: {
+              compilerOptions: {
+                configFile: "./packages/ansible-language-server/tsconfig.json",
+                sourceMap: true,
+                outDir: "../../out/server",
               },
             },
           },
