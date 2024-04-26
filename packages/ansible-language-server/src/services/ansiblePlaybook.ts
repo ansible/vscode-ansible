@@ -95,14 +95,15 @@ export class AnsiblePlaybook {
           execError.stderr,
         );
 
-        diagnostics = filteredErrorMessage
-          ? this.processReport(
-              execError.message,
-              filteredErrorMessage.groups.filename,
-              parseInt(filteredErrorMessage.groups.line),
-              parseInt(filteredErrorMessage.groups.column),
-            )
-          : this.processReport(execError.message, docPath, 1, 1);
+        diagnostics =
+          filteredErrorMessage && filteredErrorMessage.groups
+            ? this.processReport(
+                execError.message,
+                filteredErrorMessage.groups.filename,
+                parseInt(filteredErrorMessage.groups.line),
+                parseInt(filteredErrorMessage.groups.column),
+              )
+            : this.processReport(execError.message, docPath, 1, 1);
 
         if (execError.stderr) {
           this.connection.console.info(

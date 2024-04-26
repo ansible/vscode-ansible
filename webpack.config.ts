@@ -151,6 +151,20 @@ const playbookExplanationWebviewConfig = {
   },
 };
 
+const scaffoldAnsibleProjectWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/scaffoldAnsibleProjectPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename:
+      "./client/webview/apps/contentCreator/scaffoldAnsibleProjectPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 module.exports = [
   config,
   webviewConfig,
@@ -159,4 +173,5 @@ module.exports = [
   playbookExplorerWebviewConfig,
   playbookGenerationWebviewConfig,
   playbookExplanationWebviewConfig,
+  scaffoldAnsibleProjectWebviewConfig,
 ];

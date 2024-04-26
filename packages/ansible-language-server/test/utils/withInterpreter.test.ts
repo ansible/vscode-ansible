@@ -1,8 +1,17 @@
 import { expect } from "chai";
 import { withInterpreter } from "../../src/utils/misc";
 
+interface testType {
+  scenario: string;
+  executable: string;
+  args: string;
+  interpreterPath: string;
+  activationScript: string;
+  expectedCommand: string;
+  expectedEnv: { [name: string]: string };
+}
 describe("withInterpreter", () => {
-  const tests = [
+  const tests: testType[] = [
     {
       scenario: "when activation script is provided",
       executable: "ansible-lint",
@@ -11,7 +20,7 @@ describe("withInterpreter", () => {
       activationScript: "/path/to/venv/bin/activate",
       expectedCommand:
         "bash -c 'source /path/to/venv/bin/activate && ansible-lint playbook.yml'",
-      expectedEnv: undefined,
+      expectedEnv: {},
     },
     {
       scenario: "when no activation script is provided",
@@ -20,6 +29,7 @@ describe("withInterpreter", () => {
       interpreterPath: "",
       activationScript: "",
       expectedCommand: "ansible-lint playbook.yml",
+      expectedEnv: {},
     },
     {
       scenario: "when absolute path of executable is provided",
@@ -28,6 +38,7 @@ describe("withInterpreter", () => {
       interpreterPath: "",
       activationScript: "",
       expectedCommand: "/absolute/path/to/ansible-lint playbook.yml",
+      expectedEnv: {},
     },
     {
       scenario: "when absolute path of interpreter is provided",
@@ -67,7 +78,14 @@ describe("withInterpreter", () => {
 
           expectedKeys.forEach((key) => {
             expect(actualCommand[1]).to.haveOwnProperty(key);
-            expect(actualCommand[1][key]).to.include(expectedEnv[key]);
+            expect(typeof actualCommand[1] === "object");
+            if (!actualCommand[1] || typeof expectedEnv === "string") {
+              expect(false);
+            } else {
+              expect(actualCommand[1][key]).to.include(
+                expectedEnv[key] as string,
+              );
+            }
           });
         }
       });

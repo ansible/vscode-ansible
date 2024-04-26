@@ -113,12 +113,15 @@ jobs:
             enabled = true
             root = /
             options = "metadata,umask=077"
+            [boot]
+            command=/etc/init.d/dbus start
             [interop]
             enabled = false
             appendWindowsPath = false
             [network]
             hostname = wsl
           additional-packages: curl
+            dbus
             dirmngr
             gawk
             git

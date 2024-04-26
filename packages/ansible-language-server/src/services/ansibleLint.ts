@@ -24,7 +24,7 @@ export class AnsibleLint {
   private connection: Connection;
   private context: WorkspaceFolderContext;
   private useProgressTracker = false;
-  private _ansibleLintConfigFilePath: string;
+  private _ansibleLintConfigFilePath: string | undefined = undefined;
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -126,7 +126,7 @@ export class AnsibleLint {
 
           progressTracker.done();
           this.connection.window.showErrorMessage(execError.message);
-          return;
+          return new Map();
         }
       } else {
         const exceptionString = `Exception in AnsibleLint service: ${JSON.stringify(
@@ -136,7 +136,7 @@ export class AnsibleLint {
         progressTracker.done();
         this.connection.console.error(exceptionString);
         this.connection.window.showErrorMessage(exceptionString);
-        return;
+        return new Map();
       }
     }
 
@@ -266,7 +266,7 @@ export class AnsibleLint {
     return configPath;
   }
 
-  get ansibleLintConfigFilePath(): string {
+  get ansibleLintConfigFilePath(): string | undefined {
     return this._ansibleLintConfigFilePath;
   }
 }

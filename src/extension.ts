@@ -1,13 +1,7 @@
 /* "stdlib" */
 import * as vscode from "vscode";
 import * as path from "path";
-import {
-  authentication,
-  ExtensionContext,
-  extensions,
-  window,
-  workspace,
-} from "vscode";
+import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { toggleEncrypt } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
 import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
@@ -51,9 +45,7 @@ import {
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
-import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
-import { ANSIBLE_LIGHTSPEED_AUTH_ID } from "./features/lightspeed/utils/webUtils";
 import {
   setPythonInterpreter,
   setPythonInterpreterWithCommand,
@@ -69,7 +61,11 @@ import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollection
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
-import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
+import { ScaffoldAnsibleProject } from "./features/contentCreator/scaffoldAnsibleProjectPage";
+import {
+  LightspeedUser,
+  AuthProviderType,
+} from "./features/lightspeed/lightspeedUser";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -118,7 +114,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     context,
     telemetry,
     LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
-    getAuthToken,
+    lightspeedLogin,
     true,
   );
 
@@ -248,7 +244,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         await playbookExplanation(
           context.extensionUri,
           client,
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           lightSpeedManager.settingsManager,
         );
       },
@@ -280,38 +276,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
           lightSpeedManager,
           pythonInterpreterManager,
         );
-        if (editor) {
-          await lightSpeedManager.ansibleContentFeedback(
-            editor.document,
-            AnsibleContentUploadTrigger.TAB_CHANGE,
-          );
-        } else {
+        if (!editor) {
           await ignorePendingSuggestion();
         }
-        lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
   context.subscriptions.push(
-    workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
+    workspace.onDidOpenTextDocument(async () => {
       await updateAnsibleStatusBar(
         metaData,
         lightSpeedManager,
         pythonInterpreterManager,
       );
-      lightSpeedManager.ansibleContentFeedback(
-        document,
-        AnsibleContentUploadTrigger.FILE_OPEN,
-      );
     }),
   );
   context.subscriptions.push(
-    workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
-      await lightSpeedManager.ansibleContentFeedback(
-        document,
-        AnsibleContentUploadTrigger.FILE_CLOSE,
-      );
-    }),
+    workspace.onDidChangeTextDocument(
+      (event: vscode.TextDocumentChangeEvent) => {
+        if (
+          event.document === vscode.window.activeTextEditor?.document &&
+          event.contentChanges.length > 0 &&
+          event.contentChanges[0].text[0] !== "\n"
+        ) {
+          setDocumentChanged(true);
+        }
+      },
+    ),
   );
   context.subscriptions.push(
     workspace.onDidChangeTextDocument(
@@ -356,26 +348,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(
-    lightSpeedManager.lightSpeedAuthenticationProvider.onDidChangeSessions(
-      async () => {
-        if (lightspeedExplorerProvider.webviewView) {
-          lightspeedExplorerProvider.refreshWebView();
-        }
-      },
-    ),
+    vscode.authentication.onDidChangeSessions(async (e) => {
+      if (!LightspeedUser.isLightspeedUserAuthProviderType(e.provider.id)) {
+        return;
+      }
+      await lightSpeedManager.lightspeedAuthenticatedUser.refreshLightspeedUser();
+      if (!lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated()) {
+        lightSpeedManager.currentModelValue = undefined;
+      }
+      if (lightSpeedManager.lightspeedExplorerProvider.webviewView) {
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+      }
+      lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
+    }),
   );
-
-  const lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
-    context.extensionUri,
-    lightSpeedManager.lightSpeedAuthenticationProvider,
-  );
-
-  // Register the Lightspeed provider for a Webview View
-  const lightspeedExplorerDisposable = window.registerWebviewViewProvider(
-    LightspeedExplorerWebviewViewProvider.viewType,
-    lightspeedExplorerProvider,
-  );
-  context.subscriptions.push(lightspeedExplorerDisposable);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
@@ -399,6 +385,32 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(lightspeedFeedbackCommand);
+
+  // Register the Sign in with Red Hat command
+  const lightspeedSignInWithRedHatCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_SIGN_IN_WITH_REDHAT,
+    async () => {
+      // NOTE: We can't gate this check on if this extension is active,
+      // because it only activates on an authentication request.
+      if (!vscode.extensions.getExtension("redhat.vscode-redhat-account")) {
+        window.showErrorMessage(
+          "You must install the Red Hat Authentication extension to sign in with Red Hat.",
+        );
+        return;
+      }
+      lightspeedLogin(AuthProviderType.rhsso);
+    },
+  );
+  context.subscriptions.push(lightspeedSignInWithRedHatCommand);
+
+  // Register the Sign in with Lightspeed command
+  const lightspeedSignInWithLightspeedCommand = vscode.commands.registerCommand(
+    LightSpeedCommands.LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED,
+    () => {
+      lightspeedLogin(AuthProviderType.lightspeed);
+    },
+  );
+  context.subscriptions.push(lightspeedSignInWithLightspeedCommand);
 
   /**
    * Handle "Ansible Tox" in the extension
@@ -487,6 +499,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  // open ansible-creator ansible project scaffolding
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.scaffold-ansible-project",
+      () => {
+        ScaffoldAnsibleProject.render(context.extensionUri);
+      },
+    ),
+  );
+
   // open ansible-creator create
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.create", () => {
@@ -505,11 +527,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
-      () => {
-        showPlaybookGenerationPage(
+      async () => {
+        await showPlaybookGenerationPage(
           context.extensionUri,
           client,
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           lightSpeedManager.settingsManager,
         );
       },
@@ -531,8 +553,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "redhat.ansible.lightspeedExperimentalEnabled",
           true,
         );
-        lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
-        lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled =
+          true;
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
@@ -653,25 +676,33 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-async function getAuthToken(): Promise<void> {
+export async function isLightspeedEnabled(): Promise<boolean> {
   if (
     !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
   ) {
     await window.showErrorMessage(
       "Enable lightspeed services from settings to use the feature.",
     );
+    return false;
+  }
+  return true;
+}
+
+async function lightspeedLogin(
+  providerType: AuthProviderType | undefined,
+): Promise<void> {
+  if (!(await isLightspeedEnabled())) {
     return;
   }
   lightSpeedManager.currentModelValue = undefined;
-  const session = await authentication.getSession(
-    ANSIBLE_LIGHTSPEED_AUTH_ID,
-    [],
-    {
-      createIfNone: true,
-    },
-  );
-
-  if (session) {
-    window.showInformationMessage(`Welcome back ${session.account.label}`);
+  const authenticatedUser =
+    await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserDetails(
+      true,
+      providerType,
+    );
+  if (authenticatedUser) {
+    window.showInformationMessage(
+      `Welcome back ${authenticatedUser.displayNameWithUserType}`,
+    );
   }
 }

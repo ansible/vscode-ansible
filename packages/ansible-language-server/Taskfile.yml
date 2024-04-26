@@ -29,8 +29,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
     cmds:
-      - task: shared:setup
-      - yarn install
+      - task: shared:install
       - yarn run compile
     sources:
       - package-lock.json
@@ -44,7 +43,7 @@ tasks:
     desc: Update dependencies
     cmds:
       - npm install -g npm@latest
-      - # installs tools from .tool-versions
+      # - installs tools from .tool-versions
       - asdf install
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - npm outdated
@@ -89,6 +88,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Run only ee tests
     cmds:
+      - task: build
       - >
         source {{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-with-ee'
@@ -97,6 +97,7 @@ tasks:
     desc: Run only non-ee tests
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
+      - task: build
       - >
         source {{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-without-ee'

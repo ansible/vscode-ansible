@@ -1,16 +1,16 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import * as marked from "marked";
 import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
+import { LightspeedUser } from "./lightspeedUser";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
 ) => {
   if (!vscode.window.activeTextEditor) {
@@ -30,9 +30,10 @@ export const playbookExplanation = async (
 
   const content = document.getText();
   const lightSpeedStatusbarText =
-    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(true);
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   let markdown = "";
   lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
   try {

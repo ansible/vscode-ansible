@@ -335,11 +335,9 @@ async function requestSuggestion(
   inlinePosition: InlinePosition,
 ): Promise<CompletionResponseParams> {
   const rhUserHasSeat =
-    await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
+    await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
   const lightSpeedStatusbarText =
-    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-      rhUserHasSeat,
-    );
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
   const suggestionId = uuidv4();
   try {
     // If there is a suggestion, whose feedback is pending, send a feedback with IGNORED action
@@ -639,7 +637,7 @@ async function getInlineSuggestionState(
 ): Promise<CallbackEntry> {
   const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
   const rhUserHasSeat =
-    await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
+    await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
 
   if (
     !suggestionMatchInfo.suggestionMatchType ||
@@ -938,7 +936,6 @@ export async function inlineSuggestionUserActionHandler(
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload,
-    lightSpeedManager.orgTelemetryOptOut,
   );
   resetSuggestionData();
 }

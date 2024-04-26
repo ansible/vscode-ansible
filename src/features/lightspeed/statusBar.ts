@@ -7,18 +7,13 @@ import {
   LIGHTSPEED_MODEL_DEFAULT,
   LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT,
 } from "../../definitions/lightspeed";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
-import { LightspeedAuthSession } from "../../interfaces/lightspeed";
-import {
-  ANSIBLE_LIGHTSPEED_AUTH_ID,
-  getLoggedInSessionDetails,
-  getUserTypeLabel,
-} from "./utils/webUtils";
+import { getLoggedInUserDetails, getUserTypeLabel } from "./utils/webUtils";
 import { lightSpeedManager } from "../../extension";
+import { LightspeedUser } from "./lightspeedUser";
 
 export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  private lightspeedAuthenticatedUser: LightspeedUser;
   private context;
   public client;
   public settingsManager: SettingsManager;
@@ -26,13 +21,13 @@ export class LightspeedStatusBar {
 
   constructor(
     apiInstance: LightSpeedAPI,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightspeedAuthenticatedUser: LightspeedUser,
     context: vscode.ExtensionContext,
     client: LanguageClient,
     settingsManager: SettingsManager,
   ) {
     this.apiInstance = apiInstance;
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
     this.context = context;
     this.client = client;
     this.settingsManager = settingsManager;
@@ -50,27 +45,19 @@ export class LightspeedStatusBar {
     lightSpeedStatusBarItem.command =
       LightSpeedCommands.LIGHTSPEED_STATUS_BAR_CLICK;
     lightSpeedStatusBarItem.text = LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
-    this.getLightSpeedStatusBarText().then((text) => {
-      lightSpeedStatusBarItem.text = text;
-    });
     this.context.subscriptions.push(lightSpeedStatusBarItem);
     return lightSpeedStatusBarItem;
   }
 
-  public async getLightSpeedStatusBarText(
-    rhUserHasSeat?: boolean,
-    rhOrgHasSubscription?: boolean,
-  ): Promise<string> {
-    if (rhUserHasSeat === undefined) {
-      rhUserHasSeat = await this.lightSpeedAuthProvider.rhUserHasSeat();
-    }
-    if (rhOrgHasSubscription === undefined) {
-      rhOrgHasSubscription =
-        await this.lightSpeedAuthProvider.rhOrgHasSubscription();
+  public async getLightSpeedStatusBarText(): Promise<string> {
+    const userDetails =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
+    if (!userDetails) {
+      return LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT;
     }
     return this.getLightSpeedStatusBarTextSync(
-      rhOrgHasSubscription,
-      rhUserHasSeat,
+      userDetails.rhOrgHasSubscription,
+      userDetails.rhUserHasSeat,
     );
   }
 
@@ -89,6 +76,17 @@ export class LightspeedStatusBar {
     if (!this.client.isRunning()) {
       return;
     }
+    try {
+      this.getLightSpeedStatusBarText().then((text) => {
+        this.statusBar.text = text;
+        this.setLightSpeedStatusBarTooltip();
+      });
+    } catch (error) {
+      console.log(
+        `an error occurred updating status bar and tooltip: ${error}`,
+      );
+    }
+
     if (
       this.settingsManager.settings.lightSpeedService.enabled &&
       this.settingsManager.settings.lightSpeedService.suggestions.enabled
@@ -118,22 +116,22 @@ export class LightspeedStatusBar {
   }
 
   public async lightSpeedStatusBarClickHandler() {
-    vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
-  }
-
-  public async setLightSpeedStatusBarTooltip(
-    session?: LightspeedAuthSession,
-  ): Promise<void> {
-    if (session === undefined) {
-      session = <LightspeedAuthSession>await vscode.authentication.getSession(
-        ANSIBLE_LIGHTSPEED_AUTH_ID,
-        [],
-        {
-          createIfNone: false,
-        },
+    if (await this.lightspeedAuthenticatedUser.isAuthenticated()) {
+      vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
+    } else {
+      vscode.commands.executeCommand(
+        LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
       );
     }
-    const statusBarInfo = getLoggedInSessionDetails(session);
+  }
+
+  public async setLightSpeedStatusBarTooltip(): Promise<void> {
+    const userDetails =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
+    if (!userDetails) {
+      return undefined;
+    }
+    const statusBarInfo = getLoggedInUserDetails(userDetails);
     const userType = statusBarInfo.userInfo?.userType;
     const role = statusBarInfo.userInfo?.role;
     let mdString = "";

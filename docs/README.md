@@ -178,10 +178,10 @@ any level (User, Remote, Workspace and/or Folder).
   qualified collection names (FQCN) when inserting a module name. Disabling it
   will only use FQCNs when necessary, that is when the collection isn't
   configured for the task.
-- `ansible.ansibleLint.arguments`: Optional command line arguments to be
+- `ansible.validation.lint.arguments`: Optional command line arguments to be
   appended to `ansible-lint` invocation. See `ansible-lint` documentation.
-- `ansible.ansibleLint.enabled`: Enables/disables use of `ansible-lint`.
-- `ansible.ansibleLint.path`: Path to the `ansible-lint` executable.
+- `ansible.validation.lint.enabled`: Enables/disables use of `ansible-lint`.
+- `ansible.validation.lint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
 - `ansible.executionEnvironment.containerEngine`: The container engine to be
   used while running with execution environment. Valid values are `auto`,
@@ -210,7 +210,8 @@ any level (User, Remote, Workspace and/or Folder).
     such as `ro,Z`
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
-  `ansible-lint` installations in a Python virtual environment.
+  `ansible-lint` installations in a Python virtual environment. Supports
+  ${workspaceFolder}.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.

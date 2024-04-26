@@ -76,19 +76,19 @@ async function markSemanticTokens(
       if (isScalar(pair.key)) {
         const keyPath = path.concat(<Scalar>(<unknown>pair), pair.key);
         if (isPlayParam(keyPath)) {
-          if (playKeywords.has(pair.key.value.toString()))
+          if (playKeywords.has(String(pair.key.value)))
             markKeyword(pair.key, builder, document);
           else markOrdinaryKey(pair.key, builder, document);
         } else if (isBlockParam(keyPath)) {
-          if (blockKeywords.has(pair.key.value.toString()))
+          if (blockKeywords.has(String(pair.key.value)))
             markKeyword(pair.key, builder, document);
           else markOrdinaryKey(pair.key, builder, document);
         } else if (isRoleParam(keyPath)) {
-          if (roleKeywords.has(pair.key.value.toString()))
+          if (roleKeywords.has(String(pair.key.value)))
             markKeyword(pair.key, builder, document);
           else markOrdinaryKey(pair.key, builder, document);
         } else if (isTaskParam(keyPath)) {
-          if (isTaskKeyword(pair.key.value.toString())) {
+          if (isTaskKeyword(String(pair.key.value))) {
             markKeyword(pair.key, builder, document);
             if (pair.key.value === "args") {
               const module = await findProvidedModule(
@@ -108,7 +108,7 @@ async function markSemanticTokens(
             }
           } else {
             const [module] = await docsLibrary.findModule(
-              pair.key.value.toString(),
+              String(pair.key.value),
               keyPath,
               document.uri,
             );
@@ -186,7 +186,7 @@ function markModuleParameters(
 ) {
   for (const moduleParamPair of moduleParamMap.items) {
     if (isScalar(moduleParamPair.key)) {
-      const option = options?.get(moduleParamPair.key.value.toString());
+      const option = options?.get(String(moduleParamPair.key.value));
       if (option) {
         markNode(
           moduleParamPair.key,

@@ -15,6 +15,7 @@ import {
   testValidJinjaBrackets,
 } from "../../helper";
 import { testLightspeedFunctions } from "./testLightSpeedFunctions.test";
+import { testLightspeedUser } from "./testLightspeedUser.test";
 import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
@@ -128,7 +129,7 @@ export function testLightspeed(): void {
           "feedbackRequest",
         );
         isAuthenticatedStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "isAuthenticated",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
@@ -176,10 +177,15 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          console.log(JSON.stringify(inputData, null, 2));
-          assert(inputData?.inlineSuggestion?.action === UserAction.REJECTED);
+          assert(
+            inputData?.inlineSuggestion?.action === UserAction.REJECTED,
+            JSON.stringify(inputData, null),
+          );
           const ret = feedbackRequestSpy.returnValues[0];
-          assert(Object.keys(ret).length === 0); // ret should be equal to {}
+          assert(
+            Object.keys(ret).length === 0,
+            JSON.stringify(inputData, null),
+          ); // ret should be equal to {}
         });
       });
 
@@ -190,7 +196,6 @@ export function testLightspeed(): void {
       after(async function () {
         feedbackRequestSpy.restore();
         isAuthenticatedStub.restore();
-        sinon.restore();
       });
     });
 
@@ -205,7 +210,7 @@ export function testLightspeed(): void {
         );
         await activate(docUri1);
         rhUserHasSeatStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "rhUserHasSeat",
         );
       });
@@ -225,7 +230,7 @@ export function testLightspeed(): void {
       });
 
       after(async function () {
-        sinon.restore();
+        rhUserHasSeatStub.restore();
       });
     });
 
@@ -254,7 +259,7 @@ export function testLightspeed(): void {
           "completionRequest",
         );
         isAuthenticatedStub = sinon.stub(
-          lightSpeedManager.lightSpeedAuthenticationProvider,
+          lightSpeedManager.lightspeedAuthenticatedUser,
           "isAuthenticated",
         );
         rhUserHasSeatStub = sinon.stub(
@@ -427,6 +432,10 @@ export function testLightspeed(): void {
 
     describe("Test Ansible Lightspeed Functions", function () {
       testLightspeedFunctions();
+    });
+
+    describe("Test LightspeedUser", function () {
+      testLightspeedUser();
     });
 
     after(async function () {
