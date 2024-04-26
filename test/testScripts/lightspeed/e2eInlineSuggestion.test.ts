@@ -112,7 +112,6 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       executeCommandSpy.restore();
       feedbackRequestSpy.restore();
       isAuthenticatedStub.restore();
-      sinon.restore();
     });
   });
 }
@@ -208,7 +207,6 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       executeCommandSpy.restore();
       feedbackRequestSpy.restore();
       isAuthenticatedStub.restore();
-      sinon.restore();
     });
   });
 }
@@ -261,7 +259,6 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
     after(() => {
       feedbackRequestSpy.restore();
       isAuthenticatedStub.restore();
-      sinon.restore();
     });
   });
 }

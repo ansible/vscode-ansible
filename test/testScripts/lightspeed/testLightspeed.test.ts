@@ -194,7 +194,6 @@ export function testLightspeed(): void {
       after(async function () {
         feedbackRequestSpy.restore();
         isAuthenticatedStub.restore();
-        sinon.restore();
       });
     });
 
@@ -229,7 +228,7 @@ export function testLightspeed(): void {
       });
 
       after(async function () {
-        sinon.restore();
+        rhUserHasSeatStub.restore();
       });
     });
 
@@ -302,7 +301,6 @@ export function testLightspeed(): void {
       after(async function () {
         feedbackRequestSpy.restore();
         isAuthenticatedStub.restore();
-        sinon.restore();
       });
     });
 

@@ -44,7 +44,6 @@ import {
   rejectPendingSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
-import { AnsibleContentUploadTrigger } from "./definitions/lightspeed";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import {
   setPythonInterpreter,
@@ -62,7 +61,6 @@ import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { ScaffoldAnsibleProject } from "./features/contentCreator/scaffoldAnsibleProjectPage";
-import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
   AuthProviderType,
@@ -277,36 +275,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
           lightSpeedManager,
           pythonInterpreterManager,
         );
-        if (editor) {
-          await lightSpeedManager.ansibleContentFeedback(
-            editor.document,
-            AnsibleContentUploadTrigger.TAB_CHANGE,
-          );
-        } else {
+        if (!editor) {
           await ignorePendingSuggestion();
         }
-        lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
   context.subscriptions.push(
-    workspace.onDidOpenTextDocument(async (document: vscode.TextDocument) => {
+    workspace.onDidOpenTextDocument(async () => {
       await updateAnsibleStatusBar(
         metaData,
         lightSpeedManager,
         pythonInterpreterManager,
-      );
-      lightSpeedManager.ansibleContentFeedback(
-        document,
-        AnsibleContentUploadTrigger.FILE_OPEN,
-      );
-    }),
-  );
-  context.subscriptions.push(
-    workspace.onDidCloseTextDocument(async (document: vscode.TextDocument) => {
-      await lightSpeedManager.ansibleContentFeedback(
-        document,
-        AnsibleContentUploadTrigger.FILE_CLOSE,
       );
     }),
   );
@@ -348,33 +329,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
       if (!lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated()) {
         lightSpeedManager.currentModelValue = undefined;
       }
-      if (lightspeedExplorerProvider.webviewView) {
-        lightspeedExplorerProvider.refreshWebView();
+      if (lightSpeedManager.lightspeedExplorerProvider.webviewView) {
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       }
-      const rhUserHasSeat =
-        await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
-      const rhOrgHasSubscription =
-        await lightSpeedManager.lightspeedAuthenticatedUser.rhOrgHasSubscription();
-      lightSpeedManager.statusBarProvider.statusBar.text =
-        await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-          rhUserHasSeat,
-          rhOrgHasSubscription,
-        );
-      lightSpeedManager.statusBarProvider.setLightSpeedStatusBarTooltip();
+      lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
-
-  const lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
-    context.extensionUri,
-    lightSpeedManager.lightspeedAuthenticatedUser,
-  );
-
-  // Register the Lightspeed provider for a Webview View
-  const lightspeedExplorerDisposable = window.registerWebviewViewProvider(
-    LightspeedExplorerWebviewViewProvider.viewType,
-    lightspeedExplorerProvider,
-  );
-  context.subscriptions.push(lightspeedExplorerDisposable);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
@@ -405,9 +365,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     async () => {
       // NOTE: We can't gate this check on if this extension is active,
       // because it only activates on an authentication request.
-      if (
-        !(await vscode.extensions.getExtension("redhat.vscode-redhat-account"))
-      ) {
+      if (!vscode.extensions.getExtension("redhat.vscode-redhat-account")) {
         window.showErrorMessage(
           "You must install the Red Hat Authentication extension to sign in with Red Hat.",
         );
@@ -568,8 +526,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "redhat.ansible.lightspeedExperimentalEnabled",
           true,
         );
-        lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
-        lightspeedExplorerProvider.refreshWebView();
+        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled =
+          true;
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );
