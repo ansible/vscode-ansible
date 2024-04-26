@@ -9,6 +9,17 @@ while [ -L "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR=$( cd -P "$( dirname "$SOURCE" )" > /dev/null 2>&1 && pwd )
 
+# installs the package inside an isolated project and executes its entry point
+# in order to check if we packaged everything needed.
+pushd "${DIR}/../out/test-als"
+git checkout HEAD -- package.json
+npm add ../../@ansible-ansible-language-server-*.tgz
+npm install
+git checkout HEAD -- package.json
+npx ts-node ../../test/validate-ls.ts
+popd
+
+
 VERSION=$(jq -r '.version' "${DIR}/../package.json")
 # VIEW=$(npm view "@ansible/ansible-language-server@${VERSION}")
 

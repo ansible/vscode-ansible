@@ -1,17 +1,14 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { v4 as uuidv4 } from "uuid";
 import { LightSpeedAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import {
-  FeedbackRequestParams,
   IDocumentTracker,
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
-import { AnsibleContentUploadTrigger } from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
@@ -168,81 +165,6 @@ export class LightSpeedManager {
     for (const rolePath of commonRolesPath) {
       watchRolesDirectory(this, rolePath);
     }
-  }
-  public async ansibleContentFeedback(
-    document: vscode.TextDocument,
-    trigger: AnsibleContentUploadTrigger,
-  ): Promise<void> {
-    if (
-      document.languageId !== "ansible" ||
-      !this.settingsManager.settings.lightSpeedService.enabled ||
-      !this.settingsManager.settings.lightSpeedService.URL.trim()
-    ) {
-      return;
-    }
-
-    const rhUserHasSeat =
-      await this.lightspeedAuthenticatedUser.rhUserHasSeat();
-    const orgTelemetryOptOut =
-      await this.lightspeedAuthenticatedUser.orgOptOutTelemetry();
-
-    if (rhUserHasSeat && orgTelemetryOptOut) {
-      return;
-    }
-
-    const currentFileContent = document.getText();
-    const documentUri = document.uri.toString();
-    let activityId: string;
-    if (!this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
-      // Inline suggestion not yet triggered, return without sending event.
-      return;
-    }
-    if (this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
-      activityId = this.lightSpeedActivityTracker[documentUri].activityId;
-      const previousFileContent =
-        this.lightSpeedActivityTracker[documentUri].content;
-
-      if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
-        // end previous activity tracker
-        delete this.lightSpeedActivityTracker[documentUri];
-      }
-
-      if (previousFileContent === currentFileContent) {
-        console.log(
-          `[ansible-lightspeed-feedback] Event ansibleContent not sent as the content of file ${documentUri} is same as previous event.`,
-        );
-        return;
-      }
-
-      if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
-        // start a new activity tracker
-        this.lightSpeedActivityTracker[documentUri].activityId = uuidv4();
-      }
-    } else {
-      activityId = uuidv4();
-      this.lightSpeedActivityTracker[documentUri] = {
-        activityId: activityId,
-        content: currentFileContent,
-      };
-    }
-
-    if (!currentFileContent.trim()) {
-      console.log(
-        `[ansible-lightspeed-feedback] Event ansibleContent is not sent as the content of file ${documentUri} is empty.`,
-      );
-      return;
-    }
-
-    const inputData: FeedbackRequestParams = {
-      ansibleContent: {
-        content: document.getText(),
-        documentUri: documentUri,
-        trigger: trigger,
-        activityId: activityId,
-      },
-    };
-    console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
-    this.apiInstance.feedbackRequest(inputData);
   }
 
   get inlineSuggestionsEnabled() {

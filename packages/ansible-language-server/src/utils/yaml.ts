@@ -521,15 +521,14 @@ export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
 export function getOrigRange(
   node: Node | null | undefined,
 ): [number, number] | undefined {
-  if (node?.range) {
-    const range = node.range;
-    if (range[0] === undefined || range[1] === undefined) {
-      return undefined;
-    }
-    return [range[0], range[1]];
-  } else {
-    return undefined;
+  if (
+    node?.range &&
+    node.range[0] !== undefined &&
+    node.range[1] !== undefined
+  ) {
+    return [node.range[0], node.range[1]];
   }
+  return undefined;
 }
 
 /** Parsing with the YAML library tailored to the needs of this extension */
