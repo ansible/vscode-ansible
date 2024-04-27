@@ -141,6 +141,7 @@ tasks:
     desc: Run e2e tests {{.XVFB}}
     cmds:
       - task: package
+      - yarn test-compile
       - $VIRTUAL_ENV/bin/python3 --version
       - '{{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn run _coverage-all'''
     interactive: true
@@ -148,6 +149,7 @@ tasks:
     desc: Run UI tests
     cmds:
       - task: package
+      - yarn test-compile
       - $VIRTUAL_ENV/bin/python3 --version
       - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-current'
     interactive: true
@@ -155,6 +157,7 @@ tasks:
     desc: Run UI tests (oldest vscode)
     cmds:
       - task: package
+      - yarn test-compile
       - $VIRTUAL_ENV/bin/python3 --version
       - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
     interactive: true
