@@ -4,13 +4,13 @@ import * as vscode from "vscode";
 import * as os from "os";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { AnsibleProjectFormInterface, PostMessageEvent } from "./types";
+import { AnsibleCollectionFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, runCommand } from "./utils";
+import { expandPath, getBinDetail, runCommand } from "./utils";
 
-export class ScaffoldAnsibleProject {
-  public static currentPanel: ScaffoldAnsibleProject | undefined;
+export class CreateAnsibleCollection {
+  public static currentPanel: CreateAnsibleCollection | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
 
@@ -25,12 +25,12 @@ export class ScaffoldAnsibleProject {
   }
 
   public static render(extensionUri: vscode.Uri) {
-    if (ScaffoldAnsibleProject.currentPanel) {
-      ScaffoldAnsibleProject.currentPanel._panel.reveal(vscode.ViewColumn.One);
+    if (CreateAnsibleCollection.currentPanel) {
+      CreateAnsibleCollection.currentPanel._panel.reveal(vscode.ViewColumn.One);
     } else {
       const panel = vscode.window.createWebviewPanel(
-        "scaffold-ansible-project",
-        "Scaffold Ansible Project",
+        "create-ansible-collection",
+        "Create Ansible Collection",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -43,7 +43,7 @@ export class ScaffoldAnsibleProject {
         },
       );
 
-      ScaffoldAnsibleProject.currentPanel = new ScaffoldAnsibleProject(
+      CreateAnsibleCollection.currentPanel = new CreateAnsibleCollection(
         panel,
         extensionUri,
       );
@@ -51,7 +51,7 @@ export class ScaffoldAnsibleProject {
   }
 
   public dispose() {
-    ScaffoldAnsibleProject.currentPanel = undefined;
+    CreateAnsibleCollection.currentPanel = undefined;
 
     this._panel.dispose();
 
@@ -73,14 +73,14 @@ export class ScaffoldAnsibleProject {
       "webview",
       "apps",
       "contentCreator",
-      "scaffoldAnsibleProjectPageApp.js",
+      "createAnsibleCollectionPageApp.js",
     ]);
 
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
       "contentCreator",
-      "scaffoldAnsibleProjectPageStyle.css",
+      "createAnsibleCollectionPageStyle.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [
@@ -105,12 +105,25 @@ export class ScaffoldAnsibleProject {
         </head>
 
         <body>
-            <h1>Scaffold Ansible Playbook Project</h1>
+            <div class="title-div">
+              <h1>Create Ansible Collection Project</h1>
+              <p class="subtitle">Streamlining automation</p>
+            </div>
+
             <form id="init-form">
               <section class="component-container">
 
-                <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}"
-                  size="512">Destination directory
+                <vscode-text-field id="namespace-name" form="init-form" placeholder="Enter namespace name" size="512">Namespace
+                  *</vscode-text-field>
+                <vscode-text-field id="collection-name" form="init-form" placeholder="Enter collection name" size="512">Collection
+                  *</vscode-text-field>
+
+                <div id="full-collection-name" class="full-collection-name">
+                  <p>Collection name:&nbsp</p>
+                </div>
+
+                <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}/.ansible/collections/ansible_collections"
+                  size="512">Init path
                   <section slot="end" class="explorer-icon">
                     <vscode-button id="folder-explorer" appearance="icon">
                       <span class="codicon codicon-folder-opened"></span>
@@ -118,19 +131,14 @@ export class ScaffoldAnsibleProject {
                   </section>
                 </vscode-text-field>
 
-                <div class="scm-org-project-div">
-                  <vscode-text-field id="scm-org-name" form="init-form" placeholder="Enter scm organization name" size="512">SCM organization *</vscode-text-field>
-                  <vscode-text-field id="scm-project-name" form="init-form" placeholder="Enter scm project name" size="512">SCM project *</vscode-text-field>
-                </div>
-
-                <div id="full-collection-path" class="full-collection-path">
-                  <p>Project path:&nbsp</p>
+                <div id="full-collection-path" class="full-collection-name">
+                  <p>Default collection path:&nbsp</p>
                 </div>
 
                 <div class="verbose-div">
                   <div class="dropdown-container">
-                    <label for="verbosity-dropdown">Output Verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown">
+                    <label for="verbosity-dropdown">Verbosity</label>
+                    <vscode-dropdown id="verbosity-dropdown" position="below">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>
@@ -159,7 +167,7 @@ export class ScaffoldAnsibleProject {
                   <div class="log-level-div">
                     <div class="dropdown-container">
                       <label for="log-level-dropdown">Log level</label>
-                      <vscode-dropdown id="log-level-dropdown">
+                      <vscode-dropdown id="log-level-dropdown" position="below">
                         <vscode-option>Debug</vscode-option>
                         <vscode-option>Info</vscode-option>
                         <vscode-option>Warning</vscode-option>
@@ -172,7 +180,14 @@ export class ScaffoldAnsibleProject {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the existing work in the specified directory and re-initialize it with the ansible project.</i></vscode-checkbox>
+                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the current work in the specified directory and reset it with the Ansible collection.</i></vscode-checkbox>
+                </div>
+
+                <div class="checkbox-div">
+                  <vscode-checkbox id="editable-mode-checkbox" form="init-form">Install collection from source code (editable mode) <br><i>This will
+                    allow immediate reflection of content changes without having to reinstalling it. <br>
+                    (NOTE: Requires ansible-dev-environment installed in the environment.)</i></vscode-checkbox>
+                    <vscode-link id="ade-docs-link"href="https://ansible.readthedocs.io/projects/dev-environment/">Learn more.</vscode-link>
                 </div>
 
                 <div class="group-buttons">
@@ -207,7 +222,7 @@ export class ScaffoldAnsibleProject {
                   </vscode-button>
                   <vscode-button id="open-folder-button" form="init-form" disabled>
                     <span class="codicon codicon-folder-active"></span>
-                    &nbsp; Open Project
+                    &nbsp; Open Collection
                   </vscode-button>
                 </div>
               </section>
@@ -238,8 +253,12 @@ export class ScaffoldAnsibleProject {
             } as PostMessageEvent);
             return;
 
+          case "check-ade-presence":
+            await this.isADEPresent(webview);
+            return;
+
           case "init-create":
-            payload = message.payload as AnsibleProjectFormInterface;
+            payload = message.payload as AnsibleCollectionFormInterface;
             await this.runInitCommand(payload, webview);
             return;
 
@@ -258,7 +277,7 @@ export class ScaffoldAnsibleProject {
 
           case "init-open-scaffolded-folder":
             payload = message.payload;
-            await this.openFolderInWorkspace(payload.projectUrl);
+            await this.openFolderInWorkspace(payload.collectionUrl);
             return;
         }
       },
@@ -288,27 +307,62 @@ export class ScaffoldAnsibleProject {
     return selectedUri;
   }
 
+  public async isADEPresent(webView: vscode.Webview) {
+    const ADEVersion = await getBinDetail("ade", "--version");
+    if (ADEVersion === "failed") {
+      // send the system details to the webview
+      webView.postMessage({
+        command: "ADEPresence",
+        arguments: false,
+      } as PostMessageEvent);
+      return;
+    }
+    // send the system details to the webview
+    webView.postMessage({
+      command: "ADEPresence",
+      arguments: true,
+    } as PostMessageEvent);
+    return;
+  }
+
   public async runInitCommand(
-    payload: AnsibleProjectFormInterface,
+    payload: AnsibleCollectionFormInterface,
     webView: vscode.Webview,
   ) {
     const {
-      destinationPath,
-      scmOrgName,
-      scmProjectName,
+      namespaceName,
+      collectionName,
+      initPath,
       logToFile,
       logFilePath,
       logFileAppend,
       logLevel,
       verbosity,
       isForced,
+      isEditableModeInstall,
     } = payload;
 
-    const destinationPathUrl = destinationPath
-      ? destinationPath
-      : `${os.homedir()}/${scmOrgName}-${scmProjectName}`;
+    const initPathUrl = initPath
+      ? initPath
+      : `${os.homedir()}/.ansible/collections/ansible_collections`;
 
-    let ansibleCreatorInitCommand = `ansible-creator init --project=ansible-project --init-path=${destinationPathUrl} --scm-org=${scmOrgName} --scm-project=${scmProjectName} --no-ansi`;
+    let ansibleCreatorInitCommand = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
+
+    // adjust collection url for using it in ade and opening it in workspace
+    // NOTE: this is done in order to synchronize the behavior of ade and extension
+    // with the behavior of ansible-creator CLI tool
+
+    const collectionUrl = initPathUrl.endsWith(
+      "/collections/ansible_collections",
+    )
+      ? vscode.Uri.joinPath(
+          vscode.Uri.parse(initPathUrl),
+          namespaceName,
+          collectionName,
+        ).fsPath
+      : initPathUrl;
+
+    let adeCommand = `ade install --editable ${collectionUrl} --no-ansi`;
 
     if (isForced) {
       ansibleCreatorInitCommand += " --force";
@@ -317,15 +371,19 @@ export class ScaffoldAnsibleProject {
     switch (verbosity) {
       case "Off":
         ansibleCreatorInitCommand += "";
+        adeCommand += "";
         break;
       case "Low":
         ansibleCreatorInitCommand += " -v";
+        adeCommand += " -v";
         break;
       case "Medium":
         ansibleCreatorInitCommand += " -vv";
+        adeCommand += " -vv";
         break;
       case "High":
         ansibleCreatorInitCommand += " -vvv";
+        adeCommand += " -vvv";
         break;
     }
 
@@ -366,15 +424,31 @@ export class ScaffoldAnsibleProject {
     const ansibleCreatorExecutionResult = await runCommand(command, runEnv);
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
-    const commandPassed = ansibleCreatorExecutionResult.status;
+    const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
+
+    if (isEditableModeInstall) {
+      // ade command inherits only the verbosity options from ansible-creator command
+      console.debug("[ade] command: ", adeCommand);
+
+      const [command, runEnv] = withInterpreter(
+        extSettings.settings,
+        adeCommand,
+        "",
+      );
+
+      // execute ade command
+      const adeExecutionResult = await runCommand(command, runEnv);
+      commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
+      commandOutput += adeExecutionResult.output;
+    }
 
     await webView.postMessage({
       command: "execution-log",
       arguments: {
         commandOutput: commandOutput,
         logFileUrl: logFilePathUrl,
-        projectUrl: destinationPathUrl,
-        status: commandPassed,
+        collectionUrl: collectionUrl,
+        status: ansibleCreatorCommandPassed,
       },
     } as PostMessageEvent);
   }
@@ -390,24 +464,32 @@ export class ScaffoldAnsibleProject {
   public async openFolderInWorkspace(folderUrl: string) {
     const folderUri = vscode.Uri.parse(expandPath(folderUrl));
 
-    // add folder to a new workspace
-    vscode.workspace.updateWorkspaceFolders(0, 1, { uri: folderUri });
+    // add folder to workspace
+    vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    vscode.workspace.updateWorkspaceFolders(
+      vscode.workspace.workspaceFolders
+        ? vscode.workspace.workspaceFolders.length
+        : 0,
+      null,
+      { uri: folderUri },
+    );
 
-    // open site.yml file in the editor
-    const playbookFileUrl = vscode.Uri.joinPath(
+    // open the galaxy file in the editor
+    const galaxyFileUrl = vscode.Uri.joinPath(
       vscode.Uri.parse(folderUrl),
-      "site.yml",
+      "galaxy.yml",
     ).fsPath;
-    console.log(`[ansible-creator] Playbook file url: ${playbookFileUrl}`);
-    const parsedUrl = vscode.Uri.parse(`vscode://file${playbookFileUrl}`);
-    console.log(`[ansible-creator] Parsed playbook file url: ${parsedUrl}`);
+    console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
+    const parsedUrl = vscode.Uri.parse(`vscode://file${galaxyFileUrl}`);
+    console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
 
   public openFileInEditor(fileUrl: string) {
     const updatedUrl = expandPath(fileUrl);
+
     console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
 
-    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+    // vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 }
