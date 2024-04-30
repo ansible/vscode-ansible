@@ -188,9 +188,6 @@ export class LightSpeedAPI {
       if (inputData.inlineSuggestion) {
         delete inputData.inlineSuggestion;
       }
-      if (inputData.ansibleContent) {
-        delete inputData.ansibleContent;
-      }
     }
 
     if (Object.keys(inputData).length === 0) {

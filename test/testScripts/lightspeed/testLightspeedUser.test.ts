@@ -89,7 +89,7 @@ function testGetAuthProviderOrder() {
         .returns(rhAuthExtension);
     });
     after(() => {
-      sinon.restore();
+      getExtensionStub.restore();
     });
 
     it("Honors LIGHTSPEED_PREFER_RHSSO_AUTH env var", async function () {
@@ -173,7 +173,9 @@ function testRedHatSignInCommand() {
         .returns(rhAuthExtension);
     });
     after(() => {
-      sinon.restore();
+      getLightspeedUserDetailsStub.restore();
+      showInformationMessageStub.restore();
+      getExtensionStub.restore();
     });
     it("Logs in with Red Hat when Red Hat Auth extension is installed", async () => {
       // Trigger Sign in with Red Hat
@@ -206,7 +208,8 @@ function testRedHatSignInCommand() {
         .returns(undefined);
     });
     after(() => {
-      sinon.restore();
+      showErrorMessageStub.restore();
+      getExtensionStub.restore();
     });
     it("Displays an error when signing in with Red Hat without Red Hat Auth extension", async () => {
       // Trigger Sign in with Red Hat

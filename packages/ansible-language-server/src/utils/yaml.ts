@@ -509,25 +509,26 @@ export async function findProvidedModule(
 }
 
 export function getYamlMapKeys(mapNode: YAMLMap): Array<string> {
-  return mapNode.items.map((pair) => {
-    if (pair.key && isScalar(pair.key)) {
-      return pair.key.value.toString();
-    }
-  });
+  return mapNode.items
+    .map((pair) => {
+      if (pair.key && isScalar(pair.key)) {
+        return String(pair.key.value);
+      }
+    })
+    .filter((e) => !!e) as string[];
 }
 
 export function getOrigRange(
   node: Node | null | undefined,
-): [number, number] | null | undefined {
-  if (node.range) {
-    const range = node.range;
-    return [
-      range[0] !== undefined ? range[0] : null,
-      range[1] !== undefined ? range[1] : null,
-    ];
-  } else {
-    return [node?.range?.[0], node?.range?.[1]];
+): [number, number] | undefined {
+  if (
+    node?.range &&
+    node.range[0] !== undefined &&
+    node.range[1] !== undefined
+  ) {
+    return [node.range[0], node.range[1]];
   }
+  return undefined;
 }
 
 /** Parsing with the YAML library tailored to the needs of this extension */
@@ -569,11 +570,9 @@ export function isPlaybook(textDocument: TextDocument): boolean {
   const playbookKeysSet: Set<string> = new Set();
   const playbookJSON = path[0].toJSON();
 
-  Object.keys(playbookJSON).forEach(function (key) {
-    if (playbookJSON[key]) {
-      Object.keys(playbookJSON[key]).forEach((item) =>
-        playbookKeysSet.add(item),
-      );
+  playbookJSON.forEach((item) => {
+    if (item) {
+      Object.keys(item).forEach((item) => playbookKeysSet.add(item));
     }
   });
 

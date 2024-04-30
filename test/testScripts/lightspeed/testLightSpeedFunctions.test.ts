@@ -9,7 +9,7 @@ import { LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from "../../../src/definitions/lig
 function getLightSpeedUserDetails(
   rhUserHasSeat: boolean,
   rhOrgHasSubscription: boolean,
-  rhUserIsOrgAdmin: boolean,
+  rhUserIsOrgAdmin: boolean = false,
 ): LightspeedUserDetails {
   return {
     rhUserHasSeat: rhUserHasSeat,
@@ -21,7 +21,7 @@ function getLightSpeedUserDetails(
   };
 }
 
-function testGetLoggedInSessionDetails(): void {
+function testGetLoggedInUserDetails(): void {
   describe("Test getLoggedInUserDetails", function () {
     it(`Verify a seated user`, function () {
       const session = getLightSpeedUserDetails(true, true, false);
@@ -59,19 +59,48 @@ function testGetLoggedInSessionDetails(): void {
 
 function testGetLightSpeedStatusBarText(): void {
   describe("Test getLightSpeedStatusBarTest", function () {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let getLightspeedUserDetailsStub: any;
+
+    before(async function () {
+      getLightspeedUserDetailsStub = sinon.stub(
+        lightSpeedManager.lightspeedAuthenticatedUser,
+        "getLightspeedUserDetails",
+      );
+    });
+    after(async function () {
+      getLightspeedUserDetailsStub.restore();
+    });
+
     it("Verify status bar text for various user types", async function () {
       const statusBarProvider = lightSpeedManager.statusBarProvider;
 
+      getLightspeedUserDetailsStub.returns(Promise.resolve(undefined));
       let text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT);
 
-      text = await statusBarProvider.getLightSpeedStatusBarText(true, true);
+      getLightspeedUserDetailsStub.returns(
+        Promise.resolve(getLightSpeedUserDetails(true, true)),
+      );
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (licensed)");
-      text = await statusBarProvider.getLightSpeedStatusBarText(true, false);
+
+      getLightspeedUserDetailsStub.returns(
+        Promise.resolve(getLightSpeedUserDetails(true, false)),
+      );
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (unlicensed)");
-      text = await statusBarProvider.getLightSpeedStatusBarText(false, true);
+
+      getLightspeedUserDetailsStub.returns(
+        Promise.resolve(getLightSpeedUserDetails(false, true)),
+      );
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (unlicensed)");
-      text = await statusBarProvider.getLightSpeedStatusBarText(false, false);
+
+      getLightspeedUserDetailsStub.returns(
+        Promise.resolve(getLightSpeedUserDetails(false, false)),
+      );
+      text = await statusBarProvider.getLightSpeedStatusBarText();
       assert.equal(text, "Lightspeed (unlicensed)");
     });
   });
@@ -137,12 +166,12 @@ function testFeedbackAPI(): void {
   });
 
   after(async function () {
-    sinon.restore();
+    isAuthenticated.restore();
   });
 }
 
 export function testLightspeedFunctions(): void {
-  testGetLoggedInSessionDetails();
+  testGetLoggedInUserDetails();
   testGetLightSpeedStatusBarText();
   testFeedbackAPI();
 }

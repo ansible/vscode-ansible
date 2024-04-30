@@ -18,6 +18,13 @@ import {
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
 
+export class LightspeedAccessDenied extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "LightspeedAccessDenied";
+  }
+}
+
 export enum AuthProviderType {
   rhsso = RHSSO_AUTH_ID,
   lightspeed = ANSIBLE_LIGHTSPEED_AUTH_ID,
@@ -63,6 +70,17 @@ export class LightspeedUser {
           ? ExtensionHost.Local
           : ExtensionHost.Remote
         : ExtensionHost.WebWorker;
+    this.logAuthProviderDebugHints();
+  }
+
+  private logAuthProviderDebugHints() {
+    const lightspeedUri = getBaseUri(this._settingsManager);
+    this._logger.info(
+      `[ansible-lightspeed-user] Initializing LightspeedUser for Lightspeed URI ${lightspeedUri} and extension host ${this._extensionHost}`,
+    );
+    this._logger.info(
+      `[ansible-lightspeed-user] Red Hat authentication extension is${vscode.extensions.getExtension("redhat.vscode-redhat-account") ? "" : " not"} installed.`,
+    );
   }
 
   public static isLightspeedUserAuthProviderType(providerId: string) {
@@ -98,7 +116,13 @@ export class LightspeedUser {
 
       return data;
     } catch (error) {
-      if (axios.isAxiosError(error)) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.status === 401
+      ) {
+        throw new LightspeedAccessDenied(error.message);
+      } else if (axios.isAxiosError(error)) {
         this._logger.error(
           `[ansible-lightspeed-user] error message: ${error.message}`,
         );
@@ -115,12 +139,7 @@ export class LightspeedUser {
   public async getAuthProviderOrder() {
     // NOTE: We can't gate this check on if this extension is active,
     // because it only activates on an authentication request.
-    if (
-      !(await vscode.extensions.getExtension("redhat.vscode-redhat-account"))
-    ) {
-      this._logger.info(
-        "[ansible-lightspeed-user] Red Hat authentication extension not installed.",
-      );
+    if (!vscode.extensions.getExtension("redhat.vscode-redhat-account")) {
       return [AuthProviderType.lightspeed];
     }
     const preferRHSSO = process.env.LIGHTSPEED_PREFER_RHSSO_AUTH
@@ -146,9 +165,6 @@ export class LightspeedUser {
     const lightspeedUri = getBaseUri(this._settingsManager);
     // Prefer RHSSO when we know Lightspeed auth will be broken.
     // Prefer Lightspeed auth all other times.
-    this._logger.info(
-      `[ansible-lightspeed-user] Selecting auth provider for Lightspeed URI ${lightspeedUri} and extension host ${this._extensionHost}`,
-    );
     if (
       lightspeedUri === "https://c.ai.ansible.redhat.com" &&
       this._extensionHost === ExtensionHost.Remote
@@ -212,50 +228,50 @@ export class LightspeedUser {
     }
 
     if (session) {
-      this._session = session;
-      const userinfo: LoggedInUserInfo = await this.getUserInfo(
-        this._session.accessToken,
-      );
-      const displayName = userinfo.external_username || userinfo.username || "";
-      const userTypeLabel = getUserTypeLabel(
-        userinfo.rh_org_has_subscription,
-        userinfo.rh_user_has_seat,
-      ).toLowerCase();
+      try {
+        const userinfo: LoggedInUserInfo = await this.getUserInfo(
+          session.accessToken,
+        );
+        this._session = session;
 
-      this._userDetails = {
-        rhUserHasSeat: userinfo.rh_user_has_seat,
-        rhOrgHasSubscription: userinfo.rh_org_has_subscription,
-        rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
-        displayName,
-        displayNameWithUserType: `${displayName} (${userTypeLabel})`,
-        orgOptOutTelemetry: userinfo.org_telemetry_opt_out,
-      };
-      return;
+        const displayName =
+          userinfo.external_username || userinfo.username || "";
+        const userTypeLabel = getUserTypeLabel(
+          userinfo.rh_org_has_subscription,
+          userinfo.rh_user_has_seat,
+        ).toLowerCase();
+
+        this._userDetails = {
+          rhUserHasSeat: userinfo.rh_user_has_seat,
+          rhOrgHasSubscription: userinfo.rh_org_has_subscription,
+          rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
+          displayName,
+          displayNameWithUserType: `${displayName} (${userTypeLabel})`,
+          orgOptOutTelemetry: userinfo.org_telemetry_opt_out,
+        };
+        return;
+      } catch (error) {
+        this._logger.info(
+          `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
+        );
+        if (error instanceof LightspeedAccessDenied) {
+          // Auth provider has a dead session stored. We need to force it out.
+          if (createIfNone && this._userType) {
+            vscode.authentication.getSession(
+              this._userType,
+              this.getScopesForAuthProviderType(this._userType),
+              { forceNewSession: true },
+            );
+          } else if (this._userType === AuthProviderType.lightspeed) {
+            this._lightspeedAuthenticationProvider.removeSession(session.id);
+          }
+        }
+      }
     }
 
     this._session = undefined;
     this._userDetails = undefined;
-    this._userType = undefined; // TODO - consider leaving defined to last successful provider type
-  }
-
-  async initialize(): Promise<void> {
-    this.registerListeners();
-    // await this.setLightspeedUser(false);
-  }
-
-  registerListeners(): void {
-    /**
-     * Sessions are changed when a user logs in or logs out.
-     */
-    this.context.subscriptions.push(
-      vscode.authentication.onDidChangeSessions(async (e) => {
-        // TODO - I may need to do more here around switching user type?? e.g., if they
-        // log out should I let the user type go?
-        if (e.provider.id === this._userType) {
-          await this.setLightspeedUser(false);
-        }
-      }),
-    );
+    this._userType = undefined;
   }
 
   public async refreshLightspeedUser() {
@@ -268,6 +284,10 @@ export class LightspeedUser {
     createIfNone: boolean,
     useProviderType: AuthProviderType | undefined = undefined,
   ) {
+    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return undefined;
+    }
     if (
       this._userDetails &&
       (!useProviderType || useProviderType === this._userType)
@@ -339,7 +359,7 @@ export class LightspeedUser {
         "[ansible-lightspeed-user] Session not found. Returning...",
       );
       const selection = await vscode.window.showWarningMessage(
-        "You must be logged in to use the Ansible Lightspeed.\n",
+        "You must be logged in to use Ansible Lightspeed.\n",
         "Login",
       );
       if (selection === "Login") {

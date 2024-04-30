@@ -1,16 +1,7 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    // "strict": true,
-    "declaration": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "lib": ["ES2022"],
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "outDir": "./out/server",
-    "skipLibCheck": true,
-    "sourceMap": true,
-    "target": "ES2022"
+    "outDir": "./out/server"
   },
   "exclude": ["node_modules", "out", "vscode-ansible"]
 }
