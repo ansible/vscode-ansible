@@ -1,12 +1,9 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import * as vscode from "vscode";
-import * as cp from "child_process";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import * as ini from "ini";
-import { SettingsManager } from "../../settings";
-import { withInterpreter } from "../utils/commandRunner";
 import { getBinDetail } from "./utils";
 
 export class AnsibleCreatorMenu {
@@ -286,20 +283,4 @@ export class AnsibleCreatorMenu {
     // send the system details to the webview
     webView.postMessage({ command: "systemDetails", arguments: systemInfo });
   }
-
-  // private async getBinDetail(cmd: string, arg: string) {
-  //   const extSettings = new SettingsManager();
-  //   await extSettings.initialize();
-
-  //   const [command, runEnv] = withInterpreter(extSettings.settings, cmd, arg);
-
-  //   try {
-  //     const result = cp.execSync(command, {
-  //       env: runEnv,
-  //     });
-  //     return result;
-  //   } catch {
-  //     return "failed";
-  //   }
-  // }
 }
