@@ -142,13 +142,15 @@ export class PlaybookExplanationPanel {
     ]);
     const nonce = getNonce();
 
-    const feedbackBoxSnippet = `<div class="feedbackContainer">
+    const feedbackBoxSnippet = `<div class="stickyFeedbackContainer">
+    <div class="feedbackContainer">
     <vscode-button class="iconButton" appearance="icon" id="thumbsup-button">
         <span class="codicon codicon-thumbsup"></span>
     </vscode-button>
     <vscode-button class="iconButton" appearance="icon" id="thumbsdown-button">
         <span class="codicon codicon-thumbsdown"></span>
     </vscode-button>
+    </div>
     </div>`;
 
     return `<!DOCTYPE html>
