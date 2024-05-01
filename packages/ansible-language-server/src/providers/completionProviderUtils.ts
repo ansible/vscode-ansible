@@ -45,7 +45,7 @@ export function getVarsCompletion(
       ) {
         path = parentKeyPath;
         const scopedNode = path[path.length - 3].toJSON();
-        if (scopedNode.hasOwnProperty("vars")) {
+        if (Object.prototype.hasOwnProperty.call(scopedNode, "vars")) {
           const varsObject = scopedNode["vars"];
 
           if (Array.isArray(varsObject)) {
@@ -79,7 +79,7 @@ export function getVarsCompletion(
       ) {
         path = parentKeyPath;
         const scopedNode = path[path.length - 3].toJSON();
-        if (scopedNode.hasOwnProperty("vars")) {
+        if (Object.prototype.hasOwnProperty.call(scopedNode, "vars")) {
           const varsObject = scopedNode["vars"];
 
           if (Array.isArray(varsObject)) {
@@ -108,7 +108,7 @@ export function getVarsCompletion(
   // handling vars_prompt
   varPriority = varPriority + 1;
   const playNode = path[path.length - 3].toJSON();
-  if (playNode.hasOwnProperty("vars_prompt")) {
+  if (Object.prototype.hasOwnProperty.call(playNode, "vars_prompt")) {
     const varsPromptObject: varsPromptType[] = playNode["vars_prompt"];
 
     varsPromptObject.forEach((element) => {
@@ -118,7 +118,7 @@ export function getVarsCompletion(
 
   // handling vars_files
   varPriority = varPriority + 1;
-  if (playNode.hasOwnProperty("vars_files")) {
+  if (Object.prototype.hasOwnProperty.call(playNode, "vars_files")) {
     const varsPromptObject: string[] = playNode["vars_files"];
 
     const currentDirectory = pathUri.dirname(URI.parse(documentUri).path);
