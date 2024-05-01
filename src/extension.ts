@@ -68,6 +68,7 @@ import {
   LightspeedUser,
   AuthProviderType,
 } from "./features/lightspeed/lightspeedUser";
+import { PlaybookOutlineEvent } from "./interfaces/lightspeed";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -555,9 +556,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.lightspeed.thumbsUpDown", () => {
-      window.showInformationMessage("Thank you for your feedback!");
-    }),
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.thumbsUpDown",
+      async (param: PlaybookOutlineEvent) => {
+        lightSpeedManager.apiInstance.feedbackRequest(
+          { playbookOutlineFeedback: param },
+          true,
+          true,
+        );
+        window.showInformationMessage("Thank you for your feedback!");
+      },
+    ),
   );
 
   context.subscriptions.push(

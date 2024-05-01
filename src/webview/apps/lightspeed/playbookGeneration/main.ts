@@ -7,6 +7,7 @@ import {
   vsCodeTextField,
   TextArea,
 } from "@vscode/webview-ui-toolkit";
+import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -20,6 +21,7 @@ const TEXTAREA_MAX_HEIGHT = 500;
 let savedInput: string;
 let savedInputHeight: string | undefined;
 let savedSummary: string;
+let outlineId: string | undefined;
 
 const vscode = acquireVsCodeApi();
 
@@ -58,7 +60,8 @@ window.addEventListener("message", (event) => {
       changeDisplay("promptContainer", "block");
 
       const element = document.getElementById("playbook-text-area") as TextArea;
-      savedSummary = element.value = message.summary;
+      savedSummary = element.value = message.summary.content;
+      outlineId = message.summary.summaryId;
       resetTextAreaHeight();
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
@@ -165,7 +168,11 @@ function sendThumbsup() {
   ) as Button;
   thumbsUpButton.setAttribute("class", "iconButtonSelected");
   thumbsDownButton.setAttribute("class", "iconButton");
-  vscode.postMessage({ command: "thumbsUp" });
+  vscode.postMessage({
+    command: "thumbsUp",
+    action: ThumbsUpDownAction.UP,
+    outlineId,
+  });
 }
 
 function sendThumbsdown() {
@@ -175,7 +182,11 @@ function sendThumbsdown() {
   ) as Button;
   thumbsUpButton.setAttribute("class", "iconButton");
   thumbsDownButton.setAttribute("class", "iconButtonSelected");
-  vscode.postMessage({ command: "thumbsDown" });
+  vscode.postMessage({
+    command: "thumbsDown",
+    action: ThumbsUpDownAction.DOWN,
+    outlineId,
+  });
 }
 
 function getTextAreaInShadowDOM() {
