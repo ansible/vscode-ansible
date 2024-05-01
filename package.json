@@ -215,11 +215,11 @@
       },
       {
         "command": "ansible.content-creator.create-ansible-collection",
-        "title": "Create Ansible Collection"
+        "title": "Ansible: Create New Collection"
       },
       {
         "command": "ansible.content-creator.create-ansible-project",
-        "title": "Create Ansible Project"
+        "title": "Ansible: Create New Playbook Project"
       },
       {
         "command": "ansible.content-creator.create",

@@ -106,7 +106,7 @@ export class CreateAnsibleProject {
 
         <body>
             <div class="title-div">
-              <h1>Create Ansible Playbook Project</h1>
+              <h1>Create New Ansible Playbook Project</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 

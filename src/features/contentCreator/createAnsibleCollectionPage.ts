@@ -106,7 +106,7 @@ export class CreateAnsibleCollection {
 
         <body>
             <div class="title-div">
-              <h1>Create Ansible Collection Project</h1>
+              <h1>Create New Ansible Collection</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 
