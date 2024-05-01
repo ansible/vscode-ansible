@@ -395,7 +395,11 @@ export class CreateAnsibleProject {
     const folderUri = vscode.Uri.parse(expandPath(folderUrl));
 
     // add folder to a new workspace
-    vscode.workspace.updateWorkspaceFolders(0, 1, { uri: folderUri });
+    // vscode.workspace.updateWorkspaceFolders(0, 1, { uri: folderUri });
+
+    await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+      forceNewWindow: true,
+    });
 
     // open site.yml file in the editor
     const playbookFileUrl = vscode.Uri.joinPath(

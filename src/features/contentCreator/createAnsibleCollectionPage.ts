@@ -465,14 +465,18 @@ export class CreateAnsibleCollection {
     const folderUri = vscode.Uri.parse(expandPath(folderUrl));
 
     // add folder to workspace
-    vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
-    vscode.workspace.updateWorkspaceFolders(
-      vscode.workspace.workspaceFolders
-        ? vscode.workspace.workspaceFolders.length
-        : 0,
-      null,
-      { uri: folderUri },
-    );
+    // vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    // vscode.workspace.updateWorkspaceFolders(
+    //   vscode.workspace.workspaceFolders
+    //     ? vscode.workspace.workspaceFolders.length
+    //     : 0,
+    //   null,
+    //   { uri: folderUri },
+    // );
+
+    await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+      forceNewWindow: true,
+    });
 
     // open the galaxy file in the editor
     const galaxyFileUrl = vscode.Uri.joinPath(
@@ -490,6 +494,6 @@ export class CreateAnsibleCollection {
 
     console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
 
-    // vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 }
