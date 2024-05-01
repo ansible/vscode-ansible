@@ -39,6 +39,7 @@ export class SettingsManager {
         URL: lightSpeedSettings.get("URL", "https://c.ai.ansible.redhat.com"),
         suggestions: {
           enabled: lightSpeedSettings.get("suggestions.enabled", false),
+          waitWindow: lightSpeedSettings.get("suggestions.waitWindow", 0),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
         disableContentSuggestionHeader: lightSpeedSettings.get(
