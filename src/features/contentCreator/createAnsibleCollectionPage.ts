@@ -242,7 +242,7 @@ export class CreateAnsibleCollection {
         let payload;
 
         switch (command) {
-          case "open-explorer":
+          case "open-explorer": {
             payload = message.payload;
             const selectedUri = await this.openExplorerDialog(
               payload.selectOption,
@@ -252,6 +252,7 @@ export class CreateAnsibleCollection {
               arguments: { selectedUri: selectedUri },
             } as PostMessageEvent);
             return;
+          }
 
           case "check-ade-presence":
             await this.isADEPresent(webview);

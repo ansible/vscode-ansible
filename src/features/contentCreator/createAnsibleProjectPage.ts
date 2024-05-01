@@ -231,7 +231,7 @@ export class CreateAnsibleProject {
         let payload;
 
         switch (command) {
-          case "open-explorer":
+          case "open-explorer": {
             payload = message.payload;
             const selectedUri = await this.openExplorerDialog(
               payload.selectOption,
@@ -241,7 +241,7 @@ export class CreateAnsibleProject {
               arguments: { selectedUri: selectedUri },
             } as PostMessageEvent);
             return;
-
+          }
           case "init-create":
             payload = message.payload as AnsibleProjectFormInterface;
             await this.runInitCommand(payload, webview);
