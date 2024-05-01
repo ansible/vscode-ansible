@@ -1,0 +1,48 @@
+/* This styling is to be imported in all the form related web-views */
+/* It defines the layout of the title and body of the page */
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.title-div {
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: column nowrap;
+    width: 100%;
+    max-width: 650px;
+    text-align: left;
+    margin: 25px 0px 50px;
+}
+
+h1 {
+    border: none;
+    font-size: 2.7em;
+    font-weight: 400;
+    margin: 0;
+    color: var(--vscode-foreground);
+    white-space: nowrap;
+}
+
+.subtitle {
+    color: var(--vscode-descriptionForeground);
+    line-height: 1.4em;
+    display: block;
+    font-size: 2em;
+    margin: 0px;
+}
+
+section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    max-width: 650px;
+    /* width: 600px; */
+    /* width: 70%; */
+    /* margin: auto; */
+}

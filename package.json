@@ -214,12 +214,12 @@
         "title": "Install Ansible Content Creator"
       },
       {
-        "command": "ansible.content-creator.scaffold-ansible-collection",
-        "title": "Scaffold Ansible Collection"
+        "command": "ansible.content-creator.create-ansible-collection",
+        "title": "Ansible: Create New Collection"
       },
       {
-        "command": "ansible.content-creator.scaffold-ansible-project",
-        "title": "Scaffold Ansible Project"
+        "command": "ansible.content-creator.create-ansible-project",
+        "title": "Ansible: Create New Playbook Project"
       },
       {
         "command": "ansible.content-creator.create",
