@@ -57,11 +57,12 @@ import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
-import { AnsibleCreatorInit } from "./features/contentCreator/scaffoldCollectionPage";
+import { CreateAnsibleCollection } from "./features/contentCreator/createAnsibleCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
-import { ScaffoldAnsibleProject } from "./features/contentCreator/scaffoldAnsibleProjectPage";
+import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
+// import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
   AuthProviderType,
@@ -489,22 +490,22 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
-  // open ansible-creator init
+  // open web-view for creating ansible collection
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ansible.content-creator.scaffold-ansible-collection",
+      "ansible.content-creator.create-ansible-collection",
       () => {
-        AnsibleCreatorInit.render(context.extensionUri);
+        CreateAnsibleCollection.render(context.extensionUri);
       },
     ),
   );
 
-  // open ansible-creator ansible project scaffolding
+  // open web-view for creating ansible playbook project
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ansible.content-creator.scaffold-ansible-project",
+      "ansible.content-creator.create-ansible-project",
       () => {
-        ScaffoldAnsibleProject.render(context.extensionUri);
+        CreateAnsibleProject.render(context.extensionUri);
       },
     ),
   );
