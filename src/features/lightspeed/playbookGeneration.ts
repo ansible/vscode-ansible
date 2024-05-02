@@ -102,7 +102,7 @@ export async function showPlaybookGenerationPage(
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
     switch (command) {
-      case "generatePlaybook":
+      case "generatePlaybook": {
         const playbook = await generatePlaybook(
           // TODO
           message.content,
@@ -114,7 +114,8 @@ export async function showPlaybookGenerationPage(
         panel?.dispose();
         await openNewPlaybookEditor(playbook);
         break;
-      case "summarizeInput":
+      }
+      case "summarizeInput": {
         const summary = await summarizeInput(
           // TODO
           message.content,
@@ -125,6 +126,7 @@ export async function showPlaybookGenerationPage(
         );
         panel.webview.postMessage({ command: "summary", summary });
         break;
+      }
       case "thumbsUp":
       case "thumbsDown":
         vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");

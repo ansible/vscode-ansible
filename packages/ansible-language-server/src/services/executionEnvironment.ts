@@ -548,7 +548,7 @@ export class ExecutionEnvironment {
 
   private isPluginDocCacheValid(hostCacheBasePath: string) {
     const markerFilePath = path.join(hostCacheBasePath, this.successFileMarker);
-    return true ? fs.existsSync(markerFilePath) : false;
+    return fs.existsSync(markerFilePath);
   }
 
   public get getBasicContainerAndImageDetails() {

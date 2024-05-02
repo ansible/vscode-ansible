@@ -234,13 +234,29 @@ describe("getAnsibleMetaData()", () => {
 
     describe("Verify ansible-lint details", () => {
       it("should contain all the keys for ansible-lint information", function () {
+        expect(actualAnsibleMetaData["ansible-lint information"]);
         if (actualAnsibleMetaData["ansible-lint information"]) {
-          expect(Object.keys(ansibleLintInfoForTest).length).equals(
-            Object.keys(actualAnsibleMetaData["ansible-lint information"])
-              .length,
+          const expectedKeys = Object.keys(ansibleLintInfoForTest);
+          const actualKeys = Object.keys(
+            actualAnsibleMetaData["ansible-lint information"],
           );
-        } else {
-          expect(false);
+
+          const missingKeys = expectedKeys.filter(
+            (key) => !actualKeys.includes(key),
+          );
+
+          const extraKeys = actualKeys.filter(
+            (key) => !expectedKeys.includes(key),
+          );
+
+          expect(missingKeys).to.deep.equal(
+            [],
+            `Missing keys: ${missingKeys.join(", ")}`,
+          );
+          expect(extraKeys).to.deep.equal(
+            [],
+            `Extra keys: ${extraKeys.join(", ")}`,
+          );
         }
       });
       it("should have information about ansible-lint version used", function () {

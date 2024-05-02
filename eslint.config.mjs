@@ -50,7 +50,10 @@ export default tseslint.config(
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
       "@typescript-eslint/no-unused-vars": "error",
+      "no-case-declarations": "error",
+      "no-constant-condition": "error",
       "no-control-regex": "error",
+      "no-empty-function": "error",
       "no-prototype-builtins": "error",
       "tsdoc/syntax": "error",
       // Needed for tseslint.configs.strictTypeChecked
@@ -62,10 +65,6 @@ export default tseslint.config(
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",
       // "@typescript-eslint/no-unsafe-return": "error",
-      // Fix temporary off/warn made during eslint v9 upgrade:
-      "no-empty-function": "warn",
-      "no-case-declarations": "off",
-      "no-constant-condition": "off",
     },
   },
 );
