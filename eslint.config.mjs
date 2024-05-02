@@ -56,7 +56,7 @@ export default tseslint.config(
       // Needed for tseslint.configs.strictTypeChecked
       // "@typescript-eslint/require-await": "error",
       // "@typescript-eslint/await-thenable": "error",
-      // "@typescript-eslint/unbound-method": "error",
+      "@typescript-eslint/unbound-method": "error",
       // "@typescript-eslint/no-unsafe-member-access": "error",
       // "@typescript-eslint/no-floating-promises": "error",
       // "@typescript-eslint/restrict-template-expressions": "error",
