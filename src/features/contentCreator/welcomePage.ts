@@ -1,12 +1,10 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import * as vscode from "vscode";
-import * as cp from "child_process";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import * as ini from "ini";
-import { SettingsManager } from "../../settings";
-import { withInterpreter } from "../utils/commandRunner";
+import { getBinDetail } from "./utils";
 
 export class AnsibleCreatorMenu {
   public static currentPanel: AnsibleCreatorMenu | undefined;
@@ -160,7 +158,7 @@ export class AnsibleCreatorMenu {
 
           <div class="menu">
             <div class="menu-item">
-              <vscode-link href="command:ansible.content-creator.scaffold-ansible-collection">
+              <vscode-link href="command:ansible.content-creator.create-ansible-collection">
                 <img src="${initIcon}" alt="Ansible Creator Icon">
               </vscode-link>
                 <p class="menu-item-heading">Initialize ansible collection</p>
@@ -220,7 +218,7 @@ export class AnsibleCreatorMenu {
     const systemInfo: any = {};
 
     // get ansible version and path
-    const ansibleVersion = await this.getBinDetail("ansible", "--version");
+    const ansibleVersion = await getBinDetail("ansible", "--version");
     if (ansibleVersion !== "failed") {
       const versionInfo = ini.parse(ansibleVersion.toString());
 
@@ -245,7 +243,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get python version
-    const pythonVersion = await this.getBinDetail("python3", "--version");
+    const pythonVersion = await getBinDetail("python3", "--version");
     if (pythonVersion !== "failed") {
       systemInfo["python version"] = pythonVersion
         .toString()
@@ -256,7 +254,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get python path
-    const pythonPathResult = await this.getBinDetail(
+    const pythonPathResult = await getBinDetail(
       "python3",
       '-c "import sys; print(sys.executable)"',
     );
@@ -265,7 +263,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get ansible-creator version
-    const ansibleCreatorVersion = await this.getBinDetail(
+    const ansibleCreatorVersion = await getBinDetail(
       "ansible-creator",
       "--version",
     );
@@ -276,10 +274,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get ansible-creator version
-    const ansibleDevEnvironmentVersion = await this.getBinDetail(
-      "ade",
-      "--version",
-    );
+    const ansibleDevEnvironmentVersion = await getBinDetail("ade", "--version");
     if (ansibleDevEnvironmentVersion !== "failed") {
       systemInfo["ansible-dev-environment version"] =
         ansibleDevEnvironmentVersion.toString().trim();
@@ -287,21 +282,5 @@ export class AnsibleCreatorMenu {
 
     // send the system details to the webview
     webView.postMessage({ command: "systemDetails", arguments: systemInfo });
-  }
-
-  private async getBinDetail(cmd: string, arg: string) {
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    const [command, runEnv] = withInterpreter(extSettings.settings, cmd, arg);
-
-    try {
-      const result = cp.execSync(command, {
-        env: runEnv,
-      });
-      return result;
-    } catch {
-      return "failed";
-    }
   }
 }

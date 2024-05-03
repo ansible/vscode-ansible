@@ -1,16 +1,16 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import * as vscode from "vscode";
-import * as cp from "child_process";
 import * as os from "os";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { AnsibleCreatorInitInterface } from "./types";
+import { AnsibleCollectionFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
+import { expandPath, getBinDetail, runCommand } from "./utils";
 
-export class AnsibleCreatorInit {
-  public static currentPanel: AnsibleCreatorInit | undefined;
+export class CreateAnsibleCollection {
+  public static currentPanel: CreateAnsibleCollection | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
 
@@ -25,12 +25,12 @@ export class AnsibleCreatorInit {
   }
 
   public static render(extensionUri: vscode.Uri) {
-    if (AnsibleCreatorInit.currentPanel) {
-      AnsibleCreatorInit.currentPanel._panel.reveal(vscode.ViewColumn.One);
+    if (CreateAnsibleCollection.currentPanel) {
+      CreateAnsibleCollection.currentPanel._panel.reveal(vscode.ViewColumn.One);
     } else {
       const panel = vscode.window.createWebviewPanel(
-        "scaffold-ansible-collection",
-        "Scaffold Ansible Collection",
+        "create-ansible-collection",
+        "Create Ansible Collection",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -43,7 +43,7 @@ export class AnsibleCreatorInit {
         },
       );
 
-      AnsibleCreatorInit.currentPanel = new AnsibleCreatorInit(
+      CreateAnsibleCollection.currentPanel = new CreateAnsibleCollection(
         panel,
         extensionUri,
       );
@@ -51,7 +51,7 @@ export class AnsibleCreatorInit {
   }
 
   public dispose() {
-    AnsibleCreatorInit.currentPanel = undefined;
+    CreateAnsibleCollection.currentPanel = undefined;
 
     this._panel.dispose();
 
@@ -73,14 +73,14 @@ export class AnsibleCreatorInit {
       "webview",
       "apps",
       "contentCreator",
-      "scaffoldCollectionPageApp.js",
+      "createAnsibleCollectionPageApp.js",
     ]);
 
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
       "contentCreator",
-      "scaffoldCollectionPageStyle.css",
+      "createAnsibleCollectionPageStyle.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [
@@ -105,7 +105,11 @@ export class AnsibleCreatorInit {
         </head>
 
         <body>
-            <h1>Scaffold Ansible Collection</h1>
+            <div class="title-div">
+              <h1>Create New Ansible Collection</h1>
+              <p class="subtitle">Streamlining automation</p>
+            </div>
+
             <form id="init-form">
               <section class="component-container">
 
@@ -134,7 +138,7 @@ export class AnsibleCreatorInit {
                 <div class="verbose-div">
                   <div class="dropdown-container">
                     <label for="verbosity-dropdown">Verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown">
+                    <vscode-dropdown id="verbosity-dropdown" position="below">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>
@@ -163,7 +167,7 @@ export class AnsibleCreatorInit {
                   <div class="log-level-div">
                     <div class="dropdown-container">
                       <label for="log-level-dropdown">Log level</label>
-                      <vscode-dropdown id="log-level-dropdown">
+                      <vscode-dropdown id="log-level-dropdown" position="below">
                         <vscode-option>Debug</vscode-option>
                         <vscode-option>Info</vscode-option>
                         <vscode-option>Warning</vscode-option>
@@ -176,8 +180,7 @@ export class AnsibleCreatorInit {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing re-initialization might
-                      delete the existing work in the specified directory.</i></vscode-checkbox>
+                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the current work in the specified directory and reset it with the Ansible collection.</i></vscode-checkbox>
                 </div>
 
                 <div class="checkbox-div">
@@ -239,7 +242,7 @@ export class AnsibleCreatorInit {
         let payload;
 
         switch (command) {
-          case "open-explorer":
+          case "open-explorer": {
             payload = message.payload;
             const selectedUri = await this.openExplorerDialog(
               payload.selectOption,
@@ -247,15 +250,16 @@ export class AnsibleCreatorInit {
             webview.postMessage({
               command: "file-uri",
               arguments: { selectedUri: selectedUri },
-            });
+            } as PostMessageEvent);
             return;
+          }
 
           case "check-ade-presence":
             await this.isADEPresent(webview);
             return;
 
           case "init-create":
-            payload = message.payload as AnsibleCreatorInitInterface;
+            payload = message.payload as AnsibleCollectionFormInterface;
             await this.runInitCommand(payload, webview);
             return;
 
@@ -283,7 +287,9 @@ export class AnsibleCreatorInit {
     );
   }
 
-  public async openExplorerDialog(selectOption: string) {
+  public async openExplorerDialog(
+    selectOption: string,
+  ): Promise<string | undefined> {
     const options: vscode.OpenDialogOptions = {
       canSelectMany: false,
       openLabel: "Select",
@@ -292,7 +298,7 @@ export class AnsibleCreatorInit {
       defaultUri: vscode.Uri.parse(os.homedir()),
     };
 
-    let selectedUri;
+    let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
       if (fileUri && fileUri[0]) {
         selectedUri = fileUri[0].fsPath;
@@ -303,19 +309,25 @@ export class AnsibleCreatorInit {
   }
 
   public async isADEPresent(webView: vscode.Webview) {
-    const ADEVersion = await this.getBinDetail("ade", "--version");
+    const ADEVersion = await getBinDetail("ade", "--version");
     if (ADEVersion === "failed") {
       // send the system details to the webview
-      webView.postMessage({ command: "ADEPresence", arguments: false });
+      webView.postMessage({
+        command: "ADEPresence",
+        arguments: false,
+      } as PostMessageEvent);
       return;
     }
     // send the system details to the webview
-    webView.postMessage({ command: "ADEPresence", arguments: true });
+    webView.postMessage({
+      command: "ADEPresence",
+      arguments: true,
+    } as PostMessageEvent);
     return;
   }
 
   public async runInitCommand(
-    payload: AnsibleCreatorInitInterface,
+    payload: AnsibleCollectionFormInterface,
     webView: vscode.Webview,
   ) {
     const {
@@ -341,13 +353,15 @@ export class AnsibleCreatorInit {
     // NOTE: this is done in order to synchronize the behavior of ade and extension
     // with the behavior of ansible-creator CLI tool
 
-    const collectionUrl = initPath.endsWith("/collections/ansible_collections")
+    const collectionUrl = initPathUrl.endsWith(
+      "/collections/ansible_collections",
+    )
       ? vscode.Uri.joinPath(
           vscode.Uri.parse(initPathUrl),
           namespaceName,
           collectionName,
         ).fsPath
-      : initPath;
+      : initPathUrl;
 
     let adeCommand = `ade install --editable ${collectionUrl} --no-ansi`;
 
@@ -408,10 +422,7 @@ export class AnsibleCreatorInit {
     let commandOutput = "";
 
     // execute ansible-creator command
-    const ansibleCreatorExecutionResult = await this.runCommand(
-      command,
-      runEnv,
-    );
+    const ansibleCreatorExecutionResult = await runCommand(command, runEnv);
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
@@ -427,7 +438,7 @@ export class AnsibleCreatorInit {
       );
 
       // execute ade command
-      const adeExecutionResult = await this.runCommand(command, runEnv);
+      const adeExecutionResult = await runCommand(command, runEnv);
       commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
       commandOutput += adeExecutionResult.output;
     }
@@ -440,11 +451,11 @@ export class AnsibleCreatorInit {
         collectionUrl: collectionUrl,
         status: ansibleCreatorCommandPassed,
       },
-    });
+    } as PostMessageEvent);
   }
 
   public async openLogFile(fileUrl: string) {
-    const logFileUrl = vscode.Uri.file(this.expandPath(fileUrl)).fsPath;
+    const logFileUrl = vscode.Uri.file(expandPath(fileUrl)).fsPath;
     console.log(`[ansible-creator] New Log file url: ${logFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
     console.log(`[ansible-creator] Parsed log file url: ${parsedUrl}`);
@@ -452,17 +463,21 @@ export class AnsibleCreatorInit {
   }
 
   public async openFolderInWorkspace(folderUrl: string) {
-    const folderUri = vscode.Uri.parse(this.expandPath(folderUrl));
+    const folderUri = vscode.Uri.parse(expandPath(folderUrl));
 
     // add folder to workspace
-    vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
-    vscode.workspace.updateWorkspaceFolders(
-      vscode.workspace.workspaceFolders
-        ? vscode.workspace.workspaceFolders.length
-        : 0,
-      null,
-      { uri: folderUri },
-    );
+    // vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    // vscode.workspace.updateWorkspaceFolders(
+    //   vscode.workspace.workspaceFolders
+    //     ? vscode.workspace.workspaceFolders.length
+    //     : 0,
+    //   null,
+    //   { uri: folderUri },
+    // );
+
+    await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+      forceNewWindow: true,
+    });
 
     // open the galaxy file in the editor
     const galaxyFileUrl = vscode.Uri.joinPath(
@@ -476,66 +491,10 @@ export class AnsibleCreatorInit {
   }
 
   public openFileInEditor(fileUrl: string) {
-    const updatedUrl = this.expandPath(fileUrl);
+    const updatedUrl = expandPath(fileUrl);
 
     console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
 
-    // vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
-  }
-
-  /**
-   * A function to expand the path similar to how os.expanduser() and os.expandvars() work in python
-   * @param pathUrl - original path url (string)
-   * @returns updatedUrl - updated and expanded path url (string)
-   */
-  private expandPath(pathUrl: string): string {
-    let updatedUrl = pathUrl;
-
-    // expand `~` to home directory.
-    const re1 = /~/gi;
-    updatedUrl = updatedUrl.replace(re1, os.homedir());
-
-    // expand `$HOME` to home directory
-    const re2 = /\$HOME/gi;
-    updatedUrl = updatedUrl.replace(re2, os.homedir());
-
-    return updatedUrl;
-  }
-
-  private async runCommand(
-    command: string,
-    runEnv: NodeJS.ProcessEnv | undefined,
-  ): Promise<{ output: string; status: string }> {
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    try {
-      const result = cp
-        .execSync(command, {
-          env: runEnv,
-          cwd: os.homedir(),
-        })
-        .toString();
-      return { output: result, status: "passed" };
-    } catch (err: any) {
-      const errorMessage = err.stderr.toString();
-      return { output: errorMessage, status: "failed" };
-    }
-  }
-
-  private async getBinDetail(cmd: string, arg: string) {
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    const [command, runEnv] = withInterpreter(extSettings.settings, cmd, arg);
-
-    try {
-      const result = cp.execSync(command, {
-        env: runEnv,
-      });
-      return result;
-    } catch {
-      return "failed";
-    }
+    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 }

@@ -9,23 +9,27 @@ import {
   provideVSCodeDesignSystem,
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
-import { AnsibleCreatorInitInterface } from "../../../features/contentCreator/types";
+import {
+  AnsibleProjectFormInterface,
+  PostMessageEvent,
+} from "../../../features/contentCreator/types";
 
 provideVSCodeDesignSystem().register(allComponents);
 
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-let initNamespaceNameTextField: TextField;
-let initCollectionNameTextField: TextField;
-let initPathUrlTextField: TextField;
+// let projectNameTextField: TextField;
+let destinationPathUrlTextField: TextField;
 let folderExplorerButton: Button;
+
+let scmOrgNameTextField: TextField;
+let scmProjectNameTextField: TextField;
 
 let initCreateButton: Button;
 let initClearButton: Button;
 
 let forceCheckbox: Checkbox;
-let editableModeInstall: Checkbox;
 
 let logToFileCheckbox: Checkbox;
 let logToFileOptionsDiv: HTMLElement | null;
@@ -36,9 +40,7 @@ let logLevelDropdown: Dropdown;
 
 let verboseDropdown: Dropdown;
 
-let initCollectionNameDiv: HTMLElement | null;
 let initCollectionPathDiv: HTMLElement | null;
-let initCollectionNameElement: HTMLElement;
 let initCollectionPathElement: HTMLElement;
 
 let initLogsTextArea: TextArea;
@@ -48,23 +50,23 @@ let initCopyLogsButton: Button;
 let initOpenScaffoldedFolderButton: Button;
 
 let logFileUrl = "";
-let collectionUrl = "";
+let projectUrl = "";
 
 function main() {
-  // elements for init interface
-  initNamespaceNameTextField = document.getElementById(
-    "namespace-name",
+  // elements for scaffold ansible project interface
+  // projectNameTextField = document.getElementById("project-name") as TextField;
+  destinationPathUrlTextField = document.getElementById(
+    "path-url",
   ) as TextField;
-  initCollectionNameTextField = document.getElementById(
-    "collection-name",
-  ) as TextField;
-  initPathUrlTextField = document.getElementById("path-url") as TextField;
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
 
+  scmOrgNameTextField = document.getElementById("scm-org-name") as TextField;
+  scmProjectNameTextField = document.getElementById(
+    "scm-project-name",
+  ) as TextField;
+
   forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
-  editableModeInstall = document.getElementById(
-    "editable-mode-checkbox",
-  ) as Checkbox;
+
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox",
   ) as Checkbox;
@@ -93,9 +95,10 @@ function main() {
     "open-folder-button",
   ) as Button;
 
-  initNamespaceNameTextField?.addEventListener("input", toggleCreateButton);
-  initCollectionNameTextField?.addEventListener("input", toggleCreateButton);
-  initPathUrlTextField?.addEventListener("input", toggleCreateButton);
+  // projectNameTextField?.addEventListener("input", toggleCreateButton);
+  destinationPathUrlTextField?.addEventListener("input", toggleCreateButton);
+  scmOrgNameTextField?.addEventListener("input", toggleCreateButton);
+  scmProjectNameTextField?.addEventListener("input", toggleCreateButton);
 
   folderExplorerButton.addEventListener("click", openExplorer);
   fileExplorerButton.addEventListener("click", openExplorer);
@@ -113,18 +116,11 @@ function main() {
     handleInitOpenScaffoldedFolderClick,
   );
 
-  initCollectionNameDiv = document.getElementById("full-collection-name");
   initCollectionPathDiv = document.getElementById("full-collection-path");
 
-  initCollectionNameElement = document.createElement("p");
-  initCollectionNameElement.innerHTML = `namespace.collection`;
-  initCollectionNameDiv?.appendChild(initCollectionNameElement);
-
   initCollectionPathElement = document.createElement("p");
-  initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
+  initCollectionPathElement.innerHTML = destinationPathUrlTextField.placeholder;
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
-
-  toggleEditableModeInstallCheckBox();
 }
 
 function openExplorer(event: any) {
@@ -145,34 +141,49 @@ function openExplorer(event: any) {
     },
   });
 
-  window.addEventListener("message", (event) => {
-    const message = event.data;
-    const selectedUri = message.arguments.selectedUri;
+  window.addEventListener(
+    "message",
+    (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data;
 
-    if (selectedUri) {
-      if (source === "folder-explorer") {
-        initPathUrlTextField.value = selectedUri;
-      } else {
-        logFilePath.value = selectedUri;
+      if (message.command === "file-uri") {
+        const selectedUri = message.arguments.selectedUri;
+
+        if (selectedUri) {
+          if (source === "folder-explorer") {
+            destinationPathUrlTextField.value = selectedUri;
+            initCollectionPathElement.innerHTML = selectedUri;
+          } else {
+            logFilePath.value = selectedUri;
+          }
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 function toggleCreateButton() {
-  //   update collection name <p> tag
-  if (
-    !initNamespaceNameTextField.value.trim() &&
-    !initCollectionNameTextField.value.trim()
-  ) {
-    initCollectionNameElement.innerHTML = "namespace.collection";
+  //   update collection path <p> tag
+  if (!destinationPathUrlTextField.value.trim()) {
+    initCollectionPathElement.innerHTML = `${
+      destinationPathUrlTextField.placeholder
+    }/${scmOrgNameTextField.value.trim()}-${scmProjectNameTextField.value.trim()}`;
+
+    if (
+      !scmOrgNameTextField.value.trim() ||
+      !scmProjectNameTextField.value.trim()
+    ) {
+      initCollectionPathElement.innerHTML =
+        destinationPathUrlTextField.placeholder;
+    }
   } else {
-    initCollectionNameElement.innerHTML = `${initNamespaceNameTextField.value.trim()}.${initCollectionNameTextField.value.trim()}`;
+    initCollectionPathElement.innerHTML =
+      destinationPathUrlTextField.value.trim();
   }
 
   if (
-    initNamespaceNameTextField.value.trim() &&
-    initCollectionNameTextField.value.trim()
+    scmOrgNameTextField.value.trim() &&
+    scmProjectNameTextField.value.trim()
   ) {
     initCreateButton.disabled = false;
   } else {
@@ -180,33 +191,15 @@ function toggleCreateButton() {
   }
 }
 
-function toggleEditableModeInstallCheckBox() {
-  vscode.postMessage({
-    command: "check-ade-presence",
-  });
-
-  window.addEventListener("message", (event) => {
-    const message = event.data; // The JSON data our extension sent
-
-    if (message.command === "ADEPresence") {
-      if (message.arguments) {
-        editableModeInstall.disabled = false;
-      } else {
-        editableModeInstall.disabled = true;
-      }
-    }
-  });
-}
-
 function handleInitClearClick() {
-  initNamespaceNameTextField.value = "";
-  initCollectionNameTextField.value = "";
-  initPathUrlTextField.value = "";
+  // projectNameTextField.value = "";
+  destinationPathUrlTextField.value = "";
+  scmOrgNameTextField.value = "";
+  scmProjectNameTextField.value = "";
 
-  initCollectionNameElement.innerHTML = "namespace.collection";
+  initCollectionPathElement.innerHTML = destinationPathUrlTextField.placeholder;
 
   forceCheckbox.checked = false;
-  editableModeInstall.checked = false;
   verboseDropdown.currentValue = "Off";
 
   initCreateButton.disabled = true;
@@ -236,44 +229,52 @@ function handleInitCreateClick() {
   vscode.postMessage({
     command: "init-create",
     payload: {
-      namespaceName: initNamespaceNameTextField.value.trim(),
-      collectionName: initCollectionNameTextField.value.trim(),
-      initPath: initPathUrlTextField.value.trim(),
+      // projectName: projectNameTextField.value.trim(),
+      destinationPath: destinationPathUrlTextField.value.trim(),
+      scmOrgName: scmOrgNameTextField.value.trim(),
+      scmProjectName: scmProjectNameTextField.value.trim(),
       verbosity: verboseDropdown.currentValue.trim(),
       logToFile: logToFileCheckbox.checked,
       logFilePath: logFilePath.value.trim(),
       logFileAppend: logFileAppendCheckbox.checked,
       logLevel: logLevelDropdown.currentValue.trim(),
       isForced: forceCheckbox.checked,
-      isEditableModeInstall: editableModeInstall.checked,
-    } as AnsibleCreatorInitInterface,
+    } as AnsibleProjectFormInterface,
   });
 
-  window.addEventListener("message", async (event) => {
-    const message = await event.data;
+  window.addEventListener(
+    "message",
+    async (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data;
 
-    switch (message.command) {
-      case "execution-log":
-        initLogsTextArea.value = message.arguments.commandOutput;
-        logFileUrl = message.arguments.logFileUrl;
+      switch (message.command) {
+        case "execution-log":
+          initLogsTextArea.value = message.arguments.commandOutput;
+          logFileUrl = message.arguments.logFileUrl;
 
-        if (logFileUrl) {
-          initOpenLogFileButton.disabled = false;
-        } else {
-          initOpenLogFileButton.disabled = true;
-        }
+          if (logFileUrl) {
+            initOpenLogFileButton.disabled = false;
+          } else {
+            initOpenLogFileButton.disabled = true;
+          }
 
-        if (message.arguments.status && message.arguments.status === "passed") {
-          initOpenScaffoldedFolderButton.disabled = false;
-        } else {
-          initOpenScaffoldedFolderButton.disabled = true;
-        }
+          if (
+            message.arguments.status &&
+            message.arguments.status === "passed"
+          ) {
+            initOpenScaffoldedFolderButton.disabled = false;
+          } else {
+            initOpenScaffoldedFolderButton.disabled = true;
+          }
 
-        collectionUrl = message.arguments.collectionUrl;
+          projectUrl = message.arguments.projectUrl
+            ? message.arguments.projectUrl
+            : "";
 
-        return;
-    }
-  });
+          return;
+      }
+    },
+  );
 }
 
 function handleInitClearLogsClick() {
@@ -302,7 +303,7 @@ function handleInitOpenScaffoldedFolderClick() {
   vscode.postMessage({
     command: "init-open-scaffolded-folder",
     payload: {
-      collectionUrl: collectionUrl,
+      projectUrl: projectUrl,
     },
   });
 }

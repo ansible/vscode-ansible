@@ -17,7 +17,7 @@ export function globArray(arrayOfPatterns: string[]): string[] {
     .filter((pattern) => pattern.startsWith("!"))
     .map((item) => item.slice(1));
 
-  let matchFiles = [];
+  let matchFiles: string[] = [];
   matchPatterns.forEach((pattern) => {
     const matchedFiles = sync(pattern);
     matchFiles = matchFiles.concat(matchedFiles);
@@ -27,7 +27,7 @@ export function globArray(arrayOfPatterns: string[]): string[] {
   if (ignorePatterns.length === 0) {
     return [...matchFilesSet];
   } else {
-    let matchFilesAfterExclusion = [];
+    let matchFilesAfterExclusion: string[] = [];
     matchPatterns.forEach((pattern) => {
       const ignoredFiles = sync(pattern, {
         ignore: ignorePatterns,

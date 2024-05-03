@@ -40,6 +40,8 @@ jobs:
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
+    outputs:
+      can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
     strategy:
       fail-fast: false
       matrix:
@@ -111,17 +113,21 @@ jobs:
             enabled = true
             root = /
             options = "metadata,umask=077"
+            [boot]
+            command=/etc/init.d/dbus start
             [interop]
             enabled = false
             appendWindowsPath = false
             [network]
             hostname = wsl
           additional-packages: curl
+            dbus
             dirmngr
             gawk
             git
             gpg
             gpg-agent
+            jq
             make
             python3-dev
             python3-full
@@ -213,6 +219,7 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
       - name: task package
+        id: package
         run: task package --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
       - name: task ${{ matrix.task-name }}
@@ -370,3 +377,26 @@ jobs:
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+  publish-npm:
+    environment: release
+    if: needs.build.outputs.can_release_to_npm == 'true' && (github.ref_type == 'tag' || github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - check
+    steps:
+      - name: Download the artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.ref_name }}.tgz"
+
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: "https://registry.npmjs.org"
+
+      - run: npm publish --access public @ansible-ansible-language-server-*.tgz
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

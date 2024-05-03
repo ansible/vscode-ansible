@@ -25,26 +25,23 @@ vars:
 tasks:
   default:
     desc: Run most commands
-    deps:
-      - install
-      - lint
-      - package
-      - docs
     cmds:
+      - task: install
+      - task: lint
+      - task: package
+      - task: docs
       - echo {{.TASK}}
   setup:
     desc: Install dependencies
-    deps:
-      - shared:setup
+    cmds:
+      - task: shared:setup
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
   install:
-    deps:
-      - shared:setup
     cmds:
-      - yarn install
+      - task: shared:install
     sources:
       - "**/package.json"
       - yarn.lock
@@ -52,9 +49,8 @@ tasks:
     interactive: true
   build:
     desc: Build the project
-    deps:
-      - install
     cmds:
+      - task: install
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
       - yarn run clean
@@ -75,18 +71,16 @@ tasks:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
       NODE_OPTIONS: "--no-deprecation"
     desc: Forced install of extension in your code instance
-    deps:
-      - package
     cmds:
+      - task: package
       - code --force --install-extension *.vsix
   deps:
     desc: Update dependencies
-    deps:
-      - install
     env:
       VSCODE_VERSION:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
+      - task: install
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
@@ -95,7 +89,7 @@ tasks:
       - yarn up "@types/vscode@${VSCODE_VERSION}"
       - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
-      - yarn install
+      - task: shared:install
       # check deps
       - yarn dlx depcheck
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
@@ -104,9 +98,8 @@ tasks:
   docs:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
-    deps:
-      - setup
     cmds:
+      - task: setup
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
@@ -115,9 +108,8 @@ tasks:
       - tools/dirty.sh
   lint:
     desc: Lint the project
-    deps:
-      - install
     cmds:
+      - task: install
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
       - $VIRTUAL_ENV/bin/python3 -m pre_commit run -a
       - tools/dirty.sh
@@ -136,10 +128,9 @@ tasks:
       - tools
   test:
     desc: Run all tests
-    deps:
-      - setup
-      - package
     cmds:
+      - task: setup
+      - task: package
       - task: unit
       #- task: test-ui
       #- task: test-ui-old
@@ -147,26 +138,23 @@ tasks:
       - tools/dirty.sh
     interactive: true
   test-e2e:
-    desc: Run e2e tests
-    deps:
-      - package
+    desc: Run e2e tests {{.XVFB}}
     cmds:
+      - task: package
       - $VIRTUAL_ENV/bin/python3 --version
       - '{{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn run _coverage-all'''
     interactive: true
   test-ui:
     desc: Run UI tests
-    deps:
-      - package
     cmds:
+      - task: package
       - $VIRTUAL_ENV/bin/python3 --version
       - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-current'
     interactive: true
   test-ui-old:
     desc: Run UI tests (oldest vscode)
-    deps:
-      - package
     cmds:
+      - task: package
       - $VIRTUAL_ENV/bin/python3 --version
       - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
     interactive: true
@@ -177,10 +165,6 @@ tasks:
     interactive: true
   package:
     desc: Package extension
-    deps:
-      - build
-      # while not a real dependency, we want to build both all the time:
-      - als:package
     sources:
       - CHANGELOG.md
       - README.md
@@ -189,22 +173,25 @@ tasks:
       - webpack.config.ts
       - Taskfile.yml
       - ./tools/package.sh
+      - src/**/*
+      - test/**/*
     generates:
       - "*.vsix"
     cmds:
+      - task: build
+      # while not a real dependency, we want to build both all the time:
+      - task: als:package
       - ./tools/package.sh
     silent: true
   pr:
     desc: Opens a pull request using gh
-    deps:
-      - lint
     cmds:
+      - task: lint
       - gh pr create
     interactive: true
   release:
     desc: Create a new release (used by CI)
-    deps:
-      - install
     cmds:
+      - task: install
       - ./tools/release.sh
     interactive: true

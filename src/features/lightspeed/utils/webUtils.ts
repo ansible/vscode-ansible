@@ -2,9 +2,9 @@ import { EventEmitter, Uri, UriHandler } from "vscode";
 import crypto from "crypto";
 import { SettingsManager } from "../../../settings";
 import {
-  LightspeedAuthSession,
   LightspeedSessionModelInfo,
   LightspeedSessionUserInfo,
+  LightspeedUserDetails,
   LightspeedSessionInfo,
 } from "../../../interfaces/lightspeed";
 import { LIGHTSPEED_USER_TYPE } from "../../../definitions/lightspeed";
@@ -12,6 +12,7 @@ import { lightSpeedManager } from "../../../extension";
 
 export const ANSIBLE_LIGHTSPEED_AUTH_ID = `auth-lightspeed`;
 export const ANSIBLE_LIGHTSPEED_AUTH_NAME = `Ansible Lightspeed`;
+export const RHSSO_AUTH_ID = "redhat-account-auth";
 export const SESSIONS_SECRET_KEY = `${ANSIBLE_LIGHTSPEED_AUTH_ID}.sessions`;
 export const ACCOUNT_SECRET_KEY = `${ANSIBLE_LIGHTSPEED_AUTH_NAME}.account`;
 
@@ -66,7 +67,7 @@ export function calculateTokenExpiryTime(expiresIn: number) {
 }
 
 /* Get base uri in a correct formatted way */
-export function getBaseUri(settingsManager: SettingsManager) {
+export function getBaseUri(settingsManager: SettingsManager): string {
   const baseUri = settingsManager.settings.lightSpeedService.URL.trim();
   return baseUri.endsWith("/") ? baseUri.slice(0, -1) : baseUri;
 }
@@ -81,8 +82,8 @@ export function getUserTypeLabel(
   return rhOrgHasSubscription && rhUserHasSeat ? "Licensed" : "Unlicensed";
 }
 
-export function getLoggedInSessionDetails(
-  sessionData?: LightspeedAuthSession,
+export function getLoggedInUserDetails(
+  sessionData?: LightspeedUserDetails,
 ): LightspeedSessionInfo {
   const userInfo: LightspeedSessionUserInfo = {};
   const modelInfo: LightspeedSessionModelInfo = {};

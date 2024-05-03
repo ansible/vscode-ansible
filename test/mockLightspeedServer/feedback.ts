@@ -1,7 +1,9 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function feedback(req: any, res: any) {
+import { logger } from "./server";
+import { Request, Response } from "express";
+
+export function feedback(req: Request, res: Response): Response {
   const body = req.body;
-  console.log(JSON.stringify(body, null, 2));
+  logger.info(JSON.stringify(body, null, 2));
 
   // If a sentimentFeedback is received and it's feedback starts with
   // "permission_denied__" respond with a 403 error with the specified code.

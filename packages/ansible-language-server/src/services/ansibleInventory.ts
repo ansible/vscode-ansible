@@ -3,13 +3,79 @@ import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 import { URI } from "vscode-uri";
 
+export type HostType = { host: string; priority: number };
+
+type inventoryHostEntry = {
+  children: string[];
+  hosts: string[];
+};
+
+type inventoryType = Omit<
+  {
+    [name: string]: inventoryHostEntry;
+  },
+  "_meta"
+>;
+
+/* Example of minimal inventory object, anything else may be missing.
+
+
+{
+    "_meta": {
+        "hostvars": {}
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    }
+}
+
+Example of more complex inventory.
+{
+    "_meta": {
+        "hostvars": {
+            "foo.example.com": {
+                "var_bool": true,
+                "var_number": 1,
+                "var_str": "bar"
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "webservers",
+            "others"
+        ]
+    },
+    "ungrouped": {
+        "hosts": [
+            "zoo"
+        ]
+    },
+    "webservers": {
+        "children": [
+            "webservers-east",
+            "webservers-west"
+        ],
+        "hosts": [
+            "foo.example.com",
+            "www01.example.com",
+            "www02.example.com",
+            "www03.example.com",
+        ]
+    }
+}
+*/
+
 /**
  * Class to extend ansible-inventory executable as a service
  */
 export class AnsibleInventory {
   private connection: Connection;
   private context: WorkspaceFolderContext;
-  private _hostList = [];
+  private _hostList: HostType[] = [];
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -41,9 +107,11 @@ export class AnsibleInventory {
       defaultHostListPath,
     );
 
-    let inventoryHostsObject = [];
+    let inventoryHostsObject = {} as inventoryType;
     try {
-      inventoryHostsObject = JSON.parse(ansibleInventoryResult.stdout);
+      inventoryHostsObject = JSON.parse(
+        ansibleInventoryResult.stdout,
+      ) as inventoryType;
     } catch (error) {
       this.connection.console.error(
         `Exception in AnsibleInventory service: ${JSON.stringify(error)}`,
@@ -64,7 +132,17 @@ export class AnsibleInventory {
  * @param hostObj - nested object of hosts
  * @returns an array of object with host and priority as keys
  */
-function parseInventoryHosts(hostObj) {
+function parseInventoryHosts(hostObj: inventoryType): HostType[] {
+  if (
+    !(
+      "all" in hostObj &&
+      typeof hostObj.all === "object" &&
+      "children" in hostObj.all &&
+      Array.isArray(hostObj.all.children)
+    )
+  ) {
+    return [];
+  }
   const topLevelGroups = hostObj.all.children.filter(
     (item: string) => item !== "ungrouped",
   );
@@ -84,18 +162,28 @@ function parseInventoryHosts(hostObj) {
     return { host: item, priority: 2 };
   });
 
-  const allGroups = [...topLevelGroupsObjList, ...otherGroupsObjList];
+  const allGroups: HostType[] = [
+    ...topLevelGroupsObjList,
+    ...otherGroupsObjList,
+  ];
 
-  let ungroupedHostsObjList = [];
-  if (hostObj.ungrouped) {
+  let ungroupedHostsObjList: HostType[] = [];
+
+  if (
+    "ungrouped" in hostObj &&
+    typeof hostObj.ungrouped === "object" &&
+    "hosts" in hostObj.ungrouped &&
+    Array.isArray(hostObj.ungrouped.hosts) &&
+    hostObj.ungrouped
+  ) {
     ungroupedHostsObjList = hostObj.ungrouped.hosts.map((item) => {
-      return { host: item, priority: 3 };
+      return { host: item, priority: 3 } as HostType;
     });
   }
 
   // Add 'localhost' and 'all' to the inventory list
-  const localhostObj = { host: "localhost", priority: 5 };
-  const allHostObj = { host: "all", priority: 6 };
+  const localhostObj: HostType = { host: "localhost", priority: 5 };
+  const allHostObj: HostType = { host: "all", priority: 6 };
 
   let allHosts = [localhostObj, allHostObj, ...ungroupedHostsObjList];
 
@@ -111,7 +199,11 @@ function parseInventoryHosts(hostObj) {
   return [...allGroups, ...allHosts];
 }
 
-function getChildGroups(groupList, hostObj, res = []) {
+function getChildGroups(
+  groupList: string[],
+  hostObj: inventoryType,
+  res: string[] = [],
+): string[] {
   for (const host of groupList) {
     if (hostObj[`${host}`].children) {
       getChildGroups(hostObj[`${host}`].children, hostObj, res);

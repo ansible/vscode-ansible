@@ -341,14 +341,16 @@ export class AnsibleLanguageService {
     this.connection.onNotification(
       "update/ansible-metadata",
       async (activeFileUri) => {
-        const ansibleMetaData = await getAnsibleMetaData(
-          this.workspaceManager.getContext(activeFileUri),
-          this.connection,
-        );
-
-        this.connection.sendNotification("update/ansible-metadata", [
-          ansibleMetaData,
-        ]);
+        const ctx = this.workspaceManager.getContext(activeFileUri);
+        if (ctx !== undefined) {
+          const ansibleMetaData = await getAnsibleMetaData(
+            ctx,
+            this.connection,
+          );
+          this.connection.sendNotification("update/ansible-metadata", [
+            ansibleMetaData,
+          ]);
+        }
       },
     );
 

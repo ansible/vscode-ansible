@@ -3,11 +3,11 @@
  * by modifying their abilities and redirects them to suppress and release them appropriately
  */
 export class ConsoleOutput {
-  private logOutput: string;
-  private debugOutput: string;
-  private infoOutput: string;
-  private warnOutput: string;
-  private errorOutput: string;
+  private logOutput: string = "";
+  private debugOutput: string = "";
+  private infoOutput: string = "";
+  private warnOutput: string = "";
+  private errorOutput: string = "";
 
   private originalConsoleLog = console.log;
   private originalConsoleDebug = console.debug;

@@ -6,6 +6,14 @@ import * as pathUri from "path";
 import { existsSync, readFileSync } from "fs";
 import { parseDocument } from "yaml";
 
+type varType = { variable: string; priority: number };
+
+type varsPromptType = {
+  name: string;
+  prompt: string;
+  private?: boolean;
+};
+
 /**
  * A function that computes the possible variable auto-completions scope-wise for a given position
  * @param documentUri - uri of the document
@@ -16,7 +24,7 @@ export function getVarsCompletion(
   documentUri: string,
   path: Node[],
 ): CompletionItem[] {
-  const varsCompletion = [];
+  const varsCompletion: varType[] = [];
   let varPriority = 0;
 
   // the loop calculates and traverses till the path reaches the play level from the position where the auto-completion was asked
@@ -37,7 +45,7 @@ export function getVarsCompletion(
       ) {
         path = parentKeyPath;
         const scopedNode = path[path.length - 3].toJSON();
-        if (scopedNode.hasOwnProperty("vars")) {
+        if (Object.prototype.hasOwnProperty.call(scopedNode, "vars")) {
           const varsObject = scopedNode["vars"];
 
           if (Array.isArray(varsObject)) {
@@ -71,7 +79,7 @@ export function getVarsCompletion(
       ) {
         path = parentKeyPath;
         const scopedNode = path[path.length - 3].toJSON();
-        if (scopedNode.hasOwnProperty("vars")) {
+        if (Object.prototype.hasOwnProperty.call(scopedNode, "vars")) {
           const varsObject = scopedNode["vars"];
 
           if (Array.isArray(varsObject)) {
@@ -100,8 +108,8 @@ export function getVarsCompletion(
   // handling vars_prompt
   varPriority = varPriority + 1;
   const playNode = path[path.length - 3].toJSON();
-  if (playNode.hasOwnProperty("vars_prompt")) {
-    const varsPromptObject = playNode["vars_prompt"];
+  if (Object.prototype.hasOwnProperty.call(playNode, "vars_prompt")) {
+    const varsPromptObject: varsPromptType[] = playNode["vars_prompt"];
 
     varsPromptObject.forEach((element) => {
       varsCompletion.push({ variable: element["name"], priority: varPriority });
@@ -110,8 +118,8 @@ export function getVarsCompletion(
 
   // handling vars_files
   varPriority = varPriority + 1;
-  if (playNode.hasOwnProperty("vars_files")) {
-    const varsPromptObject = playNode["vars_files"];
+  if (Object.prototype.hasOwnProperty.call(playNode, "vars_files")) {
+    const varsPromptObject: string[] = playNode["vars_files"];
 
     const currentDirectory = pathUri.dirname(URI.parse(documentUri).path);
     varsPromptObject.forEach((element) => {
@@ -130,17 +138,20 @@ export function getVarsCompletion(
           encoding: "utf8",
         });
 
-        const yamlDocContent = parseDocument(file).contents.toJSON();
+        const contents = parseDocument(file).contents;
+        if (contents !== null) {
+          const yamlDocContent = contents.toJSON();
 
-        // variables declared in the file should be in list format only
-        if (Array.isArray(yamlDocContent)) {
-          yamlDocContent.forEach((element) => {
-            if (typeof element === "object") {
-              Object.keys(element).forEach((key) => {
-                varsCompletion.push({ variable: key, priority: varPriority });
-              });
-            }
-          });
+          // variables declared in the file should be in list format only
+          if (Array.isArray(yamlDocContent)) {
+            yamlDocContent.forEach((element) => {
+              if (typeof element === "object") {
+                Object.keys(element).forEach((key) => {
+                  varsCompletion.push({ variable: key, priority: varPriority });
+                });
+              }
+            });
+          }
         }
       }
     });

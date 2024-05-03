@@ -1,10 +1,11 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
+import { isLightspeedEnabled } from "../../extension";
+import { LightspeedUser } from "./lightspeedUser";
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -29,10 +30,16 @@ async function openNewPlaybookEditor(playbook: string) {
 async function generatePlaybook(
   content: string,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
+  panel: vscode.WebviewPanel,
 ) {
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+  if (!accessToken) {
+    panel.webview.postMessage({ command: "exception" });
+  }
+
   const playbook: string = await client.sendRequest("playbook/generation", {
     accessToken,
     URL: settingsManager.settings.lightSpeedService.URL,
@@ -45,10 +52,16 @@ async function generatePlaybook(
 async function summarizeInput(
   content: string,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
+  panel: vscode.WebviewPanel,
 ) {
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+  if (!accessToken) {
+    panel.webview.postMessage({ command: "exception" });
+  }
+
   const summary: string = await client.sendRequest("playbook/summary", {
     accessToken,
     URL: settingsManager.settings.lightSpeedService.URL,
@@ -58,12 +71,17 @@ async function summarizeInput(
   return summary;
 }
 
-export function showPlaybookGenerationPage(
+export async function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
 ) {
+  // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
+  if (!(await isLightspeedEnabled())) {
+    return;
+  }
+
   // Create a new panel and update the HTML
   const panel = vscode.window.createWebviewPanel(
     "noteDetailView",
@@ -84,27 +102,31 @@ export function showPlaybookGenerationPage(
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
     switch (command) {
-      case "generatePlaybook":
+      case "generatePlaybook": {
         const playbook = await generatePlaybook(
           // TODO
           message.content,
           client,
-          lightSpeedAuthProvider,
+          lightspeedAuthenticatedUser,
           settingsManager,
+          panel,
         );
         panel?.dispose();
         await openNewPlaybookEditor(playbook);
         break;
-      case "summarizeInput":
+      }
+      case "summarizeInput": {
         const summary = await summarizeInput(
           // TODO
           message.content,
           client,
-          lightSpeedAuthProvider,
+          lightspeedAuthenticatedUser,
           settingsManager,
+          panel,
         );
         panel.webview.postMessage({ command: "summary", summary });
         break;
+      }
       case "thumbsUp":
       case "thumbsDown":
         vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");
@@ -112,7 +134,7 @@ export function showPlaybookGenerationPage(
     }
   });
 
-  panel.title = "Create a playbook";
+  panel.title = "Generate a playbook";
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "focus" });
 }
@@ -155,16 +177,16 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
 
 <body>
     <div class="playbookGeneration">
-        <h2>Create a playbook</h2>
+        <h2>Generate a playbook with Ansible Lightspeed</h2>
         <div class="firstMessage">
-          <h3>What would you want the playbook to accomplish?</h3>
+          <h3>What do you want the playbook to accomplish?</h3>
         </div>
         <div class="secondMessage">
-          <h3>Does this look like the right playbook for you?</h3>
+          <h3>Do the following steps look right to you?</h3>
         </div>
         <div class="mainContainer">
           <div class="editArea">
-            <vscode-text-area rows=5 resize="both"
+            <vscode-text-area rows=5 resize="vertical"
                 placeholder="Describe the goal in your own words."
                 id="playbook-text-area">
             </vscode-text-area>
@@ -173,7 +195,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </div>
           </div>
           <div class="bigIconButtonContainer">
-            <vscode-button class="bigIconButton" id="submit-button">
+            <vscode-button class="bigIconButton" id="submit-button" disabled>
               <span class="codicon codicon-send" id="submit-icon"></span>
            </vscode-button>
           </div>
@@ -197,7 +219,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             <h4>Examples</h4>
             <div class="exampleTextContainer">
               <p>
-                Create IIS websites on port 8080 and 8081 an open firewall
+                Create IIS websites on port 8080 and 8081 and open firewall
               </p>
             </div>
             <div class="exampleTextContainer">

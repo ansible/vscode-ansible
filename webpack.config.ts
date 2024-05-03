@@ -98,15 +98,14 @@ const contentCreatorMenuWebviewConfig = {
   },
 };
 
-const contentCreatorInitWebviewConfig = {
+const playbookExplorerWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/scaffoldCollectionPageApp.ts",
+  entry: "./src/webview/apps/lightspeed/explorer/main.ts",
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename:
-      "./client/webview/apps/contentCreator/scaffoldCollectionPageApp.js",
+    filename: "./client/webview/apps/lightspeed/explorer/main.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
@@ -138,11 +137,41 @@ const playbookExplanationWebviewConfig = {
   },
 };
 
+const createAnsibleCollectionWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/createAnsibleCollectionPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename:
+      "./client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+const createAnsibleProjectWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename:
+      "./client/webview/apps/contentCreator/createAnsibleProjectPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 module.exports = [
   config,
   webviewConfig,
   contentCreatorMenuWebviewConfig,
-  contentCreatorInitWebviewConfig,
+  createAnsibleCollectionWebviewConfig,
+  playbookExplorerWebviewConfig,
   playbookGenerationWebviewConfig,
   playbookExplanationWebviewConfig,
+  createAnsibleProjectWebviewConfig,
 ];

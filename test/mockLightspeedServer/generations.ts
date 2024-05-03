@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { logger } from "./server";
 
 export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -8,7 +9,7 @@ export function generations(
 ) {
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
   const format = "yaml";
-  console.log(req.body.content);
+  logger.info(req.body.content);
   // cSpell: disable
   const content = `---
   # Create an azure network...

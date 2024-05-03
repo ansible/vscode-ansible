@@ -5,6 +5,7 @@ import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
+import { ansibleMetaDataType } from "../utils/getAnsibleMetaData";
 
 export class AnsibleConfig {
   private connection: Connection;
@@ -13,7 +14,7 @@ export class AnsibleConfig {
   private _module_locations: string[] = [];
   private _ansible_location = "";
   private _default_host_list: string[] = [];
-  private _ansible_meta_data = {};
+  private _ansible_meta_data = {}; // ini data
 
   constructor(connection: Connection, context: WorkspaceFolderContext) {
     this.connection = connection;
@@ -127,7 +128,7 @@ export class AnsibleConfig {
     return this._ansible_location;
   }
 
-  public get ansible_meta_data(): object {
+  public get ansible_meta_data(): ansibleMetaDataType {
     return this._ansible_meta_data;
   }
 }

@@ -86,7 +86,9 @@ export class DocsLibrary {
     documentUri?: string,
   ): Promise<[IModuleMetadata | undefined, string | undefined]> {
     // support playbook adjacent collections
-    const playbookDirectory = URI.parse(documentUri).path.split(path.sep);
+    const playbookDirectory = URI.parse(String(documentUri)).path.split(
+      path.sep,
+    );
     playbookDirectory.pop();
     playbookDirectory.push("collections");
 
@@ -167,7 +169,7 @@ export class DocsLibrary {
     return [module, hitFqcn];
   }
 
-  private async findDocumentationInModulesPath(modulesPath) {
+  private async findDocumentationInModulesPath(modulesPath: string) {
     (await findDocumentation(modulesPath, "builtin")).forEach((doc) => {
       this.modules.set(doc.fqcn, doc);
       this._moduleFqcns.add(doc.fqcn);
@@ -180,7 +182,7 @@ export class DocsLibrary {
     );
   }
 
-  private async findDocumentationInCollectionsPath(collectionsPath) {
+  private async findDocumentationInCollectionsPath(collectionsPath: string) {
     (await findDocumentation(collectionsPath, "collection")).forEach((doc) => {
       this.modules.set(doc.fqcn, doc);
       this._moduleFqcns.add(doc.fqcn);

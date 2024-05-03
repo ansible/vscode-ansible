@@ -4,7 +4,7 @@
   "displayName": "Ansible",
   "description": "Ansible language server",
   "license": "MIT",
-  "version": "1.2.1",
+  "version": "1.2.3",
   "contributors": [
     {
       "name": "Tomasz Maciążek",
@@ -20,20 +20,19 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/ansible/vscode-ansible.git"
+    "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
   "icon": "icon.png",
   "engines": {
     "node": ">=14.0",
     "npm": ">=7.11.2"
   },
-  "bin": "./bin/ansible-language-server",
+  "bin": "bin/ansible-language-server",
   "main": "./out/server/src/server.js",
   "types": "./out/server/src/server.d.ts",
   "files": [
-    "docs/changelog.md",
     "icon.png",
-    "out/server/src"
+    "./out/server/src/**/*"
   ],
   "categories": [
     "Programming Languages"
@@ -56,7 +55,7 @@
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11",
     "vscode-uri": "^3.0.8",
-    "yaml": "^2.4.1"
+    "yaml": "^2.4.2"
   },
   "devDependencies": {
     "@types/chai": "^4.3.14",
@@ -64,14 +63,14 @@
     "@types/ini": "^4.1.0",
     "@types/lodash": "^4.17.0",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.12.4",
+    "@types/node": "^20.12.7",
     "@types/uuid": "^9.0.8",
     "@types/vscode": "^1.85.0",
     "chai": "^4.4.1",
     "fuse.js": "^7.0.0",
     "handlebars": "^4.7.8",
     "mocha": "^10.4.0",
-    "npm-check-updates": "^16.14.18",
+    "npm-check-updates": "^16.14.20",
     "nyc": "^15.1.0",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",

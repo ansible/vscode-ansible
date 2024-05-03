@@ -8,9 +8,29 @@ import { generations } from "./generations";
 import { summaries } from "./summaries";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
+import * as winston from "winston";
+import morgan from "morgan";
+import fs from "fs";
+import path from "path";
+
+const accessLogStream = fs.createWriteStream(
+  path.join(__dirname, "access.log"),
+  {
+    flags: "a",
+  },
+);
+export const morganLogger = morgan("common", { stream: accessLogStream });
 
 const API_VERSION = "v0";
 const API_ROOT = `/api/${API_VERSION}`;
+export const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.json(),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({ filename: "out/log/mock-server.log" }),
+  ],
+});
 
 let url = new URL("http://127.0.0.1:3000");
 // Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
@@ -24,6 +44,7 @@ export default class Server {
   }
 
   private init(app: Application): void {
+    app.use(morganLogger);
     app.use(express.json());
     app.get("/", (req, res) => res.send("Lightspeed Mock"));
 
@@ -61,9 +82,9 @@ export default class Server {
     });
 
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
-      console.log(req.query);
+      logger.info(req.query);
       const redirectUri = decodeURIComponent(req.query.redirect_uri);
-      console.log(`opening ${redirectUri} ...`);
+      logger.info(`opening ${redirectUri} ...`);
       openUrl(`${redirectUri}&code=CODE`);
       return res.send({});
     });
@@ -77,7 +98,7 @@ export default class Server {
     );
 
     app.listen(parseInt(url.port), url.hostname, () => {
-      console.log(`Listening on port ${url.port} at ${url.hostname}`);
+      logger.info(`Listening on port ${url.port} at ${url.hostname}`);
     });
   }
 }

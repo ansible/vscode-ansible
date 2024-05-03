@@ -135,9 +135,14 @@
   display: flow;
 }
 
+.stickyFeedbackContainer {
+  position: sticky;
+  bottom: 0px;
+}
+
 .feedbackContainer {
   position: absolute;
-  right: 20px;
+  right: 0px;
   bottom: 0px;
   display: flex;
 }
@@ -174,12 +179,6 @@
   border-width: thin;
 }
 
-.iconButton {
-  width: 36px;
-  height: 36px;
-  margin: 0.2em;
-}
-
 .textFieldFullWidth {
   width: 100%;
 }
@@ -190,4 +189,21 @@
 
 .secondMessage {
   display: none;
+}
+
+.iconButton {
+  width: 36px;
+  height: 36px;
+  margin: 0.2em;
+  background: var(--button-icon-background);
+  border-radius: var(--button-icon-corner-radius);
+  color: var(--foreground);
+}
+
+.iconButtonSelected {
+  width: 36px;
+  height: 36px;
+  margin: 0.2em;
+  background: var(--button-primary-background);
+  color: var(--button-primary-foreground);
 }

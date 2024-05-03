@@ -216,10 +216,73 @@ describe("doCompletionResolve()", () => {
   const context = workspaceManager.getContext(fixtureFileUri);
 
   const textDoc = getDoc(fixtureFilePath);
-  const docSettings = context.documentSettings.get(textDoc.uri);
+  expect(context).be.not.undefined;
+  if (context) {
+    const docSettings = context.documentSettings.get(textDoc.uri);
 
-  describe("Resolve completion for module names", () => {
-    describe("Resolve completion for module names when FQCN is enabled", function () {
+    describe("Resolve completion for module names", () => {
+      describe("Resolve completion for module names when FQCN is enabled", function () {
+        describe("with EE enabled @ee", () => {
+          before(async () => {
+            setFixtureAnsibleCollectionPathEnv(
+              "/home/runner/.ansible/collections:/usr/share/ansible",
+            );
+            await enableExecutionEnvironmentSettings(docSettings);
+          });
+          testFQCNEnabled(context);
+
+          after(async () => {
+            setFixtureAnsibleCollectionPathEnv();
+            await disableExecutionEnvironmentSettings(docSettings);
+          });
+        });
+
+        describe("with EE disabled", () => {
+          before(async () => {
+            setFixtureAnsibleCollectionPathEnv();
+            await disableExecutionEnvironmentSettings(docSettings);
+          });
+          testFQCNEnabled(context);
+        });
+      });
+
+      describe("Resolve completion for module names when FQCN is disabled", function () {
+        describe("with EE enabled @ee", () => {
+          before(async () => {
+            setFixtureAnsibleCollectionPathEnv(
+              "/home/runner/.ansible/collections:/usr/share/ansible",
+            );
+            await enableExecutionEnvironmentSettings(docSettings);
+            (await docSettings).ansible.useFullyQualifiedCollectionNames =
+              false;
+          });
+          testFQCNDisabled(context);
+
+          after(async () => {
+            setFixtureAnsibleCollectionPathEnv();
+            await disableExecutionEnvironmentSettings(docSettings);
+            (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
+          });
+        });
+
+        describe("with EE disabled", () => {
+          before(async () => {
+            setFixtureAnsibleCollectionPathEnv();
+            await disableExecutionEnvironmentSettings(docSettings);
+            (await docSettings).ansible.useFullyQualifiedCollectionNames =
+              false;
+          });
+          testFQCNDisabled(context);
+
+          after(async () => {
+            setFixtureAnsibleCollectionPathEnv();
+            (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
+          });
+        });
+      });
+    });
+
+    describe("Resolve completion for module options and suboptions", () => {
       describe("with EE enabled @ee", () => {
         before(async () => {
           setFixtureAnsibleCollectionPathEnv(
@@ -227,7 +290,8 @@ describe("doCompletionResolve()", () => {
           );
           await enableExecutionEnvironmentSettings(docSettings);
         });
-        testFQCNEnabled(context);
+
+        testResolveModuleOptionCompletion(context);
 
         after(async () => {
           setFixtureAnsibleCollectionPathEnv();
@@ -240,68 +304,9 @@ describe("doCompletionResolve()", () => {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
-        testFQCNEnabled(context);
+
+        testResolveModuleOptionCompletion(context);
       });
     });
-
-    describe("Resolve completion for module names when FQCN is disabled", function () {
-      describe("with EE enabled @ee", () => {
-        before(async () => {
-          setFixtureAnsibleCollectionPathEnv(
-            "/home/runner/.ansible/collections:/usr/share/ansible",
-          );
-          await enableExecutionEnvironmentSettings(docSettings);
-          (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
-        });
-        testFQCNDisabled(context);
-
-        after(async () => {
-          setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
-          (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
-        });
-      });
-
-      describe("with EE disabled", () => {
-        before(async () => {
-          setFixtureAnsibleCollectionPathEnv();
-          await disableExecutionEnvironmentSettings(docSettings);
-          (await docSettings).ansible.useFullyQualifiedCollectionNames = false;
-        });
-        testFQCNDisabled(context);
-
-        after(async () => {
-          setFixtureAnsibleCollectionPathEnv();
-          (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
-        });
-      });
-    });
-  });
-
-  describe("Resolve completion for module options and suboptions", () => {
-    describe("with EE enabled @ee", () => {
-      before(async () => {
-        setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
-        );
-        await enableExecutionEnvironmentSettings(docSettings);
-      });
-
-      testResolveModuleOptionCompletion(context);
-
-      after(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
-      });
-    });
-
-    describe("with EE disabled", () => {
-      before(async () => {
-        setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
-      });
-
-      testResolveModuleOptionCompletion(context);
-    });
-  });
+  }
 });

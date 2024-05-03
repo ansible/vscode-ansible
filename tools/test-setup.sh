@@ -37,6 +37,8 @@ get_version () {
         if [[ $# -eq 1 ]]; then
             _cmd+=('--version')
         fi
+        # prevents npm runtime warning if both NO_COLOR and FORCE_COLOR are present
+        unset FORCE_COLOR
         # Keep the `tail -n +1` and the silencing of 141 error code because otherwise
         # the called tool might fail due to premature closure of /dev/stdout
         # made by `--head n1`. See https://superuser.com/a/642932/3004
@@ -74,13 +76,20 @@ if [[ -z "${HOSTNAME:-}" ]]; then
 fi
 
 log notice "Install required build tools"
-for PLUGIN in yarn nodejs task python; do
+for PLUGIN in yarn nodejs task python direnv; do
     asdf plugin add $PLUGIN
 done
 asdf install
 
 log notice "Report current build tool versions..."
 asdf current
+
+if [[ "${OSTYPE:-}" != darwin* ]]; then
+    pgrep dbus-daemon >/dev/null || {
+        log error "dbus-daemon was not detecting as running and that would interfere with testing (xvfb)."
+        exit 55
+    }
+fi
 
 is_podman_running() {
     if [[ "$(podman machine ls --format '{{.Name}} {{.Running}}' --noheading 2>/dev/null)" == *"podman-machine-default* true"* ]]; then
@@ -112,7 +121,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -355,7 +364,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     fi
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
-        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo usermod -aG docker $USER' and relogin to fix it.\n${pull_output}"
+        log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
         exit 1
     }
     # without running we will never be sure it works (no arm64 image yet)
@@ -404,10 +413,10 @@ if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
         is_podman_running
         }
     # validation is done later
-    podman info
-    podman run hello-world
-    du -ahc ~/.config/containers ~/.local/share/containers || true
-    podman machine inspect
+    podman info >out/podman.log 2>&1
+    podman run hello-world >out/podman.log 2>&1
+    du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
+    podman machine inspect >out/podman.log 2>&1
 fi
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
@@ -430,7 +439,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
 fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
-    sudo apparmor_status || true
+    echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
 log notice "Install node deps using either yarn or npm"
