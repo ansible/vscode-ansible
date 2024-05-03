@@ -15,5 +15,5 @@ set -Ee
 #VERSION_SUFFIX="$((LAST_COMMIT_TIMESTAMP-LAST_TAG_TIMESTAMP))"
 # We remove the last number from the node reported version.
 VERSION_PREFIX=$(node -p "require('./package.json').version")
-VERSION_SUFFIX=2
+VERSION_SUFFIX=3000000
 echo -n "${VERSION_PREFIX%.*}.${VERSION_SUFFIX}"
