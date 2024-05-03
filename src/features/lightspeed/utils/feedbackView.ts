@@ -131,12 +131,7 @@ export function setWebviewMessageListener(
         }
       }
       if (userFeedback && lightSpeedManager) {
-        lightSpeedManager.apiInstance.feedbackRequest(
-          userFeedback,
-          lightSpeedManager.orgTelemetryOptOut,
-          true,
-          true,
-        );
+        lightSpeedManager.apiInstance.feedbackRequest(userFeedback, true, true);
       }
     },
     undefined,

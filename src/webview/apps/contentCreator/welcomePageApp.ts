@@ -54,7 +54,7 @@ function updateAnsibleCreatorAvailabilityStatus() {
     const message = event.data; // The JSON data our extension sent
 
     switch (message.command) {
-      case "systemDetails":
+      case "systemDetails": {
         const systemDetails = message.arguments;
         const ansibleVersion = systemDetails["ansible version"];
         const ansibleLocation = systemDetails["ansible location"];
@@ -114,7 +114,7 @@ function updateAnsibleCreatorAvailabilityStatus() {
           ansibleDevEnvironmentStatusText.innerHTML = `<p class='not-found-optional'>[optional] ansible-dev-environment version: Not found</p>`;
         }
         installStatusDiv?.appendChild(ansibleDevEnvironmentStatusText);
-
+      }
       // <p>&#x2717; python version: ${pythonVersion}</p>
       // <p>&#x2717; python location: ${pythonLocation}</p>
       // <p>&#x2717; ansible-creator version: ${ansibleCreatorVersion}</p>

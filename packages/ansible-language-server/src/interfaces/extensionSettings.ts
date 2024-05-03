@@ -10,7 +10,7 @@ export type IContainerEngine = "auto" | "podman" | "docker";
 
 export type IPullPolicy = "always" | "missing" | "never" | "tag";
 
-interface ExtensionSettingsWithDescriptionBase {
+export interface ExtensionSettingsWithDescriptionBase {
   [key: string]: SettingsEntry | string | boolean;
 }
 

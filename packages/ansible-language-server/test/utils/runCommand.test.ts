@@ -5,6 +5,7 @@ import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "../helper";
 import * as path from "path";
 import { readFileSync } from "fs";
+import { ExecException } from "child_process";
 
 describe("commandRunner", () => {
   const packageJsonPath = require.resolve("../../package.json");
@@ -78,28 +79,33 @@ describe("commandRunner", () => {
       process.argv.push("--node-ipc");
       const connection = createConnection();
       const workspaceManager = new WorkspaceManager(connection);
-      const textDoc = await getDoc("yaml/ancestryBuilder.yml");
+      const textDoc = getDoc("yaml/ancestryBuilder.yml");
       const context = workspaceManager.getContext(textDoc.uri);
-      const settings = await context.documentSettings.get(textDoc.uri);
-      if (pythonInterpreterPath) {
-        settings.python.interpreterPath = pythonInterpreterPath;
-      }
-
-      const commandRunner = new CommandRunner(connection, context, settings);
-      try {
-        const proc = await commandRunner.runCommand(
-          args[0],
-          args.slice(1).join(" "),
-        );
-        expect(proc.stdout, proc.stderr).contains(stdout);
-        expect(proc.stderr, proc.stdout).contains(stderr);
-      } catch (e) {
-        if (e instanceof AssertionError) {
-          throw e;
+      if (context) {
+        const settings = await context.documentSettings.get(textDoc.uri);
+        if (pythonInterpreterPath) {
+          settings.python.interpreterPath = pythonInterpreterPath;
         }
-        expect(e.code, e).equals(rc);
-        expect(e.stdout, e).contains(stdout);
-        expect(e.stderr, e).contains(stderr);
+
+        const commandRunner = new CommandRunner(connection, context, settings);
+        try {
+          const proc = await commandRunner.runCommand(
+            args[0],
+            args.slice(1).join(" "),
+          );
+          expect(proc.stdout, proc.stderr).contains(stdout);
+          expect(proc.stderr, proc.stdout).contains(stderr);
+        } catch (e) {
+          if (e instanceof AssertionError) {
+            throw e;
+          }
+          if (e instanceof Error) {
+            const err = e as ExecException;
+            expect(err.code).equals(rc);
+            expect(err.stdout).contains(stdout);
+            expect(err.stderr).contains(stderr);
+          }
+        }
       }
     });
   });

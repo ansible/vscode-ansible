@@ -1,11 +1,11 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled } from "../../extension";
+import { LightspeedUser } from "./lightspeedUser";
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -30,11 +30,12 @@ async function openNewPlaybookEditor(playbook: string) {
 async function generatePlaybook(
   content: string,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
 ) {
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
@@ -51,11 +52,12 @@ async function generatePlaybook(
 async function summarizeInput(
   content: string,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
 ) {
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
@@ -72,7 +74,7 @@ async function summarizeInput(
 export async function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
 ) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
@@ -100,29 +102,31 @@ export async function showPlaybookGenerationPage(
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
     switch (command) {
-      case "generatePlaybook":
+      case "generatePlaybook": {
         const playbook = await generatePlaybook(
           // TODO
           message.content,
           client,
-          lightSpeedAuthProvider,
+          lightspeedAuthenticatedUser,
           settingsManager,
           panel,
         );
         panel?.dispose();
         await openNewPlaybookEditor(playbook);
         break;
-      case "summarizeInput":
+      }
+      case "summarizeInput": {
         const summary = await summarizeInput(
           // TODO
           message.content,
           client,
-          lightSpeedAuthProvider,
+          lightspeedAuthenticatedUser,
           settingsManager,
           panel,
         );
         panel.webview.postMessage({ command: "summary", summary });
         break;
+      }
       case "thumbsUp":
       case "thumbsDown":
         vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");

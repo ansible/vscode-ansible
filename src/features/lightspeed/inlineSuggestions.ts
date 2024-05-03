@@ -35,6 +35,7 @@ let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 let insertTexts: string[] = [];
+let _documentChanged = false;
 export const suggestionDisplayed = new SuggestionDisplayed();
 
 interface DocumentInfo {
@@ -334,11 +335,9 @@ async function requestSuggestion(
   inlinePosition: InlinePosition,
 ): Promise<CompletionResponseParams> {
   const rhUserHasSeat =
-    await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
+    await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
   const lightSpeedStatusbarText =
-    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText(
-      rhUserHasSeat,
-    );
+    await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
   const suggestionId = uuidv4();
   try {
     // If there is a suggestion, whose feedback is pending, send a feedback with IGNORED action
@@ -375,10 +374,30 @@ async function requestSuggestion(
   }
 }
 
+export function setDocumentChanged(value: boolean) {
+  _documentChanged = value;
+}
+
+async function isDocumentChangedImmediately(): Promise<boolean> {
+  const delay =
+    lightSpeedManager.settingsManager.settings.lightSpeedService.suggestions
+      .waitWindow;
+  if (delay > 0) {
+    setDocumentChanged(false);
+    await new Promise((resolve) => setTimeout(resolve, delay));
+    return _documentChanged;
+  } else {
+    return Promise.resolve(false);
+  }
+}
+
 const onDoSingleTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition,
 ) {
+  if (await isDocumentChangedImmediately()) {
+    return [];
+  }
   resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
@@ -451,6 +470,9 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition,
 ) {
+  if (await isDocumentChangedImmediately()) {
+    return [];
+  }
   resetSuggestionData();
   inlineSuggestionDisplayTime = getCurrentUTCDateTime();
   const requestTime = getCurrentUTCDateTime();
@@ -615,7 +637,7 @@ async function getInlineSuggestionState(
 ): Promise<CallbackEntry> {
   const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
   const rhUserHasSeat =
-    await lightSpeedManager.lightSpeedAuthenticationProvider.rhUserHasSeat();
+    await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
 
   if (
     !suggestionMatchInfo.suggestionMatchType ||
@@ -914,7 +936,6 @@ export async function inlineSuggestionUserActionHandler(
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload,
-    lightSpeedManager.orgTelemetryOptOut,
   );
   resetSuggestionData();
 }

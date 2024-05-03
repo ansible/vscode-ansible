@@ -8,7 +8,7 @@ import {
 } from "../interfaces/extensionSettings";
 
 export class SettingsManager {
-  private connection: Connection;
+  private connection: Connection | null;
   private clientSupportsConfigRequests;
   private configurationChangeHandlers: Map<string, { (): void }> = new Map();
 
@@ -135,7 +135,10 @@ export class SettingsManager {
 
   public globalSettings: ExtensionSettings = this.defaultSettings;
 
-  constructor(connection: Connection, clientSupportsConfigRequests: boolean) {
+  constructor(
+    connection: Connection | null,
+    clientSupportsConfigRequests: boolean,
+  ) {
     this.connection = connection;
     this.clientSupportsConfigRequests = clientSupportsConfigRequests;
   }
@@ -155,7 +158,7 @@ export class SettingsManager {
       return Promise.resolve(this.globalSettings);
     }
     let result = this.documentSettings.get(uri);
-    if (!result) {
+    if (!result && this.connection) {
       const clientSettings = await this.connection.workspace.getConfiguration({
         scopeUri: uri,
         section: "ansible",
@@ -166,6 +169,9 @@ export class SettingsManager {
       const mergedSettings = _.merge(this.globalSettings, clientSettings);
       result = Promise.resolve(mergedSettings);
       this.documentSettings.set(uri, result);
+    }
+    if (!result) {
+      return {} as ExtensionSettings;
     }
     return result;
   }
@@ -188,7 +194,7 @@ export class SettingsManager {
 
       for (const [uri, handler] of this.configurationChangeHandlers) {
         const config = await this.documentSettings.get(uri);
-        if (config) {
+        if (config && this.connection) {
           // found cached values, now compare to the new ones
 
           const newConfigPromise = this.connection.workspace.getConfiguration({

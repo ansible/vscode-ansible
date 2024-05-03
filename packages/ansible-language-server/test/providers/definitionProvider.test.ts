@@ -62,21 +62,21 @@ function testModuleNamesForDefinition(
       }
 
       expect(actualDefinition).to.have.length(1);
+      if (actualDefinition) {
+        const definition = actualDefinition[0];
+        // file uri check
+        expect(definition.targetUri.startsWith("file:///")).to.be.true;
+        expect(definition.targetUri).satisfy((fileUri: string) =>
+          fileExists(URI.parse(fileUri).path),
+        );
 
-      const definition = actualDefinition[0];
+        // nodule name range check in the playbook
+        expect(definition.originSelectionRange).to.deep.equal(selectionRange);
 
-      // file uri check
-      expect(definition.targetUri.startsWith("file:///")).to.be.true;
-      expect(definition.targetUri).satisfy((fileUri: string) =>
-        fileExists(URI.parse(fileUri).path),
-      );
-
-      // nodule name range check in the playbook
-      expect(definition.originSelectionRange).to.deep.equal(selectionRange);
-
-      // original document range checks
-      expect(definition).to.haveOwnProperty("targetRange");
-      expect(definition).to.haveOwnProperty("targetSelectionRange");
+        // original document range checks
+        expect(definition).to.haveOwnProperty("targetRange");
+        expect(definition).to.haveOwnProperty("targetSelectionRange");
+      }
     });
   });
 }
@@ -88,7 +88,7 @@ describe("getDefinition()", function () {
   const context = workspaceManager.getContext(fixtureFileUri);
 
   const textDoc = getDoc(fixtureFilePath);
-  const docSettings = context.documentSettings.get(textDoc.uri);
+  const docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Module name definitions", function () {
     describe("With EE enabled @ee", function () {
@@ -96,24 +96,33 @@ describe("getDefinition()", function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible",
         );
-        await enableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await enableExecutionEnvironmentSettings(docSettings);
+        }
       });
 
-      testModuleNamesForDefinition(context, textDoc);
+      if (context) {
+        testModuleNamesForDefinition(context, textDoc);
+      }
 
       after(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
     });
 
     describe("With EE disabled", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
-        await disableExecutionEnvironmentSettings(docSettings);
+        if (docSettings) {
+          await disableExecutionEnvironmentSettings(docSettings);
+        }
       });
-
-      testModuleNamesForDefinition(context, textDoc);
+      if (context) {
+        testModuleNamesForDefinition(context, textDoc);
+      }
     });
   });
 });

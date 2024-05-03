@@ -25,6 +25,7 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_TIME =
 const LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME =
   LIGHTSPEED_ACCESS_TOKEN === "dummy" ? 200 : 2000;
 const LIGHTSPEED_INLINE_SUGGESTION_AFTER_TRIGGER_WAIT_TIME = 100;
+const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 /**
  * Activates the redhat.ansible extension
  */
@@ -146,6 +147,22 @@ export async function disableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", false);
   await updateSettings("lightspeed.suggestions.enabled", false);
   await updateSettings("lightspeed.URL", "");
+}
+
+export async function _setInlineSuggestionsWaitWindow(
+  t: number,
+): Promise<void> {
+  await updateSettings("lightspeed.suggestions.waitWindow", t);
+}
+
+export async function setInlineSuggestionsWaitWindow(): Promise<void> {
+  await _setInlineSuggestionsWaitWindow(
+    LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW,
+  );
+}
+
+export async function resetInlineSuggestionsWaitWindow(): Promise<void> {
+  await _setInlineSuggestionsWaitWindow(0);
 }
 
 export async function canRunLightspeedTests(): Promise<boolean> {

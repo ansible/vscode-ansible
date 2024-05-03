@@ -1,18 +1,4 @@
-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-section {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin-bottom: 20px;
-    max-width: 800px;
-}
+@import url(../baseStyles/baseFormStyle.css);
 
 .container {
     display: flex;
@@ -33,18 +19,6 @@ vscode-text-area {
     margin-bottom: 6px;
 }
 
-.scm-org-project-div {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#scm-org-name, #scm-project-name {
-    width:49%;
-    display:inline-block;
-}
-
 .checkbox-div {
     display: flex; /* Use flexbox */
     flex-direction: column; /* Arrange child elements vertically */
@@ -61,14 +35,10 @@ vscode-text-area {
     width: 100%;
 }
 
-vscode-dropdown {
-    width: 200px;
-}
-
-.full-collection-path {
+.full-collection-name {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
-    color: grey;
+    color: var(--vscode-descriptionForeground);
 }
 
 .group-buttons {
@@ -85,8 +55,12 @@ vscode-button {
 }
 
 vscode-checkbox i {
-    color: gray;
+    color: var(--vscode-descriptionForeground);
     font-size: small;
+}
+
+vscode-dropdown {
+    width: 200px;
 }
 
 #ade-docs-link {
@@ -115,7 +89,8 @@ vscode-checkbox i {
     display: none;
     flex-direction: column;
     border-style: dotted;
-    border-color: #444444;;
+    border-color: var(--focus-border);;
+    border-width: 0.5px;
     padding: 8px;
 }
 
