@@ -6,9 +6,9 @@ rm -f ./*.vsix
 yarn run webpack
 VERSION="$(./tools/get-marketplace-version.sh)"
 vsce_package_args=(--no-dependencies --no-git-tag-version --no-update-package-json --readme-path docs/README.md)
-if [[ "$VERSION" != *.0 ]]; then
-    vsce_package_args+=("--pre-release")
-fi
+# if [[ "$VERSION" != *.0 ]]; then
+#     vsce_package_args+=("--pre-release")
+# fi
 
 # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
 yarn run vsce package "${vsce_package_args[@]}" "${VERSION}"
