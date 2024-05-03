@@ -245,6 +245,8 @@ function toggleLogToFileOptions() {
 }
 
 function handleInitCreateClick() {
+  initCreateButton.disabled = true;
+
   vscode.postMessage({
     command: "init-create",
     payload: {
@@ -289,6 +291,8 @@ function handleInitCreateClick() {
           collectionUrl = message.arguments.collectionUrl
             ? message.arguments.collectionUrl
             : "";
+
+          initCreateButton.disabled = false;
 
           return;
       }

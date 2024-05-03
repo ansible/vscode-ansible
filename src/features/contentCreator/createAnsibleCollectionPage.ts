@@ -363,7 +363,12 @@ export class CreateAnsibleCollection {
         ).fsPath
       : initPathUrl;
 
-    let adeCommand = `ade install --editable ${collectionUrl} --no-ansi`;
+    const venvPathUrl = vscode.Uri.joinPath(
+      vscode.Uri.parse(collectionUrl),
+      ".venv",
+    ).fsPath;
+
+    let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
 
     if (isForced) {
       ansibleCreatorInitCommand += " --force";

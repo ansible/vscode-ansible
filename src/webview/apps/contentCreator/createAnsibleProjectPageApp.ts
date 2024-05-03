@@ -19,7 +19,6 @@ provideVSCodeDesignSystem().register(allComponents);
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-// let projectNameTextField: TextField;
 let destinationPathUrlTextField: TextField;
 let folderExplorerButton: Button;
 
@@ -226,6 +225,8 @@ function toggleLogToFileOptions() {
 }
 
 function handleInitCreateClick() {
+  initCreateButton.disabled = true;
+
   vscode.postMessage({
     command: "init-create",
     payload: {
@@ -270,6 +271,8 @@ function handleInitCreateClick() {
           projectUrl = message.arguments.projectUrl
             ? message.arguments.projectUrl
             : "";
+
+          initCreateButton.disabled = false;
 
           return;
       }
