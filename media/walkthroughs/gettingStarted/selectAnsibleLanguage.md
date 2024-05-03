@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 MD041 MD013-->
+
 <figure align="center">
   <img src="../../walkthroughs/gettingStarted/language-statusbar.png" alt="Language Statusbar" />
   <figcaption>Language Identification in the status-bar</figcaption>

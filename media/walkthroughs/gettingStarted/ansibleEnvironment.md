@@ -1,4 +1,4 @@
-<!-- markdownlint-disable MD033 MD041-->
+<!-- markdownlint-disable MD033 MD041 MD013-->
 
 <figure align="center">
   <img src="ansible-env/environment-statusbar.png" alt="image missing" />

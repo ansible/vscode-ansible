@@ -71,7 +71,7 @@
           {
             "id": "check-ansible-statusbar-tag",
             "title": "Check out the Ansible Version tag",
-            "description": "Hovering over the \"Ansible version\" written in the status-bar can tell you about your entire workspace environment. The following symbols convey the follwing message: \n $(bracket-dot) - All the required tools are present in the environment.\n $(warning) - Ansible Lint is missing in the environment. Partial diagnostics will be present in the extension.\n $(error) - Ansible is missing in the environment. None of the features in the extension will work properly.\n**Tools missing?** Move on to the next step to set up your environment properly.",
+            "description": "Hovering over the \"Ansible version\" written in the status-bar can tell you about your entire workspace environment. The following symbols convey the following message: \n $(bracket-dot) - All the required tools are present in the environment.\n $(warning) - Ansible Lint is missing in the environment. Partial diagnostics will be present in the extension.\n $(error) - Ansible is missing in the environment. None of the features in the extension will work properly.\n**Tools missing?** Move on to the next step to set up your environment properly.",
             "media": {
               "markdown": "media/walkthroughs/gettingStarted/ansibleEnvironment.md"
             }
@@ -79,7 +79,7 @@
           {
             "id": "set-up-ansible-environment",
             "title": "Set up an Ansible Environment",
-            "description": "Select or create a new environment for the extension to pick up the ansible binaries.\n💡 This option also lets you to create a new virtual environment too!.\n[Select Environment](command:ansible.python.set.interpreter)\nIf the ansible tools are missing, install the recommended tools within your enviornment in just one click for a smooth experience.\n[Install Ansible Tools](command:ansible.install-ansible-dev-tools)",
+            "description": "Select or create a new environment for the extension to pick up the ansible binaries.\n💡 This option also lets you to create a new virtual environment too!.\n[Select Environment](command:ansible.python.set.interpreter)\nIf the ansible tools are missing, install the recommended tools within your environment in just one click for a smooth experience.\n[Install Ansible Tools](command:ansible.install-ansible-dev-tools)",
             "media": {
               "image": "media/walkthroughs/gettingStarted/all-adt-tools.png",
               "altText": "No image found"

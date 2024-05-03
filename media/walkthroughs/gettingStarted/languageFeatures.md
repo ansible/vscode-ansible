@@ -1,7 +1,7 @@
-<!-- markdownlint-disable MD033 MD041-->
+<!-- markdownlint-disable MD033 MD041 MD013-->
 
 <figure align="center">
-  <img src="ansible-features/syntax-highlighting-crop.png" alt="Sntyax Hightlighting" />
+  <img src="ansible-features/syntax-highlighting-crop.png" alt="Sntyax Highlighting" />
   <figcaption>Syntax Highlighting</figcaption>
 </figure>
 
