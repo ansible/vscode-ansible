@@ -185,6 +185,12 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           <h3>Do the following steps look right to you?</h3>
         </div>
         <div class="mainContainer">
+          <div class="promptContainer">
+            <span>
+              "<span id="prompt"></span>"&nbsp;
+              <a class="backAnchor" id="back-anchor">Edit</a>
+            </span>
+          </div>
           <div class="editArea">
             <vscode-text-area rows=5 resize="vertical"
                 placeholder="Describe the goal in your own words."
@@ -201,7 +207,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="resetFeedbackContainer">
             <div class="resetContainer">
-                <vscode-button class="buttonBorder" appearance="secondary" id="reset-button">
+                <vscode-button appearance="secondary" id="reset-button" disabled>
                     Reset
                 </vscode-button>
             </div>

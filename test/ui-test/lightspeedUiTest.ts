@@ -201,12 +201,21 @@ export function lightspeedUIAssetsTest(): void {
           setTimeout(res, 1000);
         });
 
-        // Test Reset button
+        // Verify summary output and text edit
         let text = await textArea.getText();
         expect(text.includes('Name: "Create an azure network..."'));
         await textArea.sendKeys("# COMMENT\n");
         text = await textArea.getText();
         expect(text.includes("# COMMENT\n"));
+
+        // Verify the prompt is displayed as a static text
+        const prompt = await webView.findWebElement(
+          By.xpath("//span[@id='prompt']"),
+        );
+        text = await prompt.getText();
+        expect(text.includes("Create an azure network."));
+
+        // Test Reset button
         const resetButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='reset-button']"),
         );
@@ -226,6 +235,26 @@ export function lightspeedUIAssetsTest(): void {
         expect(backButton, "backButton should not be undefined").not.to.be
           .undefined;
         backButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        text = await textArea.getText();
+        expect(text.startsWith("Create an azure network."));
+        submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 1000);
+        });
+        text = await textArea.getText();
+        expect(text.includes('Name: "Create an azure network..."'));
+
+        // Test Edit link next to the prompt text
+        const backAnchor = await webView.findWebElement(
+          By.xpath("//a[@id='back-anchor']"),
+        );
+        expect(backButton, "backButton should not be undefined").not.to.be
+          .undefined;
+        backAnchor.click();
         await new Promise((res) => {
           setTimeout(res, 500);
         });
@@ -279,7 +308,7 @@ export function lightspeedUIAssetsTest(): void {
 
         // Open playbook explanation webview.
         await workbench.executeCommand(
-          "Ansible Lightspeed: Playbook explanation",
+          "Explain the playbook with Ansible Lightspeed",
         );
         await new Promise((res) => {
           setTimeout(res, 2000);
