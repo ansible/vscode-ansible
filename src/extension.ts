@@ -61,6 +61,7 @@ import { CreateAnsibleCollection } from "./features/contentCreator/createAnsible
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
+import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
@@ -73,6 +74,7 @@ export let lightSpeedManager: LightSpeedManager;
 export const globalFileSystemWatcher: IFileSystemWatchers = {};
 
 const lsName = "Ansible Support";
+let lsOutputChannel: vscode.OutputChannel;
 
 export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
@@ -470,6 +472,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  // open ansible extension workspace settings directly
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.extension-settings.open",
+      async () => {
+        await vscode.commands.executeCommand(
+          "workbench.action.openWorkspaceSettings",
+          "ansible",
+        );
+      },
+    ),
+  );
+
   // open ansible-python workspace settings directly
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -560,6 +575,117 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
     ),
   );
+
+  // getting started walkthrough command
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.walkthrough.gettingStarted.setLanguage",
+      () => {
+        vscode.commands.executeCommand("runCommands", {
+          commands: [
+            "workbench.action.focusRightGroup",
+            "workbench.action.editor.changeLanguageMode",
+          ],
+        });
+      },
+    ),
+  );
+
+  // install ansible development tools
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.install-ansible-dev-tools",
+      async () => {
+        const extSettings = new SettingsManager();
+        await extSettings.initialize();
+
+        const pythonInterpreter = extSettings.settings.interpreterPath;
+
+        // specify the current python interpreter path in the pip installation
+        const [command, runEnv] = withInterpreter(
+          extSettings.settings,
+          `${pythonInterpreter} -m pip install ansible-dev-tools`,
+          "--no-input",
+        );
+
+        const outputChannel = window.createOutputChannel(`Ansible Logs`);
+
+        let commandOutput = "";
+        let commandPassed = false;
+
+        vscode.window.withProgress(
+          {
+            title: "Please wait...",
+            location: vscode.ProgressLocation.Notification,
+            cancellable: true,
+          },
+          async (_, token) => {
+            // You code to process the progress
+
+            token.onCancellationRequested(async () => {
+              await vscode.window.showErrorMessage("Installation cancelled");
+            });
+
+            try {
+              const result = execSync(command, {
+                env: runEnv,
+              }).toString();
+              commandOutput = result;
+              outputChannel.append(commandOutput);
+              commandPassed = true;
+            } catch (error) {
+              let errorMessage: string;
+              if (error instanceof Error) {
+                const execError = error as ExecException & {
+                  // according to the docs, these are always available
+                  stdout: string;
+                  stderr: string;
+                };
+
+                errorMessage = execError.stdout
+                  ? execError.stdout
+                  : execError.stderr;
+                errorMessage += execError.message;
+              } else {
+                errorMessage = `Exception: ${JSON.stringify(error)}`;
+              }
+
+              commandOutput = errorMessage;
+              outputChannel.append(commandOutput);
+              commandPassed = false;
+            }
+          },
+        );
+
+        if (commandPassed) {
+          const selection = await vscode.window.showInformationMessage(
+            "Ansible Development Tools installed successfully.",
+            "Show Logs",
+          );
+
+          if (selection !== undefined) {
+            outputChannel.show();
+          }
+        } else {
+          const selection = await vscode.window.showErrorMessage(
+            "Ansible Development Tools failed to install.",
+            "Show Logs",
+          );
+
+          if (selection !== undefined) {
+            outputChannel.show();
+          }
+        }
+      },
+    ),
+  );
+
+  // open ansible language server logs
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.open-language-server-logs", () => {
+      lsOutputChannel.show();
+    }),
+  );
 }
 
 const startClient = async (
@@ -588,6 +714,7 @@ const startClient = async (
     4,
   );
   const outputChannel = window.createOutputChannel(lsName);
+  lsOutputChannel = outputChannel;
 
   const clientOptions: LanguageClientOptions = {
     // register the server for Ansible documents

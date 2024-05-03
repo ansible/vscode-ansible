@@ -38,3 +38,26 @@
 !package.json
 !package.nls.json
 !syntaxes/**/*
+# walkthrough media files
+!media/walkthroughs/gettingStarted/ansible-env/environment-statusbar.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-env copy.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-env.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-lint-env copy.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-lint-env.png
+!media/walkthroughs/gettingStarted/ansible-env/ok-env copy.png
+!media/walkthroughs/gettingStarted/ansible-env/ok-env.png
+!media/walkthroughs/gettingStarted/ansible-features/ansible-lint-crop.gif
+!media/walkthroughs/gettingStarted/ansible-features/go-to-definition-crop.gif
+!media/walkthroughs/gettingStarted/ansible-features/hover-documentation-module-crop.png
+!media/walkthroughs/gettingStarted/ansible-features/smart-completions-crop.gif
+!media/walkthroughs/gettingStarted/ansible-features/syntax-highlighting-crop.png
+!media/walkthroughs/gettingStarted/ansibleEnvironment.md
+!media/walkthroughs/gettingStarted/languageFeatures.md
+!media/walkthroughs/gettingStarted/selectAnsibleLanguage.md
+!media/walkthroughs/gettingStarted/all-adt-tools.png
+!media/walkthroughs/gettingStarted/ansible-extension-settings.png
+!media/walkthroughs/gettingStarted/language-selector.png
+!media/walkthroughs/gettingStarted/language-statusbar.png
+!media/walkthroughs/gettingStarted/learn-more.png
+!media/walkthroughs/gettingStarted/open-folder.png
+!media/walkthroughs/gettingStarted/run-ansible-playbook.png
