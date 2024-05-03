@@ -45,6 +45,90 @@
     }
   ],
   "contributes": {
+    "walkthroughs": [
+      {
+        "id": "getting-started-with-ansible-extension",
+        "title": "Getting started with Ansible Extension",
+        "description": "You first step to knowning and setting up the extension with all the developer features that the Ansible extension has to offer!",
+        "steps": [
+          {
+            "id": "create-ansible-file",
+            "title": "Create an Ansible-YAML file",
+            "description": "[Open](command:toSide:workbench.action.files.openFile) or [create](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D) a Ansible-YAML file - make sure to save it as \".yml\" or \".yaml\".\n[Create Ansible Playbook](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D)\n\n💡 It's normal to see some red tags in the status bar. This is because necessary ansible tools are not installed. We will fix this as we more forward.",
+            "media": {
+              "image": "media/walkthroughs/gettingStarted/open-folder.png",
+              "altText": "No image found"
+            }
+          },
+          {
+            "id": "check-ansible-language",
+            "title": "Ensure \"Ansible\" language",
+            "description": "All the language support is only available for an Ansible file. Make sure that the language of the file is \"Ansible\". If not,\n[Change Language](command:ansible.walkthrough.gettingStarted.setLanguage)\n🔍 Check out this [section](https://github.com/ansible/vscode-ansible?tab=readme-ov-file#language-association-to-yaml-files) to learn more about ansible language association to yaml files.",
+            "media": {
+              "markdown": "media/walkthroughs/gettingStarted/selectAnsibleLanguage.md"
+            }
+          },
+          {
+            "id": "check-ansible-statusbar-tag",
+            "title": "Check out the Ansible Version tag",
+            "description": "Hovering over the \"Ansible version\" written in the status-bar can tell you about your entire workspace environment. The following symbols convey the follwing message: \n $(bracket-dot) - All the required tools are present in the environment.\n $(warning) - Ansible Lint is missing in the environment. Partial diagnostics will be present in the extension.\n $(error) - Ansible is missing in the environment. None of the features in the extension will work properly.\n**Tools missing?** Move on to the next step to set up your environment properly.",
+            "media": {
+              "markdown": "media/walkthroughs/gettingStarted/ansibleEnvironment.md"
+            }
+          },
+          {
+            "id": "set-up-ansible-environment",
+            "title": "Set up an Ansible Environment",
+            "description": "Select or create a new environment for the extension to pick up the ansible binaries.\n💡 This option also lets you to create a new virtual environment too!.\n[Select Environment](command:ansible.python.set.interpreter)\nIf the ansible tools are missing, install the recommended tools within your enviornment in just one click for a smooth experience.\n[Install Ansible Tools](command:ansible.install-ansible-dev-tools)",
+            "media": {
+              "image": "media/walkthroughs/gettingStarted/all-adt-tools.png",
+              "altText": "No image found"
+            }
+          },
+          {
+            "id": "start-writing-ansible-playbook",
+            "title": "Start writing ansible playbook",
+            "description": "As you start writing your ansible playbook, the extension will provide all the language support for ansible. \n$(bracket) **Syntax highlighting**\nDistinguishes Ansible keywords, module names and options, jinja expressions and YAML components with distinct highlighting. \n $(gather) **Auto completion**\n Suggests completions based on context, such as vars, plays, blocks, or tasks. \n $(bug) **Diagnostics**\nProvides instant feedback on ansible syntax errors as you type. Additionally, validates ansible content for best practices. \n $(eye) **Hovering**\n Displays documentation when hovering over Ansible elements, sourced from Python module implementations. \n $(go-to-file) **Go to definition**\n Navigates to module implementations, with simple by actions such as clicking while holding ctrl/cmd or using context menus.\nYou can also check the language services logs if required.\n[Open Ansible Services Logs](command:ansible.open-language-server-logs)\n✨ Explore a smarter way to write your playbook using the goodness of [Ansible Lightspeed](link-to-playbook-gen)\n",
+            "media": {
+              "markdown": "media/walkthroughs/gettingStarted/languageFeatures.md"
+            }
+          },
+          {
+            "id": "run-ansible-playbook",
+            "title": "Run the playbook",
+            "description": "Once done writing the playbook, you can run the playbook without having to leave the editor. Simply right-click on the active editor and go to \"Run playbook via...\"\n💡 If you have \"Ansible Navigator\" installed, you can choose to run your playbook using ansible navigator.",
+            "media": {
+              "image": "media/walkthroughs/gettingStarted/run-ansible-playbook.png",
+              "altText": "No image found"
+            }
+          },
+          {
+            "id": "explore-ansible-extension-settings",
+            "title": "Know your Ansible Extension Settings",
+            "description": "The extension provides various settings categorised into sections to give you full control over configurations.\n[Open Extension Settings](command:toSide:ansible.extension-settings.open)\n 🔍 Check out this [section](https://ansible.readthedocs.io/projects/vscode-ansible/#configuration) to learn about each setting and how to use them.",
+            "completionEvents": [
+              "onCommand:ansible.extension-settings.open"
+            ],
+            "media": {
+              "image": "media/walkthroughs/gettingStarted/ansible-extension-settings.png",
+              "altText": "No image found for extension settings"
+            }
+          },
+          {
+            "id": "explore-more-resources",
+            "title": "Explore more resources",
+            "description": "📚 Learn what is an Ansible Playbook and how to write one using best practices in this [article](https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook).\n🔬 Read about the capabilities of various [Ansible Development Tools](https://ansible.readthedocs.io/projects/dev-tools/) to make the best use of them.\n🗒️ Take a look at our [Release Notes](https://github.com/ansible/vscode-ansible/releases) to learn more about the latest features.\n[Learn more](https://www.ansible.com/blog/deep-dive-on-ansible-vscode-extension/)",
+            "completionEvents": [
+              "onLink:https://www.ansible.com/blog/deep-dive-on-ansible-vscode-extension/"
+            ],
+            "media": {
+              "image": "media/walkthroughs/gettingStarted/learn-more.png",
+              "altText": "No image found"
+            }
+          }
+        ]
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
@@ -206,6 +290,10 @@
         "title": "Ansible: Set Python Interpreter"
       },
       {
+        "command": "ansible.extension-settings.open",
+        "title": "Ansible: Open Ansible Extension Settings"
+      },
+      {
         "command": "ansible.python-settings.open",
         "title": "Ansible: Open Python Settings"
       },
@@ -271,6 +359,18 @@
       {
         "command": "ansible.lightspeed.enableExperimentalFeatures",
         "title": "Ansible Lightspeed: Enable experimental features"
+      },
+      {
+        "command": "ansible.walkthrough.gettingStarted.setLanguage",
+        "title": "Ansible: Getting started - Set Language"
+      },
+      {
+        "command": "ansible.install-ansible-dev-tools",
+        "title": "Ansible: Install Ansible Development Tools"
+      },
+      {
+        "command": "ansible.open-language-server-logs",
+        "title": "Ansible: Open Language Server Logs"
       }
     ],
     "configuration": [
