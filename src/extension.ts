@@ -61,7 +61,7 @@ import { CreateAnsibleCollection } from "./features/contentCreator/createAnsible
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
-import { execSync } from "child_process";
+import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
@@ -633,8 +633,23 @@ export async function activate(context: ExtensionContext): Promise<void> {
               commandOutput = result;
               outputChannel.append(commandOutput);
               commandPassed = true;
-            } catch (err: any) {
-              const errorMessage = err.stderr.toString();
+            } catch (error) {
+              let errorMessage: string;
+              if (error instanceof Error) {
+                const execError = error as ExecException & {
+                  // according to the docs, these are always available
+                  stdout: string;
+                  stderr: string;
+                };
+
+                errorMessage = execError.stdout
+                  ? execError.stdout
+                  : execError.stderr;
+                errorMessage += execError.message;
+              } else {
+                errorMessage = `Exception: ${JSON.stringify(error)}`;
+              }
+
               commandOutput = errorMessage;
               outputChannel.append(commandOutput);
               commandPassed = false;
