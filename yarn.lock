@@ -54,7 +54,7 @@ __metadata:
     "@types/mocha": "npm:^10.0.6"
     "@types/node": "npm:^20.12.7"
     "@types/uuid": "npm:^9.0.8"
-    "@types/vscode": "npm:^1.85.0"
+    "@types/vscode": "npm:^1.89.0"
     antsibull-docs: "npm:^1.0.1"
     axios: "npm:^1.6.8"
     chai: "npm:^4.4.1"
@@ -1497,10 +1497,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:^1.85.0":
-  version: 1.88.0
-  resolution: "@types/vscode@npm:1.88.0"
-  checksum: 10/9c9965154cb0e79039973d6a7c221e4152e4d6436015e17762a43465a7e261ee97c671d2b5dbe36853678f1f08c67be1ae2ca8b7f4647eb9ba402cd55980201d
+"@types/vscode@npm:^1.89.0":
+  version: 1.89.0
+  resolution: "@types/vscode@npm:1.89.0"
+  checksum: 10/18494a57325e245059c171ebdca5def3baa8b02a2edfad72a0c4832a953d4ab9c4a8db1157c78bbe59a5363071ef04560f826272f0f8bbefbc109e59a19e3781
   languageName: node
   linkType: hard
 
@@ -2158,7 +2158,7 @@ __metadata:
     "@types/sinon": "npm:^17.0.3"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^9.0.8"
-    "@types/vscode": "npm:^1.85.0"
+    "@types/vscode": "npm:^1.89.0"
     "@types/vscode-webview": "npm:^1.57.5"
     "@typescript-eslint/eslint-plugin": "npm:^7.7.1"
     "@typescript-eslint/parser": "npm:^7.7.1"
