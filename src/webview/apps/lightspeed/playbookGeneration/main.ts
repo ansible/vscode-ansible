@@ -48,9 +48,6 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "summary": {
-      const button = document.getElementById("submit-icon") as Button;
-      button.setAttribute("class", "codicon codicon-run-all");
-
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
