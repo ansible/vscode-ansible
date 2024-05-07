@@ -30,6 +30,7 @@ window.addEventListener("load", () => {
   setListener("thumbsup-button", sendThumbsup);
   setListener("thumbsdown-button", sendThumbsdown);
   setListener("back-button", back);
+  setListener("back-anchor", back);
 
   setListenerOnTextArea();
 
@@ -47,9 +48,6 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "summary": {
-      const button = document.getElementById("submit-icon") as Button;
-      button.setAttribute("class", "codicon codicon-run-all");
-
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
@@ -57,11 +55,16 @@ window.addEventListener("message", (event) => {
       changeDisplay("firstMessage", "none");
       changeDisplay("secondMessage", "block");
       changeDisplay("generatePlaybookContainer", "block");
+      changeDisplay("promptContainer", "block");
 
       const element = document.getElementById("playbook-text-area") as TextArea;
       savedSummary = element.value = message.summary;
       resetTextAreaHeight();
-      element.rows = 25;
+
+      const prompt = document.getElementById("prompt") as HTMLSpanElement;
+      prompt.textContent = savedInput;
+
+      element.rows = 20;
 
       break;
     }
@@ -87,10 +90,15 @@ function setListener(id: string, func: any) {
 function setListenerOnTextArea() {
   const textArea = document.getElementById("playbook-text-area") as TextArea;
   const submitButton = document.getElementById("submit-button") as Button;
+  const resetButton = document.getElementById("reset-button") as Button;
   if (textArea) {
     textArea.addEventListener("input", async () => {
       const input = textArea.value;
       submitButton.disabled = input.length === 0;
+
+      if (savedSummary) {
+        resetButton.disabled = savedSummary === input;
+      }
 
       adjustTextAreaHeight();
     });
@@ -129,6 +137,7 @@ function back() {
   changeDisplay("firstMessage", "block");
   changeDisplay("secondMessage", "none");
   changeDisplay("generatePlaybookContainer", "none");
+  changeDisplay("promptContainer", "none");
 
   const element = document.getElementById("playbook-text-area") as TextArea;
   if (savedInput) {
