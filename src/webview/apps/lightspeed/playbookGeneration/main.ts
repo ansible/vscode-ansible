@@ -61,7 +61,7 @@ window.addEventListener("message", (event) => {
       changeDisplay("promptContainer", "block");
 
       const element = document.getElementById("playbook-text-area") as TextArea;
-      savedSummary = element.value = message.summary.content;
+      savedSummary = element.value = message.summary;
       resetTextAreaHeight();
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
