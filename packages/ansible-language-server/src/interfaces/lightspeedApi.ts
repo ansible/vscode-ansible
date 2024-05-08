@@ -12,3 +12,9 @@ export interface SummaryResponse {
   format: string;
   summaryId: string;
 }
+
+export interface ExplanationResponse {
+  content: string;
+  format: string;
+  explanationId: string;
+}

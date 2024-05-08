@@ -6,6 +6,7 @@ import * as marked from "marked";
 import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
+import { ExplanationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
@@ -37,11 +38,15 @@ export const playbookExplanation = async (
   let markdown = "";
   lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
   try {
-    markdown = await client.sendRequest("playbook/explanation", {
-      accessToken: accessToken,
-      URL: settingsManager.settings.lightSpeedService.URL,
-      content: content,
-    });
+    const response: ExplanationResponse = await client.sendRequest(
+      "playbook/explanation",
+      {
+        accessToken: accessToken,
+        URL: settingsManager.settings.lightSpeedService.URL,
+        content: content,
+      },
+    );
+    markdown = response.content;
   } catch (e) {
     console.log(e);
     currentPanel.setContent(
