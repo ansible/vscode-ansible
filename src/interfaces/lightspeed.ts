@@ -72,8 +72,8 @@ export interface IssueFeedbackEvent {
 }
 
 export interface PlaybookOutlineEvent {
-  action?: ThumbsUpDownAction;
-  outlineId?: string;
+  action: ThumbsUpDownAction;
+  outlineId: string;
 }
 
 export interface FeedbackRequestParams {
