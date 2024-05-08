@@ -1,5 +1,9 @@
 import { AuthenticationSession } from "vscode";
-import { LIGHTSPEED_USER_TYPE, UserAction } from "../definitions/lightspeed";
+import {
+  LIGHTSPEED_USER_TYPE,
+  ThumbsUpDownAction,
+  UserAction,
+} from "../definitions/lightspeed";
 
 export interface LightspeedAuthSession extends AuthenticationSession {
   rhUserHasSeat: boolean;
@@ -67,11 +71,17 @@ export interface IssueFeedbackEvent {
   description: string;
 }
 
+export interface PlaybookOutlineEvent {
+  action: ThumbsUpDownAction;
+  outlineId: string;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
+  playbookOutlineFeedback?: PlaybookOutlineEvent;
   model?: string;
 }
 
