@@ -27,6 +27,7 @@ import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
 import axios from "axios";
 import { getBaseUri } from "./utils/webUtils";
 import {
+  ExplanationResponse,
   GenerationResponse,
   SummaryResponse,
 } from "./interfaces/lightspeedApi";
@@ -359,29 +360,36 @@ export class AnsibleLanguageService {
       },
     );
 
-    this.connection.onRequest("playbook/explanation", async (params) => {
-      const accessToken: string = params["accessToken"];
-      const URL: string = params["URL"];
-      const content: string = params["content"];
+    this.connection.onRequest(
+      "playbook/explanation",
+      async (params): Promise<ExplanationResponse> => {
+        const accessToken: string = params["accessToken"];
+        const URL: string = params["URL"];
+        const content: string = params["content"];
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        };
 
-      const axiosInstance = axios.create({
-        baseURL: `${getBaseUri(URL)}/api/v0`,
-        headers: headers,
-      });
-
-      const explanation: string = await axiosInstance
-        .post("/ai/explanations/", { content: content })
-        .then((response) => {
-          return response.data.content;
+        const axiosInstance = axios.create({
+          baseURL: `${getBaseUri(URL)}/api/v0`,
+          headers: headers,
         });
 
-      return explanation;
-    });
+        const result: ExplanationResponse = await axiosInstance
+          .post("/ai/explanations/", {
+            content: content,
+            explanationId: uuidv4(),
+          })
+          .then((response) => {
+            return response.data;
+          });
+        console.log(result);
+
+        return result;
+      },
+    );
 
     this.connection.onRequest(
       "playbook/summary",
