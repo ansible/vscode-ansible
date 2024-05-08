@@ -206,7 +206,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="editArea">
             <vscode-text-area rows=5 resize="vertical"
-                placeholder="Describe the goal in your own words."
+                placeholder="I want to write a playbook that will..."
                 id="playbook-text-area">
             </vscode-text-area>
             <div class="spinnerContainer">
