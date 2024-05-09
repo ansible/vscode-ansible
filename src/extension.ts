@@ -44,7 +44,10 @@ import {
   rejectPendingSuggestion,
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
-import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
+import {
+  PlaybookExplanationPanel,
+  playbookExplanation,
+} from "./features/lightspeed/playbookExplanation";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import {
   setPythonInterpreter,
@@ -68,7 +71,10 @@ import {
   LightspeedUser,
   AuthProviderType,
 } from "./features/lightspeed/lightspeedUser";
-import { PlaybookOutlineEvent } from "./interfaces/lightspeed";
+import {
+  PlaybookOutlineEvent,
+  PlaybookExplanationEvent,
+} from "./interfaces/lightspeed";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -558,12 +564,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "ansible.lightspeed.thumbsUpDown",
-      async (param: PlaybookOutlineEvent) => {
-        lightSpeedManager.apiInstance.feedbackRequest(
-          { playbookOutlineFeedback: param },
-          true,
-          true,
-        );
+      async (param: PlaybookOutlineEvent | PlaybookExplanationEvent) => {
+        if ("outlineId" in param) {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookOutlineFeedback: param },
+            true,
+            true,
+          );
+        }
+        if ("explanationId" in param) {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookExplanationFeedback: param },
+            true,
+            true,
+          );
+        }
         window.showInformationMessage("Thank you for your feedback!");
       },
     ),
