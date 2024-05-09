@@ -76,11 +76,17 @@ export interface PlaybookOutlineEvent {
   outlineId: string;
 }
 
+export interface PlaybookExplanationEvent {
+  action: ThumbsUpDownAction;
+  outlineId: string;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
+  playbookExplanationFeedback?: PlaybookExplanationEvent;
   playbookOutlineFeedback?: PlaybookOutlineEvent;
   model?: string;
 }

@@ -366,6 +366,7 @@ export class AnsibleLanguageService {
         const accessToken: string = params["accessToken"];
         const URL: string = params["URL"];
         const content: string = params["content"];
+        const explanationId: string = params["explanationId"];
 
         const headers = {
           "Content-Type": "application/json",
@@ -380,7 +381,7 @@ export class AnsibleLanguageService {
         const result: ExplanationResponse = await axiosInstance
           .post("/ai/explanations/", {
             content: content,
-            explanationId: uuidv4(),
+            explanationId: explanationId,
           })
           .then((response) => {
             return response.data;
