@@ -350,14 +350,7 @@ if [[ -n ${DOCKER_HOST+x} ]]; then
 fi
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
 DOCKER_VERSION="$(get_version docker 2>/dev/null || echo null)"
-if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
-
-    DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
-    if [[ "${DOCKER_STDERR}" == *"Emulate Docker CLI using podman"* ]]; then
-        log error "podman-docker shim is present and we do not support it. Please remove it."
-        exit 1
-    fi
-
+if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ ! $DOCKER_VERSION =~ "podman" ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     if [ -n "${DOCKER_HOST:-}" ]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
         exit 1
