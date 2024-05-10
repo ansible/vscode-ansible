@@ -228,7 +228,34 @@ export function lightspeedUIAssetsTest(): void {
         text = await textArea.getText();
         expect(!text.includes("# COMMENT\n"));
 
+        // Test ThumbsUp button
+        const thumbsUpButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='thumbsup-button']"),
+        );
+        expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
+          .be.undefined;
+        expect(
+          await thumbsUpButton.isEnabled(),
+          "thumbsUpButton should be enabled",
+        );
+        thumbsUpButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+        expect(
+          !thumbsUpButton.isEnabled,
+          "thumbsUpButton should not be enabled",
+        );
+
+        await webView.switchBack();
+        let notifications = await workbench.getNotifications();
+        let notification = notifications[0];
+        let message = await notification.getMessage();
+        expect(message).equals("Thanks for your feedback!");
+        await notification.dismiss();
+
         // Test Back button
+        await webView.switchToFrame(5000);
         const backButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='back-button']"),
         );
@@ -248,7 +275,31 @@ export function lightspeedUIAssetsTest(): void {
         text = await textArea.getText();
         expect(text.includes('Name: "Create an azure network..."'));
 
+        // Test ThumbsDown button
+        const thumbsDownButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='thumbsdown-button']"),
+        );
+        expect(thumbsDownButton, "thumbsDownButton should not be undefined").not
+          .to.be.undefined;
+        expect(
+          await thumbsUpButton.isEnabled(),
+          "thumbsDownButton should be enabled",
+        );
+        thumbsUpButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+        expect(!thumbsUpButton.isEnabled, "ThumbsDown should not be enabled");
+
+        await webView.switchBack();
+        notifications = await workbench.getNotifications();
+        notification = notifications[0];
+        message = await notification.getMessage();
+        expect(message).equals("Thanks for your feedback!");
+        await notification.dismiss();
+
         // Test Edit link next to the prompt text
+        await webView.switchToFrame(5000);
         const backAnchor = await webView.findWebElement(
           By.xpath("//a[@id='back-anchor']"),
         );

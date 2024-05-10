@@ -576,7 +576,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
             true,
           );
         }
-        window.showInformationMessage("Thank you for your feedback!");
       },
     ),
   );
