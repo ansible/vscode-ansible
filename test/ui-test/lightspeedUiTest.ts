@@ -53,7 +53,7 @@ export function lightspeedUIAssetsTest(): void {
       const body = await webviewView.findWebElement(By.xpath("//body"));
       const welcomeMessage = await body.getText();
       expect(welcomeMessage).to.contain(
-        "Welcome to Ansible Lightspeed for Visual Studio Code.",
+        "Experience smarter automation using Ansible Lightspeed",
       );
     });
 
@@ -106,7 +106,7 @@ export function lightspeedUIAssetsTest(): void {
           "//div[contains(@class, 'statusbar-item') and " +
             "contains(@class, 'has-background-color') and " +
             "contains(@class, 'warning-kind') and " +
-            ".//a/text()='Lightspeed (not logged in)']",
+            ".//a/text()='Lightspeed (Not logged in)']",
         ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -126,7 +126,7 @@ export function lightspeedUIAssetsTest(): void {
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
             "not (contains(@class, 'has-background-color')) and " +
-            ".//a/text()='Lightspeed (not logged in)']",
+            ".//a/text()='Lightspeed (Not logged in)']",
         ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -278,7 +278,7 @@ export function lightspeedUIAssetsTest(): void {
         ).not.to.be.undefined;
         generatePlaybookButton.click();
         await new Promise((res) => {
-          setTimeout(res, 1000);
+          setTimeout(res, 2000);
         });
         await webView.switchBack();
 
