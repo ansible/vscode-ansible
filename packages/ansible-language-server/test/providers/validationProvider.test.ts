@@ -503,48 +503,59 @@ describe("doValidate()", () => {
 
       describe("Diagnostics using ansible-playbook --syntax-check", () => {
         describe("no specific ansible lint errors", () => {
-          describe("With EE enabled @ee", () => {
-            before(async () => {
-              (await docSettings).validation.lint.enabled = false;
-              setFixtureAnsibleCollectionPathEnv(
-                "/home/runner/.ansible/collections:/usr/share/ansible",
+          fixtureFilePath = "diagnostics/lint_errors.yml";
+          fixtureFileUri = resolveDocUri(fixtureFilePath);
+          context = workspaceManager.getContext(fixtureFileUri);
+
+          textDoc = getDoc(fixtureFilePath);
+          expect(context).is.not.undefined;
+
+          if (context) {
+            docSettings = context.documentSettings.get(textDoc.uri);
+
+            describe("With EE enabled @ee", () => {
+              before(async () => {
+                (await docSettings).validation.lint.enabled = false;
+                setFixtureAnsibleCollectionPathEnv(
+                  "/home/runner/.ansible/collections:/usr/share/ansible",
+                );
+                await enableExecutionEnvironmentSettings(docSettings);
+              });
+
+              testAnsibleSyntaxCheckNoErrors(
+                context,
+                validationManager,
+                textDoc,
+                true,
               );
-              await enableExecutionEnvironmentSettings(docSettings);
+
+              after(async () => {
+                (await docSettings).validation.lint.enabled = true;
+                setFixtureAnsibleCollectionPathEnv();
+                await disableExecutionEnvironmentSettings(docSettings);
+              });
             });
 
-            testAnsibleSyntaxCheckNoErrors(
-              context,
-              validationManager,
-              textDoc,
-              true,
-            );
+            describe("With EE disabled", () => {
+              before(async () => {
+                (await docSettings).validation.lint.enabled = false;
+                setFixtureAnsibleCollectionPathEnv();
+                await disableExecutionEnvironmentSettings(docSettings);
+              });
 
+              testAnsibleSyntaxCheckNoErrors(
+                context,
+                validationManager,
+                textDoc,
+                true,
+              );
+            });
             after(async () => {
               (await docSettings).validation.lint.enabled = true;
               setFixtureAnsibleCollectionPathEnv();
               await disableExecutionEnvironmentSettings(docSettings);
             });
-          });
-
-          describe("With EE disabled", () => {
-            before(async () => {
-              (await docSettings).validation.lint.enabled = false;
-              setFixtureAnsibleCollectionPathEnv();
-              await disableExecutionEnvironmentSettings(docSettings);
-            });
-
-            testAnsibleSyntaxCheckNoErrors(
-              context,
-              validationManager,
-              textDoc,
-              true,
-            );
-          });
-          after(async () => {
-            (await docSettings).validation.lint.enabled = true;
-            setFixtureAnsibleCollectionPathEnv();
-            await disableExecutionEnvironmentSettings(docSettings);
-          });
+          }
         });
 
         describe("empty playbook", () => {
