@@ -10,7 +10,6 @@ import {
   ERRORS_EMPTY_RESPONSE,
 } from "./errors";
 import { IError } from "../../interfaces/lightspeed";
-import { NIL } from "uuid";
 
 export function mapError(err: AxiosError): IError {
   // Lookup _known_ errors
@@ -23,7 +22,7 @@ export function mapError(err: AxiosError): IError {
   const detail = err.response?.data;
   const status: number | string = err?.response?.status ?? err?.code ?? 500;
   if (status === 204) {
-    return ERRORS_EMPTY_RESPONSE.withDetail(NIL);
+    return ERRORS_EMPTY_RESPONSE.withDetail(undefined);
   }
   if (status === 400) {
     return ERRORS_BAD_REQUEST.withDetail(detail);
