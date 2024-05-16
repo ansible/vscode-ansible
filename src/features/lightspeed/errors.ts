@@ -117,34 +117,9 @@ export const ERRORS_CONNECTION_TIMEOUT = new Error(
   "fallback__connection_timeout",
   "Ansible Lightspeed connection timeout. Please try again later.",
 );
-
-ERRORS.addError(
-  204,
-  new Error(
-    "postprocess_error",
-    "An error occurred post-processing the inline suggestion. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "model_timeout",
-    "Ansible Lightspeed timed out processing your request. Please try again later.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "error__wca_bad_request",
-    "IBM watsonx Code Assistant returned a bad request response. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "error__wca_empty_response",
-    "IBM watsonx Code Assistant returned an empty response. Please contact your administrator.",
-  ),
+export const ERRORS_EMPTY_RESPONSE = new Error(
+  "empty__response",
+  "Ansible Lightspeed didn't find suggestion for your request. Please try reword.",
 );
 
 ERRORS.addError(
