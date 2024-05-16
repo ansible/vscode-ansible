@@ -18,9 +18,10 @@ provideVSCodeDesignSystem().register(
 
 const TEXTAREA_MAX_HEIGHT = 500;
 
-let savedInput: string;
-let savedInputHeight: string | undefined;
-let savedSummary: string;
+let savedText: string;
+let savedTextHeight: string | undefined;
+let savedOutline: string;
+let savedPlaybook: string;
 let outlineId: string | undefined;
 
 const vscode = acquireVsCodeApi();
@@ -36,8 +37,8 @@ window.addEventListener("load", () => {
 
   setListenerOnTextArea();
 
-  savedInput = "";
-  savedSummary = "";
+  savedText = "";
+  savedOutline = "";
 });
 
 window.addEventListener("message", (event) => {
@@ -49,7 +50,7 @@ window.addEventListener("message", (event) => {
       element.focus();
       break;
     }
-    case "summary": {
+    case "outline": {
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
@@ -62,12 +63,13 @@ window.addEventListener("message", (event) => {
       updateThumbsUpDownButtons(false, false);
 
       const element = document.getElementById("playbook-text-area") as TextArea;
-      savedSummary = element.value = message.summary.content;
-      outlineId = message.summary.summaryId;
+      savedOutline = element.value = message.outline.outline;
+      savedPlaybook = message.outline.playbook;
+      outlineId = message.outline.generationId;
       resetTextAreaHeight();
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
-      prompt.textContent = savedInput;
+      prompt.textContent = savedText;
 
       element.rows = 20;
 
@@ -101,8 +103,8 @@ function setListenerOnTextArea() {
       const input = textArea.value;
       submitButton.disabled = input.length === 0;
 
-      if (savedSummary) {
-        resetButton.disabled = savedSummary === input;
+      if (savedOutline) {
+        resetButton.disabled = savedOutline === input;
       }
 
       adjustTextAreaHeight();
@@ -120,18 +122,18 @@ function changeDisplay(className: string, displayState: string) {
 
 async function submitInput() {
   const element = document.getElementById("playbook-text-area") as TextArea;
-  savedInput = element.value;
-  savedInputHeight = getInputHeight();
+  savedText = element.value;
+  savedTextHeight = getInputHeight();
 
   changeDisplay("spinnerContainer", "block");
 
-  vscode.postMessage({ command: "summarizeInput", content: savedInput });
+  vscode.postMessage({ command: "outline", text: savedText });
   element.focus();
 }
 
 function reset() {
   const element = document.getElementById("playbook-text-area") as TextArea;
-  element.value = savedSummary;
+  element.value = savedOutline;
   element.focus();
 }
 
@@ -145,10 +147,10 @@ function back() {
   changeDisplay("promptContainer", "none");
 
   const element = document.getElementById("playbook-text-area") as TextArea;
-  if (savedInput) {
-    element.value = savedInput;
+  if (savedText) {
+    element.value = savedText;
   }
-  resetTextAreaHeight(savedInputHeight);
+  resetTextAreaHeight(savedTextHeight);
   element.rows = 5;
 
   element.focus();
@@ -156,11 +158,21 @@ function back() {
 
 async function generatePlaybook() {
   const element = document.getElementById("playbook-text-area") as TextArea;
-  const content = element.value;
+  const text = savedText;
+  const outline = element.value;
+
+  // If user did not make any changes to the generated outline, use the saved playbook
+  // installed of calling the generations API again.
+  const playbook = savedOutline === outline ? savedPlaybook : undefined;
 
   changeDisplay("spinnerContainer", "block");
 
-  vscode.postMessage({ command: "generatePlaybook", content });
+  vscode.postMessage({
+    command: "generatePlaybook",
+    text,
+    outline,
+    playbook,
+  });
 }
 
 function updateThumbsUpDownButtons(selectUp: boolean, selectDown: boolean) {
@@ -207,10 +219,10 @@ function getInputHeight(): string | undefined {
   return textarea?.style.height;
 }
 
-function resetTextAreaHeight(savedInputHeight = "") {
+function resetTextAreaHeight(savedTextHeight = "") {
   const textarea = getTextAreaInShadowDOM();
   if (textarea) {
-    textarea.style.height = savedInputHeight;
+    textarea.style.height = savedTextHeight;
   }
 }
 
