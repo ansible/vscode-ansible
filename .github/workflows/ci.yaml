@@ -28,6 +28,10 @@ env:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   build:
+    permissions:
+      id-token: write
+      checks: read
+      pull-requests: write  # allow codenotify to comment on pull-requests
     name: ${{ matrix.name }}
     environment: ci # codecov needed
     env:
@@ -267,6 +271,7 @@ jobs:
           files: out/coverage/lcov.info
           flags: unit
           fail_ci_if_error: true
+          use_oidc: true  # cspell:ignore oidc
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test' }}
