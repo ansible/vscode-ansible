@@ -31,7 +31,7 @@ jobs:
     permissions:
       id-token: write
       checks: read
-      pull-requests: write  # allow codenotify to comment on pull-requests
+      pull-requests: write
     name: ${{ matrix.name }}
     environment: ci # codecov needed
     env:
