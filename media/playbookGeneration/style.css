@@ -1,3 +1,23 @@
+a:link {
+  text-decoration: none;
+}
+
+a:visited {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+a:active {
+  text-decoration: none;
+}
+
+.backAnchor {
+  cursor: pointer;
+}
+
 .playbookGeneration {
   right: 0px;
   bottom: 0px;
@@ -152,6 +172,12 @@
   display: none;
 }
 
+.promptContainer {
+  margin: 1em;
+  display: none;
+  color: var(--vscode-descriptionForeground);
+}
+
 .examplesContainer {
   margin-top: 1em;
 }
@@ -167,6 +193,7 @@
   border-radius: 8px;
   width: fit-content;
   max-width: 90%;
+  color: var(--vscode-descriptionForeground);
 }
 
 .continueButtonContainer {
