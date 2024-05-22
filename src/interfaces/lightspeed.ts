@@ -123,6 +123,7 @@ export interface ContentMatchesResponseParams {
 export interface ISuggestionDetails {
   suggestion: string;
   suggestionId: string;
+  isPlaybook: boolean;
 }
 
 export type IAnsibleFileType = "playbook" | "tasks_in_role" | "tasks" | "other";

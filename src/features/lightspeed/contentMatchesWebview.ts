@@ -62,11 +62,14 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   async requestInlineSuggestContentMatches(
     suggestion: string,
     suggestionId: string,
+    isPlaybook: boolean,
   ): Promise<ContentMatchesResponseParams | IError> {
-    const taskArray = suggestion
-      .trim()
-      .split(/\n\s*\n/)
-      .map((task) => task.trim());
+    const taskArray = isPlaybook
+      ? [suggestion]
+      : suggestion
+          .trim()
+          .split(/\n\s*\n/)
+          .map((task) => task.trim());
 
     const contentMatchesRequestData: ContentMatchesRequestParams = {
       suggestions: taskArray,
@@ -130,9 +133,11 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     const suggestion = this.suggestionDetails[0].suggestion;
     const suggestionId = this.suggestionDetails[0].suggestionId;
+    const isPlaybook = this.suggestionDetails[0].isPlaybook;
     const contentMatchResponses = await this.requestInlineSuggestContentMatches(
       suggestion,
       suggestionId,
+      isPlaybook,
     );
     this.log(contentMatchResponses);
 
@@ -142,6 +147,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return this.getContentMatchWebviewContent(
         suggestion,
         contentMatchResponses,
+        isPlaybook,
       );
     }
   }
@@ -182,6 +188,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private async getContentMatchWebviewContent(
     suggestion: string,
     contentMatchResponses: ContentMatchesResponseParams,
+    isPlaybook: boolean,
   ) {
     const noContentMatchesFoundHtml = `
       <html>
@@ -215,6 +222,20 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     } catch (err) {
       this.log(err);
       return noContentMatchesFoundHtml;
+    }
+    if (isPlaybook) {
+      if (
+        !suggestedTasks ||
+        !Array.isArray(suggestedTasks) ||
+        suggestedTasks.length === 0
+      ) {
+        return noContentMatchesFoundHtml;
+      }
+      let tasks = suggestedTasks[0].tasks;
+      for (let i = 1; i < suggestedTasks.length; i++) {
+        tasks = tasks.concat(suggestedTasks[i].tasks);
+      }
+      suggestedTasks = tasks;
     }
     if (
       !suggestedTasks ||
