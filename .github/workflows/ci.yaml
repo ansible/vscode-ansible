@@ -36,6 +36,9 @@ jobs:
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
+    permissions:
+      id-token: write
+      checks: read
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
@@ -263,10 +266,10 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           name: ${{ matrix.name }}
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: out/coverage/lcov.info
           flags: unit
           fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test' }}
