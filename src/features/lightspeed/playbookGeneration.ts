@@ -6,6 +6,10 @@ import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
+import {
+  GenerationResponse,
+  SummaryResponse,
+} from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -33,18 +37,21 @@ async function generatePlaybook(
   lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-) {
+): Promise<GenerationResponse> {
   const accessToken =
     await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const playbook: string = await client.sendRequest("playbook/generation", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
+  const playbook: GenerationResponse = await client.sendRequest(
+    "playbook/generation",
+    {
+      accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content,
+    },
+  );
 
   return playbook;
 }
@@ -55,18 +62,21 @@ async function summarizeInput(
   lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-) {
+): Promise<SummaryResponse> {
   const accessToken =
     await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const summary: string = await client.sendRequest("playbook/summary", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
+  const summary: SummaryResponse = await client.sendRequest(
+    "playbook/summary",
+    {
+      accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content,
+    },
+  );
 
   return summary;
 }
@@ -112,7 +122,7 @@ export async function showPlaybookGenerationPage(
           panel,
         );
         panel?.dispose();
-        await openNewPlaybookEditor(playbook);
+        await openNewPlaybookEditor(playbook.content);
         break;
       }
       case "summarizeInput": {
@@ -129,7 +139,10 @@ export async function showPlaybookGenerationPage(
       }
       case "thumbsUp":
       case "thumbsDown":
-        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");
+        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+          action: message.action,
+          outlineId: message.outlineId,
+        });
         break;
     }
   });
@@ -185,9 +198,15 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           <h3>Do the following steps look right to you?</h3>
         </div>
         <div class="mainContainer">
+          <div class="promptContainer">
+            <span>
+              "<span id="prompt"></span>"&nbsp;
+              <a class="backAnchor" id="back-anchor">Edit</a>
+            </span>
+          </div>
           <div class="editArea">
             <vscode-text-area rows=5 resize="vertical"
-                placeholder="Describe the goal in your own words."
+                placeholder="I want to write a playbook that will..."
                 id="playbook-text-area">
             </vscode-text-area>
             <div class="spinnerContainer">
@@ -201,7 +220,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="resetFeedbackContainer">
             <div class="resetContainer">
-                <vscode-button class="buttonBorder" appearance="secondary" id="reset-button">
+                <vscode-button appearance="secondary" id="reset-button" disabled>
                     Reset
                 </vscode-button>
             </div>
