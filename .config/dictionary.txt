@@ -112,6 +112,7 @@ groovylint
 haaaad
 hbenl
 hostvars
+hostsvars
 hotfixes
 iam
 icontent
