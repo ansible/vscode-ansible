@@ -163,13 +163,19 @@ export class AnsibleLint {
             typeof item.check_name === "string" &&
             item.location &&
             typeof item.location.path === "string" &&
-            item.location.lines &&
-            (item.location.lines.begin ||
-              typeof item.location.lines.begin === "number")
+            ((item.location.positions && item.location.positions.begin) ||
+              (item.location.lines &&
+                (item.location.lines.begin ||
+                  typeof item.location.lines.begin === "number")))
           ) {
-            const begin_line =
-              item.location.lines.begin.line || item.location.lines.begin || 1;
-            const begin_column = item.location.lines.begin.column || 1;
+            const begin_line = item.location.positions
+              ? item.location.positions.begin.line
+              : item.location.lines.begin.line ||
+                item.location.lines.begin ||
+                1;
+            const begin_column = item.location.positions
+              ? item.location.positions.begin.column
+              : item.location.lines.begin.column || 1;
             const start: Position = {
               line: begin_line - 1,
               character: begin_column - 1,
