@@ -3,6 +3,7 @@ import {
   Button,
   vsCodeButton,
 } from "@vscode/webview-ui-toolkit";
+import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
 
 provideVSCodeDesignSystem().register(vsCodeButton());
 
@@ -31,11 +32,28 @@ function changeDisplay(className: string, displayState: string) {
     element.style.display = displayState;
   }
 }
-
 function sendThumbsup() {
-  vscode.postMessage({ command: "thumbsUp" });
+  const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
+  const thumbsDownButton = document.getElementById(
+    "thumbsdown-button",
+  ) as Button;
+  thumbsUpButton.setAttribute("class", "iconButtonSelected");
+  thumbsDownButton.setAttribute("class", "iconButton");
+  vscode.postMessage({
+    command: "thumbsUp",
+    action: ThumbsUpDownAction.UP,
+  });
 }
 
 function sendThumbsdown() {
-  vscode.postMessage({ command: "thumbsDown" });
+  const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
+  const thumbsDownButton = document.getElementById(
+    "thumbsdown-button",
+  ) as Button;
+  thumbsUpButton.setAttribute("class", "iconButton");
+  thumbsDownButton.setAttribute("class", "iconButtonSelected");
+  vscode.postMessage({
+    command: "thumbsDown",
+    action: ThumbsUpDownAction.DOWN,
+  });
 }

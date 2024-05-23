@@ -19,6 +19,11 @@ export enum UserAction {
   IGNORED = 2, // ignored the suggestion or didn't wait for suggestion to be displayed
 }
 
+export enum ThumbsUpDownAction {
+  UP = 0, // Thumbs Up
+  DOWN = 1, //Thumbs Down
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace LightSpeedCommands {
   export const LIGHTSPEED_AUTH_REQUEST = "ansible.lightspeed.oauth";

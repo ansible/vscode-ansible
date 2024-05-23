@@ -53,7 +53,7 @@ export function lightspeedUIAssetsTest(): void {
       const body = await webviewView.findWebElement(By.xpath("//body"));
       const welcomeMessage = await body.getText();
       expect(welcomeMessage).to.contain(
-        "Welcome to Ansible Lightspeed for Visual Studio Code.",
+        "Experience smarter automation using Ansible Lightspeed",
       );
     });
 
@@ -106,7 +106,7 @@ export function lightspeedUIAssetsTest(): void {
           "//div[contains(@class, 'statusbar-item') and " +
             "contains(@class, 'has-background-color') and " +
             "contains(@class, 'warning-kind') and " +
-            ".//a/text()='Lightspeed (not logged in)']",
+            ".//a/text()='Lightspeed (Not logged in)']",
         ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -126,7 +126,7 @@ export function lightspeedUIAssetsTest(): void {
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
             "not (contains(@class, 'has-background-color')) and " +
-            ".//a/text()='Lightspeed (not logged in)']",
+            ".//a/text()='Lightspeed (Not logged in)']",
         ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -201,12 +201,21 @@ export function lightspeedUIAssetsTest(): void {
           setTimeout(res, 1000);
         });
 
-        // Test Reset button
+        // Verify summary output and text edit
         let text = await textArea.getText();
         expect(text.includes('Name: "Create an azure network..."'));
         await textArea.sendKeys("# COMMENT\n");
         text = await textArea.getText();
         expect(text.includes("# COMMENT\n"));
+
+        // Verify the prompt is displayed as a static text
+        const prompt = await webView.findWebElement(
+          By.xpath("//span[@id='prompt']"),
+        );
+        text = await prompt.getText();
+        expect(text.includes("Create an azure network."));
+
+        // Test Reset button
         const resetButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='reset-button']"),
         );
@@ -219,13 +228,84 @@ export function lightspeedUIAssetsTest(): void {
         text = await textArea.getText();
         expect(!text.includes("# COMMENT\n"));
 
+        // Test ThumbsUp button
+        const thumbsUpButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='thumbsup-button']"),
+        );
+        expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
+          .be.undefined;
+        expect(
+          await thumbsUpButton.isEnabled(),
+          "thumbsUpButton should be enabled",
+        );
+        thumbsUpButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+        expect(
+          !thumbsUpButton.isEnabled,
+          "thumbsUpButton should not be enabled",
+        );
+
+        await webView.switchBack();
+        let notifications = await workbench.getNotifications();
+        let notification = notifications[0];
+        let message = await notification.getMessage();
+        expect(message).equals("Thanks for your feedback!");
+        await notification.dismiss();
+
         // Test Back button
+        await webView.switchToFrame(5000);
         const backButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='back-button']"),
         );
         expect(backButton, "backButton should not be undefined").not.to.be
           .undefined;
         backButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        text = await textArea.getText();
+        expect(text.startsWith("Create an azure network."));
+        submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 1000);
+        });
+        text = await textArea.getText();
+        expect(text.includes('Name: "Create an azure network..."'));
+
+        // Test ThumbsDown button
+        const thumbsDownButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='thumbsdown-button']"),
+        );
+        expect(thumbsDownButton, "thumbsDownButton should not be undefined").not
+          .to.be.undefined;
+        expect(
+          await thumbsUpButton.isEnabled(),
+          "thumbsDownButton should be enabled",
+        );
+        thumbsUpButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+        expect(!thumbsUpButton.isEnabled, "ThumbsDown should not be enabled");
+
+        await webView.switchBack();
+        notifications = await workbench.getNotifications();
+        notification = notifications[0];
+        message = await notification.getMessage();
+        expect(message).equals("Thanks for your feedback!");
+        await notification.dismiss();
+
+        // Test Edit link next to the prompt text
+        await webView.switchToFrame(5000);
+        const backAnchor = await webView.findWebElement(
+          By.xpath("//a[@id='back-anchor']"),
+        );
+        expect(backButton, "backButton should not be undefined").not.to.be
+          .undefined;
+        backAnchor.click();
         await new Promise((res) => {
           setTimeout(res, 500);
         });
@@ -249,7 +329,7 @@ export function lightspeedUIAssetsTest(): void {
         ).not.to.be.undefined;
         generatePlaybookButton.click();
         await new Promise((res) => {
-          setTimeout(res, 1000);
+          setTimeout(res, 2000);
         });
         await webView.switchBack();
 
@@ -279,7 +359,7 @@ export function lightspeedUIAssetsTest(): void {
 
         // Open playbook explanation webview.
         await workbench.executeCommand(
-          "Ansible Lightspeed: Playbook explanation",
+          "Explain the playbook with Ansible Lightspeed",
         );
         await new Promise((res) => {
           setTimeout(res, 2000);
