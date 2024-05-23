@@ -188,7 +188,7 @@ async function getAnsibleLintInfo() {
   if (ansibleLintVersionStdout.length >= 2) {
     ansibleLintInfo["upgrade status"] = ansibleLintVersionStdout[1];
   } else {
-    ansibleLintInfo["upgrade status"] = "nill";
+    ansibleLintInfo["upgrade status"] = "nil";
   }
 
   ansibleLintInfo["version"] =
