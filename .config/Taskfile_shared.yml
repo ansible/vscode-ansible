@@ -7,6 +7,8 @@ env: &env
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
+  PYTHON3:
+    sh: echo $VIRTUAL_ENV/bin/python3
 tasks:
   setup:
     desc: Install dependencies
@@ -22,6 +24,7 @@ tasks:
       - .config/requirements.in
     generates:
       - out/log/manifest-{{.HOSTNAME}}.yml
+      - "{{.PYTHON3}}"
     run: once
     interactive: true
   install:

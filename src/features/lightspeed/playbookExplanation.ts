@@ -7,6 +7,7 @@ import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { ExplanationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { v4 as uuidv4 } from "uuid";
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
@@ -21,7 +22,11 @@ export const playbookExplanation = async (
   if (document?.languageId !== "ansible") {
     return;
   }
-  const currentPanel = PlaybookExplanationPanel.createOrShow(extensionUri);
+  const explanationId = uuidv4();
+  const currentPanel = PlaybookExplanationPanel.createOrShow(
+    extensionUri,
+    explanationId,
+  );
   currentPanel.setContent(
     `<div id="icons">
         <span class="codicon codicon-loading codicon-modifier-spin"></span>
@@ -44,6 +49,7 @@ export const playbookExplanation = async (
         accessToken: accessToken,
         URL: settingsManager.settings.lightSpeedService.URL,
         content: content,
+        explanationId: explanationId,
       },
     );
     markdown = response.content;
@@ -71,7 +77,7 @@ export class PlaybookExplanationPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
 
-  public static createOrShow(extensionUri: vscode.Uri) {
+  public static createOrShow(extensionUri: vscode.Uri, explanationId: string) {
     const panel = vscode.window.createWebviewPanel(
       PlaybookExplanationPanel.viewType,
       "Explanation",
@@ -92,7 +98,10 @@ export class PlaybookExplanationPanel {
       switch (command) {
         case "thumbsUp":
         case "thumbsDown":
-          vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");
+          vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+            action: message.action,
+            explanationId: explanationId,
+          });
           break;
       }
     });
@@ -117,14 +126,11 @@ export class PlaybookExplanationPanel {
     );
   }
 
-  public setContent(html_snippet: string, showFeedbackBox = false) {
-    this._panel.webview.html = this.buildFullHtml(
-      html_snippet,
-      showFeedbackBox,
-    );
+  public setContent(htmlSnippet: string, showFeedbackBox = false) {
+    this._panel.webview.html = this.buildFullHtml(htmlSnippet, showFeedbackBox);
   }
 
-  private buildFullHtml(html_snippet: string, showFeedbackBox = false) {
+  private buildFullHtml(htmlSnippet: string, showFeedbackBox = false) {
     const webview = this._panel.webview;
     const webviewUri = getUri(webview, this._extensionUri, [
       "out",
@@ -172,7 +178,7 @@ export class PlaybookExplanationPanel {
 			</head>
 			<body>
         <div class="playbookGeneration">
-          ${html_snippet}
+          ${htmlSnippet}
         </div>
         ${showFeedbackBox ? feedbackBoxSnippet : ""}
 

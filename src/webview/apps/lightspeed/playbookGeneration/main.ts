@@ -59,6 +59,8 @@ window.addEventListener("message", (event) => {
       changeDisplay("generatePlaybookContainer", "block");
       changeDisplay("promptContainer", "block");
 
+      updateThumbsUpDownButtons(false, false);
+
       const element = document.getElementById("playbook-text-area") as TextArea;
       savedSummary = element.value = message.summary.content;
       outlineId = message.summary.summaryId;
@@ -161,13 +163,24 @@ async function generatePlaybook() {
   vscode.postMessage({ command: "generatePlaybook", content });
 }
 
-function sendThumbsup() {
+function updateThumbsUpDownButtons(selectUp: boolean, selectDown: boolean) {
   const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
   const thumbsDownButton = document.getElementById(
     "thumbsdown-button",
   ) as Button;
-  thumbsUpButton.setAttribute("class", "iconButtonSelected");
-  thumbsDownButton.setAttribute("class", "iconButton");
+  thumbsUpButton.setAttribute(
+    "class",
+    selectUp ? "iconButtonSelected" : "iconButton",
+  );
+  thumbsDownButton.setAttribute(
+    "class",
+    selectDown ? "iconButtonSelected" : "iconButton",
+  );
+  thumbsUpButton.disabled = thumbsDownButton.disabled = selectUp || selectDown;
+}
+
+function sendThumbsup() {
+  updateThumbsUpDownButtons(true, false);
   vscode.postMessage({
     command: "thumbsUp",
     action: ThumbsUpDownAction.UP,
@@ -176,12 +189,7 @@ function sendThumbsup() {
 }
 
 function sendThumbsdown() {
-  const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
-  const thumbsDownButton = document.getElementById(
-    "thumbsdown-button",
-  ) as Button;
-  thumbsUpButton.setAttribute("class", "iconButton");
-  thumbsDownButton.setAttribute("class", "iconButtonSelected");
+  updateThumbsUpDownButtons(false, true);
   vscode.postMessage({
     command: "thumbsDown",
     action: ThumbsUpDownAction.DOWN,
