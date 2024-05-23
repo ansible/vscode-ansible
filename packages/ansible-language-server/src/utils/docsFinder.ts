@@ -57,7 +57,7 @@ export async function findDocumentation(
         collection = "builtin";
         break;
       case "collection":
-      case "collection_doc_fragment":
+      case "collection_doc_fragment": {
         const pathArray = file.split(path.sep);
         const pluginsDirIndex = pathArray.indexOf("plugins");
         namespace = pathArray[pluginsDirIndex - 2];
@@ -70,6 +70,7 @@ export async function findDocumentation(
           collection = `${collection}.${subCollectionArray.join(".")}`;
         }
         break;
+      }
     }
 
     return new LazyModuleDocumentation(
@@ -104,15 +105,17 @@ export async function findPluginRouting(
   for (const file of files) {
     let collection;
     switch (kind) {
-      case "builtin":
+      case "builtin": {
         collection = "ansible.builtin";
         break;
-      case "collection":
+      }
+      case "collection": {
         const pathArray = file.split(path.sep);
         collection = `${pathArray[pathArray.length - 4]}.${
           pathArray[pathArray.length - 3]
         }`;
         break;
+      }
     }
     const runtimeContent = await fs.promises.readFile(file, {
       encoding: "utf8",

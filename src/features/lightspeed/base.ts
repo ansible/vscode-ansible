@@ -1,34 +1,27 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { v4 as uuidv4 } from "uuid";
 import { LightSpeedAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
 import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import {
-  FeedbackRequestParams,
   IDocumentTracker,
   IIncludeVarsContext,
   IWorkSpaceRolesContext,
 } from "../../interfaces/lightspeed";
-import {
-  LIGHTSPEED_ME_AUTH_URL,
-  AnsibleContentUploadTrigger,
-} from "../../definitions/lightspeed";
 import { ContentMatchesWebview } from "./contentMatchesWebview";
 import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   ANSIBLE_LIGHTSPEED_AUTH_NAME,
-  getBaseUri,
 } from "./utils/webUtils";
 import { LightspeedStatusBar } from "./statusBar";
 import { IVarsFileContext } from "../../interfaces/lightspeed";
 import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
-import {
-  LightSpeedServiceSettings,
-  UserResponse,
-} from "../../interfaces/extensionSettings";
+import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
+import { LightspeedUser } from "./lightspeedUser";
+import { Log } from "../../utils/logger";
+import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
 
 export class LightSpeedManager {
   private context;
@@ -37,6 +30,7 @@ export class LightSpeedManager {
   public telemetry: TelemetryManager;
   public apiInstance: LightSpeedAPI;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
+  public lightspeedAuthenticatedUser: LightspeedUser;
   public lightSpeedActivityTracker: IDocumentTracker;
   public contentMatchesProvider: ContentMatchesWebview;
   public statusBarProvider: LightspeedStatusBar;
@@ -44,7 +38,8 @@ export class LightSpeedManager {
   public ansibleRolesCache: IWorkSpaceRolesContext = {};
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
-  public orgTelemetryOptOut = false;
+  public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
+  private _logger: Log;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -58,6 +53,7 @@ export class LightSpeedManager {
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
+    this._logger = new Log();
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
@@ -69,35 +65,44 @@ export class LightSpeedManager {
     if (this.settingsManager.settings.lightSpeedService.enabled) {
       this.lightSpeedAuthenticationProvider.initialize();
     }
-    this.apiInstance = new LightSpeedAPI(
+    this.lightspeedAuthenticatedUser = new LightspeedUser(
+      this.context,
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
+      this._logger,
+    );
+    this.apiInstance = new LightSpeedAPI(
+      this.settingsManager,
+      this.lightspeedAuthenticatedUser,
       this.context,
     );
-    this.apiInstance
-      .getData(`${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`)
-      .then((userResponse: UserResponse) => {
-        this.orgTelemetryOptOut = userResponse.org_telemetry_opt_out;
-      })
-      .catch((error) => {
-        console.error(error);
-      });
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.client,
       this.settingsManager,
       this.apiInstance,
-      this.lightSpeedAuthenticationProvider,
+      this.lightspeedAuthenticatedUser,
     );
 
     // create a new project lightspeed status bar item that we can manage
     this.statusBarProvider = new LightspeedStatusBar(
       this.apiInstance,
-      this.lightSpeedAuthenticationProvider,
+      this.lightspeedAuthenticatedUser,
       context,
       client,
       settingsManager,
     );
+
+    this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
+      context.extensionUri,
+      this.lightspeedAuthenticatedUser,
+    );
+    const lightspeedExplorerDisposable =
+      vscode.window.registerWebviewViewProvider(
+        LightspeedExplorerWebviewViewProvider.viewType,
+        this.lightspeedExplorerProvider,
+      );
+    context.subscriptions.push(lightspeedExplorerDisposable);
 
     // create workspace context for ansible roles
     this.setContext();
@@ -160,79 +165,6 @@ export class LightSpeedManager {
     for (const rolePath of commonRolesPath) {
       watchRolesDirectory(this, rolePath);
     }
-  }
-  public async ansibleContentFeedback(
-    document: vscode.TextDocument,
-    trigger: AnsibleContentUploadTrigger,
-  ): Promise<void> {
-    if (
-      document.languageId !== "ansible" ||
-      !this.settingsManager.settings.lightSpeedService.enabled ||
-      !this.settingsManager.settings.lightSpeedService.URL.trim()
-    ) {
-      return;
-    }
-
-    const rhUserHasSeat =
-      await this.lightSpeedAuthenticationProvider.rhUserHasSeat();
-
-    if (rhUserHasSeat && this.orgTelemetryOptOut) {
-      return;
-    }
-
-    const currentFileContent = document.getText();
-    const documentUri = document.uri.toString();
-    let activityId: string;
-    if (!this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
-      // Inline suggestion not yet triggered, return without sending event.
-      return;
-    }
-    if (this.lightSpeedActivityTracker.hasOwnProperty(documentUri)) {
-      activityId = this.lightSpeedActivityTracker[documentUri].activityId;
-      const previousFileContent =
-        this.lightSpeedActivityTracker[documentUri].content;
-
-      if (trigger === AnsibleContentUploadTrigger.FILE_CLOSE) {
-        // end previous activity tracker
-        delete this.lightSpeedActivityTracker[documentUri];
-      }
-
-      if (previousFileContent === currentFileContent) {
-        console.log(
-          `[ansible-lightspeed-feedback] Event ansibleContent not sent as the content of file ${documentUri} is same as previous event.`,
-        );
-        return;
-      }
-
-      if (trigger === AnsibleContentUploadTrigger.TAB_CHANGE) {
-        // start a new activity tracker
-        this.lightSpeedActivityTracker[documentUri].activityId = uuidv4();
-      }
-    } else {
-      activityId = uuidv4();
-      this.lightSpeedActivityTracker[documentUri] = {
-        activityId: activityId,
-        content: currentFileContent,
-      };
-    }
-
-    if (!currentFileContent.trim()) {
-      console.log(
-        `[ansible-lightspeed-feedback] Event ansibleContent is not sent as the content of file ${documentUri} is empty.`,
-      );
-      return;
-    }
-
-    const inputData: FeedbackRequestParams = {
-      ansibleContent: {
-        content: document.getText(),
-        documentUri: documentUri,
-        trigger: trigger,
-        activityId: activityId,
-      },
-    };
-    console.log("[ansible-lightspeed-feedback] Event ansibleContent sent.");
-    this.apiInstance.feedbackRequest(inputData, this.orgTelemetryOptOut);
   }
 
   get inlineSuggestionsEnabled() {

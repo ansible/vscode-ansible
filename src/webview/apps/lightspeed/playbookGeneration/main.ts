@@ -7,6 +7,7 @@ import {
   vsCodeTextField,
   TextArea,
 } from "@vscode/webview-ui-toolkit";
+import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -15,12 +16,30 @@ provideVSCodeDesignSystem().register(
   vsCodeTextField(),
 );
 
+const TEXTAREA_MAX_HEIGHT = 500;
+
 let savedInput: string;
+let savedInputHeight: string | undefined;
 let savedSummary: string;
+let outlineId: string | undefined;
 
 const vscode = acquireVsCodeApi();
 
-window.addEventListener("load", main);
+window.addEventListener("load", () => {
+  setListener("submit-button", submitInput);
+  setListener("generate-button", generatePlaybook);
+  setListener("reset-button", reset);
+  setListener("thumbsup-button", sendThumbsup);
+  setListener("thumbsdown-button", sendThumbsdown);
+  setListener("back-button", back);
+  setListener("back-anchor", back);
+
+  setListenerOnTextArea();
+
+  savedInput = "";
+  savedSummary = "";
+});
+
 window.addEventListener("message", (event) => {
   const message = event.data;
 
@@ -31,9 +50,6 @@ window.addEventListener("message", (event) => {
       break;
     }
     case "summary": {
-      const button = document.getElementById("submit-icon") as Button;
-      button.setAttribute("class", "codicon codicon-run-all");
-
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
@@ -41,14 +57,20 @@ window.addEventListener("message", (event) => {
       changeDisplay("firstMessage", "none");
       changeDisplay("secondMessage", "block");
       changeDisplay("generatePlaybookContainer", "block");
+      changeDisplay("promptContainer", "block");
+
+      updateThumbsUpDownButtons(false, false);
 
       const element = document.getElementById("playbook-text-area") as TextArea;
-      savedSummary = message.summary;
-      const lines = savedSummary.split(/\n/).length;
-      if (lines > 5) {
-        element.rows = Math.min(lines, 15);
-      }
-      element.value = savedSummary;
+      savedSummary = element.value = message.summary.content;
+      outlineId = message.summary.summaryId;
+      resetTextAreaHeight();
+
+      const prompt = document.getElementById("prompt") as HTMLSpanElement;
+      prompt.textContent = savedInput;
+
+      element.rows = 20;
+
       break;
     }
     // When summaries or generations API was processed normally (e.g., API error)
@@ -73,26 +95,19 @@ function setListener(id: string, func: any) {
 function setListenerOnTextArea() {
   const textArea = document.getElementById("playbook-text-area") as TextArea;
   const submitButton = document.getElementById("submit-button") as Button;
+  const resetButton = document.getElementById("reset-button") as Button;
   if (textArea) {
     textArea.addEventListener("input", async () => {
       const input = textArea.value;
       submitButton.disabled = input.length === 0;
+
+      if (savedSummary) {
+        resetButton.disabled = savedSummary === input;
+      }
+
+      adjustTextAreaHeight();
     });
   }
-}
-
-function main() {
-  setListener("submit-button", submitInput);
-  setListener("generate-button", generatePlaybook);
-  setListener("reset-button", reset);
-  setListener("thumbsup-button", sendThumbsup);
-  setListener("thumbsdown-button", sendThumbsdown);
-  setListener("back-button", back);
-
-  setListenerOnTextArea();
-
-  savedInput = "";
-  savedSummary = "";
 }
 
 function changeDisplay(className: string, displayState: string) {
@@ -106,6 +121,7 @@ function changeDisplay(className: string, displayState: string) {
 async function submitInput() {
   const element = document.getElementById("playbook-text-area") as TextArea;
   savedInput = element.value;
+  savedInputHeight = getInputHeight();
 
   changeDisplay("spinnerContainer", "block");
 
@@ -126,15 +142,15 @@ function back() {
   changeDisplay("firstMessage", "block");
   changeDisplay("secondMessage", "none");
   changeDisplay("generatePlaybookContainer", "none");
+  changeDisplay("promptContainer", "none");
 
   const element = document.getElementById("playbook-text-area") as TextArea;
   if (savedInput) {
     element.value = savedInput;
   }
-  const lines = savedInput.split(/\n/).length;
-  if (lines <= 5) {
-    element.rows = Math.max(lines, 5);
-  }
+  resetTextAreaHeight(savedInputHeight);
+  element.rows = 5;
+
   element.focus();
 }
 
@@ -147,22 +163,70 @@ async function generatePlaybook() {
   vscode.postMessage({ command: "generatePlaybook", content });
 }
 
-function sendThumbsup() {
+function updateThumbsUpDownButtons(selectUp: boolean, selectDown: boolean) {
   const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
   const thumbsDownButton = document.getElementById(
     "thumbsdown-button",
   ) as Button;
-  thumbsUpButton.setAttribute("class", "iconButtonSelected");
-  thumbsDownButton.setAttribute("class", "iconButton");
-  vscode.postMessage({ command: "thumbsUp" });
+  thumbsUpButton.setAttribute(
+    "class",
+    selectUp ? "iconButtonSelected" : "iconButton",
+  );
+  thumbsDownButton.setAttribute(
+    "class",
+    selectDown ? "iconButtonSelected" : "iconButton",
+  );
+  thumbsUpButton.disabled = thumbsDownButton.disabled = selectUp || selectDown;
+}
+
+function sendThumbsup() {
+  updateThumbsUpDownButtons(true, false);
+  vscode.postMessage({
+    command: "thumbsUp",
+    action: ThumbsUpDownAction.UP,
+    outlineId,
+  });
 }
 
 function sendThumbsdown() {
-  const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
-  const thumbsDownButton = document.getElementById(
-    "thumbsdown-button",
-  ) as Button;
-  thumbsUpButton.setAttribute("class", "iconButton");
-  thumbsDownButton.setAttribute("class", "iconButtonSelected");
-  vscode.postMessage({ command: "thumbsDown" });
+  updateThumbsUpDownButtons(false, true);
+  vscode.postMessage({
+    command: "thumbsDown",
+    action: ThumbsUpDownAction.DOWN,
+    outlineId,
+  });
+}
+
+function getTextAreaInShadowDOM() {
+  const shadowRoot = document.querySelector("vscode-text-area")?.shadowRoot;
+  return shadowRoot?.querySelector("textarea");
+}
+
+function getInputHeight(): string | undefined {
+  const textarea = getTextAreaInShadowDOM();
+  return textarea?.style.height;
+}
+
+function resetTextAreaHeight(savedInputHeight = "") {
+  const textarea = getTextAreaInShadowDOM();
+  if (textarea) {
+    textarea.style.height = savedInputHeight;
+  }
+}
+
+function adjustTextAreaHeight() {
+  const textarea = getTextAreaInShadowDOM();
+  if (textarea?.scrollHeight) {
+    const scrollHeight = textarea?.scrollHeight;
+    if (scrollHeight < TEXTAREA_MAX_HEIGHT) {
+      if (textarea?.style.height) {
+        const height = parseInt(textarea?.style.height);
+        if (height >= scrollHeight) {
+          return;
+        }
+      }
+      // +2 was needed to eliminate scrollbar...
+      textarea.style.height = `${scrollHeight + 2}px`;
+    }
+  }
 }

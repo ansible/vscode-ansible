@@ -85,8 +85,8 @@ log notice "Report current build tool versions..."
 asdf current
 
 if [[ "${OSTYPE:-}" != darwin* ]]; then
-    pgrep dbus-daemon >/dev/null || {
-        log error "dbus-daemon was not detecting as running and that would interfere with testing (xvfb)."
+    pgrep "dbus-(daemon|broker)" >/dev/null || {
+        log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         exit 55
     }
 fi

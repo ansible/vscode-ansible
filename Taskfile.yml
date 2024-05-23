@@ -110,6 +110,7 @@ tasks:
     desc: Lint the project
     cmds:
       - task: install
+      - packages/ansible-language-server/tools/can-release.sh
       - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
       - $VIRTUAL_ENV/bin/python3 -m pre_commit run -a
       - tools/dirty.sh

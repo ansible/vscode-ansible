@@ -11,7 +11,10 @@ class Error implements IError {
     const responseErrorData = <AxiosError<{ code?: string; message?: string }>>(
       err?.response?.data
     );
-    const code: string = responseErrorData.hasOwnProperty("code")
+    const code: string = Object.prototype.hasOwnProperty.call(
+      responseErrorData,
+      "code",
+    )
       ? (responseErrorData.code as string)
       : "unknown";
     return code;
@@ -72,7 +75,10 @@ class Errors {
         const responseErrorData = <
           AxiosError<{ code?: string; message?: string }>
         >err?.response?.data;
-        message = responseErrorData.hasOwnProperty("message")
+        message = Object.prototype.hasOwnProperty.call(
+          responseErrorData,
+          "message",
+        )
           ? (responseErrorData.message as string)
           : "unknown";
       }

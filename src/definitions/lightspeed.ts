@@ -19,10 +19,9 @@ export enum UserAction {
   IGNORED = 2, // ignored the suggestion or didn't wait for suggestion to be displayed
 }
 
-export enum AnsibleContentUploadTrigger {
-  FILE_OPEN = 0,
-  FILE_CLOSE = 1,
-  TAB_CHANGE = 2,
+export enum ThumbsUpDownAction {
+  UP = 0, // Thumbs Up
+  DOWN = 1, //Thumbs Down
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -47,6 +46,10 @@ export namespace LightSpeedCommands {
     "ansible.lightspeed.playbookExplanation";
   export const LIGHTSPEED_PLAYBOOK_GENERATION =
     "ansible.lightspeed.playbookGeneration";
+  export const LIGHTSPEED_SIGN_IN_WITH_REDHAT =
+    "ansible.lightspeed.signInWithRedHat";
+  export const LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED =
+    "ansible.lightspeed.signInWithLightspeed";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";
@@ -68,7 +71,7 @@ export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
 export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
 
 export type LIGHTSPEED_USER_TYPE = "Licensed" | "Unlicensed" | "Not logged in";
-export const LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT = "Lightspeed (not logged in)";
+export const LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT = "Lightspeed (Not logged in)";
 
 export const LIGHTSPEED_MODEL_DEFAULT = "default";
 

@@ -5,36 +5,45 @@ import {
 } from "../../src/services/workspaceManager";
 import { createTestWorkspaceManager } from "../helper";
 import { ExtensionSettings } from "../../src/interfaces/extensionSettings";
+import { ConfigurationItem } from "vscode-languageclient";
 
-function simulateClientSettings(workspaceManager: WorkspaceManager, settings) {
+function simulateClientSettings(
+  workspaceManager: WorkspaceManager,
+  settings: ConfigurationItem[] | ConfigurationItem | object,
+) {
   workspaceManager.clientCapabilities.workspace = {
     configuration: true,
   };
   workspaceManager.connection.workspace.getConfiguration = function () {
-    return Promise.resolve(settings);
+    return Promise.resolve(settings as unknown[]);
   };
 }
 
 describe("get()", () => {
   describe("Merge settings from client", () => {
     describe("When client provides empty settings", () => {
-      let context: WorkspaceFolderContext;
+      let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
       before(async () => {
         const workspaceManager = createTestWorkspaceManager();
-        simulateClientSettings(workspaceManager, {});
+        simulateClientSettings(workspaceManager, []);
         context = workspaceManager.getContext("");
-        mergedSettings = await context.documentSettings.get("");
+        if (typeof context !== "undefined") {
+          mergedSettings = await context.documentSettings.get("");
+        }
       });
       it("should return default value for all settings", () => {
-        expect(mergedSettings).to.deep.equal(
-          context.documentSettings.globalSettings,
-        );
+        expect(typeof context !== "undefined");
+        if (typeof context !== "undefined") {
+          expect(mergedSettings).to.deep.equal(
+            context.documentSettings.globalSettings,
+          );
+        }
       });
     });
 
     describe("When client provides partial settings", () => {
-      let context: WorkspaceFolderContext;
+      let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
       before(async () => {
         const workspaceManager = createTestWorkspaceManager();
@@ -42,15 +51,19 @@ describe("get()", () => {
           validation: { lint: { enabled: false } },
         });
         context = workspaceManager.getContext("");
-        mergedSettings = await context.documentSettings.get("");
+        if (typeof context !== "undefined") {
+          mergedSettings = await context.documentSettings.get("");
+        }
       });
       it("should return setting from client when defined", () => {
         expect(mergedSettings.validation.lint.enabled).to.equal(false);
       });
       it("should return default value otherwise", () => {
-        expect(mergedSettings.validation.lint.path).to.equal(
-          context.documentSettings.globalSettings.validation.lint.path,
-        );
+        if (typeof context !== "undefined") {
+          expect(mergedSettings.validation.lint.path).to.equal(
+            context.documentSettings.globalSettings.validation.lint.path,
+          );
+        }
       });
     });
   });

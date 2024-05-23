@@ -126,7 +126,7 @@ export class AnsibleLint {
 
           progressTracker.done();
           this.connection.window.showErrorMessage(execError.message);
-          return;
+          return new Map();
         }
       } else {
         const exceptionString = `Exception in AnsibleLint service: ${JSON.stringify(
@@ -136,7 +136,7 @@ export class AnsibleLint {
         progressTracker.done();
         this.connection.console.error(exceptionString);
         this.connection.window.showErrorMessage(exceptionString);
-        return;
+        return new Map();
       }
     }
 
@@ -163,13 +163,19 @@ export class AnsibleLint {
             typeof item.check_name === "string" &&
             item.location &&
             typeof item.location.path === "string" &&
-            item.location.lines &&
-            (item.location.lines.begin ||
-              typeof item.location.lines.begin === "number")
+            ((item.location.positions && item.location.positions.begin) ||
+              (item.location.lines &&
+                (item.location.lines.begin ||
+                  typeof item.location.lines.begin === "number")))
           ) {
-            const begin_line =
-              item.location.lines.begin.line || item.location.lines.begin || 1;
-            const begin_column = item.location.lines.begin.column || 1;
+            const begin_line = item.location.positions
+              ? item.location.positions.begin.line
+              : item.location.lines.begin.line ||
+                item.location.lines.begin ||
+                1;
+            const begin_column = item.location.positions
+              ? item.location.positions.begin.column
+              : item.location.lines.begin.column || 1;
             const start: Position = {
               line: begin_line - 1,
               character: begin_column - 1,
@@ -266,7 +272,7 @@ export class AnsibleLint {
     return configPath;
   }
 
-  get ansibleLintConfigFilePath(): string {
+  get ansibleLintConfigFilePath(): string | undefined {
     return this._ansibleLintConfigFilePath;
   }
 }

@@ -1,7 +1,7 @@
 import { AuthenticationSession } from "vscode";
 import {
-  AnsibleContentUploadTrigger,
   LIGHTSPEED_USER_TYPE,
+  ThumbsUpDownAction,
   UserAction,
 } from "../definitions/lightspeed";
 
@@ -9,6 +9,14 @@ export interface LightspeedAuthSession extends AuthenticationSession {
   rhUserHasSeat: boolean;
   rhOrgHasSubscription: boolean;
   rhUserIsOrgAdmin: boolean;
+}
+export interface LightspeedUserDetails {
+  rhUserHasSeat: boolean;
+  rhOrgHasSubscription: boolean;
+  rhUserIsOrgAdmin: boolean;
+  displayName: string;
+  displayNameWithUserType: string;
+  orgOptOutTelemetry: boolean;
 }
 
 export interface CompletionResponseParams {
@@ -45,13 +53,6 @@ export interface InlineSuggestionEvent {
   activityId?: string;
 }
 
-export interface AnsibleContentEvent {
-  content: string;
-  documentUri: string;
-  trigger: AnsibleContentUploadTrigger;
-  activityId: string | undefined;
-}
-
 export interface SentimentEvent {
   value: number;
   feedback: string;
@@ -70,12 +71,23 @@ export interface IssueFeedbackEvent {
   description: string;
 }
 
+export interface PlaybookOutlineEvent {
+  action: ThumbsUpDownAction;
+  outlineId: string;
+}
+
+export interface PlaybookExplanationEvent {
+  action: ThumbsUpDownAction;
+  outlineId: string;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
-  ansibleContent?: AnsibleContentEvent;
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
+  playbookExplanationFeedback?: PlaybookExplanationEvent;
+  playbookOutlineFeedback?: PlaybookOutlineEvent;
   model?: string;
 }
 

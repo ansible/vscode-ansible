@@ -1,11 +1,15 @@
 import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
 import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled } from "../../extension";
+import { LightspeedUser } from "./lightspeedUser";
+import {
+  GenerationResponse,
+  SummaryResponse,
+} from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -30,20 +34,24 @@ async function openNewPlaybookEditor(playbook: string) {
 async function generatePlaybook(
   content: string,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-) {
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+): Promise<GenerationResponse> {
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const playbook: string = await client.sendRequest("playbook/generation", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
+  const playbook: GenerationResponse = await client.sendRequest(
+    "playbook/generation",
+    {
+      accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content,
+    },
+  );
 
   return playbook;
 }
@@ -51,20 +59,24 @@ async function generatePlaybook(
 async function summarizeInput(
   content: string,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-) {
-  const accessToken = await lightSpeedAuthProvider.grantAccessToken();
+): Promise<SummaryResponse> {
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const summary: string = await client.sendRequest("playbook/summary", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
+  const summary: SummaryResponse = await client.sendRequest(
+    "playbook/summary",
+    {
+      accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content,
+    },
+  );
 
   return summary;
 }
@@ -72,7 +84,7 @@ async function summarizeInput(
 export async function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
   client: LanguageClient,
-  lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+  lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
 ) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
@@ -100,32 +112,37 @@ export async function showPlaybookGenerationPage(
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
     switch (command) {
-      case "generatePlaybook":
+      case "generatePlaybook": {
         const playbook = await generatePlaybook(
           // TODO
           message.content,
           client,
-          lightSpeedAuthProvider,
+          lightspeedAuthenticatedUser,
           settingsManager,
           panel,
         );
         panel?.dispose();
-        await openNewPlaybookEditor(playbook);
+        await openNewPlaybookEditor(playbook.content);
         break;
-      case "summarizeInput":
+      }
+      case "summarizeInput": {
         const summary = await summarizeInput(
           // TODO
           message.content,
           client,
-          lightSpeedAuthProvider,
+          lightspeedAuthenticatedUser,
           settingsManager,
           panel,
         );
         panel.webview.postMessage({ command: "summary", summary });
         break;
+      }
       case "thumbsUp":
       case "thumbsDown":
-        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");
+        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+          action: message.action,
+          outlineId: message.outlineId,
+        });
         break;
     }
   });
@@ -181,9 +198,15 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           <h3>Do the following steps look right to you?</h3>
         </div>
         <div class="mainContainer">
+          <div class="promptContainer">
+            <span>
+              "<span id="prompt"></span>"&nbsp;
+              <a class="backAnchor" id="back-anchor">Edit</a>
+            </span>
+          </div>
           <div class="editArea">
-            <vscode-text-area rows=5 resize="both"
-                placeholder="Describe the goal in your own words."
+            <vscode-text-area rows=5 resize="vertical"
+                placeholder="I want to write a playbook that will..."
                 id="playbook-text-area">
             </vscode-text-area>
             <div class="spinnerContainer">
@@ -197,7 +220,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="resetFeedbackContainer">
             <div class="resetContainer">
-                <vscode-button class="buttonBorder" appearance="secondary" id="reset-button">
+                <vscode-button appearance="secondary" id="reset-button" disabled>
                     Reset
                 </vscode-button>
             </div>
@@ -215,7 +238,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             <h4>Examples</h4>
             <div class="exampleTextContainer">
               <p>
-                Create IIS websites on port 8080 and 8081 an open firewall
+                Create IIS websites on port 8080 and 8081 and open firewall
               </p>
             </div>
             <div class="exampleTextContainer">

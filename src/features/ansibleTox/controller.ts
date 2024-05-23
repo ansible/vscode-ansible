@@ -73,7 +73,7 @@ export class AnsibleToxController {
     return watchers;
   }
 
-  private getOrCreateFile(uri: vscode.Uri): vscode.TestItem {
+  private getOrCreateFile = (uri: vscode.Uri): vscode.TestItem => {
     const existing = this.controller.items.get(uri.toString());
     if (existing) {
       return existing;
@@ -94,7 +94,7 @@ export class AnsibleToxController {
 
     file.canResolveChildren = true;
     return file;
-  }
+  };
 
   async parseTestsInFileContents(
     file: vscode.TestItem,
@@ -164,10 +164,10 @@ export class AnsibleToxController {
     return listOfChildren;
   }
 
-  async parseTestsInAnsibleToxFile(
+  parseTestsInAnsibleToxFile = async (
     document: vscode.TextDocument,
     filename: string = ANSIBLE_TOX_FILE_NAME,
-  ) {
+  ) => {
     if (
       document.uri.scheme === "file" &&
       path.basename(document.uri.fsPath) === filename
@@ -178,7 +178,7 @@ export class AnsibleToxController {
       const listOfChildren = await this.parseTestsInFileContents(file, content);
       file.children.replace(listOfChildren);
     }
-  }
+  };
 
   async runHandler(
     request: vscode.TestRunRequest,

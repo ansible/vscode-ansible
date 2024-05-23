@@ -8,7 +8,7 @@ import {
   TextEdit,
 } from "vscode-languageserver";
 import { Position, TextDocument } from "vscode-languageserver-textdocument";
-import { isScalar, Node, YAMLMap } from "yaml";
+import { isNode, isScalar, Node, YAMLMap } from "yaml";
 import { IOption } from "../interfaces/module";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import {
@@ -37,6 +37,7 @@ import {
   isPlaybook,
 } from "../utils/yaml";
 import { getVarsCompletion } from "./completionProviderUtils";
+import { HostType } from "../services/ansibleInventory";
 
 const priorityMap = {
   nameKeyword: 1,
@@ -59,7 +60,7 @@ export async function doCompletion(
   document: TextDocument,
   position: Position,
   context: WorkspaceFolderContext,
-): Promise<CompletionItem[] | null> {
+): Promise<CompletionItem[]> {
   isAnsiblePlaybook = isPlaybook(document);
 
   let preparedText = document.getText();
@@ -156,7 +157,7 @@ export async function doCompletion(
           const inlineCollections = getDeclaredCollections(path);
           const cursorAtEndOfLine = atEndOfLine(document, position);
 
-          let textEdit: TextEdit | undefined;
+          let textEdit: TextEdit;
           const nodeRange = getNodeRange(node, document);
           if (nodeRange) {
             textEdit = {
@@ -347,57 +348,56 @@ export async function doCompletion(
           const nodeRange = getNodeRange(node, document);
 
           const option = keyOptions.get(keyNode.value as string);
-          const choices = [];
-          let defaultChoice = option.default;
-          if (option.type === "bool" && typeof option.default === "string") {
-            // the YAML parser does not recognize values such as 'Yes'/'no' as booleans
-            defaultChoice =
-              option.default.toLowerCase() === "yes" ? true : false;
-          }
-          if (option.choices) {
-            choices.push(...option.choices);
-          } else if (option.type === "bool") {
-            choices.push(true);
-            choices.push(false);
-          } else if (defaultChoice !== undefined) {
-            choices.push(defaultChoice);
-          }
-          return choices.map((choice, index) => {
-            let priority;
-            if (choice === defaultChoice) {
-              priority = priorityMap.defaultChoice;
-            } else {
-              priority = priorityMap.choice;
+          if (option) {
+            const choices = [];
+            let defaultChoice = option.default;
+            if (option.type === "bool" && typeof option.default === "string") {
+              // the YAML parser does not recognize values such as 'Yes'/'no' as booleans
+              defaultChoice =
+                option.default.toLowerCase() === "yes" ? true : false;
             }
-            const insertValue = new String(choice).toString();
-            const completionItem: CompletionItem = {
-              label: insertValue,
-              detail: choice === defaultChoice ? "default" : undefined,
-              // using index preserves order from the specification
-              // except when overridden by the priority
-              sortText: priority.toString() + index.toString().padStart(3),
-              kind: CompletionItemKind.Value,
-            };
-            if (nodeRange) {
-              completionItem.textEdit = {
-                range: nodeRange,
-                newText: insertValue,
+            if (option.choices) {
+              choices.push(...option.choices);
+            } else if (option.type === "bool") {
+              choices.push(true);
+              choices.push(false);
+            } else if (defaultChoice !== undefined) {
+              choices.push(defaultChoice);
+            }
+            return choices.map((choice, index) => {
+              let priority;
+              if (choice === defaultChoice) {
+                priority = priorityMap.defaultChoice;
+              } else {
+                priority = priorityMap.choice;
+              }
+              const insertValue = new String(choice).toString();
+              const completionItem: CompletionItem = {
+                label: insertValue,
+                detail: choice === defaultChoice ? "default" : undefined,
+                // using index preserves order from the specification
+                // except when overridden by the priority
+                sortText: priority.toString() + index.toString().padStart(3),
+                kind: CompletionItemKind.Value,
               };
-            } else {
-              completionItem.insertText = insertValue;
-            }
-            return completionItem;
-          });
+              if (nodeRange) {
+                completionItem.textEdit = {
+                  range: nodeRange,
+                  newText: insertValue,
+                };
+              } else {
+                completionItem.insertText = insertValue;
+              }
+              return completionItem;
+            });
+          }
         }
       }
 
       // check for 'hosts' keyword and 'ansible_host keyword under vars' to provide inventory auto-completion
       let keyPathForHosts: Node[] | null;
-
-      if (
-        new AncestryBuilder(path).parent(YAMLMap).getValue() &&
-        new AncestryBuilder(path).parent(YAMLMap).getValue()["value"] === null
-      ) {
+      const element = new AncestryBuilder(path).parent(YAMLMap).getValue();
+      if (isNode(element) && isScalar(element) && element["value"] === null) {
         keyPathForHosts = new AncestryBuilder(path)
           .parent(YAMLMap) // compensates for DUMMY MAPPING
           .parent(YAMLMap)
@@ -411,9 +411,12 @@ export async function doCompletion(
         const keyNodeForHosts = keyPathForHosts[keyPathForHosts.length - 1];
 
         const conditionForHostsKeyword =
-          isPlayParam(keyPathForHosts) && keyNodeForHosts["value"] === "hosts";
+          isPlayParam(keyPathForHosts) &&
+          isScalar(keyNodeForHosts) &&
+          keyNodeForHosts["value"] === "hosts";
 
         const conditionForAnsibleHostKeyword =
+          isScalar(keyNodeForHosts) &&
           keyNodeForHosts["value"] === "ansible_host" &&
           new AncestryBuilder(keyPathForHosts)
             .parent()
@@ -435,7 +438,7 @@ export async function doCompletion(
       }
     }
   }
-  return null;
+  return [];
 }
 
 function getKeywordCompletion(
@@ -478,7 +481,7 @@ function getKeywordCompletion(
   });
 }
 
-function getHostCompletion(hostObjectList): CompletionItem[] {
+function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
   return hostObjectList.map(({ host, priority }) => {
     const completionItem: CompletionItem = {
       label: host,
@@ -616,7 +619,13 @@ function atEndOfLine(document: TextDocument, position: Position): boolean {
  * @param nodeRange - range of the keyword in the document
  * @returns boolean true if the key is the first element of the list, else false
  */
-function firstElementOfList(document: TextDocument, nodeRange: Range): boolean {
+function firstElementOfList(
+  document: TextDocument,
+  nodeRange: Range | undefined,
+): boolean {
+  if (!nodeRange) {
+    return false;
+  }
   const checkNodeRange = {
     start: { line: nodeRange.start.line, character: 0 },
     end: nodeRange.start,

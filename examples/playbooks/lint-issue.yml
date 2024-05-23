@@ -1,0 +1,6 @@
+---
+- name: example
+  hosts: "{{ hostsvars['sss'] }}"
+  tasks:
+    - name: hello world
+      hello.world:

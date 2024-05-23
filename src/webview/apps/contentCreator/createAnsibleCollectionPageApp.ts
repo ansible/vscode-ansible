@@ -10,7 +10,7 @@ import {
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
 import {
-  AnsibleCreatorInitInterface,
+  AnsibleCollectionFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
 
@@ -148,18 +148,24 @@ function openExplorer(event: any) {
     },
   });
 
-  window.addEventListener("message", (event) => {
-    const message = event.data;
-    const selectedUri = message.arguments.selectedUri;
+  window.addEventListener(
+    "message",
+    (event: MessageEvent<PostMessageEvent>) => {
+      const message = event.data;
 
-    if (selectedUri) {
-      if (source === "folder-explorer") {
-        initPathUrlTextField.value = selectedUri;
-      } else {
-        logFilePath.value = selectedUri;
+      if (message.command === "file-uri") {
+        const selectedUri = message.arguments.selectedUri;
+
+        if (selectedUri) {
+          if (source === "folder-explorer") {
+            initPathUrlTextField.value = selectedUri;
+          } else {
+            logFilePath.value = selectedUri;
+          }
+        }
       }
-    }
-  });
+    },
+  );
 }
 
 function toggleCreateButton() {
@@ -239,6 +245,8 @@ function toggleLogToFileOptions() {
 }
 
 function handleInitCreateClick() {
+  initCreateButton.disabled = true;
+
   vscode.postMessage({
     command: "init-create",
     payload: {
@@ -252,13 +260,13 @@ function handleInitCreateClick() {
       logLevel: logLevelDropdown.currentValue.trim(),
       isForced: forceCheckbox.checked,
       isEditableModeInstall: editableModeInstall.checked,
-    } as AnsibleCreatorInitInterface,
+    } as AnsibleCollectionFormInterface,
   });
 
   window.addEventListener(
     "message",
     async (event: MessageEvent<PostMessageEvent>) => {
-      const message = await event.data;
+      const message = event.data;
 
       switch (message.command) {
         case "execution-log":
@@ -280,7 +288,11 @@ function handleInitCreateClick() {
             initOpenScaffoldedFolderButton.disabled = true;
           }
 
-          collectionUrl = message.arguments.collectionUrl;
+          collectionUrl = message.arguments.collectionUrl
+            ? message.arguments.collectionUrl
+            : "";
+
+          initCreateButton.disabled = false;
 
           return;
       }

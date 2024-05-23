@@ -31,4 +31,5 @@ examples/.vscode/
 site
 test/testFixtures/diagnostics/yaml/invalid_yaml.yml
 packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
+!media/
 docs/als/settings.md

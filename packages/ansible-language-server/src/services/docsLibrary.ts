@@ -86,7 +86,9 @@ export class DocsLibrary {
     documentUri?: string,
   ): Promise<[IModuleMetadata | undefined, string | undefined]> {
     // support playbook adjacent collections
-    const playbookDirectory = URI.parse(documentUri).path.split(path.sep);
+    const playbookDirectory = URI.parse(String(documentUri)).path.split(
+      path.sep,
+    );
     playbookDirectory.pop();
     playbookDirectory.push("collections");
 

@@ -7,7 +7,7 @@
 !ansible-language-configuration.json
 !CHANGELOG.md
 !LICENSE
-!README.md
+!docs/README.md
 !images/ansible.svg
 !images/logo.png
 !jinja-language-configuration.json
@@ -15,11 +15,13 @@
 !media/codicons/codicon.css
 !media/codicons/codicon.ttf
 !media/codicons/codicon.css
+!media/baseStyles/baseFormStyle.css
 !media/contentCreator/icons/ansible-creator-create.png
 !media/contentCreator/icons/ansible-creator-init.png
 !media/contentCreator/icons/ansible-creator-sample.png
 !media/contentCreator/icons/ansible-logo-red.png
-!media/contentCreator/scaffoldCollectionPageStyle.css
+!media/contentCreator/createAnsibleCollectionPageStyle.css
+!media/contentCreator/createAnsibleProjectPageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
 !media/playbookGeneration/playbookGeneration.css
@@ -30,8 +32,32 @@
 !out/client/webview/apps/lightspeed/playbookExplanation/main.js
 !out/client/webview/apps/lightspeed/playbookGeneration/main.js
 !out/client/webview/apps/contentCreator/welcomePageApp.js
-!out/client/webview/apps/contentCreator/scaffoldCollectionPageApp.js
+!out/client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js
+!out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
 !out/server/src/server.js
 !package.json
 !package.nls.json
 !syntaxes/**/*
+# walkthrough media files
+!media/walkthroughs/gettingStarted/ansible-env/environment-statusbar.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-env copy.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-env.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-lint-env copy.png
+!media/walkthroughs/gettingStarted/ansible-env/no-ansible-lint-env.png
+!media/walkthroughs/gettingStarted/ansible-env/ok-env copy.png
+!media/walkthroughs/gettingStarted/ansible-env/ok-env.png
+!media/walkthroughs/gettingStarted/ansible-features/ansible-lint-crop.gif
+!media/walkthroughs/gettingStarted/ansible-features/go-to-definition-crop.gif
+!media/walkthroughs/gettingStarted/ansible-features/hover-documentation-module-crop.png
+!media/walkthroughs/gettingStarted/ansible-features/smart-completions-crop.gif
+!media/walkthroughs/gettingStarted/ansible-features/syntax-highlighting-crop.png
+!media/walkthroughs/gettingStarted/ansibleEnvironment.md
+!media/walkthroughs/gettingStarted/languageFeatures.md
+!media/walkthroughs/gettingStarted/selectAnsibleLanguage.md
+!media/walkthroughs/gettingStarted/all-adt-tools.png
+!media/walkthroughs/gettingStarted/ansible-extension-settings.png
+!media/walkthroughs/gettingStarted/language-selector.png
+!media/walkthroughs/gettingStarted/language-statusbar.png
+!media/walkthroughs/gettingStarted/learn-more.png
+!media/walkthroughs/gettingStarted/open-folder.png
+!media/walkthroughs/gettingStarted/run-ansible-playbook.png

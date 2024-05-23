@@ -101,7 +101,7 @@ export function getWebviewContentWithActiveSession(
     <div id="lightspeedExplorerView">
       Logged in as: ${userName}<br />
       User Type: ${userType}<br />
-      Role: ${userRole}<br />
+      ${userRole ? "Role: " + userRole : ""}
       ${lightspeedExperimentalEnabled ? explainForm : ""}
     </div>
     </body>

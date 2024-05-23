@@ -12,9 +12,9 @@ import {
   getWebviewContentWithActiveSession,
   setWebviewMessageListener,
 } from "./utils/explorerView";
+import { LightspeedUser } from "./lightspeedUser";
 
-import { getLoggedInSessionDetails } from "./utils/webUtils";
-import { LightSpeedAuthenticationProvider } from "./lightSpeedOAuthProvider";
+import { getLoggedInUserDetails } from "./utils/webUtils";
 
 export class LightspeedExplorerWebviewViewProvider
   implements WebviewViewProvider
@@ -23,15 +23,15 @@ export class LightspeedExplorerWebviewViewProvider
 
   //sessionInfo: LightspeedSessionInfo = {};
   //sessionData: LightspeedAuthSession = {} as LightspeedAuthSession;
-  private lightSpeedAuthProvider: LightSpeedAuthenticationProvider;
+  private lightspeedAuthenticatedUser: LightspeedUser;
   public webviewView: WebviewView | undefined;
   public lightspeedExperimentalEnabled: boolean = false;
 
   constructor(
     private readonly _extensionUri: Uri,
-    lightSpeedAuthProvider: LightSpeedAuthenticationProvider,
+    lightspeedAuthenticatedUser: LightspeedUser,
   ) {
-    this.lightSpeedAuthProvider = lightSpeedAuthProvider;
+    this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
   }
 
   public async refreshWebView() {
@@ -68,11 +68,11 @@ export class LightspeedExplorerWebviewViewProvider
   }
 
   private async _getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const session =
-      await this.lightSpeedAuthProvider.getLightSpeedAuthSession();
-    if (session) {
-      const sessionInfo = getLoggedInSessionDetails(session);
-      const userName = session.account.label;
+    const userDetails =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
+    if (userDetails) {
+      const sessionInfo = getLoggedInUserDetails(userDetails);
+      const userName = userDetails.displayNameWithUserType;
       const userType = sessionInfo.userInfo?.userType || "";
       const userRole =
         sessionInfo.userInfo?.role !== undefined
