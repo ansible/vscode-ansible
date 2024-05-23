@@ -29,7 +29,6 @@ import { getBaseUri } from "./utils/webUtils";
 import {
   ExplanationResponse,
   GenerationResponse,
-  SummaryResponse,
 } from "./interfaces/lightspeedApi";
 
 /**
@@ -393,41 +392,13 @@ export class AnsibleLanguageService {
     );
 
     this.connection.onRequest(
-      "playbook/summary",
-      async (params): Promise<SummaryResponse> => {
-        const accessToken: string = params["accessToken"];
-        const URL: string = params["URL"];
-        const content: string = params["content"];
-
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        };
-
-        const axiosInstance = axios.create({
-          baseURL: `${getBaseUri(URL)}/api/v0`,
-          headers: headers,
-        });
-
-        const result: SummaryResponse = await axiosInstance
-          .post("/ai/summaries/", {
-            content: content,
-            summaryId: uuidv4(),
-          })
-          .then((response) => {
-            return response.data;
-          });
-
-        return result;
-      },
-    );
-
-    this.connection.onRequest(
       "playbook/generation",
       async (params): Promise<GenerationResponse> => {
         const accessToken: string = params["accessToken"];
         const URL: string = params["URL"];
-        const content: string = params["content"];
+        const text: string = params["text"];
+        const createOutline: boolean = params["createOutline"];
+        const outline: string | undefined = params["outline"];
 
         const headers = {
           "Content-Type": "application/json",
@@ -441,7 +412,9 @@ export class AnsibleLanguageService {
 
         const result: GenerationResponse = await axiosInstance
           .post("/ai/generations/", {
-            content: content,
+            text,
+            createOutline,
+            outline,
             generationId: uuidv4(),
           })
           .then((response) => {

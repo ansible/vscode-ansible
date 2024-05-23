@@ -6,10 +6,7 @@ import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
-import {
-  GenerationResponse,
-  SummaryResponse,
-} from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { GenerationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -32,7 +29,8 @@ async function openNewPlaybookEditor(playbook: string) {
 }
 
 async function generatePlaybook(
-  content: string,
+  text: string,
+  outline: string,
   client: LanguageClient,
   lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
@@ -44,41 +42,46 @@ async function generatePlaybook(
     panel.webview.postMessage({ command: "exception" });
   }
 
+  const createOutline = false;
   const playbook: GenerationResponse = await client.sendRequest(
     "playbook/generation",
     {
       accessToken,
       URL: settingsManager.settings.lightSpeedService.URL,
-      content,
+      text,
+      outline,
+      createOutline,
     },
   );
 
   return playbook;
 }
 
-async function summarizeInput(
-  content: string,
+async function generateOutline(
+  text: string,
   client: LanguageClient,
   lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-): Promise<SummaryResponse> {
+): Promise<GenerationResponse> {
   const accessToken =
     await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const summary: SummaryResponse = await client.sendRequest(
-    "playbook/summary",
+  const createOutline = true;
+  const outline: GenerationResponse = await client.sendRequest(
+    "playbook/generation",
     {
       accessToken,
       URL: settingsManager.settings.lightSpeedService.URL,
-      content,
+      text,
+      createOutline,
     },
   );
 
-  return summary;
+  return outline;
 }
 
 export async function showPlaybookGenerationPage(
@@ -113,28 +116,33 @@ export async function showPlaybookGenerationPage(
     const command = message.command;
     switch (command) {
       case "generatePlaybook": {
-        const playbook = await generatePlaybook(
-          // TODO
-          message.content,
-          client,
-          lightspeedAuthenticatedUser,
-          settingsManager,
-          panel,
-        );
+        let playbook = message.playbook;
+
+        if (!playbook) {
+          const playbookResponse = await generatePlaybook(
+            message.text,
+            message.outline,
+            client,
+            lightspeedAuthenticatedUser,
+            settingsManager,
+            panel,
+          );
+          playbook = playbookResponse.playbook;
+        }
+
         panel?.dispose();
-        await openNewPlaybookEditor(playbook.content);
+        await openNewPlaybookEditor(playbook);
         break;
       }
-      case "summarizeInput": {
-        const summary = await summarizeInput(
-          // TODO
-          message.content,
+      case "outline": {
+        const outline = await generateOutline(
+          message.text,
           client,
           lightspeedAuthenticatedUser,
           settingsManager,
           panel,
         );
-        panel.webview.postMessage({ command: "summary", summary });
+        panel.webview.postMessage({ command: "outline", outline });
         break;
       }
       case "thumbsUp":
