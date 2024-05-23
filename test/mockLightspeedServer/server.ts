@@ -5,7 +5,6 @@ import { contentmatches } from "./contentmatches";
 import { explanations } from "./explanations";
 import { feedback } from "./feedback";
 import { generations } from "./generations";
-import { summaries } from "./summaries";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
@@ -56,11 +55,6 @@ export default class Server {
     app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
       return res.send(contentmatches(req));
-    });
-
-    app.post(`${API_ROOT}/ai/summaries`, async (req, res) => {
-      await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
-      return summaries(req, res);
     });
 
     app.post(`${API_ROOT}/ai/generations`, async (req, res) => {

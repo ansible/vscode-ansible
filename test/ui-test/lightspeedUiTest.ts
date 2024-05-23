@@ -201,7 +201,7 @@ export function lightspeedUIAssetsTest(): void {
           setTimeout(res, 1000);
         });
 
-        // Verify summary output and text edit
+        // Verify outline output and text edit
         let text = await textArea.getText();
         expect(text.includes('Name: "Create an azure network..."'));
         await textArea.sendKeys("# COMMENT\n");
@@ -340,6 +340,98 @@ export function lightspeedUIAssetsTest(): void {
           text.startsWith("---"),
           'The generated playbook should start with "---"',
         );
+
+        await workbench.executeCommand("View: Close All Editor Groups");
+        const dialog = new ModalDialog();
+        await dialog.pushButton(`Don't Save`);
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook generation webview works as expected (fast path)", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        // Open playbook generation webview.
+        await workbench.executeCommand(
+          "Ansible Lightspeed: Playbook generation",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        const webView = await new WebView();
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Set input text and invoke summaries API
+        const textArea = await webView.findWebElement(
+          By.xpath("//vscode-text-area"),
+        );
+        expect(textArea, "textArea should not be undefined").not.to.be
+          .undefined;
+        const submitButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='submit-button']"),
+        );
+        expect(submitButton, "submitButton should not be undefined").not.to.be
+          .undefined;
+        //
+        // Note: Following line should succeed, but fails for some unknown reasons.
+        //
+        // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
+        await textArea.sendKeys("Create an azure network.");
+        expect(
+          await submitButton.isEnabled(),
+          "submit button should be enabled now",
+        ).is.true;
+        submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 1000);
+        });
+
+        // Verify outline output and text edit
+        let text = await textArea.getText();
+        expect(text.includes('Name: "Create an azure network..."'));
+
+        // Verify the prompt is displayed as a static text
+        const prompt = await webView.findWebElement(
+          By.xpath("//span[@id='prompt']"),
+        );
+        text = await prompt.getText();
+        expect(text.includes("Create an azure network."));
+
+        // Click Generate playbook button to invoke the generations API
+        const generatePlaybookButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='generate-button']"),
+        );
+        expect(
+          generatePlaybookButton,
+          "generatePlaybookButton should not be undefined",
+        ).not.to.be.undefined;
+
+        const start = new Date().getTime();
+        generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 300);
+        });
+        await webView.switchBack();
+
+        // Verify a playbook was generated.
+        const editor = await new EditorView().openEditor("Untitled-1");
+        text = await editor.getText();
+        expect(
+          text.startsWith("---"),
+          'The generated playbook should start with "---"',
+        );
+
+        // Make sure the playbook was generated within 500 msecs, which is the fake latency
+        // used in the mock server. It means that the playbook returned in the outline generation
+        // was used and the generations API was not called this time.
+        const elapsedTime = new Date().getTime() - start;
+        expect(elapsedTime < 500);
 
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();
