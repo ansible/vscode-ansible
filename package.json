@@ -709,6 +709,7 @@
           "site.yml",
           "site.yaml"
         ],
+        "firstLine": "# code: language=ansible",
         "configuration": "./ansible-language-configuration.json"
       },
       {
