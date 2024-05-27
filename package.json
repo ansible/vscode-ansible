@@ -701,7 +701,9 @@
           "**/playbooks/*.yml",
           "**/playbooks/*.yaml",
           "**/*playbook*.yml",
-          "**/*playbook*.yaml"
+          "**/*playbook*.yaml",
+          "**/roles/**/main.yml",
+          "**/roles/**/main.yaml"
         ],
         "filenames": [
           "site.yml",
