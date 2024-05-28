@@ -286,33 +286,33 @@ export function lightspeedUIAssetsTest(): void {
         expect(text.startsWith("---"));
 
         // Test ThumbsUp button
-        const thumbsUpButton = await webView.findWebElement(
-          By.xpath("//vscode-button[@id='thumbsup-button']"),
-        );
-        expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
-          .be.undefined;
-        expect(
-          await thumbsUpButton.isEnabled(),
-          "thumbsUpButton should be enabled",
-        );
-        await thumbsUpButton.click();
-        await new Promise((res) => {
-          setTimeout(res, 500);
-        });
-        expect(
-          !thumbsUpButton.isEnabled,
-          "thumbsUpButton should not be enabled",
-        );
+        // const thumbsUpButton = await webView.findWebElement(
+        //   By.xpath("//vscode-button[@id='thumbsup-button']"),
+        // );
+        // expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
+        //   .be.undefined;
+        // expect(
+        //   await thumbsUpButton.isEnabled(),
+        //   "thumbsUpButton should be enabled",
+        // );
+        // await thumbsUpButton.click();
+        // await new Promise((res) => {
+        //   setTimeout(res, 500);
+        // });
+        // expect(
+        //   !thumbsUpButton.isEnabled,
+        //   "thumbsUpButton should not be enabled",
+        // );
 
-        await webView.switchBack();
-        const notifications = await workbench.getNotifications();
-        const notification = notifications[0];
-        const message = await notification.getMessage();
-        expect(message).equals("Thanks for your feedback!");
-        await notification.dismiss();
+        // await webView.switchBack();
+        // const notifications = await workbench.getNotifications();
+        // const notification = notifications[0];
+        // const message = await notification.getMessage();
+        // expect(message).equals("Thanks for your feedback!");
+        // await notification.dismiss();
 
         // Test Back (to Page 2) button
-        await webView.switchToFrame(5000);
+        // await webView.switchToFrame(5000);
         const backToPage2Button = await webView.findWebElement(
           By.xpath("//vscode-button[@id='back-to-page2-button']"),
         );

@@ -325,9 +325,7 @@ function setupPage(pageNumber: number) {
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
-      changeDisplay("resetFeedbackContainer", "block");
-      changeDisplay("resetContainer", "none");
-      changeDisplay("feedbackContainer", "block");
+      changeDisplay("resetFeedbackContainer", "none");
       changeDisplay("firstMessage", "none");
       changeDisplay("secondMessage", "none");
       changeDisplay("thirdMessage", "block");
