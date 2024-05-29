@@ -351,18 +351,15 @@
       },
       {
         "command": "ansible.lightspeed.playbookGeneration",
-        "title": "Ansible Lightspeed: Playbook generation",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+        "title": "Ansible Lightspeed: Playbook generation"
       },
       {
         "command": "ansible.lightspeed.thumbsUpDown",
-        "title": "Send Lightspeed Thumbs Up/Down Feedback",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+        "title": "Send Lightspeed Thumbs Up/Down Feedback"
       },
       {
         "command": "ansible.lightspeed.playbookExplanation",
-        "title": "Explain the playbook with Ansible Lightspeed",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+        "title": "Explain the playbook with Ansible Lightspeed"
       },
       {
         "command": "ansible.lightspeed.enableExperimentalFeatures",
@@ -981,7 +978,7 @@
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",
     "als-compile": "yarn workspace @ansible/ansible-language-server compile"
   },
-  "version": "24.5.2",
+  "version": "24.5.29",
   "packageManager": "yarn@4.1.1",
   "vsce": {
     "dependencies": false,

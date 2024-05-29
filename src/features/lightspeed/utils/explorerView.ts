@@ -102,7 +102,7 @@ export function getWebviewContentWithActiveSession(
       Logged in as: ${userName}<br />
       User Type: ${userType}<br />
       ${userRole ? "Role: " + userRole : ""}
-      ${lightspeedExperimentalEnabled ? explainForm : ""}
+      ${explainForm}
     </div>
     </body>
   </html>
