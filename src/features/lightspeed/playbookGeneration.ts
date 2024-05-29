@@ -233,10 +233,10 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           <h3>What do you want the playbook to accomplish?</h3>
         </div>
         <div class="secondMessage">
-          <h3>Do the following steps look right to you?</h3>
+          <h3>Review the suggested steps for your playbook and modify as needed.</h3>
         </div>
         <div class="thirdMessage">
-          <h3>Does the following playbook look right to you?</h3>
+          <h3>The following playbook was generated for you:</h3>
         </div>
         <div class="mainContainer">
           <div class="editArea">
