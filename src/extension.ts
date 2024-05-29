@@ -196,12 +196,14 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   const lightSpeedSuggestionProvider = new LightSpeedInlineSuggestionProvider();
-  context.subscriptions.push(
-    vscode.languages.registerInlineCompletionItemProvider(
-      { scheme: "file", language: "ansible" },
-      lightSpeedSuggestionProvider,
-    ),
-  );
+  ["file", "untitled"].forEach((scheme) => {
+    context.subscriptions.push(
+      vscode.languages.registerInlineCompletionItemProvider(
+        { scheme, language: "ansible" },
+        lightSpeedSuggestionProvider,
+      ),
+    );
+  });
 
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
