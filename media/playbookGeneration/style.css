@@ -23,12 +23,19 @@ a:active {
   bottom: 0px;
 }
 
-.playbookGeneration>h2 {
-  text-align: center
+.pageNumber {
+  text-align: center;
+  margin: 0.2em;
+  color: var(--vscode-descriptionForeground);
 }
 
-.playbookGeneration>h4 {
-  text-align: center
+.playbookGeneration h2 {
+  text-align: center;
+  margin-block-end: 0.2em;
+}
+
+.playbookGeneration h4 {
+  color: var(--vscode-descriptionForeground);
 }
 
 .mainContainer {
@@ -64,18 +71,11 @@ a:active {
 
 .bigIconButtonContainer {
   position: relative;
-  margin: 0.5em;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
   width: 100%;
   height: 48px;
   display: block;
-}
-
-.bigIconButton {
-  width: 56px;
-  height: 42px;
-  position: absolute;
-  right: 7px;
-  display: flex;
 }
 
 .biggerButton {
@@ -168,6 +168,11 @@ a:active {
 }
 
 .generatePlaybookContainer {
+  margin-top: 2em;
+  display: none;
+}
+
+.openEditorContainer {
   margin-top: 3em;
   display: none;
 }
@@ -215,6 +220,10 @@ a:active {
 }
 
 .secondMessage {
+  display: none;
+}
+
+.thirdMessage {
   display: none;
 }
 

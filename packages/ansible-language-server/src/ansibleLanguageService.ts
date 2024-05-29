@@ -8,7 +8,6 @@ import {
   TextDocumentSyncKind,
 } from "vscode-languageserver";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { v4 as uuidv4 } from "uuid";
 import {
   doCompletion,
   doCompletionResolve,
@@ -399,6 +398,7 @@ export class AnsibleLanguageService {
         const text: string = params["text"];
         const createOutline: boolean = params["createOutline"];
         const outline: string | undefined = params["outline"];
+        const generationId: string = params["generationId"];
 
         const headers = {
           "Content-Type": "application/json",
@@ -415,7 +415,7 @@ export class AnsibleLanguageService {
             text,
             createOutline,
             outline,
-            generationId: uuidv4(),
+            generationId,
           })
           .then((response) => {
             return response.data;

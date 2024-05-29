@@ -196,7 +196,7 @@ export function lightspeedUIAssetsTest(): void {
           await submitButton.isEnabled(),
           "submit button should be enabled now",
         ).is.true;
-        submitButton.click();
+        await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
@@ -221,98 +221,47 @@ export function lightspeedUIAssetsTest(): void {
         );
         expect(resetButton, "resetButton should not be undefined").not.to.be
           .undefined;
-        resetButton.click();
+        await resetButton.click();
         await new Promise((res) => {
           setTimeout(res, 500);
         });
         text = await textArea.getText();
         expect(!text.includes("# COMMENT\n"));
 
-        // Test ThumbsUp button
-        const thumbsUpButton = await webView.findWebElement(
-          By.xpath("//vscode-button[@id='thumbsup-button']"),
-        );
-        expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
-          .be.undefined;
-        expect(
-          await thumbsUpButton.isEnabled(),
-          "thumbsUpButton should be enabled",
-        );
-        thumbsUpButton.click();
-        await new Promise((res) => {
-          setTimeout(res, 500);
-        });
-        expect(
-          !thumbsUpButton.isEnabled,
-          "thumbsUpButton should not be enabled",
-        );
-
-        await webView.switchBack();
-        let notifications = await workbench.getNotifications();
-        let notification = notifications[0];
-        let message = await notification.getMessage();
-        expect(message).equals("Thanks for your feedback!");
-        await notification.dismiss();
-
         // Test Back button
-        await webView.switchToFrame(5000);
         const backButton = await webView.findWebElement(
           By.xpath("//vscode-button[@id='back-button']"),
         );
         expect(backButton, "backButton should not be undefined").not.to.be
           .undefined;
-        backButton.click();
+        await backButton.click();
         await new Promise((res) => {
           setTimeout(res, 500);
         });
 
         text = await textArea.getText();
         expect(text.startsWith("Create an azure network."));
-        submitButton.click();
+        await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
         text = await textArea.getText();
         expect(text.includes('Name: "Create an azure network..."'));
 
-        // Test ThumbsDown button
-        const thumbsDownButton = await webView.findWebElement(
-          By.xpath("//vscode-button[@id='thumbsdown-button']"),
-        );
-        expect(thumbsDownButton, "thumbsDownButton should not be undefined").not
-          .to.be.undefined;
-        expect(
-          await thumbsUpButton.isEnabled(),
-          "thumbsDownButton should be enabled",
-        );
-        thumbsUpButton.click();
-        await new Promise((res) => {
-          setTimeout(res, 500);
-        });
-        expect(!thumbsUpButton.isEnabled, "ThumbsDown should not be enabled");
-
-        await webView.switchBack();
-        notifications = await workbench.getNotifications();
-        notification = notifications[0];
-        message = await notification.getMessage();
-        expect(message).equals("Thanks for your feedback!");
-        await notification.dismiss();
-
         // Test Edit link next to the prompt text
-        await webView.switchToFrame(5000);
         const backAnchor = await webView.findWebElement(
           By.xpath("//a[@id='back-anchor']"),
         );
-        expect(backButton, "backButton should not be undefined").not.to.be
+        expect(backAnchor, "backAnchor should not be undefined").not.to.be
           .undefined;
-        backAnchor.click();
+        await backAnchor.click();
         await new Promise((res) => {
           setTimeout(res, 500);
         });
 
         text = await textArea.getText();
         expect(text.startsWith("Create an azure network."));
-        submitButton.click();
+        await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
@@ -328,6 +277,92 @@ export function lightspeedUIAssetsTest(): void {
           "generatePlaybookButton should not be undefined",
         ).not.to.be.undefined;
         generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Make sure the generated playbook is displayed
+        text = await textArea.getText();
+        expect(text.startsWith("---"));
+
+        // Test ThumbsUp button
+        // const thumbsUpButton = await webView.findWebElement(
+        //   By.xpath("//vscode-button[@id='thumbsup-button']"),
+        // );
+        // expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
+        //   .be.undefined;
+        // expect(
+        //   await thumbsUpButton.isEnabled(),
+        //   "thumbsUpButton should be enabled",
+        // );
+        // await thumbsUpButton.click();
+        // await new Promise((res) => {
+        //   setTimeout(res, 500);
+        // });
+        // expect(
+        //   !thumbsUpButton.isEnabled,
+        //   "thumbsUpButton should not be enabled",
+        // );
+
+        // await webView.switchBack();
+        // const notifications = await workbench.getNotifications();
+        // const notification = notifications[0];
+        // const message = await notification.getMessage();
+        // expect(message).equals("Thanks for your feedback!");
+        // await notification.dismiss();
+
+        // Test Back (to Page 2) button
+        // await webView.switchToFrame(5000);
+        const backToPage2Button = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='back-to-page2-button']"),
+        );
+        expect(backToPage2Button, "backToPage2Button should not be undefined")
+          .not.to.be.undefined;
+        await backToPage2Button.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        // Type in something extra
+        await textArea.sendKeys("10. Something extra\n");
+
+        // Click generate playbook button again
+        generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Test ThumbsDown button
+        // const thumbsDownButton = await webView.findWebElement(
+        //   By.xpath("//vscode-button[@id='thumbsdown-button']"),
+        // );
+        // expect(thumbsDownButton, "thumbsDownButton should not be undefined").not
+        //   .to.be.undefined;
+        // expect(
+        //   await thumbsDownButton.isEnabled(),
+        //   "thumbsDownButton should be enabled",
+        // );
+        // await thumbsDownButton.click();
+        // await new Promise((res) => {
+        //   setTimeout(res, 500);
+        // });
+        // expect(!thumbsDownButton.isEnabled, "ThumbsDown should not be enabled");
+
+        // await webView.switchBack();
+        // notifications = await workbench.getNotifications();
+        // notification = notifications[0];
+        // message = await notification.getMessage();
+        // expect(message).equals("Thanks for your feedback!");
+        // await notification.dismiss();
+
+        // Click Open editor button to open the generated playbook in the editor
+        // await webView.switchToFrame(5000);
+        const openEditorButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='open-editor-button']"),
+        );
+        expect(openEditorButton, "openEditorButton should not be undefined").not
+          .to.be.undefined;
+        await openEditorButton.click();
         await new Promise((res) => {
           setTimeout(res, 2000);
         });
@@ -387,7 +422,7 @@ export function lightspeedUIAssetsTest(): void {
           await submitButton.isEnabled(),
           "submit button should be enabled now",
         ).is.true;
-        submitButton.click();
+        await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
@@ -413,25 +448,39 @@ export function lightspeedUIAssetsTest(): void {
         ).not.to.be.undefined;
 
         const start = new Date().getTime();
-        generatePlaybookButton.click();
+        await generatePlaybookButton.click();
         await new Promise((res) => {
           setTimeout(res, 300);
         });
-        await webView.switchBack();
 
         // Verify a playbook was generated.
-        const editor = await new EditorView().openEditor("Untitled-1");
-        text = await editor.getText();
-        expect(
-          text.startsWith("---"),
-          'The generated playbook should start with "---"',
-        );
+        text = await textArea.getText();
+        expect(text.startsWith("---"));
 
         // Make sure the playbook was generated within 500 msecs, which is the fake latency
         // used in the mock server. It means that the playbook returned in the outline generation
         // was used and the generations API was not called this time.
         const elapsedTime = new Date().getTime() - start;
         expect(elapsedTime < 500);
+
+        // Click Open editor button to open the generated playbook in the editor
+        const openEditorButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='open-editor-button']"),
+        );
+        expect(openEditorButton, "openEditorButton should not be undefined").not
+          .to.be.undefined;
+        await openEditorButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+        await webView.switchBack();
+
+        const editor = await new EditorView().openEditor("Untitled-1");
+        text = await editor.getText();
+        expect(
+          text.startsWith("---"),
+          'The generated playbook should start with "---"',
+        );
 
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();

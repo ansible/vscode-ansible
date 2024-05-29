@@ -12,7 +12,7 @@ export function feedback(req: Request, res: Response): Response {
       code: body.sentimentFeedback.feedback,
       message: "TEST",
     });
-  } else if (body?.sentimentFeedback) {
+  } else if (body?.sentimentFeedback || body?.generationFeedback) {
     return res.send({
       message: "Thanks for your feedback!",
     });

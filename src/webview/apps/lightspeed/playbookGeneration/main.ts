@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   provideVSCodeDesignSystem,
   Button,
@@ -17,23 +18,27 @@ provideVSCodeDesignSystem().register(
 );
 
 const TEXTAREA_MAX_HEIGHT = 500;
+const TOTAL_PAGES = 3;
 
 let savedText: string;
-let savedTextHeight: string | undefined;
-let savedOutline: string;
-let savedPlaybook: string;
-let outlineId: string | undefined;
+let savedTextHeightPage1: string | undefined;
+let savedTextHeightPage2: string | undefined;
+let savedOutline: string | undefined;
+let savedPlaybook: string | undefined;
+let generationId: string | undefined;
 
 const vscode = acquireVsCodeApi();
 
 window.addEventListener("load", () => {
   setListener("submit-button", submitInput);
-  setListener("generate-button", generatePlaybook);
+  setListener("generate-button", generateCode);
   setListener("reset-button", reset);
   setListener("thumbsup-button", sendThumbsup);
   setListener("thumbsdown-button", sendThumbsdown);
-  setListener("back-button", back);
-  setListener("back-anchor", back);
+  setListener("back-button", backToPage1);
+  setListener("back-anchor", backToPage1);
+  setListener("back-to-page2-button", backToPage2);
+  setListener("open-editor-button", openEditor);
 
   setListenerOnTextArea();
 
@@ -45,34 +50,36 @@ window.addEventListener("message", (event) => {
   const message = event.data;
 
   switch (message.command) {
-    case "focus": {
+    case "init": {
       const element = document.getElementById("playbook-text-area") as TextArea;
+      generationId = uuidv4();
       element.focus();
       break;
     }
     case "outline": {
-      changeDisplay("spinnerContainer", "none");
-      changeDisplay("bigIconButtonContainer", "none");
-      changeDisplay("examplesContainer", "none");
-      changeDisplay("resetFeedbackContainer", "block");
-      changeDisplay("firstMessage", "none");
-      changeDisplay("secondMessage", "block");
-      changeDisplay("generatePlaybookContainer", "block");
-      changeDisplay("promptContainer", "block");
-
-      updateThumbsUpDownButtons(false, false);
+      setupPage(2);
 
       const element = document.getElementById("playbook-text-area") as TextArea;
       savedOutline = element.value = message.outline.outline;
       savedPlaybook = message.outline.playbook;
-      outlineId = message.outline.generationId;
+      generationId = message.outline.generationId;
       resetTextAreaHeight();
-
+      element.rows = 10;
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
+      updateThumbsUpDownButtons(false, false);
+      break;
+    }
+    case "playbook": {
+      setupPage(3);
 
-      element.rows = 20;
-
+      const element = document.getElementById("playbook-text-area") as TextArea;
+      savedPlaybook = element.value = message.playbook.playbook;
+      generationId = message.playbook.generationId;
+      savedOutline = message.playbook.outline;
+      resetTextAreaHeight();
+      element.rows = 15;
+      element.readOnly = true;
       break;
     }
     // When summaries or generations API was processed normally (e.g., API error)
@@ -96,15 +103,13 @@ function setListener(id: string, func: any) {
 
 function setListenerOnTextArea() {
   const textArea = document.getElementById("playbook-text-area") as TextArea;
-  const submitButton = document.getElementById("submit-button") as Button;
-  const resetButton = document.getElementById("reset-button") as Button;
   if (textArea) {
     textArea.addEventListener("input", async () => {
       const input = textArea.value;
-      submitButton.disabled = input.length === 0;
+      setButtonEnabled("submit-button", input.length > 0);
 
       if (savedOutline) {
-        resetButton.disabled = savedOutline === input;
+        setButtonEnabled("reset-button", savedOutline !== input);
       }
 
       adjustTextAreaHeight();
@@ -122,44 +127,67 @@ function changeDisplay(className: string, displayState: string) {
 
 async function submitInput() {
   const element = document.getElementById("playbook-text-area") as TextArea;
-  savedText = element.value;
-  savedTextHeight = getInputHeight();
+
+  if (savedText !== element.value) {
+    savedText = element.value;
+    savedOutline = undefined;
+    savedPlaybook = undefined;
+    savedTextHeightPage1 = getInputHeight();
+  }
 
   changeDisplay("spinnerContainer", "block");
 
-  vscode.postMessage({ command: "outline", text: savedText });
+  vscode.postMessage({
+    command: "outline",
+    text: savedText,
+    playbook: savedPlaybook,
+    outline: savedOutline,
+    generationId,
+  });
   element.focus();
 }
 
 function reset() {
   const element = document.getElementById("playbook-text-area") as TextArea;
-  element.value = savedOutline;
+  if (savedOutline) {
+    element.value = savedOutline;
+  }
   element.focus();
 }
 
-function back() {
-  changeDisplay("bigIconButtonContainer", "block");
-  changeDisplay("examplesContainer", "block");
-  changeDisplay("resetFeedbackContainer", "none");
-  changeDisplay("firstMessage", "block");
-  changeDisplay("secondMessage", "none");
-  changeDisplay("generatePlaybookContainer", "none");
-  changeDisplay("promptContainer", "none");
+function backToPage1() {
+  setupPage(1);
 
   const element = document.getElementById("playbook-text-area") as TextArea;
   if (savedText) {
     element.value = savedText;
   }
-  resetTextAreaHeight(savedTextHeight);
-  element.rows = 5;
+  element.readOnly = false;
+  resetTextAreaHeight(savedTextHeightPage1);
 
+  element.rows = 5;
   element.focus();
 }
 
-async function generatePlaybook() {
+function backToPage2() {
+  setupPage(2);
+
+  const element = document.getElementById("playbook-text-area") as TextArea;
+  if (savedOutline) {
+    element.value = savedOutline;
+  }
+  element.readOnly = false;
+  resetTextAreaHeight(savedTextHeightPage2);
+
+  element.rows = 10;
+  element.focus();
+}
+
+async function generateCode() {
   const element = document.getElementById("playbook-text-area") as TextArea;
   const text = savedText;
   const outline = element.value;
+  savedTextHeightPage2 = getInputHeight();
 
   // If user did not make any changes to the generated outline, use the saved playbook
   // installed of calling the generations API again.
@@ -168,10 +196,19 @@ async function generatePlaybook() {
   changeDisplay("spinnerContainer", "block");
 
   vscode.postMessage({
-    command: "generatePlaybook",
+    command: "generateCode",
     text,
     outline,
     playbook,
+    generationId,
+  });
+  element.focus();
+}
+
+async function openEditor() {
+  vscode.postMessage({
+    command: "openEditor",
+    playbook: savedPlaybook,
   });
 }
 
@@ -196,7 +233,7 @@ function sendThumbsup() {
   vscode.postMessage({
     command: "thumbsUp",
     action: ThumbsUpDownAction.UP,
-    outlineId,
+    generationId: generationId,
   });
 }
 
@@ -205,7 +242,7 @@ function sendThumbsdown() {
   vscode.postMessage({
     command: "thumbsDown",
     action: ThumbsUpDownAction.DOWN,
-    outlineId,
+    generationId: generationId,
   });
 }
 
@@ -240,5 +277,61 @@ function adjustTextAreaHeight() {
       // +2 was needed to eliminate scrollbar...
       textarea.style.height = `${scrollHeight + 2}px`;
     }
+  }
+}
+
+function setPageNumber(pageNumber: number) {
+  const span = document.getElementById("page-number") as Element;
+  span.textContent = `${pageNumber} of ${TOTAL_PAGES}`;
+}
+
+function setButtonEnabled(id: string, enabled: boolean) {
+  const element = document.getElementById(id) as Button;
+  element.disabled = !enabled;
+}
+
+function setupPage(pageNumber: number) {
+  switch (pageNumber) {
+    case 1:
+      setPageNumber(1);
+      changeDisplay("bigIconButtonContainer", "block");
+      changeDisplay("examplesContainer", "block");
+      changeDisplay("resetFeedbackContainer", "none");
+      changeDisplay("firstMessage", "block");
+      changeDisplay("secondMessage", "none");
+      changeDisplay("thirdMessage", "none");
+      changeDisplay("generatePlaybookContainer", "none");
+      changeDisplay("promptContainer", "none");
+      changeDisplay("openEditorContainer", "none");
+      break;
+    case 2:
+      setPageNumber(2);
+      changeDisplay("spinnerContainer", "none");
+      changeDisplay("bigIconButtonContainer", "none");
+      changeDisplay("examplesContainer", "none");
+      changeDisplay("resetFeedbackContainer", "block");
+      changeDisplay("resetContainer", "block");
+      changeDisplay("feedbackContainer", "none");
+      changeDisplay("firstMessage", "none");
+      changeDisplay("secondMessage", "block");
+      changeDisplay("thirdMessage", "none");
+      changeDisplay("generatePlaybookContainer", "block");
+      changeDisplay("promptContainer", "block");
+      changeDisplay("openEditorContainer", "none");
+      setButtonEnabled("reset-button", false);
+      break;
+    case 3:
+      setPageNumber(3);
+      changeDisplay("spinnerContainer", "none");
+      changeDisplay("bigIconButtonContainer", "none");
+      changeDisplay("examplesContainer", "none");
+      changeDisplay("resetFeedbackContainer", "none");
+      changeDisplay("firstMessage", "none");
+      changeDisplay("secondMessage", "none");
+      changeDisplay("thirdMessage", "block");
+      changeDisplay("generatePlaybookContainer", "none");
+      changeDisplay("openEditorContainer", "block");
+
+      break;
   }
 }
