@@ -732,8 +732,7 @@
         },
         {
           "group": "2_main@1",
-          "command": "ansible.lightspeed.playbookExplanation",
-          "when": "editorTextFocus && redhat.ansible.lightspeedExperimentalEnabled && editorLangId == ansible"
+          "command": "ansible.lightspeed.playbookExplanation"
         }
       ],
       "explorer/context": [
