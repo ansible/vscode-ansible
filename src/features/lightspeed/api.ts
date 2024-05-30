@@ -129,7 +129,9 @@ export class LightSpeedAPI {
       ) {
         this._inlineSuggestionFeedbackIgnoredPending = false;
         vscode.window.showInformationMessage(
-          "Ansible Lightspeed does not have a suggestion based on your input.",
+          "Ansible Lightspeed does not have a suggestion for this input. Try changing your prompt, or contact your administrator with Suggestion Id " +
+            requestData.suggestionId +
+            " for assistance.",
         );
         return {} as CompletionResponseParams;
       }
