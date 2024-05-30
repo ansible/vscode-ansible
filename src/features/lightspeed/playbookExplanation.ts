@@ -30,7 +30,7 @@ export const playbookExplanation = async (
   currentPanel.setContent(
     `<div id="icons">
         <span class="codicon codicon-loading codicon-modifier-spin"></span>
-        Loading the explanation for ${document.fileName.split("/").at(-1)}
+        Generating the explanation for ${document.fileName.split("/").at(-1)}
       </div>`,
   );
 
