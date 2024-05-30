@@ -117,10 +117,6 @@ export const ERRORS_CONNECTION_TIMEOUT = new Error(
   "fallback__connection_timeout",
   "Ansible Lightspeed connection timeout. Please try again later.",
 );
-export const ERRORS_EMPTY_RESPONSE = new Error(
-  "empty__response",
-  "Ansible Lightspeed didn't find suggestion for your request. Please try reword.",
-);
 
 ERRORS.addError(
   400,
