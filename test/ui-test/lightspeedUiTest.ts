@@ -195,17 +195,24 @@ export function lightspeedUIAssetsTest(): void {
         expect(
           await submitButton.isEnabled(),
           "submit button should be enabled now",
-        ).is.true;
+        ).to.be.true;
         await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
 
         // Verify outline output and text edit
-        let text = await textArea.getText();
-        expect(text.includes('Name: "Create an azure network..."'));
-        await textArea.sendKeys("# COMMENT\n");
-        text = await textArea.getText();
+        const outlineList = await webView.findWebElement(
+          By.xpath("//ol[@id='outline-list']"),
+        );
+        expect(outlineList, "An ordered list should exist.");
+        let text = await outlineList.getText();
+        expect(
+          text.includes('Name: "Create an azure network..."'),
+          "Text should include the expected outline",
+        );
+        await outlineList.sendKeys("# COMMENT\n");
+        text = await outlineList.getText();
         expect(text.includes("# COMMENT\n"));
 
         // Verify the prompt is displayed as a static text
@@ -225,7 +232,7 @@ export function lightspeedUIAssetsTest(): void {
         await new Promise((res) => {
           setTimeout(res, 500);
         });
-        text = await textArea.getText();
+        text = await outlineList.getText();
         expect(!text.includes("# COMMENT\n"));
 
         // Test Back button
@@ -245,7 +252,7 @@ export function lightspeedUIAssetsTest(): void {
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
-        text = await textArea.getText();
+        text = await outlineList.getText();
         expect(text.includes('Name: "Create an azure network..."'));
 
         // Test Edit link next to the prompt text
@@ -265,7 +272,7 @@ export function lightspeedUIAssetsTest(): void {
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
-        text = await textArea.getText();
+        text = await outlineList.getText();
         expect(text.includes('Name: "Create an azure network..."'));
 
         // Click Generate playbook button to invoke the generations API
@@ -282,8 +289,13 @@ export function lightspeedUIAssetsTest(): void {
         });
 
         // Make sure the generated playbook is displayed
-        text = await textArea.getText();
-        expect(text.startsWith("---"));
+        const formattedCode = await webView.findWebElement(
+          By.xpath("//span[@id='formatted-code']"),
+        );
+        expect(formattedCode, "formattedCode should not be undefined").not.to.be
+          .undefined;
+        text = await formattedCode.getText();
+        expect(text.startsWith("---")).to.be.true;
 
         // Test ThumbsUp button
         // const thumbsUpButton = await webView.findWebElement(
@@ -324,7 +336,7 @@ export function lightspeedUIAssetsTest(): void {
         });
 
         // Type in something extra
-        await textArea.sendKeys("10. Something extra\n");
+        await outlineList.sendKeys("10. Something extra\n");
 
         // Click generate playbook button again
         generatePlaybookButton.click();
@@ -374,7 +386,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(
           text.startsWith("---"),
           'The generated playbook should start with "---"',
-        );
+        ).to.be.true;
 
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();
@@ -421,22 +433,27 @@ export function lightspeedUIAssetsTest(): void {
         expect(
           await submitButton.isEnabled(),
           "submit button should be enabled now",
-        ).is.true;
+        ).to.be.true;
         await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
 
         // Verify outline output and text edit
-        let text = await textArea.getText();
-        expect(text.includes('Name: "Create an azure network..."'));
+        const outlineList = await webView.findWebElement(
+          By.xpath("//ol[@id='outline-list']"),
+        );
+        expect(outlineList, "An ordered list should exist.").to.be.not
+          .undefined;
+        let text = await outlineList.getText();
+        expect(text.includes('Name: "Create an azure network..."')).to.be.true;
 
         // Verify the prompt is displayed as a static text
         const prompt = await webView.findWebElement(
           By.xpath("//span[@id='prompt']"),
         );
         text = await prompt.getText();
-        expect(text.includes("Create an azure network."));
+        expect(text.includes("Create an azure network.")).to.be.true;
 
         // Click Generate playbook button to invoke the generations API
         const generatePlaybookButton = await webView.findWebElement(
@@ -454,14 +471,19 @@ export function lightspeedUIAssetsTest(): void {
         });
 
         // Verify a playbook was generated.
-        text = await textArea.getText();
-        expect(text.startsWith("---"));
+        const formattedCode = await webView.findWebElement(
+          By.xpath("//span[@id='formatted-code']"),
+        );
+        expect(formattedCode, "formattedCode should not be undefined").not.to.be
+          .undefined;
+        text = await formattedCode.getText();
+        expect(text.startsWith("---")).to.be.true;
 
         // Make sure the playbook was generated within 500 msecs, which is the fake latency
         // used in the mock server. It means that the playbook returned in the outline generation
         // was used and the generations API was not called this time.
         const elapsedTime = new Date().getTime() - start;
-        expect(elapsedTime < 500);
+        expect(elapsedTime < 500).to.be.true;
 
         // Click Open editor button to open the generated playbook in the editor
         const openEditorButton = await webView.findWebElement(
@@ -480,7 +502,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(
           text.startsWith("---"),
           'The generated playbook should start with "---"',
-        );
+        ).to.be.true;
 
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();
@@ -524,7 +546,7 @@ export function lightspeedUIAssetsTest(): void {
         );
         expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
         const text = await mainDiv.getText();
-        expect(text.includes("Playbook Overview and Structure"));
+        expect(text.includes("Playbook Overview and Structure")).to.be.true;
 
         await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");
@@ -568,7 +590,7 @@ export function lightspeedUIAssetsTest(): void {
       const notification = notifications[0];
       expect(await notification.getMessage()).equals(
         "Enable lightspeed services from settings to use the feature.",
-      );
+      ).to.be.true;
     });
   });
 }

@@ -21,6 +21,7 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
+shiki
 SIGINT
 SIGTERM
 Sbarnea
