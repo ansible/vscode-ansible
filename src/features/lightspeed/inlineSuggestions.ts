@@ -877,7 +877,7 @@ export async function inlineSuggestionCommitHandler() {
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // If the suggestion does not seem to be ours, exit early.
-  if (!inlineSuggestionData["suggestionId"]) {
+  if (!isPredictionInProgress()) {
     return;
   }
 
@@ -952,7 +952,7 @@ function inlineSuggestionPending(checkActiveTextEditor = true): boolean {
       return false;
     }
   }
-  if (!inlineSuggestionData["suggestionId"]) {
+  if (!isPredictionInProgress()) {
     return false;
   }
   return true;
@@ -963,8 +963,15 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
+function isPredictionInProgress(): boolean {
+  return "suggestionId" in inlineSuggestionData;
+}
+
 export async function rejectPendingSuggestion() {
-  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+  if (
+    (suggestionDisplayed.get() || isPredictionInProgress()) &&
+    lightSpeedManager.inlineSuggestionsEnabled
+  ) {
     if (inlineSuggestionPending()) {
       console.log(
         "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
