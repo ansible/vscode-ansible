@@ -340,7 +340,7 @@ export function testLightspeed(): void {
       });
 
       tests.forEach(({ taskName, expectedModule }) => {
-        it(`Should not return an inline feedback '${taskName}'`, async function () {
+        it(`Should return an inline feedback '${taskName}'`, async function () {
           await testInlineSuggestion(
             // with the mock lightspeed server, adding "status=nnn" to prompt will
             // return the specified status code in the response
@@ -354,7 +354,7 @@ export function testLightspeed(): void {
           const completionRequestApiCalls = completionRequestSpy.getCalls();
           assert.equal(completionRequestApiCalls.length, 1);
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
-          assert.equal(feedbackRequestApiCalls.length, 0);
+          assert.equal(feedbackRequestApiCalls.length, 1);
         });
       });
 
