@@ -53,7 +53,7 @@ export interface InlineSuggestionEvent {
   activityId?: string;
 }
 
-export interface SentimentEvent {
+export interface SentimentFeedbackEvent {
   value: number;
   feedback: string;
 }
@@ -79,7 +79,7 @@ export interface PlaybookFeedbackEvent {
 
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
-  sentimentFeedback?: SentimentEvent;
+  sentimentFeedback?: SentimentFeedbackEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
