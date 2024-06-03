@@ -4,9 +4,10 @@ import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
-import { isLightspeedEnabled } from "../../extension";
+import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { GenerationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { LightSpeedCommands } from "../../definitions/lightspeed";
 
 let currentPanel: WebviewPanel | undefined;
 
@@ -29,6 +30,20 @@ async function openNewPlaybookEditor(playbook: string) {
     undoStopBefore: true,
     undoStopAfter: false,
   });
+}
+
+function contentMatch(generationId: string, playbook: string) {
+  lightSpeedManager.contentMatchesProvider.suggestionDetails = [
+    {
+      suggestionId: generationId,
+      suggestion: playbook,
+      isPlaybook: true,
+    },
+  ];
+  // Show training matches for the accepted suggestion.
+  vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
+  );
 }
 
 async function generatePlaybook(
@@ -167,6 +182,8 @@ export async function showPlaybookGenerationPage(
             outline,
           },
         });
+
+        contentMatch(generationId, playbook);
         break;
       }
       case "openEditor": {

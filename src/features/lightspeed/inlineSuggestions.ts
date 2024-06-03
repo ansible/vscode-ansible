@@ -456,6 +456,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
     {
       suggestionId: result.suggestionId,
       suggestion: contentMatchesForSuggestion,
+      isPlaybook: false,
     },
   ];
   // if the suggestion is not empty then we set the flag to true
@@ -530,6 +531,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
     {
       suggestionId: result.suggestionId,
       suggestion: contentMatchesForSuggestion,
+      isPlaybook: false,
     },
   ];
   // if the suggestion is not empty then we set the flag to true
