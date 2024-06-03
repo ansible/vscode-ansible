@@ -23,6 +23,11 @@ export const playbookExplanation = async (
     return;
   }
   const explanationId = uuidv4();
+  lightSpeedManager.apiInstance.feedbackRequest(
+    { playbookExplanation: { explanationId: explanationId } },
+    false,
+    false,
+  );
   const currentPanel = PlaybookExplanationPanel.createOrShow(
     extensionUri,
     explanationId,

@@ -563,15 +563,25 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.lightspeed.thumbsUpDown",
       async (param: PlaybookFeedbackEvent) => {
-        lightSpeedManager.apiInstance.feedbackRequest(
-          param.explanationId
-            ? { playbookExplanationFeedback: param }
-            : param.generationId
-              ? { playbookGenerationFeedback: param }
-              : { playbookOutlineFeedback: param },
-          true,
-          true,
-        );
+        if (param.explanationId) {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookExplanationFeedback: param },
+            true,
+            true,
+          );
+        } else if (param.generationId) {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookGenerationFeedback: param },
+            true,
+            true,
+          );
+        } else {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookOutlineFeedback: param },
+            true,
+            true,
+          );
+        }
       },
     ),
   );
