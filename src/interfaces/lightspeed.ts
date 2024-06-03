@@ -71,6 +71,10 @@ export interface IssueFeedbackEvent {
   description: string;
 }
 
+export interface PlaybookExplanationEvent {
+  explanationId?: string;
+}
+
 export interface PlaybookFeedbackEvent {
   action: ThumbsUpDownAction;
   explanationId?: string;
@@ -82,6 +86,7 @@ export interface FeedbackRequestParams {
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
+  playbookExplanation?: PlaybookExplanationEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationFeedback?: PlaybookFeedbackEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
