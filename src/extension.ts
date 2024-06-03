@@ -42,7 +42,7 @@ import {
   inlineSuggestionTriggerHandler,
   LightSpeedInlineSuggestionProvider,
   setDocumentChanged,
-  processInProgessSuggestion,
+  processInProgressSuggestion,
 } from "./features/lightspeed/inlineSuggestions";
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
@@ -260,7 +260,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // Listen for text selection changes
   context.subscriptions.push(
     vscode.window.onDidChangeTextEditorSelection(async () => {
-      processInProgessSuggestion();
+      processInProgressSuggestion();
     }),
   );
 

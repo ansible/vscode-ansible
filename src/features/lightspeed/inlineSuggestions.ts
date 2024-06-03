@@ -174,7 +174,7 @@ function getCompletionState(
 
   // If users continue to without pressing configured keys to
   // either accept or reject the suggestion, we will consider it as ignored.
-  if (inlinesuggestionDisplayed() && !positionHasChanged) {
+  if (isInlineSuggestionDisplayed() && !positionHasChanged) {
     /* The following approach is implemented to address a specific issue related to the
      * behavior of inline suggestion in the 'automated' trigger scenario:
      *
@@ -193,7 +193,7 @@ function getCompletionState(
     return CompletionState.CacheSuggestion;
   }
 
-  if (inlinesuggestionDisplayed()) {
+  if (isInlineSuggestionDisplayed()) {
     return CompletionState.RefusedSuggestion;
   }
 
@@ -877,7 +877,7 @@ export async function inlineSuggestionCommitHandler() {
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // If the suggestion does not seem to be ours, exit early.
-  if (!inlineSuggestionInProgess()) {
+  if (!isInlineSuggestionInProgress()) {
     return;
   }
 
@@ -953,15 +953,15 @@ function checkSameEditor(): boolean {
   return true;
 }
 
-function inlinesuggestionDisplayed(): boolean {
+function isInlineSuggestionDisplayed(): boolean {
   return suggestionDisplayed.get();
 }
 
-function inlineSuggestionPending(): boolean {
-  return inlineSuggestionInProgess() && inlinesuggestionDisplayed();
+function isInlineSuggestionPending(): boolean {
+  return isInlineSuggestionInProgress() && isInlineSuggestionDisplayed();
 }
 
-function inlineSuggestionInProgess(): boolean {
+function isInlineSuggestionInProgress(): boolean {
   return (
     lightSpeedManager.inlineSuggestionsEnabled &&
     "suggestionId" in inlineSuggestionData
@@ -973,8 +973,8 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
-export async function processInProgessSuggestion() {
-  if (inlinesuggestionDisplayed()) {
+export async function processInProgressSuggestion() {
+  if (isInlineSuggestionDisplayed()) {
     rejectPendingSuggestion();
   } else {
     ignoreInProgressSuggestion();
@@ -982,7 +982,7 @@ export async function processInProgessSuggestion() {
 }
 
 async function rejectPendingSuggestion() {
-  if (inlineSuggestionPending() && checkSameEditor()) {
+  if (isInlineSuggestionPending() && checkSameEditor()) {
     console.log(
       "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
     );
@@ -993,7 +993,7 @@ async function rejectPendingSuggestion() {
 }
 
 export async function ignorePendingSuggestion() {
-  if (inlineSuggestionPending()) {
+  if (isInlineSuggestionPending()) {
     console.log(
       "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
     );
@@ -1003,8 +1003,8 @@ export async function ignorePendingSuggestion() {
   }
 }
 
-export async function ignoreInProgressSuggestion() {
-  if (checkSameEditor() && inlineSuggestionInProgess()) {
+async function ignoreInProgressSuggestion() {
+  if (checkSameEditor() && isInlineSuggestionInProgress()) {
     console.log(
       "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
     );
@@ -1032,9 +1032,8 @@ export async function inlineSuggestionTextDocumentChangeHandler(
   // suggestion was found. If such a change was detected, we assume that the user accepted
   // the suggestion on the widget.
   if (
-    lightSpeedManager.inlineSuggestionsEnabled &&
+    isInlineSuggestionInProgress() &&
     checkSameEditor() &&
-    inlineSuggestionInProgess() &&
     insertTexts &&
     e.document.languageId === "ansible" &&
     e.contentChanges.length > 0
