@@ -174,7 +174,7 @@ function getCompletionState(
 
   // If users continue to without pressing configured keys to
   // either accept or reject the suggestion, we will consider it as ignored.
-  if (suggestionDisplayed.get() && !positionHasChanged) {
+  if (inlinesuggestionDisplayed() && !positionHasChanged) {
     /* The following approach is implemented to address a specific issue related to the
      * behavior of inline suggestion in the 'automated' trigger scenario:
      *
@@ -193,7 +193,7 @@ function getCompletionState(
     return CompletionState.CacheSuggestion;
   }
 
-  if (suggestionDisplayed.get()) {
+  if (inlinesuggestionDisplayed()) {
     return CompletionState.RefusedSuggestion;
   }
 
@@ -877,7 +877,7 @@ export async function inlineSuggestionCommitHandler() {
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // If the suggestion does not seem to be ours, exit early.
-  if (!isPredictionInProgress()) {
+  if (!inlineSuggestionInProgess()) {
     return;
   }
 
@@ -942,20 +942,30 @@ export async function inlineSuggestionUserActionHandler(
   resetSuggestionData();
 }
 
-function inlineSuggestionPending(checkActiveTextEditor = true): boolean {
-  if (checkActiveTextEditor) {
-    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
-      return false;
-    }
-    const editor = vscode.window.activeTextEditor;
-    if (!editor) {
-      return false;
-    }
+function checkSameEditor(): boolean {
+  if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    return false;
   }
-  if (!isPredictionInProgress()) {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor) {
     return false;
   }
   return true;
+}
+
+function inlinesuggestionDisplayed(): boolean {
+  return suggestionDisplayed.get();
+}
+
+function inlineSuggestionPending(): boolean {
+  return inlineSuggestionInProgess() && inlinesuggestionDisplayed();
+}
+
+function inlineSuggestionInProgess(): boolean {
+  return (
+    lightSpeedManager.inlineSuggestionsEnabled &&
+    "suggestionId" in inlineSuggestionData
+  );
 }
 
 function resetSuggestionData(): void {
@@ -963,42 +973,55 @@ function resetSuggestionData(): void {
   insertTexts = [];
 }
 
-function isPredictionInProgress(): boolean {
-  return "suggestionId" in inlineSuggestionData;
+export async function processInProgessSuggestion() {
+  if (inlinesuggestionDisplayed()) {
+    rejectPendingSuggestion();
+  } else {
+    ignoreInProgressSuggestion();
+  }
 }
 
-export async function rejectPendingSuggestion() {
-  if (
-    (suggestionDisplayed.get() || isPredictionInProgress()) &&
-    lightSpeedManager.inlineSuggestionsEnabled
-  ) {
-    if (inlineSuggestionPending()) {
-      console.log(
-        "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
-      );
-      const suggestionId = inlineSuggestionData["suggestionId"] || "";
-      await inlineSuggestionUserActionHandler(
-        suggestionId,
-        UserAction.REJECTED,
-      );
-    } else {
-      suggestionDisplayed.reset();
-    }
+async function rejectPendingSuggestion() {
+  if (inlineSuggestionPending() && checkSameEditor()) {
+    console.log(
+      "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
+    );
+    sendRejectedSuggestion();
+  } else {
+    suggestionDisplayed.reset();
   }
 }
 
 export async function ignorePendingSuggestion() {
-  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
-    if (inlineSuggestionPending(false)) {
-      console.log(
-        "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
-      );
-      const suggestionId = inlineSuggestionData["suggestionId"] || "";
-      await inlineSuggestionUserActionHandler(suggestionId, UserAction.IGNORED);
-    } else {
-      suggestionDisplayed.reset();
-    }
+  if (inlineSuggestionPending()) {
+    console.log(
+      "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
+    );
+    sendIgnoredSuggestion();
+  } else {
+    suggestionDisplayed.reset();
   }
+}
+
+export async function ignoreInProgressSuggestion() {
+  if (checkSameEditor() && inlineSuggestionInProgess()) {
+    console.log(
+      "[inline-suggestions] Send a IGNORED feedback for a pending suggestion.",
+    );
+    sendIgnoredSuggestion();
+  } else {
+    suggestionDisplayed.reset();
+  }
+}
+
+async function sendRejectedSuggestion() {
+  const suggestionId = inlineSuggestionData["suggestionId"] || "";
+  await inlineSuggestionUserActionHandler(suggestionId, UserAction.REJECTED);
+}
+
+async function sendIgnoredSuggestion() {
+  const suggestionId = inlineSuggestionData["suggestionId"] || "";
+  await inlineSuggestionUserActionHandler(suggestionId, UserAction.IGNORED);
 }
 
 export async function inlineSuggestionTextDocumentChangeHandler(
@@ -1010,7 +1033,8 @@ export async function inlineSuggestionTextDocumentChangeHandler(
   // the suggestion on the widget.
   if (
     lightSpeedManager.inlineSuggestionsEnabled &&
-    inlineSuggestionPending() &&
+    checkSameEditor() &&
+    inlineSuggestionInProgess() &&
     insertTexts &&
     e.document.languageId === "ansible" &&
     e.contentChanges.length > 0
