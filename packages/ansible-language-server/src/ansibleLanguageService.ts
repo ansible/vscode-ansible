@@ -399,6 +399,7 @@ export class AnsibleLanguageService {
         const createOutline: boolean = params["createOutline"];
         const outline: string | undefined = params["outline"];
         const generationId: string = params["generationId"];
+        const wizardId: string | undefined = params["wizardId"];
 
         const headers = {
           "Content-Type": "application/json",
@@ -416,6 +417,7 @@ export class AnsibleLanguageService {
             createOutline,
             outline,
             generationId,
+            wizardId,
           })
           .then((response) => {
             return response.data;
