@@ -9,6 +9,7 @@ import {
   TextArea,
 } from "@vscode/webview-ui-toolkit";
 import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
+import { EditableList } from "../../common/editableList";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -21,11 +22,12 @@ const TEXTAREA_MAX_HEIGHT = 500;
 const TOTAL_PAGES = 3;
 
 let savedText: string;
-let savedTextHeightPage1: string | undefined;
-let savedTextHeightPage2: string | undefined;
-let savedOutline: string | undefined;
 let savedPlaybook: string | undefined;
 let generationId: string | undefined;
+let darkMode = true;
+let textArea: TextArea;
+
+let outline: EditableList;
 
 const vscode = acquireVsCodeApi();
 
@@ -40,46 +42,62 @@ window.addEventListener("load", () => {
   setListener("back-to-page2-button", backToPage2);
   setListener("open-editor-button", openEditor);
 
+  textArea = document.getElementById("playbook-text-area") as TextArea;
   setListenerOnTextArea();
-
   savedText = "";
-  savedOutline = "";
+
+  outline = new EditableList("outline-list");
+  outline.element.addEventListener("input", () => {
+    setButtonEnabled("reset-button", outline.isChanged());
+  });
+
+  // Detect whether a dark or a light color theme is used.
+  const element = document.getElementById("main-header");
+  if (element) {
+    const style = window.getComputedStyle(element);
+    const color = style.getPropertyValue("color");
+    const re = /rgb.?\((\d+), (\d+), (\d+)/;
+    const found = color.match(re);
+    if (found) {
+      const r = parseInt(found[1]);
+      const g = parseInt(found[2]);
+      const b = parseInt(found[3]);
+      darkMode = r > 128 && g > 128 && b > 128;
+    }
+  }
 });
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", async (event) => {
   const message = event.data;
 
   switch (message.command) {
     case "init": {
-      const element = document.getElementById("playbook-text-area") as TextArea;
-      generationId = uuidv4();
-      element.focus();
+      textArea.focus();
       break;
     }
     case "outline": {
       setupPage(2);
-
-      const element = document.getElementById("playbook-text-area") as TextArea;
-      savedOutline = element.value = message.outline.outline;
+      outline.update(message.outline.outline);
       savedPlaybook = message.outline.playbook;
       generationId = message.outline.generationId;
-      resetTextAreaHeight();
-      element.rows = 10;
+
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
       updateThumbsUpDownButtons(false, false);
+
+      outline.focus();
       break;
     }
     case "playbook": {
       setupPage(3);
-
-      const element = document.getElementById("playbook-text-area") as TextArea;
-      savedPlaybook = element.value = message.playbook.playbook;
+      outline.update(message.playbook.outline);
+      savedPlaybook = message.playbook.playbook;
       generationId = message.playbook.generationId;
-      savedOutline = message.playbook.outline;
-      resetTextAreaHeight();
-      element.rows = 15;
-      element.readOnly = true;
+
+      const element = document.getElementById("formatted-code") as Element;
+      element.innerHTML = message.playbook.html;
+      const pre = document.getElementsByTagName("pre")[0];
+      pre.style.backgroundColor = "";
       break;
     }
     // When summaries or generations API was processed normally (e.g., API error)
@@ -102,19 +120,11 @@ function setListener(id: string, func: any) {
 }
 
 function setListenerOnTextArea() {
-  const textArea = document.getElementById("playbook-text-area") as TextArea;
-  if (textArea) {
-    textArea.addEventListener("input", async () => {
-      const input = textArea.value;
-      setButtonEnabled("submit-button", input.length > 0);
-
-      if (savedOutline) {
-        setButtonEnabled("reset-button", savedOutline !== input);
-      }
-
-      adjustTextAreaHeight();
-    });
-  }
+  textArea.addEventListener("input", async () => {
+    const input = textArea.value;
+    setButtonEnabled("submit-button", input.length > 0);
+    adjustTextAreaHeight();
+  });
 }
 
 function changeDisplay(className: string, displayState: string) {
@@ -125,14 +135,27 @@ function changeDisplay(className: string, displayState: string) {
   }
 }
 
-async function submitInput() {
-  const element = document.getElementById("playbook-text-area") as TextArea;
+function showBlockElement(id: string) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.style.display = "block";
+  }
+}
 
-  if (savedText !== element.value) {
-    savedText = element.value;
-    savedOutline = undefined;
+function hideBlockElement(id: string) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.style.display = "none";
+  }
+}
+
+async function submitInput() {
+  // If the saved text is not the current one, clear saved values and assign a new generationId
+  if (savedText !== textArea.value) {
+    savedText = textArea.value;
+    outline.update("");
     savedPlaybook = undefined;
-    savedTextHeightPage1 = getInputHeight();
+    generationId = uuidv4();
   }
 
   changeDisplay("spinnerContainer", "block");
@@ -141,68 +164,50 @@ async function submitInput() {
     command: "outline",
     text: savedText,
     playbook: savedPlaybook,
-    outline: savedOutline,
+    outline: outline.getSavedValueAsString(),
     generationId,
   });
-  element.focus();
+  textArea.focus();
 }
 
 function reset() {
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  if (savedOutline) {
-    element.value = savedOutline;
-  }
-  element.focus();
+  outline.reset();
+  outline.focus();
 }
 
 function backToPage1() {
   setupPage(1);
-
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  if (savedText) {
-    element.value = savedText;
-  }
-  element.readOnly = false;
-  resetTextAreaHeight(savedTextHeightPage1);
-
-  element.rows = 5;
-  element.focus();
+  textArea.focus();
 }
 
 function backToPage2() {
   setupPage(2);
-
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  if (savedOutline) {
-    element.value = savedOutline;
-  }
-  element.readOnly = false;
-  resetTextAreaHeight(savedTextHeightPage2);
-
-  element.rows = 10;
-  element.focus();
+  outline.focus();
 }
 
 async function generateCode() {
-  const element = document.getElementById("playbook-text-area") as TextArea;
   const text = savedText;
-  const outline = element.value;
-  savedTextHeightPage2 = getInputHeight();
+  let playbook: string | undefined;
 
-  // If user did not make any changes to the generated outline, use the saved playbook
-  // installed of calling the generations API again.
-  const playbook = savedOutline === outline ? savedPlaybook : undefined;
+  // If user made any changes to the generated outline, save the edited outline and
+  // generate a new generationId.  Otherwise, just use the generated playbook.
+  if (outline.isChanged()) {
+    outline.save();
+    generationId = uuidv4();
+  } else {
+    playbook = savedPlaybook;
+  }
 
   changeDisplay("spinnerContainer", "block");
 
   vscode.postMessage({
     command: "generateCode",
     text,
-    outline,
+    outline: outline.getSavedValueAsString(),
     playbook,
     generationId,
+    darkMode,
   });
-  element.focus();
 }
 
 async function openEditor() {
@@ -251,18 +256,6 @@ function getTextAreaInShadowDOM() {
   return shadowRoot?.querySelector("textarea");
 }
 
-function getInputHeight(): string | undefined {
-  const textarea = getTextAreaInShadowDOM();
-  return textarea?.style.height;
-}
-
-function resetTextAreaHeight(savedTextHeight = "") {
-  const textarea = getTextAreaInShadowDOM();
-  if (textarea) {
-    textarea.style.height = savedTextHeight;
-  }
-}
-
 function adjustTextAreaHeight() {
   const textarea = getTextAreaInShadowDOM();
   if (textarea?.scrollHeight) {
@@ -294,6 +287,9 @@ function setupPage(pageNumber: number) {
   switch (pageNumber) {
     case 1:
       setPageNumber(1);
+      showBlockElement("playbook-text-area");
+      changeDisplay("outlineContainer", "none");
+      changeDisplay("formattedPlaybook", "none");
       changeDisplay("bigIconButtonContainer", "block");
       changeDisplay("examplesContainer", "block");
       changeDisplay("resetFeedbackContainer", "none");
@@ -306,6 +302,9 @@ function setupPage(pageNumber: number) {
       break;
     case 2:
       setPageNumber(2);
+      hideBlockElement("playbook-text-area");
+      changeDisplay("outlineContainer", "block");
+      changeDisplay("formattedPlaybook", "none");
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
@@ -322,6 +321,9 @@ function setupPage(pageNumber: number) {
       break;
     case 3:
       setPageNumber(3);
+      hideBlockElement("playbook-text-area");
+      changeDisplay("outlineContainer", "none");
+      changeDisplay("formattedPlaybook", "block");
       changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");

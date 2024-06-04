@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { v4 as uuidv4 } from "uuid";
 import { LanguageClient } from "vscode-languageclient/node";
 import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
@@ -10,6 +11,7 @@ import { GenerationResponse } from "@ansible/ansible-language-server/src/interfa
 import { LightSpeedCommands } from "../../definitions/lightspeed";
 
 let currentPanel: WebviewPanel | undefined;
+let wizardId: string | undefined;
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -71,6 +73,7 @@ async function generatePlaybook(
       outline,
       createOutline,
       generationId,
+      wizardId,
     },
   );
   return playbook;
@@ -109,8 +112,12 @@ export async function showPlaybookGenerationPage(
     },
   );
 
-  panel.onDidDispose(() => (currentPanel = undefined));
+  panel.onDidDispose(() => {
+    currentPanel = undefined;
+    wizardId = undefined;
+  });
   currentPanel = panel;
+  wizardId = uuidv4();
 
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
@@ -153,6 +160,7 @@ export async function showPlaybookGenerationPage(
 
       case "generateCode": {
         let { playbook, generationId, outline } = message;
+        const darkMode = message.darkMode;
         if (!playbook) {
           try {
             const playbookResponse = await generatePlaybook(
@@ -171,8 +179,13 @@ export async function showPlaybookGenerationPage(
           } catch (e: any) {
             panel.webview.postMessage({ command: "exception" });
             vscode.window.showErrorMessage(e.message);
+            break;
           }
         }
+
+        const html = await (
+          await require("../utils/syntaxHighlighter")
+        ).codeToHtml(playbook, darkMode ? "dark-plus" : "light-plus", "yaml");
 
         panel.webview.postMessage({
           command: "playbook",
@@ -180,6 +193,7 @@ export async function showPlaybookGenerationPage(
             playbook,
             generationId,
             outline,
+            html,
           },
         });
 
@@ -230,7 +244,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+        content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};'">
     <link rel="stylesheet" href="${codiconsUri}">
     <link rel="stylesheet" href="${styleUri}">
     <title>Playbook</title>
@@ -238,7 +252,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
 
 <body>
     <div class="playbookGeneration">
-        <h2>Create a playbook with Ansible Lightspeed</h2>
+        <h2 id="main-header">Create a playbook with Ansible Lightspeed</h2>
         <div class="pageNumber" id="page-number">1 of 3</div>
         <div class="promptContainer">
           <span>
@@ -247,13 +261,13 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </span>
         </div>
         <div class="firstMessage">
-          <h3>What do you want the playbook to accomplish?</h3>
+          <h4>What do you want the playbook to accomplish?</h3>
         </div>
         <div class="secondMessage">
-          <h3>Review the suggested steps for your playbook and modify as needed.</h3>
+          <h4>Review the suggested steps for your playbook and modify as needed.</h3>
         </div>
         <div class="thirdMessage">
-          <h3>The following playbook was generated for you:</h3>
+          <h4>The following playbook was generated for you:</h3>
         </div>
         <div class="mainContainer">
           <div class="editArea">
@@ -261,14 +275,22 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
                 placeholder="I want to write a playbook that will..."
                 id="playbook-text-area">
             </vscode-text-area>
+            <div class="outlineContainer">
+              <ol id="outline-list" contentEditable="true">
+                <li></li>
+              </ol>
+            </div>
             <div class="spinnerContainer">
               <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>
             </div>
           </div>
+          <div class="formattedPlaybook">
+            <span id="formatted-code"></span>
+          </div>
           <div class="bigIconButtonContainer">
             <vscode-button class="biggerButton" id="submit-button" disabled>
               Analyze
-           </vscode-button>
+            </vscode-button>
           </div>
           <div class="resetFeedbackContainer">
             <div class="resetContainer">
