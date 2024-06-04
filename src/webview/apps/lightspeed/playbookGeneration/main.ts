@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import {
   provideVSCodeDesignSystem,
   Button,
@@ -8,6 +9,7 @@ import {
   TextArea,
 } from "@vscode/webview-ui-toolkit";
 import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
+import { EditableList } from "../../common/editableList";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -17,62 +19,85 @@ provideVSCodeDesignSystem().register(
 );
 
 const TEXTAREA_MAX_HEIGHT = 500;
+const TOTAL_PAGES = 3;
 
 let savedText: string;
-let savedTextHeight: string | undefined;
-let savedOutline: string;
-let savedPlaybook: string;
-let outlineId: string | undefined;
+let savedPlaybook: string | undefined;
+let generationId: string | undefined;
+let darkMode = true;
+let textArea: TextArea;
+
+let outline: EditableList;
 
 const vscode = acquireVsCodeApi();
 
 window.addEventListener("load", () => {
   setListener("submit-button", submitInput);
-  setListener("generate-button", generatePlaybook);
+  setListener("generate-button", generateCode);
   setListener("reset-button", reset);
   setListener("thumbsup-button", sendThumbsup);
   setListener("thumbsdown-button", sendThumbsdown);
-  setListener("back-button", back);
-  setListener("back-anchor", back);
+  setListener("back-button", backToPage1);
+  setListener("back-anchor", backToPage1);
+  setListener("back-to-page2-button", backToPage2);
+  setListener("open-editor-button", openEditor);
 
+  textArea = document.getElementById("playbook-text-area") as TextArea;
   setListenerOnTextArea();
-
   savedText = "";
-  savedOutline = "";
+
+  outline = new EditableList("outline-list");
+  outline.element.addEventListener("input", () => {
+    setButtonEnabled("reset-button", outline.isChanged());
+  });
+
+  // Detect whether a dark or a light color theme is used.
+  const element = document.getElementById("main-header");
+  if (element) {
+    const style = window.getComputedStyle(element);
+    const color = style.getPropertyValue("color");
+    const re = /rgb.?\((\d+), (\d+), (\d+)/;
+    const found = color.match(re);
+    if (found) {
+      const r = parseInt(found[1]);
+      const g = parseInt(found[2]);
+      const b = parseInt(found[3]);
+      darkMode = r > 128 && g > 128 && b > 128;
+    }
+  }
 });
 
-window.addEventListener("message", (event) => {
+window.addEventListener("message", async (event) => {
   const message = event.data;
 
   switch (message.command) {
-    case "focus": {
-      const element = document.getElementById("playbook-text-area") as TextArea;
-      element.focus();
+    case "init": {
+      textArea.focus();
       break;
     }
     case "outline": {
-      changeDisplay("spinnerContainer", "none");
-      changeDisplay("bigIconButtonContainer", "none");
-      changeDisplay("examplesContainer", "none");
-      changeDisplay("resetFeedbackContainer", "block");
-      changeDisplay("firstMessage", "none");
-      changeDisplay("secondMessage", "block");
-      changeDisplay("generatePlaybookContainer", "block");
-      changeDisplay("promptContainer", "block");
-
-      updateThumbsUpDownButtons(false, false);
-
-      const element = document.getElementById("playbook-text-area") as TextArea;
-      savedOutline = element.value = message.outline.outline;
+      setupPage(2);
+      outline.update(message.outline.outline);
       savedPlaybook = message.outline.playbook;
-      outlineId = message.outline.generationId;
-      resetTextAreaHeight();
+      generationId = message.outline.generationId;
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
+      updateThumbsUpDownButtons(false, false);
 
-      element.rows = 20;
+      outline.focus();
+      break;
+    }
+    case "playbook": {
+      setupPage(3);
+      outline.update(message.playbook.outline);
+      savedPlaybook = message.playbook.playbook;
+      generationId = message.playbook.generationId;
 
+      const element = document.getElementById("formatted-code") as Element;
+      element.innerHTML = message.playbook.html;
+      const pre = document.getElementsByTagName("pre")[0];
+      pre.style.backgroundColor = "";
       break;
     }
     // When summaries or generations API was processed normally (e.g., API error)
@@ -95,21 +120,11 @@ function setListener(id: string, func: any) {
 }
 
 function setListenerOnTextArea() {
-  const textArea = document.getElementById("playbook-text-area") as TextArea;
-  const submitButton = document.getElementById("submit-button") as Button;
-  const resetButton = document.getElementById("reset-button") as Button;
-  if (textArea) {
-    textArea.addEventListener("input", async () => {
-      const input = textArea.value;
-      submitButton.disabled = input.length === 0;
-
-      if (savedOutline) {
-        resetButton.disabled = savedOutline === input;
-      }
-
-      adjustTextAreaHeight();
-    });
-  }
+  textArea.addEventListener("input", async () => {
+    const input = textArea.value;
+    setButtonEnabled("submit-button", input.length > 0);
+    adjustTextAreaHeight();
+  });
 }
 
 function changeDisplay(className: string, displayState: string) {
@@ -120,58 +135,85 @@ function changeDisplay(className: string, displayState: string) {
   }
 }
 
-async function submitInput() {
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  savedText = element.value;
-  savedTextHeight = getInputHeight();
-
-  changeDisplay("spinnerContainer", "block");
-
-  vscode.postMessage({ command: "outline", text: savedText });
-  element.focus();
-}
-
-function reset() {
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  element.value = savedOutline;
-  element.focus();
-}
-
-function back() {
-  changeDisplay("bigIconButtonContainer", "block");
-  changeDisplay("examplesContainer", "block");
-  changeDisplay("resetFeedbackContainer", "none");
-  changeDisplay("firstMessage", "block");
-  changeDisplay("secondMessage", "none");
-  changeDisplay("generatePlaybookContainer", "none");
-  changeDisplay("promptContainer", "none");
-
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  if (savedText) {
-    element.value = savedText;
+function showBlockElement(id: string) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.style.display = "block";
   }
-  resetTextAreaHeight(savedTextHeight);
-  element.rows = 5;
-
-  element.focus();
 }
 
-async function generatePlaybook() {
-  const element = document.getElementById("playbook-text-area") as TextArea;
-  const text = savedText;
-  const outline = element.value;
+function hideBlockElement(id: string) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.style.display = "none";
+  }
+}
 
-  // If user did not make any changes to the generated outline, use the saved playbook
-  // installed of calling the generations API again.
-  const playbook = savedOutline === outline ? savedPlaybook : undefined;
+async function submitInput() {
+  // If the saved text is not the current one, clear saved values and assign a new generationId
+  if (savedText !== textArea.value) {
+    savedText = textArea.value;
+    outline.update("");
+    savedPlaybook = undefined;
+    generationId = uuidv4();
+  }
 
   changeDisplay("spinnerContainer", "block");
 
   vscode.postMessage({
-    command: "generatePlaybook",
+    command: "outline",
+    text: savedText,
+    playbook: savedPlaybook,
+    outline: outline.getSavedValueAsString(),
+    generationId,
+  });
+  textArea.focus();
+}
+
+function reset() {
+  outline.reset();
+  outline.focus();
+}
+
+function backToPage1() {
+  setupPage(1);
+  textArea.focus();
+}
+
+function backToPage2() {
+  setupPage(2);
+  outline.focus();
+}
+
+async function generateCode() {
+  const text = savedText;
+  let playbook: string | undefined;
+
+  // If user made any changes to the generated outline, save the edited outline and
+  // generate a new generationId.  Otherwise, just use the generated playbook.
+  if (outline.isChanged()) {
+    outline.save();
+    generationId = uuidv4();
+  } else {
+    playbook = savedPlaybook;
+  }
+
+  changeDisplay("spinnerContainer", "block");
+
+  vscode.postMessage({
+    command: "generateCode",
     text,
-    outline,
+    outline: outline.getSavedValueAsString(),
     playbook,
+    generationId,
+    darkMode,
+  });
+}
+
+async function openEditor() {
+  vscode.postMessage({
+    command: "openEditor",
+    playbook: savedPlaybook,
   });
 }
 
@@ -196,7 +238,7 @@ function sendThumbsup() {
   vscode.postMessage({
     command: "thumbsUp",
     action: ThumbsUpDownAction.UP,
-    outlineId,
+    generationId: generationId,
   });
 }
 
@@ -205,25 +247,13 @@ function sendThumbsdown() {
   vscode.postMessage({
     command: "thumbsDown",
     action: ThumbsUpDownAction.DOWN,
-    outlineId,
+    generationId: generationId,
   });
 }
 
 function getTextAreaInShadowDOM() {
   const shadowRoot = document.querySelector("vscode-text-area")?.shadowRoot;
   return shadowRoot?.querySelector("textarea");
-}
-
-function getInputHeight(): string | undefined {
-  const textarea = getTextAreaInShadowDOM();
-  return textarea?.style.height;
-}
-
-function resetTextAreaHeight(savedTextHeight = "") {
-  const textarea = getTextAreaInShadowDOM();
-  if (textarea) {
-    textarea.style.height = savedTextHeight;
-  }
 }
 
 function adjustTextAreaHeight() {
@@ -240,5 +270,70 @@ function adjustTextAreaHeight() {
       // +2 was needed to eliminate scrollbar...
       textarea.style.height = `${scrollHeight + 2}px`;
     }
+  }
+}
+
+function setPageNumber(pageNumber: number) {
+  const span = document.getElementById("page-number") as Element;
+  span.textContent = `${pageNumber} of ${TOTAL_PAGES}`;
+}
+
+function setButtonEnabled(id: string, enabled: boolean) {
+  const element = document.getElementById(id) as Button;
+  element.disabled = !enabled;
+}
+
+function setupPage(pageNumber: number) {
+  switch (pageNumber) {
+    case 1:
+      setPageNumber(1);
+      showBlockElement("playbook-text-area");
+      changeDisplay("outlineContainer", "none");
+      changeDisplay("formattedPlaybook", "none");
+      changeDisplay("bigIconButtonContainer", "block");
+      changeDisplay("examplesContainer", "block");
+      changeDisplay("resetFeedbackContainer", "none");
+      changeDisplay("firstMessage", "block");
+      changeDisplay("secondMessage", "none");
+      changeDisplay("thirdMessage", "none");
+      changeDisplay("generatePlaybookContainer", "none");
+      changeDisplay("promptContainer", "none");
+      changeDisplay("openEditorContainer", "none");
+      break;
+    case 2:
+      setPageNumber(2);
+      hideBlockElement("playbook-text-area");
+      changeDisplay("outlineContainer", "block");
+      changeDisplay("formattedPlaybook", "none");
+      changeDisplay("spinnerContainer", "none");
+      changeDisplay("bigIconButtonContainer", "none");
+      changeDisplay("examplesContainer", "none");
+      changeDisplay("resetFeedbackContainer", "block");
+      changeDisplay("resetContainer", "block");
+      changeDisplay("feedbackContainer", "none");
+      changeDisplay("firstMessage", "none");
+      changeDisplay("secondMessage", "block");
+      changeDisplay("thirdMessage", "none");
+      changeDisplay("generatePlaybookContainer", "block");
+      changeDisplay("promptContainer", "block");
+      changeDisplay("openEditorContainer", "none");
+      setButtonEnabled("reset-button", false);
+      break;
+    case 3:
+      setPageNumber(3);
+      hideBlockElement("playbook-text-area");
+      changeDisplay("outlineContainer", "none");
+      changeDisplay("formattedPlaybook", "block");
+      changeDisplay("spinnerContainer", "none");
+      changeDisplay("bigIconButtonContainer", "none");
+      changeDisplay("examplesContainer", "none");
+      changeDisplay("resetFeedbackContainer", "none");
+      changeDisplay("firstMessage", "none");
+      changeDisplay("secondMessage", "none");
+      changeDisplay("thirdMessage", "block");
+      changeDisplay("generatePlaybookContainer", "none");
+      changeDisplay("openEditorContainer", "block");
+
+      break;
   }
 }

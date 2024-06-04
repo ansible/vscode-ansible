@@ -74,7 +74,34 @@ describe("ContentMatches view", () => {
       assert.equal(inputData.model, undefined);
       return createMatchResponse();
     };
-    const res = await cmw.requestInlineSuggestContentMatches("foo", "bar");
+    const res = await cmw.requestInlineSuggestContentMatches(
+      "foo",
+      "bar",
+      false,
+    );
+    assert.equal(cmw.isError(res), false);
+
+    const contentMatchesResponse: ContentMatchesResponseParams =
+      res as ContentMatchesResponseParams;
+    assert.equal(
+      contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
+      "ansible.ansible",
+    );
+  });
+
+  it("with normal input with isPlaybook=true", async function () {
+    const cmw = createContentMatchesWebview();
+    cmw.apiInstance.contentMatchesRequest = async (
+      inputData: ContentMatchesRequestParams,
+    ): Promise<ContentMatchesResponseParams> => {
+      assert.equal(inputData.model, undefined);
+      return createMatchResponse();
+    };
+    const res = await cmw.requestInlineSuggestContentMatches(
+      "foo",
+      "bar",
+      true,
+    );
     assert.equal(cmw.isError(res), false);
 
     const contentMatchesResponse: ContentMatchesResponseParams =
@@ -94,7 +121,11 @@ describe("ContentMatches view", () => {
       assert.equal(inputData.model, "the_model");
       return createMatchResponse();
     };
-    const res = await cmw.requestInlineSuggestContentMatches("foo", "bar");
+    const res = await cmw.requestInlineSuggestContentMatches(
+      "foo",
+      "bar",
+      false,
+    );
     assert.equal(cmw.isError(res), false);
 
     const contentMatchesResponse: ContentMatchesResponseParams =

@@ -71,14 +71,10 @@ export interface IssueFeedbackEvent {
   description: string;
 }
 
-export interface PlaybookOutlineEvent {
+export interface PlaybookFeedbackEvent {
   action: ThumbsUpDownAction;
-  outlineId: string;
-}
-
-export interface PlaybookExplanationEvent {
-  action: ThumbsUpDownAction;
-  outlineId: string;
+  explanationId?: string;
+  generationId?: string;
 }
 
 export interface FeedbackRequestParams {
@@ -86,8 +82,9 @@ export interface FeedbackRequestParams {
   sentimentFeedback?: SentimentEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
-  playbookExplanationFeedback?: PlaybookExplanationEvent;
-  playbookOutlineFeedback?: PlaybookOutlineEvent;
+  playbookExplanationFeedback?: PlaybookFeedbackEvent;
+  playbookGenerationFeedback?: PlaybookFeedbackEvent;
+  playbookOutlineFeedback?: PlaybookFeedbackEvent;
   model?: string;
 }
 
@@ -126,6 +123,7 @@ export interface ContentMatchesResponseParams {
 export interface ISuggestionDetails {
   suggestion: string;
   suggestionId: string;
+  isPlaybook: boolean;
 }
 
 export type IAnsibleFileType = "playbook" | "tasks_in_role" | "tasks" | "other";
