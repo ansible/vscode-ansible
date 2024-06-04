@@ -9,8 +9,10 @@ export function generations(
 ) {
   const createOutline = req.body.createOutline;
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
+  const wizardId = req.body.wizardId;
   logger.info(req.body.text);
   logger.info(req.body.outline);
+  logger.info(`wizardId: ${wizardId}`);
 
   // cSpell: disable
   let outline: string | undefined = `Name: "Create an azure network..."

@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { v4 as uuidv4 } from "uuid";
 import { LanguageClient } from "vscode-languageclient/node";
 import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
@@ -10,6 +11,7 @@ import { GenerationResponse } from "@ansible/ansible-language-server/src/interfa
 import { LightSpeedCommands } from "../../definitions/lightspeed";
 
 let currentPanel: WebviewPanel | undefined;
+let wizardId: string | undefined;
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -71,6 +73,7 @@ async function generatePlaybook(
       outline,
       createOutline,
       generationId,
+      wizardId,
     },
   );
   return playbook;
@@ -109,8 +112,12 @@ export async function showPlaybookGenerationPage(
     },
   );
 
-  panel.onDidDispose(() => (currentPanel = undefined));
+  panel.onDidDispose(() => {
+    currentPanel = undefined;
+    wizardId = undefined;
+  });
   currentPanel = panel;
+  wizardId = uuidv4();
 
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
@@ -172,6 +179,7 @@ export async function showPlaybookGenerationPage(
           } catch (e: any) {
             panel.webview.postMessage({ command: "exception" });
             vscode.window.showErrorMessage(e.message);
+            break;
           }
         }
 

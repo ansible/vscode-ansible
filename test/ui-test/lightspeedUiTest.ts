@@ -590,7 +590,7 @@ export function lightspeedUIAssetsTest(): void {
       const notification = notifications[0];
       expect(await notification.getMessage()).equals(
         "Enable lightspeed services from settings to use the feature.",
-      ).to.be.true;
+      );
     });
   });
 }

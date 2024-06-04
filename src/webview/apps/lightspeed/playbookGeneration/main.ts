@@ -72,7 +72,6 @@ window.addEventListener("message", async (event) => {
 
   switch (message.command) {
     case "init": {
-      generationId = uuidv4();
       textArea.focus();
       break;
     }
@@ -151,10 +150,12 @@ function hideBlockElement(id: string) {
 }
 
 async function submitInput() {
+  // If the saved text is not the current one, clear saved values and assign a new generationId
   if (savedText !== textArea.value) {
     savedText = textArea.value;
     outline.update("");
     savedPlaybook = undefined;
+    generationId = uuidv4();
   }
 
   changeDisplay("spinnerContainer", "block");
@@ -188,10 +189,11 @@ async function generateCode() {
   const text = savedText;
   let playbook: string | undefined;
 
-  // If user did not make any changes to the generated outline, use the saved playbook
-  // installed of calling the generations API again.
+  // If user made any changes to the generated outline, save the edited outline and
+  // generate a new generationId.  Otherwise, just use the generated playbook.
   if (outline.isChanged()) {
     outline.save();
+    generationId = uuidv4();
   } else {
     playbook = savedPlaybook;
   }
