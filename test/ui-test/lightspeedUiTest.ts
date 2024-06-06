@@ -586,6 +586,9 @@ export function lightspeedUIAssetsTest(): void {
     it("Playbook generation command shows an error message when Lightspeed is not enabled", async function () {
       // Open playbook generation webview.
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
+      await new Promise((res) => {
+        setTimeout(res, 2000);
+      });
       const notifications = await new Workbench().getNotifications();
       const notification = notifications[0];
       expect(await notification.getMessage()).equals(
