@@ -165,10 +165,12 @@ a:active {
 }
 
 .feedbackContainer {
+  background-color: var(--vscode-editor-background, #ffffff80);
   position: absolute;
   right: 0px;
   bottom: 0px;
   display: flex;
+  opacity: 0.8;
 }
 
 .generatePlaybookContainer {
@@ -238,6 +240,7 @@ a:active {
   background: var(--button-icon-background);
   border-radius: var(--button-icon-corner-radius);
   color: var(--foreground);
+  opacity: 1.0;
 }
 
 .iconButtonSelected {
@@ -246,6 +249,7 @@ a:active {
   margin: 0.2em;
   background: var(--button-primary-background);
   color: var(--button-primary-foreground);
+  opacity: 1.0;
 }
 
 .outlineContainer {
