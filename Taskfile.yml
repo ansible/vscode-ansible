@@ -131,11 +131,13 @@ tasks:
     desc: Run all tests
     cmds:
       - task: setup
-      - task: package
       - task: unit
-      #- task: test-ui
+      - task: test-ui
       #- task: test-ui-old
       - task: test-e2e
+      # .vsix file is no longer needed for executing tests.
+      # This is just for making sure that the package step works w/o issues.
+      - task: package
       - tools/dirty.sh
     interactive: true
   test-e2e:
@@ -146,19 +148,19 @@ tasks:
       - '{{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn run _coverage-all'''
     interactive: true
   test-ui:
-    desc: Run UI tests
+    desc: Run UI tests {{.XVFB}}
     cmds:
-      - task: package
+      - yarn webpack-dev
       - $VIRTUAL_ENV/bin/python3 --version
-      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-current'
+      - ' {{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
     interactive: true
-  test-ui-old:
-    desc: Run UI tests (oldest vscode)
-    cmds:
-      - task: package
-      - $VIRTUAL_ENV/bin/python3 --version
-      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
-    interactive: true
+  # test-ui-old:
+  #   desc: Run UI tests (oldest vscode)
+  #   cmds:
+  #     - task: package
+  #     - $VIRTUAL_ENV/bin/python3 --version
+  #     - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
+  #   interactive: true
   unit:
     desc: Run unit tests with coverage report
     cmds:

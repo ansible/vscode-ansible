@@ -183,9 +183,20 @@ export async function showPlaybookGenerationPage(
           }
         }
 
-        const html = await (
-          await require("../utils/syntaxHighlighter")
-        ).codeToHtml(playbook, darkMode ? "dark-plus" : "light-plus", "yaml");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let syntaxHighlighter: any;
+        try {
+          syntaxHighlighter =
+            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
+        } catch (error) {
+          syntaxHighlighter =
+            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
+        }
+        const html = await syntaxHighlighter.codeToHtml(
+          playbook,
+          darkMode ? "dark-plus" : "light-plus",
+          "yaml",
+        );
 
         panel.webview.postMessage({
           command: "playbook",
