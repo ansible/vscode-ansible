@@ -9,25 +9,19 @@ import {
 } from "vscode";
 import { NotificationType } from "vscode-languageclient";
 import { LanguageClient } from "vscode-languageclient/node";
-import { TelemetryManager } from "../utils/telemetryUtils";
+import { TelemetryManager, sendTelemetry } from "../utils/telemetryUtils";
 import { formatAnsibleMetaData } from "./utils/formatAnsibleMetaData";
-import { compareObjects } from "./utils/data";
+import { compareObjects, getValueFromObject } from "./utils/data";
 import { SettingsManager } from "../settings";
 
 interface ansibleMetadataEvent {
   ansibleVersion: string;
+  pythonVersion?: string;
   ansibleLintVersion?: string;
   eeEnabled: boolean;
   lightSpeedEnabled: boolean;
   lightSpeedCodeAssistEnabled: boolean;
 }
-
-let prevEventData: ansibleMetadataEvent = {
-  ansibleVersion: "",
-  eeEnabled: false,
-  lightSpeedEnabled: false,
-  lightSpeedCodeAssistEnabled: false,
-};
 
 export class MetadataManager {
   private context;
@@ -36,6 +30,9 @@ export class MetadataManager {
   private metadataStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
   private extensionSettings: SettingsManager;
+  private currentAnsibleMetaEventData: ansibleMetadataEvent | undefined;
+  private previousAnsibleMetaEventData: ansibleMetadataEvent | undefined;
+  private ansibleMetaData: any;
 
   constructor(
     context: ExtensionContext,
@@ -49,6 +46,9 @@ export class MetadataManager {
     this.extensionSettings = extensionSettings;
 
     this.metadataStatusBarItem = this.initialiseStatusBar();
+    this.currentAnsibleMetaEventData = undefined;
+    this.previousAnsibleMetaEventData = undefined;
+    this.ansibleMetaData = undefined;
   }
 
   private initialiseStatusBar(): StatusBarItem {
@@ -90,57 +90,35 @@ export class MetadataManager {
     this.client.onNotification(
       new NotificationType(`update/ansible-metadata`),
       (ansibleMetaDataList: any) => {
-        const ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
-        if (ansibleMetaData.ansiblePresent) {
+        this.ansibleMetaData = formatAnsibleMetaData(ansibleMetaDataList[0]);
+        if (this.ansibleMetaData.ansiblePresent) {
           console.log("Ansible found in the workspace");
           this.cachedAnsibleVersion =
-            ansibleMetaData.metaData["ansible information"]["core version"];
-          const tooltip = ansibleMetaData.markdown;
-          this.metadataStatusBarItem.text = ansibleMetaData.eeEnabled
+            this.ansibleMetaData.metaData["ansible information"][
+              "core version"
+            ];
+          const tooltip = this.ansibleMetaData.markdown;
+          this.metadataStatusBarItem.text = this.ansibleMetaData.eeEnabled
             ? `$(bracket-dot) [EE] ${this.cachedAnsibleVersion}`
             : `$(bracket-dot) ${this.cachedAnsibleVersion}`;
           this.metadataStatusBarItem.backgroundColor = "";
           this.metadataStatusBarItem.tooltip = tooltip;
 
-          if (!ansibleMetaData.ansibleLintPresent) {
+          if (!this.ansibleMetaData.ansibleLintPresent) {
             this.metadataStatusBarItem.text = `$(warning) ${this.cachedAnsibleVersion}`;
             this.metadataStatusBarItem.backgroundColor = new ThemeColor(
               "statusBarItem.warningBackground",
             );
           }
-
           this.metadataStatusBarItem.show();
-          const eventData: ansibleMetadataEvent = {
-            ansibleVersion:
-              ansibleMetaData.metaData["ansible information"]["core version"],
-            eeEnabled:
-              this.extensionSettings.settings.executionEnvironment.enabled,
-            lightSpeedEnabled:
-              this.extensionSettings.settings.lightSpeedService.enabled,
-            lightSpeedCodeAssistEnabled:
-              this.extensionSettings.settings.lightSpeedService.suggestions
-                .enabled,
-          };
-          if (ansibleMetaData.ansibleLintPresent) {
-            eventData["ansibleLintVersion"] =
-              ansibleMetaData.metaData["ansible-lint information"]["version"];
-          }
-          // send telemetry event only when ansible metadata changes
-          if (!compareObjects(eventData, prevEventData)) {
-            this.telemetry.sendTelemetry("ansibleMetadata", eventData);
-            prevEventData = eventData;
-          }
         } else {
           console.log("Ansible not found in the workspace");
           this.metadataStatusBarItem.text = "$(error) Ansible";
-          this.metadataStatusBarItem.tooltip = ansibleMetaData.markdown;
+          this.metadataStatusBarItem.tooltip = this.ansibleMetaData.markdown;
           this.metadataStatusBarItem.backgroundColor = new ThemeColor(
             "statusBarItem.errorBackground",
           );
           this.metadataStatusBarItem.show();
-          this.telemetry.sendTelemetry("ansibleMetadata", {
-            error: "Ansible not found in the workspace",
-          });
         }
       },
     );
@@ -151,5 +129,65 @@ export class MetadataManager {
     );
 
     return;
+  }
+
+  public async sendAnsibleMetadataTelemetry(): Promise<void> {
+    if (!this.ansibleMetaData) {
+      return;
+    }
+    // Extract ansibleVersion and pythonVersion safely
+    const ansibleVersion = getValueFromObject(this.ansibleMetaData.metaData, [
+      "ansible information",
+      "core version",
+    ]);
+    const pythonVersion = getValueFromObject(this.ansibleMetaData.metaData, [
+      "python information",
+      "version",
+    ]);
+    const ansibleLintVersion = this.ansibleMetaData.ansibleLintPresent
+      ? getValueFromObject(this.ansibleMetaData.metaData, [
+          "ansible-lint information",
+          "version",
+        ])
+      : null;
+    this.currentAnsibleMetaEventData = {
+      ansibleVersion,
+      pythonVersion,
+      eeEnabled: this.extensionSettings.settings.executionEnvironment.enabled,
+      lightSpeedEnabled:
+        this.extensionSettings.settings.lightSpeedService.enabled,
+      lightSpeedCodeAssistEnabled:
+        this.extensionSettings.settings.lightSpeedService.suggestions.enabled,
+    };
+    if (this.ansibleMetaData.ansibleLintPresent) {
+      this.currentAnsibleMetaEventData["ansibleLintVersion"] =
+        ansibleLintVersion;
+    }
+    // Retrieve the previous event data from VS Code cache
+    this.previousAnsibleMetaEventData =
+      this.context.globalState.get<ansibleMetadataEvent>(
+        "prevAnsibleMetadataEvent",
+      );
+    // send telemetry event only when ansible metadata changes
+    if (
+      ansibleVersion &&
+      pythonVersion &&
+      !compareObjects(
+        this.currentAnsibleMetaEventData,
+        this.previousAnsibleMetaEventData,
+      )
+    ) {
+      console.log("Sending ansibleMetadata telemetry event");
+      await sendTelemetry(
+        this.telemetry.telemetryService,
+        this.telemetry.isTelemetryInit,
+        "ansibleMetadata",
+        this.currentAnsibleMetaEventData,
+      );
+      this.context.globalState.update(
+        "prevAnsibleMetadataEvent",
+        this.currentAnsibleMetaEventData,
+      );
+    }
   }
 }
