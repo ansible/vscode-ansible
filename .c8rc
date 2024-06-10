@@ -1,0 +1,18 @@
+{
+    "reporter": ["text", "html", "lcov"],
+    "report-dir": "./out/coverage/ui-test",
+    "exclude": [
+        "coverage/**",
+        "packages/*/test{,s}/**",
+        "**/*.d.ts",
+        "test{,s}/**",
+        "test{,-*}.{js,cjs,mjs,ts,tsx,jsx}",
+        "**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}",
+        "**/__tests__/**",
+        "**/{ava,babel,nyc}.config.{js,cjs,mjs}",
+        "**/jest.config.{js,cjs,mjs,ts}",
+        "**/{karma,rollup,webpack}.config.js",
+        "**/.{eslint,mocha}rc.{js,cjs}",
+        "**/syntaxHighlighter/**"
+    ]
+}
