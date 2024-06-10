@@ -243,7 +243,7 @@ jobs:
           #
           # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use
           # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
-          TEST_LIGHTSPEED_URL: "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
+          # TEST_LIGHTSPEED_URL: "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
 
           # Set environment variables using matrix properties.
           SKIP_PODMAN: "${{ matrix.env.SKIP_PODMAN || '0' }}"

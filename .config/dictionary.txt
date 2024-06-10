@@ -112,6 +112,7 @@ gnalawad
 groovylint
 haaaad
 hbenl
+hostnames
 hostvars
 hostsvars
 hotfixes
