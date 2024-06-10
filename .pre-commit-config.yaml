@@ -144,9 +144,9 @@ repos:
             packages/ansible-language-server/test/testFixtures/diagnostics/yaml/invalid_yaml.yml|
             packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
           )$
-  - repo: https://github.com/pre-commit/mirrors-prettier
+  - repo: https://github.com/pycontribs/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v4.0.0-alpha.8"
+    rev: "v3.3.1"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
