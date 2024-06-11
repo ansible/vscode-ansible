@@ -6,6 +6,11 @@ if [[ -z "${TEST_LIGHTSPEED_URL}" ]]; then
   TEST_LIGHTSPEED_URL="http://ip6-localhost:3000"
 fi
 
+# Create log dir for express.log
+if [ ! -d out/log ]; then
+  mkdir out/log
+fi
+
 # Start the mock Lightspeed server and run e2e tests with code coverage enabled.
 npx start-server-and-test \
     "TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server" \

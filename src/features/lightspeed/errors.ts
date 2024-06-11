@@ -158,8 +158,15 @@ ERRORS.addError(
 ERRORS.addError(
   403,
   new Error(
+    "error__no_default_model_id",
+    "Ansible Lightspeed does not have a model configured. Contact your Ansible administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
+  ),
+);
+ERRORS.addError(
+  403,
+  new Error(
     "error__wca_model_id_not_found",
-    "Could not find a Model Id for IBM watsonx Code Assistant. Please contact your administrator.",
+    "Your organization does not have an IBM watsonx Code Assistant model configured. Contact your Red Hat organization administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
   ),
 );
 ERRORS.addError(

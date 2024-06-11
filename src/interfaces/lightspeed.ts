@@ -1,6 +1,7 @@
 import { AuthenticationSession } from "vscode";
 import {
   LIGHTSPEED_USER_TYPE,
+  PlaybookGenerationActionType,
   ThumbsUpDownAction,
   UserAction,
 } from "../definitions/lightspeed";
@@ -53,7 +54,7 @@ export interface InlineSuggestionEvent {
   activityId?: string;
 }
 
-export interface SentimentEvent {
+export interface SentimentFeedbackEvent {
   value: number;
   feedback: string;
 }
@@ -81,14 +82,23 @@ export interface PlaybookFeedbackEvent {
   generationId?: string;
 }
 
+export interface PlaybookGenerationActionEvent {
+  wizardId: string;
+  action: PlaybookGenerationActionType;
+  fromPage?: number;
+  toPage?: number;
+  openEditor?: boolean;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
-  sentimentFeedback?: SentimentEvent;
+  sentimentFeedback?: SentimentFeedbackEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
   playbookExplanation?: PlaybookExplanationEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationFeedback?: PlaybookFeedbackEvent;
+  playbookGenerationAction?: PlaybookGenerationActionEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
   model?: string;
 }
