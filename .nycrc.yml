@@ -7,7 +7,7 @@ recursive: true
 require:
   - ts-node/register
 temp-dir: out/.nyc_output
-report-dir: out/coverage
+report-dir: out/coverage/unit
 # skip-full: true
 # increase threshold % once possible:
 lines: 2.7

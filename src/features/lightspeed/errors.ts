@@ -119,35 +119,6 @@ export const ERRORS_CONNECTION_TIMEOUT = new Error(
 );
 
 ERRORS.addError(
-  204,
-  new Error(
-    "postprocess_error",
-    "An error occurred post-processing the inline suggestion. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "model_timeout",
-    "Ansible Lightspeed timed out processing your request. Please try again later.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "error__wca_bad_request",
-    "IBM watsonx Code Assistant returned a bad request response. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "error__wca_empty_response",
-    "IBM watsonx Code Assistant returned an empty response. Please contact your administrator.",
-  ),
-);
-
-ERRORS.addError(
   400,
   new Error(
     "error__wca_cloud_flare_rejection",
@@ -187,8 +158,15 @@ ERRORS.addError(
 ERRORS.addError(
   403,
   new Error(
+    "error__no_default_model_id",
+    "Ansible Lightspeed does not have a model configured. Contact your Ansible administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
+  ),
+);
+ERRORS.addError(
+  403,
+  new Error(
     "error__wca_model_id_not_found",
-    "Could not find a Model Id for IBM watsonx Code Assistant. Please contact your administrator.",
+    "Your organization does not have an IBM watsonx Code Assistant model configured. Contact your Red Hat organization administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
   ),
 );
 ERRORS.addError(

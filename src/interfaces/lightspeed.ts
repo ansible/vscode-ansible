@@ -1,6 +1,7 @@
 import { AuthenticationSession } from "vscode";
 import {
   LIGHTSPEED_USER_TYPE,
+  PlaybookGenerationActionType,
   ThumbsUpDownAction,
   UserAction,
 } from "../definitions/lightspeed";
@@ -53,7 +54,7 @@ export interface InlineSuggestionEvent {
   activityId?: string;
 }
 
-export interface SentimentEvent {
+export interface SentimentFeedbackEvent {
   value: number;
   feedback: string;
 }
@@ -71,23 +72,34 @@ export interface IssueFeedbackEvent {
   description: string;
 }
 
-export interface PlaybookOutlineEvent {
-  action: ThumbsUpDownAction;
-  outlineId: string;
+export interface PlaybookExplanationEvent {
+  explanationId?: string;
 }
 
-export interface PlaybookExplanationEvent {
+export interface PlaybookFeedbackEvent {
   action: ThumbsUpDownAction;
-  outlineId: string;
+  explanationId?: string;
+  generationId?: string;
+}
+
+export interface PlaybookGenerationActionEvent {
+  wizardId: string;
+  action: PlaybookGenerationActionType;
+  fromPage?: number;
+  toPage?: number;
+  openEditor?: boolean;
 }
 
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
-  sentimentFeedback?: SentimentEvent;
+  sentimentFeedback?: SentimentFeedbackEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
-  playbookExplanationFeedback?: PlaybookExplanationEvent;
-  playbookOutlineFeedback?: PlaybookOutlineEvent;
+  playbookExplanation?: PlaybookExplanationEvent;
+  playbookExplanationFeedback?: PlaybookFeedbackEvent;
+  playbookGenerationFeedback?: PlaybookFeedbackEvent;
+  playbookGenerationAction?: PlaybookGenerationActionEvent;
+  playbookOutlineFeedback?: PlaybookFeedbackEvent;
   model?: string;
 }
 
@@ -126,6 +138,7 @@ export interface ContentMatchesResponseParams {
 export interface ISuggestionDetails {
   suggestion: string;
   suggestionId: string;
+  isPlaybook: boolean;
 }
 
 export type IAnsibleFileType = "playbook" | "tasks_in_role" | "tasks" | "other";

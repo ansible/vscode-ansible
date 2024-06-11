@@ -23,6 +23,11 @@ export const playbookExplanation = async (
     return;
   }
   const explanationId = uuidv4();
+  lightSpeedManager.apiInstance.feedbackRequest(
+    { playbookExplanation: { explanationId: explanationId } },
+    false,
+    false,
+  );
   const currentPanel = PlaybookExplanationPanel.createOrShow(
     extensionUri,
     explanationId,
@@ -30,7 +35,7 @@ export const playbookExplanation = async (
   currentPanel.setContent(
     `<div id="icons">
         <span class="codicon codicon-loading codicon-modifier-spin"></span>
-        Loading the explanation for ${document.fileName.split("/").at(-1)}
+        Generating the explanation for ${document.fileName.split("/").at(-1)}
       </div>`,
   );
 
