@@ -56,7 +56,6 @@ export function getWebviewContentWithActiveSession(
   userType: string,
   userRole: string,
   has_playbook_opened: boolean,
-  lightspeedExperimentalEnabled: boolean,
 ) {
   const webviewUri = getUri(webview, extensionUri, [
     "out",
