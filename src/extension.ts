@@ -296,6 +296,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager,
         pythonInterpreterManager,
       );
+      metaData.sendAnsibleMetadataTelemetry();
     }),
   );
   context.subscriptions.push(
@@ -338,6 +339,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager,
         pythonInterpreterManager,
       );
+      metaData.sendAnsibleMetadataTelemetry();
     }),
   );
 
@@ -561,15 +563,25 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.lightspeed.thumbsUpDown",
       async (param: PlaybookFeedbackEvent) => {
-        lightSpeedManager.apiInstance.feedbackRequest(
-          param.explanationId
-            ? { playbookExplanationFeedback: param }
-            : param.generationId
-              ? { playbookGenerationFeedback: param }
-              : { playbookOutlineFeedback: param },
-          true,
-          true,
-        );
+        if (param.explanationId) {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookExplanationFeedback: param },
+            true,
+            true,
+          );
+        } else if (param.generationId) {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookGenerationFeedback: param },
+            true,
+            true,
+          );
+        } else {
+          lightSpeedManager.apiInstance.feedbackRequest(
+            { playbookOutlineFeedback: param },
+            true,
+            true,
+          );
+        }
       },
     ),
   );
@@ -748,11 +760,12 @@ const startClient = async (
     clientOptions,
   );
 
-  context.subscriptions.push(
-    client.onTelemetry((e) => {
-      telemetry.telemetryService.send(e);
-    }),
-  );
+  // TODO: Temporary pause this telemetry event, will be enabled in future
+  // context.subscriptions.push(
+  //   client.onTelemetry((e) => {
+  //     telemetry.telemetryService.send(e);
+  //   }),
+  // );
 
   try {
     await client.start();
@@ -761,7 +774,8 @@ const startClient = async (
     extensions.onDidChange(() => {
       notifyAboutConflicts();
     });
-    telemetry.sendStartupTelemetryEvent(true);
+    // TODO: Temporary pause this telemetry event, will be enabled in future
+    // telemetry.sendStartupTelemetryEvent(true);
   } catch (err) {
     let errorMessage: string;
     if (err instanceof Error) {
@@ -770,7 +784,8 @@ const startClient = async (
       errorMessage = String(err);
     }
     console.error(`Language Client initialization failed with ${errorMessage}`);
-    telemetry.sendStartupTelemetryEvent(false, errorMessage);
+    // TODO: Temporary pause this telemetry event, will be enabled in future
+    // telemetry.sendStartupTelemetryEvent(false, errorMessage);
   }
 };
 
@@ -806,6 +821,7 @@ function notifyAboutConflicts(): void {
  * Sends notification to the server to invalidate ansible inventory service cache
  * And resync the ansible inventory
  */
+
 async function resyncAnsibleInventory(): Promise<void> {
   if (client.isRunning()) {
     client.onNotification(
