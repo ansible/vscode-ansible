@@ -276,6 +276,11 @@ function adjustTextAreaHeight() {
 function setPageNumber(pageNumber: number) {
   const span = document.getElementById("page-number") as Element;
   span.textContent = `${pageNumber} of ${TOTAL_PAGES}`;
+
+  vscode.postMessage({
+    command: "transition",
+    toPage: pageNumber,
+  });
 }
 
 function setButtonEnabled(id: string, enabled: boolean) {
