@@ -198,7 +198,7 @@ export function lightspeedUIAssetsTest(): void {
         ).to.be.true;
         await submitButton.click();
         await new Promise((res) => {
-          setTimeout(res, 1000);
+          setTimeout(res, 2000);
         });
 
         // Verify outline output and text edit
