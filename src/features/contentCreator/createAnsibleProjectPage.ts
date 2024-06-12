@@ -30,7 +30,7 @@ export class CreateAnsibleProject {
     } else {
       const panel = vscode.window.createWebviewPanel(
         "create-ansible-project",
-        "Create Ansible Project",
+        "Create Ansible project",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -106,7 +106,7 @@ export class CreateAnsibleProject {
 
         <body>
             <div class="title-div">
-              <h1>Create New Ansible Playbook Project</h1>
+              <h1>Create new Ansible playbook project</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 

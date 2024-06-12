@@ -148,8 +148,8 @@
     "views": {
       "ansible-explorer": [
         {
-          "id": "ansible-creator",
-          "name": "Ansible Creator"
+          "id": "ansible-content-creator",
+          "name": "Ansible content creator"
         },
         {
           "id": "lightspeed-explorer-webview",
@@ -176,8 +176,8 @@
     },
     "viewsWelcome": [
       {
-        "view": "ansible-creator",
-        "contents": "Welcome to Ansible Creator. Elevate automation with a toolkit for efficient ansible content creation. [Learn more](https://github.com/ansible-community/ansible-creator)\n[Get started](command:ansible.content-creator.menu)"
+        "view": "ansible-content-creator",
+        "contents": "Elevate automation with a toolkit for efficient Ansible content creation.\n[Get started](command:ansible.content-creator.menu)"
       }
     ],
     "jsonValidation": [
