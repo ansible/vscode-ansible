@@ -3,7 +3,7 @@ import express, { Application } from "express";
 import { completions } from "./completion";
 import { contentmatches } from "./contentmatches";
 import { explanations } from "./explanations";
-import { feedback } from "./feedback";
+import { feedback, getFeedbacks } from "./feedback";
 import { generations } from "./generations";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
@@ -88,6 +88,12 @@ export default class Server {
         access_token: "ACCESS_TOKEN",
         refresh_token: "REFRESH_TOKEN",
         expires_in: 3600,
+      }),
+    );
+
+    app.get("/__debug__/feedbacks", (req, res) =>
+      res.send({
+        feedbacks: getFeedbacks(),
       }),
     );
 

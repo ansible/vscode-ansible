@@ -21,6 +21,7 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
+shiki
 SIGINT
 SIGTERM
 Sbarnea
@@ -190,6 +191,7 @@ relogin
 rimraf
 ritwickdey
 ro
+rollup
 rulebooks
 seealso
 servernum

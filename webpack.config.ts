@@ -3,22 +3,32 @@ import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
 
 import path from "path";
 
+type EntryType = {
+  client?: string;
+  server?: string;
+  // YAML syntax highlighter needs to be bundled with language/theme files at build
+  syntaxHighlighter: string;
+};
+
+const entry: EntryType = {
+  client: "./src/extension.ts",
+  server: "./packages/ansible-language-server/src/server.ts",
+  syntaxHighlighter: "./src/features/utils/syntaxHighlighter.ts",
+};
+
 const config = {
   devtool: "source-map",
-  entry: {
-    client: "./src/extension.ts",
-    server:
-      "./node_modules/@ansible/ansible-language-server/out/server/src/server.js",
-  },
+  entry,
   externals: {
     vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed
+    shiki: "shiki",
   },
   mode: "none",
   module: {
     rules: [
       {
         test: /\.ts$/,
-        exclude: /node_modules/,
+        exclude: [/node_modules/, /packages/],
         use: [
           {
             // configure TypeScript loader:
@@ -27,6 +37,29 @@ const config = {
             loader: "ts-loader",
             options: {
               compilerOptions: {
+                configFile: "./tsconfig.json",
+                sourceMap: true,
+              },
+            },
+          },
+        ],
+        parser: {
+          commonjsMagicComments: true, // enable magic comments support for CommonJS
+        },
+      },
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        include: /packages/,
+        use: [
+          {
+            // configure TypeScript loader:
+            // * enable sources maps for end-to-end source maps
+            // * does not work for server code
+            loader: "ts-loader",
+            options: {
+              compilerOptions: {
+                configFile: "./packages/ansible-language-server/tsconfig.json",
                 sourceMap: true,
               },
             },
@@ -165,13 +198,21 @@ const createAnsibleProjectWebviewConfig = {
   },
 };
 
-module.exports = [
-  config,
-  webviewConfig,
-  contentCreatorMenuWebviewConfig,
-  createAnsibleCollectionWebviewConfig,
-  playbookExplorerWebviewConfig,
-  playbookGenerationWebviewConfig,
-  playbookExplanationWebviewConfig,
-  createAnsibleProjectWebviewConfig,
-];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+module.exports = (_env: any, argv: { mode: string }) => {
+  // Use non-bundled js for client/server in dev environment
+  if (argv.mode === "development") {
+    delete config.entry.client;
+    delete config.entry.server;
+  }
+  return [
+    config,
+    webviewConfig,
+    contentCreatorMenuWebviewConfig,
+    createAnsibleCollectionWebviewConfig,
+    playbookExplorerWebviewConfig,
+    playbookGenerationWebviewConfig,
+    playbookExplanationWebviewConfig,
+    createAnsibleProjectWebviewConfig,
+  ];
+};

@@ -50,58 +50,6 @@ describe("testing the error handling", () => {
   // =================================
 
   // =================================
-  // HTTP 204
-  // ---------------------------------
-  it("err Postprocessing error", () => {
-    const error = mapError(
-      createError(204, {
-        code: "postprocess_error",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "An error occurred post-processing the inline suggestion. Please contact your administrator.",
-    );
-  });
-
-  it("err Model timeout", () => {
-    const error = mapError(
-      createError(204, {
-        code: "model_timeout",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "Ansible Lightspeed timed out processing your request. Please try again later.",
-    );
-  });
-
-  it("err WCA Bad Request", () => {
-    const error = mapError(
-      createError(204, {
-        code: "error__wca_bad_request",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "IBM watsonx Code Assistant returned a bad request response. Please contact your administrator.",
-    );
-  });
-
-  it("err WCA Empty Response", () => {
-    const error = mapError(
-      createError(204, {
-        code: "error__wca_empty_response",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "IBM watsonx Code Assistant returned an empty response. Please contact your administrator.",
-    );
-  });
-  // =================================
-
-  // =================================
   // HTTP 400
   // ---------------------------------
   it("err Bad Request from Cloudflare", () => {
@@ -269,6 +217,18 @@ describe("testing the error handling", () => {
     );
   });
 
+  it("err no default WCA Model Id found", () => {
+    const error = mapError(
+      createError(403, {
+        code: "error__no_default_model_id",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "Ansible Lightspeed does not have a model configured. Contact your Ansible administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
+    );
+  });
+
   it("err WCA Model Id missing", () => {
     const error = mapError(
       createError(403, {
@@ -277,7 +237,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       error.message,
-      "Could not find a Model Id for IBM watsonx Code Assistant. Please contact your administrator.",
+      "Your organization does not have an IBM watsonx Code Assistant model configured. Contact your Red Hat organization administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
     );
   });
 
