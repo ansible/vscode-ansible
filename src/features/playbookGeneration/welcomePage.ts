@@ -1,12 +1,10 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import * as vscode from "vscode";
-import * as cp from "child_process";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import * as ini from "ini";
-import { SettingsManager } from "../../settings";
-import { withInterpreter } from "../utils/commandRunner";
+import { getBinDetail } from "../contentCreator/utils";
 
 export class AnsibleCreatorMenu {
   public static currentPanel: AnsibleCreatorMenu | undefined;
@@ -29,7 +27,7 @@ export class AnsibleCreatorMenu {
     } else {
       const panel = vscode.window.createWebviewPanel(
         "content-creator-menu",
-        "Ansible Creator",
+        "Ansible content creator",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -66,6 +64,15 @@ export class AnsibleCreatorMenu {
     webview: vscode.Webview,
     extensionUri: vscode.Uri,
   ) {
+    const webviewUri = getUri(webview, extensionUri, [
+      "out",
+      "client",
+      "webview",
+      "apps",
+      "contentCreator",
+      "welcomePageApp.js",
+    ]);
+
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
@@ -97,67 +104,94 @@ export class AnsibleCreatorMenu {
     <div class="playbookGenerationSlideCategories">
       <div class="playbookGenerationCategoriesContainer">
         <div class="header">
-          <h1 class="product-name caption">Ansible Creator</h1>
-          <p class="subtitle description">&nbsp;</p>
+          <h1 class="title caption">Welcome to Ansible content creator</h1>
+          <p class="subtitle description">Create Ansible content with ease</p>
+
+          <div id="system-readiness"></div>
+
         </div>
         <div class="categories-column-left">
           <div class="index-list start-container">
             <h2>Create</h2>
-            <h3>
-              <a href="command:ansible.content-creator.create">
-                Environment
-              </a>
-            </h3>
-            <p>Provide a defined, consistent and portable environment for executing automation jobs.</p>
-            <h3>
+            <div class="catalogue">
+              <h3>
               <a href="command:ansible.lightspeed.playbookGeneration">
-                Playbook
-              </a>
-            </h3>
-            <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
-            <h3>
-              <a href="command:ansible.content-creator.create">
-                Role
-              </a>
-            </h3>
-            <p>Provide a well-defined framework and structure for setting your tasks, variables, handlers, metadata,
-              templates,
-              and other files.</p>
-            <h3>
-              <a href="command:ansible.content-creator.create-ansible-collection">
-                Collection
-              </a>
-            </h3>
-            <p>Create a distribution format for Ansible content that can include playbooks, roles, modules, and plugins.
-            </p>
+              <span class="codicon codicon-file-code"></span> Playbook with Ansible Lightspeed
+                </a>
+              </h3>
+              <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
+            </div>
+            <div class="catalogue">
+              <h3>
+                <a href="command:ansible.content-creator.create-ansible-project">
+                <span class="codicon codicon-file-zip"></span> Ansible playbook project
+                </a>
+              </h3>
+              <p>Create a foundational framework and structure for setting your Ansible project with playbooks, roles, variables, templates, and other files.</p>
+            </div>
+            <div class="catalogue">
+              <h3>
+                <a href="command:ansible.content-creator.create-ansible-collection">
+                <span class="codicon codicon-layers"></span> Ansible collection project
+                </a>
+              </h3>
+              <p>Create a structure for your Ansible collection that includes modules, plugins, molecule scenarios and tests.
+              </p>
+            </div>
           </div>
-          <div class="index-list start-container"> <!--??? -->
+
+          <!-- <div class="index-list start-container">
             <h2>Recent</h2>
             <p>No recent activity</p>
+          </div> -->
+
+          <div class="index-list start-container">
+            <h2>Learn</h2>
+            <div class="catalogue">
+              <h3>
+                <a href="https://docs.ansible.com">
+                  Ansible documentation
+                  <span class="codicon codicon-link-external"></span>
+                </a>
+              </h3>
+              <p>Explore Ansible documentation, examples and more.</p>
+            </div>
+            <div class="catalogue">
+              <h3>
+                <a href="https://docs.ansible.com/ansible/latest/getting_started/index.html">
+                  Learn Ansible development
+                  <span class="codicon codicon-link-external"></span>
+                </a>
+              </h3>
+              <p>End to end course that will help you master automation development.</p>
+            </div>
+            <div class="catalogue">
+              <h3>Once you are in the YAML file:</h3>
+              <p>click Ctrl+L to fire the Ansible Lightspeed AI assistance for editing and explaining code.</p>
+            </div>
           </div>
+
           <div class="shadow"></div>
           <div class="shadow"></div>
           <div class="shadow"></div>
         </div>
         <div class="categories-column-right">
           <div class="index-list getting-started">
-            <h2>Learn</h2>
-            <h3>
-              <a href="https://docs.ansible.com">
-                Ansible documentation
-                <span class="codicon codicon-link-external"></span>
-              </a>
-            </h3>
-            <p>Explore Ansible documentation, examples and more.</p>
-            <h3>
-              <a href="https://docs.ansible.com/ansible/latest/getting_started/index.html">
-                Learn Ansible Development
-                <span class="codicon codicon-link-external"></span>
-              </a>
-            </h3>
-            <p>End to end course that will help you become an Automation development master.</p>
-            <h3>Once you are in the YAML file:</h3>
-            <p>click Ctrl+L to fire the Ansible Lightspeed AI assistance for editing and explaining code.</p>
+            <div id="system-check">
+              <div class="icon">
+                <h2>System requirements:</h2>
+              </div>
+
+              <div id=install-status></div>
+
+              <div class="refresh-button-div">
+                <vscode-button id="refresh">
+                  <span class="codicon codicon-refresh"></span>
+                  &nbsp; Refresh
+                </vscode-button>
+              </div>
+
+            </div>
           </div>
           <div class="shadow"></div>
           <div class="shadow"></div>
@@ -169,6 +203,9 @@ export class AnsibleCreatorMenu {
       </div>
     </div>
   </div>
+
+  <!-- Component registration code -->
+  <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
 </body>
 
 </html>
@@ -204,7 +241,7 @@ export class AnsibleCreatorMenu {
     const systemInfo: any = {};
 
     // get ansible version and path
-    const ansibleVersion = await this.getBinDetail("ansible", "--version");
+    const ansibleVersion = await getBinDetail("ansible", "--version");
     if (ansibleVersion !== "failed") {
       const versionInfo = ini.parse(ansibleVersion.toString());
 
@@ -229,7 +266,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get python version
-    const pythonVersion = await this.getBinDetail("python3", "--version");
+    const pythonVersion = await getBinDetail("python3", "--version");
     if (pythonVersion !== "failed") {
       systemInfo["python version"] = pythonVersion
         .toString()
@@ -240,7 +277,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get python path
-    const pythonPathResult = await this.getBinDetail(
+    const pythonPathResult = await getBinDetail(
       "python3",
       '-c "import sys; print(sys.executable)"',
     );
@@ -249,7 +286,7 @@ export class AnsibleCreatorMenu {
     }
 
     // get ansible-creator version
-    const ansibleCreatorVersion = await this.getBinDetail(
+    const ansibleCreatorVersion = await getBinDetail(
       "ansible-creator",
       "--version",
     );
@@ -259,23 +296,14 @@ export class AnsibleCreatorMenu {
         .trim();
     }
 
+    // get ansible-creator version
+    const ansibleDevEnvironmentVersion = await getBinDetail("ade", "--version");
+    if (ansibleDevEnvironmentVersion !== "failed") {
+      systemInfo["ansible-dev-environment version"] =
+        ansibleDevEnvironmentVersion.toString().trim();
+    }
+
     // send the system details to the webview
     webView.postMessage({ command: "systemDetails", arguments: systemInfo });
-  }
-
-  private async getBinDetail(cmd: string, arg: string) {
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    const [command, runEnv] = withInterpreter(extSettings.settings, cmd, arg);
-
-    try {
-      const result = cp.execSync(command, {
-        env: runEnv,
-      });
-      return result;
-    } catch {
-      return "failed";
-    }
   }
 }

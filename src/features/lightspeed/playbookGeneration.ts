@@ -8,10 +8,14 @@ import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { GenerationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
-import { LightSpeedCommands } from "../../definitions/lightspeed";
+import {
+  LightSpeedCommands,
+  PlaybookGenerationActionType,
+} from "../../definitions/lightspeed";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
+let currentPage: number | undefined;
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
@@ -46,6 +50,35 @@ function contentMatch(generationId: string, playbook: string) {
   vscode.commands.executeCommand(
     LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
   );
+}
+
+async function sendActionEvent(
+  action: PlaybookGenerationActionType,
+  toPage?: number | undefined,
+  openEditor?: boolean,
+) {
+  if (currentPanel && wizardId) {
+    const fromPage = currentPage;
+    currentPage = toPage;
+    try {
+      lightSpeedManager.apiInstance.feedbackRequest(
+        {
+          playbookGenerationAction: {
+            wizardId,
+            action,
+            fromPage,
+            toPage,
+            openEditor,
+          },
+        },
+        process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      currentPanel.webview.postMessage({ command: "exception" });
+      vscode.window.showErrorMessage(e.message);
+    }
+  }
 }
 
 async function generatePlaybook(
@@ -112,10 +145,12 @@ export async function showPlaybookGenerationPage(
     },
   );
 
-  panel.onDidDispose(() => {
+  panel.onDidDispose(async () => {
+    await sendActionEvent(PlaybookGenerationActionType.CLOSE, undefined, false);
     currentPanel = undefined;
     wizardId = undefined;
   });
+
   currentPanel = panel;
   wizardId = uuidv4();
 
@@ -183,9 +218,20 @@ export async function showPlaybookGenerationPage(
           }
         }
 
-        const html = await (
-          await require("../utils/syntaxHighlighter")
-        ).codeToHtml(playbook, darkMode ? "dark-plus" : "light-plus", "yaml");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let syntaxHighlighter: any;
+        try {
+          syntaxHighlighter =
+            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
+        } catch (error) {
+          syntaxHighlighter =
+            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
+        }
+        const html = await syntaxHighlighter.codeToHtml(
+          playbook,
+          darkMode ? "dark-plus" : "light-plus",
+          "yaml",
+        );
 
         panel.webview.postMessage({
           command: "playbook",
@@ -200,10 +246,22 @@ export async function showPlaybookGenerationPage(
         contentMatch(generationId, playbook);
         break;
       }
+      case "transition": {
+        const { toPage } = message;
+        await sendActionEvent(PlaybookGenerationActionType.TRANSITION, toPage);
+        break;
+      }
       case "openEditor": {
         const { playbook } = message;
-        panel?.dispose();
         await openNewPlaybookEditor(playbook);
+        await sendActionEvent(
+          PlaybookGenerationActionType.CLOSE,
+          undefined,
+          true,
+        );
+        // Clear wizardId to suppress another CLOSE event at dispose()
+        wizardId = undefined;
+        panel?.dispose();
         break;
       }
     }
@@ -212,6 +270,8 @@ export async function showPlaybookGenerationPage(
   panel.title = "Ansible Lightspeed";
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "init" });
+
+  await sendActionEvent(PlaybookGenerationActionType.OPEN, 1);
 }
 
 export function getWebviewContent(webview: Webview, extensionUri: Uri) {

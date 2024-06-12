@@ -261,13 +261,36 @@ jobs:
           SKIP_DOCKER: "${{ matrix.env.SKIP_DOCKER || '0' }}"
         run: task ${{ matrix.task-name-als }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
-      - name: Upload coverage data
+      - name: Upload coverage data (unit test)
         if: ${{ startsWith(matrix.name, 'test') }}
         uses: codecov/codecov-action@v4
         with:
           name: ${{ matrix.name }}
-          files: out/coverage/lcov.info
+          files: out/coverage/unit/lcov.info
+          disable_search: true
           flags: unit
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload coverage data (ui test)
+        if: ${{ startsWith(matrix.name, 'test') }}
+        uses: codecov/codecov-action@v4
+        with:
+          name: ${{ matrix.name }}
+          files: out/coverage/ui-test/lcov.info
+          disable_search: true
+          flags: ui
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload coverage data (e2e test)
+        if: ${{ startsWith(matrix.name, 'test') }}
+        uses: codecov/codecov-action@v4
+        with:
+          name: ${{ matrix.name }}
+          files: out/coverage/e2e/lcov.info
+          disable_search: true
+          flags: e2e
           fail_ci_if_error: true
           use_oidc: true # cspell:ignore oidc
 

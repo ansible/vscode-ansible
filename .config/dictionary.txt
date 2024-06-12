@@ -191,6 +191,7 @@ relogin
 rimraf
 ritwickdey
 ro
+rollup
 rulebooks
 seealso
 servernum

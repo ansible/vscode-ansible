@@ -1,4 +1,5 @@
 import { expect, config } from "chai";
+import axios from "axios";
 import {
   ActivityBar,
   By,
@@ -14,6 +15,8 @@ import {
   WebviewView,
 } from "vscode-extension-tester";
 import { getFilePath, updateSettings } from "./uiTestHelper";
+import { PlaybookGenerationActionType } from "../../src/definitions/lightspeed";
+import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 export function lightspeedUIAssetsTest(): void {
@@ -198,7 +201,7 @@ export function lightspeedUIAssetsTest(): void {
         ).to.be.true;
         await submitButton.click();
         await new Promise((res) => {
-          setTimeout(res, 1000);
+          setTimeout(res, 2000);
         });
 
         // Verify outline output and text edit
@@ -391,6 +394,31 @@ export function lightspeedUIAssetsTest(): void {
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();
         await dialog.pushButton(`Don't Save`);
+
+        /* verify generated events */
+        const expected = [
+          [PlaybookGenerationActionType.OPEN, undefined, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.TRANSITION, 3, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.CLOSE, 3, undefined],
+        ];
+        const res = await axios.get(
+          `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+        );
+        expect(res.data.feedbacks.length).equals(expected.length);
+        for (let i = 0; i < expected.length; i++) {
+          const evt: PlaybookGenerationActionEvent =
+            res.data.feedbacks[i].playbookGenerationAction;
+          expect(evt.action).equals(expected[i][0]);
+          expect(evt.fromPage).equals(expected[i][1]);
+          expect(evt.toPage).equals(expected[i][2]);
+        }
       } else {
         this.skip();
       }
@@ -507,6 +535,25 @@ export function lightspeedUIAssetsTest(): void {
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();
         await dialog.pushButton(`Don't Save`);
+
+        /* verify generated events */
+        const expected = [
+          [PlaybookGenerationActionType.OPEN, undefined, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.CLOSE, 3, undefined],
+        ];
+        const res = await axios.get(
+          `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+        );
+        expect(res.data.feedbacks.length).equals(expected.length);
+        for (let i = 0; i < expected.length; i++) {
+          const evt: PlaybookGenerationActionEvent =
+            res.data.feedbacks[i].playbookGenerationAction;
+          expect(evt.action).equals(expected[i][0]);
+          expect(evt.fromPage).equals(expected[i][1]);
+          expect(evt.toPage).equals(expected[i][2]);
+        }
       } else {
         this.skip();
       }
@@ -586,6 +633,9 @@ export function lightspeedUIAssetsTest(): void {
     it("Playbook generation command shows an error message when Lightspeed is not enabled", async function () {
       // Open playbook generation webview.
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
+      await new Promise((res) => {
+        setTimeout(res, 2000);
+      });
       const notifications = await new Workbench().getNotifications();
       const notification = notifications[0];
       expect(await notification.getMessage()).equals(

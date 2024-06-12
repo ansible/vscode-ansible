@@ -1,9 +1,12 @@
 import { logger } from "./server";
 import { Request, Response } from "express";
 
+let feedbacks: object[] = [];
+
 export function feedback(req: Request, res: Response): Response {
   const body = req.body;
   logger.info(JSON.stringify(body, null, 2));
+  feedbacks.push(body);
 
   // If a sentimentFeedback is received and it's feedback starts with
   // "permission_denied__" respond with a 403 error with the specified code.
@@ -18,4 +21,10 @@ export function feedback(req: Request, res: Response): Response {
     });
   }
   return res.send({});
+}
+
+export function getFeedbacks() {
+  const feedbacksCopy = Array.from(feedbacks);
+  feedbacks = [];
+  return feedbacksCopy;
 }

@@ -15,8 +15,8 @@ function setupCoverage() {
     hookRequire: true,
     hookRunInContext: true,
     hookRunInThisContext: true,
-    include: ["out/client/src/**/*.js"],
-    reportDir: "out/coverage",
+    include: ["out/client/src/**/*.js", "out/server/src/**/*.js"],
+    reportDir: "out/coverage/e2e",
     tempDir: "out/.nyc_output",
   });
 
@@ -60,13 +60,7 @@ export async function run(): Promise<void> {
 
   const files = await glob("**/**.test.js", { cwd: testsRoot });
 
-  // Add unit test cases to the test suite first
-  files.forEach((file) => {
-    if (file.indexOf("/units/") !== -1) {
-      mocha.addFile(path.resolve(testsRoot, file));
-    }
-  });
-  // Then add e2e test cases
+  // Add  e2e test cases (excluding unit test cases)
   files.forEach((file) => {
     if (file.indexOf("/units/") === -1) {
       mocha.addFile(path.resolve(testsRoot, file));

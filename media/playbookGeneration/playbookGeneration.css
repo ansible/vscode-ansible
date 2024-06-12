@@ -10,6 +10,10 @@
 	outline: none;
 }
 
+a .codicon {
+	font-size: 20px;
+}
+
 .playbookGenerationContainer.loading {
 	display: none;
 }
@@ -25,29 +29,102 @@
 	pointer-events: none;
 }
 
-.playbookGenerationContainer {
-	font-size: 13px;
+#system-readiness {
+	display: flex;
+	flex-direction: row;
+	margin-top: 14px;
+	background-color: #023020;
+	border-radius: 4px;
 }
 
-.playbookGenerationContainer h1 {
+.codicon.codicon-pass {
+	margin: 10px;
+	color: green;
+}
+
+
+#system-readiness-error {
+	display: flex;
+	flex-direction: row;
+	margin-top: 14px;
+	background-color: #023020;
+	background-color: #610000;
+	border-radius: 4px;
+}
+
+.codicon.codicon-error{
+	margin: 10px;
+	color: red;
+}
+
+.system-description {
+	padding: 0px;
+	margin: 6px;
+}
+
+#system-check {
+	display: flex;
+	align-items: start;
+	flex-direction: column;
+}
+
+#install-status {
+	padding: 0px 10px 0px 10px;
+	border-style: dotted;
+	border-color:  var(--vscode-input-background);
+	width: fit-content;
+	background-color: var(--vscode-input-background);
+}
+
+.found::before {
+	color: darkgreen;
+	content: "✓ ";
+}
+
+.not-found::before {
+	color: red;
+	content: "✗ ";
+}
+
+.not-found-optional::before {
+	color: gold;
+	content: "⚠ ";
+}
+
+.refresh-button-div {
+	margin-top: 8px;
+	width: 100%;
+	display: flex;
+}
+
+/* .playbookGenerationContainer {
+	font-size: 13px;
+} */
+
+/* .playbookGenerationContainer h1 {
 	padding: 5px 0 0;
 	margin: 0;
 	border: none;
 	font-weight: normal;
 	font-size: 2.7em;
 	white-space: nowrap;
-}
+} */
 
 .playbookGenerationContainer .title {
-	margin-top: 1em;
-	margin-bottom: 1em;
-	flex: 1 100%;
+	border: none;
+    font-size: 2.7em;
+    font-weight: 400;
+    color: var(--vscode-foreground);
+    white-space: nowrap;
+	margin-bottom: 12px;
 }
 
 .playbookGenerationContainer .subtitle {
-	margin-top: .6em;
-	font-size: 2em;
-	display: block;
+	color: var(--vscode-descriptionForeground);
+    line-height: 1.4em;
+    display: block;
+    font-size: 2em;
+    margin: 0px;
 }
 
 .monaco-workbench.hc-black .part.editor>.content .playbookGenerationContainer .subtitle,
@@ -58,9 +135,25 @@
 .playbookGenerationContainer h2 {
 	font-weight: 400;
 	margin-top: 0;
-	margin-bottom: 5px;
+	margin-bottom: 10px;
 	font-size: 1.5em;
 	line-height: initial;
+}
+
+.index-list {
+	margin-bottom: 36px;
+}
+
+.catalogue {
+	margin-bottom: 12px;
+}
+
+.catalogue h3 {
+	margin: 0px;
+	font-weight: normal;
+}
+.catalogue p {
+	margin: 0px;
 }
 
 .playbookGenerationContainer a:focus {
@@ -94,10 +187,12 @@
 
 .playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column-left {
 	grid-area: left-column;
+	margin-top: 25px;
 }
 
 .playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.categories-column-right {
 	grid-area: right-column;
+	margin-top: 25px;
 }
 
 .playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer {
@@ -105,7 +200,9 @@
 	height: 100%;
 	max-width: 1200px;
 	margin: 0 auto;
-	grid-template-rows: 30% minmax(min-content, auto) min-content;
+	/* grid-template-rows: 30% minmax(min-content, auto) min-content; */
+	margin-top: 50px;
+	margin-bottom: 20px;
 	grid-template-columns: 1fr 6fr 1fr 6fr 1fr;
 	grid-template-areas:
 		".  header header header ."
