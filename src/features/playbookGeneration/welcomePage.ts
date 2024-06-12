@@ -113,6 +113,7 @@ export class AnsibleCreatorMenu {
         <div class="categories-column-left">
           <div class="index-list start-container">
             <h2>Create</h2>
+            <!-- **** UNCOMMENT THESE LINES IN LATE JUNE, 2024 ****
             <div class="catalogue">
               <h3>
               <a href="command:ansible.lightspeed.playbookGeneration">
@@ -121,6 +122,7 @@ export class AnsibleCreatorMenu {
               </h3>
               <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
             </div>
+            **** UNCOMMENT THESE LINES IN LATE JUNE, 2024 **** -->
             <div class="catalogue">
               <h3>
                 <a href="command:ansible.content-creator.create-ansible-project">
