@@ -819,37 +819,33 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
     `[inline-suggestions] Inline Suggestion Marker Handler triggered using command at ${position.line}`,
   );
 
-  if (
-    lightSpeedManager.settingsManager.settings.lightSpeedService
-      .disableContentSuggestionHeader
-  ) {
-    // Get the current text
-    const line = position.line;
+  // Get the current text
+  const line = position.line;
 
-    const text = editor.document.getText(
+  const text = editor.document.getText(
+    new vscode.Range(
+      new vscode.Position(line, 0),
+      new vscode.Position(line + 1, 0),
+    ),
+  );
+  // Remove the prepended text
+  const commentPosition = text.indexOf(
+    LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
+  );
+  if (commentPosition === -1) {
+    return;
+  }
+
+  // Update the editor with the new text
+  await editor.edit((editBuilder) => {
+    editBuilder.delete(
       new vscode.Range(
         new vscode.Position(line, 0),
         new vscode.Position(line + 1, 0),
       ),
     );
-    // Remove the prepended text
-    const commentPosition = text.indexOf(
-      LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
-    );
-    if (commentPosition === -1) {
-      return;
-    }
+  });
 
-    // Update the editor with the new text
-    await editor.edit((editBuilder) => {
-      editBuilder.delete(
-        new vscode.Range(
-          new vscode.Position(line, 0),
-          new vscode.Position(line + 1, 0),
-        ),
-      );
-    });
-  }
   console.log(
     "[inline-suggestions] Inline Suggestion Marker Handler removing extra whitespace",
   );
