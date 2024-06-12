@@ -106,9 +106,9 @@ export class AnsibleCreatorMenu {
         <div class="header">
           <h1 class="title caption">Welcome to Ansible content creator</h1>
           <p class="subtitle description">Create Ansible content with ease</p>
-          
+
           <div id="system-readiness"></div>
-        
+
         </div>
         <div class="categories-column-left">
           <div class="index-list start-container">
@@ -140,7 +140,7 @@ export class AnsibleCreatorMenu {
             </div>
           </div>
 
-          <!-- <div class="index-list start-container"> 
+          <!-- <div class="index-list start-container">
             <h2>Recent</h2>
             <p>No recent activity</p>
           </div> -->
