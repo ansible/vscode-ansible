@@ -87,7 +87,7 @@ function updateAnsibleCreatorAvailabilityStatus() {
           if (systemReadinessDiv)
             systemReadinessDiv.style.backgroundColor = "#610000";
           systemReadinessIcon.innerHTML = `<span class="codicon codicon-error"></span>`;
-          systemReadinessDescription.innerHTML = `<p class="system-description"><b>Looks like your environment is missing some tools</b>.<br>Follow the descrption in the 'System requirements' section to set up your environment.</p>`;
+          systemReadinessDescription.innerHTML = `<p class="system-description"><b>Looks like your environment is missing some tools</b>.<br>Follow the description in the 'System requirements' section to set up your environment.</p>`;
         }
         systemReadinessDiv?.appendChild(systemReadinessIcon);
         systemReadinessDiv?.appendChild(systemReadinessDescription);
