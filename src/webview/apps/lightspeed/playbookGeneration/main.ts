@@ -100,7 +100,7 @@ window.addEventListener("message", async (event) => {
       pre.style.backgroundColor = "";
       break;
     }
-    // When summaries or generations API was processed normally (e.g., API error)
+    // When summaries or generations API was processed abnormally (e.g., API error)
     // dismiss the spinner icon here.
     case "exception": {
       changeDisplay("spinnerContainer", "none");
