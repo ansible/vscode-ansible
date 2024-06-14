@@ -49,7 +49,7 @@
       {
         "id": "getting-started-with-ansible-extension",
         "title": "Getting started with Ansible Extension",
-        "description": "You first step to knowning and setting up the extension with all the developer features that the Ansible extension has to offer!",
+        "description": "You first step for knowing and setting up the extension with all the developer features that the Ansible extension has to offer!",
         "steps": [
           {
             "id": "create-ansible-file",
