@@ -13,6 +13,7 @@ import {
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import * as yaml from "yaml";
 import { LightspeedUser } from "./lightspeedUser";
+import { parsePlays } from "./utils/parsePlays";
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
@@ -224,18 +225,8 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return noContentMatchesFoundHtml;
     }
     if (isPlaybook) {
-      if (
-        !suggestedTasks ||
-        !Array.isArray(suggestedTasks) ||
-        suggestedTasks.length === 0
-      ) {
-        return noContentMatchesFoundHtml;
-      }
-      let tasks = suggestedTasks[0].tasks;
-      for (let i = 1; i < suggestedTasks.length; i++) {
-        tasks = tasks.concat(suggestedTasks[i].tasks);
-      }
-      suggestedTasks = tasks;
+      // Note: When isPlaybook is True, suggestedTasks contains plays in a playbook instead of tasks.
+      suggestedTasks = parsePlays(suggestedTasks);
     }
     if (
       !suggestedTasks ||

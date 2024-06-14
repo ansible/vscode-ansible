@@ -39,5 +39,4 @@ export interface LightSpeedServiceSettings {
   URL: string;
   suggestions: { enabled: boolean; waitWindow: number };
   model: string | undefined;
-  disableContentSuggestionHeader: boolean;
 }
