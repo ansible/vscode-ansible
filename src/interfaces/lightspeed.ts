@@ -87,7 +87,6 @@ export interface PlaybookGenerationActionEvent {
   action: PlaybookGenerationActionType;
   fromPage?: number;
   toPage?: number;
-  openEditor?: boolean;
 }
 
 export interface FeedbackRequestParams {

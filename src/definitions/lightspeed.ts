@@ -26,8 +26,9 @@ export enum ThumbsUpDownAction {
 
 export enum PlaybookGenerationActionType {
   OPEN = 0, // Open wizard
-  CLOSE = 1, // Close wizard
+  CLOSE_CANCEL = 1, // Close wizard without accepting the generated playbook
   TRANSITION = 2, // Page transition
+  CLOSE_ACCEPT = 3, // Close wizard and open the generated playbook in an editor tab
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
