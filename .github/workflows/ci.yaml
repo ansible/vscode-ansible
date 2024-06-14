@@ -294,6 +294,22 @@ jobs:
           fail_ci_if_error: true
           use_oidc: true # cspell:ignore oidc
 
+      - name: Convert coverage data (als)
+        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
+        run: |
+          ./tools/convert-als-coverage-lcov.sh
+
+      - name: Upload coverage data (als)
+        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
+        uses: codecov/codecov-action@v4
+        with:
+          name: ${{ matrix.name }}
+          files: out/coverage/als/lcov.info
+          disable_search: true
+          flags: als
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test' }}
         uses: actions/upload-artifact@v4
