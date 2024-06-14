@@ -159,6 +159,10 @@ a:active {
   display: flow;
 }
 
+.playbookExplanationSpacer {
+  height: 30px;
+}
+
 .stickyFeedbackContainer {
   position: sticky;
   bottom: 0px;

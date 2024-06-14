@@ -184,6 +184,7 @@ export class PlaybookExplanationPanel {
 			<body>
         <div class="playbookGeneration">
           ${htmlSnippet}
+          <div class="playbookExplanationSpacer"></div>
         </div>
         ${showFeedbackBox ? feedbackBoxSnippet : ""}
 
