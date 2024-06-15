@@ -32,6 +32,16 @@ describe("Test EditableList", () => {
     assert.equal(out[2], SAMPLE_LIST[2]);
   });
 
+  it("Test stringToList edge cases", () => {
+    const out1 = EditableList.stringToList("1.");
+    assert.equal(out1.length, 1);
+    assert.equal(out1[0], "");
+
+    const out2 = EditableList.stringToList("");
+    assert.equal(out2.length, 1);
+    assert.equal(out2[0], "");
+  });
+
   it("Test listToString", () => {
     const out = EditableList.listToString(SAMPLE_LIST);
     assert.equal(out, SAMPLE_TEXT);
