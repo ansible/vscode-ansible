@@ -406,7 +406,7 @@ export function lightspeedUIAssetsTest(): void {
           [PlaybookGenerationActionType.TRANSITION, 2, 3],
           [PlaybookGenerationActionType.TRANSITION, 3, 2],
           [PlaybookGenerationActionType.TRANSITION, 2, 3],
-          [PlaybookGenerationActionType.CLOSE, 3, undefined],
+          [PlaybookGenerationActionType.CLOSE_ACCEPT, 3, undefined],
         ];
         const res = await axios.get(
           `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
@@ -541,7 +541,7 @@ export function lightspeedUIAssetsTest(): void {
           [PlaybookGenerationActionType.OPEN, undefined, 1],
           [PlaybookGenerationActionType.TRANSITION, 1, 2],
           [PlaybookGenerationActionType.TRANSITION, 2, 3],
-          [PlaybookGenerationActionType.CLOSE, 3, undefined],
+          [PlaybookGenerationActionType.CLOSE_ACCEPT, 3, undefined],
         ];
         const res = await axios.get(
           `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
