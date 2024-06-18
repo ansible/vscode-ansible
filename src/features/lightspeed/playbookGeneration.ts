@@ -55,7 +55,6 @@ function contentMatch(generationId: string, playbook: string) {
 async function sendActionEvent(
   action: PlaybookGenerationActionType,
   toPage?: number | undefined,
-  openEditor?: boolean,
 ) {
   if (currentPanel && wizardId) {
     const fromPage = currentPage;
@@ -68,7 +67,6 @@ async function sendActionEvent(
             action,
             fromPage,
             toPage,
-            openEditor,
           },
         },
         process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
@@ -146,7 +144,7 @@ export async function showPlaybookGenerationPage(
   );
 
   panel.onDidDispose(async () => {
-    await sendActionEvent(PlaybookGenerationActionType.CLOSE, undefined, false);
+    await sendActionEvent(PlaybookGenerationActionType.CLOSE_CANCEL, undefined);
     currentPanel = undefined;
     wizardId = undefined;
   });
@@ -255,9 +253,8 @@ export async function showPlaybookGenerationPage(
         const { playbook } = message;
         await openNewPlaybookEditor(playbook);
         await sendActionEvent(
-          PlaybookGenerationActionType.CLOSE,
+          PlaybookGenerationActionType.CLOSE_ACCEPT,
           undefined,
-          true,
         );
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;

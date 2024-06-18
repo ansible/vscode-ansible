@@ -42,10 +42,6 @@ export class SettingsManager {
           waitWindow: lightSpeedSettings.get("suggestions.waitWindow", 0),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
-        disableContentSuggestionHeader: lightSpeedSettings.get(
-          "disableContentSuggestionHeader",
-          false,
-        ),
       },
     };
 
