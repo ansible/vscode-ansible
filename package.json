@@ -994,5 +994,7 @@
   },
   "workspaces": [
     "packages/*"
-  ]
+  ],
+  "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
+  "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm"
 }
