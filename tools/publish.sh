@@ -5,7 +5,7 @@ set -Eeuo pipefail
 for FILE in ./*.vsix; do
     VERSION=$(unzip -p "${FILE}" extension/package.json | jq -r .version)
     publish_args=()
-    if [[ "$VERSION" != *.0 ]]; then
+    if [[ "$VERSION" != *.0 && "$VERSION" != *00000000 ]]; then
         publish_args+=("--pre-release")
     fi
     echo "Publishing ${VERSION}" "${publish_args[@]}"
