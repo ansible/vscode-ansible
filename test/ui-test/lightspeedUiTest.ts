@@ -720,6 +720,35 @@ export function lightspeedUIAssetsTest(): void {
           setTimeout(res, 2000);
         });
 
+        // Locate the group 1 of editor view. Since the file does not contain the "hosts" property,
+        // the explanation view is not opened in the group 1. Therefore, the group 1 should be
+        // undefined.
+        const group = await new EditorView().getEditorGroup(1);
+        expect(group, "Group 1 of the editor view should be undefined").to.be
+          .undefined;
+
+        await workbench.executeCommand("View: Close All Editor Groups");
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook explanation webview with a playbook with no tasks", async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        const file = "playbook_5.yml";
+        const filePath = getFilePath(file);
+
+        // Open file in the editor
+        await VSBrowser.instance.openResources(filePath);
+
+        // Open playbook explanation webview.
+        await workbench.executeCommand(
+          "Explain the playbook with Ansible Lightspeed",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
         // Locate the playbook explanation webview
         const webView = (await new EditorView().openEditor(
           "Explanation",
@@ -740,18 +769,11 @@ export function lightspeedUIAssetsTest(): void {
         const text = await mainDiv.getText();
         expect(
           text.includes(
-            "The requested action is not available in your environment.",
+            "Explaining a playbook with no tasks in the playbook is not supported.",
           ),
         ).to.be.true;
 
         await webView.switchBack();
-
-        const notifications = await workbench.getNotifications();
-        const notification = notifications[0];
-        expect(await notification.getMessage()).equals(
-          "The requested action is not available in your environment.",
-        );
-
         await workbench.executeCommand("View: Close All Editor Groups");
       } else {
         this.skip();
