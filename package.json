@@ -6,7 +6,8 @@
     "onLanguage:ansible",
     "onLanguage:yaml",
     "onCommand:extension.resync-ansible-inventory",
-    "workspaceContains:tox-ansible.ini"
+    "workspaceContains:tox-ansible.ini",
+    "onWebviewPanel:ansible-content-creator"
   ],
   "badges": [
     {
