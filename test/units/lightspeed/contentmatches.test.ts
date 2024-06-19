@@ -18,10 +18,10 @@ import {
   ContentMatchesResponseParams,
   IContentMatch,
   IContentMatchParams,
-  IError,
   ISuggestionDetails,
 } from "../../../src/interfaces/lightspeed";
 import { LightspeedUser } from "../../../src/features/lightspeed/lightspeedUser";
+import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 
 function createMatchResponse(): ContentMatchesResponseParams {
   const contentMatchParams = {

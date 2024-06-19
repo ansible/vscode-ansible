@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
+import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import * as marked from "marked";
 import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
@@ -43,21 +44,27 @@ export const playbookExplanation = async (
   const lightSpeedStatusbarText =
     await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   let markdown = "";
   lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
   try {
-    const response: ExplanationResponse = await client.sendRequest(
-      "playbook/explanation",
-      {
-        accessToken: accessToken,
-        URL: settingsManager.settings.lightSpeedService.URL,
-        content: content,
-        explanationId: explanationId,
-      },
-    );
-    markdown = response.content;
+    generateExplanation(
+      content,
+      explanationId,
+      client,
+      lightspeedAuthenticatedUser,
+      settingsManager,
+    ).then((response: ExplanationResponse) => {
+      if (isError(response)) {
+        vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+        currentPanel.setContent(
+          `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${response.message}</p></p>`,
+        );
+      } else {
+        markdown = response.content;
+        const html_snippet = marked.parse(markdown) as string;
+        currentPanel.setContent(html_snippet, true);
+      }
+    });
   } catch (e) {
     console.log(e);
     currentPanel.setContent(
@@ -68,10 +75,29 @@ export const playbookExplanation = async (
     lightSpeedManager.statusBarProvider.statusBar.text =
       lightSpeedStatusbarText;
   }
-
-  const html_snippet = await marked.parse(markdown);
-  currentPanel.setContent(html_snippet, true);
 };
+
+async function generateExplanation(
+  content: string,
+  explanationId: string,
+  client: LanguageClient,
+  lightspeedAuthenticatedUser: LightspeedUser,
+  settingsManager: SettingsManager,
+): Promise<ExplanationResponse> {
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+
+  const explanation: ExplanationResponse = await client.sendRequest(
+    "playbook/explanation",
+    {
+      accessToken: accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content: content,
+      explanationId: explanationId,
+    },
+  );
+  return explanation;
+}
 
 export class PlaybookExplanationPanel {
   public static currentPanel: PlaybookExplanationPanel | undefined;
