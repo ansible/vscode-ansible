@@ -122,7 +122,7 @@ const onRefusedSuggestion: CallbackEntry = async function () {
 };
 
 const onRequestInProgress: CallbackEntry = async function () {
-  lightSpeedManager.apiInstance.inlineSuggestionFeedbackIgnoredPending = true;
+  lightSpeedManager.apiInstance.cancelSuggestionFeedbackInProgress();
   return [];
 };
 
@@ -149,13 +149,13 @@ type CompletionState = (typeof CompletionState)[keyof typeof CompletionState];
 
 function getCompletionState(
   suggestionDisplayed: SuggestionDisplayed,
-  completionRequestInProgress: boolean,
+  suggestionFeedbackInProgress: boolean,
   languageId: string,
   isCancellationRequested: boolean,
   lightSpeedSetting: LightSpeedServiceSettings,
   positionHasChanged?: boolean,
 ): CompletionState {
-  if (completionRequestInProgress) {
+  if (suggestionFeedbackInProgress) {
     return CompletionState.RequestInProgress;
   }
   if (languageId !== "ansible") {
@@ -217,8 +217,7 @@ export class LightSpeedInlineSuggestionProvider
 
     const state = getCompletionState(
       suggestionDisplayed,
-      lightSpeedManager.apiInstance.completionRequestInProgress &&
-        !lightSpeedManager.apiInstance.inlineSuggestionFeedbackIgnoredPending,
+      lightSpeedManager.apiInstance.isSuggestionFeedbackInProgress(),
       (activeTextEditor && activeTextEditor.document.languageId) ||
         document.languageId,
       token.isCancellationRequested,
@@ -880,7 +879,10 @@ export async function inlineSuggestionCommitHandler() {
   console.log("[inline-suggestions] User accepted the inline suggestion.");
 }
 
-export async function inlineSuggestionHideHandler(userAction?: UserAction) {
+export async function inlineSuggestionHideHandler(
+  userAction?: UserAction,
+  suggestionId?: string,
+) {
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
     return;
   }
@@ -888,8 +890,9 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
   // Hide the suggestion, which might be provided by another provider
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
+  suggestionId = suggestionId || inlineSuggestionData["suggestionId"];
   // If the suggestion does not seem to be ours, exit early.
-  if (!inlineSuggestionData["suggestionId"]) {
+  if (!suggestionId) {
     return;
   }
   const action = userAction || UserAction.REJECTED;
@@ -911,7 +914,6 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
 
   console.log("[inline-suggestions] User ignored the inline suggestion.");
 
-  const suggestionId = inlineSuggestionData["suggestionId"];
   // Send feedback for refused suggestion
   await inlineSuggestionUserActionHandler(suggestionId, action);
 }
@@ -920,22 +922,26 @@ export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted: UserAction = UserAction.REJECTED,
 ) {
-  inlineSuggestionData["userActionTime"] =
+  const data: InlineSuggestionEvent = {};
+
+  data["userActionTime"] =
     getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
 
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
   suggestionDisplayed.reset();
-  inlineSuggestionData["action"] = isSuggestionAccepted;
-  inlineSuggestionData["suggestionId"] = suggestionId;
+  data["action"] = isSuggestionAccepted;
+  data["suggestionId"] = suggestionId;
   const inlineSuggestionFeedbackPayload = {
-    inlineSuggestion: inlineSuggestionData,
+    inlineSuggestion: data,
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload,
   );
-  resetSuggestionData();
+  if (suggestionId === inlineSuggestionData["suggestionId"]) {
+    resetSuggestionData();
+  }
 }
 
 function inlineSuggestionPending(checkActiveTextEditor = true): boolean {
@@ -960,7 +966,11 @@ function resetSuggestionData(): void {
 }
 
 export async function rejectPendingSuggestion() {
-  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+  if (
+    suggestionDisplayed.get() &&
+    lightSpeedManager.inlineSuggestionsEnabled &&
+    !lightSpeedManager.apiInstance.isSuggestionFeedbackInProgress()
+  ) {
     if (inlineSuggestionPending()) {
       console.log(
         "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
@@ -1005,7 +1015,6 @@ export async function inlineSuggestionTextDocumentChangeHandler(
     e.contentChanges.length > 0
   ) {
     const suggestionId = inlineSuggestionData["suggestionId"] || "";
-
     e.contentChanges.forEach(async (c) => {
       if (c.text === insertTexts[0]) {
         // If a matching change was found, send a feedback with the ACCEPTED user action.
