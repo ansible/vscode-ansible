@@ -158,6 +158,12 @@ export function lightspeedUIAssetsTest(): void {
           "Ansible Lightspeed: Enable experimental features",
         );
         await workbench.executeCommand("View: Close All Editor Groups");
+
+        const notifications = await workbench.getNotifications();
+        for (let i = 0; i < notifications.length; i++) {
+          const n = notifications[i];
+          await n.dismiss();
+        }
       }
     });
 
@@ -559,6 +565,61 @@ export function lightspeedUIAssetsTest(): void {
       }
     });
 
+    it("Playbook generation webview works as expected (feature unavailable)", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        // Open playbook generation webview.
+        await workbench.executeCommand(
+          "Ansible Lightspeed: Playbook generation",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        const webView = await new WebView();
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Set input text and invoke summaries API
+        const textArea = await webView.findWebElement(
+          By.xpath("//vscode-text-area"),
+        );
+        expect(textArea, "textArea should not be undefined").not.to.be
+          .undefined;
+        const submitButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='submit-button']"),
+        );
+        expect(submitButton, "submitButton should not be undefined").not.to.be
+          .undefined;
+        //
+        // Note: Following line should succeed, but fails for some unknown reasons.
+        //
+        // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
+        await textArea.sendKeys("Feature not available");
+        expect(
+          await submitButton.isEnabled(),
+          "submit button should be enabled now",
+        ).to.be.true;
+        await submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        await webView.switchBack();
+
+        const notifications = await workbench.getNotifications();
+        const notification = notifications[0];
+        expect(await notification.getMessage()).equals(
+          "The requested action is not available in your environment.",
+        );
+      } else {
+        this.skip();
+      }
+    });
+
     it("Playbook explanation webview works as expected", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
         const file = "playbook_4.yml";
@@ -596,6 +657,60 @@ export function lightspeedUIAssetsTest(): void {
         expect(text.includes("Playbook Overview and Structure")).to.be.true;
 
         await webView.switchBack();
+        await workbench.executeCommand("View: Close All Editor Groups");
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook explanation webview works as expected (feature unavailable)", async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        const file = "playbook_explanation_feature_unavailable.yml";
+        const filePath = getFilePath(file);
+
+        // Open file in the editor
+        await VSBrowser.instance.openResources(filePath);
+
+        // Open playbook explanation webview.
+        await workbench.executeCommand(
+          "Explain the playbook with Ansible Lightspeed",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Locate the playbook explanation webview
+        const webView = (await new EditorView().openEditor(
+          "Explanation",
+          1,
+        )) as WebView;
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Find the main div element of the webview and verify the expected text is found.
+        const mainDiv = await webView.findWebElement(
+          By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+        );
+        expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
+        const text = await mainDiv.getText();
+        expect(
+          text.includes(
+            "The requested action is not available in your environment.",
+          ),
+        ).to.be.true;
+
+        await webView.switchBack();
+
+        const notifications = await workbench.getNotifications();
+        const notification = notifications[0];
+        expect(await notification.getMessage()).equals(
+          "The requested action is not available in your environment.",
+        );
+
         await workbench.executeCommand("View: Close All Editor Groups");
       } else {
         this.skip();

@@ -7,8 +7,8 @@ import {
   ERRORS_UNKNOWN,
   ERRORS_CONNECTION_TIMEOUT,
   ERRORS_NOT_FOUND,
-} from "./errors";
-import { IError } from "../../interfaces/lightspeed";
+} from "../errors";
+import { IError } from "../interfaces/lightspeedApi";
 
 export function mapError(err: AxiosError): IError {
   // Lookup _known_ errors

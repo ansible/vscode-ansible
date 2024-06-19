@@ -12,6 +12,7 @@ import {
   LightSpeedCommands,
   PlaybookGenerationActionType,
 } from "../../definitions/lightspeed";
+import { isError, UNKNOWN_ERROR } from "./utils/errors";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
@@ -157,9 +158,8 @@ export async function showPlaybookGenerationPage(
     switch (command) {
       case "outline": {
         try {
-          let outline: GenerationResponse;
           if (!message.outline) {
-            outline = await generatePlaybook(
+            generatePlaybook(
               message.text,
               undefined,
               message.generationId,
@@ -167,15 +167,29 @@ export async function showPlaybookGenerationPage(
               lightspeedAuthenticatedUser,
               settingsManager,
               panel,
-            );
+            ).then((response: GenerationResponse) => {
+              if (isError(response)) {
+                panel.webview.postMessage({ command: "exception" });
+                vscode.window.showErrorMessage(
+                  response.message ?? UNKNOWN_ERROR,
+                );
+              } else {
+                panel.webview.postMessage({
+                  command: "outline",
+                  outline: response,
+                });
+              }
+            });
           } else {
-            outline = {
-              playbook: message.playbook,
-              outline: message.outline,
-              generationId: message.generationId,
-            };
+            panel.webview.postMessage({
+              command: "outline",
+              outline: {
+                playbook: message.playbook,
+                outline: message.outline,
+                generationId: message.generationId,
+              },
+            });
           }
-          panel.webview.postMessage({ command: "outline", outline });
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
           panel.webview.postMessage({ command: "exception" });
@@ -196,7 +210,7 @@ export async function showPlaybookGenerationPage(
         const darkMode = message.darkMode;
         if (!playbook) {
           try {
-            const playbookResponse = await generatePlaybook(
+            const response = await generatePlaybook(
               message.text,
               message.outline,
               message.generationId,
@@ -205,9 +219,15 @@ export async function showPlaybookGenerationPage(
               settingsManager,
               panel,
             );
-            playbook = playbookResponse.playbook;
-            generationId = playbookResponse.generationId;
-            outline = playbookResponse.outline;
+            if (isError(response)) {
+              panel.webview.postMessage({ command: "exception" });
+              vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+              break;
+            }
+            playbook = response.playbook;
+            generationId = response.generationId;
+            outline = response.outline;
+
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (e: any) {
             panel.webview.postMessage({ command: "exception" });
