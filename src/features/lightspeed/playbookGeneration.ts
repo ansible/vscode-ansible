@@ -95,7 +95,7 @@ async function generatePlaybook(
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const createOutline = true;
+  const createOutline = outline === undefined;
   const playbook: GenerationResponse = await client.sendRequest(
     "playbook/generation",
     {
@@ -206,7 +206,8 @@ export async function showPlaybookGenerationPage(
         break;
 
       case "generateCode": {
-        let { playbook, generationId, outline } = message;
+        let { playbook, generationId } = message;
+        const outline = message.outline;
         const darkMode = message.darkMode;
         if (!playbook) {
           try {
@@ -226,7 +227,6 @@ export async function showPlaybookGenerationPage(
             }
             playbook = response.playbook;
             generationId = response.generationId;
-            outline = response.outline;
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (e: any) {
