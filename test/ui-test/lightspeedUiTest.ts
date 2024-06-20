@@ -204,7 +204,7 @@ export function lightspeedUIAssetsTest(): void {
 
         const createContentButton = await contentCreatorWebView.findWebElement(
           By.xpath(
-            "//vscode-link[contains(@href,'command:ansible.lightspeed.playbookGeneration')]",
+            "//a[contains(@href,'command:ansible.lightspeed.playbookGeneration')]",
           ),
         );
         expect(createContentButton).not.to.be.undefined;
