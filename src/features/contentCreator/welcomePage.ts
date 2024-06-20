@@ -165,10 +165,7 @@ export class AnsibleCreatorMenu {
             </div>
 
             <div class="menu-item">
-              <vscode-link href="command:ansible.content-creator.create">
-              <!--
               <vscode-link href="command:ansible.lightspeed.playbookGeneration">
-              -->
                 <img src="${createIcon}" alt="Ansible Creator Icon">
               </vscode-link>
                 <p class="menu-item-heading">Create ansible content</p>

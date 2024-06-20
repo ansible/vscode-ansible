@@ -85,7 +85,6 @@ export class LightspeedExplorerWebviewViewProvider
         userType,
         userRole,
         window.activeTextEditor?.document.languageId === "ansible",
-        this.lightspeedExperimentalEnabled,
       );
     } else {
       return getWebviewContentWithLoginForm(webview, extensionUri);

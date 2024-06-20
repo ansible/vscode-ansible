@@ -56,7 +56,6 @@ export function getWebviewContentWithActiveSession(
   userType: string,
   userRole: string,
   has_playbook_opened: boolean,
-  lightspeedExperimentalEnabled: boolean,
 ) {
   const webviewUri = getUri(webview, extensionUri, [
     "out",
@@ -102,7 +101,7 @@ export function getWebviewContentWithActiveSession(
       Logged in as: ${userName}<br />
       User Type: ${userType}<br />
       ${userRole ? "Role: " + userRole : ""}
-      ${lightspeedExperimentalEnabled ? explainForm : ""}
+      ${explainForm}
     </div>
     </body>
   </html>
