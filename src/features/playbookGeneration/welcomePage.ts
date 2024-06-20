@@ -115,9 +115,9 @@ export class AnsibleCreatorMenu {
             <h2>Create</h2>
             <div class="catalogue">
               <h3>
-                <vscode-link href="command:ansible.lightspeed.playbookGeneration">
+                <a href="command:ansible.lightspeed.playbookGeneration">
                   <span class="codicon codicon-file-code"></span> Playbook with Ansible Lightspeed
-                </vscode-link>
+                </a>
               </h3>
               <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
             </div>
