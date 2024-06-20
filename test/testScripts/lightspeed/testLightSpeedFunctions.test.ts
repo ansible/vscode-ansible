@@ -5,6 +5,10 @@ import { LightspeedUserDetails } from "../../../src/interfaces/lightspeed";
 import { lightSpeedManager } from "../../../src/extension";
 import { assert } from "chai";
 import { LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from "../../../src/definitions/lightspeed";
+import {
+  findTasks,
+  isPlaybook,
+} from "../../../src/features/lightspeed/playbookExplanation";
 
 function getLightSpeedUserDetails(
   rhUserHasSeat: boolean,
@@ -170,8 +174,106 @@ function testFeedbackAPI(): void {
   });
 }
 
+function testFindTasks(): void {
+  describe("Test findTasks for playbook explanation", () => {
+    it("No tasks are found", () => {
+      const PLAYBOOK = `---
+- name: Playbook 1
+  hosts: all
+  roles:
+    - my_role`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, false);
+    });
+
+    it("Tasks are found (tasks)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 2
+  hosts: all
+  tasks:
+    - name: Task 2-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are found (pre_tasks)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 3
+  hosts: all
+  pre_tasks:
+    - name: Task 3-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are found (post_tasks)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 4
+  hosts: all
+  post_tasks:
+    - name: Task 4-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are found (handlers)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 5
+  hosts: all
+  handlers:
+    - name: Handler 5-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are not found (invalid YAML)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 6
+  hosts: all
+tasks:
+    - name: Task 6-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, false);
+    });
+  });
+}
+
+function testIsPlaybook(): void {
+  describe("Test isPlaybook for playbook explanation", () => {
+    it("A playbook", () => {
+      const PLAYBOOK = `---
+- name: Playbook 1
+  hosts: all
+  tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        msg: Hello`;
+      const rc = isPlaybook(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Not a playbook", () => {
+      const PLAYBOOK = `---
+- name: Playbook 1
+  tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        msg: Hello`;
+      const rc = isPlaybook(PLAYBOOK);
+      assert.equal(rc, false);
+    });
+  });
+}
+
 export function testLightspeedFunctions(): void {
   testGetLoggedInUserDetails();
   testGetLightSpeedStatusBarText();
   testFeedbackAPI();
+  testFindTasks();
+  testIsPlaybook();
 }

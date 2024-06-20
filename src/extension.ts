@@ -296,6 +296,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager,
         pythonInterpreterManager,
       );
+      lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       metaData.sendAnsibleMetadataTelemetry();
     }),
   );

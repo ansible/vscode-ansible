@@ -9,6 +9,39 @@ import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { ExplanationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 import { v4 as uuidv4 } from "uuid";
+import * as yaml from "yaml";
+
+function getObjectKeys(content: string): string[] {
+  try {
+    const parsedAnsibleDocument = yaml.parse(content);
+    const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+    if (typeof lastObject === "object") {
+      return Object.keys(lastObject);
+    }
+  } catch (error) {
+    return [];
+  }
+  return [];
+}
+
+export function isPlaybook(content: string): boolean {
+  for (const keyword of getObjectKeys(content)) {
+    if (keyword === "hosts") {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function findTasks(content: string): boolean {
+  const tasksTags = ["tasks", "pre_tasks", "post_tasks", "handlers"];
+  for (const keyword of getObjectKeys(content)) {
+    if (tasksTags.includes(keyword)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
@@ -23,24 +56,40 @@ export const playbookExplanation = async (
   if (document?.languageId !== "ansible") {
     return;
   }
+
+  const content = document.getText();
+
+  if (!isPlaybook(content)) {
+    return;
+  }
+
   const explanationId = uuidv4();
+  const currentPanel = PlaybookExplanationPanel.createOrShow(
+    extensionUri,
+    explanationId,
+  );
+
+  if (!findTasks(content)) {
+    currentPanel.setContent(
+      `<p><span class="codicon codicon-info"></span>
+      &nbsp;Explaining a playbook with no tasks in the playbook is not supported.</p>`,
+    );
+    return;
+  }
+
   lightSpeedManager.apiInstance.feedbackRequest(
     { playbookExplanation: { explanationId: explanationId } },
     false,
     false,
   );
-  const currentPanel = PlaybookExplanationPanel.createOrShow(
-    extensionUri,
-    explanationId,
-  );
+
   currentPanel.setContent(
     `<div id="icons">
         <span class="codicon codicon-loading codicon-modifier-spin"></span>
-        Generating the explanation for ${document.fileName.split("/").at(-1)}
+        &nbsp;Generating the explanation for ${document.fileName.split("/").at(-1)}
       </div>`,
   );
 
-  const content = document.getText();
   const lightSpeedStatusbarText =
     await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
@@ -68,7 +117,8 @@ export const playbookExplanation = async (
   } catch (e) {
     console.log(e);
     currentPanel.setContent(
-      `<p><span class="codicon codicon-error"></span>Cannot load the explanation: <code>${e}</code></p>`,
+      `<p><span class="codicon codicon-error"></span>
+      &nbsp;Cannot load the explanation: <code>${e}</code></p>`,
     );
     return;
   } finally {
