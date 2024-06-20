@@ -24,6 +24,13 @@ export enum ThumbsUpDownAction {
   DOWN = 1, //Thumbs Down
 }
 
+export enum PlaybookGenerationActionType {
+  OPEN = 0, // Open wizard
+  CLOSE_CANCEL = 1, // Close wizard without accepting the generated playbook
+  TRANSITION = 2, // Page transition
+  CLOSE_ACCEPT = 3, // Close wizard and open the generated playbook in an editor tab
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace LightSpeedCommands {
   export const LIGHTSPEED_AUTH_REQUEST = "ansible.lightspeed.oauth";

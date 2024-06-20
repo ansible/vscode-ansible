@@ -7,12 +7,22 @@ export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: any,
 ) {
+  const text = req.body.text;
   const createOutline = req.body.createOutline;
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
   const wizardId = req.body.wizardId;
-  logger.info(req.body.text);
-  logger.info(req.body.outline);
+  logger.info(`text: ${text}`);
+  logger.info(`outline: ${req.body.outline}`);
   logger.info(`wizardId: ${wizardId}`);
+
+  // Special case to replicate the feature being unavailable
+  if (text === "Feature not available") {
+    logger.info("Returning 404. Feature is not available");
+    return res.status(404).send({
+      code: "feature_not_available",
+      message: "The feature is not available",
+    });
+  }
 
   // cSpell: disable
   let outline: string | undefined = `Name: "Create an azure network..."

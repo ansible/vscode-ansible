@@ -100,7 +100,7 @@ window.addEventListener("message", async (event) => {
       pre.style.backgroundColor = "";
       break;
     }
-    // When summaries or generations API was processed normally (e.g., API error)
+    // When summaries or generations API was processed abnormally (e.g., API error)
     // dismiss the spinner icon here.
     case "exception": {
       changeDisplay("spinnerContainer", "none");
@@ -276,6 +276,11 @@ function adjustTextAreaHeight() {
 function setPageNumber(pageNumber: number) {
   const span = document.getElementById("page-number") as Element;
   span.textContent = `${pageNumber} of ${TOTAL_PAGES}`;
+
+  vscode.postMessage({
+    command: "transition",
+    toPage: pageNumber,
+  });
 }
 
 function setButtonEnabled(id: string, enabled: boolean) {

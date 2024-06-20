@@ -1,7 +1,7 @@
 require("assert");
 
 import { AxiosError, AxiosHeaders } from "axios";
-import { mapError } from "../../../src/features/lightspeed/handleApiError";
+import { mapError } from "../../src/utils/handleApiError";
 import assert from "assert";
 
 function createError(
@@ -217,6 +217,18 @@ describe("testing the error handling", () => {
     );
   });
 
+  it("err no default WCA Model Id found", () => {
+    const error = mapError(
+      createError(403, {
+        code: "error__no_default_model_id",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "Ansible Lightspeed does not have a model configured. Contact your Ansible administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
+    );
+  });
+
   it("err WCA Model Id missing", () => {
     const error = mapError(
       createError(403, {
@@ -225,7 +237,7 @@ describe("testing the error handling", () => {
     );
     assert.equal(
       error.message,
-      "Could not find a Model Id for IBM watsonx Code Assistant. Please contact your administrator.",
+      "Your organization does not have an IBM watsonx Code Assistant model configured. Contact your Red Hat organization administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
     );
   });
 
@@ -274,6 +286,18 @@ describe("testing the error handling", () => {
     assert.equal(
       error.message,
       "The resource could not be found. Please try again later.",
+    );
+  });
+
+  it("err Feature not available", () => {
+    const error = mapError(
+      createError(404, {
+        code: "feature_not_available",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "The requested action is not available in your environment.",
     );
   });
   // =================================

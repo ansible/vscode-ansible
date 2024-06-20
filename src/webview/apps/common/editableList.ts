@@ -103,7 +103,13 @@ export class EditableList {
 
   static stringToList(str: string): string[] {
     const values: string[] = [];
-    const re = /\d+\.\s*(.+)/;
+    // Even when no data was found in the input, add an empty entry so that user
+    // can edit the list.
+    if (!str) {
+      return [""];
+    }
+    str = str.trim();
+    const re = /\d+\.\s*(.*)/;
     for (let s of str.split("\n")) {
       s = s.trim();
       if (s) {

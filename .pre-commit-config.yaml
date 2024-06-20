@@ -22,12 +22,12 @@ exclude: >
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.8.0
+    rev: v8.8.2
     hooks:
       - id: cspell
         # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         pass_filenames: false # we want to use its own config
@@ -144,9 +144,9 @@ repos:
             packages/ansible-language-server/test/testFixtures/diagnostics/yaml/invalid_yaml.yml|
             packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
           )$
-  - repo: https://github.com/pre-commit/mirrors-prettier
+  - repo: https://github.com/pycontribs/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v4.0.0-alpha.8"
+    rev: "v3.3.2"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
@@ -157,7 +157,7 @@ repos:
             docs/als/settings.md
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.40.0
+    rev: v0.41.0
     hooks:
       - id: markdownlint
         exclude: >
