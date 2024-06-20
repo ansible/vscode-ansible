@@ -212,7 +212,7 @@ export function lightspeedUIAssetsTest(): void {
           await createContentButton.click();
         }
         await contentCreatorWebView.switchBack();
-        await new EditorView().closeEditor("Ansible Content Creator");
+        await new EditorView().closeEditor("Ansible content creator");
         await new Promise((res) => {
           setTimeout(res, 2000);
         });
