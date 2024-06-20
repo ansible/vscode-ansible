@@ -38,6 +38,9 @@ export function mapError(err: AxiosError): IError {
   if (status === 500) {
     return ERRORS_UNKNOWN.withDetail(detail);
   }
+  if (status === 502) {
+    return ERRORS_UNKNOWN.withDetail(detail);
+  }
   if (status === AxiosError.ECONNABORTED) {
     return ERRORS_CONNECTION_TIMEOUT.withDetail(detail);
   }
