@@ -56,7 +56,7 @@ import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
-import { AnsibleCreatorMenu } from "./features/contentCreator/welcomePage";
+import { AnsibleCreatorMenu } from "./features/playbookGeneration/welcomePage";
 import { CreateAnsibleCollection } from "./features/contentCreator/createAnsibleCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
@@ -503,7 +503,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
-  // open ansible-creator menu
+  // open ansible-content-creator menu
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.menu", () => {
       AnsibleCreatorMenu.render(context.extensionUri);

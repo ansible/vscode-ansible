@@ -9,7 +9,6 @@ import {
   FeedbackResponseParams,
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
-  IError,
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
@@ -20,11 +19,27 @@ import {
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
 import { UserAction } from "../../definitions/lightspeed";
-import { mapError } from "./handleApiError";
+import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _handleApiError: any;
+
+export async function mapError(error: AxiosError): Promise<IError> {
+  if (!_handleApiError) {
+    try {
+      _handleApiError =
+        await require("@ansible/ansible-language-server/src/utils/handleApiError");
+    } catch (e) {
+      _handleApiError =
+        await require(/* webpackIgnore: true */ "../../../../server/src/utils/handleApiError");
+    }
+  }
+  return _handleApiError.mapError(error);
+}
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -144,7 +159,7 @@ export class LightSpeedAPI {
     } catch (error) {
       this._inlineSuggestionFeedbackIgnoredPending = false;
       const err = error as AxiosError;
-      const mappedError: IError = mapError(err);
+      const mappedError: IError = await mapError(err);
       vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
       return {} as CompletionResponseParams;
     } finally {
@@ -218,7 +233,7 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      const mappedError: IError = mapError(err);
+      const mappedError: IError = await mapError(err);
       const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
       if (showInfoMessage) {
         vscode.window.showErrorMessage(errorMessage);
@@ -265,7 +280,7 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      const mappedError: IError = mapError(err);
+      const mappedError: IError = await mapError(err);
       return mappedError;
     }
   }

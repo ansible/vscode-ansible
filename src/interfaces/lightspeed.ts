@@ -87,7 +87,6 @@ export interface PlaybookGenerationActionEvent {
   action: PlaybookGenerationActionType;
   fromPage?: number;
   toPage?: number;
-  openEditor?: boolean;
 }
 
 export interface FeedbackRequestParams {
@@ -211,10 +210,4 @@ export interface LightspeedSessionModelInfo {
 export interface LightspeedSessionInfo {
   userInfo?: LightspeedSessionUserInfo;
   modelInfo?: LightspeedSessionModelInfo;
-}
-
-export interface IError {
-  code: string;
-  message?: string;
-  detail?: unknown;
 }

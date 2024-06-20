@@ -7,11 +7,22 @@ export function explanations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: any,
 ) {
+  const playbook = req.body.content;
   const explanationId = req.body.explanationId
     ? req.body.explanationId
     : uuidv4();
   const format = "markdown";
-  logger.info(req.body.content);
+  logger.info(`content: ${playbook}`);
+
+  // Special case to replicate the feature being unavailable
+  if (playbook !== undefined && playbook.includes("Feature not available")) {
+    logger.info("Returning 404. Feature is not available");
+    return res.status(404).send({
+      code: "feature_not_available",
+      message: "The feature is not available",
+    });
+  }
+
   // cSpell: disable
   const content = `
 ## Playbook Overview and Structure

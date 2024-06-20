@@ -24,11 +24,14 @@ import { ValidationManager } from "./services/validationManager";
 import { WorkspaceManager } from "./services/workspaceManager";
 import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
 import axios from "axios";
+import { AxiosError } from "axios";
 import { getBaseUri } from "./utils/webUtils";
 import {
   ExplanationResponse,
   GenerationResponse,
+  IError,
 } from "./interfaces/lightspeedApi";
+import { mapError } from "./utils/handleApiError";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -383,7 +386,13 @@ export class AnsibleLanguageService {
           })
           .then((response) => {
             return response.data;
+          })
+          .catch((error) => {
+            const err = error as AxiosError;
+            const mappedError: IError = mapError(err);
+            return mappedError;
           });
+
         console.log(result);
 
         return result;
@@ -421,6 +430,11 @@ export class AnsibleLanguageService {
           })
           .then((response) => {
             return response.data;
+          })
+          .catch((error) => {
+            const err = error as AxiosError;
+            const mappedError: IError = mapError(err);
+            return mappedError;
           });
 
         return result;
