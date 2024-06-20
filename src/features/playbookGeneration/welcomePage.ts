@@ -107,7 +107,7 @@ export class AnsibleCreatorMenu {
           <h1 class="title caption">Welcome to Ansible content creator</h1>
           <p class="subtitle description">Create Ansible content with ease</p>
 
-          <div id="system-readiness"></div>
+          <div id="system-readiness" class="statusDisplay"></div>
 
         </div>
         <div class="categories-column-left">
@@ -182,7 +182,7 @@ export class AnsibleCreatorMenu {
                 <h2>System requirements:</h2>
               </div>
 
-              <div id=install-status></div>
+              <div id=install-status class="statusDisplay"></div>
 
               <div class="refresh-button-div">
                 <vscode-button id="refresh">
