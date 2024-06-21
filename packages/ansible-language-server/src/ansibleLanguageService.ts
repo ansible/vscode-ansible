@@ -380,10 +380,14 @@ export class AnsibleLanguageService {
         });
 
         const result: ExplanationResponse = await axiosInstance
-          .post("/ai/explanations/", {
-            content: content,
-            explanationId: explanationId,
-          })
+          .post(
+            "/ai/explanations/",
+            {
+              content: content,
+              explanationId: explanationId,
+            },
+            { signal: AbortSignal.timeout(28000) },
+          )
           .then((response) => {
             return response.data;
           })
@@ -421,13 +425,17 @@ export class AnsibleLanguageService {
         });
 
         const result: GenerationResponse = await axiosInstance
-          .post("/ai/generations/", {
-            text,
-            createOutline,
-            outline,
-            generationId,
-            wizardId,
-          })
+          .post(
+            "/ai/generations/",
+            {
+              text,
+              createOutline,
+              outline,
+              generationId,
+              wizardId,
+            },
+            { signal: AbortSignal.timeout(28000) },
+          )
           .then((response) => {
             return response.data;
           })
