@@ -30,10 +30,10 @@ def cli():
     logging.debug("git describe returned: %s", git_tag)
     tag, commits_since, suffix = git_tag.split("-", 2)
     version = tag[1:]
+    version_info = [int(x) for x in version.split(".")]
     if "-dirty" in suffix or commits_since != "0":
         pre_release = True
     if pre_release:
-        version_info = [int(x) for x in version.split(".")]
         if len(version_info) == 2:
             version_info.append(0)
         if len(version_info) != 3:
