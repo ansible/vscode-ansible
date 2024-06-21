@@ -480,9 +480,13 @@ export class CreateAnsibleCollection {
     //   { uri: folderUri },
     // );
 
-    await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
-      forceNewWindow: true,
-    });
+    if (vscode.workspace.workspaceFolders?.length === 0) {
+      vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
 
     // open the galaxy file in the editor
     const galaxyFileUrl = vscode.Uri.joinPath(
