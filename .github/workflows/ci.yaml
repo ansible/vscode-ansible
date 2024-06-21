@@ -413,9 +413,14 @@ jobs:
           yarn install --immutable
           ls -la *.vsix
 
-      - name: Publish to extension to marketplaces
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Publish extension to marketplaces
         run: |
-          ./tools/publish.sh
+          ./tools/helper --publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
