@@ -3,6 +3,8 @@
 """Utility that helps with extension building and testing."""
 import argparse
 import glob
+import os
+from pathlib import Path
 import subprocess
 import logging
 import sys
@@ -20,6 +22,7 @@ def cli():
     parser.add_argument('--version', action='store_true', help="Retrieve marketplace compatible version number to be used during build.")
     parser.add_argument('--publish', action='store_true', help="Publish already built vsix file to marketplaces.")
     parser.add_argument('--package', action='store_true', help="Package the extension.")
+    parser.add_argument('--export-github-vars', action='store_true', help="Export GHA variables such 'version' and 'pre_release'.")
 
     opt, _ = parser.parse_known_args()
     logging.basicConfig(level=logging.INFO, format='%(message)s')
@@ -75,7 +78,15 @@ def cli():
         run("zipinfo -1 ./*.vsix > out/log/package.log")
         run("tools/dirty.sh")
         print(f"Generated ansible-{version}")
-
+    if opt.export_github_vars:
+        if "GITHUB_OUTPUT" not in os.environ:
+            logging.error("Unable to find GITHUB_OUTPUT environment variable.")
+            sys.exit(2)
+        with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf8") as f:
+            f.write(f"version={version}\n")
+            f.write(f"pre_release={1 if pre_release else 0}\n")
+            f.write(f"vsix_filename=ansible-{version}.vsix\n")
+            f.write(f"vsix_type={'pre-release' if pre_release else 'release'}\n")
 
 if __name__ == "__main__":
     cli()
