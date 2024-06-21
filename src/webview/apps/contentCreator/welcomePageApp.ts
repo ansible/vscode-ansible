@@ -79,13 +79,14 @@ function updateAnsibleCreatorAvailabilityStatus() {
         );
 
         if (systemStatus) {
-          if (systemReadinessDiv)
-            systemReadinessDiv.style.backgroundColor = "#023020";
+          // Commented out temporarily for visibility issue with a light color theme
+          // if (systemReadinessDiv)
+          //   systemReadinessDiv.style.backgroundColor = "#023020";
           systemReadinessIcon.innerHTML = `<span class="codicon codicon-pass"></span>`;
           systemReadinessDescription.innerHTML = `<p class="system-description"><b>All the tools are installed</b>.<br>Your environment is ready and you can start creating ansible content.</p>`;
         } else {
-          if (systemReadinessDiv)
-            systemReadinessDiv.style.backgroundColor = "#610000";
+          // if (systemReadinessDiv)
+          //   systemReadinessDiv.style.backgroundColor = "#610000";
           systemReadinessIcon.innerHTML = `<span class="codicon codicon-error"></span>`;
           systemReadinessDescription.innerHTML = `<p class="system-description"><b>Looks like your environment is missing some tools</b>.<br>Follow the description in the 'System requirements' section to set up your environment.</p>`;
         }

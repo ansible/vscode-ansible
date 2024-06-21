@@ -1,10 +1,10 @@
 ---
-# see https://github.com/ansible-community/devtools
-_extends: ansible-community/devtools
+# see https://github.com/ansible/team-devtools
+_extends: ansible/team-devtools
 tag-template: 'v$RESOLVED_VERSION'
 category-template: '### $TITLE'
 template: '$CHANGES'
-version-template: $MAJOR.$MINOR
+version-template: $MAJOR.$MINOR.$PATCH
 # Due to vscode pre-release versioning limitations we cannot use the PATCH part
 # of the MAJOR.MINOR.PATCH, so both bugfixes and minor changes will affect
 # the MINOR number. Regardless this, we will still list enhancement and bugs
@@ -17,11 +17,13 @@ version-resolver:
       - "major"
   minor:
     labels:
-      - "bug"
-      - "deprecated"
       - "enhancement"
       - "feature"
       - "minor"
+  patch:
+    labels:
+      - "bug"
+      - "deprecated"
       - "patch"
       - "refactoring"
-  default: minor
+  default: patch

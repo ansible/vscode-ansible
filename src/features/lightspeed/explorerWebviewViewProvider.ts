@@ -15,6 +15,7 @@ import {
 import { LightspeedUser } from "./lightspeedUser";
 
 import { getLoggedInUserDetails } from "./utils/webUtils";
+import { isPlaybook } from "./playbookExplanation";
 
 export class LightspeedExplorerWebviewViewProvider
   implements WebviewViewProvider
@@ -84,12 +85,23 @@ export class LightspeedExplorerWebviewViewProvider
         userName,
         userType,
         userRole,
-        window.activeTextEditor?.document.languageId === "ansible",
-        this.lightspeedExperimentalEnabled,
+        this.hasPlaybookOpened(),
       );
     } else {
       return getWebviewContentWithLoginForm(webview, extensionUri);
     }
+  }
+
+  private hasPlaybookOpened() {
+    const document = window.activeTextEditor?.document;
+    if (document !== undefined && document.languageId === "ansible") {
+      try {
+        return isPlaybook(document.getText());
+      } catch (error) {
+        return false;
+      }
+    }
+    return false;
   }
 
   private async _setWebviewMessageListener(webview: Webview) {
