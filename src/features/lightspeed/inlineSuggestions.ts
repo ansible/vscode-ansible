@@ -347,7 +347,7 @@ async function requestSuggestion(
       documentInfo,
       inlinePosition,
     );
-    inlineSuggestionData["suggestionId"] = suggestionId;
+    setInProgressSuggestionId(suggestionId);
     inlineSuggestionData["documentUri"] = documentInfo.documentUri;
     inlineSuggestionData["activityId"] = activityId;
 
@@ -371,6 +371,10 @@ async function requestSuggestion(
     lightSpeedManager.statusBarProvider.statusBar.text =
       lightSpeedStatusbarText;
   }
+}
+
+export function setInProgressSuggestionId(suggestionId?: string) {
+  inlineSuggestionData["suggestionId"] = suggestionId;
 }
 
 export function setDocumentChanged(value: boolean) {

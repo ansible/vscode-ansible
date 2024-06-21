@@ -150,22 +150,10 @@ export class LightSpeedAPI {
       vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
       return {} as CompletionResponseParams;
     } finally {
-      if (
-        isCompletionSuccess &&
-        !this.completeSuggestionFeedback(suggestionId)
-      ) {
+      if (isCompletionSuccess && !this.cancelSuggestionFeedback(suggestionId)) {
         await inlineSuggestionHideHandler(UserAction.IGNORED, suggestionId);
       }
     }
-  }
-
-  private completeSuggestionFeedback(suggestionId?: string): boolean {
-    const i = this._suggestionFeedbacks.indexOf(suggestionId || "");
-    if (i > -1) {
-      this._suggestionFeedbacks.splice(i, 1);
-      return true;
-    }
-    return false;
   }
 
   public isSuggestionFeedbackInProgress(): boolean {
@@ -174,6 +162,15 @@ export class LightSpeedAPI {
 
   public cancelSuggestionFeedbackInProgress(): void {
     this._suggestionFeedbacks.shift();
+  }
+
+  public cancelSuggestionFeedback(suggestionId?: string): boolean {
+    const i = this._suggestionFeedbacks.indexOf(suggestionId || "");
+    if (i > -1) {
+      this._suggestionFeedbacks.splice(i, 1);
+      return true;
+    }
+    return false;
   }
 
   public async feedbackRequest(
