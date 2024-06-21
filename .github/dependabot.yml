@@ -21,6 +21,9 @@ updates:
       # requires ESM https://github.com/ansible/vscode-ansible/issues/1225
       - dependency-name: chai
         versions: ["5.x"]
+      # @types/vscode should be manually bumped when we also update
+      # engines.vscode inside package.json
+      - dependency-name: "@types/vscode"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
