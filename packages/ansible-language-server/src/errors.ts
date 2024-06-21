@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { IError } from "../../interfaces/lightspeed";
+import { IError } from "./interfaces/lightspeedApi";
 
 class Error implements IError {
   readonly code: string;
@@ -244,6 +244,13 @@ ERRORS.addError(
         headerContainsCloudFrontServer
       );
     },
+  ),
+);
+ERRORS.addError(
+  404,
+  new Error(
+    "feature_not_available",
+    "The requested action is not available in your environment.",
   ),
 );
 

@@ -211,9 +211,3 @@ export interface LightspeedSessionInfo {
   userInfo?: LightspeedSessionUserInfo;
   modelInfo?: LightspeedSessionModelInfo;
 }
-
-export interface IError {
-  code: string;
-  message?: string;
-  detail?: unknown;
-}

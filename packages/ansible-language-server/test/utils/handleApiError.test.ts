@@ -1,7 +1,7 @@
 require("assert");
 
 import { AxiosError, AxiosHeaders } from "axios";
-import { mapError } from "../../../src/features/lightspeed/handleApiError";
+import { mapError } from "../../src/utils/handleApiError";
 import assert from "assert";
 
 function createError(
@@ -286,6 +286,18 @@ describe("testing the error handling", () => {
     assert.equal(
       error.message,
       "The resource could not be found. Please try again later.",
+    );
+  });
+
+  it("err Feature not available", () => {
+    const error = mapError(
+      createError(404, {
+        code: "feature_not_available",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "The requested action is not available in your environment.",
     );
   });
   // =================================

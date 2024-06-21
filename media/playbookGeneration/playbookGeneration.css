@@ -33,8 +33,7 @@ a .codicon {
 	display: flex;
 	flex-direction: row;
 	margin-top: 14px;
-	background-color: #023020;
-	border-radius: 4px;
+	background-color: var(--vscode-input-background);
 }
 
 .codicon.codicon-pass {
@@ -47,12 +46,10 @@ a .codicon {
 	display: flex;
 	flex-direction: row;
 	margin-top: 14px;
-	background-color: #023020;
-	background-color: #610000;
-	border-radius: 4px;
+	background-color: var(--vscode-input-background);
 }
 
-.codicon.codicon-error{
+.codicon.codicon-error {
 	margin: 10px;
 	color: red;
 }
@@ -70,8 +67,6 @@ a .codicon {
 
 #install-status {
 	padding: 0px 10px 0px 10px;
-	border-style: dotted;
-	border-color:  var(--vscode-input-background);
 	width: fit-content;
 	background-color: var(--vscode-input-background);
 }
@@ -112,19 +107,19 @@ a .codicon {
 
 .playbookGenerationContainer .title {
 	border: none;
-    font-size: 2.7em;
-    font-weight: 400;
-    color: var(--vscode-foreground);
-    white-space: nowrap;
+	font-size: 2.7em;
+	font-weight: 400;
+	color: var(--vscode-foreground);
+	white-space: nowrap;
 	margin-bottom: 12px;
 }
 
 .playbookGenerationContainer .subtitle {
 	color: var(--vscode-descriptionForeground);
-    line-height: 1.4em;
-    display: block;
-    font-size: 2em;
-    margin: 0px;
+	line-height: 1.4em;
+	display: block;
+	font-size: 2em;
+	margin: 0px;
 }
 
 .monaco-workbench.hc-black .part.editor>.content .playbookGenerationContainer .subtitle,
@@ -152,6 +147,7 @@ a .codicon {
 	margin: 0px;
 	font-weight: normal;
 }
+
 .catalogue p {
 	margin: 0px;
 }
@@ -239,4 +235,11 @@ a .codicon {
 
 .playbookGenerationContainer .playbookGenerationSlideCategories .gap {
 	flex: 150px 0 1000
+}
+
+.statusDisplay {
+	border-color: var(--panel-view-border);
+	border-width: thin;
+	border-style: solid;
+	border-radius: 4px;
 }
