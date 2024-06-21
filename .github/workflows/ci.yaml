@@ -1,7 +1,4 @@
-# This is a basic workflow
-
 name: ci
-
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
 on:
@@ -45,6 +42,10 @@ jobs:
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
+      version: ${{ steps.package.outputs.version }}
+      pre_release: ${{ steps.package.outputs.pre_release }}
+      vsix_filename: ${{ steps.package.outputs.vsix_filename }}
+      vsix_type: ${{ steps.package.outputs.vsix_type }}
     strategy:
       fail-fast: false
       matrix:
@@ -314,7 +315,7 @@ jobs:
         if: ${{ matrix.name == 'test' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
+          name: ${{ steps.package.outputs.vsix_filename }}
           path: ansible-*.vsix
           if-no-files-found: error
           retention-days: 90
@@ -390,12 +391,17 @@ jobs:
   publish:
     if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    name: publish ${{ needs.build.outputs.version }} ${{ needs.build.outputs.vsix_type }}
     environment: release # manual approval
     needs:
+      - build
       - check
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
 
       - run: corepack enable
 
@@ -404,10 +410,10 @@ jobs:
         with:
           node-version: 18
 
-      - name: Download the artifact
+      - name: Download the artifact ${{ needs.build.outputs.vsix_filename }}
         uses: actions/download-artifact@v4
         with:
-          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
+          name: ${{ needs.build.outputs.vsix_filename }}
 
       - run: |
           yarn install --immutable
