@@ -1379,16 +1379,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 20.14.5
-  resolution: "@types/node@npm:20.14.5"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/74c7974a8c75280f9397f22ce34d10d5575668e3c357a165f385c9365c39b3ccda3aa2e7237e7e907fc72e515afb93cc0be1f3e2074cc1889c1ffeb01d2843cc
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^20.14.7":
+"@types/node@npm:*, @types/node@npm:^20.14.7":
   version: 20.14.7
   resolution: "@types/node@npm:20.14.7"
   dependencies:
@@ -1766,45 +1757,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/vsce@npm:^2.25.0, @vscode/vsce@npm:^2.27.0":
-  version: 2.27.0
-  resolution: "@vscode/vsce@npm:2.27.0"
-  dependencies:
-    "@azure/identity": "npm:^4.1.0"
-    "@vscode/vsce-sign": "npm:^2.0.0"
-    azure-devops-node-api: "npm:^12.5.0"
-    chalk: "npm:^2.4.2"
-    cheerio: "npm:^1.0.0-rc.9"
-    cockatiel: "npm:^3.1.2"
-    commander: "npm:^6.2.1"
-    form-data: "npm:^4.0.0"
-    glob: "npm:^7.0.6"
-    hosted-git-info: "npm:^4.0.2"
-    jsonc-parser: "npm:^3.2.0"
-    keytar: "npm:^7.7.0"
-    leven: "npm:^3.1.0"
-    markdown-it: "npm:^12.3.2"
-    mime: "npm:^1.3.4"
-    minimatch: "npm:^3.0.3"
-    parse-semver: "npm:^1.1.1"
-    read: "npm:^1.0.7"
-    semver: "npm:^7.5.2"
-    tmp: "npm:^0.2.1"
-    typed-rest-client: "npm:^1.8.4"
-    url-join: "npm:^4.0.1"
-    xml2js: "npm:^0.5.0"
-    yauzl: "npm:^2.3.1"
-    yazl: "npm:^2.2.2"
-  dependenciesMeta:
-    keytar:
-      optional: true
-  bin:
-    vsce: vsce
-  checksum: 10/825933b3eba1393bec042a883badb5f5cbaf9bfd5cf0de7b54d4ef4f4791d94b61020b500dc9e828aa06dce09ad7910fbc436702eba3e9e6124597ead48ff210
-  languageName: node
-  linkType: hard
-
-"@vscode/vsce@npm:^2.29.0":
+"@vscode/vsce@npm:^2.25.0, @vscode/vsce@npm:^2.27.0, @vscode/vsce@npm:^2.29.0":
   version: 2.29.0
   resolution: "@vscode/vsce@npm:2.29.0"
   dependencies:
