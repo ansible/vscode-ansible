@@ -1017,7 +1017,6 @@
   },
   "scripts": {
     "compile": "tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
-    "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
     "package": "./tools/helper --package",
     "preinstall": "",
     "pretest": "yarn run compile",
