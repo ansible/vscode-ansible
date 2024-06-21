@@ -21,22 +21,11 @@ let currentPage: number | undefined;
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
     language: "ansible",
+    content: playbook,
   };
 
-  const doc = await vscode.workspace.openTextDocument({
-    language: options.language,
-  });
-  const editor = await vscode.window.showTextDocument(doc);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const editBuilder = (textEdit: any) => {
-    textEdit.insert(new vscode.Position(0, 0), String(playbook));
-  };
-
-  await editor.edit(editBuilder, {
-    undoStopBefore: true,
-    undoStopAfter: false,
-  });
+  const doc = await vscode.workspace.openTextDocument(options);
+  await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
 }
 
 function contentMatch(generationId: string, playbook: string) {
