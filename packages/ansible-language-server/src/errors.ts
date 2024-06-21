@@ -117,6 +117,10 @@ export const ERRORS_CONNECTION_TIMEOUT = new Error(
   "fallback__connection_timeout",
   "Ansible Lightspeed connection timeout. Please try again later.",
 );
+export const ERRORS_CONNECTION_CANCELED_TIMEOUT = new Error(
+  "",
+  "Ansible Lightspeed connection was canceled because of a timeout. Please try again later.",
+);
 
 ERRORS.addError(
   400,
