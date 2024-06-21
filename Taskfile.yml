@@ -31,6 +31,9 @@ tasks:
       - task: package
       - task: docs
       - echo {{.TASK}}
+  version:
+    cmds:
+      - ./tools/helper --version
   setup:
     desc: Install dependencies
     cmds:
@@ -175,7 +178,7 @@ tasks:
       - out/
       - webpack.config.ts
       - Taskfile.yml
-      - ./tools/package.sh
+      - tools/helper
       - src/**/*
       - test/**/*
     generates:
@@ -184,7 +187,7 @@ tasks:
       - task: build
       # while not a real dependency, we want to build both all the time:
       - task: als:package
-      - ./tools/package.sh
+      - ./tools/helper --package
     silent: true
   pr:
     desc: Opens a pull request using gh
