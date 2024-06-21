@@ -983,7 +983,7 @@
     "als-compile": "yarn workspace @ansible/ansible-language-server compile"
   },
   "version": "0.0.0",
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.3.0",
   "vsce": {
     "dependencies": false,
     "yarn": false
