@@ -90,7 +90,6 @@ window.addEventListener("message", async (event) => {
     }
     case "playbook": {
       setupPage(3);
-      outline.update(message.playbook.outline);
       savedPlaybook = message.playbook.playbook;
       generationId = message.playbook.generationId;
 

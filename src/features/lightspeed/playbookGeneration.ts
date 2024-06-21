@@ -21,22 +21,11 @@ let currentPage: number | undefined;
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
     language: "ansible",
+    content: playbook,
   };
 
-  const doc = await vscode.workspace.openTextDocument({
-    language: options.language,
-  });
-  const editor = await vscode.window.showTextDocument(doc);
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const editBuilder = (textEdit: any) => {
-    textEdit.insert(new vscode.Position(0, 0), String(playbook));
-  };
-
-  await editor.edit(editBuilder, {
-    undoStopBefore: true,
-    undoStopAfter: false,
-  });
+  const doc = await vscode.workspace.openTextDocument(options);
+  await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
 }
 
 function contentMatch(generationId: string, playbook: string) {
@@ -95,7 +84,7 @@ async function generatePlaybook(
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const createOutline = true;
+  const createOutline = outline === undefined;
   const playbook: GenerationResponse = await client.sendRequest(
     "playbook/generation",
     {
@@ -206,7 +195,8 @@ export async function showPlaybookGenerationPage(
         break;
 
       case "generateCode": {
-        let { playbook, generationId, outline } = message;
+        let { playbook, generationId } = message;
+        const outline = message.outline;
         const darkMode = message.darkMode;
         if (!playbook) {
           try {
@@ -226,7 +216,6 @@ export async function showPlaybookGenerationPage(
             }
             playbook = response.playbook;
             generationId = response.generationId;
-            outline = response.outline;
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (e: any) {

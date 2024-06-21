@@ -258,7 +258,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(outlineList, "An ordered list should exist.");
         let text = await outlineList.getText();
         expect(
-          text.includes('Name: "Create an azure network..."'),
+          text.includes("Create virtual network peering"),
           "Text should include the expected outline",
         );
         await outlineList.sendKeys("# COMMENT\n");
@@ -303,7 +303,7 @@ export function lightspeedUIAssetsTest(): void {
           setTimeout(res, 1000);
         });
         text = await outlineList.getText();
-        expect(text.includes('Name: "Create an azure network..."'));
+        expect(text.includes("Create virtual network peering"));
 
         // Test Edit link next to the prompt text
         const backAnchor = await webView.findWebElement(
@@ -323,7 +323,7 @@ export function lightspeedUIAssetsTest(): void {
           setTimeout(res, 1000);
         });
         text = await outlineList.getText();
-        expect(text.includes('Name: "Create an azure network..."'));
+        expect(text.includes("Create virtual network peering"));
 
         // Click Generate playbook button to invoke the generations API
         const generatePlaybookButton = await webView.findWebElement(
@@ -386,12 +386,28 @@ export function lightspeedUIAssetsTest(): void {
         });
 
         // Type in something extra
-        await outlineList.sendKeys("10. Something extra\n");
+        await outlineList.sendKeys("\nSomething extra");
+        const savedOutline = await outlineList.getText();
 
         // Click generate playbook button again
         generatePlaybookButton.click();
         await new Promise((res) => {
           setTimeout(res, 2000);
+        });
+
+        // Click Back page again
+        await backToPage2Button.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        // Make sure outline is not updated.
+        expect(savedOutline).equal(await outlineList.getText());
+
+        // Click generate playbook button again
+        generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
         });
 
         // Test ThumbsDown button
@@ -450,6 +466,8 @@ export function lightspeedUIAssetsTest(): void {
           [PlaybookGenerationActionType.TRANSITION, 1, 2],
           [PlaybookGenerationActionType.TRANSITION, 2, 1],
           [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.TRANSITION, 3, 2],
           [PlaybookGenerationActionType.TRANSITION, 2, 3],
           [PlaybookGenerationActionType.TRANSITION, 3, 2],
           [PlaybookGenerationActionType.TRANSITION, 2, 3],
@@ -521,7 +539,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(outlineList, "An ordered list should exist.").to.be.not
           .undefined;
         let text = await outlineList.getText();
-        expect(text.includes('Name: "Create an azure network..."')).to.be.true;
+        expect(text.includes("Create virtual network peering")).to.be.true;
 
         // Verify the prompt is displayed as a static text
         const prompt = await webView.findWebElement(

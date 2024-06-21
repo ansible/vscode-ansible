@@ -25,14 +25,9 @@ export function generations(
   }
 
   // cSpell: disable
-  let outline: string | undefined = `Name: "Create an azure network..."
-  Description: "Create an azure network peering between VNET named VNET_1 and VNET named VNET_2"
-  This playbook will perform the following tass by this order:
-
-    1. Create VNET named VNET_1
-    2. Create VNET named VNET_2
-    3. Create virtual network peering
-  `;
+  let outline: string | undefined = `1. Create VNET named VNET_1
+2. Create VNET named VNET_2
+3. Create virtual network peering`;
 
   const playbook = `---
   # Create an azure network...
@@ -75,6 +70,10 @@ export function generations(
 
   if (!createOutline) {
     outline = undefined;
+  }
+
+  if (createOutline && outline) {
+    outline += "\n4. Some extra step.";
   }
 
   return res.send({
