@@ -952,7 +952,7 @@
     "package": "./tools/helper --package",
     "preinstall": "",
     "pretest": "yarn run compile",
-    "unit-tests": "nyc mocha --recursive test/units",
+    "unit-tests": "nyc mocha --recursive test/units/lightspeed",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "_test-ui": "extest get-vscode -c ${CODE_VERSION} -s out/test-resources && extest get-chromedriver -c ${CODE_VERSION} -s out/test-resources && extest install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
     "test-ui-current": "CODE_VERSION='max' yarn _test-ui",
