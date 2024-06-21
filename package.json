@@ -949,7 +949,7 @@
   "scripts": {
     "compile": "tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
     "compile-withserver": "tsc -b && tsc -p ../ansible-language-server --outDir out/server && ln -f -s ${PWD}/../ansible-language-server/node_modules out/server/node_modules",
-    "package": "./tools/package.sh",
+    "package": "./tools/helper --package",
     "preinstall": "",
     "pretest": "yarn run compile",
     "unit-tests": "nyc mocha --recursive test/units",
@@ -982,8 +982,8 @@
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",
     "als-compile": "yarn workspace @ansible/ansible-language-server compile"
   },
-  "version": "24.6.0",
-  "packageManager": "yarn@4.1.1",
+  "version": "0.0.0",
+  "packageManager": "yarn@4.3.0",
   "vsce": {
     "dependencies": false,
     "yarn": false

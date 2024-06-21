@@ -130,7 +130,7 @@ describe("testing updateRolesContext", () => {
     assert.equal(tasks && tasks[0], "main");
     assert.equal(Object.keys(defaults).length, 0);
     assert.equal(Object.keys(vars).length, 1);
-    assert.equal(vars["main.yaml"], 'some_var: ""\n');
+    assert.equal(vars["main.yaml"], "some_var: 1\n");
   });
 
   it("with a role where 'vars' is a file, not a directory", () => {
