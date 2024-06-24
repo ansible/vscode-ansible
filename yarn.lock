@@ -31,8 +31,8 @@ __metadata:
     "@types/glob": "npm:^8.1.0"
     "@types/ini": "npm:^4.1.1"
     "@types/lodash": "npm:^4.17.5"
-    "@types/mocha": "npm:^10.0.6"
-    "@types/node": "npm:^20.14.7"
+    "@types/mocha": "npm:^10.0.7"
+    "@types/node": "npm:^20.14.8"
     "@types/uuid": "npm:^10.0.0"
     "@types/vscode": "npm:^1.85.0"
     antsibull-docs: "npm:^1.0.1"
@@ -987,10 +987,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/core@npm:1.7.0, @shikijs/core@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "@shikijs/core@npm:1.7.0"
-  checksum: 10/11ab2750a23d7ebf627462d2bb65572d793d4c323de0fa1adc0d4a1cba940eff8e66de3d6be4db2d1461e0c2fcdfab7f1ae4f35e4879f8b97249de4da42c41d2
+"@shikijs/core@npm:1.9.0, @shikijs/core@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "@shikijs/core@npm:1.9.0"
+  checksum: 10/ec07699742f0561ab4d2fb07715397183cbed23ca42e082b14e9e5f85eb7f8647897f69698d003d8c6a1b8682da0af77861b3a2f78d366eef7581bae4415142c
   languageName: node
   linkType: hard
 
@@ -1363,10 +1363,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mocha@npm:^10.0.6":
-  version: 10.0.6
-  resolution: "@types/mocha@npm:10.0.6"
-  checksum: 10/fc73626e81e89c32d06b7ff9b72c4177b46d579cdd932f796614adc026852d84cb849d743473ba572cb4d9ea6d8c04e3749552d326c26495ec1c4b46e6e0a0c0
+"@types/mocha@npm:^10.0.7":
+  version: 10.0.7
+  resolution: "@types/mocha@npm:10.0.7"
+  checksum: 10/4494871e8a867633d818b00d6f29d47379f9e23655b89ca728166ff2f0a406b97d376fcc3e7a570a3840f72abb03c886c5e66f50ae0f018376e4dc10ed179564
   languageName: node
   linkType: hard
 
@@ -1379,12 +1379,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^20.14.7":
+"@types/node@npm:*":
   version: 20.14.7
   resolution: "@types/node@npm:20.14.7"
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10/f2cb458126a136719d9da6febdbc7afc9bb622047a30c5e6163db4206ff8c8002ec56b340d722fe1ad6280ebe7a505e0a5a10a39a3b5718837200201b94d5d07
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.14.8":
+  version: 20.14.8
+  resolution: "@types/node@npm:20.14.8"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 10/73822f66f269ce865df7e2f586787ac7444bd1169fd265cbed1e851b72787f1170517c5b616e0308ec2fbc0934ec6403b0f28d4152acbb0486071aec41167d51
   languageName: node
   linkType: hard
 
@@ -2261,7 +2270,7 @@ __metadata:
     "@ansible/ansible-language-server": "workspace:^"
     "@eslint/js": "npm:^9.5.0"
     "@redhat-developer/vscode-redhat-telemetry": "npm:^0.8.0"
-    "@shikijs/core": "npm:^1.7.0"
+    "@shikijs/core": "npm:^1.9.0"
     "@types/chai": "npm:^4.3.14"
     "@types/express": "npm:^4.17.21"
     "@types/glob": "npm:^8.1.0"
@@ -2269,9 +2278,9 @@ __metadata:
     "@types/jsdom": "npm:^21.1.7"
     "@types/lodash": "npm:^4.17.5"
     "@types/minimatch": "npm:^5.1.2"
-    "@types/mocha": "npm:^10.0.6"
+    "@types/mocha": "npm:^10.0.7"
     "@types/morgan": "npm:^1"
-    "@types/node": "npm:^20.14.7"
+    "@types/node": "npm:^20.14.8"
     "@types/sinon": "npm:^17.0.3"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^10.0.0"
@@ -2298,7 +2307,7 @@ __metadata:
     ini: "npm:^4.1.3"
     jsdom: "npm:^24.1.0"
     lodash: "npm:^4.17.21"
-    marked: "npm:^13.0.0"
+    marked: "npm:^13.0.1"
     minimatch: "npm:^9.0.4"
     mocha: "npm:^10.4.0"
     mochawesome: "npm:^7.1.3"
@@ -2309,7 +2318,7 @@ __metadata:
     prettier: "npm:^3.3.2"
     react: "npm:^18.3.1"
     rimraf: "npm:^5.0.7"
-    shiki: "npm:^1.7.0"
+    shiki: "npm:^1.9.0"
     sinon: "npm:^18.0.0"
     start-server-and-test: "npm:^2.0.4"
     ts-loader: "npm:^9.5.1"
@@ -6693,12 +6702,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^13.0.0":
-  version: 13.0.0
-  resolution: "marked@npm:13.0.0"
+"marked@npm:^13.0.1":
+  version: 13.0.1
+  resolution: "marked@npm:13.0.1"
   bin:
     marked: bin/marked.js
-  checksum: 10/7a3c5be69fad09c690f2227dd13a8fd8bb2e0d60a4e4cec934a2a0052e4d6e3540619ce66179a7469e37f33ed29b7541582e3a1d07ddcb69d8259c3b9a80cab8
+  checksum: 10/63bde119040f4dee5149c08bcc358c96c419ebbdf9c64de0b403fb9d8d971302fc8970fb44dad14c5db88ef6a8512d33bc0eafda15c2245d4c37a975f87c3d9e
   languageName: node
   linkType: hard
 
@@ -8934,12 +8943,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shiki@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "shiki@npm:1.7.0"
+"shiki@npm:^1.9.0":
+  version: 1.9.0
+  resolution: "shiki@npm:1.9.0"
   dependencies:
-    "@shikijs/core": "npm:1.7.0"
-  checksum: 10/854cd21ed000a1d9bfd0892a46657643129410dc0208274d45287bfb04ce8ba686f57fa08afb26f9665e162501aec17bb86473a7225a6ea3ba477d7cd603d9bd
+    "@shikijs/core": "npm:1.9.0"
+  checksum: 10/ce5648b4e1a5e5e81e54e01ec9dc94cf324530f460058f29f1e5e464dbf096fee2194fbef38b29128a747f783f9134531991316b01ed168f65d0617dabf84c33
   languageName: node
   linkType: hard
 
