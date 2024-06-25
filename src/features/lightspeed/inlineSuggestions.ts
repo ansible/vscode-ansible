@@ -10,7 +10,7 @@ import { getCurrentUTCDateTime } from "../utils/dateTime";
 import { lightSpeedManager } from "../../extension";
 import {
   CompletionResponseParams,
-  InlineSuggestionEvent,
+  InlineSuggestionFeedbackEvent,
   CompletionRequestParams,
 } from "../../interfaces/lightspeed";
 import {
@@ -31,7 +31,7 @@ import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
 import { getAdditionalContext } from "./inlineSuggestion/additionalContext";
 
-let inlineSuggestionData: InlineSuggestionEvent = {};
+let inlineSuggestionData: InlineSuggestionFeedbackEvent = {};
 let inlineSuggestionDisplayTime: Date;
 let previousTriggerPosition: vscode.Position;
 let insertTexts: string[] = [];
@@ -926,7 +926,7 @@ export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted: UserAction = UserAction.REJECTED,
 ) {
-  const data: InlineSuggestionEvent = {};
+  const data: InlineSuggestionFeedbackEvent = {};
 
   data["userActionTime"] =
     getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
@@ -938,7 +938,7 @@ export async function inlineSuggestionUserActionHandler(
   data["action"] = isSuggestionAccepted;
   data["suggestionId"] = suggestionId;
   const inlineSuggestionFeedbackPayload = {
-    inlineSuggestion: data,
+    inlineSuggestionFeedback: data,
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload,

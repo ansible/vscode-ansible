@@ -44,7 +44,7 @@ export interface FeedbackResponseParams {
   message: string;
 }
 
-export interface InlineSuggestionEvent {
+export interface InlineSuggestionFeedbackEvent {
   latency?: number;
   userActionTime?: number;
   documentUri?: string;
@@ -90,7 +90,7 @@ export interface PlaybookGenerationActionEvent {
 }
 
 export interface FeedbackRequestParams {
-  inlineSuggestion?: InlineSuggestionEvent;
+  inlineSuggestionFeedback?: InlineSuggestionFeedbackEvent;
   sentimentFeedback?: SentimentFeedbackEvent;
   suggestionQualityFeedback?: SuggestionQualityEvent;
   issueFeedback?: IssueFeedbackEvent;
