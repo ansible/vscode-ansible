@@ -64,7 +64,7 @@ def cli():
             logging.error(msg)
             sys.exit(2)
         run(f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath {vsix_files[0]} --readme-path docs/README.md")
-        run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]} --readme-path docs/README.md")
+        run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
         run("rm -f ./*.vsix")
