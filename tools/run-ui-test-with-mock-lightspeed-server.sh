@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# For invoking VS Code executable to open "vscode:" URL
+export UI_TEST=1
+
 if [ "$1" == "--coverage" ]; then
   TEST_SCRIPT=coverage-ui-current
 else
