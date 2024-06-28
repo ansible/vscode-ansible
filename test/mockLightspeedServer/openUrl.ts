@@ -1,20 +1,24 @@
 // Based on https://www.npmjs.com/package/openurl
 import { spawn } from "child_process";
-import { logger } from "./server";
-
-const command =
-  process.platform === "darwin"
-    ? "open"
-    : process.env.UI_TEST // for supporting authentication UI tests on Linux
-      ? "./out/test-resources/VSCode-linux-x64/bin/code"
-      : "xdg-open";
+import { logger, options } from "./server";
 
 export function openUrl(url: string) {
+  let command: string;
+  if (process.platform === "darwin") {
+    command = options.uiTest
+      ? "./out/test-resources/Visual Studio Code.app/Contents/MacOS/Electron"
+      : "open";
+  } else {
+    command = options.uiTest
+      ? "./out/test-resources/VSCode-linux-x64/bin/code"
+      : "xdg-open";
+  }
+
   const start = Date.now();
   logger.info(`openUrl: open ${url} with ${command}`);
   const child = spawn(
     command,
-    process.env.UI_TEST
+    options.uiTest
       ? ["--open-url", url, "--user-data-dir", "./out/test-resources/settings"]
       : [url],
   );

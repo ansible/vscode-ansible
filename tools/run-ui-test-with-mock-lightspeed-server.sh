@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# For invoking VS Code executable to open "vscode:" URL
-export UI_TEST=1
-
 if [ "$1" == "--coverage" ]; then
   TEST_SCRIPT=coverage-ui-current
 else
@@ -22,6 +19,6 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 npx start-server-and-test \
-    "TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server" \
+    "TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server --ui-test"\
     "${TEST_LIGHTSPEED_URL}" \
     "TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn ${TEST_SCRIPT}"

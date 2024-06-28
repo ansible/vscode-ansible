@@ -14,12 +14,7 @@ import {
 } from "./uiTestHelper";
 import { expect } from "chai";
 
-export function lightspeedUIAuthTest(): void {
-  // Execute only on Linux
-  if (process.platform !== "linux") {
-    return;
-  }
-
+export function lightspeedUILoginTest(): void {
   describe("Login to Lightspeed", () => {
     let workbench: Workbench;
     let explorerView: WebviewView;
@@ -94,8 +89,15 @@ export function lightspeedUIAuthTest(): void {
       expect(text).contains("Logged in as:");
       await explorerView.switchBack();
     });
+  });
+}
+
+export function lightspeedUISignOutTest(): void {
+  describe("Sign out from Lightspeed", () => {
+    let workbench: Workbench;
 
     it("Sign out using Accounts global action", async () => {
+      workbench = new Workbench();
       const activityBar = new ActivityBar();
       const actions = (await activityBar.getGlobalAction(
         "Accounts",

@@ -1520,6 +1520,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/yargs-parser@npm:*":
+  version: 21.0.3
+  resolution: "@types/yargs-parser@npm:21.0.3"
+  checksum: 10/a794eb750e8ebc6273a51b12a0002de41343ffe46befef460bdbb57262d187fdf608bc6615b7b11c462c63c3ceb70abe2564c8dd8ee0f7628f38a314f74a9b9b
+  languageName: node
+  linkType: hard
+
+"@types/yargs@npm:^17.0.32":
+  version: 17.0.32
+  resolution: "@types/yargs@npm:17.0.32"
+  dependencies:
+    "@types/yargs-parser": "npm:*"
+  checksum: 10/1e2b2673847011ce43607df690d392f137d95a2d6ea85aa319403eadda2ef4277365efd4982354d8843f2611ef3846c88599660aaeb537fa9ccddae83c2a89de
+  languageName: node
+  linkType: hard
+
 "@types/yarnpkg__lockfile@npm:^1.1.6":
   version: 1.1.9
   resolution: "@types/yarnpkg__lockfile@npm:1.1.9"
@@ -2277,6 +2293,7 @@ __metadata:
     "@types/uuid": "npm:^10.0.0"
     "@types/vscode": "npm:^1.85.0"
     "@types/vscode-webview": "npm:^1.57.5"
+    "@types/yargs": "npm:^17.0.32"
     "@typescript-eslint/eslint-plugin": "npm:^7.13.1"
     "@typescript-eslint/parser": "npm:^7.13.1"
     "@vscode/test-electron": "npm:^2.4.0"
@@ -2325,6 +2342,7 @@ __metadata:
     webpack-cli: "npm:^5.1.4"
     winston: "npm:^3.13.0"
     yaml: "npm:^2.4.5"
+    yargs: "npm:^17.7.2"
     yarn-audit-fix: "npm:^10.0.7"
   languageName: unknown
   linkType: soft

@@ -11,6 +11,14 @@ import * as winston from "winston";
 import morgan from "morgan";
 import fs from "fs";
 import path from "path";
+import yargs from "yargs";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const options: any = yargs(process.argv.slice(2))
+  .option("ui-test", { boolean: false })
+  .help().argv;
+
+console.log(`ui-test: ${options.uiTest}`);
 
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "access.log"),
