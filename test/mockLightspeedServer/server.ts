@@ -14,11 +14,13 @@ import path from "path";
 import yargs from "yargs";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const options: any = yargs(process.argv.slice(2))
+export let options: any = yargs(process.argv.slice(2))
   .option("ui-test", { boolean: false })
+  .option("one-click", { boolean: false })
   .help().argv;
 
 console.log(`ui-test: ${options.uiTest}`);
+console.log(`one-click: ${options.oneClick}`);
 
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "access.log"),
@@ -43,6 +45,17 @@ let url = new URL("http://127.0.0.1:3000");
 // Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
 if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
   url = new URL(process.env.TEST_LIGHTSPEED_URL);
+}
+
+export function permissionDeniedUserHasNoSubscription(): {
+  code: string;
+  message: string;
+} {
+  return {
+    code: "permission_denied__user_has_no_subscription",
+    message:
+      "Your organization does not have a subscription. Please contact your administrator.",
+  };
 }
 
 export default class Server {
@@ -103,6 +116,11 @@ export default class Server {
         feedbacks: getFeedbacks(),
       }),
     );
+
+    app.post("/__debug__/options", (req, res) => {
+      options = yargs(req.body.args);
+      res.status(200).send();
+    });
 
     app.listen(parseInt(url.port), url.hostname, () => {
       logger.info(`Listening on port ${url.port} at ${url.hostname}`);

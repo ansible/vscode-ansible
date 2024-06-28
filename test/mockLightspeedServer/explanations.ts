@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { logger } from "./server";
+import { options, permissionDeniedUserHasNoSubscription } from "./server";
 
 export function explanations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,6 +14,10 @@ export function explanations(
     : uuidv4();
   const format = "markdown";
   logger.info(`content: ${playbook}`);
+
+  if (options.oneClick) {
+    return res.status(403).json(permissionDeniedUserHasNoSubscription());
+  }
 
   // Special case to replicate the feature being unavailable
   if (playbook !== undefined && playbook.includes("Feature not available")) {

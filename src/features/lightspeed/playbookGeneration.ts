@@ -13,6 +13,7 @@ import {
   PlaybookGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
+import { showTrialInfoPopup } from "./utils/oneClickTrial";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
@@ -156,12 +157,14 @@ export async function showPlaybookGenerationPage(
               lightspeedAuthenticatedUser,
               settingsManager,
               panel,
-            ).then((response: GenerationResponse) => {
+            ).then(async (response: GenerationResponse) => {
               if (isError(response)) {
                 panel.webview.postMessage({ command: "exception" });
-                vscode.window.showErrorMessage(
-                  response.message ?? UNKNOWN_ERROR,
-                );
+                if (!(await showTrialInfoPopup(response))) {
+                  vscode.window.showErrorMessage(
+                    response.message ?? UNKNOWN_ERROR,
+                  );
+                }
               } else {
                 panel.webview.postMessage({
                   command: "outline",

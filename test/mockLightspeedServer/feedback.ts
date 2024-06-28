@@ -1,5 +1,6 @@
 import { logger } from "./server";
 import { Request, Response } from "express";
+import { options, permissionDeniedUserHasNoSubscription } from "./server";
 
 let feedbacks: object[] = [];
 
@@ -7,6 +8,10 @@ export function feedback(req: Request, res: Response): Response {
   const body = req.body;
   logger.info(JSON.stringify(body, null, 2));
   feedbacks.push(body);
+
+  if (options.oneClick) {
+    return res.status(403).json(permissionDeniedUserHasNoSubscription());
+  }
 
   // If a sentimentFeedback is received and it's feedback starts with
   // "permission_denied__" respond with a 403 error with the specified code.
