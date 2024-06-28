@@ -1409,12 +1409,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/selenium-webdriver@npm:^4.1.22":
-  version: 4.1.22
-  resolution: "@types/selenium-webdriver@npm:4.1.22"
+"@types/selenium-webdriver@npm:^4, @types/selenium-webdriver@npm:^4.1.22":
+  version: 4.1.24
+  resolution: "@types/selenium-webdriver@npm:4.1.24"
   dependencies:
+    "@types/node": "npm:*"
     "@types/ws": "npm:*"
-  checksum: 10/c203dd0dc6bc21431a0e18eb701e2dc98b595e34bd9beb205335271aa34ce6b598c3f2fe089a87d6ef979c500c706822d33d9c694140a47c0c749da87d1cb9fa
+  checksum: 10/6461b4e9df7ed7b82a86ecb5656a0a5187f962e87c18a2466e0112cb8dc3ed2cf17e9e3b8ed71e6f2be95aa20882e240c5a1cb59dd823961c8b3a7ab2154e4c4
   languageName: node
   linkType: hard
 
@@ -2288,6 +2289,7 @@ __metadata:
     "@types/mocha": "npm:^10.0.7"
     "@types/morgan": "npm:^1"
     "@types/node": "npm:^20.14.8"
+    "@types/selenium-webdriver": "npm:^4"
     "@types/sinon": "npm:^17.0.3"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^10.0.0"
@@ -2326,6 +2328,7 @@ __metadata:
     prettier: "npm:^3.3.2"
     react: "npm:^18.3.1"
     rimraf: "npm:^5.0.7"
+    selenium-webdriver: "npm:^4.22.0"
     shiki: "npm:^1.9.0"
     sinon: "npm:^18.0.0"
     start-server-and-test: "npm:^2.0.4"
@@ -8766,14 +8769,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.21.0":
-  version: 4.21.0
-  resolution: "selenium-webdriver@npm:4.21.0"
+"selenium-webdriver@npm:^4.21.0, selenium-webdriver@npm:^4.22.0":
+  version: 4.22.0
+  resolution: "selenium-webdriver@npm:4.22.0"
   dependencies:
     jszip: "npm:^3.10.1"
     tmp: "npm:^0.2.3"
     ws: "npm:>=8.16.0"
-  checksum: 10/074b38740b52d6d6805e7aa6fcc85e52e397901b1c3df9a3249719925001958b692622bd2a2d73c34a545519ac6163cc00826535dae52f4263a90a95968fc6b8
+  checksum: 10/fd9e94ca175c31d67f01fe31ba70b5455a727c34a2691e0a3d0f3eb828e6f3a93cf5db8bbb36f8ecc3e5837a33b391d85a4fe78660e44c39bab91358dd5a8ca5
   languageName: node
   linkType: hard
 

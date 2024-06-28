@@ -22,6 +22,7 @@ import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspe
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { inlineSuggestionHideHandler } from "./inlineSuggestions";
+import { showTrialInfoPopup } from "./utils/oneClickTrial";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
@@ -147,7 +148,9 @@ export class LightSpeedAPI {
       isCompletionSuccess = false;
       const err = error as AxiosError;
       const mappedError: IError = await mapError(err);
-      vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      if (!(await showTrialInfoPopup(mappedError))) {
+        vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      }
       return {} as CompletionResponseParams;
     } finally {
       if (isCompletionSuccess && !this.cancelSuggestionFeedback(suggestionId)) {
@@ -280,6 +283,8 @@ export class LightSpeedAPI {
     } catch (error) {
       const err = error as AxiosError;
       const mappedError: IError = await mapError(err);
+      // Do not show trial popup for errors on content matches because either
+      // completions or generations API should have been called already.
       return mappedError;
     }
   }
