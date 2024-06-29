@@ -28,7 +28,7 @@ import {
 } from "../../../src/definitions/lightspeed";
 import {
   FeedbackRequestParams,
-  InlineSuggestionEvent,
+  InlineSuggestionFeedbackEvent,
 } from "../../../src/interfaces/lightspeed";
 import * as inlineSuggestions from "../../../src/features/lightspeed/inlineSuggestions";
 
@@ -149,7 +149,9 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          assert(
+            inputData?.inlineSuggestionFeedback?.action === UserAction.ACCEPTED,
+          );
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
         });
@@ -168,7 +170,9 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          assert(
+            inputData?.inlineSuggestionFeedback?.action === UserAction.ACCEPTED,
+          );
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
         });
@@ -182,7 +186,7 @@ export function testLightspeed(): void {
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
           assert(
-            inputData?.inlineSuggestion?.action === UserAction.REJECTED,
+            inputData?.inlineSuggestionFeedback?.action === UserAction.REJECTED,
             JSON.stringify(inputData, null),
           );
           const ret = feedbackRequestSpy.returnValues[0];
@@ -292,7 +296,9 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
+          assert(
+            inputData?.inlineSuggestionFeedback?.action === UserAction.IGNORED,
+          );
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
         });
@@ -461,7 +467,7 @@ export function testLightspeed(): void {
           "df65f5f1-5c27-4dd4-8c58-3336b534321f",
         );
 
-        const requestSuggestion: InlineSuggestionEvent =
+        const requestSuggestion: InlineSuggestionFeedbackEvent =
           feedbackRequest.args[0][0].inlineSuggestion;
         assert.equal(feedbackRequest.called, true);
         assert.equal(
@@ -481,7 +487,7 @@ export function testLightspeed(): void {
           undefined,
         );
 
-        const requestSuggestion: InlineSuggestionEvent =
+        const requestSuggestion: InlineSuggestionFeedbackEvent =
           feedbackRequest.args[0][0].inlineSuggestion;
         assert.equal(feedbackRequest.called, true);
         assert.equal(
@@ -532,7 +538,7 @@ export function testLightspeed(): void {
 
           await inlineSuggestions.rejectPendingSuggestion();
 
-          const requestSuggestion: InlineSuggestionEvent =
+          const requestSuggestion: InlineSuggestionFeedbackEvent =
             feedbackRequest.args[0][0].inlineSuggestion;
           assert.equal(feedbackRequest.called, true);
           assert.equal(
@@ -599,7 +605,7 @@ export function testLightspeed(): void {
 
           await inlineSuggestions.ignorePendingSuggestion();
 
-          const requestSuggestion: InlineSuggestionEvent =
+          const requestSuggestion: InlineSuggestionFeedbackEvent =
             feedbackRequest.args[0][0].inlineSuggestion;
           assert.equal(feedbackRequest.called, true);
           assert.equal(

@@ -179,7 +179,9 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
       assert.equal(feedbackRequestApiCalls.length, 1);
       const inputData: FeedbackRequestParams = feedbackRequestSpy.args[0][0];
-      assert(inputData?.inlineSuggestion?.action === UserAction.REJECTED);
+      assert(
+        inputData?.inlineSuggestionFeedback?.action === UserAction.REJECTED,
+      );
       const ret = feedbackRequestSpy.returnValues[0];
       assert(Object.keys(ret).length === 0); // ret should be equal to {}
 
@@ -247,7 +249,9 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
       const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
       assert.equal(feedbackRequestApiCalls.length, 1);
       const inputData: FeedbackRequestParams = feedbackRequestSpy.args[0][0];
-      assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
+      assert(
+        inputData?.inlineSuggestionFeedback?.action === UserAction.IGNORED,
+      );
       const ret = feedbackRequestSpy.returnValues[0];
       assert(Object.keys(ret).length === 0); // ret should be equal to {}
     });

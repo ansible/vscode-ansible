@@ -201,8 +201,8 @@ export class LightSpeedAPI {
       lightSpeedManager.settingsManager.settings.lightSpeedService.model;
 
     if (rhUserHasSeat && orgOptOutTelemetry) {
-      if (inputData.inlineSuggestion) {
-        delete inputData.inlineSuggestion;
+      if (inputData.inlineSuggestionFeedback) {
+        delete inputData.inlineSuggestionFeedback;
       }
     }
 
