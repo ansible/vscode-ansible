@@ -104,7 +104,7 @@ export function lightspeedOneClickTrialUITest(): void {
         By.id("lightspeedExplorerView"),
       );
       const text = await div.getText();
-      expect(text).contains("Logged in as: (not logged in)");
+      expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
       await explorerView.switchBack();
     });
 
@@ -197,7 +197,10 @@ export function lightspeedOneClickTrialUITest(): void {
       const menu = new ContextMenu(workbench);
       expect(menu).not.to.be.undefined;
       if (menu) {
-        await menu.select(" (unlicensed) (Ansible Lightspeed)", "Sign Out");
+        await menu.select(
+          "ONE_CLICK_USER (unlicensed) (Ansible Lightspeed)",
+          "Sign Out",
+        );
       }
     });
 
