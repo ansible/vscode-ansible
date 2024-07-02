@@ -14,13 +14,18 @@ import path from "path";
 import yargs from "yargs";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export let options: any = yargs(process.argv.slice(2))
-  .option("ui-test", { boolean: false })
-  .option("one-click", { boolean: false })
-  .help().argv;
+export let options: any = readOptions(process.argv.splice(2));
 
-console.log(`ui-test: ${options.uiTest}`);
-console.log(`one-click: ${options.oneClick}`);
+function readOptions(args: string[]) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const opt: any = yargs(args)
+    .option("ui-test", { boolean: false })
+    .option("one-click", { boolean: false })
+    .help().argv;
+  console.log(`ui-test: ${opt.uiTest}`);
+  console.log(`one-click: ${opt.oneClick}`);
+  return opt;
+}
 
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "access.log"),
@@ -118,7 +123,7 @@ export default class Server {
     );
 
     app.post("/__debug__/options", (req, res) => {
-      options = yargs(req.body.args);
+      options = readOptions(req.body);
       res.status(200).send();
     });
 

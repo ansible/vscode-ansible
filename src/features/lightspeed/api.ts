@@ -236,13 +236,11 @@ export class LightSpeedAPI {
     } catch (error) {
       const err = error as AxiosError;
       const mappedError: IError = await mapError(err);
-      if (!(await showTrialInfoPopup(mappedError))) {
-        const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
-        if (showInfoMessage) {
-          vscode.window.showErrorMessage(errorMessage);
-        } else {
-          console.error(errorMessage);
-        }
+      const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
+      if (showInfoMessage) {
+        vscode.window.showErrorMessage(errorMessage);
+      } else {
+        console.error(errorMessage);
       }
       return {} as FeedbackResponseParams;
     }

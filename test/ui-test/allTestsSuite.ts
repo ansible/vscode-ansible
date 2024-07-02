@@ -3,6 +3,7 @@ import {
   lightspeedUILoginTest,
   lightspeedUISignOutTest,
 } from "./lightspeedAuthUiTest";
+import { lightspeedOneClickTrialUITest } from "./lightspeedOneClickTrialUITest";
 import { lightspeedUIAssetsTest } from "./lightspeedUiTest";
 
 describe("VSCode Ansible - UI tests", function () {
@@ -13,5 +14,6 @@ describe("VSCode Ansible - UI tests", function () {
   // Skip this on MacOS due to the functional limitation on menu support
   if (process.platform !== "darwin") {
     lightspeedUISignOutTest();
+    lightspeedOneClickTrialUITest();
   }
 });
