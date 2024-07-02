@@ -117,8 +117,9 @@ export function lightspeedUISignOutTest(): void {
     });
 
     it("Click Sign Out button on the modal dialog", async () => {
-      const dialog = new ModalDialog();
+      const { dialog, message } = await getModalDialogAndMessage(true);
       expect(dialog).not.to.be.undefined;
+      expect(message).contains("Sign out from these extensions?");
       await dialog.pushButton("Sign Out");
     });
 

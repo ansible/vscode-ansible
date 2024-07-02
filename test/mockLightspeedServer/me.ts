@@ -1,7 +1,6 @@
 import { options } from "./server";
 export function me() {
-  return;
-  options.oneClick
+  return options.oneClick
     ? {
         rh_org_has_subscription: false,
         rh_user_has_seat: false,
