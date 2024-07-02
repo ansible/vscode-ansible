@@ -14,11 +14,18 @@ import path from "path";
 import yargs from "yargs";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const options: any = yargs(process.argv.slice(2))
-  .option("ui-test", { boolean: false })
-  .help().argv;
+export let options: any = readOptions(process.argv.splice(2));
 
-console.log(`ui-test: ${options.uiTest}`);
+function readOptions(args: string[]) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const opt: any = yargs(args)
+    .option("ui-test", { boolean: false })
+    .option("one-click", { boolean: false })
+    .help().argv;
+  console.log(`ui-test: ${opt.uiTest}`);
+  console.log(`one-click: ${opt.oneClick}`);
+  return opt;
+}
 
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "access.log"),
@@ -43,6 +50,17 @@ let url = new URL("http://127.0.0.1:3000");
 // Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
 if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
   url = new URL(process.env.TEST_LIGHTSPEED_URL);
+}
+
+export function permissionDeniedUserHasNoSubscription(): {
+  code: string;
+  message: string;
+} {
+  return {
+    code: "permission_denied__user_has_no_subscription",
+    message:
+      "Your organization does not have a subscription. Please contact your administrator.",
+  };
 }
 
 export default class Server {
@@ -103,6 +121,11 @@ export default class Server {
         feedbacks: getFeedbacks(),
       }),
     );
+
+    app.post("/__debug__/options", (req, res) => {
+      options = readOptions(req.body);
+      res.status(200).send();
+    });
 
     app.listen(parseInt(url.port), url.hostname, () => {
       logger.info(`Listening on port ${url.port} at ${url.hostname}`);

@@ -10,6 +10,7 @@ import { LightspeedUser } from "./lightspeedUser";
 import { ExplanationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 import { v4 as uuidv4 } from "uuid";
 import * as yaml from "yaml";
+import { showTrialInfoPopup } from "./utils/oneClickTrial";
 
 function getObjectKeys(content: string): string[] {
   try {
@@ -102,12 +103,14 @@ export const playbookExplanation = async (
       client,
       lightspeedAuthenticatedUser,
       settingsManager,
-    ).then((response: ExplanationResponse) => {
+    ).then(async (response: ExplanationResponse) => {
       if (isError(response)) {
-        vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
-        currentPanel.setContent(
-          `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${response.message}</p></p>`,
-        );
+        if (!(await showTrialInfoPopup(response))) {
+          vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+          currentPanel.setContent(
+            `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${response.message}</p></p>`,
+          );
+        }
       } else {
         markdown = response.content;
         const html_snippet = marked.parse(markdown) as string;

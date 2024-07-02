@@ -363,6 +363,11 @@
         "title": "Explain the playbook with Ansible Lightspeed"
       },
       {
+        "command": "ansible.lightspeed.openTrialPage",
+        "title": "Ansible Lightspeed: Open trial page",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+      },
+      {
         "command": "ansible.lightspeed.enableExperimentalFeatures",
         "title": "Ansible Lightspeed: Enable experimental features"
       },

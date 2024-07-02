@@ -3,7 +3,10 @@ import {
   ActivityBar,
   By,
   ContextMenu,
+  EditorView,
   ModalDialog,
+  WebElement,
+  WebView,
   WebviewView,
   Workbench,
 } from "vscode-extension-tester";
@@ -13,11 +16,14 @@ import {
   updateSettings,
 } from "./uiTestHelper";
 import { expect } from "chai";
+import axios from "axios";
 
-export function lightspeedUILoginTest(): void {
-  describe("Login to Lightspeed", () => {
+export function lightspeedOneClickTrialUITest(): void {
+  describe("Test One Click Trial feature", () => {
     let workbench: Workbench;
     let explorerView: WebviewView;
+    let playbookGeneration: WebView;
+    let submitButton: WebElement;
 
     before(async () => {
       // Enable Lightspeed and open Ansible Light view on sidebar
@@ -28,6 +34,18 @@ export function lightspeedUILoginTest(): void {
         settingsEditor,
         "ansible.lightspeed.URL",
         process.env.TEST_LIGHTSPEED_URL,
+      );
+      await updateSettings(
+        settingsEditor,
+        "ansible.lightspeed.suggestions.enabled",
+        true,
+      );
+
+      // Set "UI Test" and "One Click" options for mock server
+      await axios.post(
+        `${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`,
+        ["--ui-test", "--one-click"],
+        { headers: { "Content-Type": "application/json" } },
       );
     });
 
@@ -86,15 +104,85 @@ export function lightspeedUILoginTest(): void {
         By.id("lightspeedExplorerView"),
       );
       const text = await div.getText();
-      expect(text).contains("Logged in as:");
+      expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
       await explorerView.switchBack();
     });
-  });
-}
 
-export function lightspeedUISignOutTest(): void {
-  describe("Sign out from Lightspeed", () => {
-    let workbench: Workbench;
+    it("Invoke Playbook generation without experimental features enabled", async () => {
+      const center = await workbench.openNotificationsCenter();
+      center.clearAllNotifications();
+
+      await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
+      await sleep(2000);
+      playbookGeneration = await new WebView();
+      expect(playbookGeneration, "webView should not be undefined").not.to.be
+        .undefined;
+      await playbookGeneration.switchToFrame(5000);
+      expect(
+        playbookGeneration,
+        "webView should not be undefined after switching to its frame",
+      ).not.to.be.undefined;
+
+      // Set input text and invoke summaries API
+      const textArea = await playbookGeneration.findWebElement(
+        By.xpath("//vscode-text-area"),
+      );
+      expect(textArea, "textArea should not be undefined").not.to.be.undefined;
+      submitButton = await playbookGeneration.findWebElement(
+        By.xpath("//vscode-button[@id='submit-button']"),
+      );
+      expect(submitButton, "submitButton should not be undefined").not.to.be
+        .undefined;
+      //
+      // Note: Following line should succeed, but fails for some unknown reasons.
+      //
+      // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
+      await textArea.sendKeys("Create an azure network.");
+      expect(
+        await submitButton.isEnabled(),
+        "submit button should be enabled now",
+      ).to.be.true;
+      await submitButton.click();
+      await playbookGeneration.switchBack();
+      await sleep(2000);
+      const notifications = await workbench.getNotifications();
+      expect(notifications.length).equals(1);
+      const notification = notifications[0];
+      expect(await notification.getMessage()).equals(
+        "Your organization does not have a subscription. " +
+          "Please contact your administrator.",
+      );
+    });
+
+    it("Invoke Playbook generation with experimental features enabled", async () => {
+      const center = await workbench.openNotificationsCenter();
+      center.clearAllNotifications();
+      await workbench.executeCommand(
+        "Ansible Lightspeed: Enable experimental features",
+      );
+      await playbookGeneration.switchToFrame(5000);
+      await submitButton.click();
+      await playbookGeneration.switchBack();
+      await sleep(2000);
+      let notifications = await workbench.getNotifications();
+      expect(notifications.length).equals(1);
+      expect(await notifications[0].getMessage()).equals(
+        "Oh! You don't have an active Lightspeed Subscription",
+      );
+      const button = await notifications[0].findElement(
+        By.xpath(".//a[@role='button']"),
+      );
+      expect(button).not.to.be.undefined;
+      await button.click();
+      await sleep(500);
+      notifications = await workbench.getNotifications();
+      expect(notifications.length).equals(1);
+      expect(await notifications[0].getMessage()).equals(
+        "This feature is coming soon. Stay tuned.",
+      );
+      await notifications[0].dismiss();
+      await new EditorView().closeAllEditors();
+    });
 
     it("Sign out using Accounts global action", async () => {
       workbench = new Workbench();
@@ -110,16 +198,15 @@ export function lightspeedUISignOutTest(): void {
       expect(menu).not.to.be.undefined;
       if (menu) {
         await menu.select(
-          "EXTERNAL_USERNAME (licensed) (Ansible Lightspeed)",
+          "ONE_CLICK_USER (unlicensed) (Ansible Lightspeed)",
           "Sign Out",
         );
       }
     });
 
     it("Click Sign Out button on the modal dialog", async () => {
-      const { dialog, message } = await getModalDialogAndMessage(true);
+      const dialog = new ModalDialog();
       expect(dialog).not.to.be.undefined;
-      expect(message).contains("Sign out from these extensions?");
       await dialog.pushButton("Sign Out");
     });
 

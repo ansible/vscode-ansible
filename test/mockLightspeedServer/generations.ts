@@ -1,5 +1,9 @@
 import { v4 as uuidv4 } from "uuid";
-import { logger } from "./server";
+import {
+  logger,
+  options,
+  permissionDeniedUserHasNoSubscription,
+} from "./server";
 
 export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,6 +18,10 @@ export function generations(
   logger.info(`text: ${text}`);
   logger.info(`outline: ${req.body.outline}`);
   logger.info(`wizardId: ${wizardId}`);
+
+  if (options.oneClick) {
+    return res.status(403).json(permissionDeniedUserHasNoSubscription());
+  }
 
   // Special case to replicate the feature being unavailable
   if (text === "Feature not available") {

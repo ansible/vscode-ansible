@@ -42,14 +42,16 @@ export async function updateSettings(
 
 // In the redirection occurs in the login flow, getting message from a modal dialog
 // may throw NoSuchElementError. This function is for dealing with those errors.
-export async function getModalDialogAndMessage(): Promise<{
+export async function getModalDialogAndMessage(details = false): Promise<{
   dialog: ModalDialog;
   message: string;
 }> {
   for (let i = 0; i < 30; i++) {
     try {
       const dialog = new ModalDialog();
-      const message = await dialog.getMessage();
+      const message = details
+        ? await dialog.getDetails()
+        : await dialog.getMessage();
       if (message !== undefined) {
         return { dialog, message };
       }
