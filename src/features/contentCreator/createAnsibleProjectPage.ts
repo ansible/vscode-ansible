@@ -30,7 +30,7 @@ export class CreateAnsibleProject {
     } else {
       const panel = vscode.window.createWebviewPanel(
         "create-ansible-project",
-        "Create Ansible Project",
+        "Create Ansible project",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -106,7 +106,7 @@ export class CreateAnsibleProject {
 
         <body>
             <div class="title-div">
-              <h1>Create New Ansible Playbook Project</h1>
+              <h1>Create new Ansible playbook project</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 
@@ -397,9 +397,13 @@ export class CreateAnsibleProject {
     // add folder to a new workspace
     // vscode.workspace.updateWorkspaceFolders(0, 1, { uri: folderUri });
 
-    await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
-      forceNewWindow: true,
-    });
+    if (vscode.workspace.workspaceFolders?.length === 0) {
+      vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
 
     // open site.yml file in the editor
     const playbookFileUrl = vscode.Uri.joinPath(

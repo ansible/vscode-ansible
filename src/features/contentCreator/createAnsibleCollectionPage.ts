@@ -30,7 +30,7 @@ export class CreateAnsibleCollection {
     } else {
       const panel = vscode.window.createWebviewPanel(
         "create-ansible-collection",
-        "Create Ansible Collection",
+        "Create Ansible collection",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -106,7 +106,7 @@ export class CreateAnsibleCollection {
 
         <body>
             <div class="title-div">
-              <h1>Create New Ansible Collection</h1>
+              <h1>Create new Ansible collection</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 
@@ -480,9 +480,13 @@ export class CreateAnsibleCollection {
     //   { uri: folderUri },
     // );
 
-    await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
-      forceNewWindow: true,
-    });
+    if (vscode.workspace.workspaceFolders?.length === 0) {
+      vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
 
     // open the galaxy file in the editor
     const galaxyFileUrl = vscode.Uri.joinPath(

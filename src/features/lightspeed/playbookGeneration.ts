@@ -1,74 +1,103 @@
 import * as vscode from "vscode";
+import { v4 as uuidv4 } from "uuid";
 import { LanguageClient } from "vscode-languageclient/node";
-import { Webview, Uri } from "vscode";
+import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { SettingsManager } from "../../settings";
-import { isLightspeedEnabled } from "../../extension";
+import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
+import { GenerationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import {
+  LightSpeedCommands,
+  PlaybookGenerationActionType,
+} from "../../definitions/lightspeed";
+import { isError, UNKNOWN_ERROR } from "./utils/errors";
+
+let currentPanel: WebviewPanel | undefined;
+let wizardId: string | undefined;
+let currentPage: number | undefined;
 
 async function openNewPlaybookEditor(playbook: string) {
   const options = {
     language: "ansible",
+    content: playbook,
   };
 
-  const doc = await vscode.workspace.openTextDocument({
-    language: options.language,
-  });
-  const editor = await vscode.window.showTextDocument(doc);
+  const doc = await vscode.workspace.openTextDocument(options);
+  await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
+}
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const editBuilder = (textEdit: any) => {
-    textEdit.insert(new vscode.Position(0, 0), String(playbook));
-  };
-  return await editor.edit(editBuilder, {
-    undoStopBefore: true,
-    undoStopAfter: false,
-  });
+function contentMatch(generationId: string, playbook: string) {
+  lightSpeedManager.contentMatchesProvider.suggestionDetails = [
+    {
+      suggestionId: generationId,
+      suggestion: playbook,
+      isPlaybook: true,
+    },
+  ];
+  // Show training matches for the accepted suggestion.
+  vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
+  );
+}
+
+async function sendActionEvent(
+  action: PlaybookGenerationActionType,
+  toPage?: number | undefined,
+) {
+  if (currentPanel && wizardId) {
+    const fromPage = currentPage;
+    currentPage = toPage;
+    try {
+      lightSpeedManager.apiInstance.feedbackRequest(
+        {
+          playbookGenerationAction: {
+            wizardId,
+            action,
+            fromPage,
+            toPage,
+          },
+        },
+        process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      currentPanel.webview.postMessage({ command: "exception" });
+      vscode.window.showErrorMessage(e.message);
+    }
+  }
 }
 
 async function generatePlaybook(
-  content: string,
+  text: string,
+  outline: string | undefined,
+  generationId: string,
   client: LanguageClient,
   lightspeedAuthenticatedUser: LightspeedUser,
   settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-) {
+): Promise<GenerationResponse> {
   const accessToken =
     await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   if (!accessToken) {
     panel.webview.postMessage({ command: "exception" });
   }
 
-  const playbook: string = await client.sendRequest("playbook/generation", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
-
+  const createOutline = outline === undefined;
+  const playbook: GenerationResponse = await client.sendRequest(
+    "playbook/generation",
+    {
+      accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      text,
+      outline,
+      createOutline,
+      generationId,
+      wizardId,
+    },
+  );
   return playbook;
-}
-
-async function summarizeInput(
-  content: string,
-  client: LanguageClient,
-  lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
-  panel: vscode.WebviewPanel,
-) {
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-  if (!accessToken) {
-    panel.webview.postMessage({ command: "exception" });
-  }
-
-  const summary: string = await client.sendRequest("playbook/summary", {
-    accessToken,
-    URL: settingsManager.settings.lightSpeedService.URL,
-    content,
-  });
-
-  return summary;
 }
 
 export async function showPlaybookGenerationPage(
@@ -79,6 +108,11 @@ export async function showPlaybookGenerationPage(
 ) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
+    return;
+  }
+
+  if (currentPanel) {
+    currentPanel.reveal();
     return;
   }
 
@@ -99,44 +133,151 @@ export async function showPlaybookGenerationPage(
     },
   );
 
+  panel.onDidDispose(async () => {
+    await sendActionEvent(PlaybookGenerationActionType.CLOSE_CANCEL, undefined);
+    currentPanel = undefined;
+    wizardId = undefined;
+  });
+
+  currentPanel = panel;
+  wizardId = uuidv4();
+
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
     switch (command) {
-      case "generatePlaybook": {
-        const playbook = await generatePlaybook(
-          // TODO
-          message.content,
-          client,
-          lightspeedAuthenticatedUser,
-          settingsManager,
-          panel,
-        );
-        panel?.dispose();
-        await openNewPlaybookEditor(playbook);
-        break;
-      }
-      case "summarizeInput": {
-        const summary = await summarizeInput(
-          // TODO
-          message.content,
-          client,
-          lightspeedAuthenticatedUser,
-          settingsManager,
-          panel,
-        );
-        panel.webview.postMessage({ command: "summary", summary });
+      case "outline": {
+        try {
+          if (!message.outline) {
+            generatePlaybook(
+              message.text,
+              undefined,
+              message.generationId,
+              client,
+              lightspeedAuthenticatedUser,
+              settingsManager,
+              panel,
+            ).then((response: GenerationResponse) => {
+              if (isError(response)) {
+                panel.webview.postMessage({ command: "exception" });
+                vscode.window.showErrorMessage(
+                  response.message ?? UNKNOWN_ERROR,
+                );
+              } else {
+                panel.webview.postMessage({
+                  command: "outline",
+                  outline: response,
+                });
+              }
+            });
+          } else {
+            panel.webview.postMessage({
+              command: "outline",
+              outline: {
+                playbook: message.playbook,
+                outline: message.outline,
+                generationId: message.generationId,
+              },
+            });
+          }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (e: any) {
+          panel.webview.postMessage({ command: "exception" });
+          vscode.window.showErrorMessage(e.message);
+        }
         break;
       }
       case "thumbsUp":
       case "thumbsDown":
-        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");
+        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+          action: message.action,
+          generationId: message.generationId,
+        });
         break;
+
+      case "generateCode": {
+        let { playbook, generationId } = message;
+        const outline = message.outline;
+        const darkMode = message.darkMode;
+        if (!playbook) {
+          try {
+            const response = await generatePlaybook(
+              message.text,
+              message.outline,
+              message.generationId,
+              client,
+              lightspeedAuthenticatedUser,
+              settingsManager,
+              panel,
+            );
+            if (isError(response)) {
+              panel.webview.postMessage({ command: "exception" });
+              vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+              break;
+            }
+            playbook = response.playbook;
+            generationId = response.generationId;
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } catch (e: any) {
+            panel.webview.postMessage({ command: "exception" });
+            vscode.window.showErrorMessage(e.message);
+            break;
+          }
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let syntaxHighlighter: any;
+        try {
+          syntaxHighlighter =
+            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
+        } catch (error) {
+          syntaxHighlighter =
+            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
+        }
+        const html = await syntaxHighlighter.codeToHtml(
+          playbook,
+          darkMode ? "dark-plus" : "light-plus",
+          "yaml",
+        );
+
+        panel.webview.postMessage({
+          command: "playbook",
+          playbook: {
+            playbook,
+            generationId,
+            outline,
+            html,
+          },
+        });
+
+        contentMatch(generationId, playbook);
+        break;
+      }
+      case "transition": {
+        const { toPage } = message;
+        await sendActionEvent(PlaybookGenerationActionType.TRANSITION, toPage);
+        break;
+      }
+      case "openEditor": {
+        const { playbook } = message;
+        await openNewPlaybookEditor(playbook);
+        await sendActionEvent(
+          PlaybookGenerationActionType.CLOSE_ACCEPT,
+          undefined,
+        );
+        // Clear wizardId to suppress another CLOSE event at dispose()
+        wizardId = undefined;
+        panel?.dispose();
+        break;
+      }
     }
   });
 
-  panel.title = "Generate a playbook";
+  panel.title = "Ansible Lightspeed";
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
-  panel.webview.postMessage({ command: "focus" });
+  panel.webview.postMessage({ command: "init" });
+
+  await sendActionEvent(PlaybookGenerationActionType.OPEN, 1);
 }
 
 export function getWebviewContent(webview: Webview, extensionUri: Uri) {
@@ -169,7 +310,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+        content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};'">
     <link rel="stylesheet" href="${codiconsUri}">
     <link rel="stylesheet" href="${styleUri}">
     <title>Playbook</title>
@@ -177,31 +318,49 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
 
 <body>
     <div class="playbookGeneration">
-        <h2>Generate a playbook with Ansible Lightspeed</h2>
+        <h2 id="main-header">Create a playbook with Ansible Lightspeed</h2>
+        <div class="pageNumber" id="page-number">1 of 3</div>
+        <div class="promptContainer">
+          <span>
+            "<span id="prompt"></span>"&nbsp;
+            <a class="backAnchor" id="back-anchor">Edit</a>
+          </span>
+        </div>
         <div class="firstMessage">
-          <h3>What do you want the playbook to accomplish?</h3>
+          <h4>What do you want the playbook to accomplish?</h3>
         </div>
         <div class="secondMessage">
-          <h3>Do the following steps look right to you?</h3>
+          <h4>Review the suggested steps for your playbook and modify as needed.</h3>
+        </div>
+        <div class="thirdMessage">
+          <h4>The following playbook was generated for you:</h3>
         </div>
         <div class="mainContainer">
           <div class="editArea">
             <vscode-text-area rows=5 resize="vertical"
-                placeholder="Describe the goal in your own words."
+                placeholder="I want to write a playbook that will..."
                 id="playbook-text-area">
             </vscode-text-area>
+            <div class="outlineContainer">
+              <ol id="outline-list" contentEditable="true">
+                <li></li>
+              </ol>
+            </div>
             <div class="spinnerContainer">
               <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>
             </div>
           </div>
+          <div class="formattedPlaybook">
+            <span id="formatted-code"></span>
+          </div>
           <div class="bigIconButtonContainer">
-            <vscode-button class="bigIconButton" id="submit-button" disabled>
-              <span class="codicon codicon-send" id="submit-icon"></span>
-           </vscode-button>
+            <vscode-button class="biggerButton" id="submit-button" disabled>
+              Analyze
+            </vscode-button>
           </div>
           <div class="resetFeedbackContainer">
             <div class="resetContainer">
-                <vscode-button class="buttonBorder" appearance="secondary" id="reset-button">
+                <vscode-button appearance="secondary" id="reset-button" disabled>
                     Reset
                 </vscode-button>
             </div>
@@ -249,6 +408,14 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
               Generate playbook
           </vscode-button>
           <vscode-button class="biggerButton" id="back-button" appearance="secondary">
+              Back
+          </vscode-button>
+        </div>
+        <div class="openEditorContainer">
+          <vscode-button class="biggerButton" id="open-editor-button">
+              Open editor
+          </vscode-button>
+          <vscode-button class="biggerButton" id="back-to-page2-button" appearance="secondary">
               Back
           </vscode-button>
         </div>

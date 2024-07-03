@@ -2,10 +2,46 @@ import * as vscode from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
+import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import * as marked from "marked";
 import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
+import { ExplanationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { v4 as uuidv4 } from "uuid";
+import * as yaml from "yaml";
+
+function getObjectKeys(content: string): string[] {
+  try {
+    const parsedAnsibleDocument = yaml.parse(content);
+    const lastObject = parsedAnsibleDocument[parsedAnsibleDocument.length - 1];
+    if (typeof lastObject === "object") {
+      return Object.keys(lastObject);
+    }
+  } catch (error) {
+    return [];
+  }
+  return [];
+}
+
+export function isPlaybook(content: string): boolean {
+  for (const keyword of getObjectKeys(content)) {
+    if (keyword === "hosts") {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function findTasks(content: string): boolean {
+  const tasksTags = ["tasks", "pre_tasks", "post_tasks", "handlers"];
+  for (const keyword of getObjectKeys(content)) {
+    if (tasksTags.includes(keyword)) {
+      return true;
+    }
+  }
+  return false;
+}
 
 export const playbookExplanation = async (
   extensionUri: vscode.Uri,
@@ -20,42 +56,98 @@ export const playbookExplanation = async (
   if (document?.languageId !== "ansible") {
     return;
   }
-  const currentPanel = PlaybookExplanationPanel.createOrShow(extensionUri);
+
+  const content = document.getText();
+
+  if (!isPlaybook(content)) {
+    return;
+  }
+
+  const explanationId = uuidv4();
+  const currentPanel = PlaybookExplanationPanel.createOrShow(
+    extensionUri,
+    explanationId,
+  );
+
+  if (!findTasks(content)) {
+    currentPanel.setContent(
+      `<p><span class="codicon codicon-info"></span>
+      &nbsp;Explaining a playbook with no tasks in the playbook is not supported.</p>`,
+    );
+    return;
+  }
+
+  lightSpeedManager.apiInstance.feedbackRequest(
+    { playbookExplanation: { explanationId: explanationId } },
+    false,
+    false,
+  );
+
   currentPanel.setContent(
     `<div id="icons">
         <span class="codicon codicon-loading codicon-modifier-spin"></span>
-        Loading the explanation for ${document.fileName.split("/").at(-1)}
+        &nbsp;Generating the explanation for ${document.fileName.split("/").at(-1)}
       </div>`,
   );
 
-  const content = document.getText();
   const lightSpeedStatusbarText =
     await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
 
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
   let markdown = "";
   lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
   try {
-    markdown = await client.sendRequest("playbook/explanation", {
-      accessToken: accessToken,
-      URL: settingsManager.settings.lightSpeedService.URL,
-      content: content,
+    generateExplanation(
+      content,
+      explanationId,
+      client,
+      lightspeedAuthenticatedUser,
+      settingsManager,
+    ).then((response: ExplanationResponse) => {
+      if (isError(response)) {
+        vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+        currentPanel.setContent(
+          `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${response.message}</p></p>`,
+        );
+      } else {
+        markdown = response.content;
+        const html_snippet = marked.parse(markdown) as string;
+        currentPanel.setContent(html_snippet, true);
+      }
     });
   } catch (e) {
     console.log(e);
     currentPanel.setContent(
-      `<p><span class="codicon codicon-error"></span>Cannot load the explanation: <code>${e}</code></p>`,
+      `<p><span class="codicon codicon-error"></span>
+      &nbsp;Cannot load the explanation: <code>${e}</code></p>`,
     );
     return;
   } finally {
     lightSpeedManager.statusBarProvider.statusBar.text =
       lightSpeedStatusbarText;
   }
-
-  const html_snippet = await marked.parse(markdown);
-  currentPanel.setContent(html_snippet, true);
 };
+
+async function generateExplanation(
+  content: string,
+  explanationId: string,
+  client: LanguageClient,
+  lightspeedAuthenticatedUser: LightspeedUser,
+  settingsManager: SettingsManager,
+): Promise<ExplanationResponse> {
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+
+  const explanation: ExplanationResponse = await client.sendRequest(
+    "playbook/explanation",
+    {
+      accessToken: accessToken,
+      URL: settingsManager.settings.lightSpeedService.URL,
+      content: content,
+      explanationId: explanationId,
+    },
+  );
+  return explanation;
+}
 
 export class PlaybookExplanationPanel {
   public static currentPanel: PlaybookExplanationPanel | undefined;
@@ -66,7 +158,7 @@ export class PlaybookExplanationPanel {
   private readonly _extensionUri: vscode.Uri;
   private _disposables: vscode.Disposable[] = [];
 
-  public static createOrShow(extensionUri: vscode.Uri) {
+  public static createOrShow(extensionUri: vscode.Uri, explanationId: string) {
     const panel = vscode.window.createWebviewPanel(
       PlaybookExplanationPanel.viewType,
       "Explanation",
@@ -87,7 +179,10 @@ export class PlaybookExplanationPanel {
       switch (command) {
         case "thumbsUp":
         case "thumbsDown":
-          vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown");
+          vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+            action: message.action,
+            explanationId: explanationId,
+          });
           break;
       }
     });
@@ -112,14 +207,11 @@ export class PlaybookExplanationPanel {
     );
   }
 
-  public setContent(html_snippet: string, showFeedbackBox = false) {
-    this._panel.webview.html = this.buildFullHtml(
-      html_snippet,
-      showFeedbackBox,
-    );
+  public setContent(htmlSnippet: string, showFeedbackBox = false) {
+    this._panel.webview.html = this.buildFullHtml(htmlSnippet, showFeedbackBox);
   }
 
-  private buildFullHtml(html_snippet: string, showFeedbackBox = false) {
+  private buildFullHtml(htmlSnippet: string, showFeedbackBox = false) {
     const webview = this._panel.webview;
     const webviewUri = getUri(webview, this._extensionUri, [
       "out",
@@ -167,7 +259,8 @@ export class PlaybookExplanationPanel {
 			</head>
 			<body>
         <div class="playbookGeneration">
-          ${html_snippet}
+          ${htmlSnippet}
+          <div class="playbookExplanationSpacer"></div>
         </div>
         ${showFeedbackBox ? feedbackBoxSnippet : ""}
 

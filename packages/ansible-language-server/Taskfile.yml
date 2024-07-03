@@ -116,7 +116,6 @@ tasks:
       - task: build
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
       - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
-      - ./tools/can-release.sh
     silent: false
   release:
     desc: Create a new release (used by CI)

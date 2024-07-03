@@ -21,6 +21,7 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
+shiki
 SIGINT
 SIGTERM
 Sbarnea
@@ -112,6 +113,7 @@ groovylint
 haaaad
 hbenl
 hostvars
+hostsvars
 hotfixes
 iam
 icontent
@@ -189,6 +191,7 @@ relogin
 rimraf
 ritwickdey
 ro
+rollup
 rulebooks
 seealso
 servernum

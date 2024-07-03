@@ -1,0 +1,8 @@
+- name: Manage timesync in PTP domain 0, interface eth0
+  hosts: targets
+  vars:
+    timesync_ptp_domains:
+      - number: 0
+        interfaces: [eth0]
+  roles:
+    - linux-system-roles.timesync

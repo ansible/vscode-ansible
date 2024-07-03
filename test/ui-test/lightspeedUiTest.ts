@@ -1,4 +1,5 @@
 import { expect, config } from "chai";
+import axios from "axios";
 import {
   ActivityBar,
   By,
@@ -14,6 +15,8 @@ import {
   WebviewView,
 } from "vscode-extension-tester";
 import { getFilePath, updateSettings } from "./uiTestHelper";
+import { PlaybookGenerationActionType } from "../../src/definitions/lightspeed";
+import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 export function lightspeedUIAssetsTest(): void {
@@ -53,7 +56,7 @@ export function lightspeedUIAssetsTest(): void {
       const body = await webviewView.findWebElement(By.xpath("//body"));
       const welcomeMessage = await body.getText();
       expect(welcomeMessage).to.contain(
-        "Welcome to Ansible Lightspeed for Visual Studio Code.",
+        "Experience smarter automation using Ansible Lightspeed",
       );
     });
 
@@ -106,7 +109,7 @@ export function lightspeedUIAssetsTest(): void {
           "//div[contains(@class, 'statusbar-item') and " +
             "contains(@class, 'has-background-color') and " +
             "contains(@class, 'warning-kind') and " +
-            ".//a/text()='Lightspeed (not logged in)']",
+            ".//a/text()='Lightspeed (Not logged in)']",
         ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -126,7 +129,7 @@ export function lightspeedUIAssetsTest(): void {
         By.xpath(
           "//div[contains(@class, 'statusbar-item') and " +
             "not (contains(@class, 'has-background-color')) and " +
-            ".//a/text()='Lightspeed (not logged in)']",
+            ".//a/text()='Lightspeed (Not logged in)']",
         ),
       );
       expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -151,14 +154,342 @@ export function lightspeedUIAssetsTest(): void {
           "ansible.lightspeed.URL",
           process.env.TEST_LIGHTSPEED_URL,
         );
-        await workbench.executeCommand(
-          "Ansible Lightspeed: Enable experimental features",
-        );
+        // await workbench.executeCommand(
+        //   "Ansible Lightspeed: Enable experimental features",
+        // );
         await workbench.executeCommand("View: Close All Editor Groups");
+
+        const notifications = await workbench.getNotifications();
+        for (let i = 0; i < notifications.length; i++) {
+          const n = notifications[i];
+          await n.dismiss();
+        }
       }
     });
 
-    it("Playbook generation webview works as expected", async function () {
+    it("Playbook generation webview works as expected (full path)", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        // Open Ansible Content Creator by clicking the Getting started button on the side bar
+        const view = (await new ActivityBar().getViewControl(
+          "Ansible",
+        )) as ViewControl;
+        const sideBar = await view.openView();
+
+        const getStartedButton = await sideBar.findElement(
+          By.xpath(
+            "//a[contains(@class, 'monaco-button') and " +
+              ".//span/text()='Get started']",
+          ),
+        );
+        expect(getStartedButton).not.to.be.undefined;
+        if (getStartedButton) {
+          await getStartedButton.click();
+        }
+        await new Promise((res) => {
+          setTimeout(res, 5000);
+        });
+
+        // Open Playbook Generation UI by clicking the create content button on Ansible Content Creator
+        const contentCreatorWebView = await new WebView();
+        expect(
+          contentCreatorWebView,
+          "contentCreatorWebView should not be undefined",
+        ).not.to.be.undefined;
+        await contentCreatorWebView.switchToFrame(5000);
+        expect(
+          contentCreatorWebView,
+          "contentCreatorWebView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        const createContentButton = await contentCreatorWebView.findWebElement(
+          By.xpath(
+            "//a[contains(@href,'command:ansible.lightspeed.playbookGeneration')]",
+          ),
+        );
+        expect(createContentButton).not.to.be.undefined;
+        if (createContentButton) {
+          await createContentButton.click();
+        }
+        await contentCreatorWebView.switchBack();
+        await new EditorView().closeEditor("Ansible content creator");
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Start operations on Playbook Generation UI
+        const webView = await new WebView();
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Set input text and invoke summaries API
+        const textArea = await webView.findWebElement(
+          By.xpath("//vscode-text-area"),
+        );
+        expect(textArea, "textArea should not be undefined").not.to.be
+          .undefined;
+        const submitButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='submit-button']"),
+        );
+        expect(submitButton, "submitButton should not be undefined").not.to.be
+          .undefined;
+        //
+        // Note: Following line should succeed, but fails for some unknown reasons.
+        //
+        // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
+        await textArea.sendKeys("Create an azure network.");
+        expect(
+          await submitButton.isEnabled(),
+          "submit button should be enabled now",
+        ).to.be.true;
+        await submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Verify outline output and text edit
+        const outlineList = await webView.findWebElement(
+          By.xpath("//ol[@id='outline-list']"),
+        );
+        expect(outlineList, "An ordered list should exist.");
+        let text = await outlineList.getText();
+        expect(
+          text.includes("Create virtual network peering"),
+          "Text should include the expected outline",
+        );
+        await outlineList.sendKeys("# COMMENT\n");
+        text = await outlineList.getText();
+        expect(text.includes("# COMMENT\n"));
+
+        // Verify the prompt is displayed as a static text
+        const prompt = await webView.findWebElement(
+          By.xpath("//span[@id='prompt']"),
+        );
+        text = await prompt.getText();
+        expect(text.includes("Create an azure network."));
+
+        // Test Reset button
+        const resetButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='reset-button']"),
+        );
+        expect(resetButton, "resetButton should not be undefined").not.to.be
+          .undefined;
+        await resetButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+        text = await outlineList.getText();
+        expect(!text.includes("# COMMENT\n"));
+
+        // Test Back button
+        const backButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='back-button']"),
+        );
+        expect(backButton, "backButton should not be undefined").not.to.be
+          .undefined;
+        await backButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        text = await textArea.getText();
+        expect(text.startsWith("Create an azure network."));
+        await submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 1000);
+        });
+        text = await outlineList.getText();
+        expect(text.includes("Create virtual network peering"));
+
+        // Test Edit link next to the prompt text
+        const backAnchor = await webView.findWebElement(
+          By.xpath("//a[@id='back-anchor']"),
+        );
+        expect(backAnchor, "backAnchor should not be undefined").not.to.be
+          .undefined;
+        await backAnchor.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        text = await textArea.getText();
+        expect(text.startsWith("Create an azure network."));
+        await submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 1000);
+        });
+        text = await outlineList.getText();
+        expect(text.includes("Create virtual network peering"));
+
+        // Click Generate playbook button to invoke the generations API
+        const generatePlaybookButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='generate-button']"),
+        );
+        expect(
+          generatePlaybookButton,
+          "generatePlaybookButton should not be undefined",
+        ).not.to.be.undefined;
+        generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Make sure the generated playbook is displayed
+        const formattedCode = await webView.findWebElement(
+          By.xpath("//span[@id='formatted-code']"),
+        );
+        expect(formattedCode, "formattedCode should not be undefined").not.to.be
+          .undefined;
+        text = await formattedCode.getText();
+        expect(text.startsWith("---")).to.be.true;
+
+        // Test ThumbsUp button
+        // const thumbsUpButton = await webView.findWebElement(
+        //   By.xpath("//vscode-button[@id='thumbsup-button']"),
+        // );
+        // expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to
+        //   .be.undefined;
+        // expect(
+        //   await thumbsUpButton.isEnabled(),
+        //   "thumbsUpButton should be enabled",
+        // );
+        // await thumbsUpButton.click();
+        // await new Promise((res) => {
+        //   setTimeout(res, 500);
+        // });
+        // expect(
+        //   !thumbsUpButton.isEnabled,
+        //   "thumbsUpButton should not be enabled",
+        // );
+
+        // await webView.switchBack();
+        // const notifications = await workbench.getNotifications();
+        // const notification = notifications[0];
+        // const message = await notification.getMessage();
+        // expect(message).equals("Thanks for your feedback!");
+        // await notification.dismiss();
+
+        // Test Back (to Page 2) button
+        // await webView.switchToFrame(5000);
+        const backToPage2Button = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='back-to-page2-button']"),
+        );
+        expect(backToPage2Button, "backToPage2Button should not be undefined")
+          .not.to.be.undefined;
+        await backToPage2Button.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        // Type in something extra
+        await outlineList.sendKeys("\nSomething extra");
+        const savedOutline = await outlineList.getText();
+
+        // Click generate playbook button again
+        generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Click Back page again
+        await backToPage2Button.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        // Make sure outline is not updated.
+        expect(savedOutline).equal(await outlineList.getText());
+
+        // Click generate playbook button again
+        generatePlaybookButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
+        });
+
+        // Test ThumbsDown button
+        // const thumbsDownButton = await webView.findWebElement(
+        //   By.xpath("//vscode-button[@id='thumbsdown-button']"),
+        // );
+        // expect(thumbsDownButton, "thumbsDownButton should not be undefined").not
+        //   .to.be.undefined;
+        // expect(
+        //   await thumbsDownButton.isEnabled(),
+        //   "thumbsDownButton should be enabled",
+        // );
+        // await thumbsDownButton.click();
+        // await new Promise((res) => {
+        //   setTimeout(res, 500);
+        // });
+        // expect(!thumbsDownButton.isEnabled, "ThumbsDown should not be enabled");
+
+        // await webView.switchBack();
+        // notifications = await workbench.getNotifications();
+        // notification = notifications[0];
+        // message = await notification.getMessage();
+        // expect(message).equals("Thanks for your feedback!");
+        // await notification.dismiss();
+
+        // Click Open editor button to open the generated playbook in the editor
+        // await webView.switchToFrame(5000);
+        const openEditorButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='open-editor-button']"),
+        );
+        expect(openEditorButton, "openEditorButton should not be undefined").not
+          .to.be.undefined;
+        await openEditorButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        await webView.switchBack();
+
+        // Verify a playbook was generated.
+        const editor = await new EditorView().openEditor("Untitled-1");
+        text = await editor.getText();
+        expect(
+          text.startsWith("---"),
+          'The generated playbook should start with "---"',
+        ).to.be.true;
+
+        await workbench.executeCommand("View: Close All Editor Groups");
+        const dialog = new ModalDialog();
+        await dialog.pushButton(`Don't Save`);
+
+        /* verify generated events */
+        const expected = [
+          [PlaybookGenerationActionType.OPEN, undefined, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.TRANSITION, 3, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.TRANSITION, 3, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.CLOSE_ACCEPT, 3, undefined],
+        ];
+        const res = await axios.get(
+          `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+        );
+        expect(res.data.feedbacks.length).equals(expected.length);
+        for (let i = 0; i < expected.length; i++) {
+          const evt: PlaybookGenerationActionEvent =
+            res.data.feedbacks[i].playbookGenerationAction;
+          expect(evt.action).equals(expected[i][0]);
+          expect(evt.fromPage).equals(expected[i][1]);
+          expect(evt.toPage).equals(expected[i][2]);
+        }
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook generation webview works as expected (fast path)", async function () {
       // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
       if (process.env.TEST_LIGHTSPEED_URL) {
         // Open playbook generation webview.
@@ -195,49 +526,27 @@ export function lightspeedUIAssetsTest(): void {
         expect(
           await submitButton.isEnabled(),
           "submit button should be enabled now",
-        ).is.true;
-        submitButton.click();
+        ).to.be.true;
+        await submitButton.click();
         await new Promise((res) => {
           setTimeout(res, 1000);
         });
 
-        // Test Reset button
-        let text = await textArea.getText();
-        expect(text.includes('Name: "Create an azure network..."'));
-        await textArea.sendKeys("# COMMENT\n");
-        text = await textArea.getText();
-        expect(text.includes("# COMMENT\n"));
-        const resetButton = await webView.findWebElement(
-          By.xpath("//vscode-button[@id='reset-button']"),
+        // Verify outline output and text edit
+        const outlineList = await webView.findWebElement(
+          By.xpath("//ol[@id='outline-list']"),
         );
-        expect(resetButton, "resetButton should not be undefined").not.to.be
+        expect(outlineList, "An ordered list should exist.").to.be.not
           .undefined;
-        resetButton.click();
-        await new Promise((res) => {
-          setTimeout(res, 500);
-        });
-        text = await textArea.getText();
-        expect(!text.includes("# COMMENT\n"));
+        let text = await outlineList.getText();
+        expect(text.includes("Create virtual network peering")).to.be.true;
 
-        // Test Back button
-        const backButton = await webView.findWebElement(
-          By.xpath("//vscode-button[@id='back-button']"),
+        // Verify the prompt is displayed as a static text
+        const prompt = await webView.findWebElement(
+          By.xpath("//span[@id='prompt']"),
         );
-        expect(backButton, "backButton should not be undefined").not.to.be
-          .undefined;
-        backButton.click();
-        await new Promise((res) => {
-          setTimeout(res, 500);
-        });
-
-        text = await textArea.getText();
-        expect(text.startsWith("Create an azure network."));
-        submitButton.click();
-        await new Promise((res) => {
-          setTimeout(res, 1000);
-        });
-        text = await textArea.getText();
-        expect(text.includes('Name: "Create an azure network..."'));
+        text = await prompt.getText();
+        expect(text.includes("Create an azure network.")).to.be.true;
 
         // Click Generate playbook button to invoke the generations API
         const generatePlaybookButton = await webView.findWebElement(
@@ -247,23 +556,124 @@ export function lightspeedUIAssetsTest(): void {
           generatePlaybookButton,
           "generatePlaybookButton should not be undefined",
         ).not.to.be.undefined;
-        generatePlaybookButton.click();
+
+        const start = new Date().getTime();
+        await generatePlaybookButton.click();
         await new Promise((res) => {
-          setTimeout(res, 1000);
+          setTimeout(res, 300);
+        });
+
+        // Verify a playbook was generated.
+        const formattedCode = await webView.findWebElement(
+          By.xpath("//span[@id='formatted-code']"),
+        );
+        expect(formattedCode, "formattedCode should not be undefined").not.to.be
+          .undefined;
+        text = await formattedCode.getText();
+        expect(text.startsWith("---")).to.be.true;
+
+        // Make sure the playbook was generated within 500 msecs, which is the fake latency
+        // used in the mock server. It means that the playbook returned in the outline generation
+        // was used and the generations API was not called this time.
+        const elapsedTime = new Date().getTime() - start;
+        expect(elapsedTime < 500).to.be.true;
+
+        // Click Open editor button to open the generated playbook in the editor
+        const openEditorButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='open-editor-button']"),
+        );
+        expect(openEditorButton, "openEditorButton should not be undefined").not
+          .to.be.undefined;
+        await openEditorButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 500);
         });
         await webView.switchBack();
 
-        // Verify a playbook was generated.
         const editor = await new EditorView().openEditor("Untitled-1");
         text = await editor.getText();
         expect(
           text.startsWith("---"),
           'The generated playbook should start with "---"',
-        );
+        ).to.be.true;
 
         await workbench.executeCommand("View: Close All Editor Groups");
         const dialog = new ModalDialog();
         await dialog.pushButton(`Don't Save`);
+
+        /* verify generated events */
+        const expected = [
+          [PlaybookGenerationActionType.OPEN, undefined, 1],
+          [PlaybookGenerationActionType.TRANSITION, 1, 2],
+          [PlaybookGenerationActionType.TRANSITION, 2, 3],
+          [PlaybookGenerationActionType.CLOSE_ACCEPT, 3, undefined],
+        ];
+        const res = await axios.get(
+          `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+        );
+        expect(res.data.feedbacks.length).equals(expected.length);
+        for (let i = 0; i < expected.length; i++) {
+          const evt: PlaybookGenerationActionEvent =
+            res.data.feedbacks[i].playbookGenerationAction;
+          expect(evt.action).equals(expected[i][0]);
+          expect(evt.fromPage).equals(expected[i][1]);
+          expect(evt.toPage).equals(expected[i][2]);
+        }
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook generation webview works as expected (feature unavailable)", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        // Open playbook generation webview.
+        await workbench.executeCommand(
+          "Ansible Lightspeed: Playbook generation",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        const webView = await new WebView();
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Set input text and invoke summaries API
+        const textArea = await webView.findWebElement(
+          By.xpath("//vscode-text-area"),
+        );
+        expect(textArea, "textArea should not be undefined").not.to.be
+          .undefined;
+        const submitButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='submit-button']"),
+        );
+        expect(submitButton, "submitButton should not be undefined").not.to.be
+          .undefined;
+        //
+        // Note: Following line should succeed, but fails for some unknown reasons.
+        //
+        // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
+        await textArea.sendKeys("Feature not available");
+        expect(
+          await submitButton.isEnabled(),
+          "submit button should be enabled now",
+        ).to.be.true;
+        await submitButton.click();
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        await webView.switchBack();
+
+        const notifications = await workbench.getNotifications();
+        const notification = notifications[0];
+        expect(await notification.getMessage()).equals(
+          "The requested action is not available in your environment.",
+        );
       } else {
         this.skip();
       }
@@ -279,7 +689,7 @@ export function lightspeedUIAssetsTest(): void {
 
         // Open playbook explanation webview.
         await workbench.executeCommand(
-          "Ansible Lightspeed: Playbook explanation",
+          "Explain the playbook with Ansible Lightspeed",
         );
         await new Promise((res) => {
           setTimeout(res, 2000);
@@ -303,7 +713,83 @@ export function lightspeedUIAssetsTest(): void {
         );
         expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
         const text = await mainDiv.getText();
-        expect(text.includes("Playbook Overview and Structure"));
+        expect(text.includes("Playbook Overview and Structure")).to.be.true;
+
+        await webView.switchBack();
+        await workbench.executeCommand("View: Close All Editor Groups");
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook explanation webview works as expected (feature unavailable)", async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        const file = "playbook_explanation_feature_unavailable.yml";
+        const filePath = getFilePath(file);
+
+        // Open file in the editor
+        await VSBrowser.instance.openResources(filePath);
+
+        // Open playbook explanation webview.
+        await workbench.executeCommand(
+          "Explain the playbook with Ansible Lightspeed",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Locate the group 1 of editor view. Since the file does not contain the "hosts" property,
+        // the explanation view is not opened in the group 1. Therefore, the group 1 should be
+        // undefined.
+        const group = await new EditorView().getEditorGroup(1);
+        expect(group, "Group 1 of the editor view should be undefined").to.be
+          .undefined;
+
+        await workbench.executeCommand("View: Close All Editor Groups");
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook explanation webview with a playbook with no tasks", async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        const file = "playbook_5.yml";
+        const filePath = getFilePath(file);
+
+        // Open file in the editor
+        await VSBrowser.instance.openResources(filePath);
+
+        // Open playbook explanation webview.
+        await workbench.executeCommand(
+          "Explain the playbook with Ansible Lightspeed",
+        );
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+
+        // Locate the playbook explanation webview
+        const webView = (await new EditorView().openEditor(
+          "Explanation",
+          1,
+        )) as WebView;
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Find the main div element of the webview and verify the expected text is found.
+        const mainDiv = await webView.findWebElement(
+          By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+        );
+        expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
+        const text = await mainDiv.getText();
+        expect(
+          text.includes(
+            "Explaining a playbook with no tasks in the playbook is not supported.",
+          ),
+        ).to.be.true;
 
         await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");
@@ -334,20 +820,67 @@ export function lightspeedUIAssetsTest(): void {
 
     before(async function () {
       workbench = new Workbench();
-      await workbench.executeCommand(
-        "Ansible Lightspeed: Enable experimental features",
-      );
+      // await workbench.executeCommand(
+      //   "Ansible Lightspeed: Enable experimental features",
+      // );
       await workbench.executeCommand("View: Close All Editor Groups");
     });
 
     it("Playbook generation command shows an error message when Lightspeed is not enabled", async function () {
       // Open playbook generation webview.
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
+      await new Promise((res) => {
+        setTimeout(res, 2000);
+      });
       const notifications = await new Workbench().getNotifications();
       const notification = notifications[0];
       expect(await notification.getMessage()).equals(
         "Enable lightspeed services from settings to use the feature.",
       );
+    });
+  });
+
+  describe("Feedback webview provider works as expected", function () {
+    let workbench: Workbench;
+    let editorView: EditorView;
+    let settingsEditor: SettingsEditor;
+
+    before(async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        workbench = new Workbench();
+        settingsEditor = await workbench.openSettings();
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.enabled",
+          true,
+        );
+        await workbench.executeCommand("View: Close All Editor Groups");
+        editorView = new EditorView();
+        expect(editorView).not.to.be.undefined;
+      }
+    });
+
+    it("Open Feedback webview", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        await workbench.executeCommand("Ansible Lightspeed: Feedback");
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        // Locate the playbook explanation webview
+        const webView = (await editorView.openEditor(
+          "Ansible Lightspeed Feedback",
+        )) as WebView;
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        // Issuing the Lightspeed feedback command should not open a new tab
+        await workbench.executeCommand("Ansible Lightspeed: Feedback");
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        const titles = await editorView.getOpenEditorTitles();
+        expect(titles.length).equals(1);
+        await workbench.executeCommand("View: Close All Editor Groups");
+      }
     });
   });
 }

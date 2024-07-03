@@ -18,6 +18,42 @@ import * as vscode from "vscode";
 export const CMD_SUCCEED_VALUE = "succeeded";
 const CMD_FAIL_VALUE = "failed";
 
+/**
+ * Send a telemetry event related to a given vscode-ansible command
+ *
+ * @param telemetryService - the telemetry service to use
+ * @param isTelemetryInit - whether the telemetry service has been initialized
+ * @param eventName - the name of the command that was run
+ * @param eventData - the data to be sent with the event
+ * @throws if the telemetry service has not been initialized yet
+ * @returns when the telemetry event has been sent
+ */
+
+export async function sendTelemetry(
+  telemetryService: TelemetryService,
+  isTelemetryInit: boolean,
+  eventName: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  eventData: any,
+): Promise<void> {
+  if (!telemetryService || !isTelemetryInit) {
+    throw new Error("Telemetry has not been initialized yet");
+  }
+  if (!eventName) {
+    throw new Error("Event name is required");
+  }
+  // TODO: Temporary enable only ansibleMetadata event and pause all the other telemetry,
+  //       other events will be enabled in future as per requirements.
+  if (eventName !== "ansibleMetadata") {
+    return;
+  }
+
+  await telemetryService.send({
+    name: eventName,
+    properties: eventData,
+  });
+}
+
 export class TelemetryManager {
   private context: ExtensionContext;
   public telemetryService!: TelemetryService;
@@ -34,7 +70,6 @@ export class TelemetryManager {
     }
     this.redhatService = await getRedHatService(this.context);
     this.telemetryService = await this.redhatService.getTelemetryService();
-    this.telemetryService.sendStartupEvent();
     this.isTelemetryInit = true;
   }
   /**
@@ -80,32 +115,16 @@ export class TelemetryManager {
     if (!this.isTelemetryInit) {
       throw new Error("Telemetry has not been initialized yet");
     }
-    await this.telemetryService.send({
-      name: commandName,
-      properties: {
+
+    await sendTelemetry(
+      this.telemetryService,
+      this.isTelemetryInit,
+      commandName,
+      {
         status: succeeded ? CMD_SUCCEED_VALUE : CMD_FAIL_VALUE,
         error_message: msg,
       },
-    });
-  }
-
-  /**
-   * Send a telemetry event related to a given vscode-ansible command
-   *
-   * @param eventName - the name of the command that was run
-   * @param eventData - the data to be sent with the event
-   * @throws if the telemetry service has not been initialized yet
-   * @returns when the telemetry event has been sent
-   */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public async sendTelemetry(eventName: string, eventData: any): Promise<void> {
-    if (!this.isTelemetryInit) {
-      throw new Error("Telemetry has not been initialized yet");
-    }
-    await this.telemetryService.send({
-      name: eventName,
-      properties: eventData,
-    });
+    );
   }
 
   async sendStartupTelemetryEvent(
@@ -117,7 +136,12 @@ export class TelemetryManager {
     if (errorMessage) {
       startUpData.set("error", errorMessage);
     }
-    await this.sendTelemetry("startup", startUpData);
+    await sendTelemetry(
+      this.telemetryService,
+      this.isTelemetryInit,
+      "startup",
+      startUpData,
+    );
   }
 }
 
@@ -134,10 +158,11 @@ export class TelemetryErrorHandler implements ErrorHandler {
   }
 
   error(error: Error, message: Message, count: number): ErrorHandlerResult {
-    this.telemetry.send({
-      name: "ansible.lsp.error",
-      properties: { jsonrpc: message.jsonrpc, error: error.message },
+    sendTelemetry(this.telemetry, true, "ansible.lsp.error", {
+      jsonrpc: message.jsonrpc,
+      error: error.message,
     });
+
     let action: ErrorAction;
     if (count && count <= 3) {
       action = ErrorAction.Continue;
@@ -214,9 +239,8 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
       }
       this.errors.push(value);
       const timeoutHandle = setTimeout(() => {
-        this.telemetry.send({
-          name: "ansible.server.error",
-          properties: { error: this.createErrorMessage() },
+        sendTelemetry(this.telemetry, true, "ansible.server.error", {
+          error: this.createErrorMessage(),
         });
         this.errors = [];
       }, 50);

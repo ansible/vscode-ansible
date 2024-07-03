@@ -3,15 +3,22 @@ import express, { Application } from "express";
 import { completions } from "./completion";
 import { contentmatches } from "./contentmatches";
 import { explanations } from "./explanations";
-import { feedback } from "./feedback";
+import { feedback, getFeedbacks } from "./feedback";
 import { generations } from "./generations";
-import { summaries } from "./summaries";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
 import morgan from "morgan";
 import fs from "fs";
 import path from "path";
+import yargs from "yargs";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const options: any = yargs(process.argv.slice(2))
+  .option("ui-test", { boolean: false })
+  .help().argv;
+
+console.log(`ui-test: ${options.uiTest}`);
 
 const accessLogStream = fs.createWriteStream(
   path.join(__dirname, "access.log"),
@@ -49,22 +56,17 @@ export default class Server {
     app.get("/", (req, res) => res.send("Lightspeed Mock"));
 
     app.post(`${API_ROOT}/ai/completions`, async (req, res) => {
-      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
       return completions(req, res);
     });
 
     app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
-      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
       return res.send(contentmatches(req));
     });
 
-    app.post(`${API_ROOT}/ai/summaries`, async (req, res) => {
-      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
-      return summaries(req, res);
-    });
-
     app.post(`${API_ROOT}/ai/generations`, async (req, res) => {
-      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
       return generations(req, res);
     });
 
@@ -84,7 +86,6 @@ export default class Server {
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
       logger.info(req.query);
       const redirectUri = decodeURIComponent(req.query.redirect_uri);
-      logger.info(`opening ${redirectUri} ...`);
       openUrl(`${redirectUri}&code=CODE`);
       return res.send({});
     });
@@ -94,6 +95,12 @@ export default class Server {
         access_token: "ACCESS_TOKEN",
         refresh_token: "REFRESH_TOKEN",
         expires_in: 3600,
+      }),
+    );
+
+    app.get("/__debug__/feedbacks", (req, res) =>
+      res.send({
+        feedbacks: getFeedbacks(),
       }),
     );
 
