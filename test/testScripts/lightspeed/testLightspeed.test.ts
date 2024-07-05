@@ -26,7 +26,11 @@ import {
   UserAction,
   LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
 } from "../../../src/definitions/lightspeed";
-import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
+import {
+  FeedbackRequestParams,
+  InlineSuggestionEvent,
+} from "../../../src/interfaces/lightspeed";
+import * as inlineSuggestions from "../../../src/features/lightspeed/inlineSuggestions";
 
 function testSuggestionPrompts() {
   const tests = [
@@ -436,6 +440,217 @@ export function testLightspeed(): void {
 
     describe("Test LightspeedUser", function () {
       testLightspeedUser();
+    });
+
+    describe("Test suggestion event handlers.", function () {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let feedbackRequest: any;
+
+      beforeEach(async function () {
+        feedbackRequest = sinon.stub(
+          lightSpeedManager.apiInstance,
+          "feedbackRequest",
+        );
+        feedbackRequest.returns(Promise.resolve());
+      });
+
+      it("Test hide a given suggestion by argument.", async function () {
+        inlineSuggestions.setInProgressSuggestionId(undefined);
+        await inlineSuggestions.inlineSuggestionHideHandler(
+          UserAction.REJECTED,
+          "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        );
+
+        const requestSuggestion: InlineSuggestionEvent =
+          feedbackRequest.args[0][0].inlineSuggestion;
+        assert.equal(feedbackRequest.called, true);
+        assert.equal(
+          requestSuggestion.suggestionId,
+          "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        );
+        assert.equal(requestSuggestion.action, UserAction.REJECTED);
+      });
+
+      it("Test hide actual suggestion.", async function () {
+        inlineSuggestions.setInProgressSuggestionId(
+          "df65f5f1-5c27-4dd4-8c58-3336b53432RR",
+        );
+
+        await inlineSuggestions.inlineSuggestionHideHandler(
+          UserAction.IGNORED,
+          undefined,
+        );
+
+        const requestSuggestion: InlineSuggestionEvent =
+          feedbackRequest.args[0][0].inlineSuggestion;
+        assert.equal(feedbackRequest.called, true);
+        assert.equal(
+          requestSuggestion.suggestionId,
+          "df65f5f1-5c27-4dd4-8c58-3336b53432RR",
+        );
+        assert.equal(requestSuggestion.action, UserAction.IGNORED);
+      });
+
+      afterEach(async function () {
+        feedbackRequest.resetHistory();
+        feedbackRequest.restore();
+      });
+    });
+
+    describe("Test Suggestion Feedback Functions", function () {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let inlineSuggestionsEnabled: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let isSuggestionFeedbackInProgress: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let feedbackRequest: any;
+
+      before(async function () {
+        inlineSuggestionsEnabled = sinon.stub(
+          lightSpeedManager,
+          "inlineSuggestionsEnabled",
+        );
+        isSuggestionFeedbackInProgress = sinon.stub(
+          lightSpeedManager.apiInstance,
+          "isSuggestionFeedbackInProgress",
+        );
+        feedbackRequest = sinon.stub(
+          lightSpeedManager.apiInstance,
+          "feedbackRequest",
+        );
+        feedbackRequest.returns(Promise.resolve());
+      });
+
+      describe("Test suggestion functions.", function () {
+        it("Test Reject pending suggestion.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          isSuggestionFeedbackInProgress.returns(false);
+          inlineSuggestions.suggestionDisplayed.set([]);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.rejectPendingSuggestion();
+
+          const requestSuggestion: InlineSuggestionEvent =
+            feedbackRequest.args[0][0].inlineSuggestion;
+          assert.equal(feedbackRequest.called, true);
+          assert.equal(
+            requestSuggestion.suggestionId,
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+          assert.equal(requestSuggestion.action, UserAction.REJECTED);
+        });
+
+        it("Test do NOT Reject pending suggestion, because inline suggestion is not enabled..", async function () {
+          inlineSuggestionsEnabled.returns(false);
+          isSuggestionFeedbackInProgress.returns(false);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.rejectPendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+
+        it("Test do NOT Reject pending suggestion, because it is not displayed.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          isSuggestionFeedbackInProgress.returns(false);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.rejectPendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+
+        it("Test do NOT Reject pending suggestion, because some feedback is still in progress.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          isSuggestionFeedbackInProgress.returns(true);
+          inlineSuggestions.suggestionDisplayed.set([]);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.rejectPendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+
+        it("Test do NOT Reject pending suggestion, because no active suggestion id.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          isSuggestionFeedbackInProgress.returns(false);
+          inlineSuggestions.suggestionDisplayed.set([]);
+          inlineSuggestions.setInProgressSuggestionId(undefined);
+
+          await inlineSuggestions.rejectPendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+
+        it("Test Ignore pending suggestion.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          inlineSuggestions.suggestionDisplayed.set([]);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.ignorePendingSuggestion();
+
+          const requestSuggestion: InlineSuggestionEvent =
+            feedbackRequest.args[0][0].inlineSuggestion;
+          assert.equal(feedbackRequest.called, true);
+          assert.equal(
+            requestSuggestion.suggestionId,
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+          assert.equal(requestSuggestion.action, UserAction.IGNORED);
+        });
+
+        it("Test do NOT Ignore pending suggestion, because inline suggestion is not enabled..", async function () {
+          inlineSuggestionsEnabled.returns(false);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.ignorePendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+
+        it("Test do NOT Ignore pending suggestion, because it is not displayed.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          inlineSuggestions.setInProgressSuggestionId(
+            "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+          );
+
+          await inlineSuggestions.ignorePendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+
+        it("Test do NOT Ignore pending suggestion, because no active suggestion id.", async function () {
+          inlineSuggestionsEnabled.returns(true);
+          inlineSuggestions.suggestionDisplayed.set([]);
+          inlineSuggestions.setInProgressSuggestionId(undefined);
+
+          await inlineSuggestions.ignorePendingSuggestion();
+
+          assert.equal(feedbackRequest.called, false);
+        });
+      });
+
+      afterEach(async function () {
+        feedbackRequest.resetHistory();
+      });
+
+      after(async function () {
+        inlineSuggestionsEnabled.restore();
+        isSuggestionFeedbackInProgress.restore();
+        feedbackRequest.restore();
+      });
     });
 
     after(async function () {

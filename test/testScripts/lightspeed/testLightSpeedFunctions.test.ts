@@ -9,6 +9,7 @@ import {
   findTasks,
   isPlaybook,
 } from "../../../src/features/lightspeed/playbookExplanation";
+import * as inlineSuggestions from "../../../src/features/lightspeed/inlineSuggestions";
 
 function getLightSpeedUserDetails(
   rhUserHasSeat: boolean,
@@ -110,9 +111,13 @@ function testGetLightSpeedStatusBarText(): void {
   });
 }
 
-function testFeedbackAPI(): void {
+function testFeedbackCompletionAPI(): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let isAuthenticated: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let inlineSuggestionHideHandlerSpy: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cancelSuggestionFeedbackSpy: any;
 
   before(async function () {
     isAuthenticated = sinon.stub(
@@ -120,6 +125,18 @@ function testFeedbackAPI(): void {
       "isAuthenticated",
     );
     isAuthenticated.returns(Promise.resolve(true));
+    inlineSuggestionHideHandlerSpy = sinon.spy(
+      inlineSuggestions,
+      "inlineSuggestionHideHandler",
+    );
+    cancelSuggestionFeedbackSpy = sinon.stub(
+      lightSpeedManager.apiInstance,
+      "cancelSuggestionFeedback",
+    );
+  });
+
+  beforeEach(async function () {
+    cancelSuggestionFeedbackSpy.returns(true);
   });
 
   describe("Test Feedback API", function () {
@@ -169,8 +186,77 @@ function testFeedbackAPI(): void {
     });
   });
 
+  describe("Test Completion API", function () {
+    it("Verify a completion request competes successfully.", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+
+      const request = {
+        prompt: "-task:",
+        suggestionId: "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        model: "cO986296-ef64-dr9s-bbf4-a2fd1645jhF5",
+      };
+
+      const response = await apiInstance.completionRequest(request);
+
+      assert.equal(
+        response.suggestionId,
+        "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        "SuggestionId assertion successful",
+      );
+
+      assert.equal(inlineSuggestionHideHandlerSpy.called, false);
+    });
+
+    it("Verify a completion request expecting HTTP 204.", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+
+      const request = {
+        prompt: "-task: status=204",
+        suggestionId: "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        model: "model1",
+      };
+
+      const response = await apiInstance.completionRequest(request);
+
+      assert.equal(
+        response.suggestionId,
+        undefined,
+        "SuggestionId assertion successful",
+      );
+
+      assert.equal(inlineSuggestionHideHandlerSpy.called, false);
+    });
+
+    it("Verify a completion request is ignored, feedback must be sent.", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+
+      const request = {
+        prompt: "-task:",
+        suggestionId: "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        model: "model1",
+      };
+
+      cancelSuggestionFeedbackSpy.returns(false);
+      const response = await apiInstance.completionRequest(request);
+
+      assert.equal(
+        response.suggestionId,
+        "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        "SuggestionId assertion successful",
+      );
+
+      assert.equal(inlineSuggestionHideHandlerSpy.called, true);
+    });
+  });
+
+  afterEach(async function () {
+    inlineSuggestionHideHandlerSpy.resetHistory();
+  });
+
   after(async function () {
     isAuthenticated.restore();
+    cancelSuggestionFeedbackSpy.restore();
+    inlineSuggestionHideHandlerSpy.restore();
   });
 }
 
@@ -273,7 +359,7 @@ function testIsPlaybook(): void {
 export function testLightspeedFunctions(): void {
   testGetLoggedInUserDetails();
   testGetLightSpeedStatusBarText();
-  testFeedbackAPI();
+  testFeedbackCompletionAPI();
   testFindTasks();
   testIsPlaybook();
 }

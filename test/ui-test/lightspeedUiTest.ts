@@ -839,4 +839,48 @@ export function lightspeedUIAssetsTest(): void {
       );
     });
   });
+
+  describe("Feedback webview provider works as expected", function () {
+    let workbench: Workbench;
+    let editorView: EditorView;
+    let settingsEditor: SettingsEditor;
+
+    before(async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        workbench = new Workbench();
+        settingsEditor = await workbench.openSettings();
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.enabled",
+          true,
+        );
+        await workbench.executeCommand("View: Close All Editor Groups");
+        editorView = new EditorView();
+        expect(editorView).not.to.be.undefined;
+      }
+    });
+
+    it("Open Feedback webview", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        await workbench.executeCommand("Ansible Lightspeed: Feedback");
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        // Locate the playbook explanation webview
+        const webView = (await editorView.openEditor(
+          "Ansible Lightspeed Feedback",
+        )) as WebView;
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        // Issuing the Lightspeed feedback command should not open a new tab
+        await workbench.executeCommand("Ansible Lightspeed: Feedback");
+        await new Promise((res) => {
+          setTimeout(res, 2000);
+        });
+        const titles = await editorView.getOpenEditorTitles();
+        expect(titles.length).equals(1);
+        await workbench.executeCommand("View: Close All Editor Groups");
+      }
+    });
+  });
 }

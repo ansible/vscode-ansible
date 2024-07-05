@@ -5,6 +5,7 @@ import {
   StatusBarItem,
   StatusBarAlignment,
   ThemeColor,
+  workspace,
 } from "vscode";
 import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager } from "../utils/telemetryUtils";
@@ -70,8 +71,26 @@ export class PythonInterpreterManager {
     );
     this.pythonInterpreterStatusBarItem.show();
 
-    const interpreterPath = this.extensionSettings.settings.interpreterPath;
+    let interpreterPath = this.extensionSettings.settings.interpreterPath;
     if (interpreterPath) {
+      const activeURI = window.activeTextEditor?.document.uri;
+      if (
+        interpreterPath.includes("${workspaceFolder}") &&
+        activeURI !== undefined
+      ) {
+        const workspaceFolder =
+          workspace.getWorkspaceFolder(activeURI)?.uri.path;
+        if (workspaceFolder !== undefined) {
+          interpreterPath = interpreterPath.replace(
+            "${workspaceFolder}",
+            workspaceFolder,
+          );
+        } else {
+          console.error(
+            `Error getting workspace folder for ${activeURI.toString()} `,
+          );
+        }
+      }
       const label = this.makeLabelFromPath(interpreterPath);
       if (label) {
         this.pythonInterpreterStatusBarItem.text = label;

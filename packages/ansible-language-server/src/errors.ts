@@ -133,13 +133,6 @@ ERRORS.addError(
   ),
 );
 ERRORS.addError(400, new Error("error__feedback_validation"));
-ERRORS.addError(
-  400,
-  new Error(
-    "error__wca_suggestion_correlation_failed",
-    "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
-  ),
-);
 
 ERRORS.addError(
   403,
@@ -246,6 +239,7 @@ ERRORS.addError(
     },
   ),
 );
+
 ERRORS.addError(
   404,
   new Error(
@@ -266,6 +260,23 @@ ERRORS.addError(
   new Error(
     "error__feedback_internal_server",
     "An error occurred attempting to submit your feedback. Please try again later.",
+  ),
+);
+// error__wca_suggestion_correlation_failed is deprecated but
+// kept for backwards compatibility between new versions of the VSCode
+// extension and older ansible-ai-connect-service instances.
+ERRORS.addError(
+  500,
+  new Error(
+    "error__wca_suggestion_correlation_failed",
+    "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
+  ),
+);
+ERRORS.addError(
+  500,
+  new Error(
+    "error__wca_request_id_correlation_failed",
+    "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
   ),
 );
 

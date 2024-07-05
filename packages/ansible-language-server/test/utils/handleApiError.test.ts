@@ -88,18 +88,6 @@ describe("testing the error handling", () => {
     );
     assert.equal(error.message, "A field was invalid.");
   });
-
-  it("err WCA Suggestion Correlation failure", () => {
-    const error = mapError(
-      createError(400, {
-        code: "error__wca_suggestion_correlation_failed",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
-    );
-  });
   // =================================
 
   // =================================
@@ -342,6 +330,30 @@ describe("testing the error handling", () => {
     assert.equal(
       error.message,
       "An error occurred attempting to submit your feedback. Please try again later.",
+    );
+  });
+
+  it("err WCA Suggestion Correlation failure", () => {
+    const error = mapError(
+      createError(500, {
+        code: "error__wca_suggestion_correlation_failed",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
+    );
+  });
+
+  it("err WCA X-Request-ID Correlation failure", () => {
+    const error = mapError(
+      createError(500, {
+        code: "error__wca_request_id_correlation_failed",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
     );
   });
   // =================================
