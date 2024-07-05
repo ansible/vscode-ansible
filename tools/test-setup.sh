@@ -7,7 +7,7 @@
 set -euo pipefail
 
 IMAGE_VERSION=$(./tools/get-image-version)
-IMAGE=ghcr.io/ansible/creator-ee:${IMAGE_VERSION}
+IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
@@ -282,11 +282,11 @@ python3 -m pip install -q -U pip
 python3 -m pip check
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    # We used the already tested constraints file from creator-ee in order
-    # to avoid surprises. This ensures venv and creator-ee have exactly same
+    # We used the already tested constraints file from community-ansible-dev-tools EE in order
+    # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
     python3 -m pip install -q \
-        -r "https://raw.githubusercontent.com/ansible/creator-ee/${IMAGE_VERSION}/_build/requirements.txt" -r .config/requirements.in
+        -r .config/requirements.in
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
@@ -373,7 +373,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     EE_ANSIBLE_LINT_VERSION=$(get_version \
         docker run "${IMAGE}" ansible-lint --nocolor --version)
     # Test podman ability to mount current folder with write access, default mount options
-    docker run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
+    docker run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
@@ -434,7 +434,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     EE_ANSIBLE_LINT_VERSION=$(get_version \
         podman run "${IMAGE}" ansible-lint --nocolor --version)
     log notice "Test podman ability to mount current folder with write access, default mount options"
-    podman run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
+    podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 

@@ -520,7 +520,7 @@
           "ansible.executionEnvironment.image": {
             "scope": "resource",
             "type": "string",
-            "default": "ghcr.io/ansible/creator-ee:latest",
+            "default": "ghcr.io/ansible/community-ansible-dev-tools:latest",
             "markdownDescription": "Specify the name of the execution environment image.",
             "order": 3
           },

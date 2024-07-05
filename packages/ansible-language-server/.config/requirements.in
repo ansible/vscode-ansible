@@ -1,5 +1,5 @@
 # testing and linting, do not put version constraints here as they
-# conflict with the locked version taken from creator-ee requirements.txt
+# conflict with the locked version taken from community-ansible-dev-tools EE requirements.txt
 ansible-core
 ansible-lint
 # end-of dependencies for which we allow pre-releases

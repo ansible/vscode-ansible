@@ -60,9 +60,9 @@ tasks:
         sh: bash -c "command -v docker | head -n 1"
     cmds:
       - task: build
-      - "{{.ENGINE}} pull ghcr.io/ansible/creator-ee:{{ .EE_VERSION }}"
+      - "{{.ENGINE}} pull ghcr.io/ansible/community-ansible-dev-tools:{{ .EE_VERSION }}"
       # Tests that container engine is functional and that we have the image:
-      - "{{.ENGINE}} run -i ghcr.io/ansible/creator-ee:{{ .EE_VERSION }} ansible-lint --version"
+      - "{{.ENGINE}} run -i ghcr.io/ansible/community-ansible-dev-tools:{{ .EE_VERSION }} ansible-lint --version"
       - bash -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
     interactive: true
   test:
