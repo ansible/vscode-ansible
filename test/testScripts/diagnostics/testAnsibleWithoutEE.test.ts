@@ -45,9 +45,9 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
           {
             severity: 0,
             message:
-              "Unexpected error code 4 from execution of: ansible-playbook -i localhost, --syntax-check",
+              "The field 'hosts' has an invalid value, which includes an undefined variable.",
             range: new vscode.Range(
-              new vscode.Position(0, 0),
+              new vscode.Position(0, 2),
               new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
@@ -76,7 +76,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await testDiagnostics(docUri1, []);
       });
 
-      it("should complain about missing `hosts` key", async function () {
+      it("should complain about invalid `hosts` key", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
@@ -84,9 +84,10 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await testDiagnostics(docUri2, [
           {
             severity: 0,
-            message: "the field 'hosts' is required but was not set",
+            message:
+              "The field 'hosts' has an invalid value, which includes an undefined variable.",
             range: new vscode.Range(
-              new vscode.Position(0, 0),
+              new vscode.Position(0, 2),
               new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "Ansible",

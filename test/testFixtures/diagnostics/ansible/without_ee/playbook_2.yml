@@ -1,4 +1,6 @@
-- name: play name
+- name: Play name
+  hosts: "{{ my_hosts }}"
   tasks:
-    - name: task 1
+    - name: Task 1
       ansible.builtin.debug:
+        msg: Hello world!
