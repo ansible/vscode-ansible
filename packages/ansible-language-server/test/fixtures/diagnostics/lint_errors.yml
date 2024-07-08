@@ -13,7 +13,8 @@
       when: MY_VAR != ''
 
     - name: This would typically fire deprecated-command-syntax
-      command: warn=no chmod 644 X
+      command:
+        cmd: warn=no chmod 644 X
 
     - name: Copy the CA certificate
       ansible.builtin.copy:
