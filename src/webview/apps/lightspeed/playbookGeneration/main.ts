@@ -8,7 +8,6 @@ import {
   vsCodeTextField,
   TextArea,
 } from "@vscode/webview-ui-toolkit";
-import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
 import { EditableList } from "../../common/editableList";
 
 provideVSCodeDesignSystem().register(
@@ -26,6 +25,7 @@ let savedPlaybook: string | undefined;
 let generationId: string | undefined;
 let darkMode = true;
 let textArea: TextArea;
+let currentPage = 1;
 
 let outline: EditableList;
 
@@ -35,8 +35,6 @@ window.addEventListener("load", () => {
   setListener("submit-button", submitInput);
   setListener("generate-button", generateCode);
   setListener("reset-button", reset);
-  setListener("thumbsup-button", sendThumbsup);
-  setListener("thumbsdown-button", sendThumbsdown);
   setListener("back-button", backToPage1);
   setListener("back-anchor", backToPage1);
   setListener("back-to-page2-button", backToPage2);
@@ -83,7 +81,6 @@ window.addEventListener("message", async (event) => {
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
-      updateThumbsUpDownButtons(false, false);
 
       outline.focus();
       break;
@@ -99,10 +96,19 @@ window.addEventListener("message", async (event) => {
       pre.style.backgroundColor = "";
       break;
     }
-    // When summaries or generations API was processed abnormally (e.g., API error)
-    // dismiss the spinner icon here.
-    case "exception": {
+    case "startSpinner": {
+      changeDisplay("spinnerContainer", "block");
+      break;
+    }
+    case "stopSpinner": {
       changeDisplay("spinnerContainer", "none");
+      if (currentPage === 1) {
+        setButtonEnabled("submit-button", true);
+      } else if (currentPage === 2) {
+        setButtonEnabled("generate-button", true);
+        setButtonEnabled("back-button", true);
+        setButtonEnabled("reset-button", true);
+      }
       break;
     }
   }
@@ -157,7 +163,7 @@ async function submitInput() {
     generationId = uuidv4();
   }
 
-  changeDisplay("spinnerContainer", "block");
+  setButtonEnabled("submit-button", false);
 
   vscode.postMessage({
     command: "outline",
@@ -197,7 +203,9 @@ async function generateCode() {
     playbook = savedPlaybook;
   }
 
-  changeDisplay("spinnerContainer", "block");
+  setButtonEnabled("generate-button", false);
+  setButtonEnabled("back-button", false);
+  setButtonEnabled("reset-button", false);
 
   vscode.postMessage({
     command: "generateCode",
@@ -213,40 +221,6 @@ async function openEditor() {
   vscode.postMessage({
     command: "openEditor",
     playbook: savedPlaybook,
-  });
-}
-
-function updateThumbsUpDownButtons(selectUp: boolean, selectDown: boolean) {
-  const thumbsUpButton = document.getElementById("thumbsup-button") as Button;
-  const thumbsDownButton = document.getElementById(
-    "thumbsdown-button",
-  ) as Button;
-  thumbsUpButton.setAttribute(
-    "class",
-    selectUp ? "iconButtonSelected" : "iconButton",
-  );
-  thumbsDownButton.setAttribute(
-    "class",
-    selectDown ? "iconButtonSelected" : "iconButton",
-  );
-  thumbsUpButton.disabled = thumbsDownButton.disabled = selectUp || selectDown;
-}
-
-function sendThumbsup() {
-  updateThumbsUpDownButtons(true, false);
-  vscode.postMessage({
-    command: "thumbsUp",
-    action: ThumbsUpDownAction.UP,
-    generationId: generationId,
-  });
-}
-
-function sendThumbsdown() {
-  updateThumbsUpDownButtons(false, true);
-  vscode.postMessage({
-    command: "thumbsDown",
-    action: ThumbsUpDownAction.DOWN,
-    generationId: generationId,
   });
 }
 
@@ -275,6 +249,7 @@ function adjustTextAreaHeight() {
 function setPageNumber(pageNumber: number) {
   const span = document.getElementById("page-number") as Element;
   span.textContent = `${pageNumber} of ${TOTAL_PAGES}`;
+  currentPage = pageNumber;
 
   vscode.postMessage({
     command: "transition",
@@ -303,13 +278,13 @@ function setupPage(pageNumber: number) {
       changeDisplay("generatePlaybookContainer", "none");
       changeDisplay("promptContainer", "none");
       changeDisplay("openEditorContainer", "none");
+      setButtonEnabled("submit-button", true);
       break;
     case 2:
       setPageNumber(2);
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "block");
       changeDisplay("formattedPlaybook", "none");
-      changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
       changeDisplay("resetFeedbackContainer", "block");
@@ -322,13 +297,14 @@ function setupPage(pageNumber: number) {
       changeDisplay("promptContainer", "block");
       changeDisplay("openEditorContainer", "none");
       setButtonEnabled("reset-button", false);
+      setButtonEnabled("back-button", true);
+      setButtonEnabled("generate-button", true);
       break;
     case 3:
       setPageNumber(3);
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
       changeDisplay("formattedPlaybook", "block");
-      changeDisplay("spinnerContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
       changeDisplay("resetFeedbackContainer", "none");

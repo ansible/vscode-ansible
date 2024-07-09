@@ -64,7 +64,6 @@ async function sendActionEvent(
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      currentPanel.webview.postMessage({ command: "exception" });
       vscode.window.showErrorMessage(e.message);
     }
   }
@@ -81,24 +80,26 @@ async function generatePlaybook(
 ): Promise<GenerationResponse> {
   const accessToken =
     await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-  if (!accessToken) {
-    panel.webview.postMessage({ command: "exception" });
-  }
 
-  const createOutline = outline === undefined;
-  const playbook: GenerationResponse = await client.sendRequest(
-    "playbook/generation",
-    {
-      accessToken,
-      URL: settingsManager.settings.lightSpeedService.URL,
-      text,
-      outline,
-      createOutline,
-      generationId,
-      wizardId,
-    },
-  );
-  return playbook;
+  try {
+    panel.webview.postMessage({ command: "startSpinner" });
+    const createOutline = outline === undefined;
+    const playbook: GenerationResponse = await client.sendRequest(
+      "playbook/generation",
+      {
+        accessToken,
+        URL: settingsManager.settings.lightSpeedService.URL,
+        text,
+        outline,
+        createOutline,
+        generationId,
+        wizardId,
+      },
+    );
+    return playbook;
+  } finally {
+    panel.webview.postMessage({ command: "stopSpinner" });
+  }
 }
 
 export async function showPlaybookGenerationPage(
@@ -109,6 +110,12 @@ export async function showPlaybookGenerationPage(
 ) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
+    return;
+  }
+
+  const accessToken =
+    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+  if (!accessToken) {
     return;
   }
 
@@ -159,7 +166,6 @@ export async function showPlaybookGenerationPage(
               panel,
             ).then(async (response: GenerationResponse) => {
               if (isError(response)) {
-                panel.webview.postMessage({ command: "exception" });
                 if (!(await showTrialInfoPopup(response))) {
                   vscode.window.showErrorMessage(
                     response.message ?? UNKNOWN_ERROR,
@@ -184,18 +190,10 @@ export async function showPlaybookGenerationPage(
           }
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (e: any) {
-          panel.webview.postMessage({ command: "exception" });
           vscode.window.showErrorMessage(e.message);
         }
         break;
       }
-      case "thumbsUp":
-      case "thumbsDown":
-        vscode.commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
-          action: message.action,
-          generationId: message.generationId,
-        });
-        break;
 
       case "generateCode": {
         let { playbook, generationId } = message;
@@ -213,7 +211,6 @@ export async function showPlaybookGenerationPage(
               panel,
             );
             if (isError(response)) {
-              panel.webview.postMessage({ command: "exception" });
               vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
               break;
             }
@@ -222,7 +219,6 @@ export async function showPlaybookGenerationPage(
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (e: any) {
-            panel.webview.postMessage({ command: "exception" });
             vscode.window.showErrorMessage(e.message);
             break;
           }
@@ -363,19 +359,11 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="resetFeedbackContainer">
             <div class="resetContainer">
-                <vscode-button appearance="secondary" id="reset-button" disabled>
-                    Reset
-                </vscode-button>
-            </div>
-            <div class="feedbackContainer">
-              <vscode-button class="iconButton" appearance="icon" id="thumbsup-button">
-                <span class="codicon codicon-thumbsup"></span>
-              </vscode-button>
-              <vscode-button class="iconButton" appearance="icon" id="thumbsdown-button">
-                <span class="codicon codicon-thumbsdown"></span>
+              <vscode-button appearance="secondary" id="reset-button" disabled>
+                Reset
               </vscode-button>
             </div>
-            </div>
+          </div>
         </div>
         <div class="examplesContainer">
             <h4>Examples</h4>
