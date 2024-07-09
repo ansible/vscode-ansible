@@ -7,6 +7,7 @@ import {
 } from "./utils/webUtils";
 import {
   LIGHTSPEED_ME_AUTH_URL,
+  LIGHTSPEED_MARKDOWN_ME_AUTH_URL,
   LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { SettingsManager } from "../../settings";
@@ -17,6 +18,7 @@ import {
   isSupportedCallback,
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
+import * as marked from "marked";
 
 export class LightspeedAccessDenied extends Error {
   constructor(message: string) {
@@ -54,6 +56,7 @@ export class LightspeedUser {
   private _userDetails: LightspeedUserDetails | undefined;
   private _logger: Log;
   private _extensionHost: ExtensionHostType;
+  private _markdownUserDetails: string | undefined;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -135,7 +138,44 @@ export class LightspeedUser {
       }
     }
   }
+  /* Get the user info from server */
+  public async getMarkdownUserInfo(token: string) {
+    this._logger.info(
+      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+    );
 
+    try {
+      const { data } = await axios.get(
+        `${getBaseUri(this._settingsManager)}${LIGHTSPEED_MARKDOWN_ME_AUTH_URL}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const markdownData = marked.parse(data.content) as string;
+      return markdownData;
+    } catch (error) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.status === 401
+      ) {
+        throw new LightspeedAccessDenied(error.message);
+      } else if (axios.isAxiosError(error)) {
+        this._logger.error(
+          `[ansible-lightspeed-user] error message: ${error.message}`,
+        );
+        throw new Error(error.message);
+      } else {
+        this._logger.error(
+          `[ansible-lightspeed-user] unexpected error: ${error}`,
+        );
+        throw new Error("An unexpected error occurred");
+      }
+    }
+  }
   public async getAuthProviderOrder() {
     // NOTE: We can't gate this check on if this extension is active,
     // because it only activates on an authentication request.
@@ -233,6 +273,15 @@ export class LightspeedUser {
           session.accessToken,
         );
         this._session = session;
+        let markdownUserInfo: string = "";
+        try {
+          markdownUserInfo = await this.getMarkdownUserInfo(
+            session.accessToken,
+          );
+        } catch (error) {
+          markdownUserInfo = "";
+        }
+        this._markdownUserDetails = markdownUserInfo;
 
         const displayName =
           userinfo.external_username || userinfo.username || "";
@@ -298,6 +347,25 @@ export class LightspeedUser {
     await this.setLightspeedUser(createIfNone, useProviderType);
 
     return this._userDetails;
+  }
+  public async getMarkdownLightspeedUserDetails(
+    createIfNone: boolean,
+    useProviderType: AuthProviderType | undefined = undefined,
+  ) {
+    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return undefined;
+    }
+    if (
+      this._markdownUserDetails &&
+      (!useProviderType || useProviderType === this._userType)
+    ) {
+      return this._markdownUserDetails;
+    }
+
+    await this.setLightspeedUser(createIfNone, useProviderType);
+
+    return this._markdownUserDetails;
   }
 
   public async rhUserHasSeat(): Promise<boolean | undefined> {

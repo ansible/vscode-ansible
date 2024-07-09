@@ -71,7 +71,18 @@ export class LightspeedExplorerWebviewViewProvider
   private async _getWebviewContent(webview: Webview, extensionUri: Uri) {
     const userDetails =
       await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
-    if (userDetails) {
+    let markdownUserDetails =
+      await this.lightspeedAuthenticatedUser.getMarkdownLightspeedUserDetails(
+        false,
+      );
+    markdownUserDetails = String(markdownUserDetails);
+    console.log("==========markdownuserdetails==========");
+    console.log(markdownUserDetails);
+    console.log("=======================================");
+    let content = "";
+    if (markdownUserDetails !== "") {
+      content = markdownUserDetails;
+    } else if (userDetails) {
       const sessionInfo = getLoggedInUserDetails(userDetails);
       const userName = userDetails.displayNameWithUserType;
       const userType = sessionInfo.userInfo?.userType || "";
@@ -79,17 +90,21 @@ export class LightspeedExplorerWebviewViewProvider
         sessionInfo.userInfo?.role !== undefined
           ? sessionInfo.userInfo?.role
           : "";
-      return getWebviewContentWithActiveSession(
-        webview,
-        extensionUri,
-        userName,
-        userType,
-        userRole,
-        this.hasPlaybookOpened(),
-      );
+      content = `
+        <p><strong>Logged in as</strong>: ${userName}</p>
+        <p><strong>User Type</strong>: ${userType}</p>
+        ${userRole ? "Role: " + userRole : ""}
+      `;
     } else {
+      content = "";
       return getWebviewContentWithLoginForm(webview, extensionUri);
     }
+    return getWebviewContentWithActiveSession(
+      webview,
+      extensionUri,
+      content,
+      this.hasPlaybookOpened(),
+    );
   }
 
   private hasPlaybookOpened() {
