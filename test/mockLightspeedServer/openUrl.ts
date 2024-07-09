@@ -23,6 +23,18 @@ export function openUrl(url: string) {
       : [url],
   );
   let errorText = "";
+  child.on("error", function (err) {
+    logger.info(`An error occurred at openUrl: ${err}`);
+    throw err;
+  });
+  child.on("exit", function (code, signal) {
+    const elapsed = Date.now() - start;
+    logger.info(
+      `openUrl exited in ${elapsed} msecs ` +
+        `with code ${code} and signal ${signal}`,
+    );
+    child.kill();
+  });
   child.stderr.setEncoding("utf8");
   child.stderr.on("data", function (data) {
     errorText += data;
@@ -31,7 +43,5 @@ export function openUrl(url: string) {
     if (errorText) {
       throw new Error(errorText);
     }
-    const elapsed = Date.now() - start;
-    logger.info(`openUrl: completed in ${elapsed} msecs`);
   });
 }
