@@ -140,7 +140,7 @@ export class LightspeedUser {
     }
   }
   /* Get the user info from server */
-  public async getMarkdownUserInfo(token: string) {
+  public async getUserInfoFromMarkdown(token: string) {
     this._logger.info(
       "[ansible-lightspeed-user] Sending request for logged-in user info...",
     );
@@ -276,7 +276,7 @@ export class LightspeedUser {
         this._session = session;
         let markdownUserInfo: string = "";
         try {
-          markdownUserInfo = await this.getMarkdownUserInfo(
+          markdownUserInfo = await this.getUserInfoFromMarkdown(
             session.accessToken,
           );
         } catch (error) {
