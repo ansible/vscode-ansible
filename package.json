@@ -363,6 +363,11 @@
         "title": "Explain the playbook with Ansible Lightspeed"
       },
       {
+        "command": "ansible.lightspeed.openTrialPage",
+        "title": "Ansible Lightspeed: Open trial page",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+      },
+      {
         "command": "ansible.lightspeed.enableExperimentalFeatures",
         "title": "Ansible Lightspeed: Enable experimental features"
       },
@@ -873,6 +878,7 @@
     "@types/mocha": "^10.0.7",
     "@types/morgan": "^1",
     "@types/node": "^20.14.8",
+    "@types/selenium-webdriver": "^4",
     "@types/sinon": "^17.0.3",
     "@types/tmp": "^0.2.6",
     "@types/uuid": "^10.0.0",
@@ -906,6 +912,7 @@
     "prettier": "^3.3.2",
     "react": "^18.3.1",
     "rimraf": "^5.0.7",
+    "selenium-webdriver": "^4.22.0",
     "shiki": "^1.9.0",
     "sinon": "^18.0.0",
     "ts-loader": "^9.5.1",

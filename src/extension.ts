@@ -603,6 +603,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_OPEN_TRIAL_PAGE,
+      () => {
+        window.showInformationMessage(
+          "This feature is coming soon. Stay tuned.",
+        );
+      },
+    ),
+  );
+
   // getting started walkthrough command
   context.subscriptions.push(
     vscode.commands.registerCommand(

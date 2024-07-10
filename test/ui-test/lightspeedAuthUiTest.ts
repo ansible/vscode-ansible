@@ -3,6 +3,7 @@ import {
   ActivityBar,
   By,
   ContextMenu,
+  InputBox,
   ModalDialog,
   WebviewView,
   Workbench,
@@ -18,6 +19,8 @@ export function lightspeedUILoginTest(): void {
   describe("Login to Lightspeed", () => {
     let workbench: Workbench;
     let explorerView: WebviewView;
+    let modalDialog: ModalDialog;
+    let dialogMessage: string;
 
     before(async () => {
       // Enable Lightspeed and open Ansible Light view on sidebar
@@ -55,28 +58,40 @@ export function lightspeedUILoginTest(): void {
 
     it("Click Allow to use Lightspeed", async () => {
       // Click Allow to use Lightspeed
-      const dialog = new ModalDialog();
-      const details = await dialog.getDetails();
-      expect(details).equals(
+      const { dialog, message } = await getModalDialogAndMessage(true);
+      expect(message).equals(
         "The extension 'Ansible' wants to sign in using Ansible Lightspeed.",
       );
       await dialog.pushButton("Allow");
     });
 
-    it("Click Open to open the external website and the callback URI", async () => {
-      let { dialog, message } = await getModalDialogAndMessage();
+    it("Verify a modal dialog pops up", async () => {
+      const { dialog, message } = await getModalDialogAndMessage();
+      expect(dialog).not.to.be.undefined;
+      expect(message).not.to.be.undefined;
+      modalDialog = dialog;
+      dialogMessage = message;
+    });
 
+    it("Click Open if a dialog shows up for opening the external website", async () => {
       // If the dialog to open the external website is not suppressed, click Open
-      if (message === "Do you want Code to open the external website?") {
-        await dialog.pushButton("Open");
-        const d = await getModalDialogAndMessage();
-        dialog = d.dialog;
-        message = d.message;
-      }
+      if (dialogMessage === "Do you want Code to open the external website?") {
+        await modalDialog.pushButton("Configure Trusted Domains");
+        const input = await InputBox.create();
+        input.confirm();
 
+        const d = await getModalDialogAndMessage();
+        modalDialog = d.dialog;
+        dialogMessage = d.message;
+      }
+    });
+
+    it("Click Open to open the callback URI", async () => {
       // Click Open to allow Ansible extension to open the callback URI
-      expect(message).equals("Allow 'Ansible' extension to open this URI?");
-      await dialog.pushButton("Open");
+      expect(dialogMessage).equals(
+        "Allow 'Ansible' extension to open this URI?",
+      );
+      await modalDialog.pushButton("Open");
       await sleep(2000);
     });
 
@@ -117,8 +132,9 @@ export function lightspeedUISignOutTest(): void {
     });
 
     it("Click Sign Out button on the modal dialog", async () => {
-      const dialog = new ModalDialog();
+      const { dialog, message } = await getModalDialogAndMessage(true);
       expect(dialog).not.to.be.undefined;
+      expect(message).contains("Sign out from these extensions?");
       await dialog.pushButton("Sign Out");
     });
 

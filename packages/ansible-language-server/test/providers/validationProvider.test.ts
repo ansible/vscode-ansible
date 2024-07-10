@@ -114,18 +114,6 @@ function testAnsibleLintErrors(
         },
         {
           severity: 1,
-          message: "Unsupported parameters",
-          range: {
-            start: { line: 14, character: 0 } as Position,
-            end: {
-              line: 14,
-              character: integer.MAX_VALUE,
-            } as Position,
-          },
-          source: "ansible-lint",
-        },
-        {
-          severity: 1,
           message: "Use FQCN for builtin module actions",
           range: {
             start: { line: 14, character: 0 } as Position,
@@ -138,7 +126,8 @@ function testAnsibleLintErrors(
         },
         {
           severity: 1,
-          message: "Commands should not change things if nothing needs doing",
+          message:
+            "Command module does not accept setting environment variables inline.",
           range: {
             start: { line: 14, character: 0 } as Position,
             end: {
@@ -149,8 +138,8 @@ function testAnsibleLintErrors(
           source: "ansible-lint",
         },
         {
-          severity: 2,
-          message: "Avoid using free-form",
+          severity: 1,
+          message: "Commands should not change things if nothing needs doing.",
           range: {
             start: { line: 14, character: 0 } as Position,
             end: {
@@ -164,9 +153,9 @@ function testAnsibleLintErrors(
           severity: 2,
           message: "should not use a relative path",
           range: {
-            start: { line: 17, character: 0 } as Position,
+            start: { line: 18, character: 0 } as Position,
             end: {
-              line: 17,
+              line: 18,
               character: integer.MAX_VALUE,
             } as Position,
           },
