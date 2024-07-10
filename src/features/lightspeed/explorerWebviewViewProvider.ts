@@ -14,7 +14,6 @@ import {
 } from "./utils/explorerView";
 import { LightspeedUser } from "./lightspeedUser";
 
-import { getLoggedInUserDetails } from "./utils/webUtils";
 import { isPlaybook } from "./playbookExplanation";
 
 export class LightspeedExplorerWebviewViewProvider
@@ -69,36 +68,13 @@ export class LightspeedExplorerWebviewViewProvider
   }
 
   private async _getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const userDetails =
-      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
-    let markdownUserDetails =
-      await this.lightspeedAuthenticatedUser.getMarkdownLightspeedUserDetails(
-        false,
-      );
-    markdownUserDetails = String(markdownUserDetails);
-    console.log("==========markdownuserdetails==========");
-    console.log(markdownUserDetails);
-    console.log("=======================================");
-    let content = "";
-    if (markdownUserDetails !== "") {
-      content = markdownUserDetails;
-    } else if (userDetails) {
-      const sessionInfo = getLoggedInUserDetails(userDetails);
-      const userName = userDetails.displayNameWithUserType;
-      const userType = sessionInfo.userInfo?.userType || "";
-      const userRole =
-        sessionInfo.userInfo?.role !== undefined
-          ? sessionInfo.userInfo?.role
-          : "";
-      content = `
-        <p><strong>Logged in as</strong>: ${userName}</p>
-        <p><strong>User Type</strong>: ${userType}</p>
-        ${userRole ? "Role: " + userRole : ""}
-      `;
-    } else {
-      content = "";
+    const content =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserContent();
+
+    if (content === undefined) {
       return getWebviewContentWithLoginForm(webview, extensionUri);
     }
+
     return getWebviewContentWithActiveSession(
       webview,
       extensionUri,

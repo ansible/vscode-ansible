@@ -17,6 +17,7 @@ import {
   LightSpeedAuthenticationProvider,
   isSupportedCallback,
 } from "./lightSpeedOAuthProvider";
+import { getLoggedInUserDetails } from "./utils/webUtils";
 import { Log } from "../../utils/logger";
 import * as marked from "marked";
 
@@ -365,7 +366,45 @@ export class LightspeedUser {
 
     await this.setLightspeedUser(createIfNone, useProviderType);
 
+    console.log("MARKDOWN");
+    console.log(this._markdownUserDetails);
+
     return this._markdownUserDetails;
+  }
+
+  public async getLightspeedUserContent() {
+    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return undefined;
+    }
+
+    const markdownUserDetails =
+      await this.getMarkdownLightspeedUserDetails(false);
+    const userDetails = await this.getLightspeedUserDetails(false);
+
+    let content = "";
+    if (markdownUserDetails !== "") {
+      content = String(markdownUserDetails);
+    } else {
+      if (userDetails) {
+        const sessionInfo = getLoggedInUserDetails(userDetails);
+        const userName = userDetails.displayNameWithUserType;
+        const userType = sessionInfo.userInfo?.userType || "";
+        const userRole =
+          sessionInfo.userInfo?.role !== undefined
+            ? sessionInfo.userInfo?.role
+            : "";
+        content = `
+          <p><strong>Logged in as</strong>: ${userName}</p>
+          <p><strong>User Type</strong>: ${userType}</p>
+          ${userRole ? "Role: " + userRole : ""}
+        `;
+      } else {
+        content = "undefined";
+      }
+    }
+
+    return content;
   }
 
   public async rhUserHasSeat(): Promise<boolean | undefined> {
