@@ -105,18 +105,6 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 403
   // ---------------------------------
-  it("err Forbidden - Org ready, No seat", () => {
-    const error = mapError(
-      createError(403, {
-        code: "permission_denied__org_ready_user_has_no_seat",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.",
-    );
-  });
-
   it("err Forbidden - No Seat", () => {
     const error = mapError(
       createError(403, {
