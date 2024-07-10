@@ -197,13 +197,6 @@ ERRORS.addError(
 ERRORS.addError(
   403,
   new Error(
-    "permission_denied__org_ready_user_has_no_seat",
-    "You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.",
-  ),
-);
-ERRORS.addError(
-  403,
-  new Error(
     "permission_denied__org_not_ready_because_wca_not_configured",
     "Contact your administrator to configure IBM watsonx Code Assistant model settings for your organization.",
   ),
