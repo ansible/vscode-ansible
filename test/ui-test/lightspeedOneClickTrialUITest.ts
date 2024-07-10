@@ -125,6 +125,7 @@ export function lightspeedOneClickTrialUITest(): void {
       const text = await div.getText();
       expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
       await explorerView.switchBack();
+      await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
     });
 
     it("Invoke Playbook generation without experimental features enabled", async () => {
