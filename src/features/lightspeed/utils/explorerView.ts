@@ -52,9 +52,7 @@ export function getWebviewContentWithLoginForm(
 export function getWebviewContentWithActiveSession(
   webview: Webview,
   extensionUri: Uri,
-  userName: string,
-  userType: string,
-  userRole: string,
+  content: string,
   has_playbook_opened: boolean,
 ) {
   const webviewUri = getUri(webview, extensionUri, [
@@ -98,9 +96,7 @@ export function getWebviewContentWithActiveSession(
     <body>
     <body>
     <div id="lightspeedExplorerView">
-      Logged in as: ${userName}<br />
-      User Type: ${userType}<br />
-      ${userRole ? "Role: " + userRole : ""}
+      ${content}
       ${explainForm}
     </div>
     </body>

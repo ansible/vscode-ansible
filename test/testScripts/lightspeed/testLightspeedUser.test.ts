@@ -66,6 +66,44 @@ function testGetUserInfo() {
   });
 }
 
+function testGetUserInfoFromMarkdown() {
+  describe("Test LightspeedUser.getUserInfoFromMarkdown", function () {
+    it("Returns /me/summary endpoint results with valid access token", async function () {
+      const accessToken =
+        (await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserAccessToken()) as string;
+      const markdownUserInfo: string =
+        await lightSpeedManager.lightspeedAuthenticatedUser.getUserInfoFromMarkdown(
+          accessToken,
+        );
+
+      assert.isNotNull(markdownUserInfo);
+    });
+  });
+}
+
+function testGetMarkdownLightspeedUserDetails() {
+  describe("test LightspeedUser.getMarkdownLightspeedUserDetails", function () {
+    it("Returns formatted content from /me/summary endpoint", async function () {
+      const markdownUserDetails =
+        await lightSpeedManager.lightspeedAuthenticatedUser.getMarkdownLightspeedUserDetails(
+          false,
+        );
+
+      assert.isNotNull(markdownUserDetails);
+    });
+  });
+}
+
+function testGetLightspeedUserContent() {
+  describe("test LightspeedUser.getLightspeedUserContent", function () {
+    it("Returns proper HTML markdown based on whether /me/summary is available", async function () {
+      const content =
+        await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserContent();
+      assert.isNotNull(content);
+    });
+  });
+}
+
 function testGetAuthProviderOrder() {
   describe("Test LightspeedUser.getAuthProviderOrder", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -234,6 +272,9 @@ export function testLightspeedUser(): void {
   testIsSupportedCallback();
   testIsLightspeedUserAuthProviderType();
   testGetUserInfo();
+  testGetUserInfoFromMarkdown();
+  testGetMarkdownLightspeedUserDetails();
+  testGetLightspeedUserContent();
   testGetAuthProviderOrder();
   testRedHatSignInCommand();
 }

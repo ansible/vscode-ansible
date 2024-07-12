@@ -22,7 +22,10 @@ import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspe
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { inlineSuggestionHideHandler } from "./inlineSuggestions";
-import { showTrialInfoPopup } from "./utils/oneClickTrial";
+import {
+  getOneClickTrialProvider,
+  OneClickTrialProvider,
+} from "./utils/oneClickTrial";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
@@ -48,6 +51,7 @@ export class LightSpeedAPI {
   private lightspeedAuthenticatedUser: LightspeedUser;
   private _suggestionFeedbacks: string[];
   private _extensionVersion: string;
+  private _oneClickTrialProvider: OneClickTrialProvider;
 
   constructor(
     settingsManager: SettingsManager,
@@ -58,6 +62,7 @@ export class LightSpeedAPI {
     this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
     this._suggestionFeedbacks = [];
     this._extensionVersion = context.extension.packageJSON.version;
+    this._oneClickTrialProvider = getOneClickTrialProvider();
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
@@ -147,8 +152,10 @@ export class LightSpeedAPI {
     } catch (error) {
       isCompletionSuccess = false;
       const err = error as AxiosError;
-      const mappedError: IError = await mapError(err);
-      if (!(await showTrialInfoPopup(mappedError))) {
+      const mappedError: IError = this._oneClickTrialProvider.mapError(
+        await mapError(err),
+      );
+      if (!(await this._oneClickTrialProvider.showPopup(mappedError))) {
         vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
       }
       return {} as CompletionResponseParams;

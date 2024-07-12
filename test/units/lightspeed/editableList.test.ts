@@ -5,6 +5,7 @@ import { EditableList } from "../../../src/webview/apps/common/editableList";
 
 describe("Test EditableList", () => {
   let dom: JSDOM;
+  let domWithEmptyList: JSDOM;
   const SAMPLE_TEXT = `1. Do this
 2. Do that
 3. Verify them
@@ -19,6 +20,16 @@ describe("Test EditableList", () => {
         "<li>Do this</li>" +
         "<li>Do that</li>" +
         "<li>Verify them</li>" +
+        "</ol>" +
+        "</body>",
+    );
+
+    domWithEmptyList = new JSDOM(
+      "<!DOCTYPE html>\n" +
+        "<body>" +
+        '<ol id="editable-list" contentEditable="true">' +
+        "<li></li>" +
+        "<li></li>" +
         "</ol>" +
         "</body>",
     );
@@ -45,6 +56,16 @@ describe("Test EditableList", () => {
   it("Test listToString", () => {
     const out = EditableList.listToString(SAMPLE_LIST);
     assert.equal(out, SAMPLE_TEXT);
+  });
+
+  it("Test isEmpty", () => {
+    const nonEmptyEditableList = new EditableList("editable-list", dom.window);
+    assert.equal(nonEmptyEditableList.isEmpty(), false);
+    const emptyEditableList = new EditableList(
+      "editable-list",
+      domWithEmptyList.window,
+    );
+    assert.equal(emptyEditableList.isEmpty(), true);
   });
 
   it("Test constructor", async () => {
