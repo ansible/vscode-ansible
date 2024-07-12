@@ -25,7 +25,7 @@ def cli():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     pre_release = False
-    result = subprocess.run('git describe --dirty --tags --long --match "v*.*"', shell=True, capture_output=True, check=True, text=True)
+    result = subprocess.run('git describe --dirty --tags --long --match "v*.*.0"', shell=True, capture_output=True, check=True, text=True)
     git_tag = result.stdout.rstrip()
     logging.debug("git describe returned: %s", git_tag)
     tag, commits_since, suffix = git_tag.split("-", 2)
@@ -41,7 +41,13 @@ def cli():
             logging.error(msg)
             sys.exit(2)
         if version_info[1] % 2 == 0:
-            version_info[1] += 1
+            # if the second segment of version_info is equal to 12 (December), increment the first segment (year) and set the second segment to 1 (January)
+            if version_info[1] == 12:
+                version_info[0] += 1
+                version_info[1] = 1
+            # otherwise, increment the second segment of version_info to point to the next month with an odd number
+            else:
+                version_info[1] += 1
         else:
             msg = f"Last git tag ({tag}) had a MINOR version number ({version_info[1]}) that was odd. Odd numbers are reserved for pre-release versions. Remove the tag and try again."
             logging.error(msg)
