@@ -12,6 +12,7 @@ import morgan from "morgan";
 import fs from "fs";
 import path from "path";
 import yargs from "yargs";
+import { meMarkdown } from "./meMarkdown";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export let options: any = readOptions(process.argv.splice(2));
@@ -98,6 +99,10 @@ export default class Server {
 
     app.get(`${API_ROOT}/me`, (req, res) => {
       return res.send(me());
+    });
+
+    app.get(`${API_ROOT}/me/summary`, (req, res) => {
+      return res.send(meMarkdown());
     });
 
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
