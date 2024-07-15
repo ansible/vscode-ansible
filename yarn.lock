@@ -35,7 +35,7 @@ __metadata:
     "@types/node": "npm:^20.14.8"
     "@types/uuid": "npm:^10.0.0"
     "@types/vscode": "npm:^1.85.0"
-    antsibull-docs: "npm:^1.0.1"
+    antsibull-docs: "npm:^1.0.2"
     axios: "npm:^1.7.2"
     chai: "npm:^4.4.1"
     fuse.js: "npm:^7.0.0"
@@ -2350,10 +2350,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"antsibull-docs@npm:^1.0.1":
-  version: 1.0.1
-  resolution: "antsibull-docs@npm:1.0.1"
-  checksum: 10/f655f51ecaedfaeac2f70ece033f27691840212b179b7ae1ad6612b444e574198ebd1066e546cce921b91238395d9735db66834c717772ce3409aa4079ae986a
+"antsibull-docs@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "antsibull-docs@npm:1.0.2"
+  checksum: 10/c6c64cb87693b0740290252ad9d751928b6b69f29d7ca952e9e9fccf9e2dd5b1add20167686b7cabc134ee01fcae9dce8ba5d8d5e32312d4c80828f27d04eec7
   languageName: node
   linkType: hard
 
