@@ -47,6 +47,7 @@ window.addEventListener("load", () => {
   outline = new EditableList("outline-list");
   outline.element.addEventListener("input", () => {
     setButtonEnabled("reset-button", outline.isChanged());
+    setButtonEnabled("generate-button", !outline.isEmpty());
   });
 
   // Detect whether a dark or a light color theme is used.
