@@ -218,6 +218,13 @@ ERRORS.addError(
 ERRORS.addError(
   403,
   new Error(
+    "permission_denied__can_apply_for_trial",
+    "Access denied but user can apply for a trial period.",
+  ),
+);
+ERRORS.addError(
+  403,
+  new Error(
     "permission_denied__cloudfront",
     "Something in your editor content has caused your inline suggestion request to be blocked. \n" +
       "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
