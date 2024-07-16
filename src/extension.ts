@@ -607,7 +607,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_OPEN_TRIAL_PAGE,
       () => {
-        vscode.env.openExternal(vscode.Uri.parse(lightSpeedManager.settingsManager.settings.lightSpeedService.URL));
+        vscode.env.openExternal(
+          vscode.Uri.parse(
+            lightSpeedManager.settingsManager.settings.lightSpeedService.URL,
+          ),
+        );
       },
     ),
   );
