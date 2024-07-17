@@ -117,6 +117,10 @@ export const ERRORS_CONNECTION_TIMEOUT = new Error(
   "fallback__connection_timeout",
   "Ansible Lightspeed connection timeout. Please try again later.",
 );
+export const ERRORS_CONNECTION_CANCELED_TIMEOUT = new Error(
+  "",
+  "Ansible Lightspeed connection was canceled because of a timeout. Please try again later.",
+);
 
 ERRORS.addError(
   400,
@@ -209,6 +213,13 @@ ERRORS.addError(
   new Error(
     "permission_denied__user_with_no_seat",
     "You don't have access to IBM watsonx Code Assistant. Please contact your administrator.",
+  ),
+);
+ERRORS.addError(
+  403,
+  new Error(
+    "permission_denied__can_apply_for_trial",
+    "Access denied but user can apply for a trial period.",
   ),
 );
 ERRORS.addError(

@@ -86,6 +86,16 @@ export class EditableList {
     return false;
   }
 
+  isEmpty() {
+    const values = this.getFromUI();
+    for (const value of values) {
+      if (value.length > 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   focus() {
     // Move cursor at the end of the last list item before put focus on the list
     const values = this.getFromUI();

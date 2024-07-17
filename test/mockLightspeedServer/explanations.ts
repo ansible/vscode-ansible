@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { logger } from "./server";
-import { options, permissionDeniedUserHasNoSubscription } from "./server";
+import { options, permissionDeniedCanApplyForTrial } from "./server";
 
 export function explanations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,7 +16,7 @@ export function explanations(
   logger.info(`content: ${playbook}`);
 
   if (options.oneClick) {
-    return res.status(403).json(permissionDeniedUserHasNoSubscription());
+    return res.status(403).json(permissionDeniedCanApplyForTrial());
   }
 
   // Special case to replicate the feature being unavailable
