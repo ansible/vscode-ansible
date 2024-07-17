@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+
+"""Utility that helps with extension building and testing."""
+import argparse
+import glob
+import subprocess
+import logging
+import sys
+
+def run(cmd: str):
+    """Helper to easy calling subprocess."""
+    return subprocess.run(cmd, shell=True, check=True)
+
+
+def cli():
+    """Main."""
+    parser = argparse.ArgumentParser(
+        prog='helper',
+        description='Build process helper')
+    parser.add_argument('--version', action='store_true', help="Retrieve marketplace compatible version number to be used during build.")
+    parser.add_argument('--publish', action='store_true', help="Publish already built vsix file to marketplaces.")
+    parser.add_argument('--package', action='store_true', help="Package the extension.")
+
+    opt, _ = parser.parse_known_args()
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
+
+    pre_release = False
+    result = subprocess.run('git describe --dirty --tags --long --match "v*.*.0"', shell=True, capture_output=True, check=True, text=True)
+    git_tag = result.stdout.rstrip()
+    logging.debug("git describe returned: %s", git_tag)
+    tag, commits_since, suffix = git_tag.split("-", 2)
+    version = tag[1:]
+    version_info = [int(x) for x in version.split(".")]
+    if "-dirty" in suffix or commits_since != "0":
+        pre_release = True
+    if pre_release:
+        if len(version_info) == 2:
+            version_info.append(0)
+        if len(version_info) != 3:
+            msg = f"Unsupported version tag ({version}) found, we only support MINOR.MAJOR.PATCH pattern."
+            logging.error(msg)
+            sys.exit(2)
+        if version_info[1] % 2 == 0:
+            # if the second segment of version_info is equal to 12 (December), increment the first segment (year) and set the second segment to 1 (January)
+            if version_info[1] == 12:
+                version_info[0] += 1
+                version_info[1] = 1
+            # otherwise, increment the second segment of version_info to point to the next month with an odd number
+            else:
+                version_info[1] += 1
+        else:
+            msg = f"Last git tag ({tag}) had a MINOR version number ({version_info[1]}) that was odd. Odd numbers are reserved for pre-release versions. Remove the tag and try again."
+            logging.error(msg)
+            sys.exit(2)
+        # determine the PATCH value, which is the time passed between last tag and last commit
+        last_tag_timestamp = int(subprocess.run(f"git -P log -1 --format=%ct {tag}", shell=True, capture_output=True, check=True, text=True).stdout.rstrip())
+        last_commit_timestamp = int(subprocess.run("git -P show --no-patch --format=%ct HEAD", shell=True, capture_output=True, check=True, text=True).stdout.rstrip())
+        version_info[2] = last_commit_timestamp - last_tag_timestamp
+    version = ".".join([str(x) for x in version_info])
+    logging.info("Determined version=%s and pre_release=%s base on git describe result: %s", version, pre_release, git_tag)
+
+    if opt.version:
+        print(version)
+        sys.exit(0)
+    pre_release_arg="--pre-release" if pre_release else ""
+    if opt.publish:
+        vsix_files = glob.glob('*.vsix')
+        if len(vsix_files) != 1:
+            msg = f"Publish command requires presence of exactly one '.vsix' on disk, found: {vsix_files}"
+            logging.error(msg)
+            sys.exit(2)
+        run(f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath {vsix_files[0]} --readme-path docs/README.md")
+        run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
+        sys.exit()
+    if opt.package:
+        run("rm -f ./*.vsix")
+        run("yarn run webpack")
+        # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
+        run(f"yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}")
+        # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+        run("zipinfo -1 ./*.vsix > out/log/package.log")
+        run("tools/dirty.sh")
+        print(f"Generated ansible-{version}")
+
+
+if __name__ == "__main__":
+    cli()

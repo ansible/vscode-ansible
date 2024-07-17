@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { logger } from "./server";
+import { logger, options, permissionDeniedCanApplyForTrial } from "./server";
 
 export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -7,11 +7,33 @@ export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   res: any,
 ) {
+  const text = req.body.text;
+  const createOutline = req.body.createOutline;
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
-  const format = "yaml";
-  logger.info(req.body.content);
+  const wizardId = req.body.wizardId;
+  logger.info(`text: ${text}`);
+  logger.info(`outline: ${req.body.outline}`);
+  logger.info(`wizardId: ${wizardId}`);
+
+  if (options.oneClick) {
+    return res.status(403).json(permissionDeniedCanApplyForTrial());
+  }
+
+  // Special case to replicate the feature being unavailable
+  if (text === "Feature not available") {
+    logger.info("Returning 404. Feature is not available");
+    return res.status(404).send({
+      code: "feature_not_available",
+      message: "The feature is not available",
+    });
+  }
+
   // cSpell: disable
-  const content = `---
+  let outline: string | undefined = `1. Create VNET named VNET_1
+2. Create VNET named VNET_2
+3. Create virtual network peering`;
+
+  const playbook = `---
   # Create an azure network...
   #   Description: "Create an azure network peering between VNET named VNET_1 and VNET named VNET_2"
   #   This playbook will perform the following tass by this order:
@@ -50,9 +72,17 @@ export function generations(
 `;
   // cSpell: enable
 
+  if (!createOutline) {
+    outline = undefined;
+  }
+
+  if (createOutline && outline) {
+    outline += "\n4. Some extra step.";
+  }
+
   return res.send({
-    content,
-    format,
+    playbook,
+    outline,
     generationId,
   });
 }

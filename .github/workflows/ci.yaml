@@ -36,6 +36,9 @@ jobs:
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
+    permissions:
+      id-token: write
+      checks: read
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
@@ -100,7 +103,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v3.0.0
+        uses: Vampire/setup-wsl@v3.1.1
         with:
           distribution: Ubuntu-22.04
           set-as-default: "true"
@@ -258,15 +261,54 @@ jobs:
           SKIP_DOCKER: "${{ matrix.env.SKIP_DOCKER || '0' }}"
         run: task ${{ matrix.task-name-als }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
-      - name: Upload coverage data
+      - name: Upload coverage data (unit test)
         if: ${{ startsWith(matrix.name, 'test') }}
         uses: codecov/codecov-action@v4
         with:
           name: ${{ matrix.name }}
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: out/coverage/lcov.info
+          files: out/coverage/unit/lcov.info
+          disable_search: true
           flags: unit
           fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload coverage data (ui test)
+        if: ${{ startsWith(matrix.name, 'test') }}
+        uses: codecov/codecov-action@v4
+        with:
+          name: ${{ matrix.name }}
+          files: out/coverage/ui-test/lcov.info
+          disable_search: true
+          flags: ui
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload coverage data (e2e test)
+        if: ${{ startsWith(matrix.name, 'test') }}
+        uses: codecov/codecov-action@v4
+        with:
+          name: ${{ matrix.name }}
+          files: out/coverage/e2e/lcov.info
+          disable_search: true
+          flags: e2e
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Convert coverage data (als)
+        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
+        run: |
+          ./tools/convert-als-coverage-lcov.sh
+
+      - name: Upload coverage data (als)
+        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
+        uses: codecov/codecov-action@v4
+        with:
+          name: ${{ matrix.name }}
+          files: out/coverage/als/lcov.info
+          disable_search: true
+          flags: als
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test' }}
@@ -354,6 +396,8 @@ jobs:
     steps:
       - name: Checkout Source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - run: corepack enable
 
@@ -371,9 +415,14 @@ jobs:
           yarn install --immutable
           ls -la *.vsix
 
-      - name: Publish to extension to marketplaces
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Publish extension to marketplaces
         run: |
-          ./tools/publish.sh
+          ./tools/helper --publish
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
           OVSX_PAT: ${{ secrets.OVSX_PAT }}

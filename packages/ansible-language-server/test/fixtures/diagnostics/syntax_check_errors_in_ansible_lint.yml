@@ -1,0 +1,7 @@
+---
+- name: Example of syntax-check error reported by ansible-lint
+  hosts: "{{ hostsvars['sss'] }}"
+  tasks:
+    - name: Print hello world
+      ansible.builtin.ping:
+        data: "Hello, world"

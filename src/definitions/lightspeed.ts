@@ -19,6 +19,18 @@ export enum UserAction {
   IGNORED = 2, // ignored the suggestion or didn't wait for suggestion to be displayed
 }
 
+export enum ThumbsUpDownAction {
+  UP = 0, // Thumbs Up
+  DOWN = 1, //Thumbs Down
+}
+
+export enum PlaybookGenerationActionType {
+  OPEN = 0, // Open wizard
+  CLOSE_CANCEL = 1, // Close wizard without accepting the generated playbook
+  TRANSITION = 2, // Page transition
+  CLOSE_ACCEPT = 3, // Close wizard and open the generated playbook in an editor tab
+}
+
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace LightSpeedCommands {
   export const LIGHTSPEED_AUTH_REQUEST = "ansible.lightspeed.oauth";
@@ -45,6 +57,7 @@ export namespace LightSpeedCommands {
     "ansible.lightspeed.signInWithRedHat";
   export const LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED =
     "ansible.lightspeed.signInWithLightspeed";
+  export const LIGHTSPEED_OPEN_TRIAL_PAGE = "ansible.lightspeed.openTrialPage";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";

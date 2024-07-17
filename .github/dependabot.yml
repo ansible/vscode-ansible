@@ -1,7 +1,9 @@
 version: 2
 updates:
   - package-ecosystem: npm
-    directory: /
+    directories:
+      - "/"
+      - "/packages/ansible-language-server/"
     schedule:
       interval: weekly
     labels:
@@ -19,25 +21,9 @@ updates:
       # requires ESM https://github.com/ansible/vscode-ansible/issues/1225
       - dependency-name: chai
         versions: ["5.x"]
-  - package-ecosystem: npm
-    directory: /packages/ansible-language-server/
-    schedule:
-      interval: weekly
-    labels:
-      - dependabot-deps-updates
-      - skip-changelog
-    versioning-strategy: increase
-    open-pull-requests-limit: 2
-    groups:
-      dependencies:
-        patterns:
-          - "*"
-        exclude-patterns:
-          - "@types/vscode"
-    ignore:
-      # requires ESM https://github.com/ansible/vscode-ansible/issues/1225
-      - dependency-name: chai
-        versions: ["5.x"]
+      # @types/vscode should be manually bumped when we also update
+      # engines.vscode inside package.json
+      - dependency-name: "@types/vscode"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

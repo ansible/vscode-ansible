@@ -24,7 +24,14 @@ import { ValidationManager } from "./services/validationManager";
 import { WorkspaceManager } from "./services/workspaceManager";
 import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
 import axios from "axios";
+import { AxiosError } from "axios";
 import { getBaseUri } from "./utils/webUtils";
+import {
+  ExplanationResponse,
+  GenerationResponse,
+  IError,
+} from "./interfaces/lightspeedApi";
+import { mapError } from "./utils/handleApiError";
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -354,77 +361,93 @@ export class AnsibleLanguageService {
       },
     );
 
-    this.connection.onRequest("playbook/explanation", async (params) => {
-      const accessToken: string = params["accessToken"];
-      const URL: string = params["URL"];
-      const content: string = params["content"];
+    this.connection.onRequest(
+      "playbook/explanation",
+      async (params): Promise<ExplanationResponse> => {
+        const accessToken: string = params["accessToken"];
+        const URL: string = params["URL"];
+        const content: string = params["content"];
+        const explanationId: string = params["explanationId"];
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        };
 
-      const axiosInstance = axios.create({
-        baseURL: `${getBaseUri(URL)}/api/v0`,
-        headers: headers,
-      });
-
-      const explanation: string = await axiosInstance
-        .post("/ai/explanations/", { content: content })
-        .then((response) => {
-          return response.data.content;
+        const axiosInstance = axios.create({
+          baseURL: `${getBaseUri(URL)}/api/v0`,
+          headers: headers,
         });
 
-      return explanation;
-    });
+        const result: ExplanationResponse = await axiosInstance
+          .post(
+            "/ai/explanations/",
+            {
+              content: content,
+              explanationId: explanationId,
+            },
+            { signal: AbortSignal.timeout(28000) },
+          )
+          .then((response) => {
+            return response.data;
+          })
+          .catch((error) => {
+            const err = error as AxiosError;
+            const mappedError: IError = mapError(err);
+            return mappedError;
+          });
 
-    this.connection.onRequest("playbook/summary", async (params) => {
-      const accessToken: string = params["accessToken"];
-      const URL: string = params["URL"];
-      const content: string = params["content"];
+        console.log(result);
 
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
+        return result;
+      },
+    );
 
-      const axiosInstance = axios.create({
-        baseURL: `${getBaseUri(URL)}/api/v0`,
-        headers: headers,
-      });
+    this.connection.onRequest(
+      "playbook/generation",
+      async (params): Promise<GenerationResponse> => {
+        const accessToken: string = params["accessToken"];
+        const URL: string = params["URL"];
+        const text: string = params["text"];
+        const createOutline: boolean = params["createOutline"];
+        const outline: string | undefined = params["outline"];
+        const generationId: string = params["generationId"];
+        const wizardId: string | undefined = params["wizardId"];
 
-      const result: string = await axiosInstance
-        .post("/ai/summaries/", { content: content })
-        .then((response) => {
-          return response.data.content;
+        const headers = {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        };
+
+        const axiosInstance = axios.create({
+          baseURL: `${getBaseUri(URL)}/api/v0`,
+          headers: headers,
         });
 
-      return result;
-    });
+        const result: GenerationResponse = await axiosInstance
+          .post(
+            "/ai/generations/",
+            {
+              text,
+              createOutline,
+              outline,
+              generationId,
+              wizardId,
+            },
+            { signal: AbortSignal.timeout(28000) },
+          )
+          .then((response) => {
+            return response.data;
+          })
+          .catch((error) => {
+            const err = error as AxiosError;
+            const mappedError: IError = mapError(err);
+            return mappedError;
+          });
 
-    this.connection.onRequest("playbook/generation", async (params) => {
-      const accessToken: string = params["accessToken"];
-      const URL: string = params["URL"];
-      const content: string = params["content"];
-
-      const headers = {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      };
-
-      const axiosInstance = axios.create({
-        baseURL: `${getBaseUri(URL)}/api/v0`,
-        headers: headers,
-      });
-
-      const result: string = await axiosInstance
-        .post("/ai/generations/", { content: content })
-        .then((response) => {
-          return response.data.content;
-        });
-
-      return result;
-    });
+        return result;
+      },
+    );
   }
 
   private handleError(error: unknown, contextName: string) {

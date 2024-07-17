@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { options, permissionDeniedCanApplyForTrial } from "./server";
 
 // Default model ID
 const DEFAULT_MODEL_ID = "ABCD-1234-5678";
@@ -75,6 +76,10 @@ export function completions(
   if (index !== -1) {
     const status = parseInt(req.body.prompt.substring(index + 7, index + 10));
     return res.status(status).send();
+  }
+
+  if (options.oneClick) {
+    return res.status(403).json(permissionDeniedCanApplyForTrial());
   }
 
   const model = req.body.model ? req.body.model : DEFAULT_MODEL_ID;

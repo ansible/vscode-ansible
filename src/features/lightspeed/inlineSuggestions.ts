@@ -122,7 +122,7 @@ const onRefusedSuggestion: CallbackEntry = async function () {
 };
 
 const onRequestInProgress: CallbackEntry = async function () {
-  lightSpeedManager.apiInstance.inlineSuggestionFeedbackIgnoredPending = true;
+  lightSpeedManager.apiInstance.cancelSuggestionFeedbackInProgress();
   return [];
 };
 
@@ -149,13 +149,13 @@ type CompletionState = (typeof CompletionState)[keyof typeof CompletionState];
 
 function getCompletionState(
   suggestionDisplayed: SuggestionDisplayed,
-  completionRequestInProgress: boolean,
+  suggestionFeedbackInProgress: boolean,
   languageId: string,
   isCancellationRequested: boolean,
   lightSpeedSetting: LightSpeedServiceSettings,
   positionHasChanged?: boolean,
 ): CompletionState {
-  if (completionRequestInProgress) {
+  if (suggestionFeedbackInProgress) {
     return CompletionState.RequestInProgress;
   }
   if (languageId !== "ansible") {
@@ -217,8 +217,7 @@ export class LightSpeedInlineSuggestionProvider
 
     const state = getCompletionState(
       suggestionDisplayed,
-      lightSpeedManager.apiInstance.completionRequestInProgress &&
-        !lightSpeedManager.apiInstance.inlineSuggestionFeedbackIgnoredPending,
+      lightSpeedManager.apiInstance.isSuggestionFeedbackInProgress(),
       (activeTextEditor && activeTextEditor.document.languageId) ||
         document.languageId,
       token.isCancellationRequested,
@@ -348,7 +347,7 @@ async function requestSuggestion(
       documentInfo,
       inlinePosition,
     );
-    inlineSuggestionData["suggestionId"] = suggestionId;
+    setInProgressSuggestionId(suggestionId);
     inlineSuggestionData["documentUri"] = documentInfo.documentUri;
     inlineSuggestionData["activityId"] = activityId;
 
@@ -372,6 +371,10 @@ async function requestSuggestion(
     lightSpeedManager.statusBarProvider.statusBar.text =
       lightSpeedStatusbarText;
   }
+}
+
+export function setInProgressSuggestionId(suggestionId?: string) {
+  inlineSuggestionData["suggestionId"] = suggestionId;
 }
 
 export function setDocumentChanged(value: boolean) {
@@ -456,6 +459,7 @@ const onDoSingleTasksSuggestion: CallbackEntry = async function (
     {
       suggestionId: result.suggestionId,
       suggestion: contentMatchesForSuggestion,
+      isPlaybook: false,
     },
   ];
   // if the suggestion is not empty then we set the flag to true
@@ -530,6 +534,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
     {
       suggestionId: result.suggestionId,
       suggestion: contentMatchesForSuggestion,
+      isPlaybook: false,
     },
   ];
   // if the suggestion is not empty then we set the flag to true
@@ -817,37 +822,33 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
     `[inline-suggestions] Inline Suggestion Marker Handler triggered using command at ${position.line}`,
   );
 
-  if (
-    lightSpeedManager.settingsManager.settings.lightSpeedService
-      .disableContentSuggestionHeader
-  ) {
-    // Get the current text
-    const line = position.line;
+  // Get the current text
+  const line = position.line;
 
-    const text = editor.document.getText(
+  const text = editor.document.getText(
+    new vscode.Range(
+      new vscode.Position(line, 0),
+      new vscode.Position(line + 1, 0),
+    ),
+  );
+  // Remove the prepended text
+  const commentPosition = text.indexOf(
+    LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
+  );
+  if (commentPosition === -1) {
+    return;
+  }
+
+  // Update the editor with the new text
+  await editor.edit((editBuilder) => {
+    editBuilder.delete(
       new vscode.Range(
         new vscode.Position(line, 0),
         new vscode.Position(line + 1, 0),
       ),
     );
-    // Remove the prepended text
-    const commentPosition = text.indexOf(
-      LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
-    );
-    if (commentPosition === -1) {
-      return;
-    }
+  });
 
-    // Update the editor with the new text
-    await editor.edit((editBuilder) => {
-      editBuilder.delete(
-        new vscode.Range(
-          new vscode.Position(line, 0),
-          new vscode.Position(line + 1, 0),
-        ),
-      );
-    });
-  }
   console.log(
     "[inline-suggestions] Inline Suggestion Marker Handler removing extra whitespace",
   );
@@ -882,7 +883,10 @@ export async function inlineSuggestionCommitHandler() {
   console.log("[inline-suggestions] User accepted the inline suggestion.");
 }
 
-export async function inlineSuggestionHideHandler(userAction?: UserAction) {
+export async function inlineSuggestionHideHandler(
+  userAction?: UserAction,
+  suggestionId?: string,
+) {
   if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
     return;
   }
@@ -890,8 +894,9 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
   // Hide the suggestion, which might be provided by another provider
   vscode.commands.executeCommand("editor.action.inlineSuggest.hide");
 
+  suggestionId = suggestionId || inlineSuggestionData["suggestionId"];
   // If the suggestion does not seem to be ours, exit early.
-  if (!inlineSuggestionData["suggestionId"]) {
+  if (!suggestionId) {
     return;
   }
   const action = userAction || UserAction.REJECTED;
@@ -913,7 +918,6 @@ export async function inlineSuggestionHideHandler(userAction?: UserAction) {
 
   console.log("[inline-suggestions] User ignored the inline suggestion.");
 
-  const suggestionId = inlineSuggestionData["suggestionId"];
   // Send feedback for refused suggestion
   await inlineSuggestionUserActionHandler(suggestionId, action);
 }
@@ -922,22 +926,26 @@ export async function inlineSuggestionUserActionHandler(
   suggestionId: string,
   isSuggestionAccepted: UserAction = UserAction.REJECTED,
 ) {
-  inlineSuggestionData["userActionTime"] =
+  const data: InlineSuggestionEvent = {};
+
+  data["userActionTime"] =
     getCurrentUTCDateTime().getTime() - inlineSuggestionDisplayTime.getTime();
 
   // since user has either accepted or ignored the suggestion
   // inline suggestion is no longer displayed and we can reset the
   // the flag here
   suggestionDisplayed.reset();
-  inlineSuggestionData["action"] = isSuggestionAccepted;
-  inlineSuggestionData["suggestionId"] = suggestionId;
+  data["action"] = isSuggestionAccepted;
+  data["suggestionId"] = suggestionId;
   const inlineSuggestionFeedbackPayload = {
-    inlineSuggestion: inlineSuggestionData,
+    inlineSuggestion: data,
   };
   lightSpeedManager.apiInstance.feedbackRequest(
     inlineSuggestionFeedbackPayload,
   );
-  resetSuggestionData();
+  if (suggestionId === inlineSuggestionData["suggestionId"]) {
+    resetSuggestionData();
+  }
 }
 
 function inlineSuggestionPending(checkActiveTextEditor = true): boolean {
@@ -962,7 +970,11 @@ function resetSuggestionData(): void {
 }
 
 export async function rejectPendingSuggestion() {
-  if (suggestionDisplayed.get() && lightSpeedManager.inlineSuggestionsEnabled) {
+  if (
+    suggestionDisplayed.get() &&
+    lightSpeedManager.inlineSuggestionsEnabled &&
+    !lightSpeedManager.apiInstance.isSuggestionFeedbackInProgress()
+  ) {
     if (inlineSuggestionPending()) {
       console.log(
         "[inline-suggestions] Send a REJECTED feedback for a pending suggestion.",
@@ -1007,7 +1019,6 @@ export async function inlineSuggestionTextDocumentChangeHandler(
     e.contentChanges.length > 0
   ) {
     const suggestionId = inlineSuggestionData["suggestionId"] || "";
-
     e.contentChanges.forEach(async (c) => {
       if (c.text === insertTexts[0]) {
         // If a matching change was found, send a feedback with the ACCEPTED user action.

@@ -38,7 +38,7 @@ export function getWebviewContentWithLoginForm(
       <form id="playbook-explanation-form">
         <div class="button-container">
           <section class="component-section">
-            <vscode-button id="lightspeed-explorer-connect">Connect</vscode-button>
+            <vscode-button id="lightspeed-explorer-connect" class="lightspeedExplorerButton">Connect</vscode-button>
           </section>
         </div>
         <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
@@ -56,7 +56,6 @@ export function getWebviewContentWithActiveSession(
   userType: string,
   userRole: string,
   has_playbook_opened: boolean,
-  lightspeedExperimentalEnabled: boolean,
 ) {
   const webviewUri = getUri(webview, extensionUri, [
     "out",
@@ -75,7 +74,7 @@ export function getWebviewContentWithActiveSession(
   const nonce = getNonce();
   const explainForm = `<div class="button-container">
   <form id="playbook-explanation-form">
-    <vscode-button id="lightspeed-explorer-playbook-explanation-submit" ${
+    <vscode-button id="lightspeed-explorer-playbook-explanation-submit" class="lightspeedExplorerButton" ${
       has_playbook_opened
         ? ""
         : "disabled title='The file in the active editor view is not an Ansible playbook' "
@@ -102,7 +101,7 @@ export function getWebviewContentWithActiveSession(
       Logged in as: ${userName}<br />
       User Type: ${userType}<br />
       ${userRole ? "Role: " + userRole : ""}
-      ${lightspeedExperimentalEnabled ? explainForm : ""}
+      ${explainForm}
     </div>
     </body>
   </html>

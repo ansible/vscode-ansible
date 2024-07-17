@@ -1,6 +1,19 @@
 #lightspeedExplorerView {
-	margin-left: 10px;
+	color: var(--vscode-foreground);
+	margin-left: 0px;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	line-height: 1.4em;
+	overflow: hidden;
 }
+
+.lightspeedExplorerButton {
+	width: 100%;
+	max-width: 300px;
+	padding: 2px;
+	font-size: var(--vscode-font-size)
+}
+
 .button-container {
 	margin-top: 10px;
 }

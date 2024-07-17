@@ -5,6 +5,11 @@ import { LightspeedUserDetails } from "../../../src/interfaces/lightspeed";
 import { lightSpeedManager } from "../../../src/extension";
 import { assert } from "chai";
 import { LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from "../../../src/definitions/lightspeed";
+import {
+  findTasks,
+  isPlaybook,
+} from "../../../src/features/lightspeed/playbookExplanation";
+import * as inlineSuggestions from "../../../src/features/lightspeed/inlineSuggestions";
 
 function getLightSpeedUserDetails(
   rhUserHasSeat: boolean,
@@ -106,9 +111,13 @@ function testGetLightSpeedStatusBarText(): void {
   });
 }
 
-function testFeedbackAPI(): void {
+function testFeedbackCompletionAPI(): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let isAuthenticated: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let inlineSuggestionHideHandlerSpy: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let cancelSuggestionFeedbackSpy: any;
 
   before(async function () {
     isAuthenticated = sinon.stub(
@@ -116,6 +125,18 @@ function testFeedbackAPI(): void {
       "isAuthenticated",
     );
     isAuthenticated.returns(Promise.resolve(true));
+    inlineSuggestionHideHandlerSpy = sinon.spy(
+      inlineSuggestions,
+      "inlineSuggestionHideHandler",
+    );
+    cancelSuggestionFeedbackSpy = sinon.stub(
+      lightSpeedManager.apiInstance,
+      "cancelSuggestionFeedback",
+    );
+  });
+
+  beforeEach(async function () {
+    cancelSuggestionFeedbackSpy.returns(true);
   });
 
   describe("Test Feedback API", function () {
@@ -165,13 +186,180 @@ function testFeedbackAPI(): void {
     });
   });
 
+  describe("Test Completion API", function () {
+    it("Verify a completion request competes successfully.", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+
+      const request = {
+        prompt: "-task:",
+        suggestionId: "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        model: "cO986296-ef64-dr9s-bbf4-a2fd1645jhF5",
+      };
+
+      const response = await apiInstance.completionRequest(request);
+
+      assert.equal(
+        response.suggestionId,
+        "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        "SuggestionId assertion successful",
+      );
+
+      assert.equal(inlineSuggestionHideHandlerSpy.called, false);
+    });
+
+    it("Verify a completion request expecting HTTP 204.", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+
+      const request = {
+        prompt: "-task: status=204",
+        suggestionId: "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        model: "model1",
+      };
+
+      const response = await apiInstance.completionRequest(request);
+
+      assert.equal(
+        response.suggestionId,
+        undefined,
+        "SuggestionId assertion successful",
+      );
+
+      assert.equal(inlineSuggestionHideHandlerSpy.called, false);
+    });
+
+    it("Verify a completion request is ignored, feedback must be sent.", async function () {
+      const apiInstance = lightSpeedManager.apiInstance;
+
+      const request = {
+        prompt: "-task:",
+        suggestionId: "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        model: "model1",
+      };
+
+      cancelSuggestionFeedbackSpy.returns(false);
+      const response = await apiInstance.completionRequest(request);
+
+      assert.equal(
+        response.suggestionId,
+        "df65f5f1-5c27-4dd4-8c58-3336b534321f",
+        "SuggestionId assertion successful",
+      );
+
+      assert.equal(inlineSuggestionHideHandlerSpy.called, true);
+    });
+  });
+
+  afterEach(async function () {
+    inlineSuggestionHideHandlerSpy.resetHistory();
+  });
+
   after(async function () {
     isAuthenticated.restore();
+    cancelSuggestionFeedbackSpy.restore();
+    inlineSuggestionHideHandlerSpy.restore();
+  });
+}
+
+function testFindTasks(): void {
+  describe("Test findTasks for playbook explanation", () => {
+    it("No tasks are found", () => {
+      const PLAYBOOK = `---
+- name: Playbook 1
+  hosts: all
+  roles:
+    - my_role`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, false);
+    });
+
+    it("Tasks are found (tasks)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 2
+  hosts: all
+  tasks:
+    - name: Task 2-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are found (pre_tasks)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 3
+  hosts: all
+  pre_tasks:
+    - name: Task 3-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are found (post_tasks)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 4
+  hosts: all
+  post_tasks:
+    - name: Task 4-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are found (handlers)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 5
+  hosts: all
+  handlers:
+    - name: Handler 5-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Tasks are not found (invalid YAML)", () => {
+      const PLAYBOOK = `---
+- name: Playbook 6
+  hosts: all
+tasks:
+    - name: Task 6-1
+      ping:`;
+      const rc = findTasks(PLAYBOOK);
+      assert.equal(rc, false);
+    });
+  });
+}
+
+function testIsPlaybook(): void {
+  describe("Test isPlaybook for playbook explanation", () => {
+    it("A playbook", () => {
+      const PLAYBOOK = `---
+- name: Playbook 1
+  hosts: all
+  tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        msg: Hello`;
+      const rc = isPlaybook(PLAYBOOK);
+      assert.equal(rc, true);
+    });
+
+    it("Not a playbook", () => {
+      const PLAYBOOK = `---
+- name: Playbook 1
+  tasks:
+    - name: Debug
+      ansible.builtin.debug:
+        msg: Hello`;
+      const rc = isPlaybook(PLAYBOOK);
+      assert.equal(rc, false);
+    });
   });
 }
 
 export function testLightspeedFunctions(): void {
   testGetLoggedInUserDetails();
   testGetLightSpeedStatusBarText();
-  testFeedbackAPI();
+  testFeedbackCompletionAPI();
+  testFindTasks();
+  testIsPlaybook();
 }

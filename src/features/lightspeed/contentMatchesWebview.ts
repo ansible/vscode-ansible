@@ -8,11 +8,12 @@ import {
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
-  IError,
 } from "../../interfaces/lightspeed";
 import { getCurrentUTCDateTime } from "../utils/dateTime";
 import * as yaml from "yaml";
 import { LightspeedUser } from "./lightspeedUser";
+import { parsePlays } from "./utils/parsePlays";
+import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";
@@ -62,11 +63,14 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   async requestInlineSuggestContentMatches(
     suggestion: string,
     suggestionId: string,
+    isPlaybook: boolean,
   ): Promise<ContentMatchesResponseParams | IError> {
-    const taskArray = suggestion
-      .trim()
-      .split(/\n\s*\n/)
-      .map((task) => task.trim());
+    const taskArray = isPlaybook
+      ? [suggestion]
+      : suggestion
+          .trim()
+          .split(/\n\s*\n/)
+          .map((task) => task.trim());
 
     const contentMatchesRequestData: ContentMatchesRequestParams = {
       suggestions: taskArray,
@@ -130,9 +134,11 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     const suggestion = this.suggestionDetails[0].suggestion;
     const suggestionId = this.suggestionDetails[0].suggestionId;
+    const isPlaybook = this.suggestionDetails[0].isPlaybook;
     const contentMatchResponses = await this.requestInlineSuggestContentMatches(
       suggestion,
       suggestionId,
+      isPlaybook,
     );
     this.log(contentMatchResponses);
 
@@ -142,6 +148,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       return this.getContentMatchWebviewContent(
         suggestion,
         contentMatchResponses,
+        isPlaybook,
       );
     }
   }
@@ -182,6 +189,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private async getContentMatchWebviewContent(
     suggestion: string,
     contentMatchResponses: ContentMatchesResponseParams,
+    isPlaybook: boolean,
   ) {
     const noContentMatchesFoundHtml = `
       <html>
@@ -215,6 +223,10 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
     } catch (err) {
       this.log(err);
       return noContentMatchesFoundHtml;
+    }
+    if (isPlaybook) {
+      // Note: When isPlaybook is True, suggestedTasks contains plays in a playbook instead of tasks.
+      suggestedTasks = parsePlays(suggestedTasks);
     }
     if (
       !suggestedTasks ||

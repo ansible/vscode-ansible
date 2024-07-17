@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { IError } from "../../interfaces/lightspeed";
+import { IError } from "./interfaces/lightspeedApi";
 
 class Error implements IError {
   readonly code: string;
@@ -117,34 +117,9 @@ export const ERRORS_CONNECTION_TIMEOUT = new Error(
   "fallback__connection_timeout",
   "Ansible Lightspeed connection timeout. Please try again later.",
 );
-
-ERRORS.addError(
-  204,
-  new Error(
-    "postprocess_error",
-    "An error occurred post-processing the inline suggestion. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "model_timeout",
-    "Ansible Lightspeed timed out processing your request. Please try again later.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "error__wca_bad_request",
-    "IBM watsonx Code Assistant returned a bad request response. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  204,
-  new Error(
-    "error__wca_empty_response",
-    "IBM watsonx Code Assistant returned an empty response. Please contact your administrator.",
-  ),
+export const ERRORS_CONNECTION_CANCELED_TIMEOUT = new Error(
+  "",
+  "Ansible Lightspeed connection was canceled because of a timeout. Please try again later.",
 );
 
 ERRORS.addError(
@@ -162,13 +137,6 @@ ERRORS.addError(
   ),
 );
 ERRORS.addError(400, new Error("error__feedback_validation"));
-ERRORS.addError(
-  400,
-  new Error(
-    "error__wca_suggestion_correlation_failed",
-    "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
-  ),
-);
 
 ERRORS.addError(
   403,
@@ -187,8 +155,15 @@ ERRORS.addError(
 ERRORS.addError(
   403,
   new Error(
+    "error__no_default_model_id",
+    "Ansible Lightspeed does not have a model configured. Contact your Ansible administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
+  ),
+);
+ERRORS.addError(
+  403,
+  new Error(
     "error__wca_model_id_not_found",
-    "Could not find a Model Id for IBM watsonx Code Assistant. Please contact your administrator.",
+    "Your organization does not have an IBM watsonx Code Assistant model configured. Contact your Red Hat organization administrator to configure a model, or specify a model in your Ansible extension settings under Lightspeed: Model Id Override.",
   ),
 );
 ERRORS.addError(
@@ -243,6 +218,13 @@ ERRORS.addError(
 ERRORS.addError(
   403,
   new Error(
+    "permission_denied__can_apply_for_trial",
+    "Access denied but user can apply for a trial period.",
+  ),
+);
+ERRORS.addError(
+  403,
+  new Error(
     "permission_denied__cloudfront",
     "Something in your editor content has caused your inline suggestion request to be blocked. \n" +
       "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
@@ -270,6 +252,14 @@ ERRORS.addError(
 );
 
 ERRORS.addError(
+  404,
+  new Error(
+    "feature_not_available",
+    "The requested action is not available in your environment.",
+  ),
+);
+
+ERRORS.addError(
   500,
   new Error(
     "internal_server",
@@ -281,6 +271,23 @@ ERRORS.addError(
   new Error(
     "error__feedback_internal_server",
     "An error occurred attempting to submit your feedback. Please try again later.",
+  ),
+);
+// error__wca_suggestion_correlation_failed is deprecated but
+// kept for backwards compatibility between new versions of the VSCode
+// extension and older ansible-ai-connect-service instances.
+ERRORS.addError(
+  500,
+  new Error(
+    "error__wca_suggestion_correlation_failed",
+    "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
+  ),
+);
+ERRORS.addError(
+  500,
+  new Error(
+    "error__wca_request_id_correlation_failed",
+    "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
   ),
 );
 

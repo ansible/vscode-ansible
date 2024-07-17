@@ -9,30 +9,49 @@ import {
   FeedbackResponseParams,
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
-  IError,
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
-  LightSpeedCommands,
+  UserAction,
 } from "../../definitions/lightspeed";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { UserAction } from "../../definitions/lightspeed";
-import { mapError } from "./handleApiError";
+import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
+import { inlineSuggestionHideHandler } from "./inlineSuggestions";
+import {
+  getOneClickTrialProvider,
+  OneClickTrialProvider,
+} from "./utils/oneClickTrial";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _handleApiError: any;
+
+export async function mapError(error: AxiosError): Promise<IError> {
+  if (!_handleApiError) {
+    try {
+      _handleApiError =
+        await require("@ansible/ansible-language-server/src/utils/handleApiError");
+    } catch (e) {
+      _handleApiError =
+        await require(/* webpackIgnore: true */ "../../../../server/src/utils/handleApiError");
+    }
+  }
+  return _handleApiError.mapError(error);
+}
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
   private settingsManager: SettingsManager;
   private lightspeedAuthenticatedUser: LightspeedUser;
-  private _completionRequestInProgress: boolean;
-  private _inlineSuggestionFeedbackIgnoredPending: boolean;
+  private _suggestionFeedbacks: string[];
   private _extensionVersion: string;
+  private _oneClickTrialProvider: OneClickTrialProvider;
 
   constructor(
     settingsManager: SettingsManager,
@@ -41,21 +60,9 @@ export class LightSpeedAPI {
   ) {
     this.settingsManager = settingsManager;
     this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
-    this._completionRequestInProgress = false;
-    this._inlineSuggestionFeedbackIgnoredPending = false;
+    this._suggestionFeedbacks = [];
     this._extensionVersion = context.extension.packageJSON.version;
-  }
-
-  get completionRequestInProgress(): boolean {
-    return this._completionRequestInProgress;
-  }
-
-  get inlineSuggestionFeedbackIgnoredPending(): boolean {
-    return this._inlineSuggestionFeedbackIgnoredPending;
-  }
-
-  set inlineSuggestionFeedbackIgnoredPending(newValue: boolean) {
-    this._inlineSuggestionFeedbackIgnoredPending = newValue;
+    this._oneClickTrialProvider = getOneClickTrialProvider();
   }
 
   private async getApiInstance(): Promise<AxiosInstance | undefined> {
@@ -99,14 +106,15 @@ export class LightSpeedAPI {
       console.error("Ansible Lightspeed instance is not initialized.");
       return {} as CompletionResponseParams;
     }
+    const suggestionId = inputData.suggestionId;
     console.log(
       `[ansible-lightspeed] Completion request sent to lightspeed: ${JSON.stringify(
         inputData,
       )}`,
     );
+    let isCompletionSuccess = true;
     try {
-      this._completionRequestInProgress = true;
-      this._inlineSuggestionFeedbackIgnoredPending = false;
+      this._suggestionFeedbacks.push(suggestionId || "");
       const requestData = {
         ...inputData,
         metadata: {
@@ -127,9 +135,11 @@ export class LightSpeedAPI {
         // currently we only support one inline suggestion
         !response.data.predictions[0]
       ) {
-        this._inlineSuggestionFeedbackIgnoredPending = false;
+        isCompletionSuccess = false;
         vscode.window.showInformationMessage(
-          "Ansible Lightspeed does not have a suggestion based on your input.",
+          "Ansible Lightspeed does not have a suggestion for this input. Try changing your prompt, or contact your administrator with Suggestion Id " +
+            requestData.suggestionId +
+            " for assistance.",
         );
         return {} as CompletionResponseParams;
       }
@@ -140,21 +150,37 @@ export class LightSpeedAPI {
       );
       return response.data;
     } catch (error) {
-      this._inlineSuggestionFeedbackIgnoredPending = false;
+      isCompletionSuccess = false;
       const err = error as AxiosError;
-      const mappedError: IError = mapError(err);
-      vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      const mappedError: IError = this._oneClickTrialProvider.mapError(
+        await mapError(err),
+      );
+      if (!(await this._oneClickTrialProvider.showPopup(mappedError))) {
+        vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+      }
       return {} as CompletionResponseParams;
     } finally {
-      if (this._inlineSuggestionFeedbackIgnoredPending) {
-        this._inlineSuggestionFeedbackIgnoredPending = false;
-        vscode.commands.executeCommand(
-          LightSpeedCommands.LIGHTSPEED_SUGGESTION_HIDE,
-          UserAction.IGNORED,
-        );
+      if (isCompletionSuccess && !this.cancelSuggestionFeedback(suggestionId)) {
+        await inlineSuggestionHideHandler(UserAction.IGNORED, suggestionId);
       }
-      this._completionRequestInProgress = false;
     }
+  }
+
+  public isSuggestionFeedbackInProgress(): boolean {
+    return this._suggestionFeedbacks.length > 0;
+  }
+
+  public cancelSuggestionFeedbackInProgress(): void {
+    this._suggestionFeedbacks.shift();
+  }
+
+  public cancelSuggestionFeedback(suggestionId?: string): boolean {
+    const i = this._suggestionFeedbacks.indexOf(suggestionId || "");
+    if (i > -1) {
+      this._suggestionFeedbacks.splice(i, 1);
+      return true;
+    }
+    return false;
   }
 
   public async feedbackRequest(
@@ -216,7 +242,7 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      const mappedError: IError = mapError(err);
+      const mappedError: IError = await mapError(err);
       const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
       if (showInfoMessage) {
         vscode.window.showErrorMessage(errorMessage);
@@ -263,7 +289,9 @@ export class LightSpeedAPI {
       return response.data;
     } catch (error) {
       const err = error as AxiosError;
-      const mappedError: IError = mapError(err);
+      const mappedError: IError = await mapError(err);
+      // Do not show trial popup for errors on content matches because either
+      // completions or generations API should have been called already.
       return mappedError;
     }
   }
