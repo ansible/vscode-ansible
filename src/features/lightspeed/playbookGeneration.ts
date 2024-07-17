@@ -13,7 +13,7 @@ import {
   PlaybookGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
-import { showTrialInfoPopup } from "./utils/oneClickTrial";
+import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
@@ -166,7 +166,9 @@ export async function showPlaybookGenerationPage(
               panel,
             ).then(async (response: GenerationResponse) => {
               if (isError(response)) {
-                if (!(await showTrialInfoPopup(response))) {
+                const oneClickTrialProvider = getOneClickTrialProvider();
+                response = oneClickTrialProvider.mapError(response);
+                if (!(await oneClickTrialProvider.showPopup(response))) {
                   vscode.window.showErrorMessage(
                     response.message ?? UNKNOWN_ERROR,
                   );
