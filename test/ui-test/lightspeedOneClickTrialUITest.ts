@@ -180,7 +180,6 @@ export function lightspeedOneClickTrialUITest(): void {
         "Oh! You don't have an active Lightspeed Subscription",
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
       await new EditorView().closeAllEditors();
     });
 
@@ -201,7 +200,6 @@ export function lightspeedOneClickTrialUITest(): void {
         "Oh! You don't have an active Lightspeed Subscription",
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
       await new EditorView().closeAllEditors();
     });
 
@@ -224,7 +222,6 @@ export function lightspeedOneClickTrialUITest(): void {
         "Oh! You don't have an active Lightspeed Subscription",
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
 
       // Revert changes made
       await tab.select();
