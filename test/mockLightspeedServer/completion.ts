@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { options, permissionDeniedUserHasNoSubscription } from "./server";
+import { options, permissionDeniedCanApplyForTrial } from "./server";
 
 // Default model ID
 const DEFAULT_MODEL_ID = "ABCD-1234-5678";
@@ -79,7 +79,7 @@ export function completions(
   }
 
   if (options.oneClick) {
-    return res.status(403).json(permissionDeniedUserHasNoSubscription());
+    return res.status(403).json(permissionDeniedCanApplyForTrial());
   }
 
   const model = req.body.model ? req.body.model : DEFAULT_MODEL_ID;

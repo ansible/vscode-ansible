@@ -125,6 +125,7 @@ export function lightspeedOneClickTrialUITest(): void {
       const text = await div.getText();
       expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
       await explorerView.switchBack();
+      await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
     });
 
     it("Invoke Playbook generation without experimental features enabled", async () => {
@@ -179,7 +180,6 @@ export function lightspeedOneClickTrialUITest(): void {
         "Oh! You don't have an active Lightspeed Subscription",
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
       await new EditorView().closeAllEditors();
     });
 
@@ -200,7 +200,6 @@ export function lightspeedOneClickTrialUITest(): void {
         "Oh! You don't have an active Lightspeed Subscription",
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
       await new EditorView().closeAllEditors();
     });
 
@@ -223,7 +222,6 @@ export function lightspeedOneClickTrialUITest(): void {
         "Oh! You don't have an active Lightspeed Subscription",
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
 
       // Revert changes made
       await tab.select();

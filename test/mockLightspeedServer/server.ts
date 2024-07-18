@@ -12,6 +12,7 @@ import morgan from "morgan";
 import fs from "fs";
 import path from "path";
 import yargs from "yargs";
+import { meMarkdown } from "./meMarkdown";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export let options: any = readOptions(process.argv.splice(2));
@@ -52,14 +53,13 @@ if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
   url = new URL(process.env.TEST_LIGHTSPEED_URL);
 }
 
-export function permissionDeniedUserHasNoSubscription(): {
+export function permissionDeniedCanApplyForTrial(): {
   code: string;
   message: string;
 } {
   return {
-    code: "permission_denied__user_has_no_subscription",
-    message:
-      "Your organization does not have a subscription. Please contact your administrator.",
+    code: "permission_denied__can_apply_for_trial",
+    message: "Access denied but user can apply for a trial period.",
   };
 }
 
@@ -99,6 +99,10 @@ export default class Server {
 
     app.get(`${API_ROOT}/me`, (req, res) => {
       return res.send(me());
+    });
+
+    app.get(`${API_ROOT}/me/summary`, (req, res) => {
+      return res.send(meMarkdown());
     });
 
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
