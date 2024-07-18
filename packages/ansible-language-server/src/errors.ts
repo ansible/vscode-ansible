@@ -132,6 +132,13 @@ ERRORS.addError(
 ERRORS.addError(
   400,
   new Error(
+    "error__wca_hap_filter_rejection",
+    "Potentially harmful language was detected in your request. Please check your input and try again.",
+  ),
+);
+ERRORS.addError(
+  400,
+  new Error(
     "error__preprocess_invalid_yaml",
     "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator.",
   ),
