@@ -25,15 +25,22 @@ def cli():
     logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     pre_release = False
-    result = subprocess.run('git describe --dirty --tags --long --match "v*.*.0"', shell=True, capture_output=True, check=True, text=True)
+    result = subprocess.run('git describe --dirty --tags --long --match "v*.*"', shell=True, capture_output=True, check=True, text=True)
     git_tag = result.stdout.rstrip()
-    logging.debug("git describe returned: %s", git_tag)
+    logging.debug('git describe (with --match "v*.*") returned: %s', git_tag)
     tag, commits_since, suffix = git_tag.split("-", 2)
     version = tag[1:]
     version_info = [int(x) for x in version.split(".")]
     if "-dirty" in suffix or commits_since != "0":
         pre_release = True
-    if pre_release:
+        # If pre_release = True, we need to calculate the time difference from the first stable release of the month with a "*.0" tag
+        result = subprocess.run('git describe --dirty --tags --long --match "v*.*.0"', shell=True, capture_output=True, check=True, text=True)
+        git_tag = result.stdout.rstrip()
+        logging.debug('git describe (with --match "v*.*.0") returned: %s', git_tag)
+        tag, commits_since, suffix = git_tag.split("-", 2)
+        version = tag[1:]
+        version_info = [int(x) for x in version.split(".")]
+
         if len(version_info) == 2:
             version_info.append(0)
         if len(version_info) != 3:
