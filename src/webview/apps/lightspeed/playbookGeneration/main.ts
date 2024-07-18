@@ -90,6 +90,7 @@ window.addEventListener("message", async (event) => {
       setupPage(3);
       savedPlaybook = message.playbook.playbook;
       generationId = message.playbook.generationId;
+      outline.save();
 
       const element = document.getElementById("formatted-code") as Element;
       element.innerHTML = message.playbook.html;
@@ -195,10 +196,9 @@ async function generateCode() {
   const text = savedText;
   let playbook: string | undefined;
 
-  // If user made any changes to the generated outline, save the edited outline and
-  // generate a new generationId.  Otherwise, just use the generated playbook.
+  // If user made any changes to the generated outline, generate a playbook with a new generationId.
+  // Otherwise, just use the generated playbook.
   if (outline.isChanged()) {
-    outline.save();
     generationId = uuidv4();
   } else {
     playbook = savedPlaybook;
@@ -211,7 +211,7 @@ async function generateCode() {
   vscode.postMessage({
     command: "generateCode",
     text,
-    outline: outline.getSavedValueAsString(),
+    outline: EditableList.listToString(outline.getFromUI()),
     playbook,
     generationId,
     darkMode,
