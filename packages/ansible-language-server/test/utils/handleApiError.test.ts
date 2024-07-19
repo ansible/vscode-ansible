@@ -62,6 +62,16 @@ describe("testing the error handling", () => {
     );
   });
 
+  it("err Bad Request WCA HAP filter", () => {
+    const error = mapError(
+      createError(400, { code: "error__wca_hap_filter_rejection" }),
+    );
+    assert.equal(
+      error.message,
+      "Potentially harmful language was detected in your request. Please check your input and try again.",
+    );
+  });
+
   it("err Bad Request", () => {
     const error = mapError(createError(400));
     assert.equal(error.message, "Bad Request response. Please try again.");
