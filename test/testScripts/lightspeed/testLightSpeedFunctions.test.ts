@@ -204,6 +204,7 @@ function testFeedbackCompletionAPI(): void {
         "SuggestionId assertion successful",
       );
 
+      assert.equal(cancelSuggestionFeedbackSpy.called, true);
       assert.equal(inlineSuggestionHideHandlerSpy.called, false);
     });
 
@@ -224,6 +225,7 @@ function testFeedbackCompletionAPI(): void {
         "SuggestionId assertion successful",
       );
 
+      assert.equal(cancelSuggestionFeedbackSpy.called, true);
       assert.equal(inlineSuggestionHideHandlerSpy.called, false);
     });
 
@@ -245,6 +247,7 @@ function testFeedbackCompletionAPI(): void {
         "SuggestionId assertion successful",
       );
 
+      assert.equal(cancelSuggestionFeedbackSpy.called, true);
       assert.equal(inlineSuggestionHideHandlerSpy.called, true);
     });
   });
