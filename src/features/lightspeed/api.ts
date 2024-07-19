@@ -160,7 +160,8 @@ export class LightSpeedAPI {
       }
       return {} as CompletionResponseParams;
     } finally {
-      if (isCompletionSuccess && !this.cancelSuggestionFeedback(suggestionId)) {
+      const cancelled = this.cancelSuggestionFeedback(suggestionId);
+      if (isCompletionSuccess && !cancelled) {
         await inlineSuggestionHideHandler(UserAction.IGNORED, suggestionId);
       }
     }
