@@ -574,6 +574,10 @@ export class LightSpeedAuthenticationProvider
           "[ansible-lightspeed-oauth] error message: ",
           error.message,
         );
+        console.error(
+          "[ansible-lightspeed-oauth] error response data: ",
+          error.response?.data,
+        );
         throw new Error(error.message);
       } else {
         console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
