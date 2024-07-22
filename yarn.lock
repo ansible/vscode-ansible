@@ -922,19 +922,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redhat-developer/locators@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@redhat-developer/locators@npm:1.1.2"
+"@redhat-developer/locators@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "@redhat-developer/locators@npm:1.1.3"
   peerDependencies:
     "@redhat-developer/page-objects": ">=1.0.0"
     selenium-webdriver: ">=4.6.1"
-  checksum: 10/d597cf640c2714fbb697bf15fc5b406e7248bb092be05e65853753c3f990ec3b6b0aabce9ee420e387d0948559628e5c408b7021ff2551f9d4da8a4d069f0d3b
+  checksum: 10/de66120d3a5ea76a4ee8812b3c3eeb7cfd94235032c7a6d7c1a9c49608df0bd99fa716c18daf58352389b89e98e646bd748656c33e8f46798f9eac43b966d947
   languageName: node
   linkType: hard
 
-"@redhat-developer/page-objects@npm:^1.1.2":
-  version: 1.1.2
-  resolution: "@redhat-developer/page-objects@npm:1.1.2"
+"@redhat-developer/page-objects@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "@redhat-developer/page-objects@npm:1.1.3"
   dependencies:
     clipboardy: "npm:^4.0.0"
     clone-deep: "npm:^4.0.1"
@@ -943,7 +943,7 @@ __metadata:
   peerDependencies:
     selenium-webdriver: ">=4.6.1"
     typescript: ">=4.6.2"
-  checksum: 10/94b28c9fb46727ac533eafee217578b120b63439bab5ebc00eecada817891cc7312b2e813aeb37682bea152e1c91e96fee09cb996dd61cf177e0d2a27ac67563
+  checksum: 10/64211ad1226d4eb39e816416f8eeb068a4fbc5bd8f79a8a356ae83b76dc97f4f94da5726c13b43309b5a2d4212f557671ea6a0fa3fd52ec8775e821cd4315940
   languageName: node
   linkType: hard
 
@@ -1774,7 +1774,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/vsce@npm:^2.25.0, @vscode/vsce@npm:^2.27.0, @vscode/vsce@npm:^2.29.0":
+"@vscode/vsce@npm:^2.25.0, @vscode/vsce@npm:^2.29.0":
   version: 2.29.0
   resolution: "@vscode/vsce@npm:2.29.0"
   dependencies:
@@ -2337,7 +2337,7 @@ __metadata:
     typescript: "npm:^5.5.2"
     typescript-eslint: "npm:^7.13.1"
     uuid: "npm:^10.0.0"
-    vscode-extension-tester: "npm:^8.3.0"
+    vscode-extension-tester: "npm:^8.3.1"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.0.8"
     warnings-to-errors-webpack-plugin: "npm:^2.3.0"
@@ -2774,7 +2774,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"c8@npm:^10.1.1":
+"c8@npm:^10.1.2":
   version: 10.1.2
   resolution: "c8@npm:10.1.2"
   dependencies:
@@ -10231,20 +10231,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^8.3.0":
-  version: 8.3.0
-  resolution: "vscode-extension-tester@npm:8.3.0"
+"vscode-extension-tester@npm:^8.3.1":
+  version: 8.3.1
+  resolution: "vscode-extension-tester@npm:8.3.1"
   dependencies:
-    "@redhat-developer/locators": "npm:^1.1.2"
-    "@redhat-developer/page-objects": "npm:^1.1.2"
+    "@redhat-developer/locators": "npm:^1.1.3"
+    "@redhat-developer/page-objects": "npm:^1.1.3"
     "@types/selenium-webdriver": "npm:^4.1.22"
-    "@vscode/vsce": "npm:^2.27.0"
-    c8: "npm:^10.1.1"
+    "@vscode/vsce": "npm:^2.29.0"
+    c8: "npm:^10.1.2"
     commander: "npm:^12.1.0"
     compare-versions: "npm:^6.1.0"
     find-up: "npm:7.0.0"
     fs-extra: "npm:^11.2.0"
-    glob: "npm:^10.4.1"
+    glob: "npm:^10.4.2"
     got: "npm:^13.0.0"
     hpagent: "npm:^1.2.0"
     js-yaml: "npm:^4.1.0"
@@ -10256,7 +10256,7 @@ __metadata:
     typescript: ">=4.6.2"
   bin:
     extest: out/cli.js
-  checksum: 10/f9fb7e2092bc9f3d2ac8a30e6c8e25d23ecca8284e4de696aab67648d20e653943440f1c9b20d655df52db28613f1c83cb2b919f6b9521fa83d8e305cf77b38a
+  checksum: 10/217a9992bfd7de1088e9f2885ca4332c5356da4eb4bcaeb5303bb85396ed1eb826009f3d1c31bc4b2eadd7683550f0acd3c96b90d8f934a24c1b9642738deaae
   languageName: node
   linkType: hard
 

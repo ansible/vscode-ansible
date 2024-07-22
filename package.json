@@ -919,7 +919,7 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2",
     "typescript-eslint": "^7.13.1",
-    "vscode-extension-tester": "^8.3.0",
+    "vscode-extension-tester": "^8.3.1",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.92.1",
     "webpack-cli": "^5.1.4",
