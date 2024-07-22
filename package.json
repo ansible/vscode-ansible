@@ -921,7 +921,7 @@
     "typescript-eslint": "^7.13.1",
     "vscode-extension-tester": "^8.3.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
-    "webpack": "^5.92.1",
+    "webpack": "^5.93.0",
     "webpack-cli": "^5.1.4",
     "winston": "^3.13.0",
     "yargs": "^17.7.2",
