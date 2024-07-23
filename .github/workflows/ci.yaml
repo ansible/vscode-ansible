@@ -215,7 +215,7 @@ jobs:
 
       - name: task setup
         # starting podman machine can randomly get stuck on macos
-        timeout-minutes: 20
+        timeout-minutes: 25
         run: task setup
 
       ## uncomment to debug on GHA runner
