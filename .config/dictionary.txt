@@ -158,6 +158,7 @@ neovim
 netcommon
 nocolor
 noheading
+norecursedirs
 notest
 notfound
 npmjs

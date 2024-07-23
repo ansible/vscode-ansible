@@ -131,13 +131,14 @@ tasks:
       - test
       - tools
   test:
-    desc: Run all tests
+    # cspell: disable-next-line
+    desc: "Run all tests: \e[22;32munit, ui, e2e, als\e[0m"
     cmds:
       - task: setup
       - task: unit
-      - task: test-ui
-      #- task: test-ui-old
-      - task: test-e2e
+      - task: ui
+      - task: e2e
+      - task: als:test
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
@@ -145,6 +146,7 @@ tasks:
     interactive: true
   test-e2e:
     desc: Run e2e tests {{.XVFB}}
+    aliases: [e2e]
     cmds:
       - task: package
       - $VIRTUAL_ENV/bin/python3 --version
@@ -152,20 +154,15 @@ tasks:
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
+    aliases: [ui]
     cmds:
       - yarn webpack-dev
       - $VIRTUAL_ENV/bin/python3 --version
       - ' {{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
     interactive: true
-  # test-ui-old:
-  #   desc: Run UI tests (oldest vscode)
-  #   cmds:
-  #     - task: package
-  #     - $VIRTUAL_ENV/bin/python3 --version
-  #     - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && yarn run test-ui-oldest'
-  #   interactive: true
-  unit:
+  test-unit:
     desc: Run unit tests with coverage report
+    aliases: [unit]
     cmds:
       - npm run unit-tests
     interactive: true

@@ -1,6 +1,6 @@
 {
     "reporter": ["text", "html", "lcov"],
-    "report-dir": "./out/coverage/ui-test",
+    "report-dir": "./out/coverage/ui",
     "exclude": [
         "coverage/**",
         "packages/*/test{,s}/**",
