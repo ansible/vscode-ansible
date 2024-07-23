@@ -11,7 +11,7 @@ const homeDir = homedir();
 const getBinDetailTests = [
   {
     name: "valid binary (python)",
-    command: "python",
+    command: "python3",
     arg: "--version",
     expected: "Python 3.",
   },
