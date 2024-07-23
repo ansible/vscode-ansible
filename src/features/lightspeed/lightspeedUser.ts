@@ -159,7 +159,7 @@ export class LightspeedUser {
         },
       );
 
-      const markdownData = marked.parse(data.content) as string;
+      const markdownData = marked.parseInline(data.content) as string;
 
       return markdownData;
     } catch (error) {
