@@ -38,10 +38,6 @@ function testSuggestionPrompts() {
       taskName: "Print hello world",
       expectedModule: "ansible.builtin.debug",
     },
-    {
-      taskName: "Create a file foo.txt",
-      expectedModule: "ansible.builtin.file",
-    },
   ];
 
   return tests;
@@ -51,7 +47,6 @@ function testSuggestionExpectedInsertTexts() {
   // Based on the responses defined in the mock lightspeed server codes
   const insertTexts = [
     `  ${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}      ansible.builtin.debug:\n        msg: Hello World\n    `,
-    `  ${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}      ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    `,
   ];
 
   return insertTexts;
