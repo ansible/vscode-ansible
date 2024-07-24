@@ -275,54 +275,8 @@ export class LightspeedUser {
     }
 
     if (session) {
-      try {
-        const userinfo: LoggedInUserInfo = await this.getUserInfo(
-          session.accessToken,
-        );
-        this._session = session;
-
-        let markdownUserInfo: string = "";
-        try {
-          markdownUserInfo = await this.getUserInfoFromMarkdown(
-            session.accessToken,
-          );
-        } catch (error) {
-          markdownUserInfo = "";
-        }
-        this._markdownUserDetails = markdownUserInfo;
-
-        const displayName =
-          userinfo.external_username || userinfo.username || "";
-        const userTypeLabel = getUserTypeLabel(
-          userinfo.rh_org_has_subscription,
-          userinfo.rh_user_has_seat,
-        ).toLowerCase();
-
-        this._userDetails = {
-          rhUserHasSeat: userinfo.rh_user_has_seat,
-          rhOrgHasSubscription: userinfo.rh_org_has_subscription,
-          rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
-          displayName,
-          displayNameWithUserType: `${displayName} (${userTypeLabel})`,
-          orgOptOutTelemetry: userinfo.org_telemetry_opt_out,
-        };
+      if (await this._updateUserInformation(createIfNone, session)) {
         return;
-      } catch (error) {
-        this._logger.info(
-          `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
-        );
-        if (error instanceof LightspeedAccessDenied) {
-          // Auth provider has a dead session stored. We need to force it out.
-          if (createIfNone && this._userType) {
-            vscode.authentication.getSession(
-              this._userType,
-              this.getScopesForAuthProviderType(this._userType),
-              { forceNewSession: true },
-            );
-          } else if (this._userType === AuthProviderType.lightspeed) {
-            this._lightspeedAuthenticationProvider.removeSession(session.id);
-          }
-        }
       }
     }
 
@@ -330,6 +284,67 @@ export class LightspeedUser {
     this._userDetails = undefined;
     this._markdownUserDetails = undefined;
     this._userType = undefined;
+  }
+
+  public async updateUserInformation(): Promise<void> {
+    if (this._session) {
+      await this._updateUserInformation(false, this._session);
+    }
+  }
+
+  private async _updateUserInformation(
+    createIfNone: boolean,
+    session: vscode.AuthenticationSession,
+  ): Promise<boolean> {
+    try {
+      const userinfo: LoggedInUserInfo = await this.getUserInfo(
+        session.accessToken,
+      );
+      this._session = session;
+
+      let markdownUserInfo: string = "";
+      try {
+        markdownUserInfo = await this.getUserInfoFromMarkdown(
+          session.accessToken,
+        );
+      } catch (error) {
+        markdownUserInfo = "";
+      }
+      this._markdownUserDetails = markdownUserInfo;
+
+      const displayName = userinfo.external_username || userinfo.username || "";
+      const userTypeLabel = getUserTypeLabel(
+        userinfo.rh_org_has_subscription,
+        userinfo.rh_user_has_seat,
+      ).toLowerCase();
+
+      this._userDetails = {
+        rhUserHasSeat: userinfo.rh_user_has_seat,
+        rhOrgHasSubscription: userinfo.rh_org_has_subscription,
+        rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
+        displayName,
+        displayNameWithUserType: `${displayName} (${userTypeLabel})`,
+        orgOptOutTelemetry: userinfo.org_telemetry_opt_out,
+      };
+      return true;
+    } catch (error) {
+      this._logger.info(
+        `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
+      );
+      if (error instanceof LightspeedAccessDenied) {
+        // Auth provider has a dead session stored. We need to force it out.
+        if (createIfNone && this._userType) {
+          vscode.authentication.getSession(
+            this._userType,
+            this.getScopesForAuthProviderType(this._userType),
+            { forceNewSession: true },
+          );
+        } else if (this._userType === AuthProviderType.lightspeed) {
+          this._lightspeedAuthenticationProvider.removeSession(session.id);
+        }
+      }
+    }
+    return false;
   }
 
   public async refreshLightspeedUser() {
