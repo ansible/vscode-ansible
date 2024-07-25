@@ -74,7 +74,7 @@ export function lightspeedUIAssetsTest(): void {
     });
   });
 
-  describe("Verify the presence of lightspeed element in the status bar", () => {
+  describe("Verify the presence of lightspeed element in the status bar and the explorer view", () => {
     let statusBar: StatusBar;
     let settingsEditor: SettingsEditor;
     let editorView: EditorView;
@@ -102,6 +102,22 @@ export function lightspeedUIAssetsTest(): void {
         ),
       );
       expect(items.length).equals(0);
+    });
+
+    it("Connect button exists in Lightspeed explorer view when settings not enabled", async function () {
+      await new Workbench().executeCommand(
+        "Ansible: Focus on Ansible Lightspeed View",
+      );
+      await sleep(3000);
+      const explorerView = new WebviewView();
+      expect(explorerView, "contentCreatorWebView should not be undefined").not
+        .to.be.undefined;
+      await explorerView.switchToFrame(5000);
+      const connectButton = await explorerView.findWebElement(
+        By.id("lightspeed-explorer-connect"),
+      );
+      expect(connectButton).not.to.be.undefined;
+      await explorerView.switchBack();
     });
 
     it("Ansible Lightspeed status bar item present when only lightspeed is enabled (with warning color)", async () => {
