@@ -23,6 +23,8 @@ import { Key } from "selenium-webdriver";
 import { expect } from "chai";
 import axios from "axios";
 
+const trialNotificationMessage = "Model settings are not configured for your organization, but your account is eligible to start a 90-day trial.";
+
 export function lightspeedOneClickTrialUITest(): void {
   describe("Test One Click Trial feature", () => {
     let workbench: Workbench;
@@ -177,7 +179,7 @@ export function lightspeedOneClickTrialUITest(): void {
       await playbookGeneration.switchBack();
       await sleep(2000);
       await expectNotification(
-        "Oh! You don't have an active Lightspeed Subscription",
+        trialNotificationMessage,
         true, // click button
       );
       await new EditorView().closeAllEditors();
@@ -197,7 +199,7 @@ export function lightspeedOneClickTrialUITest(): void {
       );
       await sleep(2000);
       await expectNotification(
-        "Oh! You don't have an active Lightspeed Subscription",
+        trialNotificationMessage,
         true, // click button
       );
       await new EditorView().closeAllEditors();
@@ -219,7 +221,7 @@ export function lightspeedOneClickTrialUITest(): void {
 
       await sleep(4000);
       await expectNotification(
-        "Oh! You don't have an active Lightspeed Subscription",
+        trialNotificationMessage,
         true, // click button
       );
 
