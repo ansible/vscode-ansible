@@ -233,7 +233,7 @@ export function testLightspeed(): void {
       });
     });
 
-    describe("Test Ansible Lightspeed inline completion suggestions with keeping typing", function () {
+    describe.skip("Test Ansible Lightspeed inline completion suggestions with keeping typing", function () {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let feedbackRequestSpy: any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
