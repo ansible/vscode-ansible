@@ -128,6 +128,32 @@ export function lightspeedOneClickTrialUITest(): void {
       await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
     });
 
+    it("Verify the Refresh icon is found on the title of Explorer view", async () => {
+      const refreshIcon = await explorerView.findWebElement(
+        By.xpath("//a[contains(@class, 'codicon-refresh')]"),
+      );
+      expect(refreshIcon, "refreshIcon should not be undefined").not.to.be
+        .undefined;
+
+      // Set "UI Test", One Click" and "Me Uppercase" options for mock server
+      await axios.post(
+        `${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`,
+        ["--ui-test", "--one-click", "--me-uppercase"],
+        { headers: { "Content-Type": "application/json" } },
+      );
+
+      await refreshIcon.click(); // make sure if it could be clicked
+
+      await sleep(2000);
+      await explorerView.switchToFrame(5000);
+      const div = await explorerView.findWebElement(
+        By.id("lightspeedExplorerView"),
+      );
+      const text = await div.getText();
+      expect(text).contains("LOGGED IN AS: ONE_CLICK_USER (UNLICENSED)");
+      await explorerView.switchBack();
+    });
+
     it("Invoke Playbook generation without experimental features enabled", async () => {
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
       await sleep(2000);
