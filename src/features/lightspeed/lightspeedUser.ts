@@ -404,8 +404,8 @@ export class LightspeedUser {
       await this.getMarkdownLightspeedUserDetails(false);
     const userDetails = await this.getLightspeedUserDetails(false);
 
-    let content = "undefined";
-    if (markdownUserDetails !== "") {
+    let content;
+    if (markdownUserDetails) {
       content = String(markdownUserDetails);
     } else {
       if (userDetails) {
