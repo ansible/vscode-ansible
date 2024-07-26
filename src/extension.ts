@@ -617,6 +617,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_REFRESH_EXPLORER_VIEW,
+      async () => {
+        await lightSpeedManager.lightspeedAuthenticatedUser.updateUserInformation();
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+      },
+    ),
+  );
+
   // getting started walkthrough command
   context.subscriptions.push(
     vscode.commands.registerCommand(
