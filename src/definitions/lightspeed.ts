@@ -58,6 +58,8 @@ export namespace LightSpeedCommands {
   export const LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED =
     "ansible.lightspeed.signInWithLightspeed";
   export const LIGHTSPEED_OPEN_TRIAL_PAGE = "ansible.lightspeed.openTrialPage";
+  export const LIGHTSPEED_REFRESH_EXPLORER_VIEW =
+    "ansible.lightspeed.explorer.refresh";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";
