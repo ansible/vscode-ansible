@@ -7,6 +7,7 @@ export interface ExtensionSettings {
   interpreterPath: string | undefined;
   executionEnvironment: ExecutionEnvironmentSettings;
   lightSpeedService: LightSpeedServiceSettings;
+  playbook: PlaybookSettings;
 }
 
 export interface IVolumeMounts {
@@ -22,6 +23,10 @@ export interface ExecutionEnvironmentSettings {
   image: string;
   pull: { arguments: string; policy: IPullPolicy };
   volumeMounts: Array<IVolumeMounts>;
+}
+
+export interface PlaybookSettings {
+  arguments: string;
 }
 
 export interface UserResponse {

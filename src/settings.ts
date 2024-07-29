@@ -16,6 +16,8 @@ export class SettingsManager {
     );
     const lightSpeedSettings =
       vscode.workspace.getConfiguration("ansible.lightspeed");
+    const playbookSettings =
+      vscode.workspace.getConfiguration("ansible.playbook");
     this.settings = {
       activationScript: (await ansibleSettings.get(
         "python.activationScript",
@@ -42,6 +44,9 @@ export class SettingsManager {
           waitWindow: lightSpeedSettings.get("suggestions.waitWindow", 0),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
+      },
+      playbook: {
+        arguments: playbookSettings.get("arguments", ""),
       },
     };
 

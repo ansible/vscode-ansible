@@ -14,7 +14,7 @@ import {
 } from "vscode-extension-tester";
 import {
   expectNotification,
-  getFilePath,
+  getFixturePath,
   getModalDialogAndMessage,
   sleep,
   updateSettings,
@@ -210,8 +210,9 @@ export function lightspeedOneClickTrialUITest(): void {
     });
 
     it("Invoke Playbook explanation with experimental features enabled", async () => {
+      const folder = "lightspeed";
       const file = "playbook_4.yml";
-      const filePath = getFilePath(file);
+      const filePath = getFixturePath(folder, file);
 
       // Open file in the editor
       await VSBrowser.instance.openResources(filePath);
@@ -230,8 +231,9 @@ export function lightspeedOneClickTrialUITest(): void {
     });
 
     it("Invoke Completion with experimental features enabled", async () => {
+      const folder = "lightspeed";
       const file = "playbook_3.yml";
-      const filePath = getFilePath(file);
+      const filePath = getFixturePath(folder, file);
       await VSBrowser.instance.openResources(filePath);
       await sleep(1000);
 
