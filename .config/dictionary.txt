@@ -211,6 +211,7 @@ suboptions
 subshells
 sysninja
 taskfile
+tasklist
 testenv
 testhost
 testorg
