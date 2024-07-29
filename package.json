@@ -448,6 +448,18 @@
         }
       },
       {
+        "title": "Ansible Playbook",
+        "properties": {
+          "ansible.playbook.arguments": {
+            "default": "",
+            "markdownDescription": "%configuration.playbook.arguments%",
+            "order": 0,
+            "scope": "resource",
+            "type": "string"
+          }
+        }
+      },
+      {
         "title": "Completion",
         "properties": {
           "ansible.completion.provideRedirectModules": {

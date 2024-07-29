@@ -17,7 +17,7 @@ import {
 } from "vscode-extension-tester";
 import {
   expectNotification,
-  getFilePath,
+  getFixturePath,
   sleep,
   updateSettings,
 } from "./uiTestHelper";
@@ -79,8 +79,9 @@ export function lightspeedUIAssetsTest(): void {
     let settingsEditor: SettingsEditor;
     let editorView: EditorView;
     let workbench: Workbench;
+    const folder = "lightspeed";
     const file = "playbook_1.yml";
-    const filePath = getFilePath(file);
+    const filePath = getFixturePath(folder, file);
 
     before(async function () {
       statusBar = new StatusBar();
@@ -630,8 +631,9 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Playbook explanation webview works as expected", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
         const file = "playbook_4.yml";
-        const filePath = getFilePath(file);
+        const filePath = getFixturePath(folder, file);
 
         // Open file in the editor
         await VSBrowser.instance.openResources(filePath);
@@ -671,8 +673,9 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Playbook explanation webview works as expected (feature unavailable)", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
         const file = "playbook_explanation_feature_unavailable.yml";
-        const filePath = getFilePath(file);
+        const filePath = getFixturePath(folder, file);
 
         // Open file in the editor
         await VSBrowser.instance.openResources(filePath);
@@ -698,8 +701,9 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Playbook explanation webview with a playbook with no tasks", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
         const file = "playbook_5.yml";
-        const filePath = getFilePath(file);
+        const filePath = getFixturePath(folder, file);
 
         // Open file in the editor
         await VSBrowser.instance.openResources(filePath);
