@@ -54,7 +54,7 @@ context.subscriptions.push(
 
 To organize the code, create two separate files:
 
-1. Extension file (`<webview-name>Page.ts`): This file hosts the weview. In this file you should:
+1. Extension file (`<webview-name>Page.ts`): This file hosts the webview. In this file you should:
     1. Define a class with methods to render, dispose, and manage the Webview lifecycle.
 
     2. Create a method to return the HTML content for the Webview.
@@ -70,13 +70,13 @@ To organize the code, create two separate files:
 
 > **💡 Tip:** You can set up communication between the extension and the webview. This is covered in the further section.
 
-### Step 4: Configrwe webpack
+### Step 4: Configure webpack
 
 Set up the Webpack configuration to bundle your extension and Webview assets in the `webpack.config.ts` file.
 
 ### Step 5: Build and debug
 
-Build the extension using the command `yarn run webpack-dev` and run the extension in debug modeusing the configuration `Lanuch extension`. Make changes in the code and reload the extension host window to see the live implementation.
+Build the extension using the command `yarn run webpack-dev` and run the extension in debug mode using the configuration `Launch extension`. Make changes in the code and reload the extension host window to see the live implementation.
 
 ## Debugging the Webviews
 

@@ -2,7 +2,7 @@
 
 The project is divided into two main parts:
 
-1. The vscode-ansible extention (client)
+1. The vscode-ansible extension (client)
 2. The ansible-language-server (server)
 
 Each part has its own package.json files, tests, and tsconfigs. This modularity helps in code navigation and development.
