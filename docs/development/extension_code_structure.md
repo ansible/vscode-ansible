@@ -1,4 +1,4 @@
-# Extension code
+# Extension code structure
 
 The diagram below shows how the extension code is organized within the project:
 

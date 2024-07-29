@@ -1,9 +1,4 @@
-# Test code
-
-1. general idea - test fixtures, test files
-2. test code for extension: ui, unit, e2e
-3. test code for language server
-4. scripts to run the tests
+# Testing style and code structure
 
 Tests for the extension and the language server are stored separately in their respective directories inside the `test` sub-folders.
 

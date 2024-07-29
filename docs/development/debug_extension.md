@@ -1,4 +1,4 @@
-# Development
+# Developing and debugging the extension
 
 To ease local development and testing, we use
 [taskfile.dev](https://taskfile.dev/) but you can also call yarn directly for most commands if you want.
@@ -18,7 +18,6 @@ Fork and clone the vscode-ansible repository into your local environment. Make s
 Run `yarn install` in the root of the project (for the extension) and then run it again after navigating inside the packages/ansible-language-server directory.
 
 Then, run `yarn run compile` at both the levels.
-
 
 ### Step 3: Run Webpack dev
 

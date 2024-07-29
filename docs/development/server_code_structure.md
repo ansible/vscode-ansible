@@ -1,4 +1,4 @@
-# Server code
+# Server code structure
 
 The diagram below shows how the server code is organized within the project:
 

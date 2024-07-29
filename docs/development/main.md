@@ -14,6 +14,6 @@ This documentation contains detailed information for getting started to understa
 
 5. [Chapter 5: Developing and debugging the extension](./debug_extension.md)
 
-6. [Chapter 6: Developing webviews in the extension](./webview_guide.md)
+6. [Chapter 6: Developing a webview in the extension](./webview_guide.md)
 
-7. [Chapter 7: Additional resources](./additional_resources.md)
+7. [Chapter 7: Additional resources for VS Code Extension development](./additional_resources.md)

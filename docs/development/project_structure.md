@@ -1,4 +1,4 @@
-# Project Structure of the project
+# The project structure
 
 The project is divided into two main parts:
 
