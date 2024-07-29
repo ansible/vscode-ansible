@@ -15,7 +15,7 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 
 export default tseslint.config(
   {
-    ignores: ["**/out/", ".yarn/*", "media/*", "site/*"],
+    ignores: ["**/out/", ".vscode-test/*", ".yarn/*", "media/*", "site/*", "commitlint.config.js"],
   },
   {
     extends: [
@@ -42,7 +42,8 @@ export default tseslint.config(
       },
     },
     plugins: {
-      "@typescript-eslint": ts,
+      // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
+      // "@typescript-eslint": ts,
       tsdoc: tsdocPlugin,
     },
     rules: {

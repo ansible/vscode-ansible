@@ -22,7 +22,7 @@ exclude: >
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.9.0
+    rev: v8.12.0
     hooks:
       - id: cspell
         # name: Spell check with cspell
@@ -56,6 +56,7 @@ repos:
         verbose: true # do not remove, as this allows warnings to be displayed on GHA
         args:
           # default format is not vscode friendly
+          - --no-warn-ignored
           - --color
           - --format=gha
           - --format=unix
@@ -146,7 +147,7 @@ repos:
           )$
   - repo: https://github.com/pycontribs/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.3.2"
+    rev: "v3.3.3"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
