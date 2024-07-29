@@ -70,9 +70,10 @@ To organize the code, create two separate files:
 
     *  Add event listeners and manipulate HTML elements, excluding vscode and workspace elements.
 
-!!! tip
+<!-- !!! tip -->
 
-    You can set up communication between the extension and the webview. This is covered in the further section.
+> [!TIP]
+> You can set up communication between the extension and the webview. This is covered in the further section.
 
 ### Step 4: Configure webpack
 
@@ -177,7 +178,7 @@ context.subscriptions
 
     *  webpack config file: [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
 
-2.  **External resources:** The best explanation of the implementing a webview is described by Microsoft. You can look at these:
+2.  **External resources:** The best explanation of implementing a webview is described by Microsoft. You can look at these:
 
     *  [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
 
