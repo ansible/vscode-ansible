@@ -31,12 +31,24 @@ Each type of test has its own script and can be run by `yarn run <script-name>`:
 
 1. **unit-tests:** Runs the unit tests for the extension.
 2. **test-e2e:** Runs the end-to-end tests for the extension.
-3. **test-ui-current:** Runs the UI tests on the latest version of VS Code.
-4. **test-ui-oldest:** Runs the UI tests on the oldest supported version of VS Code.
+3. **test-ui-current:** Runs the UI tests on the latest version of VS Code against the code packaged as a `.vsix` file.
+4. **test-ui-oldest:** Runs the UI tests on the oldest supported version of VS Code against the code packaged as a `.vsix` file.
+5. **coverage-ui-current:** Runs the UI tests on the latest version of VS Code by loading the `.js` files.
+6. **coverage-ui-oldest:** Runs the UI tests on the oldest supported version of VS Code by loading the `.js` files.
 
 !!! note
 
-    For the following tests (UI tests for the extension), you need to package and build a `.vsix file` of the extension by running `yarn run package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
+    For `test-ui*` scripts, you need to package and build a `.vsix file` of the extension by running `yarn run package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
+
+!!! tip
+
+    In case of debugging, use `coverage-ui*` script for running UI tests. Make sure to compile the sources with:
+    
+    `yarn webpack-dev`
+
+    Additionally, to run a single UI test case, you can use `MOCHA_GREP` environment variable in the following manner:
+
+    `MOCHA_GREP="your test case name in describe statement" yarn coverage-ui-current`
 
 ### Language server test scripts
 
