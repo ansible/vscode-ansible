@@ -163,6 +163,7 @@ repos:
         exclude: >
           (?x)^
             docs/als/settings.md
+            docs/development/*.md
           $
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.16.0

@@ -1,4 +1,4 @@
-# Developing a webview for the extension
+# Chapter 6: Developing webview in extension
 
 ## Overview
 
@@ -54,21 +54,25 @@ context.subscriptions.push(
 
 To organize the code, create two separate files:
 
-1. Extension file (`<webview-name>Page.ts`): This file hosts the webview. In this file you should:
-    - Define a class with methods to render, dispose, and manage the Webview lifecycle.
+1.  **Extension file (`<webview-name>Page.ts`):** This file hosts the webview. In this file you should:
 
-    - Create a method to return the HTML content for the Webview.
+    *  Define a class with methods to render, dispose, and manage the Webview lifecycle.
 
-    - Link to the Webview file and access VSCode elements like commands and settings.
+    *  Create a method to return the HTML content for the Webview.
 
-    - Access the vscode and workspace elements such as commands and settings and manipulate them.
+    *  Link to the Webview file and access VSCode elements like commands and settings.
 
-2. Webview file: (`<webview-name>PageApp.ts`): This file manages the Webview content> In this file you should:
-    - Interact with DOM elements within the HTML.
+    *  Access the vscode and workspace elements such as commands and settings and manipulate them.
 
-    - Add event listeners and manipulate HTML elements, excluding vscode and workspace elements.
+2.  **Webview file: (`<webview-name>PageApp.ts`):** This file manages the Webview content. In this file you should:
 
-> **💡 Tip:** You can set up communication between the extension and the webview. This is covered in the further section.
+    *  Interact with DOM elements within the HTML.
+
+    *  Add event listeners and manipulate HTML elements, excluding vscode and workspace elements.
+
+!!! tip
+
+    You can set up communication between the extension and the webview. This is covered in the further section.
 
 ### Step 4: Configure webpack
 
@@ -92,11 +96,11 @@ VS Code is built using built with Electron and includes Chrome's built-in browse
 
 Once these steps are completed, an instance of DevTools will open in a separate window. You can use this instance to:
 
-- Select and inspect the HTML elements within the Webview.
-  
-- Tweak CSS styles directly to see live changes.
+* Select and inspect the HTML elements within the Webview.
 
-- Add breakpoints and debug JavaScript code, similar to debugging a standard webpage.
+* Tweak CSS styles directly to see live changes.
+
+* Add breakpoints and debug JavaScript code, similar to debugging a standard webpage.
 
 ## Communication between the webview panel and the extension
 
@@ -129,7 +133,6 @@ window.addEventListener('message', event => {
             break;
     }
 });
-
 ```
 
 ### Passing a message from the webview context to the extension context
@@ -166,13 +169,20 @@ context.subscriptions
 
 ## Resources
 
-1. **Local resources:** The extension has already implemented a few webviews and you can take a look at the at the following places:
-    - extension context file: [createAnsibleProjectPage.ts](https://github.com/ansible/vscode-ansible/blob/main/src/features/contentCreator/createAnsibleProjectPage.ts)
-    - webview context file: [createAnsibleProjectPageApp.ts](https://github.com/ansible/vscode-ansible/blob/main/src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts)
-    - webpack config file: [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
+1.  **Local resources:** The extension has already implemented a few webviews and you can take a look at the at the following places:
 
-2. **External resources:** The best explanation of the implementing a webview is described by Microsoft. You can look at these:
-    - [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
-    - [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
-    - [Microsoft's webview sample extension](https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/README.md)
-    - [VS Code webview UI toolkit](https://github.com/microsoft/vscode-webview-ui-toolkit)
+    *  extension context file: [createAnsibleProjectPage.ts](https://github.com/ansible/vscode-ansible/blob/main/src/features/contentCreator/createAnsibleProjectPage.ts)
+
+    *  webview context file: [createAnsibleProjectPageApp.ts](https://github.com/ansible/vscode-ansible/blob/main/src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts)
+
+    *  webpack config file: [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
+
+2.  **External resources:** The best explanation of the implementing a webview is described by Microsoft. You can look at these:
+
+    *  [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
+
+    *  [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
+
+    *  [Microsoft's webview sample extension](https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/README.md)
+
+    *  [VS Code webview UI toolkit](https://github.com/microsoft/vscode-webview-ui-toolkit)

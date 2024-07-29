@@ -1,4 +1,4 @@
-# Developing and debugging the extension
+# Chapter 5: Developing and debugging extension
 
 To ease local development and testing, we use
 [taskfile.dev](https://taskfile.dev/) but you can also call yarn directly for most commands if you want.
@@ -23,13 +23,17 @@ Then, run `yarn run compile` at both the levels.
 
 Navigate back to the root of the project and run `yarn run webpack-dev`.
 
-> In this mode the source maps for the client point to the source of the client, while the sourcemaps for the server point to the JavaScript files of the ansible-language-server under node_modules.
+!!! note
+
+    In this mode the source maps for the client point to the source of the client, while the sourcemaps for the server point to the JavaScript files of the ansible-language-server under node_modules.
 
 ### Step 4: Launch extension in debug mode
 
 Launch the extension using `Both` configuration. It will open a extension development host window with `examples` directory as root and the extension activated.
 
-> **💡 Tip:** In rare cases, if the `Both` configuration does not work,launch the Launch Extension (webpacked) configuration, followed by the Attach to Server configuration.
+!!! tip
+
+    In rare cases, if the `Both` configuration does not work,launch the Launch Extension (webpacked) configuration, followed by the Attach to Server configuration.
 
 ### Step 5: Add breakpoints and debug
 

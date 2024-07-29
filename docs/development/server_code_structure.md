@@ -1,14 +1,14 @@
-# Server code structure
+# Chapter 3: Exploring language server code structure
 
 The diagram below shows how the server code is organized within the project:
 
 ![server code](media/server-code-structure.png)
 
-> **📕 Note:** The diagram does not include:
->
-> - `server.ts` file - This the entry point is always at the root of `src` folder (Refer to the project structure).
->
-> - `test` files - Tests are organized differently and are explained later (Refer to test structure).
+!!! note
+
+    The diagram does not include:
+    - `server.ts` file - This the entry point is always at the root of `src` folder (Refer to the project structure).
+    - `test` files - Tests are organized differently and are explained later (Refer to test structure).
 
 ## Categorization
 

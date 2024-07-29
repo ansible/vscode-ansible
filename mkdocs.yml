@@ -42,7 +42,7 @@ nav:
       - Settings: als/settings.md
       - Changelog: als/changelog.md
   - Developer Guide:
-      - development.md
+      # - development.md
       - development/main.md
       - development/project_structure.md
       - development/extension_code_structure.md
@@ -86,6 +86,10 @@ markdown_extensions:
       normalize_issue_symbols: true
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.details
+  - pymdownx.superfences
   - toc:
       # reduced to keep TOC nice under Changelog page
       toc_depth: 2

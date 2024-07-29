@@ -1,4 +1,4 @@
-# The project structure
+# Chapter 1: Understanding project structure
 
 The project is divided into two main parts:
 
@@ -7,7 +7,9 @@ The project is divided into two main parts:
 
 Each part has its own package.json files, tests, and tsconfigs. This modularity helps in code navigation and development.
 
-> **💡 Tip:** Before working on the code, ask yourself, *"Does this affect the server or the client?"* This can help you find the right part of the code to work on.
+!!! tip
+
+    Before working on the code, ask yourself, *"Does this affect the server or the client?"* This can help you find the right part of the code to work on.
 
 Here is the structure of the project:
 

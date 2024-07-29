@@ -4,16 +4,16 @@ This documentation contains detailed information for getting started to understa
 
 ## Index
 
-1. [Chapter 1: Understanding the project structure](./project_structure.md)
+1. [Chapter 1: Understanding project structure](./project_structure.md)
 
-2. [Chapter 2: Going over the extension code](./extension_code_structure.md)
+2. [Chapter 2: Exploring extension code structure](./extension_code_structure.md)
 
-3. [Chapter 3: Going over the language server code](./server_code_structure.md)
+3. [Chapter 3: Exploring language server code structure](./server_code_structure.md)
 
-4. [Chapter 4: Understanding the testing style and structure](./test_code.md)
+4. [Chapter 4: Understanding testing style and structure](./test_code.md)
 
-5. [Chapter 5: Developing and debugging the extension](./debug_extension.md)
+5. [Chapter 5: Developing and debugging extension](./debug_extension.md)
 
-6. [Chapter 6: Developing a webview in the extension](./webview_guide.md)
+6. [Chapter 6: Developing webview in extension](./webview_guide.md)
 
 7. [Chapter 7: Additional resources for VS Code Extension development](./additional_resources.md)
