@@ -19,4 +19,5 @@
 
 ## Other useful blogs
 
-1. A handy resource for many of the essential implementations in the VS Code extension: [Elio’s website](https://www.eliostruyf.com/)
+1. A handy resource for many of the essential implementations in the VS Code
+   extension: [Elio’s website](https://www.eliostruyf.com/)

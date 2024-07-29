@@ -16,12 +16,17 @@ The server code is divided into 3 parts and the explanation is mentioned below.
 
 ### Providers
 
-The implementation of all the language features for Ansible, such as semantics, auto-completion, validation, hover, and go-to definition, are present in this sub-folder.
+The implementation of all the language features for Ansible, such as semantics,
+auto-completion, validation, hover, and go-to definition, are present in this
+sub-folder.
 
 ### Services
 
-All the language features utilize various Ansible binaries behind the scenes to work. The implementations and runners for various ansible binaries are placed inside this sub-folder.
+All the language features utilize various Ansible binaries behind the scenes to
+work. The implementations and runners for various ansible binaries are placed
+inside this sub-folder.
 
 ### Interfaces
 
-Different types and configurations used across the extension for various features are in this sub-folder.
+Different types and configurations used across the extension for various
+features are in this sub-folder.
