@@ -70,10 +70,9 @@ To organize the code, create two separate files:
 
     *  Add event listeners and manipulate HTML elements, excluding vscode and workspace elements.
 
-<!-- !!! tip -->
+!!! tip
 
-> [!TIP]
-> You can set up communication between the extension and the webview. This is covered in the further section.
+    You can set up communication between the extension and the webview. This is covered in the further section.
 
 ### Step 4: Configure webpack
 
