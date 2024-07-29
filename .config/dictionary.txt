@@ -22,7 +22,6 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
-shiki
 SIGINT
 SIGTERM
 Sbarnea
@@ -113,8 +112,8 @@ gnalawad
 groovylint
 haaaad
 hbenl
-hostvars
 hostsvars
+hostvars
 hotfixes
 iam
 icontent
@@ -131,6 +130,7 @@ koalaman
 lcov
 lextudio
 libgbm
+libssh
 libyaml
 lightspeed
 lineinfile
@@ -197,6 +197,7 @@ rulebooks
 seealso
 servernum
 setuptools
+shiki
 showcontent
 showformat
 simplejson

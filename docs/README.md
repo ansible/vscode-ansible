@@ -231,6 +231,8 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
+- `ansible.playbook.arguments`: Specify additional arguments to append to
+  ansible-playbook invocation. e.g. `--syntax-check`
 
 ## Data and Telemetry
 

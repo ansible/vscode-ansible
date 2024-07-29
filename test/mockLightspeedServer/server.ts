@@ -22,9 +22,8 @@ function readOptions(args: string[]) {
   const opt: any = yargs(args)
     .option("ui-test", { boolean: false })
     .option("one-click", { boolean: false })
+    .option("me-uppercase", { boolean: false })
     .help().argv;
-  console.log(`ui-test: ${opt.uiTest}`);
-  console.log(`one-click: ${opt.oneClick}`);
   return opt;
 }
 
@@ -72,6 +71,7 @@ export default class Server {
     app.use(morganLogger);
     app.use(express.json());
     app.get("/", (req, res) => res.send("Lightspeed Mock"));
+    app.get("/trial", (req, res) => res.send("One Click Trial"));
 
     app.post(`${API_ROOT}/ai/completions`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency

@@ -121,7 +121,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -185,7 +185,7 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
             time podman machine start
             }
         podman info
-        podman run hello-world
+        podman run --rm hello-world
     }
 fi
 
@@ -362,6 +362,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
         exit 1
     fi
+    docker container prune -f
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
         log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
@@ -369,11 +370,11 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     }
     # without running we will never be sure it works (no arm64 image yet)
     EE_ANSIBLE_VERSION=$(get_version \
-        docker run "${IMAGE}" ansible --version)
+        docker run --rm "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        docker run "${IMAGE}" ansible-lint --nocolor --version)
+        docker run --rm "${IMAGE}" ansible-lint --nocolor --version)
     # Test podman ability to mount current folder with write access, default mount options
-    docker run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
+    docker run --rm -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
@@ -421,6 +422,7 @@ fi
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"
 if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
+    podman container prune -f
     log notice "Pull our test container image with podman."
     pull_output=$(podman pull --quiet "${IMAGE}" 2>&1 >/dev/null) || {
         log error "Failed to pull image.\n${pull_output}"
@@ -429,12 +431,12 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     # without running we will never be sure it works
     log notice "Retrieving ansible version from ee"
     EE_ANSIBLE_VERSION=$(get_version \
-        podman run "${IMAGE}" ansible --version)
+        podman run --rm "${IMAGE}" ansible --version)
     log notice "Retrieving ansible-lint version from ee"
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        podman run "${IMAGE}" ansible-lint --nocolor --version)
+        podman run --rm "${IMAGE}" ansible-lint --nocolor --version)
     log notice "Test podman ability to mount current folder with write access, default mount options"
-    podman run -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
+    podman run --rm -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 

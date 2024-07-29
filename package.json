@@ -368,6 +368,11 @@
         "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
       },
       {
+        "command": "ansible.lightspeed.explorer.refresh",
+        "title": "Ansible Lightspeed: Refresh explorer view",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "ansible.lightspeed.enableExperimentalFeatures",
         "title": "Ansible Lightspeed: Enable experimental features"
       },
@@ -438,6 +443,18 @@
             "markdownDescription": "%configuration.navigate.executablePath%",
             "order": 0,
             "scope": "machine-overridable",
+            "type": "string"
+          }
+        }
+      },
+      {
+        "title": "Ansible Playbook",
+        "properties": {
+          "ansible.playbook.arguments": {
+            "default": "",
+            "markdownDescription": "%configuration.playbook.arguments%",
+            "order": 0,
+            "scope": "resource",
             "type": "string"
           }
         }
@@ -740,6 +757,13 @@
           "group": "2_main@1",
           "submenu": "ansible.playbook.run",
           "when": "isFileSystemResource && resourceLangId == ansible"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "ansible.lightspeed.explorer.refresh",
+          "when": "view == lightspeed-explorer-webview",
+          "group": "navigation"
         }
       ]
     },
