@@ -52,6 +52,9 @@ export async function run(): Promise<void> {
   if (process.env.MOCHA_GREP) {
     mochaOptions.grep = process.env.MOCHA_GREP;
   }
+  if (process.env.MOCHA_INVERT) {
+    mochaOptions.invert = !!process.env.MOCHA_INVERT;
+  }
 
   // Create the mocha test
   const mocha = new Mocha(mochaOptions);
