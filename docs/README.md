@@ -253,6 +253,10 @@ which you can learn more about at
   extension.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
 
+## Development guide
+
+Please refer to the [Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/) to get started with developing the extension.
+
 ## Contact
 
 - [Ansible Developer Tools matrix channel](https://matrix.to/#/#devtools:ansible.im)
