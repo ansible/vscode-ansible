@@ -9,14 +9,13 @@ their descriptions.
 
 ## Running and debugging the extension locally
 
-The steps describe how to run the extension
-locally, set breakpoints in the extension and the language serve code,
-and debug it:
+The steps describe how to run the extension locally, set breakpoints in the
+extension and the language serve code, and debug it:
 
 ### Step 1: Fork and clone
 
-Fork and clone the vscode-ansible repository into your local environment. 
-Set the required remote URLs so that you can create PRs.
+Fork and clone the vscode-ansible repository into your local environment. Set
+the required remote URLs so that you can create PRs.
 
 ### Step 2: Compile
 
