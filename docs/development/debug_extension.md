@@ -9,8 +9,8 @@ along with their descriptions.
 
 ## Running and debugging the extension locally
 
-The following are the steps you need to follow in order to run the extension
-locally, set breakpoints (both, in the extension and the language serve code)
+The steps describe how to run the extension
+locally, set breakpoints in the extension and the language serve code,
 and debug it:
 
 ### Step 1: Fork and clone
