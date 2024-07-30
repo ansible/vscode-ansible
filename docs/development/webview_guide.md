@@ -4,9 +4,9 @@
 
 ![webview in extension](media/webview-in-extension.png)
 
-The Webview API allows extensions to create fully customizable views within the VS
-Code extension. You can use Webviews to build complex user interfaces beyond  the
-capabilities of VS Code's native APIs .
+The Webview API allows extensions to create fully customizable views within the
+VS Code extension. You can use Webviews to build complex user interfaces beyond
+the capabilities of VS Code's native APIs .
 
 Think of a Webview as an iframe within VS Code that your extension controls. A
 Webview can render almost any HTML content in this frame and communicates with
@@ -21,9 +21,9 @@ flowchart explains the lifecycle of a webview.
 
 ## Implementation steps
 
-This guide outlines the steps to create and implement a Webview
-in the vscode-ansible extension. 
-This might differ from the implementation for other extensions.
+This guide outlines the steps to create and implement a Webview in the
+vscode-ansible extension. This might differ from the implementation for other
+extensions.
 
 ### Step 1: Contribute a command
 
@@ -102,9 +102,9 @@ in the code and reload the extension host window to see the live implementation.
 
 ## Debugging the Webviews
 
-VS Code is built with Electron and includes Chrome's built-in
-browser and DevTools. This setup allows debugging both VS Code and Webviews.
-Follow the steps below to debug a Webview in VS Code:
+VS Code is built with Electron and includes Chrome's built-in browser and
+DevTools. This setup allows debugging both VS Code and Webviews. Follow the
+steps below to debug a Webview in VS Code:
 
 1. Compile and start by running your VS Code extension in debug mode (refer Step
    5 of Implementation steps).

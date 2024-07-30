@@ -1,8 +1,8 @@
 # Developing and debugging guide for the VS Code Ansible extension
 
-This guide provides information on getting started,
-understanding the project, and developing the extension. 
-It also includes additional resources for VS Code Extension development.
+This guide provides information on getting started, understanding the project,
+and developing the extension. It also includes additional resources for VS Code
+Extension development.
 
 ## Index
 

@@ -44,11 +44,11 @@ activated.
 
 ### Step 5: Add breakpoints and debug
 
-Set breakpoints in the code and/or make changes in the code and reload
-the extension development host window to see the live changes.
+Set breakpoints in the code and/or make changes in the code and reload the
+extension development host window to see the live changes.
 
 ## Cleaning the output
 
 When you switch between debug and compilation modes, or if you have a
-compilation or debugger problem, clean the
-output directory by running `yarn run clean`.
+compilation or debugger problem, clean the output directory by running
+`yarn run clean`.

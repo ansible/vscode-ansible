@@ -25,8 +25,8 @@ There are three types of tests for the extension:
 ## Language server tests
 
 The language server has only unit tests in its directory, as the end-to-end
-testing is already covered by the extension's e2e tests. 
-For each provider (language feature), there is a test file that tests the functionality of the
+testing is already covered by the extension's e2e tests. For each provider
+(language feature), there is a test file that tests the functionality of the
 language feature.
 
 ## Running the Tests
