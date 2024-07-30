@@ -4,7 +4,7 @@ To ease local development and testing, we use
 [taskfile.dev](https://taskfile.dev/) but you can also call yarn directly for
 most commands if you want.
 
-To see all the commands available, run `task -l` and it will list all of them
+To list the available commands and their descriptions, run `task -l`.
 along with their descriptions.
 
 ## Running and debugging the extension locally
