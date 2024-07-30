@@ -24,7 +24,7 @@ import { expect } from "chai";
 import axios from "axios";
 
 const trialNotificationMessage =
-  "Model settings are not configured for your organization, but your account is eligible to start a 90-day trial.";
+  "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
 
 export function lightspeedOneClickTrialUITest(): void {
   describe("Test One Click Trial feature", () => {
