@@ -26,29 +26,29 @@ Then, run `yarn run compile` at both the levels.
 
 ### Step 3: Run Webpack dev
 
-Navigate back to the root of the project and run `yarn run webpack-dev`.
+Navigate to the project root directory and run `yarn run webpack-dev`.
 
 !!! note
 
-    In this mode the source maps for the client point to the source of the client, while the sourcemaps for the server point to the JavaScript files of the ansible-language-server under node_modules.
+    In this mode, the source maps for the client point to the source of the client, while the sourcemaps for the server point to the JavaScript files of the ansible-language-server under node_modules.
 
 ### Step 4: Launch extension in debug mode
 
-Launch the extension using `Both` configuration. It will open a extension
-development host window with `examples` directory as root and the extension
+Launch the extension using the `Both` configuration. It opens an extension
+development host window with the `examples` directory as root and the extension
 activated.
 
 !!! tip
 
-    In rare cases, if the `Both` configuration does not work,launch the Launch Extension (webpacked) configuration, followed by the Attach to Server configuration.
+    If the `Both` configuration does not work, launch the Launch Extension (webpacked) configuration, followed by the Attach to Server configuration.
 
 ### Step 5: Add breakpoints and debug
 
-Finally, set breakpoints in the code and/or make changes in the code and reload
+Set breakpoints in the code and/or make changes in the code and reload
 the extension development host window to see the live changes.
 
 ## Cleaning the output
 
-If you hit an odd compilation or debugger problem, don't hesitate to clean the
-output directory by running `yarn run clean`. You should also run it whenever
-you are switching between debug/compilation modes.
+When you switch between debug and compilation modes, or if you have a
+compilation or debugger problem, clean the
+output directory by running `yarn run clean`.

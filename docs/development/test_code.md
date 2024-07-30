@@ -3,7 +3,7 @@
 Tests for the extension and the language server are stored separately in their
 respective directories inside the `test` sub-folders.
 
-Throughout the project and for all types of tests, we have:
+Throughout the project and for all types of tests, there are:
 
 1. **Test fixtures:** Settings and Ansible files against which the tests are
    run.
@@ -17,7 +17,7 @@ There are three types of tests for the extension:
 2. **End-to-end (e2e) tests:** Test the entire user flow. They open a test host
    of the extension, run the whole workflow from launching the extension,
    loading Ansible files in the editor, activating the language server, using
-   the language features, and finally asserting the outcome.
+   the language features, and asserting the outcome.
 3. **UI tests:** Check the presence and functionality of various UI elements in
    the VS Code interface, from the status bar and activity bar to web-views and
    terminal views.
@@ -25,8 +25,8 @@ There are three types of tests for the extension:
 ## Language server tests
 
 The language server has only unit tests in its directory, as the end-to-end
-testing is already covered by the extension's e2e tests. A test file for each
-provider (language feature) is present, that tests the functionality of the
+testing is already covered by the extension's e2e tests. 
+For each provider (language feature), there is a test file that tests the functionality of the
 language feature.
 
 ## Running the Tests
@@ -52,7 +52,7 @@ Each type of test has its own script and can be run by `yarn run <script-name>`:
 
 !!! note
 
-    For `test-ui*` scripts, you need to package and build a `.vsix file` of the extension by running `yarn run package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
+    For `test-ui*` scripts, you must package and build a `.vsix file` of the extension by running `yarn run package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
 
 !!! tip
 
@@ -60,7 +60,7 @@ Each type of test has its own script and can be run by `yarn run <script-name>`:
 
     `yarn webpack-dev`
 
-    Additionally, to run a single UI test case, you can use `MOCHA_GREP` environment variable in the following manner:
+    To run a single UI test case, you can use `MOCHA_GREP` environment variable as follows:
 
     `MOCHA_GREP="your test case name in describe statement" yarn coverage-ui-current`
 
