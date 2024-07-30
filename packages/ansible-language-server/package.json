@@ -79,14 +79,13 @@
   "scripts": {
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
-    "coverage": "nyc report --reporter=text-lcov > out/coverage.lcov",
     "prepack": "yarn compile",
     "//prepare": "Prepare is needed for installation from source",
     "prepare": "yarn run compile",
     "watch": "tsc --watch -p .",
-    "test": "nyc -s -a mocha && nyc report --check-coverage",
-    "test-with-ee": "nyc -s -a mocha --grep @ee && nyc report --check-coverage && yarn coverage",
-    "test-without-ee": "nyc -s -a mocha --grep @ee --invert && nyc report --check-coverage && yarn coverage"
+    "test": "nyc mocha",
+    "test-with-ee": "nyc mocha --grep @ee",
+    "test-without-ee": "nyc mocha --grep @ee --invert"
   },
   "all": true
 }

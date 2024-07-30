@@ -294,11 +294,6 @@ jobs:
           fail_ci_if_error: true
           use_oidc: true # cspell:ignore oidc
 
-      - name: Convert coverage data (als)
-        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
-        run: |
-          ./tools/convert-als-coverage-lcov.sh
-
       - name: Upload coverage data (als)
         if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
         uses: codecov/codecov-action@v4
