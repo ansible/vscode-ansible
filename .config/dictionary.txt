@@ -4,6 +4,7 @@ CFLAGS
 Containerfile
 Dockal
 Dpkg
+Elio
 FQCN
 FQCNs
 Florian
@@ -211,6 +212,7 @@ suboptions
 subshells
 sysninja
 taskfile
+tasklist
 testenv
 testhost
 testorg
@@ -225,6 +227,8 @@ towerhost
 towncrier
 toxenv
 tsbuildinfo
+tsconfig
+tsconfigs
 tsdoc
 ttakamiy
 unshallow

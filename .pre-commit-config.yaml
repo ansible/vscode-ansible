@@ -162,7 +162,15 @@ repos:
       - id: markdownlint
         exclude: >
           (?x)^
-            docs/als/settings.md
+            docs/als/settings.md|
+            docs/development/additional_resources.md|
+            docs/development/debug_extension.md|
+            docs/development/extension_code_structure.md|
+            docs/development/main.md|
+            docs/development/project_structure.md|
+            docs/development/server_code_structure.md|
+            docs/development/test_code.md|
+            docs/development/webview_guide.md
           $
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.16.0
