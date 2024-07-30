@@ -71,7 +71,7 @@ export class LightspeedExplorerWebviewViewProvider
     const content =
       await this.lightspeedAuthenticatedUser.getLightspeedUserContent();
 
-    if (content !== "undefined") {
+    if (content) {
       return getWebviewContentWithActiveSession(
         webview,
         extensionUri,

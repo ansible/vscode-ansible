@@ -17,7 +17,7 @@ import {
 } from "vscode-extension-tester";
 import {
   expectNotification,
-  getFilePath,
+  getFixturePath,
   sleep,
   updateSettings,
 } from "./uiTestHelper";
@@ -74,13 +74,14 @@ export function lightspeedUIAssetsTest(): void {
     });
   });
 
-  describe("Verify the presence of lightspeed element in the status bar", () => {
+  describe("Verify the presence of lightspeed element in the status bar and the explorer view", () => {
     let statusBar: StatusBar;
     let settingsEditor: SettingsEditor;
     let editorView: EditorView;
     let workbench: Workbench;
+    const folder = "lightspeed";
     const file = "playbook_1.yml";
-    const filePath = getFilePath(file);
+    const filePath = getFixturePath(folder, file);
 
     before(async function () {
       statusBar = new StatusBar();
@@ -102,6 +103,22 @@ export function lightspeedUIAssetsTest(): void {
         ),
       );
       expect(items.length).equals(0);
+    });
+
+    it("Connect button exists in Lightspeed explorer view when settings not enabled", async function () {
+      await new Workbench().executeCommand(
+        "Ansible: Focus on Ansible Lightspeed View",
+      );
+      await sleep(3000);
+      const explorerView = new WebviewView();
+      expect(explorerView, "contentCreatorWebView should not be undefined").not
+        .to.be.undefined;
+      await explorerView.switchToFrame(5000);
+      const connectButton = await explorerView.findWebElement(
+        By.id("lightspeed-explorer-connect"),
+      );
+      expect(connectButton).not.to.be.undefined;
+      await explorerView.switchBack();
     });
 
     it("Ansible Lightspeed status bar item present when only lightspeed is enabled (with warning color)", async () => {
@@ -614,8 +631,9 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Playbook explanation webview works as expected", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
         const file = "playbook_4.yml";
-        const filePath = getFilePath(file);
+        const filePath = getFixturePath(folder, file);
 
         // Open file in the editor
         await VSBrowser.instance.openResources(filePath);
@@ -655,8 +673,9 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Playbook explanation webview works as expected (feature unavailable)", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
         const file = "playbook_explanation_feature_unavailable.yml";
-        const filePath = getFilePath(file);
+        const filePath = getFixturePath(folder, file);
 
         // Open file in the editor
         await VSBrowser.instance.openResources(filePath);
@@ -682,8 +701,9 @@ export function lightspeedUIAssetsTest(): void {
 
     it("Playbook explanation webview with a playbook with no tasks", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
         const file = "playbook_5.yml";
-        const filePath = getFilePath(file);
+        const filePath = getFixturePath(folder, file);
 
         // Open file in the editor
         await VSBrowser.instance.openResources(filePath);

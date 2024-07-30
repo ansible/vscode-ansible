@@ -3,26 +3,26 @@ import * as vscode from "vscode";
 
 /* local */
 import { withInterpreter } from "./utils/commandRunner";
-import { ExtensionSettings } from "../interfaces/extensionSettings";
 import { getContainerEngine } from "../utils/executionEnvironment";
 import { AnsibleCommands } from "../definitions/constants";
 import { registerCommandWithTelemetry } from "../utils/registerCommands";
 import { TelemetryManager } from "../utils/telemetryUtils";
+import { SettingsManager } from "../settings";
 
 /**
  * A set of commands and context menu items for running Ansible playbooks using
  * `ansible-navigator run` and `ansible-playbook` commands.
  */
 export class AnsiblePlaybookRunProvider {
-  private settings: ExtensionSettings;
+  private extensionSettings: SettingsManager;
   private telemetry: TelemetryManager;
 
   constructor(
     private vsCodeExtCtx: vscode.ExtensionContext,
-    settings: ExtensionSettings,
+    extensionSettings: SettingsManager,
     telemetry: TelemetryManager,
   ) {
-    this.settings = settings;
+    this.extensionSettings = extensionSettings;
     this.telemetry = telemetry;
     this.configureCommands();
   }
@@ -53,7 +53,7 @@ export class AnsiblePlaybookRunProvider {
   }
 
   private addEEArgs(commandLineArgs: string[]): void {
-    const eeSettings = this.settings.executionEnvironment;
+    const eeSettings = this.extensionSettings.settings.executionEnvironment;
     if (!eeSettings.enabled) {
       commandLineArgs.push("--ee false");
       return;
@@ -137,6 +137,8 @@ export class AnsiblePlaybookRunProvider {
     ...fileObj: vscode.Uri[] | undefined[]
   ): Promise<void> {
     const runExecutable = this.ansiblePlaybookExecutablePath;
+    const playbookArguments =
+      this.extensionSettings.settings.playbook.arguments;
     const commandLineArgs: string[] = [];
     const playbookFsPath = extractTargetFsPath(...fileObj);
     if (typeof playbookFsPath === "undefined") {
@@ -145,11 +147,14 @@ export class AnsiblePlaybookRunProvider {
       );
       return;
     }
+
+    commandLineArgs.push(playbookArguments);
+
     // replace spaces in file name with escape sequence '\ '
     commandLineArgs.push(playbookFsPath.replace(/(\s)/, "\\ "));
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const [command, runEnv] = withInterpreter(
-      this.settings,
+      this.extensionSettings.settings,
       runExecutable,
       cmdArgs,
     );
@@ -181,7 +186,7 @@ export class AnsiblePlaybookRunProvider {
     const cmdArgs = commandLineArgs.map((arg) => arg).join(" ");
     const runCmdArgs = `run ${cmdArgs}`;
     const [command, runEnv] = withInterpreter(
-      this.settings,
+      this.extensionSettings.settings,
       runExecutable,
       runCmdArgs,
     );

@@ -4,3 +4,5 @@ require:
 # reporter: tap # more flat, also the only one that mentions totals for found, skipped and passed
 spec: './test/**/*.ts'
 timeout: 60000 # same as 60 seconds. This done to ensure that we have sufficient time to run tests on the CI as each test involves loading yaml files and docs library for ansible.
+# https://www.w3resource.com/mocha/testing-mocha.php#:~:text=FAST%3A%20All%20tests%20that%20run,shows%20the%20duration%20in%20red.
+slow: 8000 # tests with >0.5x will show duration in yellow, and >1x in red.

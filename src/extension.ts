@@ -131,7 +131,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const extSettings = new SettingsManager();
   await extSettings.initialize();
 
-  new AnsiblePlaybookRunProvider(context, extSettings.settings, telemetry);
+  new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
 
   // handle metadata status bar
   const metaData = new MetadataManager(context, client, telemetry, extSettings);
@@ -613,6 +613,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
               "/trial",
           ),
         );
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_REFRESH_EXPLORER_VIEW,
+      async () => {
+        await lightSpeedManager.lightspeedAuthenticatedUser.updateUserInformation();
+        lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
   );

@@ -361,14 +361,12 @@ export class ExecutionEnvironment {
 
   private cleanUpContainer(containerName: string): void {
     const cleanUpCommands = [
-      `${this._container_engine} stop ${containerName}`,
-      `${this._container_engine} rm ${containerName}`,
+      `sh -c '${this._container_engine} ps -q --filter "name=${containerName}" | xargs ${this._container_engine} stop'`,
+      // docker does not have the --ignore flag, so we need to list and pipe
+      `sh -c '${this._container_engine} container ls -aq -f 'name=${containerName}' | xargs ${this._container_engine} rm --force'`,
     ];
 
     if (!this.doesContainerNameExist(containerName)) {
-      console.log(
-        `clean up container not required as container with name ${containerName} does not exist`,
-      );
       return;
     }
     for (const command of cleanUpCommands) {
@@ -377,6 +375,9 @@ export class ExecutionEnvironment {
           cwd: URI.parse(this.context.workspaceFolder.uri).path,
         });
       } catch (error) {
+        console.error(
+          `Error detected while trying to stop the container ${containerName}: ${error}`,
+        );
         // container already stopped and/or removed
         break;
       }
@@ -386,10 +387,11 @@ export class ExecutionEnvironment {
   private doesContainerNameExist(containerName: string): boolean {
     let containerNameExist = false;
     try {
-      child_process.execSync(
-        `${this._container_engine} inspect ${containerName}`,
+      const result = child_process.spawnSync(
+        `${this._container_engine} container ls -aq -f 'name=${containerName}'`,
+        { shell: false },
       );
-      containerNameExist = true;
+      containerNameExist = result.toString() !== "";
     } catch (error) {
       containerNameExist = false;
     }
