@@ -255,7 +255,7 @@ which you can learn more about at
 
 ## Development guide
 
-Please refer to the [Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/) to get started with developing the extension.
+Refer to the [Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/) to get started with developing the extension.
 
 ## Contact
 
