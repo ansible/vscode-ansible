@@ -15,8 +15,8 @@ and debug it:
 
 ### Step 1: Fork and clone
 
-Fork and clone the vscode-ansible repository into your local environment. Make
-sure to to set required remote urls in order to make PRs.
+Fork and clone the vscode-ansible repository into your local environment. 
+Set the required remote URLs so that you can create PRs.
 
 ### Step 2: Compile
 
