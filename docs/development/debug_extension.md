@@ -1,4 +1,4 @@
-# Chapter 5: Developing and debugging extension
+# Chapter 5: Developing and debugging the extension
 
 To ease local development and testing, we use
 [taskfile.dev](https://taskfile.dev/) but you can also call yarn directly for
