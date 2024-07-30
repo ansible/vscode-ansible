@@ -21,7 +21,7 @@ Set the required remote URLs so that you can create PRs.
 ### Step 2: Compile
 
 Run `yarn install` in the root of the project (for the extension) and then run
-it again after navigating inside the packages/ansible-language-server directory.
+it again after navigating to the packages/ansible-language-server directory.
 
 Then, run `yarn run compile` at both the levels.
 
