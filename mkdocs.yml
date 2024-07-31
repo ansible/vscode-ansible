@@ -42,7 +42,15 @@ nav:
       - Settings: als/settings.md
       - Changelog: als/changelog.md
   - Developer Guide:
-      - development.md
+      # - development.md
+      - development/main.md
+      - development/project_structure.md
+      - development/extension_code_structure.md
+      - development/server_code_structure.md
+      - development/test_code.md
+      - development/debug_extension.md
+      - development/webview_guide.md
+      - development/additional_resources.md
       - Contributing: contributing.md
   - FAQ:
       - faq/integrate-ansible-lint-with-language-server-venv.md
@@ -78,6 +86,10 @@ markdown_extensions:
       normalize_issue_symbols: true
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.details
+  - pymdownx.superfences
   - toc:
       # reduced to keep TOC nice under Changelog page
       toc_depth: 2

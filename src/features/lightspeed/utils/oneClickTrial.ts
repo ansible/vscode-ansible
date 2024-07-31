@@ -22,9 +22,9 @@ export class OneClickTrialProvider {
 
   public async showPopup(error?: IError): Promise<boolean> {
     if (error?.code === "permission_denied__can_apply_for_trial") {
-      const buttonLabel = "Start my Trial period, It's free!";
+      const buttonLabel = "Start a trial";
       const selection = await vscode.window.showInformationMessage(
-        "Oh! You don't have an active Lightspeed Subscription",
+        "Model settings are not configured for your organization, but your account is eligible to start a 90-day trial.",
         buttonLabel,
       );
       if (selection === buttonLabel) {
