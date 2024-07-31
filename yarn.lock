@@ -32,14 +32,14 @@ __metadata:
     "@types/ini": "npm:^4.1.1"
     "@types/lodash": "npm:^4.17.7"
     "@types/mocha": "npm:^10.0.7"
-    "@types/node": "npm:^22.0.0"
+    "@types/node": "npm:^20.14.13"
     "@types/uuid": "npm:^10.0.0"
     "@types/vscode": "npm:^1.85.0"
     antsibull-docs: "npm:^1.0.2"
     axios: "npm:^1.7.2"
     chai: "npm:^4.5.0"
     fuse.js: "npm:^7.0.0"
-    glob: "npm:^11.0.0"
+    glob: "npm:^10.4.5"
     handlebars: "npm:^4.7.8"
     ini: "npm:^4.1.3"
     lodash: "npm:^4.17.21"
@@ -1218,21 +1218,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 20.14.13
-  resolution: "@types/node@npm:20.14.13"
-  dependencies:
-    undici-types: "npm:~5.26.4"
-  checksum: 10/749160b6bd9866e6169cb1a222e75aaf81da3868af1fda1e1e66d33c7e182be381f98a42b7d231fddf470f6389f2052ee842e776b3fdc677df798b933617866d
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^22.0.0":
+"@types/node@npm:*, @types/node@npm:^22.0.0":
   version: 22.0.0
   resolution: "@types/node@npm:22.0.0"
   dependencies:
     undici-types: "npm:~6.11.1"
   checksum: 10/7142a13ef1f884fde38f1e1499cbebcfe72755e8cb8657c4cb1ba1c2c91a3ae8656a72eb6e0a7d8189b0124c23c30e7c115324375d9c593435166da7a292e80e
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^20.14.13":
+  version: 20.14.13
+  resolution: "@types/node@npm:20.14.13"
+  dependencies:
+    undici-types: "npm:~5.26.4"
+  checksum: 10/749160b6bd9866e6169cb1a222e75aaf81da3868af1fda1e1e66d33c7e182be381f98a42b7d231fddf470f6389f2052ee842e776b3fdc677df798b933617866d
   languageName: node
   linkType: hard
 
@@ -4512,7 +4512,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.4.1":
+"glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.4.1, glob@npm:^10.4.5":
   version: 10.4.5
   resolution: "glob@npm:10.4.5"
   dependencies:
@@ -7767,18 +7767,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.21.0":
-  version: 4.22.0
-  resolution: "selenium-webdriver@npm:4.22.0"
-  dependencies:
-    jszip: "npm:^3.10.1"
-    tmp: "npm:^0.2.3"
-    ws: "npm:>=8.16.0"
-  checksum: 10/fd9e94ca175c31d67f01fe31ba70b5455a727c34a2691e0a3d0f3eb828e6f3a93cf5db8bbb36f8ecc3e5837a33b391d85a4fe78660e44c39bab91358dd5a8ca5
-  languageName: node
-  linkType: hard
-
-"selenium-webdriver@npm:^4.23.0":
+"selenium-webdriver@npm:^4.21.0, selenium-webdriver@npm:^4.23.0":
   version: 4.23.0
   resolution: "selenium-webdriver@npm:4.23.0"
   dependencies:
@@ -9451,7 +9440,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:>=8.16.0, ws@npm:^8.17.1, ws@npm:^8.18.0":
+"ws@npm:^8.17.1, ws@npm:^8.18.0":
   version: 8.18.0
   resolution: "ws@npm:8.18.0"
   peerDependencies:
