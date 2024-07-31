@@ -83,9 +83,9 @@
     "//prepare": "Prepare is needed for installation from source",
     "prepare": "yarn run compile",
     "watch": "tsc --watch -p .",
-    "test": "nyc mocha",
-    "test-with-ee": "nyc mocha --grep @ee",
-    "test-without-ee": "nyc mocha --grep @ee --invert"
+    "test": "sh -c \"nyc mocha ${MOCHA_OPTS:-}\"",
+    "test-with-ee": "sh -c \"nyc mocha --grep @ee ${MOCHA_OPTS:-}\"",
+    "test-without-ee": "sh -c \"nyc mocha --grep @ee --invert ${MOCHA_OPTS:-}\""
   },
   "all": true
 }
