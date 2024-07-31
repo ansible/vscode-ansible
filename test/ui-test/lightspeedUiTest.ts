@@ -194,7 +194,7 @@ export function lightspeedUIAssetsTest(): void {
     });
 
     it("Playbook generation webview works as expected (full path) - part 1", async function () {
-      // Open Ansible Content Creator by clicking the Getting started button on the side bar
+      // Open Ansible Development Tools by clicking the Getting started button on the side bar
       const view = (await new ActivityBar().getViewControl(
         "Ansible",
       )) as ViewControl;
@@ -212,7 +212,7 @@ export function lightspeedUIAssetsTest(): void {
       }
       await sleep(5000);
 
-      // Open Playbook Generation UI by clicking the create content button on Ansible Content Creator
+      // Open Playbook Generation UI by clicking the create content button on Ansible Development Tools
       const contentCreatorWebView = await new WebView();
       expect(
         contentCreatorWebView,
@@ -234,7 +234,7 @@ export function lightspeedUIAssetsTest(): void {
         await createContentButton.click();
       }
       await contentCreatorWebView.switchBack();
-      await new EditorView().closeEditor("Ansible content creator");
+      await new EditorView().closeEditor("Ansible Development Tools");
       await sleep(2000);
 
       // Start operations on Playbook Generation UI
