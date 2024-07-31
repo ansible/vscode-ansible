@@ -50,6 +50,7 @@ async function main(): Promise<void> {
     // testing and make its outcome very hard to reproduce across machines.
     // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
     const cliArgs = [
+      "--disable-gpu", // avoids misleading console messages during local or CI/CD test like VK_ERROR_INCOMPATIBLE_DRIVER
       `--user-data-dir=${userDataPath}`,
       `--extensions-dir=${extPath}`,
     ];
