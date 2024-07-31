@@ -24,7 +24,7 @@ export class OneClickTrialProvider {
     if (error?.code === "permission_denied__can_apply_for_trial") {
       const buttonLabel = "Start a trial";
       const selection = await vscode.window.showInformationMessage(
-        "Model settings are not configured for your organization, but your account is eligible to start a 90-day trial.",
+        "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.",
         buttonLabel,
       );
       if (selection === buttonLabel) {
