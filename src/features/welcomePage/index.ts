@@ -94,7 +94,7 @@ export class AnsibleWelcomePage {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta http-equiv="Content-Security-Policy"
         content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource}; img-src ${webview.cspSource};">
-      <title>AAA</title>
+      <title>Ansible Development Tools</title>
       <link rel="stylesheet" href="${styleUri}">
       <link rel="stylesheet" href="${codiconsUri}">
     </head>
