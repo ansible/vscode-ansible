@@ -44,7 +44,7 @@ describe("withInterpreter", () => {
       scenario: "when absolute path of interpreter is provided",
       executable: "/absolute/path/to/ansible-lint",
       args: "playbook.yml",
-      interpreterPath: "/path/to/venv/bin/python",
+      interpreterPath: "/path/to/venv/bin/python3",
       activationScript: "",
       expectedCommand: "/absolute/path/to/ansible-lint playbook.yml",
       expectedEnv: {
