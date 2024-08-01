@@ -8,19 +8,12 @@ import {
   Workbench,
 } from "vscode-extension-tester";
 
-export function getFilePath(file: string): string {
+// Returns testFixtures/ path by default, and can
+// return testFixtures/ subfolders and files.
+export function getFixturePath(subdir: string = "", file: string = ""): string {
   return path.resolve(
     __dirname,
-    path.join(
-      "..",
-      "..",
-      "..",
-      "..",
-      "test",
-      "testFixtures",
-      "lightspeed",
-      file,
-    ),
+    path.join("..", "..", "..", "..", "test", "testFixtures", subdir, file),
   );
 }
 

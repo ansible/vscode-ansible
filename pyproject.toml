@@ -4,3 +4,23 @@ check-filenames = true
 check-hidden = true
 ignore-words = ".config/dictionary.txt"
 skip = "out,node_modules,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,.yarn,dictionary.txt,settings.md"
+
+# We have no python tests in this project, but we keep this config to prevent
+# vscode python extension from showing errors while trying to collect tests.
+[tool.pytest.ini_options]
+norecursedirs = [
+    "*.egg",
+    ".cache",
+    ".eggs",
+    ".git",
+    ".github",
+    ".mypy_cache",
+    ".projects",
+    ".tox",
+    "build",
+    "collections",
+    "dist",
+    "docs",
+    "out",
+    "node_modules",
+]

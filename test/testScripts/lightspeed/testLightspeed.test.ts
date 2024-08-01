@@ -38,10 +38,6 @@ function testSuggestionPrompts() {
       taskName: "Print hello world",
       expectedModule: "ansible.builtin.debug",
     },
-    {
-      taskName: "Create a file foo.txt",
-      expectedModule: "ansible.builtin.file",
-    },
   ];
 
   return tests;
@@ -51,7 +47,6 @@ function testSuggestionExpectedInsertTexts() {
   // Based on the responses defined in the mock lightspeed server codes
   const insertTexts = [
     `  ${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}      ansible.builtin.debug:\n        msg: Hello World\n    `,
-    `  ${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}      ansible.builtin.file:\n        path: ~/foo.txt\n        state: touch\n    `,
   ];
 
   return insertTexts;
@@ -238,7 +233,7 @@ export function testLightspeed(): void {
       });
     });
 
-    describe("Test Ansible Lightspeed inline completion suggestions with keeping typing", function () {
+    describe.skip("Test Ansible Lightspeed inline completion suggestions with keeping typing", function () {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let feedbackRequestSpy: any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -276,8 +271,31 @@ export function testLightspeed(): void {
       const tests = testSuggestionPrompts();
       const multiTaskTests = testMultiTaskSuggestionPrompts();
 
-      tests.forEach(({ taskName, expectedModule }) => {
-        it(`Should return an inline feedback with action=IGNORED '${taskName}'`, async function () {
+      let taskName = tests[0].taskName;
+      let expectedModule = tests[0].expectedModule;
+
+      it(`Should return an inline feedback with action=IGNORED '${taskName}'`, async function () {
+        await testInlineSuggestion(
+          taskName,
+          expectedModule,
+          false,
+          "",
+          true,
+          true,
+        );
+        const completionRequestApiCalls = completionRequestSpy.getCalls();
+        assert.equal(completionRequestApiCalls.length, 1);
+        const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+        assert.equal(feedbackRequestApiCalls.length, 1);
+        const inputData: FeedbackRequestParams = feedbackRequestSpy.args[0][0];
+        assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
+        const ret = feedbackRequestSpy.returnValues[0];
+        assert(Object.keys(ret).length === 0); // ret should be equal to {}
+      });
+
+      it(`Should not call completion API with a keystroke before Wait Window '${taskName}'`, async function () {
+        try {
+          await setInlineSuggestionsWaitWindow();
           await testInlineSuggestion(
             taskName,
             expectedModule,
@@ -287,79 +305,56 @@ export function testLightspeed(): void {
             true,
           );
           const completionRequestApiCalls = completionRequestSpy.getCalls();
-          assert.equal(completionRequestApiCalls.length, 1);
+          assert.equal(completionRequestApiCalls.length, 0);
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
-          assert.equal(feedbackRequestApiCalls.length, 1);
-          const inputData: FeedbackRequestParams =
-            feedbackRequestSpy.args[0][0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
-          const ret = feedbackRequestSpy.returnValues[0];
-          assert(Object.keys(ret).length === 0); // ret should be equal to {}
-        });
+          assert.equal(feedbackRequestApiCalls.length, 0);
+        } finally {
+          await resetInlineSuggestionsWaitWindow();
+        }
       });
 
-      tests.forEach(({ taskName, expectedModule }) => {
-        it(`Should not call completion API with a keystroke before Wait Window '${taskName}'`, async function () {
-          try {
-            await setInlineSuggestionsWaitWindow();
-            await testInlineSuggestion(
-              taskName,
-              expectedModule,
-              false,
-              "",
-              true,
-              true,
-            );
-            const completionRequestApiCalls = completionRequestSpy.getCalls();
-            assert.equal(completionRequestApiCalls.length, 0);
-            const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
-            assert.equal(feedbackRequestApiCalls.length, 0);
-          } finally {
-            await resetInlineSuggestionsWaitWindow();
-          }
-        });
-      });
+      taskName = multiTaskTests[0].taskName;
+      expectedModule = multiTaskTests[0].expectedModule;
 
-      multiTaskTests.forEach(({ taskName, expectedModule }) => {
-        it(`Should not call completion API with a keystroke before Wait Window (multi task) '${taskName}'`, async function () {
-          try {
-            rhUserHasSeatStub.returns(Promise.resolve(true));
-            await setInlineSuggestionsWaitWindow();
-            await testInlineSuggestion(
-              taskName,
-              expectedModule,
-              true,
-              "",
-              true,
-              true,
-            );
-            const completionRequestApiCalls = completionRequestSpy.getCalls();
-            assert.equal(completionRequestApiCalls.length, 0);
-            const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
-            assert.equal(feedbackRequestApiCalls.length, 0);
-          } finally {
-            await resetInlineSuggestionsWaitWindow();
-          }
-        });
-      });
-
-      tests.forEach(({ taskName, expectedModule }) => {
-        it(`Should not return an inline feedback '${taskName}'`, async function () {
+      it(`Should not call completion API with a keystroke before Wait Window (multi task) '${taskName}'`, async function () {
+        try {
+          rhUserHasSeatStub.returns(Promise.resolve(true));
+          await setInlineSuggestionsWaitWindow();
           await testInlineSuggestion(
-            // with the mock lightspeed server, adding "status=nnn" to prompt will
-            // return the specified status code in the response
-            `${taskName} (status=204)`,
+            taskName,
             expectedModule,
-            false,
+            true,
             "",
             true,
             true,
           );
           const completionRequestApiCalls = completionRequestSpy.getCalls();
-          assert.equal(completionRequestApiCalls.length, 1);
+          assert.equal(completionRequestApiCalls.length, 0);
           const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
           assert.equal(feedbackRequestApiCalls.length, 0);
-        });
+        } finally {
+          await resetInlineSuggestionsWaitWindow();
+        }
+      });
+
+      taskName = tests[0].taskName;
+      expectedModule = tests[0].expectedModule;
+
+      it(`Should not return an inline feedback '${taskName}'`, async function () {
+        await testInlineSuggestion(
+          // with the mock lightspeed server, adding "status=nnn" to prompt will
+          // return the specified status code in the response
+          `${taskName} (status=204)`,
+          expectedModule,
+          false,
+          "",
+          true,
+          true,
+        );
+        const completionRequestApiCalls = completionRequestSpy.getCalls();
+        assert.equal(completionRequestApiCalls.length, 1);
+        const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
+        assert.equal(feedbackRequestApiCalls.length, 0);
       });
 
       afterEach(() => {

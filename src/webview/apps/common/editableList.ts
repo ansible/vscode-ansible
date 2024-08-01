@@ -97,7 +97,9 @@ export class EditableList {
   }
 
   focus() {
-    // Move cursor at the end of the last list item before put focus on the list
+    this.element.focus();
+
+    // Move cursor at the end of the last list item
     const values = this.getFromUI();
     const lastIndex = values.length - 1;
     const startNode = this.element.childNodes[lastIndex].firstChild;
@@ -108,7 +110,6 @@ export class EditableList {
       sel?.removeAllRanges();
       sel?.addRange(range);
     }
-    this.element.focus();
   }
 
   static stringToList(str: string): string[] {

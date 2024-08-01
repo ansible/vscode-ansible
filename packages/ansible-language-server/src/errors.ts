@@ -132,6 +132,13 @@ ERRORS.addError(
 ERRORS.addError(
   400,
   new Error(
+    "error__wca_hap_filter_rejection",
+    "Potentially harmful language was detected in your request. Please check your input and try again.",
+  ),
+);
+ERRORS.addError(
+  400,
+  new Error(
     "error__preprocess_invalid_yaml",
     "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator.",
   ),
@@ -192,13 +199,6 @@ ERRORS.addError(
   new Error(
     "permission_denied__user_has_no_subscription",
     "Your organization does not have a subscription. Please contact your administrator.",
-  ),
-);
-ERRORS.addError(
-  403,
-  new Error(
-    "permission_denied__org_ready_user_has_no_seat",
-    "You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.",
   ),
 );
 ERRORS.addError(

@@ -4,8 +4,10 @@ import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   getBaseUri,
   getUserTypeLabel,
+  getLoggedInUserDetails,
 } from "./utils/webUtils";
 import {
+  LIGHTSPEED_MARKDOWN_ME_AUTH_URL,
   LIGHTSPEED_ME_AUTH_URL,
   LightSpeedCommands,
 } from "../../definitions/lightspeed";
@@ -17,6 +19,7 @@ import {
   isSupportedCallback,
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
+import * as marked from "marked";
 
 export class LightspeedAccessDenied extends Error {
   constructor(message: string) {
@@ -54,6 +57,7 @@ export class LightspeedUser {
   private _userDetails: LightspeedUserDetails | undefined;
   private _logger: Log;
   private _extensionHost: ExtensionHostType;
+  private _markdownUserDetails: string | undefined;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -115,6 +119,49 @@ export class LightspeedUser {
       );
 
       return data;
+    } catch (error) {
+      if (
+        axios.isAxiosError(error) &&
+        error.response &&
+        error.response.status === 401
+      ) {
+        throw new LightspeedAccessDenied(error.message);
+      } else if (axios.isAxiosError(error)) {
+        this._logger.error(
+          `[ansible-lightspeed-user] error message: ${error.message}`,
+        );
+        console.error(
+          "[ansible-lightspeed-user] error response data: ",
+          error.response?.data,
+        );
+        throw new Error(error.message);
+      } else {
+        this._logger.error(
+          `[ansible-lightspeed-user] unexpected error: ${error}`,
+        );
+        throw new Error("An unexpected error occurred");
+      }
+    }
+  }
+
+  public async getUserInfoFromMarkdown(token: string) {
+    this._logger.info(
+      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+    );
+
+    try {
+      const { data } = await axios.get(
+        `${getBaseUri(this._settingsManager)}${LIGHTSPEED_MARKDOWN_ME_AUTH_URL}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const markdownData = marked.parseInline(data.content) as string;
+
+      return markdownData;
     } catch (error) {
       if (
         axios.isAxiosError(error) &&
@@ -228,55 +275,82 @@ export class LightspeedUser {
     }
 
     if (session) {
-      try {
-        const userinfo: LoggedInUserInfo = await this.getUserInfo(
-          session.accessToken,
-        );
-        this._session = session;
-
-        const displayName =
-          userinfo.external_username || userinfo.username || "";
-        const userTypeLabel = getUserTypeLabel(
-          userinfo.rh_org_has_subscription,
-          userinfo.rh_user_has_seat,
-        ).toLowerCase();
-
-        this._userDetails = {
-          rhUserHasSeat: userinfo.rh_user_has_seat,
-          rhOrgHasSubscription: userinfo.rh_org_has_subscription,
-          rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
-          displayName,
-          displayNameWithUserType: `${displayName} (${userTypeLabel})`,
-          orgOptOutTelemetry: userinfo.org_telemetry_opt_out,
-        };
+      if (await this._updateUserInformation(createIfNone, session)) {
         return;
-      } catch (error) {
-        this._logger.info(
-          `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
-        );
-        if (error instanceof LightspeedAccessDenied) {
-          // Auth provider has a dead session stored. We need to force it out.
-          if (createIfNone && this._userType) {
-            vscode.authentication.getSession(
-              this._userType,
-              this.getScopesForAuthProviderType(this._userType),
-              { forceNewSession: true },
-            );
-          } else if (this._userType === AuthProviderType.lightspeed) {
-            this._lightspeedAuthenticationProvider.removeSession(session.id);
-          }
-        }
       }
     }
 
     this._session = undefined;
     this._userDetails = undefined;
+    this._markdownUserDetails = undefined;
     this._userType = undefined;
+  }
+
+  public async updateUserInformation(): Promise<void> {
+    if (this._session) {
+      await this._updateUserInformation(false, this._session);
+    }
+  }
+
+  private async _updateUserInformation(
+    createIfNone: boolean,
+    session: vscode.AuthenticationSession,
+  ): Promise<boolean> {
+    try {
+      const userinfo: LoggedInUserInfo = await this.getUserInfo(
+        session.accessToken,
+      );
+      this._session = session;
+
+      let markdownUserInfo: string = "";
+      try {
+        markdownUserInfo = await this.getUserInfoFromMarkdown(
+          session.accessToken,
+        );
+      } catch (error) {
+        markdownUserInfo = "";
+      }
+      this._markdownUserDetails = markdownUserInfo;
+
+      const displayName = userinfo.external_username || userinfo.username || "";
+      const userTypeLabel = getUserTypeLabel(
+        userinfo.rh_org_has_subscription,
+        userinfo.rh_user_has_seat,
+      ).toLowerCase();
+
+      this._userDetails = {
+        rhUserHasSeat: userinfo.rh_user_has_seat,
+        rhOrgHasSubscription: userinfo.rh_org_has_subscription,
+        rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
+        displayName,
+        displayNameWithUserType: `${displayName} (${userTypeLabel})`,
+        orgOptOutTelemetry: userinfo.org_telemetry_opt_out,
+      };
+      return true;
+    } catch (error) {
+      this._logger.info(
+        `[ansible-lightspeed-user] Request for logged-in user info failed: ${error}`,
+      );
+      if (error instanceof LightspeedAccessDenied) {
+        // Auth provider has a dead session stored. We need to force it out.
+        if (createIfNone && this._userType) {
+          vscode.authentication.getSession(
+            this._userType,
+            this.getScopesForAuthProviderType(this._userType),
+            { forceNewSession: true },
+          );
+        } else if (this._userType === AuthProviderType.lightspeed) {
+          this._lightspeedAuthenticationProvider.removeSession(session.id);
+        }
+      }
+    }
+    return false;
   }
 
   public async refreshLightspeedUser() {
     this._session = undefined;
     this._userDetails = undefined;
+    this._markdownUserDetails = undefined;
     await this.setLightspeedUser(false);
   }
 
@@ -298,6 +372,59 @@ export class LightspeedUser {
     await this.setLightspeedUser(createIfNone, useProviderType);
 
     return this._userDetails;
+  }
+
+  public async getMarkdownLightspeedUserDetails(
+    createIfNone: boolean,
+    useProviderType: AuthProviderType | undefined = undefined,
+  ) {
+    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return undefined;
+    }
+    if (
+      this._markdownUserDetails &&
+      (!useProviderType || useProviderType === this._userType)
+    ) {
+      return this._markdownUserDetails;
+    }
+
+    await this.setLightspeedUser(createIfNone, useProviderType);
+
+    return this._markdownUserDetails;
+  }
+
+  public async getLightspeedUserContent() {
+    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return undefined;
+    }
+
+    const markdownUserDetails =
+      await this.getMarkdownLightspeedUserDetails(false);
+    const userDetails = await this.getLightspeedUserDetails(false);
+
+    let content;
+    if (markdownUserDetails) {
+      content = String(markdownUserDetails);
+    } else {
+      if (userDetails) {
+        const sessionInfo = getLoggedInUserDetails(userDetails);
+        const userName = userDetails.displayNameWithUserType;
+        const userType = sessionInfo.userInfo?.userType || "";
+        const userRole =
+          sessionInfo.userInfo?.role !== undefined
+            ? sessionInfo.userInfo?.role
+            : "";
+        content = `
+          <p>Logged in as: ${userName}</p>
+          <p>User Type: ${userType}</p>
+          ${userRole ? "Role: " + userRole : ""}
+        `;
+      }
+    }
+
+    return content;
   }
 
   public async rhUserHasSeat(): Promise<boolean | undefined> {

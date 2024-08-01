@@ -1,19 +1,18 @@
+---
+all: true
+check-coverage: true
 # https://github.com/istanbuljs/nyc
 # Exclude files from elsewhere and avoid random error like
 # https://github.com/istanbuljs/nyc/issues/847
 include:
-  - "src/**/*.ts"
+  - src/**/*.ts
+lines: 2.7
 recursive: true
+report-dir: out/coverage/unit
+reporter:
+  - lcov
+  - text
 require:
   - ts-node/register
-temp-dir: out/.nyc_output
-report-dir: out/coverage/unit
-# skip-full: true
-# increase threshold % once possible:
-lines: 2.7
-check-coverage: true
-all: true
-reporter:
-  - html
-  - text
-  - lcov
+skip-full: true
+temp-dir: out/out/coverage/unit/.nyc_output

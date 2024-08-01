@@ -21,7 +21,7 @@ env:
   PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
-  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
 
@@ -29,16 +29,37 @@ env:
 jobs:
   build:
     name: ${{ matrix.name }}
-    environment: ci # codecov needed
+    environment: ci
     env:
-      SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
+      SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
+      TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+      # For using the mock Lightspeed server.
+      TEST_LIGHTSPEED_ACCESS_TOKEN: "dummy"
+      # The mock server runs on localhost. However, just using "localhost" as the hostname causes a few issues in
+      # GitHub Actions environment:
+      #
+      # On Linux: When "localhost" is used as the hostname, the mock server uses the ipv6 loopback address [::1] . However,
+      # the axios library, which is used in the extension tries to access to the ipv4 loopback 127.0.0.1 when "localhost"
+      # is specified and the axios library does not support URLs that contains ipv6 addresses, e.g. http://[::1]:3000.
+      # Also, If 127.0.0.1 is specified for the mock server, the server fails to start. Those issues are resolved by
+      # using the special ipv6-only hostname "ip6-localhost", which is available in GitHub Actions Linux environment.
+      #
+      # On MacOS: The hostname "ip6-localhost" is not available. However, 127.0.0.1 can be used for starting the mock
+      # server on MacOS and the axios library can connect to that address. So we can use 127.0.0.1 for MacOS.
+      #
+      # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use
+      # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
+      TEST_LIGHTSPEED_URL: "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
+
+      # Set environment variables using matrix properties.
+      # For using an actual Lightspeed server instance, uncomment following two lines.
+      # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+      # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
+
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
-    permissions:
-      id-token: write
-      checks: read
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
@@ -50,32 +71,30 @@ jobs:
       matrix:
         # Avoid letting github do the matrix multiplication and use manual
         # includes for each job, this gives us fine control over job name.
+        # Order is important, keep it alphabetical: docs, lint, test*
         continue-on-error:
           - false
         os:
           - ubuntu-22.04
         task-name:
-          - test
+          - docs
         name:
-          - test
+          - docs
         include:
-          # - name: test-node-lts
-          #   task-name: test
-          #   task-name-als: als:test-node-lts
-          - name: docs
-            task-name: docs
-            task-name-als: ""
           - name: lint
             task-name: lint
-            task-name-als: ""
             os: ubuntu-22.04
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
 
+          - name: test (linux)
+            task-name: test
+            # https://github.com/ansible/vscode-ansible/issues/1473
+            ignore-als-test-failure: true
+
           - name: test (macos)
             task-name: test
-            task-name-als: als:test-without-ee
             os: macos-13-large
             env:
               SKIP_PODMAN: 1
@@ -84,12 +103,12 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-          - name: als:test-without-ee (wsl)
-            # runner does not support running container
+          - name: test (wsl)
+            # runner does not support running containers
             task-name: als:test-without-ee
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
-            os: windows-2022
+            os: devtools-win-x64
             shell: "wsl-bash {0}"
             env:
               SKIP_PODMAN: 1
@@ -215,7 +234,7 @@ jobs:
 
       - name: task setup
         # starting podman machine can randomly get stuck on macos
-        timeout-minutes: 20
+        timeout-minutes: 25
         run: task setup
 
       ## uncomment to debug on GHA runner
@@ -223,92 +242,31 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
       - name: task package
         id: package
-        run: task package --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+        run: task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
-        env:
-          # For using the mock Lightspeed server.
-          TEST_LIGHTSPEED_ACCESS_TOKEN: "dummy"
-          # The mock server runs on localhost. However, just using "localhost" as the hostname causes a few issues in
-          # GitHub Actions environment:
-          #
-          # On Linux: When "localhost" is used as the hostname, the mock server uses the ipv6 loopback address [::1] . However,
-          # the axios library, which is used in the extension tries to access to the ipv4 loopback 127.0.0.1 when "localhost"
-          # is specified and the axios library does not support URLs that contains ipv6 addresses, e.g. http://[::1]:3000.
-          # Also, If 127.0.0.1 is specified for the mock server, the server fails to start. Those issues are resolved by
-          # using the special ipv6-only hostname "ip6-localhost", which is available in GitHub Actions Linux environment.
-          #
-          # On MacOS: The hostname "ip6-localhost" is not available. However, 127.0.0.1 can be used for starting the mock
-          # server on MacOS and the axios library can connect to that address. So we can use 127.0.0.1 for MacOS.
-          #
-          # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use
-          # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
-          TEST_LIGHTSPEED_URL: "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
+        if: "${{ !contains(matrix.name, 'test') }}"
+        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
-          # Set environment variables using matrix properties.
-          SKIP_PODMAN: "${{ matrix.env.SKIP_PODMAN || '0' }}"
-          SKIP_DOCKER: "${{ matrix.env.SKIP_DOCKER || '0' }}"
+      - name: task unit
+        if: contains(matrix.name, 'test')
+        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
-          # For using an actual Lightspeed server instance, uncomment following two lines.
-          # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
-          # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
-        run: task ${{ matrix.task-name }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+      - name: task ui
+        # https://github.com/ansible/vscode-ansible/issues/1451
+        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task ${{ matrix.task-name-als }}
-        if: ${{ (matrix.task-name-als || '') != '' }}
-        env:
-          SKIP_PODMAN: "${{ matrix.env.SKIP_PODMAN || '0' }}"
-          SKIP_DOCKER: "${{ matrix.env.SKIP_DOCKER || '0' }}"
-        run: task ${{ matrix.task-name-als }} --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+      - name: task e2e
+        # https://github.com/ansible/vscode-ansible/issues/1451
+        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: Upload coverage data (unit test)
-        if: ${{ startsWith(matrix.name, 'test') }}
-        uses: codecov/codecov-action@v4
-        with:
-          name: ${{ matrix.name }}
-          files: out/coverage/unit/lcov.info
-          disable_search: true
-          flags: unit
-          fail_ci_if_error: true
-          use_oidc: true # cspell:ignore oidc
-
-      - name: Upload coverage data (ui test)
-        if: ${{ startsWith(matrix.name, 'test') }}
-        uses: codecov/codecov-action@v4
-        with:
-          name: ${{ matrix.name }}
-          files: out/coverage/ui-test/lcov.info
-          disable_search: true
-          flags: ui
-          fail_ci_if_error: true
-          use_oidc: true # cspell:ignore oidc
-
-      - name: Upload coverage data (e2e test)
-        if: ${{ startsWith(matrix.name, 'test') }}
-        uses: codecov/codecov-action@v4
-        with:
-          name: ${{ matrix.name }}
-          files: out/coverage/e2e/lcov.info
-          disable_search: true
-          flags: e2e
-          fail_ci_if_error: true
-          use_oidc: true # cspell:ignore oidc
-
-      - name: Convert coverage data (als)
-        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
-        run: |
-          ./tools/convert-als-coverage-lcov.sh
-
-      - name: Upload coverage data (als)
-        if: contains(matrix.task-name-als, 'test') || contains(matrix.task-name, 'als:test')
-        uses: codecov/codecov-action@v4
-        with:
-          name: ${{ matrix.name }}
-          files: out/coverage/als/lcov.info
-          disable_search: true
-          flags: als
-          fail_ci_if_error: true
-          use_oidc: true # cspell:ignore oidc
+      - name: task als
+        # https://github.com/ansible/vscode-ansible/issues/1451
+        if: contains(matrix.name, 'test')
+        continue-on-error: ${{ matrix.ignore-als-test-failure || false }}
+        run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test' }}
@@ -328,12 +286,13 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
-      - name: Upload test logs
+      - name: Upload test logs and reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
           path: |
+            out/coverage
             out/e2eTestReport
             out/log
             out/test-resources/settings/logs
@@ -372,6 +331,10 @@ jobs:
     needs:
       - build
 
+    permissions: # codecov
+      id-token: write
+      checks: read
+
     runs-on: ubuntu-22.04
 
     steps:
@@ -380,7 +343,54 @@ jobs:
         with:
           name: logs.zip
           pattern: logs*.zip
+          separate-directories: true
           delete-merged: true
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: logs.zip
+          path: .
+
+      - name: Upload als test coverage data [1/4]
+        uses: codecov/codecov-action@v4
+        with:
+          name: als
+          files: ./*/coverage/als/lcov.info
+          flags: als
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload unit test coverage data [2/4]
+        uses: codecov/codecov-action@v4
+        with:
+          name: unit
+          files: ./*/coverage/unit/lcov.info
+          flags: unit
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload ui test coverage data [3/4]
+        uses: codecov/codecov-action@v4
+        with:
+          name: unit
+          files: ./*/coverage/ui/lcov.info
+          flags: ui
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
+
+      - name: Upload e2e test coverage data [4/4]
+        uses: codecov/codecov-action@v4
+        with:
+          name: e2e
+          files: ./*/coverage/e2e/lcov.info
+          flags: e2e
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: true # cspell:ignore oidc
 
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1

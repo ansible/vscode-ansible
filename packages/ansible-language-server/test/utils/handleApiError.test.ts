@@ -62,6 +62,16 @@ describe("testing the error handling", () => {
     );
   });
 
+  it("err Bad Request WCA HAP filter", () => {
+    const error = mapError(
+      createError(400, { code: "error__wca_hap_filter_rejection" }),
+    );
+    assert.equal(
+      error.message,
+      "Potentially harmful language was detected in your request. Please check your input and try again.",
+    );
+  });
+
   it("err Bad Request", () => {
     const error = mapError(createError(400));
     assert.equal(error.message, "Bad Request response. Please try again.");
@@ -105,18 +115,6 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 403
   // ---------------------------------
-  it("err Forbidden - Org ready, No seat", () => {
-    const error = mapError(
-      createError(403, {
-        code: "permission_denied__org_ready_user_has_no_seat",
-      }),
-    );
-    assert.equal(
-      error.message,
-      "You do not have a licensed seat for Ansible Lightspeed and your organization is using the paid commercial service. Contact your Red Hat Organization's administrator for more information on how to get a licensed seat.",
-    );
-  });
-
   it("err Forbidden - No Seat", () => {
     const error = mapError(
       createError(403, {

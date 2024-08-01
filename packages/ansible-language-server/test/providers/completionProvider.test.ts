@@ -197,13 +197,13 @@ function testModuleNames(
       completion: "name",
     },
     {
-      name: "for `ansible.builtin.ping` with `ping`",
+      name: "`ansible.builtin.ping` with `ping`",
       position: { line: 7, character: 8 } as Position,
       triggerCharacter: "ping",
       completion: "ansible.builtin.ping",
     },
     {
-      name: "for `ansible.builtin.debug` with `debu`", // cspell: ignore debu
+      name: "`ansible.builtin.debug` with `debu`", // cspell: ignore debu
       position: { line: 7, character: 8 } as Position,
       triggerCharacter: "debu",
       completion: "ansible.builtin.debug",

@@ -231,6 +231,8 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
+- `ansible.playbook.arguments`: Specify additional arguments to append to
+  ansible-playbook invocation. e.g. `--syntax-check`
 
 ## Data and Telemetry
 
@@ -250,6 +252,12 @@ which you can learn more about at
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
+
+## Development guide
+
+Refer to the
+[Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/)
+to get started with developing the extension.
 
 ## Contact
 

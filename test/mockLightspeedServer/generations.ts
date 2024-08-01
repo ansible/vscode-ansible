@@ -15,6 +15,24 @@ export function generations(
   logger.info(`outline: ${req.body.outline}`);
   logger.info(`wizardId: ${wizardId}`);
 
+  // If the text or outline contains "status=nnn" (like "status=400"), return the specified
+  // status code.
+  let index = text.search(/status=\d\d\d/);
+  if (index !== -1) {
+    const status = parseInt(index.substring(index + 7, index + 10));
+    return res.status(status).send();
+  }
+
+  if (req.body?.outline) {
+    index = req.body?.outline.search(/status=\d\d\d/);
+    if (index !== -1) {
+      const status = parseInt(
+        req.body.outline.substring(index + 7, index + 10),
+      );
+      return res.status(status).send();
+    }
+  }
+
   if (options.oneClick) {
     return res.status(403).json(permissionDeniedCanApplyForTrial());
   }

@@ -58,6 +58,8 @@ export namespace LightSpeedCommands {
   export const LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED =
     "ansible.lightspeed.signInWithLightspeed";
   export const LIGHTSPEED_OPEN_TRIAL_PAGE = "ansible.lightspeed.openTrialPage";
+  export const LIGHTSPEED_REFRESH_EXPLORER_VIEW =
+    "ansible.lightspeed.explorer.refresh";
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";
@@ -65,6 +67,7 @@ export const LIGHTSPEED_SUGGESTION_COMPLETION_URL = `${LIGHTSPEED_API_VERSION}/a
 export const LIGHTSPEED_SUGGESTION_FEEDBACK_URL = `${LIGHTSPEED_API_VERSION}/ai/feedback/`;
 export const LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL = `${LIGHTSPEED_API_VERSION}/ai/contentmatches/`;
 export const LIGHTSPEED_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/`;
+export const LIGHTSPEED_MARKDOWN_ME_AUTH_URL = `/api/${LIGHTSPEED_API_VERSION}/me/summary/`;
 
 export const LIGHTSPEED_FEEDBACK_FORM_URL =
   "https://red.ht/ansible-ai-feedback";

@@ -4,6 +4,7 @@ CFLAGS
 Containerfile
 Dockal
 Dpkg
+Elio
 FQCN
 FQCNs
 Florian
@@ -21,7 +22,6 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
-shiki
 SIGINT
 SIGTERM
 Sbarnea
@@ -112,8 +112,8 @@ gnalawad
 groovylint
 haaaad
 hbenl
-hostvars
 hostsvars
+hostvars
 hotfixes
 iam
 icontent
@@ -130,6 +130,7 @@ koalaman
 lcov
 lextudio
 libgbm
+libssh
 libyaml
 lightspeed
 lineinfile
@@ -157,6 +158,7 @@ neovim
 netcommon
 nocolor
 noheading
+norecursedirs
 notest
 notfound
 npmjs
@@ -196,6 +198,7 @@ rulebooks
 seealso
 servernum
 setuptools
+shiki
 showcontent
 showformat
 simplejson
@@ -203,6 +206,7 @@ sourcemaps
 ssbarnea
 ssydoren
 stderr
+stdio
 stdout
 stopendy
 suboption
@@ -210,6 +214,7 @@ suboptions
 subshells
 sysninja
 taskfile
+tasklist
 testenv
 testhost
 testorg
@@ -224,6 +229,8 @@ towerhost
 towncrier
 toxenv
 tsbuildinfo
+tsconfig
+tsconfigs
 tsdoc
 ttakamiy
 unshallow

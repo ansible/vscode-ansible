@@ -14,7 +14,6 @@ import {
 } from "./utils/explorerView";
 import { LightspeedUser } from "./lightspeedUser";
 
-import { getLoggedInUserDetails } from "./utils/webUtils";
 import { isPlaybook } from "./playbookExplanation";
 
 export class LightspeedExplorerWebviewViewProvider
@@ -69,22 +68,14 @@ export class LightspeedExplorerWebviewViewProvider
   }
 
   private async _getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const userDetails =
-      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
-    if (userDetails) {
-      const sessionInfo = getLoggedInUserDetails(userDetails);
-      const userName = userDetails.displayNameWithUserType;
-      const userType = sessionInfo.userInfo?.userType || "";
-      const userRole =
-        sessionInfo.userInfo?.role !== undefined
-          ? sessionInfo.userInfo?.role
-          : "";
+    const content =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserContent();
+
+    if (content) {
       return getWebviewContentWithActiveSession(
         webview,
         extensionUri,
-        userName,
-        userType,
-        userRole,
+        String(content),
         this.hasPlaybookOpened(),
       );
     } else {

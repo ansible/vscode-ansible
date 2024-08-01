@@ -7,6 +7,7 @@
   "ansible.validation.lint.enabled": true,
   "ansible.validation.lint.path": "ansible-lint",
   "ansible.ansibleNavigator.path": "ansible-navigator",
+  "ansible.playbook.arguments": "",
   "ansible.executionEnvironment.containerEngine": "docker",
   "ansible.executionEnvironment.containerOptions": "",
   "ansible.executionEnvironment.enabled": false,

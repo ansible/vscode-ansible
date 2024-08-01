@@ -14,7 +14,7 @@ import {
 } from "vscode-extension-tester";
 import {
   expectNotification,
-  getFilePath,
+  getFixturePath,
   getModalDialogAndMessage,
   sleep,
   updateSettings,
@@ -22,6 +22,9 @@ import {
 import { Key } from "selenium-webdriver";
 import { expect } from "chai";
 import axios from "axios";
+
+const trialNotificationMessage =
+  "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
 
 export function lightspeedOneClickTrialUITest(): void {
   describe("Test One Click Trial feature", () => {
@@ -128,6 +131,32 @@ export function lightspeedOneClickTrialUITest(): void {
       await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
     });
 
+    it("Verify the Refresh icon is found on the title of Explorer view", async () => {
+      const refreshIcon = await explorerView.findWebElement(
+        By.xpath("//a[contains(@class, 'codicon-refresh')]"),
+      );
+      expect(refreshIcon, "refreshIcon should not be undefined").not.to.be
+        .undefined;
+
+      // Set "UI Test", One Click" and "Me Uppercase" options for mock server
+      await axios.post(
+        `${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`,
+        ["--ui-test", "--one-click", "--me-uppercase"],
+        { headers: { "Content-Type": "application/json" } },
+      );
+
+      await refreshIcon.click(); // make sure if it could be clicked
+
+      await sleep(2000);
+      await explorerView.switchToFrame(5000);
+      const div = await explorerView.findWebElement(
+        By.id("lightspeedExplorerView"),
+      );
+      const text = await div.getText();
+      expect(text).contains("LOGGED IN AS: ONE_CLICK_USER (UNLICENSED)");
+      await explorerView.switchBack();
+    });
+
     it("Invoke Playbook generation without experimental features enabled", async () => {
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
       await sleep(2000);
@@ -177,16 +206,16 @@ export function lightspeedOneClickTrialUITest(): void {
       await playbookGeneration.switchBack();
       await sleep(2000);
       await expectNotification(
-        "Oh! You don't have an active Lightspeed Subscription",
+        trialNotificationMessage,
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
       await new EditorView().closeAllEditors();
     });
 
     it("Invoke Playbook explanation with experimental features enabled", async () => {
+      const folder = "lightspeed";
       const file = "playbook_4.yml";
-      const filePath = getFilePath(file);
+      const filePath = getFixturePath(folder, file);
 
       // Open file in the editor
       await VSBrowser.instance.openResources(filePath);
@@ -198,16 +227,16 @@ export function lightspeedOneClickTrialUITest(): void {
       );
       await sleep(2000);
       await expectNotification(
-        "Oh! You don't have an active Lightspeed Subscription",
+        trialNotificationMessage,
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
       await new EditorView().closeAllEditors();
     });
 
     it("Invoke Completion with experimental features enabled", async () => {
+      const folder = "lightspeed";
       const file = "playbook_3.yml";
-      const filePath = getFilePath(file);
+      const filePath = getFixturePath(folder, file);
       await VSBrowser.instance.openResources(filePath);
       await sleep(1000);
 
@@ -221,10 +250,9 @@ export function lightspeedOneClickTrialUITest(): void {
 
       await sleep(4000);
       await expectNotification(
-        "Oh! You don't have an active Lightspeed Subscription",
+        trialNotificationMessage,
         true, // click button
       );
-      await expectNotification("This feature is coming soon. Stay tuned.");
 
       // Revert changes made
       await tab.select();
