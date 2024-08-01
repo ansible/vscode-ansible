@@ -10,7 +10,7 @@ import {
 import { sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
-export function WelcomePageUITest(): void {
+export function welcomePageUITest(): void {
   describe("Verify welcome page sidebar and title is displayed as expected", async () => {
     let view: ViewControl;
     let sideBar: SideBarView;
