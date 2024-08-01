@@ -474,7 +474,7 @@ tools:
   node: $(get_version node)
   npm: $(get_version npm)
   pre-commit: $(get_version pre-commit)
-  python: $(get_version python)
+  python: $(get_version python3)
   task: $(get_version task)
   yarn: $(get_version yarn || echo null)
 containers:
