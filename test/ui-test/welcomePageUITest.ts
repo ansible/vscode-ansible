@@ -15,6 +15,7 @@ export function welcomePageUITest(): void {
     let view: ViewControl;
     let sideBar: SideBarView;
     let adtSection: ViewSection;
+
     before(async () => {
       // Open Ansible Development Tools by clicking the Getting started button on the side bar
       view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
@@ -78,6 +79,8 @@ export function welcomePageUITest(): void {
       expect(await adtSubheader.getText()).includes(
         "Create, test and deploy Ansible content",
       );
+
+      welcomePageWebView.switchBack();
     });
   });
 }
