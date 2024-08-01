@@ -20,10 +20,10 @@ submodules:
   recursive: true
 
 build:
-  os: ubuntu-22.04
+  os: ubuntu-24.04
   tools:
     python: >-  # PyYAML parses it as float `3.1` it it's not an explicit string
-      3.10
+      3.12
 
 # Optionally set the version of Python and requirements required
 # to build docs
