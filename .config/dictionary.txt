@@ -101,6 +101,7 @@ envrc
 eqeqeq
 esbenp
 extest
+extester
 fgierlinger
 fqcn
 fredericgiquel
