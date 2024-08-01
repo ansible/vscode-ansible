@@ -432,6 +432,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@bazel/runfiles@npm:^5.8.1":
+  version: 5.8.1
+  resolution: "@bazel/runfiles@npm:5.8.1"
+  checksum: 10/fe463dbc7e82e6aa216bdb1ab18bfa6cdeb0e5b74018d9a25d5869604f784ef31f5c95ed24741891cb436251af4b8ad5f4c83c0b0b8248b13590cfcc40a94d27
+  languageName: node
+  linkType: hard
+
 "@bcoe/v8-coverage@npm:^0.2.3":
   version: 0.2.3
   resolution: "@bcoe/v8-coverage@npm:0.2.3"
@@ -1420,7 +1427,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/selenium-webdriver@npm:^4, @types/selenium-webdriver@npm:^4.1.22":
+"@types/selenium-webdriver@npm:^4.1.22, @types/selenium-webdriver@npm:^4.1.24":
   version: 4.1.24
   resolution: "@types/selenium-webdriver@npm:4.1.24"
   dependencies:
@@ -2307,7 +2314,7 @@ __metadata:
     "@types/mocha": "npm:^10.0.7"
     "@types/morgan": "npm:^1.9.9"
     "@types/node": "npm:^20.14.13"
-    "@types/selenium-webdriver": "npm:^4"
+    "@types/selenium-webdriver": "npm:^4.1.24"
     "@types/sinon": "npm:^17.0.3"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^10.0.0"
@@ -2346,7 +2353,7 @@ __metadata:
     prettier: "npm:^3.3.3"
     react: "npm:^18.3.1"
     rimraf: "npm:^5.0.9"
-    selenium-webdriver: "npm:^4.22.0"
+    selenium-webdriver: "npm:^4.23.0"
     shiki: "npm:^1.12.0"
     sinon: "npm:^18.0.0"
     start-server-and-test: "npm:^2.0.5"
@@ -8826,14 +8833,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.21.0, selenium-webdriver@npm:^4.22.0":
-  version: 4.22.0
-  resolution: "selenium-webdriver@npm:4.22.0"
+"selenium-webdriver@npm:^4.21.0, selenium-webdriver@npm:^4.23.0":
+  version: 4.23.0
+  resolution: "selenium-webdriver@npm:4.23.0"
   dependencies:
+    "@bazel/runfiles": "npm:^5.8.1"
     jszip: "npm:^3.10.1"
     tmp: "npm:^0.2.3"
-    ws: "npm:>=8.16.0"
-  checksum: 10/fd9e94ca175c31d67f01fe31ba70b5455a727c34a2691e0a3d0f3eb828e6f3a93cf5db8bbb36f8ecc3e5837a33b391d85a4fe78660e44c39bab91358dd5a8ca5
+    ws: "npm:^8.17.1"
+  checksum: 10/da9d39b290e9579f4b9baa49f823df92a3ad5da20d1b2fc54987ed9b1387833ab5dc5ad78e01f7cb98c2d52299eb156b3b9dfd5e5f76e60f9286c945fa110eb6
   languageName: node
   linkType: hard
 
@@ -10728,7 +10736,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ws@npm:>=8.16.0, ws@npm:^8.18.0":
+"ws@npm:^8.17.1, ws@npm:^8.18.0":
   version: 8.18.0
   resolution: "ws@npm:8.18.0"
   peerDependencies:
