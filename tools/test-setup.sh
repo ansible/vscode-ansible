@@ -1,5 +1,5 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
@@ -118,10 +118,30 @@ if [[ -f "/etc/redhat-release" ]]; then
     fi
 fi
 
+# Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
+# that we do not support it at all. WSL use is ok, but not on mounts.
+WSL=0
+if [[ "${OS:-}" == "windows" ]]; then
+    log error "You cannot use Windows build tools for development, try WSL."
+    exit 1
+fi
+if grep -qi microsoft /proc/version >/dev/null 2>&1; then
+    # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
+    if [[ "$(pwd -P || true)" == /mnt/* ]]; then
+        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
+    fi
+    WSL=1
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
+
+    if [[ "$WSL" == "0" ]] && [[ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" != "0" ]]; then
+        log warning "AppArmor restricts unprivileged user namespaces, disabling it for testing. See https://github.com/redhat-developer/vscode-extension-tester/issues/1496"
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+    fi
 
     DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
@@ -189,21 +209,6 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
         podman info
         podman run --rm hello-world
     }
-fi
-
-# Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
-# that we do not support it at all. WSL use is ok, but not on mounts.
-WSL=0
-if [[ "${OS:-}" == "windows" ]]; then
-    log error "You cannot use Windows build tools for development, try WSL."
-    exit 1
-fi
-if grep -qi microsoft /proc/version >/dev/null 2>&1; then
-    # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
-    if [[ "$(pwd -P || true)" == /mnt/* ]]; then
-        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
-    fi
-    WSL=1
 fi
 
 # User specific environment
