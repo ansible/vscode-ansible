@@ -2362,7 +2362,7 @@ __metadata:
     typescript: "npm:^5.5.4"
     typescript-eslint: "npm:^7.18.0"
     uuid: "npm:^10.0.0"
-    vscode-extension-tester: "npm:8.3.0"
+    vscode-extension-tester: "npm:^8.3.0"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.0.8"
     warnings-to-errors-webpack-plugin: "npm:^2.3.0"
@@ -10295,7 +10295,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:8.3.0":
+"vscode-extension-tester@npm:^8.3.0":
   version: 8.3.0
   resolution: "vscode-extension-tester@npm:8.3.0"
   dependencies:
