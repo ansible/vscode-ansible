@@ -8,8 +8,8 @@ ci:
 
     for more information, see https://pre-commit.ci
   skip:
-    #- yarn-audit
-    #- yarn-audit-fix
+    # - yarn-audit
+    # - yarn-audit-fix
     - yarn-dedupe
     - codecov
     - depcheck
@@ -25,7 +25,7 @@ repos:
     rev: v8.13.0
     hooks:
       - id: cspell
-        # name: Spell check with cspell
+  # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
     hooks:
@@ -87,15 +87,15 @@ repos:
           --data-binary @codecov.yml https://codecov.io/validate
           ) -eq 200 ]'
         language: system
-        files: "codecov.yml"
+        files: codecov.yml
         pass_filenames: false
   - repo: https://github.com/ScribeMD/pre-commit-hooks
     rev: 0.16.3
     hooks:
       - id: yarn-dedupe
         entry: npx yarn dedupe
-      # - id: yarn-audit
-      #   entry: npx yarn npm audit
+  # - id: yarn-audit
+  #   entry: npx yarn npm audit
 
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v4.6.0
@@ -132,6 +132,11 @@ repos:
           )$
       - id: debug-statements
         language_version: python3
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v24.7.0
+    hooks:
+      - id: ansible-lint
+        args: [--fix]
   - repo: https://github.com/adrienverge/yamllint.git
     rev: v1.35.1
     hooks:
@@ -147,10 +152,10 @@ repos:
           )$
   - repo: https://github.com/pycontribs/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.3.3"
+    rev: v3.3.3
     hooks:
       - id: prettier
-        types_or: ["markdown", "json", "ts"]
+        types_or: [markdown, json, ts]
         exclude: >
           (?x)^(
             jinja-language-configuration.json|

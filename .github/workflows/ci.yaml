@@ -1,3 +1,4 @@
+---
 # This is a basic workflow
 
 name: ci
@@ -6,12 +7,11 @@ name: ci
 # events but only for the main branch
 on:
   push:
-    branches: ["main", "devel/*"]
+    branches: [main, devel/*]
     tags:
-      - "v*.*"
+      - v*.*
   pull_request:
-    branches: ["main", "devel/*"]
-
+    branches: [main, devel/*]
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: true
@@ -21,6 +21,7 @@ env:
   PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
+  # yamllint disable rule:line-length
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
@@ -35,7 +36,7 @@ jobs:
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
       # For using the mock Lightspeed server.
-      TEST_LIGHTSPEED_ACCESS_TOKEN: "dummy"
+      TEST_LIGHTSPEED_ACCESS_TOKEN: dummy
       # The mock server runs on localhost. However, just using "localhost" as the hostname causes a few issues in
       # GitHub Actions environment:
       #
@@ -50,12 +51,12 @@ jobs:
       #
       # Once the axios library starts supporting URLs that contain ipv6 addresses, we will be able to use
       # http://[::1]:3000 both on Linux and MacOS to get rid of the following conditional statement.
-      TEST_LIGHTSPEED_URL: "${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}"
+      TEST_LIGHTSPEED_URL: ${{ contains(matrix.name, 'macos') && 'http://127.0.0.1:3000' || 'http://ip6-localhost:3000' }}
 
-      # Set environment variables using matrix properties.
-      # For using an actual Lightspeed server instance, uncomment following two lines.
-      # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
-      # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
+    # Set environment variables using matrix properties.
+    # For using an actual Lightspeed server instance, uncomment following two lines.
+    # TEST_LIGHTSPEED_ACCESS_TOKEN: ${{ secrets.TEST_LIGHTSPEED_ACCESS_TOKEN }}
+    # TEST_LIGHTSPEED_URL: ${{ secrets.TEST_LIGHTSPEED_URL }}
 
     defaults:
       run:
@@ -109,7 +110,7 @@ jobs:
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
             os: devtools-win-x64
-            shell: "wsl-bash {0}"
+            shell: wsl-bash {0}
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -128,7 +129,7 @@ jobs:
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
-          wsl-shell-command: "bash -i -eo pipefail"
+          wsl-shell-command: bash -i -eo pipefail
           # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
           wsl-conf: |
             [automount]
@@ -142,22 +143,7 @@ jobs:
             appendWindowsPath = false
             [network]
             hostname = wsl
-          additional-packages: curl
-            dbus
-            dirmngr
-            gawk
-            git
-            gpg
-            gpg-agent
-            jq
-            make
-            python3-dev
-            python3-full
-            python3-venv
-            qemu-user-static
-            tar
-            unzip
-            xvfb
+          additional-packages: curl dbus dirmngr gawk git gpg gpg-agent jq make python3-dev python3-full python3-venv qemu-user-static tar unzip xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup asdf
@@ -224,13 +210,15 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
-      #   if: "contains(matrix.os, 'macos')"
+      #   if: "${{ contains(matrix.os, 'macos') }}"
       #   uses: actions/cache@v4
       #   with:
       #     path: |
       #       ~/.local/share/containers
       #       ~/.config/containers
-      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
+      #     key: >
+      #       {{ runner.os }}-${{ matrix.task-name }}-${{
+      #       hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: task setup
         # starting podman machine can randomly get stuck on macos
@@ -245,7 +233,7 @@ jobs:
         run: task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') }}"
+        if: ${{ !contains(matrix.name, 'test') }}
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task unit
@@ -254,12 +242,12 @@ jobs:
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        if: ${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        if: ${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
@@ -300,25 +288,25 @@ jobs:
           if-no-files-found: ignore
           retention-days: 90
 
-      # - name: Stop services
-      #   if: "contains(matrix.os, 'macos')"
-      #   # Stopping podman machine is needed or caching it will fail
-      #   run: |
-      #     command -v podman && {
-      #     podman machine stop
-      #     while [[ "$(podman machine ls --format '{{.Running}}' \
-      #           --noheading || true)" != "false" ]]; do
-      #       sleep 1
-      #       echo -n .
-      #     done
-      #     echo .
-      #     }
-      #   continue-on-error: true
+  # - name: Stop services
+  #   if: "contains(matrix.os, 'macos')"
+  #   # Stopping podman machine is needed or caching it will fail
+  #   run: |
+  #     command -v podman && {
+  #     podman machine stop
+  #     while [[ "$(podman machine ls --format '{{.Running}}' \
+  #           --noheading || true)" != "false" ]]; do
+  #       sleep 1
+  #       echo -n .
+  #     done
+  #     echo .
+  #     }
+  #   continue-on-error: true
 
-      ## commented out for future use to debug on the GHA node if required
-      # - name: Setup tmate session
-      #   if: ${{ always() }}
-      #   uses: mxschmitt/action-tmate@v3
+  ## commented out for future use to debug on the GHA node if required
+  # - name: Setup tmate session
+  #   if: ${{ always() }}
+  #   uses: mxschmitt/action-tmate@v3
 
   ack:
     if: github.event_name == 'pull_request'
@@ -454,7 +442,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          registry-url: "https://registry.npmjs.org"
+          registry-url: https://registry.npmjs.org
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:

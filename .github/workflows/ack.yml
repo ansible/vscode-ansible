@@ -1,9 +1,9 @@
+---
 # See https://github.com/ansible/team-devtools/blob/main/.github/workflows/ack.yml
 name: ack
 on:
   pull_request_target:
     types: [opened, labeled, unlabeled]
-
 jobs:
   ack:
     uses: ansible/team-devtools/.github/workflows/ack.yml@main

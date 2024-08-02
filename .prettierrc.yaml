@@ -1,3 +1,4 @@
+---
 tabWidth: 2
 useTabs: false
 overrides:
@@ -6,11 +7,13 @@ overrides:
       - "*.yml"
     options:
       singleQuote: false
-  - # json with comments
-    files:
-      - ".vscode/*.json"
-      - "scripts/*.json"
-      - "tsconfig.json"
+      proseWrap: always
+      printWidth: 160 # same as yamllint and ansible-lint
+  # json with comments
+  - files:
+      - .vscode/*.json
+      - scripts/*.json
+      - tsconfig.json
     options:
       parser: json5
       quoteProps: preserve
