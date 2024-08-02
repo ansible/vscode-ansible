@@ -46,7 +46,7 @@ function getAnsibleTestInfo() {
 function getPythonTestInfo() {
   const pythonInfo: ansibleMetaDataEntryType = {};
   pythonInfo["version"] = ".";
-  pythonInfo["location"] = "/python";
+  pythonInfo["location"] = "/python3";
   return pythonInfo;
 }
 

@@ -121,7 +121,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -279,7 +279,14 @@ log notice "Upgrading pip ..."
 
 python3 -m pip install -q -U pip
 # Fail fast if user has broken dependencies
-python3 -m pip check
+python3 -m pip check || {
+        log error "pip check failed with exit code $?"
+        if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
+            exit 98
+        else
+            log error "Ignored pip check failure on this platform due to https://sourceforge.net/p/ruamel-yaml/tickets/521/"
+        fi
+}
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from community-ansible-dev-tools EE in order
@@ -475,7 +482,7 @@ tools:
   node: $(get_version node)
   npm: $(get_version npm)
   pre-commit: $(get_version pre-commit)
-  python: $(get_version python)
+  python: $(get_version python3)
   task: $(get_version task)
   yarn: $(get_version yarn || echo null)
 containers:

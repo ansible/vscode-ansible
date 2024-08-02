@@ -101,6 +101,7 @@ envrc
 eqeqeq
 esbenp
 extest
+extester
 fgierlinger
 fqcn
 fredericgiquel
@@ -130,6 +131,7 @@ koalaman
 lcov
 lextudio
 libgbm
+libonig
 libssh
 libyaml
 lightspeed

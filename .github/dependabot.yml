@@ -17,6 +17,11 @@ updates:
           - "*"
         exclude-patterns:
           - "@types/vscode"
+          - "vscode-extension-tester"
+      extester:
+        # Separated as it is likely to also require tuning our test code for passing
+        patterns:
+          - "vscode-extension-tester"
     ignore:
       # requires ESM https://github.com/ansible/vscode-ansible/issues/1225
       - dependency-name: chai

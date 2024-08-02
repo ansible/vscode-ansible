@@ -54,6 +54,7 @@
       "timeout": 30000,
       "port": 6010,
       "restart": true,
+      "runtimeArgs": ["--max-old-space-size=4096"],
       "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"]
     },
     {
@@ -63,6 +64,7 @@
       "timeout": 30000,
       "port": 6010,
       "restart": true,
+      "runtimeArgs": ["--max-old-space-size=4096"],
       "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
       "preLaunchTask": "npm: watch-server"
     },
