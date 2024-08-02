@@ -825,20 +825,6 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
   // Get the current text
   const line = position.line;
 
-  const text = editor.document.getText(
-    new vscode.Range(
-      new vscode.Position(line, 0),
-      new vscode.Position(line + 1, 0),
-    ),
-  );
-  // Remove the prepended text
-  const commentPosition = text.indexOf(
-    LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
-  );
-  if (commentPosition === -1) {
-    return;
-  }
-
   // Update the editor with the new text
   await editor.edit((editBuilder) => {
     editBuilder.delete(
