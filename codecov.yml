@@ -7,3 +7,7 @@ comment: false
 coverage:
   status:
     patch: true # we want github annotations
+    project:
+      default:
+        # avoid noise from rounding errors, often caused by code reformatting
+        threshold: "0.05"
