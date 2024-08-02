@@ -36,6 +36,5 @@
     ".vscode-test": true
   },
   "redhat.telemetry.enabled": false,
-  "eslint.useESLintClass": true,
-  "eslint.experimental.useFlatConfig": true
+  "eslint.useESLintClass": true
 }
