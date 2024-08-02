@@ -400,6 +400,7 @@ export class LightSpeedAuthenticationProvider
           "[ansible-lightspeed-oauth] error message: ",
           error.message,
         );
+        /* istanbul ignore next */
         console.error(
           "[ansible-lightspeed-oauth] error response data: ",
           error.response?.data,
