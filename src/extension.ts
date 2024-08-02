@@ -757,6 +757,9 @@ const startClient = async (
       transport: TransportKind.ipc,
       options: debugOptions,
     },
+    options: {
+      env: process.env,
+    },
   };
 
   const telemetryErrorHandler = new TelemetryErrorHandler(

@@ -19,6 +19,6 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 npx start-server-and-test \
-    "TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server --ui-test"\
+    "HTTP_PROXY=127.0.0.1:3001 TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server --ui-test"\
     "${TEST_LIGHTSPEED_URL}" \
-    "TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn ${TEST_SCRIPT}"
+    "HTTP_PROXY=127.0.0.1:3001 TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn ${TEST_SCRIPT}"

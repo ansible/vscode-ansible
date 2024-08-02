@@ -13,6 +13,6 @@ fi
 
 # Start the mock Lightspeed server and run e2e tests with code coverage enabled.
 npx start-server-and-test \
-    "TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server" \
+    "HTTP_PROXY=127.0.0.1:3001 TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn mock-lightspeed-server" \
     "${TEST_LIGHTSPEED_URL}" \
-    "TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn coverage-e2e"
+    "HTTP_PROXY=127.0.0.1:3001 TEST_LIGHTSPEED_ACCESS_TOKEN=dummy TEST_LIGHTSPEED_URL=${TEST_LIGHTSPEED_URL} yarn coverage-e2e"
