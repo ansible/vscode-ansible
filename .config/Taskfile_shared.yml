@@ -8,7 +8,7 @@ vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
   PYTHON3:
-    sh: echo $VIRTUAL_ENV/bin/python3
+    sh: echo {{.VIRTUAL_ENV}}/bin/python3
 tasks:
   setup:
     desc: Install dependencies
