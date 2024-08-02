@@ -374,7 +374,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     EE_ANSIBLE_LINT_VERSION=$(get_version \
         docker run "${IMAGE}" ansible-lint --nocolor --version)
     # Test docker ability to mount current folder with write access, default mount options
-    docker run -v "$PWD:$PWD" --security-opt label:disable ghcr.io/ansible/community-ansible-dev-tools:latest \
+    docker run -v "$PWD:$PWD" --security-opt label=disable ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
