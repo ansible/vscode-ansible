@@ -57,7 +57,7 @@ describe("commandRunner", () => {
     },
     {
       args: [
-        "python",
+        "python3",
         "-c",
         "\"import os; print(os.environ.get('VIRTUAL_ENV'))\"",
       ],
