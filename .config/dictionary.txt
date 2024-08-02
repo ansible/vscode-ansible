@@ -131,6 +131,7 @@ koalaman
 lcov
 lextudio
 libgbm
+libonig
 libssh
 libyaml
 lightspeed

@@ -37,5 +37,4 @@
   },
   "redhat.telemetry.enabled": false,
   "eslint.useESLintClass": true,
-  "eslint.experimental.useFlatConfig": true
 }
