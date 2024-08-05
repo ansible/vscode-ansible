@@ -32,16 +32,14 @@ import {
 } from "./interfaces/lightspeedApi";
 import { mapError } from "./utils/handleApiError";
 
-
-export function loadFetch(): typeof fetch|undefined {
-	try {
-		return require('electron')?.net?.fetch;
-	} catch (err) {
-		// Not available.
-	}
-	return undefined;
+export function loadFetch(): typeof fetch | undefined {
+  try {
+    return require("electron")?.net?.fetch;
+  } catch (err) {
+    // Not available.
+  }
+  return undefined;
 }
-
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -391,7 +389,7 @@ export class AnsibleLanguageService {
 
         const fetch = loadFetch();
         if (!fetch) {
-          return {"content": "Nothing"} as ExplanationResponse; // TODO
+          return { content: "Nothing" } as ExplanationResponse; // TODO
         }
         const result: ExplanationResponse = await fetch(
           `${getBaseUri(URL)}/api/v0/ai/explanations/`,
@@ -400,7 +398,10 @@ export class AnsibleLanguageService {
             body,
             headers,
           },
-        ).then((response) => {console.log(response); return response.json()});
+        ).then((response) => {
+          console.log(response);
+          return response.json();
+        });
         // .post(
         //   "/ai/explanations/",
         //   { signal: AbortSignal.timeout(28000) },

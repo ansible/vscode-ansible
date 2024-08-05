@@ -22,15 +22,12 @@ import { Log } from "../../utils/logger";
 import * as marked from "marked";
 import { loadFetch } from "../lightspeed/base";
 
-
 export class LightspeedAccessDenied extends Error {
   constructor(message: string) {
     super(message);
     this.name = "LightspeedAccessDenied";
   }
 }
-
-
 
 export enum AuthProviderType {
   rhsso = RHSSO_AUTH_ID,
