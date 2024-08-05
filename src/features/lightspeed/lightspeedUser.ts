@@ -173,6 +173,11 @@ export class LightspeedUser {
         this._logger.error(
           `[ansible-lightspeed-user] error message: ${error.message}`,
         );
+        /* istanbul ignore next */
+        console.error(
+          "[ansible-lightspeed-user] error response data: ",
+          error.response?.data,
+        );
         throw new Error(error.message);
       } else {
         this._logger.error(
