@@ -13,8 +13,9 @@ import {
   sleep,
   updateSettings,
 } from "./uiTestHelper";
-import { expect } from "chai";
+import { config, expect } from "chai";
 
+config.truncateThreshold = 0;
 export function lightspeedUILoginTest(): void {
   describe("Login to Lightspeed", () => {
     let workbench: Workbench;
@@ -32,13 +33,12 @@ export function lightspeedUILoginTest(): void {
         "ansible.lightspeed.URL",
         process.env.TEST_LIGHTSPEED_URL,
       );
-    });
 
-    it("Focus on Ansible Lightspeed View", async () => {
-      await new Workbench().executeCommand(
+      expect(workbench).not.to.be.undefined;
+      await workbench.executeCommand(
         "Ansible: Focus on Ansible Lightspeed View",
       );
-      await sleep(3000);
+
       explorerView = new WebviewView();
       expect(explorerView, "contentCreatorWebView should not be undefined").not
         .to.be.undefined;

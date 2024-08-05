@@ -121,11 +121,11 @@ const webviewConfig = {
 const contentCreatorMenuWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/welcomePageApp.ts",
+  entry: "./src/webview/apps/welcomePage/welcomePageApp.ts",
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/welcomePageApp.js",
+    filename: "./client/webview/apps/welcomePage/welcomePageApp.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
