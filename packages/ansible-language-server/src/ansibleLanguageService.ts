@@ -23,7 +23,6 @@ import { doValidate } from "./providers/validationProvider";
 import { ValidationManager } from "./services/validationManager";
 import { WorkspaceManager } from "./services/workspaceManager";
 import { getAnsibleMetaData } from "./utils/getAnsibleMetaData";
-import axios from "axios";
 import { AxiosError } from "axios";
 import { getBaseUri } from "./utils/webUtils";
 import {
@@ -32,6 +31,17 @@ import {
   IError,
 } from "./interfaces/lightspeedApi";
 import { mapError } from "./utils/handleApiError";
+
+
+export function loadFetch(): typeof fetch|undefined {
+	try {
+		return require('electron')?.net?.fetch;
+	} catch (err) {
+		// Not available.
+	}
+	return undefined;
+}
+
 
 /**
  * Initializes the connection and registers all lifecycle event handlers.
@@ -374,28 +384,34 @@ export class AnsibleLanguageService {
           Authorization: `Bearer ${accessToken}`,
         };
 
-        const axiosInstance = axios.create({
-          baseURL: `${getBaseUri(URL)}/api/v0`,
-          headers: headers,
+        const body = JSON.stringify({
+          content: content,
+          explanationId: explanationId,
         });
 
-        const result: ExplanationResponse = await axiosInstance
-          .post(
-            "/ai/explanations/",
-            {
-              content: content,
-              explanationId: explanationId,
-            },
-            { signal: AbortSignal.timeout(28000) },
-          )
-          .then((response) => {
-            return response.data;
-          })
-          .catch((error) => {
-            const err = error as AxiosError;
-            const mappedError: IError = mapError(err);
-            return mappedError;
-          });
+        const fetch = loadFetch();
+        if (!fetch) {
+          return {"content": "Nothing"} as ExplanationResponse; // TODO
+        }
+        const result: ExplanationResponse = await fetch(
+          `${getBaseUri(URL)}/api/v0/ai/explanations/`,
+          {
+            method: "POST",
+            body,
+            headers,
+          },
+        ).then((response) => {console.log(response); return response.json()});
+        // .post(
+        //   "/ai/explanations/",
+        //   { signal: AbortSignal.timeout(28000) },
+        // )
+        //.then((response) => response.json());
+        // .catch((error) => {
+        //   /* TODO */
+        //   const err = error as AxiosError;
+        //   const mappedError: IError = mapError(err);
+        //   return mappedError;
+        // });
 
         console.log(result);
 
@@ -419,37 +435,59 @@ export class AnsibleLanguageService {
           Authorization: `Bearer ${accessToken}`,
         };
 
-        const axiosInstance = axios.create({
-          baseURL: `${getBaseUri(URL)}/api/v0`,
-          headers: headers,
+        const body = JSON.stringify({
+          text,
+          createOutline,
+          outline,
+          generationId,
+          wizardId,
         });
 
-        const result: GenerationResponse = await axiosInstance
-          .post(
-            "/ai/generations/",
-            {
-              text,
-              createOutline,
-              outline,
-              generationId,
-              wizardId,
-            },
-            { signal: AbortSignal.timeout(28000) },
-          )
-          .then((response) => {
-            return response.data;
-          })
-          .catch((error) => {
-            const err = error as AxiosError;
-            const mappedError: IError = mapError(err);
-            return mappedError;
-          });
+        const fetch = loadFetch();
+        if (!fetch) {
+          return {} as GenerationResponse; // TODO
+        }
+
+        const result: GenerationResponse = await fetch(
+          `${getBaseUri(URL)}/api/v0/ai/generations/`,
+          {
+            method: "POST",
+            body,
+            headers,
+          },
+        ).then((response) => {
+          return response.json();
+        });
+
+        console.log(result);
 
         return result;
+
+        //   const result: GenerationResponse = await axiosInstance
+        //     .post(
+        //       "/ai/generations/",
+        //       {
+        //         text,
+        //         createOutline,
+        //         outline,
+        //         generationId,
+        //         wizardId,
+        //       },
+        //       { signal: AbortSignal.timeout(28000) },
+        //     )
+        //     .then((response) => {
+        //       return response.data;
+        //     })
+        //     .catch((error) => {
+        //       const err = error as AxiosError;
+        //       const mappedError: IError = mapError(err);
+        //       return mappedError;
+        //     });
+
+        //   return result;
       },
     );
   }
-
   private handleError(error: unknown, contextName: string) {
     const leadMessage = `An error occurred in '${contextName}' handler: `;
     if (error instanceof Error) {

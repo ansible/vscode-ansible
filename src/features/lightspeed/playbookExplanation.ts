@@ -114,6 +114,7 @@ export const playbookExplanation = async (
           );
         }
       } else {
+        console.log(response);
         markdown = response.content;
         const html_snippet = marked.parse(markdown) as string;
         currentPanel.setContent(html_snippet, true);

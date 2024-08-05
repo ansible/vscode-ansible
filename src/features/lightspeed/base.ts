@@ -190,3 +190,16 @@ export class LightSpeedManager {
     );
   }
 }
+
+// See:
+// https://github.com/Microsoft/vscode/issues/12588#issuecomment-2111861237
+// https://github.com/microsoft/vscode/pull/198408
+// https://github.com/chrmarti/vscode-network-proxy-test/blob/main/src/extension.ts#L245-L252
+export function loadFetch(): typeof fetch|undefined {
+	try {
+		return require('electron')?.net?.fetch;
+	} catch (err) {
+		// Not available.
+	}
+	return undefined;
+}
