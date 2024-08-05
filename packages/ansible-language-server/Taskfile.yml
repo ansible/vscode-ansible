@@ -58,9 +58,6 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - "{{.ENGINE}} pull ghcr.io/ansible/community-ansible-dev-tools:{{ .EE_VERSION }}"
-      # Tests that container engine is functional and that we have the image:
-      - "{{.ENGINE}} run -i ghcr.io/ansible/community-ansible-dev-tools:{{ .EE_VERSION }} ansible-lint --version"
       - bash -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
     interactive: true
   test:
