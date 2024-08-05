@@ -20,7 +20,7 @@ import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
   testInlineSuggestionProviderCoExistence,
-  testIgnorePendingSuggestion,
+  testIgnorePendingSuggestion, testTriggerTaskSuggestion,
 } from "./e2eInlineSuggestion.test";
 import {
   UserAction,
@@ -435,6 +435,10 @@ export function testLightspeed(): void {
 
     describe("Test LightspeedUser", function () {
       testLightspeedUser();
+    });
+
+    describe("Test when a inline suggestion should be triggered", () => {
+      testTriggerTaskSuggestion();
     });
 
     describe("Test suggestion event handlers.", function () {
