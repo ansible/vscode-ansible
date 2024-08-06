@@ -247,12 +247,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_EXPLANATION,
       async () => {
-        await playbookExplanation(
-          context.extensionUri,
-          client,
-          lightSpeedManager.lightspeedAuthenticatedUser,
-          lightSpeedManager.settingsManager,
-        );
+        await playbookExplanation(context.extensionUri);
       },
     ),
   );
@@ -552,9 +547,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       async () => {
         await showPlaybookGenerationPage(
           context.extensionUri,
-          client,
           lightSpeedManager.lightspeedAuthenticatedUser,
-          lightSpeedManager.settingsManager,
         );
       },
     ),
