@@ -26,9 +26,13 @@ function main() {
 
   const explainForm = document.getElementById("explainForm-button-container");
   const htmlContent: string = document.documentElement.outerHTML;
-  if (htmlContent.includes("Looks like there is no model set for your organization.")) {
+  if (
+    htmlContent.includes(
+      "Looks like there is no model set for your organization.",
+    )
+  ) {
     if (explainForm) {
-      explainForm.style.display = "none"
+      explainForm.style.display = "none";
     }
   }
 }
