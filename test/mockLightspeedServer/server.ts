@@ -1,5 +1,7 @@
 // "Mock" Lightspeed Server
 import express, { Application } from "express";
+import http from "http";
+import * as ProxyChain from "proxy-chain";
 import { completions } from "./completion";
 import { contentmatches } from "./contentmatches";
 import { explanations } from "./explanations";
@@ -46,12 +48,6 @@ export const logger = winston.createLogger({
   ],
 });
 
-let url = new URL("http://127.0.0.1:3000");
-// Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
-if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
-  url = new URL(process.env.TEST_LIGHTSPEED_URL);
-}
-
 export function permissionDeniedCanApplyForTrial(): {
   code: string;
   message: string;
@@ -62,7 +58,7 @@ export function permissionDeniedCanApplyForTrial(): {
   };
 }
 
-export default class Server {
+export default class FakeLightspeedServer {
   constructor(app: Application) {
     this.init(app);
   }
@@ -131,10 +127,15 @@ export default class Server {
       res.status(200).send();
     });
 
-    app.listen(parseInt(url.port), url.hostname, () => {
-      logger.info(`Listening on port ${url.port} at ${url.hostname}`);
-    });
+    http.createServer(app).listen(3000, "0.0.0.0");
+    console.log("Dummy service is listening on port 3000");
   }
 }
 
-new Server(express());
+const proxyServer = new ProxyChain.Server({
+  port: 3001,
+  verbose: true,
+});
+proxyServer.listen(() => {
+  console.log(`Proxy server is listening on port ${3001}`);
+});
