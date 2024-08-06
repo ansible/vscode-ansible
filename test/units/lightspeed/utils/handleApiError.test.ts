@@ -1,7 +1,7 @@
 require("assert");
 
 import { AxiosError, AxiosHeaders } from "axios";
-import { mapError } from "../../src/utils/handleApiError";
+import { mapError } from "../../../../src/features/lightspeed/handleApiError";
 import assert from "assert";
 
 function createError(
