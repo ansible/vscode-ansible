@@ -70,7 +70,7 @@ export function getWebviewContentWithActiveSession(
     "style.css",
   ]);
   const nonce = getNonce();
-  let explainForm = `<div id = "explainForm-button-container" class="button-container">
+  const explainForm = `<div id = "explainForm-button-container" class="button-container">
   <form id="playbook-explanation-form">
     <vscode-button id="lightspeed-explorer-playbook-explanation-submit" class="lightspeedExplorerButton" ${
       has_playbook_opened

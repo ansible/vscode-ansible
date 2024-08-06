@@ -7,12 +7,10 @@ import {
 provideVSCodeDesignSystem().register(allComponents);
 
 const vscode = acquireVsCodeApi();
-
 window.addEventListener("load", main);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function setListener(id: string, func: any) {
-
   const button = document.getElementById(id) as Button;
   if (button) {
     button.addEventListener("click", () => func());
@@ -33,7 +31,6 @@ function main() {
       explainForm.style.display = "none"
     }
   }
-
 }
 
 function lightspeedConnect() {
@@ -42,8 +39,4 @@ function lightspeedConnect() {
 
 function lightspeedExplorerPlaybookExplanation() {
   vscode.postMessage({ command: "explain" });
-}
-
-function lightspeedPlaybookExplanationVisibility() {
-  vscode.postMessage({ command: "explainVisibility" })
 }
