@@ -212,6 +212,25 @@ export function lightspeedOneClickTrialUITest(): void {
       await new EditorView().closeAllEditors();
     });
 
+    it("Check for playbook explanation button", async () => {
+      const folder = "lightspeed";
+      const file = "playbook_4.yml";
+      const filePath = getFixturePath(folder, file);
+
+      // Open file in the editor
+      await VSBrowser.instance.openResources(filePath);
+      await sleep(1000);
+
+      const explainButton = await explorerView.findWebElement(
+        By.id("explainForm-button-container"),
+      );
+
+      await sleep(2000);
+      expect(explainButton).not.to.be.undefined;
+
+      await new EditorView().closeAllEditors();
+    });
+
     it("Invoke Playbook explanation with experimental features enabled", async () => {
       const folder = "lightspeed";
       const file = "playbook_4.yml";
