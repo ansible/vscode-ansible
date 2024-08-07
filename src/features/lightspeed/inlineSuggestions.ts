@@ -669,6 +669,7 @@ async function getInlineSuggestionState(
     shouldTriggerMultiTaskSuggestion(
       documentInfo.documentContent,
       suggestionMatchInfo.spacesBeforePromptStart,
+      inlinePosition.position.line,
       documentInfo.ansibleFileType,
     ) ||
     shouldRequestInlineSuggestions(
