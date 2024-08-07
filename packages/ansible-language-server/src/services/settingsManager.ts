@@ -53,7 +53,7 @@ export class SettingsManager {
         description: "Toggle usage of an execution environment",
       },
       image: {
-        default: "ghcr.io/ansible/creator-ee:latest",
+        default: "ghcr.io/ansible/community-ansible-dev-tools:latest",
         description: "Name of the execution environment to be used",
       },
       pull: {

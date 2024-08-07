@@ -60,7 +60,7 @@ try {
 }
 
 const containers = new Set([
-  `ghcr.io/ansible/creator-ee:${EE_VERSION}`,
+  `ghcr.io/ansible/community-ansible-dev-tools:${EE_VERSION}`,
   DEFAULT_CONTAINER,
 ]);
 

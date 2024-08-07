@@ -37,7 +37,7 @@ Toggle usage of an execution environment
 ## [`ansible.executionEnvironment.image`](#executionEnvironment.image) { #executionEnvironment.image data-toc-label=executionEnvironment.image }
 Name of the execution environment to be used
 . Default value:
-``ghcr.io/ansible/creator-ee:latest``
+``ghcr.io/ansible/community-ansible-dev-tools:latest``
 
 ## [`ansible.executionEnvironment.pull.policy`](#executionEnvironment.pull.policy) { #executionEnvironment.pull.policy data-toc-label=executionEnvironment.pull.policy }
 Image pull policy to be used. Valid values are &#x27;always&#x27;, &#x27;missing&#x27;, &#x27;never&#x27; and &#x27;tag&#x27;. always will always pull the image when extension is activated or reloaded. &#x27;missing&#x27; will pull if not locally available. &#x27;never&#x27; will never pull the image and &#x27;tag&#x27; will always pull if the image tag is &#x27;latest&#x27;, otherwise pull if not locally available.

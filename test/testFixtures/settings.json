@@ -11,7 +11,7 @@
   "ansible.executionEnvironment.containerEngine": "docker",
   "ansible.executionEnvironment.containerOptions": "",
   "ansible.executionEnvironment.enabled": false,
-  "ansible.executionEnvironment.image": "ghcr.io/ansible/creator-ee:latest",
+  "ansible.executionEnvironment.image": "ghcr.io/ansible/community-ansible-dev-tools:latest",
   "ansible.executionEnvironment.pull.policy": "missing",
   "ansible.executionEnvironment.pull.arguments": "",
   "ansible.executionEnvironment.volumeMounts": [],
