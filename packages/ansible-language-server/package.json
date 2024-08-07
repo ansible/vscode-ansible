@@ -85,7 +85,7 @@
     "watch": "tsc --watch -p .",
     "test": "sh -c \"nyc mocha ${MOCHA_OPTS:-}\"",
     "test-with-ee": "sh -c \"nyc mocha --grep @ee ${MOCHA_OPTS:-}\"",
-    "test-without-ee": "sh -c \"nyc mocha --grep @ee --invert ${MOCHA_OPTS:-}\""
+    "test-without-ee": "sh -c \"SKIP_PODMAN=1 SKIP_DOCKER=1 nyc mocha --grep @ee --invert ${MOCHA_OPTS:-}\""
   },
   "all": true
 }
