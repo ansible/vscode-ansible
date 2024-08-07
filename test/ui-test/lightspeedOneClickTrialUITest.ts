@@ -126,8 +126,6 @@ export function lightspeedOneClickTrialUITest(): void {
         By.id("lightspeedExplorerView"),
       );
       const text = await div.getText();
-      console.log("text")
-      console.log(text)
       expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
       await explorerView.switchBack();
       await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
