@@ -289,7 +289,8 @@ export async function testTriggerTaskSuggestion(): Promise<void> {
       assert(!taskFileCollectionResultEmpty);
     });
 
-    const taskFileTask = "- name: install redis on Debian based distributions\n";
+    const taskFileTask =
+      "- name: install redis on Debian based distributions\n";
     it("Test taskFileTask.", async () => {
       const taskFileTaskResult = shouldTriggerMultiTaskSuggestion(
         taskFileTask,

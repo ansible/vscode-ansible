@@ -20,7 +20,8 @@ import { lightSpeedManager } from "../../../src/extension";
 import {
   testInlineSuggestionByAnotherProvider,
   testInlineSuggestionProviderCoExistence,
-  testIgnorePendingSuggestion, testTriggerTaskSuggestion,
+  testIgnorePendingSuggestion,
+  testTriggerTaskSuggestion,
 } from "./e2eInlineSuggestion.test";
 import {
   UserAction,
