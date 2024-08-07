@@ -383,7 +383,8 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     log notice "ansible: ${EE_ANSIBLE_VERSION}, ansible-lint: ${EE_ANSIBLE_LINT_VERSION}"
     # Test docker ability to mount current folder with write access, default mount options
     docker run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
-        bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+        bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }" \
+        bash -c "ls -la $PWD"
 fi
 
 log notice "Podman checks..."
@@ -448,7 +449,8 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman run -v "$PWD:$PWD" \
         ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] \
-        && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+        && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }" \
+        bash -c "ls -la $PWD"
 fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
