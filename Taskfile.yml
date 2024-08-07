@@ -22,7 +22,14 @@ vars:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
+    sh: >
+      bash -c '
+      if [[ "$OSTYPE" == "linux-gnu"* ]] &&
+      command -v xvfb-run >/dev/null;
+      then
+      echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log";
+      fi
+      '
 tasks:
   default:
     desc: Run most commands
@@ -73,7 +80,7 @@ tasks:
   code:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
-      NODE_OPTIONS: "--no-deprecation"
+      NODE_OPTIONS: --no-deprecation
     desc: Forced install of extension in your code instance
     cmds:
       - task: package
@@ -151,7 +158,7 @@ tasks:
     cmds:
       - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - '{{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn run _coverage-all'''
+      - "{{.XVFB}} bash -c 'source \"{{.VIRTUAL_ENV}}/bin/activate\" && yarn run _coverage-all'"
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
@@ -159,7 +166,7 @@ tasks:
     cmds:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
+      - " {{.XVFB}} bash -c 'source \"{{.VIRTUAL_ENV}}/bin/activate\" && yarn _coverage-ui-with-mock-lightspeed-server'"
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report

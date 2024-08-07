@@ -6,7 +6,7 @@ includes:
     taskfile: ../../.config/Taskfile_shared.yml
     dir: ../..
     internal: true
-env: &env
+env:
   # basically the same thing from .envrc file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"

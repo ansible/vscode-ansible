@@ -1,8 +1,7 @@
 {
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    ".gitignore": "pyproject.toml, setup.py, tox.ini, mypy.ini, .pylintrc, .yamllint, .isort.cfg, requirements.in, requirements.txt, constraints.txt, .prettierrc.yaml, .prettierignore, .mocharc.json, .pre-commit-config.yaml, cspell.config.yaml, .config, .gitattributes, .git_archival.txt, .flake8, .darglint, .ansible-lint, .packit.yaml, pytest.ini, codecov.yml, .readthedocs.yml, .prettierrc, .pre-commit-hooks.yaml, .editorconfig, .envrc, Jenkinsfile, commitlint.config.js, package-lock.json, package.nls.json, yarn.lock, tsconfig.json, .eslintrc.json, .mocharc.yml, .ncurc.json, .yarnrc.yml, .vscodeignore, webpack.config.js, webpack.config.js",
-    "README.md": "CONTRIBUTING.md, LICENSE, CHANGELOG.md, USAGE_DATA.md",
+    ".gitignore": ".ansible-lint, .c8rc, .config, .darglint, .depcheckrc.yml, .editorconfig, .envrc, .eslintrc.json, .flake8, .git_archival.txt, .gitattributes, .gitleaks.toml, .isort.cfg, .mocharc.json, .mocharc.yml, .ncurc.json, .npmrc, .nycrc.yml, .packit.yaml, .pre-commit-config.yaml, .pre-commit-hooks.yaml, .prettierignore, .prettierrc, .prettierrc.yaml, .pylintrc, .readthedocs.yml, .tool-versions, .vscodeignore, .yamllint, .yarnrc.yml, codecov.yml, commitlint.config.js, constraints.txt, cspell.config.yaml, eslint.config.mjs, Jenkinsfile, mkdocs.yml, mypy.ini, package-lock.json, package-lock.json, package.json, package.nls.json, pyproject.toml, pytest.ini, requirements.in, requirements.txt, setup.py, Taskfile.yml, tox.ini, tsconfig.json, tsdoc.json, webpack.config.js, webpack.config.js, webpack.config.ts, yarn.lock",
     "Containerfile": "Dockerfile"
   },
   "editor.codeActionsOnSave": ["source.fixAll.eslint"],

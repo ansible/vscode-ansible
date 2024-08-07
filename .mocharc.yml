@@ -1,6 +1,7 @@
-extension: ["ts"]
+---
+extension: [ts]
 require: ts-node/register
-package: "./package.json"
+package: ./package.json
 timeout: 10001 # default is 2000
 # most UI tests are >22s due to our current wait times and we do not want
 # red slow marker to distract us until we sort that part yet. Red is expected

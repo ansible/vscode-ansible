@@ -13,9 +13,8 @@ mkdocs:
 # Optionally build your docs in additional formats
 # such as PDF and ePub
 formats: []
-
 submodules:
-  include: all  # []
+  include: all # []
   exclude: []
   recursive: true
 

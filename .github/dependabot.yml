@@ -1,9 +1,10 @@
+---
 version: 2
 updates:
   - package-ecosystem: npm
     directories:
-      - "/"
-      - "/packages/ansible-language-server/"
+      - /
+      - /packages/ansible-language-server/
     schedule:
       interval: weekly
     labels:
@@ -17,23 +18,23 @@ updates:
           - "*"
         exclude-patterns:
           - "@types/vscode"
-          - "vscode-extension-tester"
+          - vscode-extension-tester
       extester:
         # Separated as it is likely to also require tuning our test code for passing
         patterns:
-          - "vscode-extension-tester"
+          - vscode-extension-tester
     ignore:
       # requires ESM https://github.com/ansible/vscode-ansible/issues/1225
       - dependency-name: chai
-        versions: ["5.x"]
+        versions: [5.x]
       # @types/vscode should be manually bumped when we also update
       # engines.vscode inside package.json
       - dependency-name: "@types/vscode"
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
     labels:
-      - "dependencies"
-      - "skip-changelog"
+      - dependencies
+      - skip-changelog
