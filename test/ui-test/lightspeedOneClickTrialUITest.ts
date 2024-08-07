@@ -126,6 +126,8 @@ export function lightspeedOneClickTrialUITest(): void {
         By.id("lightspeedExplorerView"),
       );
       const text = await div.getText();
+      console.log("text")
+      console.log(text)
       expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
       await explorerView.switchBack();
       await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
@@ -209,6 +211,25 @@ export function lightspeedOneClickTrialUITest(): void {
         trialNotificationMessage,
         true, // click button
       );
+      await new EditorView().closeAllEditors();
+    });
+
+    it("Check for playbook explanation button", async () => {
+      const folder = "lightspeed";
+      const file = "playbook_4.yml";
+      const filePath = getFixturePath(folder, file);
+
+      // Open file in the editor
+      await VSBrowser.instance.openResources(filePath);
+      await sleep(1000);
+
+      const explainButton = await explorerView.findWebElement(
+        By.id("explainForm-button-container"),
+      );
+
+      await sleep(2000);
+      expect(explainButton).not.to.be.undefined;
+
       await new EditorView().closeAllEditors();
     });
 
