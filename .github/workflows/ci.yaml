@@ -295,6 +295,7 @@ jobs:
             out/log
             out/test-resources/settings/logs
             out/userdata/logs
+            "${HOME}/.config/Code/logs"
           if-no-files-found: ignore
           retention-days: 90
 
