@@ -6,19 +6,26 @@ import { Connection } from "vscode-languageserver";
 import { WorkspaceFolderContext } from "./workspaceManager";
 import { CommandRunner } from "../utils/commandRunner";
 import { ansibleMetaDataType } from "../utils/getAnsibleMetaData";
+import { ExtensionSettings } from "../interfaces/extensionSettings";
 
 export class AnsibleConfig {
   private connection: Connection;
   private context: WorkspaceFolderContext;
+  private settings: ExtensionSettings;
   private _collection_paths: string[] = [];
   private _module_locations: string[] = [];
   private _ansible_location = "";
   private _default_host_list: string[] = [];
   private _ansible_meta_data = {}; // ini data
 
-  constructor(connection: Connection, context: WorkspaceFolderContext) {
+  constructor(
+    connection: Connection,
+    context: WorkspaceFolderContext,
+    settings: ExtensionSettings,
+  ) {
     this.connection = connection;
     this.context = context;
+    this.settings = settings;
   }
 
   public async initialize(): Promise<void> {
@@ -82,8 +89,9 @@ export class AnsibleConfig {
 
       // get Python sys.path
       // this is needed to get the pre-installed collections to work
+      const interpreterPathFromConfig = this.settings.python.interpreterPath;
       const pythonPathResult = await commandRunner.runCommand(
-        "python3",
+        interpreterPathFromConfig,
         ' -c "import sys; print(sys.path, end=\\"\\")"',
       );
       this._collection_paths.push(

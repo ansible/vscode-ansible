@@ -3,9 +3,11 @@ import { URI } from "vscode-uri";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import { CommandRunner } from "./commandRunner";
 import * as child_process from "child_process";
+import { ExtensionSettings } from "../interfaces/extensionSettings";
 
 let context: WorkspaceFolderContext;
 let connection: Connection | undefined;
+let settings: ExtensionSettings;
 
 export interface ansibleMetaDataEntryType {
   [name: string]:
@@ -152,8 +154,9 @@ async function getPythonInfo() {
     ?.pop()
     ?.trim();
 
+  const interpreterPathFromConfig = settings.python.interpreterPath;
   const pythonPathResult = await getResultsThroughCommandRunner(
-    "python3",
+    interpreterPathFromConfig,
     '-c "import sys; print(sys.executable)"',
   );
   pythonInfo["location"] = pythonPathResult?.stdout?.trim();
