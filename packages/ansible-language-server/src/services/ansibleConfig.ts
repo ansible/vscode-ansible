@@ -82,8 +82,9 @@ export class AnsibleConfig {
 
       // get Python sys.path
       // this is needed to get the pre-installed collections to work
+      const interpreterPathFromConfig = settings.python.interpreterPath;
       const pythonPathResult = await commandRunner.runCommand(
-        "python3",
+        interpreterPathFromConfig,
         ' -c "import sys; print(sys.path, end=\\"\\")"',
       );
       this._collection_paths.push(
