@@ -24,6 +24,7 @@ import { FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 
 import { activate, getDocUri, sleep } from "../../helper";
 import { integer } from "vscode-languageclient";
+import { shouldTriggerMultiTaskSuggestion } from "../../../src/features/lightspeed/utils/data";
 
 const INSERT_TEXT = "**** I'm not a pilot ****";
 
@@ -259,6 +260,94 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
     after(() => {
       feedbackRequestSpy.restore();
       isAuthenticatedStub.restore();
+    });
+  });
+}
+
+export async function testTriggerTaskSuggestion(): Promise<void> {
+  describe("Test when a inline suggestion should be triggered.", () => {
+    const taskFileCollection =
+      "collections:\n" + "  - name: Deploy web servers\n";
+    it("Test taskFileCollection.", async () => {
+      const taskFileCollectionResult = shouldTriggerMultiTaskSuggestion(
+        taskFileCollection,
+        2,
+        3,
+        "tasks_in_role",
+      );
+      assert(!taskFileCollectionResult);
+    });
+
+    const taskFileCollectionEmpty = "collections:\n";
+    it("Test taskFileCollectionEmpty.", async () => {
+      const taskFileCollectionResultEmpty = shouldTriggerMultiTaskSuggestion(
+        taskFileCollectionEmpty,
+        0,
+        1,
+        "tasks_in_role",
+      );
+      assert(!taskFileCollectionResultEmpty);
+    });
+
+    const taskFileTask =
+      "- name: install redis on Debian based distributions\n";
+    it("Test taskFileTask.", async () => {
+      const taskFileTaskResult = shouldTriggerMultiTaskSuggestion(
+        taskFileTask,
+        0,
+        2,
+        "tasks",
+      );
+      assert(taskFileTaskResult);
+    });
+
+    const taskFileTaskAlreadySuggested =
+      "- name: install redis on Debian based distributions\n" +
+      "  apt:\n" +
+      "    name: redis-server\n" +
+      "    state: present\n" +
+      "    update_cache: true\n" +
+      "  become: true";
+    it("Test taskFileTaskAlreadySuggested.", async () => {
+      const taskFileTaskAlreadySuggestedResult =
+        shouldTriggerMultiTaskSuggestion(
+          taskFileTaskAlreadySuggested,
+          0,
+          7,
+          "tasks",
+        );
+      assert(!taskFileTaskAlreadySuggestedResult);
+    });
+
+    const taskFileBlock =
+      "block:\n" + "  - name: Install httpd and memcached\n";
+    it("Test taskFileBlock.", async () => {
+      const taskFileBlockResult = shouldTriggerMultiTaskSuggestion(
+        taskFileBlock,
+        2,
+        3,
+        "tasks",
+      );
+      assert(taskFileBlockResult);
+    });
+
+    const taskFileBlockTwoTasks =
+      "block:\n" +
+      "  - name: Install httpd and memcached\n" +
+      "    ansible.builtin.yum:\n" +
+      "      name:\n" +
+      "      - httpd\n" +
+      "      - memcached\n" +
+      "      state: present\n" +
+      "  - name: Display something";
+    it("Test taskFileBlockTwoTasks.", async () => {
+      const taskFileBlockTwoTasksResult = shouldTriggerMultiTaskSuggestion(
+        taskFileBlockTwoTasks,
+        2,
+        9,
+        "tasks",
+      );
+      assert(taskFileBlockTwoTasksResult);
     });
   });
 }
