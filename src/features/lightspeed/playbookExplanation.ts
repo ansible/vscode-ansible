@@ -1,13 +1,13 @@
 import * as vscode from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import * as marked from "marked";
-import { SettingsManager } from "../../settings";
 import { lightSpeedManager } from "../../extension";
-import { LightspeedUser } from "./lightspeedUser";
-import { ExplanationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "./utils/errors";
+import { ExplanationResponseParams } from "../../interfaces/lightspeed";
+import { LightSpeedAPI } from "./api";
+
 import { v4 as uuidv4 } from "uuid";
 import * as yaml from "yaml";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
@@ -44,12 +44,7 @@ export function findTasks(content: string): boolean {
   return false;
 }
 
-export const playbookExplanation = async (
-  extensionUri: vscode.Uri,
-  client: LanguageClient,
-  lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
-) => {
+export const playbookExplanation = async (extensionUri: vscode.Uri) => {
   if (!vscode.window.activeTextEditor) {
     return;
   }
@@ -98,19 +93,19 @@ export const playbookExplanation = async (
   lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
   try {
     generateExplanation(
+      lightSpeedManager.apiInstance,
       content,
       explanationId,
-      client,
-      lightspeedAuthenticatedUser,
-      settingsManager,
-    ).then(async (response: ExplanationResponse) => {
+    ).then(async (response: ExplanationResponseParams | IError) => {
+      console.log(response);
       if (isError(response)) {
         const oneClickTrialProvider = getOneClickTrialProvider();
-        response = oneClickTrialProvider.mapError(response);
-        if (!(await oneClickTrialProvider.showPopup(response))) {
-          vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+        //response = oneClickTrialProvider.mapError(response);
+        const my_error = response as IError;
+        if (!(await oneClickTrialProvider.showPopup(my_error))) {
+          vscode.window.showErrorMessage(my_error.message ?? UNKNOWN_ERROR);
           currentPanel.setContent(
-            `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${response.message}</p></p>`,
+            `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${my_error.message}</p></p>`,
           );
         }
       } else {
@@ -133,25 +128,17 @@ export const playbookExplanation = async (
 };
 
 async function generateExplanation(
+  apiInstance: LightSpeedAPI,
   content: string,
   explanationId: string,
-  client: LanguageClient,
-  lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
-): Promise<ExplanationResponse> {
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-
-  const explanation: ExplanationResponse = await client.sendRequest(
-    "playbook/explanation",
-    {
-      accessToken: accessToken,
-      URL: settingsManager.settings.lightSpeedService.URL,
+): Promise<ExplanationResponseParams | IError> {
+  const response: ExplanationResponseParams | IError =
+    await apiInstance.explanationRequest({
       content: content,
       explanationId: explanationId,
-    },
-  );
-  return explanation;
+    });
+
+  return response;
 }
 
 export class PlaybookExplanationPanel {

@@ -13,7 +13,7 @@ import { getCurrentUTCDateTime } from "../utils/dateTime";
 import * as yaml from "yaml";
 import { LightspeedUser } from "./lightspeedUser";
 import { parsePlays } from "./utils/parsePlays";
-import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "./utils/errors";
 
 export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   public static readonly viewType = "ansible.lightspeed.trainingMatchPanel";

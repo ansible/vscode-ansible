@@ -3,22 +3,28 @@ import axios, { AxiosInstance, AxiosError } from "axios";
 
 import { SettingsManager } from "../../settings";
 import {
-  CompletionResponseParams,
   CompletionRequestParams,
-  FeedbackRequestParams,
-  FeedbackResponseParams,
+  CompletionResponseParams,
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
+  ExplanationRequestParams,
+  ExplanationResponseParams,
+  FeedbackRequestParams,
+  FeedbackResponseParams,
+  GenerationRequestParams,
+  GenerationResponseParams,
 } from "../../interfaces/lightspeed";
 import {
-  LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
+  LIGHTSPEED_PLAYBOOK_EXPLANATION_URL,
+  LIGHTSPEED_PLAYBOOK_GENERATION_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
+  LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
   UserAction,
 } from "../../definitions/lightspeed";
 import { getBaseUri } from "./utils/webUtils";
 import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
-import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "./utils/errors";
 import { lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
 import { inlineSuggestionHideHandler } from "./inlineSuggestions";
@@ -26,24 +32,9 @@ import {
   getOneClickTrialProvider,
   OneClickTrialProvider,
 } from "./utils/oneClickTrial";
+import { mapError } from "./handleApiError";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _handleApiError: any;
-
-export async function mapError(error: AxiosError): Promise<IError> {
-  if (!_handleApiError) {
-    try {
-      _handleApiError =
-        await require("@ansible/ansible-language-server/src/utils/handleApiError");
-    } catch (e) {
-      _handleApiError =
-        await require(/* webpackIgnore: true */ "../../../../server/src/utils/handleApiError");
-    }
-  }
-  return _handleApiError.mapError(error);
-}
 
 export class LightSpeedAPI {
   private axiosInstance: AxiosInstance | undefined;
@@ -285,6 +276,84 @@ export class LightSpeedAPI {
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+        },
+      );
+      return response.data;
+    } catch (error) {
+      const err = error as AxiosError;
+      const mappedError: IError = await mapError(err);
+      // Do not show trial popup for errors on content matches because either
+      // completions or generations API should have been called already.
+      return mappedError;
+    }
+  }
+
+  public async explanationRequest(
+    inputData: ExplanationRequestParams,
+  ): Promise<ExplanationResponseParams | IError> {
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.error("Ansible Lightspeed instance is not initialized.");
+      return {} as ExplanationResponseParams;
+    }
+    try {
+      const requestData = {
+        ...inputData,
+        metadata: { ansibleExtensionVersion: this._extensionVersion },
+      };
+      console.log(
+        `[ansible-lightspeed] Explanation request sent to lightspeed: ${JSON.stringify(
+          requestData,
+        )}`,
+      );
+      const response = await axiosInstance.post(
+        LIGHTSPEED_PLAYBOOK_EXPLANATION_URL,
+        //LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
+        requestData,
+        {
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+          // This is coming from our former LSP implementation, it may be a good
+          // idea to generalize the use of a <28s timeout to be below CloudFront's 30s
+          signal: AbortSignal.timeout(28000),
+        },
+      );
+      return response.data;
+    } catch (error) {
+      const err = error as AxiosError;
+      const mappedError: IError = await mapError(err);
+      // Do not show trial popup for errors on content matches because either
+      // completions or generations API should have been called already.
+      return mappedError;
+    }
+  }
+
+  public async generationRequest(
+    inputData: GenerationRequestParams,
+  ): Promise<GenerationResponseParams | IError> {
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.error("Ansible Lightspeed instance is not initialized.");
+      return {} as GenerationResponseParams;
+    }
+    try {
+      const requestData = {
+        ...inputData,
+        metadata: { ansibleExtensionVersion: this._extensionVersion },
+      };
+      console.log(
+        `[ansible-lightspeed] Explanation request sent to lightspeed: ${JSON.stringify(
+          requestData,
+        )}`,
+      );
+      const response = await axiosInstance.post(
+        LIGHTSPEED_PLAYBOOK_GENERATION_URL,
+        //LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
+        requestData,
+        {
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+          // This is coming from our former LSP implementation, it may be a good
+          // idea to generalize the use of a <28s timeout to be below CloudFront's 30s
+          signal: AbortSignal.timeout(28000),
         },
       );
       return response.data;
