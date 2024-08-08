@@ -996,7 +996,7 @@
     "test-ui-current": "CODE_VERSION='max' yarn _test-ui",
     "test-ui-oldest": "CODE_VERSION='min' yarn _test-ui",
     "test-ui-with-mock-lightspeed-server": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' ./tools/run-ui-test-with-mock-lightspeed-server.sh",
-    "_coverage-ui": "extest get-vscode -c ${CODE_VERSION} -s out/test-resources && extest get-chromedriver -c ${CODE_VERSION} -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests --coverage -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
+    "_coverage-ui": "extest get-vscode -c ${CODE_VERSION} -s out/test-resources && extest get-chromedriver -c ${CODE_VERSION} -s out/test-resources && extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources && extest run-tests --log_level Debug --coverage -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js",
     "coverage-ui-current": "COVERAGE=1 CODE_VERSION='max' yarn _coverage-ui",
     "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' yarn _coverage-ui",
     "_coverage-ui-with-mock-lightspeed-server": "./tools/run-ui-test-with-mock-lightspeed-server.sh --coverage",
