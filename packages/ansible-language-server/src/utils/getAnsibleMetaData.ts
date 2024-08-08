@@ -138,8 +138,12 @@ async function getAnsibleInfo() {
 async function getPythonInfo() {
   const pythonInfo: ansibleMetaDataEntryType = {};
 
+  const settings = await context.documentSettings.get(
+    context.workspaceFolder.uri,
+  );
+  const interpreterPathFromConfig = settings.python.interpreterPath;
   const pythonVersionResult = await getResultsThroughCommandRunner(
-    "python3",
+    `${interpreterPathFromConfig}/python3`,
     "--version",
   );
   if (pythonVersionResult === undefined) {
@@ -152,10 +156,6 @@ async function getPythonInfo() {
     ?.pop()
     ?.trim();
 
-  const settings = await context.documentSettings.get(
-    context.workspaceFolder.uri,
-  );
-  const interpreterPathFromConfig = settings.python.interpreterPath;
   const pythonPathResult = await getResultsThroughCommandRunner(
     interpreterPathFromConfig,
     '-c "import sys; print(sys.executable)"',
