@@ -289,7 +289,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -324,7 +324,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -359,7 +359,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -402,7 +402,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -446,7 +446,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -483,7 +483,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -526,7 +526,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
@@ -570,7 +570,7 @@ describe("doHover()", () => {
     describe("With EE enabled @ee", () => {
       before(async () => {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
