@@ -143,7 +143,7 @@ async function getPythonInfo() {
   );
   const interpreterPathFromConfig = settings.python.interpreterPath;
   const pythonVersionResult = await getResultsThroughCommandRunner(
-    `${interpreterPathFromConfig}/python3`,
+    "python3",
     "--version",
   );
   if (pythonVersionResult === undefined) {

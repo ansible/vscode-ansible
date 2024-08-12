@@ -222,7 +222,10 @@ describe("getAnsibleMetaData()", () => {
       });
 
       it("should have a valid python location", function () {
-        if (actualAnsibleMetaData["python information"]) {
+        if (
+          actualAnsibleMetaData["python information"] &&
+          actualAnsibleMetaData["python information"]["location"]
+        ) {
           expect(
             actualAnsibleMetaData["python information"]["location"],
           ).include(pythonInfoForTest["location"]);
