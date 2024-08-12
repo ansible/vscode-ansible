@@ -115,7 +115,7 @@ export async function enableExecutionEnvironmentSettings(): Promise<void> {
     {
       src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
       dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
-      options: undefined,
+      options: "ro", // read-only option for volume mounts
     },
   ];
   await updateSettings("executionEnvironment.volumeMounts", volumeMounts);
@@ -123,6 +123,7 @@ export async function enableExecutionEnvironmentSettings(): Promise<void> {
 
 export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.enabled", false);
+  await updateSettings("executionEnvironment.volumeMounts", []);
 }
 
 export async function enableLightspeedSettings(): Promise<void> {
