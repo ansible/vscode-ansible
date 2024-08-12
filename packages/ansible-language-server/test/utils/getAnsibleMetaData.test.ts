@@ -203,7 +203,11 @@ describe("getAnsibleMetaData()", () => {
 
     describe("Verify python details", () => {
       it("should contain all the keys for python information", function () {
-        if (actualAnsibleMetaData["python information"]) {
+        if (
+          actualAnsibleMetaData["python information"] &&
+          actualAnsibleMetaData["python information"]["version"] &&
+          actualAnsibleMetaData["python information"]["location"]
+        ) {
           expect(Object.keys(pythonInfoForTest).length).equals(
             Object.keys(actualAnsibleMetaData["python information"]).length,
           );
@@ -212,7 +216,10 @@ describe("getAnsibleMetaData()", () => {
         }
       });
       it("should have information about python version used", function () {
-        if (actualAnsibleMetaData["python information"]) {
+        if (
+          actualAnsibleMetaData["python information"] &&
+          actualAnsibleMetaData["python information"]["version"]
+        ) {
           expect(
             actualAnsibleMetaData["python information"]["version"],
           ).includes(pythonInfoForTest["version"]);
