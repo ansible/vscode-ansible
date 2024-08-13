@@ -19,16 +19,16 @@ export function testHoverEE(): void {
     });
     console.log("Inside testHoverEE");
 
-    // describe("Hover for play keywords", () => {
-    //   it("should hover over `name` keyword", async () => {
-    //     await testHover(docUri1, new vscode.Position(0, 4), [
-    //       {
-    //         contents: [
-    //           "Identifier. Can be used for documentation, or in tasks/handlers.",
-    //         ],
-    //       },
-    //     ]);
-    //   });
+    describe("Hover for play keywords", () => {
+      it("should hover over `name` keyword", async () => {
+        await testHover(docUri1, new vscode.Position(0, 4), [
+          {
+            contents: [
+              "Identifier. Can be used for documentation, or in tasks/handlers.",
+            ],
+          },
+        ]);
+      });
 
     //   it("should hover over `hosts` keyword", async () => {
     //     await testHover(docUri1, new vscode.Position(2, 4), [
@@ -103,6 +103,6 @@ export function testHoverEE(): void {
     //   it("should not hover over collection module option present in EE (vyos.vyos.vyos_prefix_list -> config)", async () => {
     //     await testHover(docUri1, new vscode.Position(15, 10), []);
     //   });
-    // });
+    });
   });
 }
