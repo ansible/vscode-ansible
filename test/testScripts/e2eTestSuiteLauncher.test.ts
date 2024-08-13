@@ -43,14 +43,15 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         await enableExecutionEnvironmentSettings();
-        
+        console.log("BEFORE TEST HOVER EE");
       });
 
       after(async () => {
         await disableExecutionEnvironmentSettings(); // Revert back the default settings
         unSetFixtureAnsibleCollectionPathEnv();
+        console.log("AFTER TEST HOVER EE");
       });
-      console.log("TEST HOVER EE - DISABLED")
+      console.log("TEST HOVER EE - DISABLED");
       //testHoverEE();
     });
   }
