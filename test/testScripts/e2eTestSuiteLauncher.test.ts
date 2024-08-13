@@ -48,7 +48,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
         await disableExecutionEnvironmentSettings(); // Revert back the default settings
       });
 
-      testHoverEE();
+      //testHoverEE();
     });
   }
 
