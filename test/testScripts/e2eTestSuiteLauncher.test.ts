@@ -5,8 +5,10 @@ import { testHoverWithoutEE } from "./hover/testWithoutEE.test";
 import {
   updateSettings,
   setFixtureAnsibleCollectionPathEnv,
+  unSetFixtureAnsibleCollectionPathEnv,
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
+  deleteAlsCache,
 } from "../helper";
 import { testLightspeed } from "./lightspeed/testLightspeed.test";
 import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
@@ -38,6 +40,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
   if (skip_ee !== "1" && run_lightspeed_tests_only !== "1") {
     describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", () => {
       before(async () => {
+        deleteAlsCache();
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
@@ -46,6 +49,8 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
 
       after(async () => {
         await disableExecutionEnvironmentSettings(); // Revert back the default settings
+        unSetFixtureAnsibleCollectionPathEnv();
+        deleteAlsCache();
       });
 
       testHoverEE();

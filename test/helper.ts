@@ -9,6 +9,7 @@ import { integer } from "vscode-languageclient";
 import axios from "axios";
 import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
 import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
+import { rmSync } from "fs";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -90,6 +91,13 @@ export async function updateSettings(
 ): Promise<void> {
   const ansibleConfiguration = vscode.workspace.getConfiguration(section);
   return ansibleConfiguration.update(setting, value);
+}
+
+export function deleteAlsCache(): void {
+  const hostCacheBasePath = path.resolve(
+    `${process.env.HOME}/.cache/ansible-language-server/`,
+  );
+  rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
 export function setFixtureAnsibleCollectionPathEnv(
