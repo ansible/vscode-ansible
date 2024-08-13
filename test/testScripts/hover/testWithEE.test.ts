@@ -12,7 +12,7 @@ export function testHoverEE(): void {
 
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-    //   await activate(docUri1);
+      await activate(docUri1);
     //   setFixtureAnsibleCollectionPathEnv(
     //     "/home/runner/.ansible/collections:/usr/share/ansible/collections",
     //   );
