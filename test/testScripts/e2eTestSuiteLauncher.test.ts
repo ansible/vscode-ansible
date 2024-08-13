@@ -7,6 +7,7 @@ import {
   setFixtureAnsibleCollectionPathEnv,
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
+  unSetFixtureAnsibleCollectionPathEnv,
 } from "../helper";
 import { testLightspeed } from "./lightspeed/testLightspeed.test";
 import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
@@ -46,9 +47,10 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
 
       after(async () => {
         await disableExecutionEnvironmentSettings(); // Revert back the default settings
+        unSetFixtureAnsibleCollectionPathEnv();
       });
 
-      //testHoverEE();
+      testHoverEE();
     });
   }
 
