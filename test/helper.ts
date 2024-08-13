@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as path from "path"; 
+import * as path from "path";
 import sinon from "sinon";
 import { assert } from "chai";
 import findProcess from "find-process";
@@ -107,7 +107,7 @@ export function setFixtureAnsibleCollectionPathEnv(
 export function deleteAlsCache(): void {
   const hostCacheBasePath = path.resolve(
     `${process.env.HOME}/.cache/ansible-language-server/`,
-    );
+  );
   rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
