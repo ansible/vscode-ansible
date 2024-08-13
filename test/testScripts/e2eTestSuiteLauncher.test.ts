@@ -8,6 +8,7 @@ import {
   enableExecutionEnvironmentSettings,
   disableExecutionEnvironmentSettings,
   unSetFixtureAnsibleCollectionPathEnv,
+  deleteAlsCache,
 } from "../helper";
 import { testLightspeed } from "./lightspeed/testLightspeed.test";
 import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
@@ -44,12 +45,14 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
         );
         await enableExecutionEnvironmentSettings();
         console.log("BEFORE TEST HOVER EE");
+        deleteAlsCache();
       });
 
       after(async () => {
         await disableExecutionEnvironmentSettings(); // Revert back the default settings
         unSetFixtureAnsibleCollectionPathEnv();
         console.log("AFTER TEST HOVER EE");
+        deleteAlsCache();
       });
       console.log("TEST HOVER EE - ENABLED");
       testHoverEE();

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import * as path from "path";
+import * as path from "path"; 
 import sinon from "sinon";
 import { assert } from "chai";
 import findProcess from "find-process";
@@ -9,6 +9,7 @@ import { integer } from "vscode-languageclient";
 import axios from "axios";
 import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
 import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
+import { rmdirSync, rmSync } from "fs";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -101,6 +102,13 @@ export function setFixtureAnsibleCollectionPathEnv(
     process.env.ANSIBLE_COLLECTIONS_PATHS =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
   }
+}
+
+export function deleteAlsCache(): void {
+  const hostCacheBasePath = path.resolve(
+    `${process.env.HOME}/.cache/ansible-language-server/`,
+    );
+  rmSync(hostCacheBasePath, { recursive: true, force: true });
 }
 
 export function unSetFixtureAnsibleCollectionPathEnv(): void {
