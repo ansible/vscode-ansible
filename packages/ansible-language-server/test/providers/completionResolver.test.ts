@@ -225,7 +225,7 @@ describe("doCompletionResolve()", () => {
         describe("with EE enabled @ee", () => {
           before(async () => {
             setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible",
+              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
             await enableExecutionEnvironmentSettings(docSettings);
           });
@@ -250,7 +250,7 @@ describe("doCompletionResolve()", () => {
         describe("with EE enabled @ee", () => {
           before(async () => {
             setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible",
+              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
             await enableExecutionEnvironmentSettings(docSettings);
             (await docSettings).ansible.useFullyQualifiedCollectionNames =
@@ -286,7 +286,7 @@ describe("doCompletionResolve()", () => {
       describe("with EE enabled @ee", () => {
         before(async () => {
           setFixtureAnsibleCollectionPathEnv(
-            "/home/runner/.ansible/collections:/usr/share/ansible",
+            "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
           await enableExecutionEnvironmentSettings(docSettings);
         });
