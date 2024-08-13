@@ -51,8 +51,8 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", () => {
         unSetFixtureAnsibleCollectionPathEnv();
         console.log("AFTER TEST HOVER EE");
       });
-      console.log("TEST HOVER EE - DISABLED");
-      //testHoverEE();
+      console.log("TEST HOVER EE - ENABLED");
+      testHoverEE();
     });
   }
 

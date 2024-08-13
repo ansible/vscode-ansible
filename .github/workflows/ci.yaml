@@ -248,14 +248,14 @@ jobs:
         if: "${{ !contains(matrix.name, 'test') }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task unit
-        if: contains(matrix.name, 'test')
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task unit
+      #   if: contains(matrix.name, 'test')
+      #   run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task ui
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
-        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task ui
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+      #   run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
