@@ -90,8 +90,6 @@ jobs:
 
           - name: test (linux)
             task-name: test
-            # https://github.com/ansible/vscode-ansible/issues/1473
-            ignore-als-test-failure: true
 
           - name: test (macos)
             task-name: test
@@ -265,7 +263,6 @@ jobs:
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: contains(matrix.name, 'test')
-        continue-on-error: ${{ matrix.ignore-als-test-failure || false }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Setup tmate session

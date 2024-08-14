@@ -276,6 +276,7 @@ export function getRolePathFromPathWithinRole(roleFilePath: string): string {
 export function shouldTriggerMultiTaskSuggestion(
   documentContent: string,
   spacesBeforePromptStart: number,
+  promptLine: number,
   ansibleFileType: IAnsibleFileType,
 ): boolean {
   const documentLines = documentContent.trim().split("\n");
@@ -295,6 +296,7 @@ export function shouldTriggerMultiTaskSuggestion(
       shouldTriggerMultiTaskSuggestionForTaskFile(
         documentLines,
         spacesBeforePromptStart,
+        promptLine,
       )
     ) {
       return true;
@@ -304,13 +306,33 @@ export function shouldTriggerMultiTaskSuggestion(
   }
 }
 
+const matchLine = (
+  documentLines: string[],
+  indentIndex: number,
+  validSuggestionTriggerIndents: number[],
+) => {
+  const matched = documentLines[indentIndex].match(/^\s*-\s*/);
+  if (matched) {
+    const indentLength = Math.max(matched[0].length - 2, 0);
+    if (validSuggestionTriggerIndents[indentIndex] === -1) {
+      validSuggestionTriggerIndents[indentIndex] = indentLength;
+    }
+    return true;
+  }
+  return false;
+};
+
 function shouldTriggerMultiTaskSuggestionForTaskFile(
   documentLines: string[],
   spacesBeforePromptStart: number,
+  linePromptStart: number,
 ): boolean {
   let firstMatchKeywordIndent = -1;
   const validSuggestionTriggerIndents: number[] = [];
   let matchKeywordIndex = -1;
+  for (let lineIndex = 0; lineIndex < documentLines.length; lineIndex++) {
+    validSuggestionTriggerIndents.push(-1);
+  }
   for (let lineIndex = documentLines.length - 1; lineIndex >= 0; lineIndex--) {
     if (matchKeyword(tasksFileKeywords, documentLines[lineIndex])) {
       const match = documentLines[lineIndex].match(/^\s*/);
@@ -318,6 +340,8 @@ function shouldTriggerMultiTaskSuggestionForTaskFile(
         firstMatchKeywordIndent = match ? match[0].length : -1;
       }
       matchKeywordIndex = lineIndex;
+      // TODO: Calculate num of whitespaces before keyword.
+      validSuggestionTriggerIndents[lineIndex] = 1;
     }
     if (matchKeywordIndex !== -1) {
       let onlyCommentsAfterKeyword = true;
@@ -346,12 +370,9 @@ function shouldTriggerMultiTaskSuggestionForTaskFile(
           indentIndex < documentLines.length;
           indentIndex++
         ) {
-          const matched = documentLines[indentIndex].match(/^\s*-\s*/);
-          if (matched) {
-            const indentLength = Math.max(matched[0].length - 2, 0);
-            if (!validSuggestionTriggerIndents.includes(indentLength)) {
-              validSuggestionTriggerIndents.push(indentLength);
-            }
+          if (
+            matchLine(documentLines, indentIndex, validSuggestionTriggerIndents)
+          ) {
             break;
           }
         }
@@ -371,25 +392,36 @@ function shouldTriggerMultiTaskSuggestionForTaskFile(
     if (commentOnly && !documentLines[lineIndex].trim().startsWith("#")) {
       commentOnly = false;
     }
-    const matched = documentLines[lineIndex].match(/^\s*-\s*/);
-    if (matched) {
-      const indentLength = Math.max(matched[0].length - 2, 0);
-      if (!validSuggestionTriggerIndents.includes(indentLength)) {
-        validSuggestionTriggerIndents.push(indentLength);
-      }
+    if (matchLine(documentLines, lineIndex, validSuggestionTriggerIndents)) {
       break;
     }
   }
   if (commentOnly) {
     return true;
   }
-  if (validSuggestionTriggerIndents.length > 0) {
-    if (!validSuggestionTriggerIndents.includes(spacesBeforePromptStart)) {
-      return false;
-    } else {
+
+  // Check the inline position column is the same as the previous line one
+  const linePrompt = linePromptStart - 1;
+  const previousLinePrompt = linePrompt - 1;
+  const isValidPromptLine = previousLinePrompt > -1;
+  if (
+    isValidPromptLine &&
+    validSuggestionTriggerIndents[previousLinePrompt] ===
+      spacesBeforePromptStart
+  ) {
+    if (previousLinePrompt === 0) {
       return true;
     }
+    for (let i = previousLinePrompt - 1; i > -1; i--) {
+      const indent = validSuggestionTriggerIndents[i];
+      if (indent > -1) {
+        if (spacesBeforePromptStart >= indent) {
+          return true;
+        }
+      }
+    }
   }
+
   if (
     firstMatchKeywordIndent === -1 ||
     spacesBeforePromptStart <= firstMatchKeywordIndent

@@ -1,6 +1,6 @@
 import * as chai from "chai";
 import { ConsoleOutput } from "./consoleOutput";
-import { skipEE, console } from "./helper";
+import { skipEE, console, deleteAlsCache } from "./helper";
 
 chai.config.truncateThreshold = 0; // disable truncating
 
@@ -8,6 +8,9 @@ export const mochaHooks = (): Mocha.RootHookObject => {
   const consoleOutput = new ConsoleOutput();
 
   return {
+    beforeAll(this: Mocha.Context) {
+      deleteAlsCache();
+    },
     beforeEach(this: Mocha.Context) {
       if (skipEE() && this.currentTest?.fullTitle().includes("@ee")) {
         console.warn(
@@ -25,6 +28,9 @@ export const mochaHooks = (): Mocha.RootHookObject => {
         consoleOutput.release();
         // }
       }
+    },
+    afterAll(this: Mocha.Context) {
+      deleteAlsCache();
     },
   };
 };

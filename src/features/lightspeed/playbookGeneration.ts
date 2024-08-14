@@ -1,19 +1,19 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { LanguageClient } from "vscode-languageclient/node";
 import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
-import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { LightspeedUser } from "./lightspeedUser";
-import { GenerationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "./utils/errors";
+import { GenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
   PlaybookGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
+import { LightSpeedAPI } from "./api";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
@@ -70,33 +70,25 @@ async function sendActionEvent(
 }
 
 async function generatePlaybook(
+  apiInstance: LightSpeedAPI,
   text: string,
   outline: string | undefined,
   generationId: string,
-  client: LanguageClient,
-  lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-): Promise<GenerationResponse> {
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-
+): Promise<GenerationResponseParams | IError> {
   try {
     panel.webview.postMessage({ command: "startSpinner" });
     const createOutline = outline === undefined;
-    const playbook: GenerationResponse = await client.sendRequest(
-      "playbook/generation",
-      {
-        accessToken,
-        URL: settingsManager.settings.lightSpeedService.URL,
+
+    const response: GenerationResponseParams | IError =
+      await apiInstance.generationRequest({
         text,
         outline,
         createOutline,
         generationId,
         wizardId,
-      },
-    );
-    return playbook;
+      });
+    return response;
   } finally {
     panel.webview.postMessage({ command: "stopSpinner" });
   }
@@ -104,9 +96,7 @@ async function generatePlaybook(
 
 export async function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
-  client: LanguageClient,
   lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
 ) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
@@ -157,14 +147,12 @@ export async function showPlaybookGenerationPage(
         try {
           if (!message.outline) {
             generatePlaybook(
+              lightSpeedManager.apiInstance,
               message.text,
               undefined,
               message.generationId,
-              client,
-              lightspeedAuthenticatedUser,
-              settingsManager,
               panel,
-            ).then(async (response: GenerationResponse) => {
+            ).then(async (response: GenerationResponseParams | IError) => {
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
                 response = oneClickTrialProvider.mapError(response);
@@ -204,12 +192,10 @@ export async function showPlaybookGenerationPage(
         if (!playbook) {
           try {
             const response = await generatePlaybook(
+              lightSpeedManager.apiInstance,
               message.text,
               message.outline,
               message.generationId,
-              client,
-              lightspeedAuthenticatedUser,
-              settingsManager,
               panel,
             );
             if (isError(response)) {

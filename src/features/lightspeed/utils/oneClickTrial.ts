@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "./errors";
 import { lightSpeedManager } from "../../../extension";
 import { LightSpeedCommands } from "../../../definitions/lightspeed";
 
