@@ -39,13 +39,13 @@ function contentMatch(generationId: string, playbook: string) {
   ];
   // Show training matches for the accepted suggestion.
   vscode.commands.executeCommand(
-    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
+    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES
   );
 }
 
 async function sendActionEvent(
   action: PlaybookGenerationActionType,
-  toPage?: number | undefined,
+  toPage?: number | undefined
 ) {
   if (currentPanel && wizardId) {
     const fromPage = currentPage;
@@ -60,7 +60,7 @@ async function sendActionEvent(
             toPage,
           },
         },
-        process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
+        process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -74,7 +74,7 @@ async function generatePlaybook(
   text: string,
   outline: string | undefined,
   generationId: string,
-  panel: vscode.WebviewPanel,
+  panel: vscode.WebviewPanel
 ): Promise<GenerationResponseParams | IError> {
   try {
     panel.webview.postMessage({ command: "startSpinner" });
@@ -96,7 +96,7 @@ async function generatePlaybook(
 
 export async function showPlaybookGenerationPage(
   extensionUri: vscode.Uri,
-  lightspeedAuthenticatedUser: LightspeedUser,
+  lightspeedAuthenticatedUser: LightspeedUser
 ) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
@@ -128,7 +128,7 @@ export async function showPlaybookGenerationPage(
       ],
       enableCommandUris: true,
       retainContextWhenHidden: true,
-    },
+    }
   );
 
   panel.onDidDispose(async () => {
@@ -151,14 +151,14 @@ export async function showPlaybookGenerationPage(
               message.text,
               undefined,
               message.generationId,
-              panel,
+              panel
             ).then(async (response: GenerationResponseParams | IError) => {
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
                 response = oneClickTrialProvider.mapError(response);
                 if (!(await oneClickTrialProvider.showPopup(response))) {
                   vscode.window.showErrorMessage(
-                    response.message ?? UNKNOWN_ERROR,
+                    response.message ?? UNKNOWN_ERROR
                   );
                 }
               } else {
@@ -196,7 +196,7 @@ export async function showPlaybookGenerationPage(
               message.text,
               message.outline,
               message.generationId,
-              panel,
+              panel
             );
             if (isError(response)) {
               vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
@@ -224,7 +224,7 @@ export async function showPlaybookGenerationPage(
         const html = await syntaxHighlighter.codeToHtml(
           playbook,
           darkMode ? "dark-plus" : "light-plus",
-          "yaml",
+          "yaml"
         );
 
         panel.webview.postMessage({
@@ -250,7 +250,7 @@ export async function showPlaybookGenerationPage(
         await openNewPlaybookEditor(playbook);
         await sendActionEvent(
           PlaybookGenerationActionType.CLOSE_ACCEPT,
-          undefined,
+          undefined
         );
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;
@@ -358,13 +358,6 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             <div class="exampleTextContainer">
               <p>
                 Create IIS websites on port 8080 and 8081 and open firewall
-              </p>
-            </div>
-            <div class="exampleTextContainer">
-              <p>
-                Create a RHEL 9.2 Azure virtual machine named RHEL-VM in resource group named
-                RH attached to the VNET my-vnet and subnet my-subnet with a public ip address and
-                a security group to allow traffic over port 22.
               </p>
             </div>
             <div class="exampleTextContainer">
