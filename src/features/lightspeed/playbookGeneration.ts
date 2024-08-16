@@ -362,13 +362,6 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </div>
             <div class="exampleTextContainer">
               <p>
-                Create a RHEL 9.2 Azure virtual machine named RHEL-VM in resource group named
-                RH attached to the VNET my-vnet and subnet my-subnet with a public ip address and
-                a security group to allow traffic over port 22.
-              </p>
-            </div>
-            <div class="exampleTextContainer">
-              <p>
                 Create a t2.micro EC2 instance using image id ami-01cc36e92a4e9a428 in region
                 east-us-1 in the tenancy B918A05F-80C1-46C7-A85F-CB4B12472970 using
                 subnet-0a908847e7212345 with a public ip and with key name test-servers and
