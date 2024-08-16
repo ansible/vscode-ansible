@@ -140,6 +140,31 @@ export interface ISuggestionDetails {
   isPlaybook: boolean;
 }
 
+export interface GenerationRequestParams {
+  text: string;
+  outline?: string;
+  generationId: string;
+  createOutline: boolean;
+  wizardId?: string;
+}
+
+export interface GenerationResponseParams {
+  playbook: string;
+  outline?: string;
+  generationId: string;
+}
+
+export interface ExplanationRequestParams {
+  content: string;
+  explanationId: string;
+}
+
+export interface ExplanationResponseParams {
+  content: string;
+  format: string;
+  explanationId: string;
+}
+
 export type IAnsibleFileType = "playbook" | "tasks_in_role" | "tasks" | "other";
 
 export type VarType = "defaults" | "vars";

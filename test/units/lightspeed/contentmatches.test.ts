@@ -21,7 +21,7 @@ import {
   ISuggestionDetails,
 } from "../../../src/interfaces/lightspeed";
 import { LightspeedUser } from "../../../src/features/lightspeed/lightspeedUser";
-import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "../../../src/features/lightspeed/utils/errors";
 
 function createMatchResponse(): ContentMatchesResponseParams {
   const contentMatchParams = {

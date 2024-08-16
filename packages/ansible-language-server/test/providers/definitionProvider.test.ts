@@ -94,7 +94,7 @@ describe("getDefinition()", function () {
     describe("With EE enabled @ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
-          "/home/runner/.ansible/collections:/usr/share/ansible",
+          "/home/runner/.ansible/collections:/usr/share/ansible/collections",
         );
         if (docSettings) {
           await enableExecutionEnvironmentSettings(docSettings);
