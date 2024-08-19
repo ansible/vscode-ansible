@@ -266,7 +266,7 @@ jobs:
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
-        if: ${{ matrix.name == 'test' }}
+        if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
         with:
           name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
@@ -275,7 +275,7 @@ jobs:
           retention-days: 90
 
       - name: Upload ansible-language-server npm package
-        if: ${{ matrix.name == 'test' }}
+        if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.ref_name }}.tgz"
