@@ -155,7 +155,6 @@ export async function showPlaybookGenerationPage(
             ).then(async (response: GenerationResponseParams | IError) => {
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
-                response = oneClickTrialProvider.mapError(response);
                 if (!(await oneClickTrialProvider.showPopup(response))) {
                   vscode.window.showErrorMessage(
                     response.message ?? UNKNOWN_ERROR,

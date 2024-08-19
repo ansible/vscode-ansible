@@ -143,9 +143,7 @@ export class LightSpeedAPI {
     } catch (error) {
       isCompletionSuccess = false;
       const err = error as AxiosError;
-      const mappedError: IError = this._oneClickTrialProvider.mapError(
-        await mapError(err),
-      );
+      const mappedError: IError = await mapError(err);
       if (!(await this._oneClickTrialProvider.showPopup(mappedError))) {
         vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
       }
