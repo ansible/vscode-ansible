@@ -100,7 +100,6 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
       console.log(response);
       if (isError(response)) {
         const oneClickTrialProvider = getOneClickTrialProvider();
-        //response = oneClickTrialProvider.mapError(response);
         const my_error = response as IError;
         if (!(await oneClickTrialProvider.showPopup(my_error))) {
           vscode.window.showErrorMessage(my_error.message ?? UNKNOWN_ERROR);
