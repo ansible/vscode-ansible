@@ -155,7 +155,6 @@ export async function showPlaybookGenerationPage(
             ).then(async (response: GenerationResponseParams | IError) => {
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
-                response = oneClickTrialProvider.mapError(response);
                 if (!(await oneClickTrialProvider.showPopup(response))) {
                   vscode.window.showErrorMessage(
                     response.message ?? UNKNOWN_ERROR,
@@ -358,13 +357,6 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             <div class="exampleTextContainer">
               <p>
                 Create IIS websites on port 8080 and 8081 and open firewall
-              </p>
-            </div>
-            <div class="exampleTextContainer">
-              <p>
-                Create a RHEL 9.2 Azure virtual machine named RHEL-VM in resource group named
-                RH attached to the VNET my-vnet and subnet my-subnet with a public ip address and
-                a security group to allow traffic over port 22.
               </p>
             </div>
             <div class="exampleTextContainer">
