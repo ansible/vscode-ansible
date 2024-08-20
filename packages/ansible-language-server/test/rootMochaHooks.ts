@@ -24,9 +24,9 @@ export const mochaHooks = (): Mocha.RootHookObject => {
 
     afterEach(this: Mocha.Context) {
       if (!(skipEE() && this.currentTest?.fullTitle().includes("@ee"))) {
-        // if (this.currentTest?.state !== "passed") {
-        consoleOutput.release();
-        // }
+        if (this.currentTest?.state !== "passed") {
+          consoleOutput.release();
+        }
       }
     },
     afterAll(this: Mocha.Context) {

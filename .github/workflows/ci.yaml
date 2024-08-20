@@ -265,10 +265,6 @@ jobs:
         if: contains(matrix.name, 'test')
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: Setup tmate session
-        if: contains(matrix.name, 'test (linux)')
-        uses: mxschmitt/action-tmate@v3
-
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
