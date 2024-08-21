@@ -29,7 +29,6 @@ import { IAnsibleFileType } from "../../interfaces/lightspeed";
 import { getAnsibleFileType } from "../utils/ansible";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
-import { getAdditionalContext } from "./inlineSuggestion/additionalContext";
 
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
@@ -740,18 +739,6 @@ async function requestInlineSuggest(
     completionData.model = userProvidedModel;
   }
 
-  if (rhUserHasSeat) {
-    const additionalContext = getAdditionalContext(
-      parsedAnsibleDocument,
-      documentDirPath,
-      documentFilePath,
-      ansibleFileType,
-      vscode.workspace.workspaceFolders,
-    );
-    if (completionData.metadata) {
-      completionData.metadata.additionalContext = additionalContext;
-    }
-  }
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`,
   );
