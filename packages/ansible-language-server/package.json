@@ -47,7 +47,6 @@
   "dependencies": {
     "@flatten-js/interval-tree": "^1.1.3",
     "antsibull-docs": "^1.0.2",
-    "axios": "^1.7.2",
     "glob": "^10.4.5",
     "ini": "^4.1.3",
     "lodash": "^4.17.21",
@@ -85,7 +84,7 @@
     "watch": "tsc --watch -p .",
     "test": "sh -c \"nyc mocha ${MOCHA_OPTS:-}\"",
     "test-with-ee": "sh -c \"nyc mocha --grep @ee ${MOCHA_OPTS:-}\"",
-    "test-without-ee": "sh -c \"nyc mocha --grep @ee --invert ${MOCHA_OPTS:-}\""
+    "test-without-ee": "sh -c \"SKIP_PODMAN=1 SKIP_DOCKER=1 nyc mocha --grep @ee --invert ${MOCHA_OPTS:-}\""
   },
   "all": true
 }

@@ -542,7 +542,7 @@
           "ansible.executionEnvironment.image": {
             "scope": "resource",
             "type": "string",
-            "default": "ghcr.io/ansible/creator-ee:latest",
+            "default": "ghcr.io/ansible/community-ansible-dev-tools:latest",
             "markdownDescription": "Specify the name of the execution environment image.",
             "order": 3
           },
@@ -1014,7 +1014,7 @@
     "coverage-e2e": "COVERAGE=1 yarn run test-e2e",
     "test-e2e-withserver": "yarn run test-compile-withserver && node ./out/client/test/testRunner",
     "coverage-e2e-withserver": "COVERAGE=1 yarn run test-e2e-withserver",
-    "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js 2> out/log/express.log",
+    "mock-lightspeed-server": "DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js >>out/log/express.log 2>&1",
     "kill-mock-lightspeed-server": "pkill -f mockLightspeedServer/server.js",
     "_coverage-all": "./tools/coverage-all.sh",
     "coverage-all": "TEST_LIGHTSPEED_URL='http://127.0.0.1:3000' yarn _coverage-all",

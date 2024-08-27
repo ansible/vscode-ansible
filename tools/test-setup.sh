@@ -7,7 +7,7 @@
 set -euo pipefail
 
 IMAGE_VERSION=$(./tools/get-image-version)
-IMAGE=ghcr.io/ansible/creator-ee:${IMAGE_VERSION}
+IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
@@ -121,7 +121,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev)
+    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -279,14 +279,21 @@ log notice "Upgrading pip ..."
 
 python3 -m pip install -q -U pip
 # Fail fast if user has broken dependencies
-python3 -m pip check
+python3 -m pip check || {
+        log error "pip check failed with exit code $?"
+        if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
+            exit 98
+        else
+            log error "Ignored pip check failure on this platform due to https://sourceforge.net/p/ruamel-yaml/tickets/521/"
+        fi
+}
 
 if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    # We used the already tested constraints file from creator-ee in order
-    # to avoid surprises. This ensures venv and creator-ee have exactly same
+    # We used the already tested constraints file from community-ansible-dev-tools EE in order
+    # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
     python3 -m pip install -q \
-        -r "https://raw.githubusercontent.com/ansible/creator-ee/${IMAGE_VERSION}/_build/requirements.txt" -r .config/requirements.in
+        -r .config/requirements.in
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
@@ -372,10 +379,12 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     EE_ANSIBLE_VERSION=$(get_version \
         docker run --rm "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        docker run --rm "${IMAGE}" ansible-lint --nocolor --version)
-    # Test podman ability to mount current folder with write access, default mount options
-    docker run --rm -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
-        bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+        docker run "${IMAGE}" ansible-lint --nocolor --version)
+    log notice "ansible: ${EE_ANSIBLE_VERSION}, ansible-lint: ${EE_ANSIBLE_LINT_VERSION}"
+    # Test docker ability to mount current folder with write access, default mount options
+    docker run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
+        bash -c "[ -e $PWD ] && [ -d $PWD ] \
+        && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
 log notice "Podman checks..."
@@ -435,9 +444,10 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     log notice "Retrieving ansible-lint version from ee"
     EE_ANSIBLE_LINT_VERSION=$(get_version \
         podman run --rm "${IMAGE}" ansible-lint --nocolor --version)
+    log notice "ansible: ${EE_ANSIBLE_VERSION}, ansible-lint: ${EE_ANSIBLE_LINT_VERSION}"
     log notice "Test podman ability to mount current folder with write access, default mount options"
-    podman run --rm -v "$PWD:$PWD" ghcr.io/ansible/creator-ee:latest \
-        bash -c "[ -w $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+    podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
+        bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
 if [[ -f "/usr/bin/apt-get" ]]; then
@@ -480,7 +490,7 @@ tools:
 containers:
   podman: ${PODMAN_VERSION}
   docker: ${DOCKER_VERSION}
-creator-ee:
+community-ansible-dev-tools:
   ansible: ${EE_ANSIBLE_VERSION}
   ansible-lint: ${EE_ANSIBLE_LINT_VERSION}
 EOF

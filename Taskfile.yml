@@ -10,15 +10,16 @@ includes:
     internal: true
 
 output: prefixed # do not use "group" due to impact on CI
-env: &env
+env:
+  # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
   # basically the same thing from .envrc file:
-  VIRTUAL_ENV:
-    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
+  VIRTUAL_ENV:
+    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
     sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
@@ -95,8 +96,8 @@ tasks:
       - task: shared:install
       # check deps
       - yarn dlx depcheck
-      - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
-      - $VIRTUAL_ENV/bin/python3 -m pre_commit autoupdate
+      - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
+      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
     interactive: true
   docs:
     dir: "{{ .TASKFILE_DIR }}"
@@ -114,8 +115,8 @@ tasks:
     cmds:
       - task: install
       - packages/ansible-language-server/tools/can-release.sh
-      - $VIRTUAL_ENV/bin/python3 ./tools/precheck.py
-      - $VIRTUAL_ENV/bin/python3 -m pre_commit run -a
+      - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
+      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
       - tools/dirty.sh
     silent: true
     sources:
@@ -149,16 +150,16 @@ tasks:
     aliases: [e2e]
     cmds:
       - task: package
-      - $VIRTUAL_ENV/bin/python3 --version
-      - '{{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn run _coverage-all'''
+      - "{{.VIRTUAL_ENV}}/bin/python3 --version"
+      - '{{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn run _coverage-all'''
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
     aliases: [ui]
     cmds:
       - yarn webpack-dev
-      - $VIRTUAL_ENV/bin/python3 --version
-      - ' {{.XVFB}} bash -c ''source "${VIRTUAL_ENV}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
+      - "{{.VIRTUAL_ENV}}/bin/python3 --version"
+      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report

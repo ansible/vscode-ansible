@@ -381,7 +381,7 @@ describe("doValidate()", () => {
       describe("With EE enabled @ee", () => {
         before(async () => {
           setFixtureAnsibleCollectionPathEnv(
-            "/home/runner/.ansible/collections:/usr/share/ansible",
+            "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
           await enableExecutionEnvironmentSettings(docSettings);
         });
@@ -409,7 +409,7 @@ describe("doValidate()", () => {
         describe("With EE enabled @ee", () => {
           before(async () => {
             setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible",
+              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
             await enableExecutionEnvironmentSettings(docSettings);
           });
@@ -448,7 +448,7 @@ describe("doValidate()", () => {
               before(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible",
+                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
                 );
                 await enableExecutionEnvironmentSettings(docSettings);
               });
@@ -506,7 +506,7 @@ describe("doValidate()", () => {
               before(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible",
+                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
                 );
                 await enableExecutionEnvironmentSettings(docSettings);
               });
@@ -561,7 +561,7 @@ describe("doValidate()", () => {
               before(async () => {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible",
+                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
                 );
                 await enableExecutionEnvironmentSettings(docSettings);
               });
@@ -616,7 +616,7 @@ describe("doValidate()", () => {
             before(async () => {
               (await docSettings).validation.lint.enabled = false;
               setFixtureAnsibleCollectionPathEnv(
-                "/home/runner/.ansible/collections:/usr/share/ansible",
+                "/home/runner/.ansible/collections:/usr/share/ansible/collections",
               );
               await enableExecutionEnvironmentSettings(docSettings);
             });
@@ -675,7 +675,7 @@ describe("doValidate()", () => {
                 //   "invalid-ansible-lint-path";
                 (await docSettings).validation.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible",
+                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
                 );
                 await enableExecutionEnvironmentSettings(docSettings);
               });
@@ -740,7 +740,7 @@ describe("doValidate()", () => {
                 //   "invalid-ansible-lint-path";
                 (await docSettings).validation.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
-                  "/home/runner/.ansible/collections:/usr/share/ansible",
+                  "/home/runner/.ansible/collections:/usr/share/ansible/collections",
                 );
                 await enableExecutionEnvironmentSettings(docSettings);
               });
@@ -802,7 +802,7 @@ describe("doValidate()", () => {
         describe("With EE enabled @ee", () => {
           before(async () => {
             setFixtureAnsibleCollectionPathEnv(
-              "/home/runner/.ansible/collections:/usr/share/ansible",
+              "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
             await enableExecutionEnvironmentSettings(docSettings);
           });

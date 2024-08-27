@@ -35,6 +35,7 @@ WSLENV
 Webviews
 YOLO
 aarch
+afterall
 ajinkyau
 akira
 alefragnani
@@ -131,6 +132,7 @@ koalaman
 lcov
 lextudio
 libgbm
+libonig
 libssh
 libyaml
 lightspeed

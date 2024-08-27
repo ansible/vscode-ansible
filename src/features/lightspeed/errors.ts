@@ -1,5 +1,5 @@
 import { AxiosError } from "axios";
-import { IError } from "./interfaces/lightspeedApi";
+import { IError } from "./utils/errors";
 
 class Error implements IError {
   readonly code: string;

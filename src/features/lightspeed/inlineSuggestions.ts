@@ -29,7 +29,6 @@ import { IAnsibleFileType } from "../../interfaces/lightspeed";
 import { getAnsibleFileType } from "../utils/ansible";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
-import { getAdditionalContext } from "./inlineSuggestion/additionalContext";
 
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
@@ -669,6 +668,7 @@ async function getInlineSuggestionState(
     shouldTriggerMultiTaskSuggestion(
       documentInfo.documentContent,
       suggestionMatchInfo.spacesBeforePromptStart,
+      inlinePosition.position.line,
       documentInfo.ansibleFileType,
     ) ||
     shouldRequestInlineSuggestions(
@@ -739,18 +739,6 @@ async function requestInlineSuggest(
     completionData.model = userProvidedModel;
   }
 
-  if (rhUserHasSeat) {
-    const additionalContext = getAdditionalContext(
-      parsedAnsibleDocument,
-      documentDirPath,
-      documentFilePath,
-      ansibleFileType,
-      vscode.workspace.workspaceFolders,
-    );
-    if (completionData.metadata) {
-      completionData.metadata.additionalContext = additionalContext;
-    }
-  }
   console.log(
     `[inline-suggestions] ${getCurrentUTCDateTime().toISOString()}: Completion request sent to Ansible Lightspeed.`,
   );
@@ -824,20 +812,6 @@ export async function inlineSuggestionReplaceMarker(position: vscode.Position) {
 
   // Get the current text
   const line = position.line;
-
-  const text = editor.document.getText(
-    new vscode.Range(
-      new vscode.Position(line, 0),
-      new vscode.Position(line + 1, 0),
-    ),
-  );
-  // Remove the prepended text
-  const commentPosition = text.indexOf(
-    LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT,
-  );
-  if (commentPosition === -1) {
-    return;
-  }
 
   // Update the editor with the new text
   await editor.edit((editBuilder) => {
