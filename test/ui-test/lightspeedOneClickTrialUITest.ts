@@ -20,13 +20,12 @@ import {
   updateSettings,
 } from "./uiTestHelper";
 import { Key } from "selenium-webdriver";
-import { config, expect } from "chai";
+import { expect } from "chai";
 import axios from "axios";
 
 const trialNotificationMessage =
   "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
 
-config.truncateThreshold = 0;
 export function lightspeedOneClickTrialUITest(): void {
   describe("Test One Click Trial feature", () => {
     let workbench: Workbench;
@@ -61,7 +60,7 @@ export function lightspeedOneClickTrialUITest(): void {
     });
 
     it("Focus on Ansible Lightspeed View", async () => {
-      await workbench.executeCommand(
+      await new Workbench().executeCommand(
         "Ansible: Focus on Ansible Lightspeed View",
       );
       await sleep(3000);
