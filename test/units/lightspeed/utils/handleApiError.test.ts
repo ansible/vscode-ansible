@@ -289,6 +289,22 @@ describe("testing the error handling", () => {
   // =================================
 
   // =================================
+  // HTTP 418
+  // ---------------------------------
+  it("err WCA instance deleted", () => {
+    const error = mapError(
+      createError(418, {
+        code: "error__wca_instance_deleted",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant instance associated with your Model Id has been deleted. Please contact your administrator.",
+    );
+  });
+  // =================================
+
+  // =================================
   // HTTP 429
   // ---------------------------------
   it("err Too Many Requests", () => {
