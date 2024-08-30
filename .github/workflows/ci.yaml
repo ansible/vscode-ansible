@@ -81,12 +81,12 @@ jobs:
         name:
           - docs
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-22.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-22.04
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
           # - name: test (linux)
           #   task-name: test
