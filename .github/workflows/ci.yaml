@@ -108,9 +108,6 @@ jobs:
             # https://github.com/actions/virtual-environments/issues/5151
             os: devtools-win-x64
             shell: "wsl-bash {0}"
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
     steps:
       - uses: actions/checkout@v4
         with:
