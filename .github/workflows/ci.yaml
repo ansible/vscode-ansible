@@ -123,7 +123,7 @@ jobs:
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
-          wsl-shell-command: "bash -i -eo pipefail"
+          wsl-shell-command: "bash -i -eo pipefail && wsl --set-default-version 2"
           # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
           wsl-conf: |
             [automount]
