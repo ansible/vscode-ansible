@@ -286,9 +286,7 @@ only to topics you need!
   which is used to announce releases and important changes, can also be found
   here.
 
-For more information on the forum navigation, see
-[Navigating the Ansible forum](https://forum.ansible.com/t/navigating-the-ansible-forum-tags-categories-and-concepts/39)
-post.
+See `Navigating the Ansible forum <https://forum.ansible.com/t/navigating-the-ansible-forum-tags-categories-and-concepts/39>`_ for some practical advice on finding your way around.
 
 ### Matrix
 
