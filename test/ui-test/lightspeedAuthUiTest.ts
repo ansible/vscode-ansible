@@ -39,7 +39,6 @@ export function lightspeedUILoginTest(): void {
         "Ansible: Focus on Ansible Lightspeed View",
       );
       await sleep(3000);
-
       explorerView = new WebviewView();
       expect(explorerView, "contentCreatorWebView should not be undefined").not
         .to.be.undefined;
