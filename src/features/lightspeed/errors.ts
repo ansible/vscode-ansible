@@ -260,6 +260,14 @@ ERRORS.addError(
 );
 
 ERRORS.addError(
+  418,
+  new Error(
+    "error__wca_instance_deleted",
+    "IBM watsonx Code Assistant instance associated with your Model Id has been deleted. Please contact your administrator.",
+  ),
+);
+
+ERRORS.addError(
   500,
   new Error(
     "internal_server",
