@@ -361,9 +361,9 @@ export class ExecutionEnvironment {
 
   private cleanUpContainer(containerName: string): void {
     const cleanUpCommands = [
-      `sh -c '${this._container_engine} ps -q --filter "name=${containerName}" | xargs ${this._container_engine} stop'`,
+      `sh -c '${this._container_engine} ps -q --filter "name=${containerName}" | xargs ${this._container_engine} {} stop'`,
       // docker does not have the --ignore flag, so we need to list and pipe
-      `sh -c '${this._container_engine} container ls -aq -f 'name=${containerName}' | xargs ${this._container_engine} rm --force'`,
+      `sh -c '${this._container_engine} container ls -aq -f 'name=${containerName}' | xargs ${this._container_engine} rm {} --force'`,
     ];
 
     if (!this.doesContainerNameExist(containerName)) {
