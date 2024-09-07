@@ -69,21 +69,38 @@ class Errors {
     });
 
     if (e) {
+      const responseErrorData = <
+        AxiosError<{ code?: string; message?: unknown }>
+      >err?.response?.data;
+
       // If the Error does not have a default message use the payload message
       let message = e.message;
       if (message === undefined) {
-        const responseErrorData = <
-          AxiosError<{ code?: string; message?: string }>
-        >err?.response?.data;
         message = Object.prototype.hasOwnProperty.call(
           responseErrorData,
           "message",
         )
-          ? (responseErrorData.message as string)
+          ? responseErrorData.message
           : "unknown";
       }
+
+      let detail: string = "";
+      if (typeof responseErrorData.message == "string") {
+        detail = responseErrorData.message ?? "";
+      } else if (Array.isArray(responseErrorData.message)) {
+        const messages = responseErrorData.message as [];
+        messages.forEach((value: string, index: number) => {
+          detail =
+            detail +
+            "(" +
+            (index + 1) +
+            ") " +
+            value +
+            (index < messages.length - 1 ? " " : "");
+        });
+      }
+
       // Clone the Error to preserve the original definition
-      const detail = err.response?.data;
       return new Error(e.code, message, detail, e.check);
     }
 
@@ -256,6 +273,14 @@ ERRORS.addError(
   new Error(
     "feature_not_available",
     "The requested action is not available in your environment.",
+  ),
+);
+
+ERRORS.addError(
+  418,
+  new Error(
+    "error__wca_instance_deleted",
+    "IBM watsonx Code Assistant instance associated with your Model Id has been deleted. Please contact your administrator.",
   ),
 );
 

@@ -145,7 +145,9 @@ export class LightSpeedAPI {
       const err = error as AxiosError;
       const mappedError: IError = await mapError(err);
       if (!(await this._oneClickTrialProvider.showPopup(mappedError))) {
-        vscode.window.showErrorMessage(mappedError.message ?? UNKNOWN_ERROR);
+        vscode.window.showErrorMessage(
+          `${mappedError.message ?? UNKNOWN_ERROR} ${mappedError.detail ?? ""}`,
+        );
       }
       return {} as CompletionResponseParams;
     } finally {
@@ -233,7 +235,7 @@ export class LightSpeedAPI {
     } catch (error) {
       const err = error as AxiosError;
       const mappedError: IError = await mapError(err);
-      const errorMessage: string = mappedError.message ?? UNKNOWN_ERROR;
+      const errorMessage: string = `${mappedError.message ?? UNKNOWN_ERROR} ${mappedError.detail ?? ""}`;
       if (showInfoMessage) {
         vscode.window.showErrorMessage(errorMessage);
       } else {
