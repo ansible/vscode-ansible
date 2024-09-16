@@ -155,6 +155,7 @@ tasks:
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
+    aliases: [ui]
     env:
       MOCHA_GREP: "Test One Click Trial feature"
       MOCHA_INVERT: true
