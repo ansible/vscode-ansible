@@ -82,6 +82,7 @@ darglint
 dbaeumer
 dedupe
 depcheck
+depcheckrc
 deps
 devel
 devspaces
@@ -168,6 +169,7 @@ npmjs
 npmrc
 nsible
 nvim
+nycrc
 openshiftapps
 overridable
 ovsx

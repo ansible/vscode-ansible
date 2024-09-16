@@ -1,3 +1,4 @@
+---
 # https://github.com/yarnpkg/yarn/issues/3368
 ignores:
   - "@ansible/ansible-language-server"

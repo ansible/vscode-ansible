@@ -1,3 +1,4 @@
+---
 # cspell: ignore pymdownx pymdown magiclink autorefs facelessuser superfences inlinehilite linenums fontawesome autohide
 site_name: Ansible VS Code Extension
 site_url: https://ansible.readthedocs.io/projects/vscode-ansible/
