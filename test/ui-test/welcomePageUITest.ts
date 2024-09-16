@@ -26,6 +26,12 @@ export function welcomePageUITest(): void {
         .getSection("Ansible Development Tools");
     });
 
+    after(async function () {
+      if (view) {
+        await view.closeView();
+      }
+    });
+
     it("check for title and get started button", async function () {
       const title = await adtSection.getTitle();
       const getStartedButton = await adtSection.findElement(
@@ -53,12 +59,12 @@ export function welcomePageUITest(): void {
       if (getStartedButton) {
         await getStartedButton.click();
       }
-      await sleep(5000);
+      await sleep(3000);
 
       const welcomePageWebView = await new WebView();
       expect(welcomePageWebView, "welcomePageWebView should not be undefined")
         .not.to.be.undefined;
-      await welcomePageWebView.switchToFrame(5000);
+      await welcomePageWebView.switchToFrame(3000);
       expect(
         welcomePageWebView,
         "welcomePageWebView should not be undefined after switching to its frame",
@@ -80,7 +86,7 @@ export function welcomePageUITest(): void {
         "Create, test and deploy Ansible content",
       );
 
-      welcomePageWebView.switchBack();
+      await welcomePageWebView.switchBack();
     });
   });
 }
