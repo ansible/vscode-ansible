@@ -77,7 +77,7 @@ describe("testing the error handling", () => {
     assert.equal(error.message, "Bad Request response. Please try again.");
   });
 
-  it("err Postprocessing error", () => {
+  it("err Preprocessing error", () => {
     const error = mapError(
       createError(400, {
         code: "error__preprocess_invalid_yaml",
@@ -87,6 +87,34 @@ describe("testing the error handling", () => {
       error.message,
       "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator.",
     );
+  });
+
+  it("err Preprocessing error with simple detail", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__preprocess_invalid_yaml",
+        message: "A simple error.",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator.",
+    );
+    assert.equal(error.detail, "A simple error.");
+  });
+
+  it("err Preprocessing error with complex detail", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__preprocess_invalid_yaml",
+        message: ["error 1", "error 2"],
+      }),
+    );
+    assert.equal(
+      error.message,
+      "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator.",
+    );
+    assert.equal(error.detail, "(1) error 1 (2) error 2");
   });
 
   it("err Feedback validation error", () => {
