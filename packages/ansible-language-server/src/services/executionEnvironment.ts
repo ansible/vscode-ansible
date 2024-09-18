@@ -361,8 +361,8 @@ export class ExecutionEnvironment {
 
   private cleanUpContainer(containerName: string): void {
     const cleanUpCommands = [
-      `${this._container_engine} stop ${containerName}`,
-      `${this._container_engine} rm ${containerName}`,
+      `${this._container_engine} stop $(${this._container_engine} ps -q --filter "name=${containerName}")`,
+      `${this._container_engine} rm $(${this._container_engine} container ls -aq -f 'name=${containerName}')`,
     ];
 
     if (!this.doesContainerNameExist(containerName)) {
