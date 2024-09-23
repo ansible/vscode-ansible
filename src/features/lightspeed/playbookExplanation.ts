@@ -49,7 +49,7 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
     return;
   }
   const document = vscode.window.activeTextEditor.document;
-  if (document?.languageId !== "ansible") {
+  if (document.languageId !== "ansible") {
     return;
   }
 
@@ -100,7 +100,7 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
       console.log(response);
       if (isError(response)) {
         const oneClickTrialProvider = getOneClickTrialProvider();
-        const my_error = response as IError;
+        const my_error = response;
         if (!(await oneClickTrialProvider.showPopup(my_error))) {
           vscode.window.showErrorMessage(my_error.message ?? UNKNOWN_ERROR);
           currentPanel.setContent(

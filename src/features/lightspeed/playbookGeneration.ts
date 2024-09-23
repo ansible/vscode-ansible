@@ -253,7 +253,7 @@ export async function showPlaybookGenerationPage(
         );
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;
-        panel?.dispose();
+        panel.dispose();
         break;
       }
     }

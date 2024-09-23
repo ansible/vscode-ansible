@@ -9,7 +9,7 @@ class Error implements IError {
 
   private getCode(err: AxiosError): string {
     const responseErrorData = <AxiosError<{ code?: string; message?: string }>>(
-      err?.response?.data
+      err.response?.data
     );
     const code: string = Object.prototype.hasOwnProperty.call(
       responseErrorData,
@@ -74,12 +74,12 @@ class Errors {
       if (message === undefined) {
         const responseErrorData = <
           AxiosError<{ code?: string; message?: string }>
-        >err?.response?.data;
+        >err.response?.data;
         message = Object.prototype.hasOwnProperty.call(
           responseErrorData,
           "message",
         )
-          ? (responseErrorData.message as string)
+          ? responseErrorData.message
           : "unknown";
       }
       // Clone the Error to preserve the original definition
@@ -231,11 +231,11 @@ ERRORS.addError(
       "line and column where you requested a suggestion.",
     undefined,
     (err: AxiosError) => {
-      const body: unknown = err?.response?.data;
+      const body: unknown = err.response?.data;
       let bodyContainsCloudFront: boolean = false;
       let bodyContainsCloudFrontBlocked: boolean = false;
       const headerContainsCloudFrontServer: boolean =
-        (err?.response?.headers["server"] || "").toLowerCase() === "cloudfront";
+        (err.response?.headers["server"] || "").toLowerCase() === "cloudfront";
       if (typeof body === "string") {
         bodyContainsCloudFront =
           (body.toLowerCase().match("cloudfront")?.length || 0) > 0;

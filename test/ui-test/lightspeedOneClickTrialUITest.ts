@@ -253,7 +253,7 @@ export function lightspeedOneClickTrialUITest(): void {
         "Accounts",
       )) as ActionsControl;
       expect(actions).not.to.be.undefined;
-      await actions?.click();
+      await actions.click();
       const menus = await workbench.findElements(By.className("context-view"));
       expect(menus.length).greaterThan(0);
       const menu = new ContextMenu(workbench);

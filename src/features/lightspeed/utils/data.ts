@@ -210,7 +210,7 @@ export function getIncludeVarsContext(
             const parsedVarData = yaml.parse(varData, {
               keepSourceTokens: true,
             });
-            varData = <string>yaml.stringify({ [varTopLevel]: parsedVarData });
+            varData = yaml.stringify({ [varTopLevel]: parsedVarData });
           } catch (err) {
             console.error(
               `Failed to add ${varTopLevel} to ${varData} with error ${err}`,

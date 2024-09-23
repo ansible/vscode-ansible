@@ -22,7 +22,7 @@ export function mapError(err: AxiosError): IError {
 
   // If the error is unknown fallback to defaults
   const detail = err.response?.data;
-  const status: number | string = err?.response?.status ?? err?.code ?? 500;
+  const status: number | string = err.response?.status ?? err.code ?? 500;
   if (err instanceof CanceledError) {
     return ERRORS_CONNECTION_CANCELED_TIMEOUT;
   }
