@@ -244,9 +244,9 @@ export class TelemetryOutputChannel implements vscode.OutputChannel {
         });
         this.errors = [];
       }, 50);
-      this.throttleTimeout = new vscode.Disposable(() =>
-        clearTimeout(timeoutHandle),
-      );
+      this.throttleTimeout = new vscode.Disposable(() => {
+        clearTimeout(timeoutHandle);
+      });
     }
   }
 

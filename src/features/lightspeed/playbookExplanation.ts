@@ -49,7 +49,7 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
     return;
   }
   const document = vscode.window.activeTextEditor.document;
-  if (document?.languageId !== "ansible") {
+  if (document.languageId !== "ansible") {
     return;
   }
 
@@ -100,9 +100,15 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
       console.log(response);
       if (isError(response)) {
         const oneClickTrialProvider = getOneClickTrialProvider();
+<<<<<<< HEAD
         if (!(await oneClickTrialProvider.showPopup(response))) {
           const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
           vscode.window.showErrorMessage(errorMessage);
+=======
+        const my_error = response;
+        if (!(await oneClickTrialProvider.showPopup(my_error))) {
+          vscode.window.showErrorMessage(my_error.message ?? UNKNOWN_ERROR);
+>>>>>>> c01dcfb (chore: enforce strict type check)
           currentPanel.setContent(
             `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${errorMessage}</p></p>`,
           );

@@ -591,7 +591,7 @@ export async function doCompletionResolve(
           completionItem.data.firstElementOfList,
           isAnsiblePlaybook,
         )}`
-      : `${completionItem.label}`;
+      : completionItem.label;
 
     if (completionItem.textEdit) {
       completionItem.textEdit.newText = insertText;
