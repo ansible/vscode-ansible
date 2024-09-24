@@ -156,9 +156,8 @@ export async function showPlaybookGenerationPage(
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
                 if (!(await oneClickTrialProvider.showPopup(response))) {
-                  vscode.window.showErrorMessage(
-                    response.message ?? UNKNOWN_ERROR,
-                  );
+                  const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+                  vscode.window.showErrorMessage(errorMessage);
                 }
               } else {
                 panel.webview.postMessage({
@@ -198,7 +197,8 @@ export async function showPlaybookGenerationPage(
               panel,
             );
             if (isError(response)) {
-              vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+              const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+              vscode.window.showErrorMessage(errorMessage);
               break;
             }
             playbook = response.playbook;

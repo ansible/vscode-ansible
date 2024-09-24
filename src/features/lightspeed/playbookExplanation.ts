@@ -100,15 +100,25 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
       console.log(response);
       if (isError(response)) {
         const oneClickTrialProvider = getOneClickTrialProvider();
-        const my_error = response as IError;
-        if (!(await oneClickTrialProvider.showPopup(my_error))) {
-          vscode.window.showErrorMessage(my_error.message ?? UNKNOWN_ERROR);
+        if (!(await oneClickTrialProvider.showPopup(response))) {
+          const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+          vscode.window.showErrorMessage(errorMessage);
           currentPanel.setContent(
-            `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${my_error.message}</p></p>`,
+            `<p><span class="codicon codicon-error"></span>The operation has failed:<p>${errorMessage}</p></p>`,
           );
         }
       } else {
         markdown = response.content;
+        if (markdown.length === 0) {
+          markdown = "### No explanation provided.";
+          const customPrompt =
+            lightSpeedManager.settingsManager.settings.lightSpeedService
+              .playbookExplanationCustomPrompt ?? "";
+          if (customPrompt.length > 0) {
+            markdown +=
+              "\n\nYou may want to consider amending your custom prompt.";
+          }
+        }
         const html_snippet = marked.parse(markdown) as string;
         currentPanel.setContent(html_snippet, true);
       }

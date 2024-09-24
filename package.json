@@ -644,6 +644,18 @@
             "type": "string",
             "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
             "order": 4
+          },
+          "ansible.lightspeed.playbookGenerationCustomPrompt": {
+            "scope": "resource",
+            "type": "string",
+            "markdownDescription": "Custom Prompt for Playbook generation. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
+            "order": 5
+          },
+          "ansible.lightspeed.playbookExplanationCustomPrompt": {
+            "scope": "resource",
+            "type": "string",
+            "markdownDescription": "Custom Prompt for Playbook explanation. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
+            "order": 6
           }
         }
       },
