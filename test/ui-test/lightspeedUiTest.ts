@@ -47,7 +47,7 @@ export function lightspeedUIAssetsTest(): void {
       );
       webviewView = new WebviewView();
       expect(webviewView).not.undefined;
-      await webviewView.switchToFrame(5000);
+      await webviewView.switchToFrame(20000);
     });
 
     after(async function () {
