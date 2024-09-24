@@ -8,6 +8,7 @@ ignores:
   - depcheck
   - eslint-formatter-gha
   - eslint-formatter-unix
+  - lcov-result-merger
   - mochawesome
   - mochawesome-report-generator
   - ovsx

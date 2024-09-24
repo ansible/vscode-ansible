@@ -930,6 +930,7 @@
     "glob": "^10.4.5",
     "globals": "^15.8.0",
     "jsdom": "^24.1.1",
+    "lcov-result-merger": "^5.0.1",
     "lodash": "^4.17.21",
     "mocha": "^10.7.0",
     "mochawesome": "^7.1.3",

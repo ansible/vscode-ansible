@@ -156,13 +156,41 @@ tasks:
   test-ui:
     desc: Run UI tests {{.XVFB}}
     aliases: [ui]
-    env:
-      MOCHA_GREP: Test One Click Trial feature
-      MOCHA_INVERT: true
     cmds:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
+      - task: test-ui-1
+      - task: test-ui-2
+      - task: test-ui-3
+    interactive: true
+  test-ui-1:
+    desc: Run UI tests 1/3 {{.XVFB}}
+    aliases: [ui1]
+    env:
+      MOCHA_GREP: UI Test Suite 1/3
+    cmds:
       - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
+      - bash -c 'mv ./out/coverage/ui ./out/coverage/ui-1'
+    interactive: true
+  test-ui-2:
+    desc: Run UI tests 2/3 {{.XVFB}}
+    aliases: [ui1]
+    env:
+      MOCHA_GREP: UI Test Suite 2/3
+    cmds:
+      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
+      - bash -c 'mv ./out/coverage/ui ./out/coverage/ui-2'
+    interactive: true
+  test-ui-3:
+    desc: Run UI tests 3/3 {{.XVFB}}
+    aliases: [ui1]
+    env:
+      MOCHA_GREP: UI Test Suite 3/3
+    cmds:
+      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
+      - bash -c 'mv ./out/coverage/ui ./out/coverage/ui-3'
+      - bash -c 'mkdir -p ./out/coverage/ui'
+      - npx lcov-result-merger './out/coverage/ui-*/lcov.info' ./out/coverage/ui/lcov.info
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report
