@@ -156,9 +156,6 @@ tasks:
   test-ui:
     desc: Run UI tests {{.XVFB}}
     aliases: [ui]
-    env:
-      MOCHA_GREP: Test One Click Trial feature
-      MOCHA_INVERT: true
     cmds:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
