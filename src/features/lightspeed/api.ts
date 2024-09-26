@@ -296,6 +296,11 @@ export class LightSpeedAPI {
       console.error("Ansible Lightspeed instance is not initialized.");
       return {} as ExplanationResponseParams;
     }
+    // If a Model ID Override is specified, send it to Lightspeed with the request.
+    if (lightSpeedManager.settingsManager.settings.lightSpeedService.model) {
+      inputData.model =
+        lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+    }
     try {
       const customPrompt =
         lightSpeedManager.settingsManager.settings.lightSpeedService
@@ -342,6 +347,11 @@ export class LightSpeedAPI {
       return {} as GenerationResponseParams;
     }
     try {
+      // If a Model ID Override is specified, send it to Lightspeed with the request.
+      if (lightSpeedManager.settingsManager.settings.lightSpeedService.model) {
+        inputData.model =
+          lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+      }
       const customPrompt =
         lightSpeedManager.settingsManager.settings.lightSpeedService
           .playbookGenerationCustomPrompt;

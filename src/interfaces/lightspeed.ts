@@ -147,6 +147,7 @@ export interface GenerationRequestParams {
   generationId: string;
   createOutline: boolean;
   wizardId?: string;
+  model?: string;
 }
 
 export interface GenerationResponseParams {
@@ -159,6 +160,7 @@ export interface ExplanationRequestParams {
   content: string;
   customPrompt?: string;
   explanationId: string;
+  model?: string;
 }
 
 export interface ExplanationResponseParams {
