@@ -50,6 +50,8 @@ export function lightspeedOneClickTrialUITest(): void {
         "ansible.lightspeed.suggestions.enabled",
         true,
       );
+      // Close settings and other open editors (if any)
+      await new EditorView().closeAllEditors();
 
       // Set "UI Test" and "One Click" options for mock server
       await axios.post(
@@ -155,7 +157,6 @@ export function lightspeedOneClickTrialUITest(): void {
       const text = await div.getText();
       expect(text).contains("LOGGED IN AS: ONE_CLICK_USER (UNLICENSED)");
       await explorerView.switchBack();
-      await new EditorView().closeAllEditors();
     });
 
     it("Invoke Playbook generation", async () => {
