@@ -83,28 +83,51 @@ class Errors {
           ? responseErrorData.message
           : "unknown";
       }
-
-      let detail: string = "";
-      if (typeof responseErrorData.message == "string") {
-        detail = responseErrorData.message ?? "";
-      } else if (Array.isArray(responseErrorData.message)) {
-        const messages = responseErrorData.message as [];
-        messages.forEach((value: string, index: number) => {
-          detail =
-            detail +
-            "(" +
-            (index + 1) +
-            ") " +
-            value +
-            (index < messages.length - 1 ? " " : "");
-        });
-      }
+      const items = (err?.response?.data as Record<string, unknown>) ?? {};
+      const detail = Object.hasOwn(items, "detail")
+        ? items["detail"]
+        : undefined;
 
       // Clone the Error to preserve the original definition
-      return new Error(e.code, message, detail, e.check);
+      return new Error(
+        e.code,
+        message,
+        this.prettyPrintDetail(detail),
+        e.check,
+      );
     }
 
     return undefined;
+  }
+
+  public prettyPrintDetail(detail: unknown): string | undefined {
+    let pretty: string = "";
+    if (detail === undefined) {
+      return undefined;
+    } else if (typeof detail == "string") {
+      pretty = detail ?? "";
+    } else if (Array.isArray(detail)) {
+      const items = detail as [];
+      items.forEach((value: string, index: number) => {
+        pretty =
+          pretty +
+          "(" +
+          (index + 1) +
+          ") " +
+          value +
+          (index < items.length - 1 ? " " : "");
+      });
+    } else if (detail instanceof Object && detail.constructor === Object) {
+      const items = detail as Record<string, unknown>;
+      const keys: string[] = Object.keys(detail);
+      keys.forEach((key, index) => {
+        pretty =
+          pretty +
+          `${key}: ${items[key]}` +
+          (index < keys.length - 1 ? " " : "");
+      });
+    }
+    return pretty;
   }
 }
 
