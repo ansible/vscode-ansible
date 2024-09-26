@@ -50,6 +50,8 @@ export function lightspeedOneClickTrialUITest(): void {
         "ansible.lightspeed.suggestions.enabled",
         true,
       );
+      // Close settings and other open editors (if any)
+      await new EditorView().closeAllEditors();
 
       // Set "UI Test" and "One Click" options for mock server
       await axios.post(
