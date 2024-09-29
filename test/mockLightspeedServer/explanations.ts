@@ -13,6 +13,7 @@ export function explanations(
   const explanationId = req.body.explanationId
     ? req.body.explanationId
     : uuidv4();
+  const model = req.body?.model;
   const format = "markdown";
   logger.info(`content: ${playbook}`);
 
@@ -96,6 +97,10 @@ the following parameters:
 
   if (customPrompt) {
     content += "\nCustom prompt explanation.";
+  }
+
+  if (model) {
+    content += `\nmodel=${model}`;
   }
 
   return res.send({

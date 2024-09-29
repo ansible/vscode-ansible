@@ -12,6 +12,7 @@ export function generations(
   const createOutline = req.body.createOutline;
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
   const wizardId = req.body.wizardId;
+  const model = req.body?.model;
   logger.info(`text: ${text}`);
   logger.info(`outline: ${req.body.outline}`);
   logger.info(`wizardId: ${wizardId}`);
@@ -111,6 +112,10 @@ export function generations(
 
   if (customPrompt) {
     outline += "\n5. Custom prompt step.";
+  }
+
+  if (model) {
+    outline += `\n6. model=${model}`;
   }
 
   return res.send({

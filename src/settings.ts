@@ -47,6 +47,10 @@ export class SettingsManager {
           waitWindow: lightSpeedSettings.get("suggestions.waitWindow", 0),
         },
         model: lightSpeedSettings.get("modelIdOverride", undefined),
+        includeModelInPlaybookAPIs: lightSpeedSettings.get(
+          "includeModelIdOverrideInPlaybookGenExpRequests",
+          false,
+        ),
         playbookGenerationCustomPrompt: lightSpeedSettings.get(
           "playbookGenerationCustomPrompt",
           undefined,
