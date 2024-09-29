@@ -630,7 +630,7 @@ export function lightspeedUIAssetsTest(): void {
       }
     });
 
-    it("Playbook generation webview works as expected (fast path, custom prompt)", async function () {
+    it("Playbook generation webview works as expected (fast path, custom prompt, model override)", async function () {
       // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
       if (process.env.TEST_LIGHTSPEED_URL) {
         // Set Playbook generation custom prompt
@@ -639,6 +639,16 @@ export function lightspeedUIAssetsTest(): void {
           settingsEditor,
           "ansible.lightspeed.playbookGenerationCustomPrompt",
           "custom prompt {goal}, {outline}",
+        );
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.modelIdOverride",
+          "my_model",
+        );
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.includeModelIdOverrideInPlaybookGenExpRequests",
+          true,
         );
         await workbench.executeCommand("View: Close All Editor Groups");
 
@@ -686,6 +696,7 @@ export function lightspeedUIAssetsTest(): void {
           .undefined;
         const text = await outlineList.getText();
         expect(text.includes("Custom prompt step")).to.be.true;
+        expect(text.includes("model=my_model")).to.be.true;
 
         await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");
@@ -908,7 +919,7 @@ export function lightspeedUIAssetsTest(): void {
       }
     });
 
-    it("Playbook explanation webview works as expected, custom prompt", async function () {
+    it("Playbook explanation webview works as expected, custom prompt, model override", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
         const folder = "lightspeed";
         const file = "playbook_4.yml";
@@ -920,6 +931,16 @@ export function lightspeedUIAssetsTest(): void {
           settingsEditor,
           "ansible.lightspeed.playbookExplanationCustomPrompt",
           "custom prompt {playbook}",
+        );
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.modelIdOverride",
+          "my_model",
+        );
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.includeModelIdOverrideInPlaybookGenExpRequests",
+          true,
         );
         await workbench.executeCommand("View: Close All Editor Groups");
 
@@ -952,6 +973,7 @@ export function lightspeedUIAssetsTest(): void {
         const text = await mainDiv.getText();
         expect(text.includes("Playbook Overview and Structure")).to.be.true;
         expect(text.includes("Custom prompt explanation")).to.be.true;
+        expect(text.includes("model=my_model")).to.be.true;
 
         await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");

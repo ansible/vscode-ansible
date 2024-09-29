@@ -297,7 +297,11 @@ export class LightSpeedAPI {
       return {} as ExplanationResponseParams;
     }
     // If a Model ID Override is specified, send it to Lightspeed with the request.
-    if (lightSpeedManager.settingsManager.settings.lightSpeedService.model) {
+    if (
+      lightSpeedManager.settingsManager.settings.lightSpeedService.model &&
+      lightSpeedManager.settingsManager.settings.lightSpeedService
+        .includeModelInPlaybookAPIs
+    ) {
       inputData.model =
         lightSpeedManager.settingsManager.settings.lightSpeedService.model;
     }
@@ -348,7 +352,11 @@ export class LightSpeedAPI {
     }
     try {
       // If a Model ID Override is specified, send it to Lightspeed with the request.
-      if (lightSpeedManager.settingsManager.settings.lightSpeedService.model) {
+      if (
+        lightSpeedManager.settingsManager.settings.lightSpeedService.model &&
+        lightSpeedManager.settingsManager.settings.lightSpeedService
+          .includeModelInPlaybookAPIs
+      ) {
         inputData.model =
           lightSpeedManager.settingsManager.settings.lightSpeedService.model;
       }
