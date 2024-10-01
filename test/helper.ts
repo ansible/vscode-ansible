@@ -262,11 +262,11 @@ export async function testHover(
   position: vscode.Position,
   expectedHover: vscode.Hover[],
 ): Promise<void> {
-  const actualHover = await vscode.commands.executeCommand(
+  const actualHover = (await vscode.commands.executeCommand(
     "vscode.executeHoverProvider",
     docUri,
     position,
-  ) as vscode.Hover[];
+  )) as vscode.Hover[];
 
   assert.strictEqual(actualHover.length, expectedHover.length);
 
