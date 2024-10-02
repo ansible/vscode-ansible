@@ -111,13 +111,6 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
         markdown = response.content;
         if (markdown.length === 0) {
           markdown = "### No explanation provided.";
-          const customPrompt =
-            lightSpeedManager.settingsManager.settings.lightSpeedService
-              .playbookExplanationCustomPrompt ?? "";
-          if (customPrompt.length > 0) {
-            markdown +=
-              "\n\nYou may want to consider amending your custom prompt.";
-          }
         }
         const html_snippet = marked.parse(markdown) as string;
         currentPanel.setContent(html_snippet, true);
