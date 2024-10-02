@@ -644,22 +644,6 @@
             "type": "string",
             "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
             "order": 4
-          },
-          "ansible.lightspeed.playbookGenerationCustomPrompt": {
-            "scope": "resource",
-            "type": "string",
-            "markdownDescription": "Custom Prompt for Playbook generation.",
-            "pattern": "^$|^.*{goal}.*{outline}.*|.*{outline}.*{goal}.*$",
-            "patternErrorMessage": "The prompt must contain placeholders for both '{goal}' and '{outline}'.",
-            "order": 5
-          },
-          "ansible.lightspeed.playbookExplanationCustomPrompt": {
-            "scope": "resource",
-            "type": "string",
-            "markdownDescription": "Custom Prompt for Playbook explanation.",
-            "pattern": "^$|^.*{playbook}.*$",
-            "patternErrorMessage": "The prompt must contain a placeholder for '{playbook}'.",
-            "order": 6
           }
         }
       },

@@ -9,7 +9,6 @@ export function explanations(
   res: any,
 ) {
   const playbook = req.body.content;
-  const customPrompt = req.body.customPrompt;
   const explanationId = req.body.explanationId
     ? req.body.explanationId
     : uuidv4();
@@ -39,18 +38,8 @@ export function explanations(
     });
   }
 
-  // Special case to replicate a broken custom prompt
-  if (customPrompt && customPrompt === "custom prompt broken") {
-    logger.info("Returning 400. Custom prompt is invalid");
-    return res.status(400).send({
-      code: "validation",
-      message: "invalid",
-      detail: { customPrompt: "custom prompt is invalid" },
-    });
-  }
-
   // cSpell: disable
-  let content = `
+  const content = `
 ## Playbook Overview and Structure
 
 This playbook creates an Azure Virtual Network (VNET) with the name "VNET_1"
@@ -93,10 +82,6 @@ the following parameters:
 - use_remote_gateways: Set to true for using remote gateways.
 `;
   // cSpell: enable
-
-  if (customPrompt) {
-    content += "\nCustom prompt explanation.";
-  }
 
   return res.send({
     content,

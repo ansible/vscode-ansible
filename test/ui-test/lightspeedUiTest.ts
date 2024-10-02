@@ -498,7 +498,6 @@ export function lightspeedUIAssetsTest(): void {
           .undefined;
         let text = await outlineList.getText();
         expect(text.includes("Create virtual network peering")).to.be.true;
-        expect(text.includes("Custom prompt step")).not.to.be.true;
 
         // Verify the prompt is displayed as a static text
         const prompt = await webView.findWebElement(
@@ -630,70 +629,6 @@ export function lightspeedUIAssetsTest(): void {
       }
     });
 
-    it("Playbook generation webview works as expected (fast path, custom prompt)", async function () {
-      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
-      if (process.env.TEST_LIGHTSPEED_URL) {
-        // Set Playbook generation custom prompt
-        settingsEditor = await workbench.openSettings();
-        await updateSettings(
-          settingsEditor,
-          "ansible.lightspeed.playbookGenerationCustomPrompt",
-          "custom prompt {goal}, {outline}",
-        );
-        await workbench.executeCommand("View: Close All Editor Groups");
-
-        // Open playbook generation webview.
-        await workbench.executeCommand(
-          "Ansible Lightspeed: Playbook generation",
-        );
-        await sleep(2000);
-        const webView = await new WebView();
-        expect(webView, "webView should not be undefined").not.to.be.undefined;
-        await webView.switchToFrame(5000);
-        expect(
-          webView,
-          "webView should not be undefined after switching to its frame",
-        ).not.to.be.undefined;
-
-        // Set input text and invoke summaries API
-        const textArea = await webView.findWebElement(
-          By.xpath("//vscode-text-area"),
-        );
-        expect(textArea, "textArea should not be undefined").not.to.be
-          .undefined;
-        const submitButton = await webView.findWebElement(
-          By.xpath("//vscode-button[@id='submit-button']"),
-        );
-        expect(submitButton, "submitButton should not be undefined").not.to.be
-          .undefined;
-        //
-        // Note: Following line should succeed, but fails for some unknown reasons.
-        //
-        // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
-        await textArea.sendKeys("Create an azure network.");
-        expect(
-          await submitButton.isEnabled(),
-          "submit button should be enabled now",
-        ).to.be.true;
-        await submitButton.click();
-        await sleep(1000);
-
-        // Verify outline output and text edit
-        const outlineList = await webView.findWebElement(
-          By.xpath("//ol[@id='outline-list']"),
-        );
-        expect(outlineList, "An ordered list should exist.").to.be.not
-          .undefined;
-        const text = await outlineList.getText();
-        expect(text.includes("Custom prompt step")).to.be.true;
-
-        await webView.switchBack();
-        await workbench.executeCommand("View: Close All Editor Groups");
-      } else {
-        this.skip();
-      }
-    });
-
     it("Playbook explanation webview works as expected", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
         const folder = "lightspeed";
@@ -728,7 +663,6 @@ export function lightspeedUIAssetsTest(): void {
         expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
         const text = await mainDiv.getText();
         expect(text.includes("Playbook Overview and Structure")).to.be.true;
-        expect(text.includes("Custom prompt explanation")).not.to.be.true;
 
         await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");
@@ -854,112 +788,6 @@ export function lightspeedUIAssetsTest(): void {
       }
     });
 
-    it("Playbook explanation webview works as expected, no explanation, custom prompt", async function () {
-      if (process.env.TEST_LIGHTSPEED_URL) {
-        const folder = "lightspeed";
-        const file = "playbook_explanation_none.yml";
-        const filePath = getFixturePath(folder, file);
-
-        // Set Playbook generation custom prompt
-        settingsEditor = await workbench.openSettings();
-        await updateSettings(
-          settingsEditor,
-          "ansible.lightspeed.playbookExplanationCustomPrompt",
-          "custom prompt {playbook}",
-        );
-        await workbench.executeCommand("View: Close All Editor Groups");
-
-        // Open file in the editor
-        await VSBrowser.instance.openResources(filePath);
-
-        // Open playbook explanation webview.
-        await workbench.executeCommand(
-          "Explain the playbook with Ansible Lightspeed",
-        );
-        await sleep(2000);
-
-        // Locate the playbook explanation webview
-        const webView = (await new EditorView().openEditor(
-          "Explanation",
-          1,
-        )) as WebView;
-        expect(webView, "webView should not be undefined").not.to.be.undefined;
-        await webView.switchToFrame(5000);
-        expect(
-          webView,
-          "webView should not be undefined after switching to its frame",
-        ).not.to.be.undefined;
-
-        // Find the main div element of the webview and verify the expected text is found.
-        const mainDiv = await webView.findWebElement(
-          By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
-        );
-        expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
-        const text = await mainDiv.getText();
-        expect(text.includes("No explanation provided")).to.be.true;
-        expect(
-          text.includes("You may want to consider amending your custom prompt"),
-        ).to.be.true;
-
-        await webView.switchBack();
-        await workbench.executeCommand("View: Close All Editor Groups");
-      } else {
-        this.skip();
-      }
-    });
-
-    it("Playbook explanation webview works as expected, custom prompt", async function () {
-      if (process.env.TEST_LIGHTSPEED_URL) {
-        const folder = "lightspeed";
-        const file = "playbook_4.yml";
-        const filePath = getFixturePath(folder, file);
-
-        // Set Playbook generation custom prompt
-        settingsEditor = await workbench.openSettings();
-        await updateSettings(
-          settingsEditor,
-          "ansible.lightspeed.playbookExplanationCustomPrompt",
-          "custom prompt {playbook}",
-        );
-        await workbench.executeCommand("View: Close All Editor Groups");
-
-        // Open file in the editor
-        await VSBrowser.instance.openResources(filePath);
-
-        // Open playbook explanation webview.
-        await workbench.executeCommand(
-          "Explain the playbook with Ansible Lightspeed",
-        );
-        await sleep(2000);
-
-        // Locate the playbook explanation webview
-        const webView = (await new EditorView().openEditor(
-          "Explanation",
-          1,
-        )) as WebView;
-        expect(webView, "webView should not be undefined").not.to.be.undefined;
-        await webView.switchToFrame(5000);
-        expect(
-          webView,
-          "webView should not be undefined after switching to its frame",
-        ).not.to.be.undefined;
-
-        // Find the main div element of the webview and verify the expected text is found.
-        const mainDiv = await webView.findWebElement(
-          By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
-        );
-        expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
-        const text = await mainDiv.getText();
-        expect(text.includes("Playbook Overview and Structure")).to.be.true;
-        expect(text.includes("Custom prompt explanation")).to.be.true;
-
-        await webView.switchBack();
-        await workbench.executeCommand("View: Close All Editor Groups");
-      } else {
-        this.skip();
-      }
-    });
-
     after(async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
         settingsEditor = await workbench.openSettings();
@@ -972,16 +800,6 @@ export function lightspeedUIAssetsTest(): void {
           settingsEditor,
           "ansible.lightspeed.URL",
           "https://c.ai.ansible.redhat.com",
-        );
-        await updateSettings(
-          settingsEditor,
-          "ansible.lightspeed.playbookGenerationCustomPrompt",
-          "",
-        );
-        await updateSettings(
-          settingsEditor,
-          "ansible.lightspeed.playbookExplanationCustomPrompt",
-          "",
         );
       }
     });

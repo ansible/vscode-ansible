@@ -8,7 +8,6 @@ export function generations(
   res: any,
 ) {
   const text = req.body.text;
-  const customPrompt = req.body.customPrompt;
   const createOutline = req.body.createOutline;
   const generationId = req.body.generationId ? req.body.generationId : uuidv4();
   const wizardId = req.body.wizardId;
@@ -44,16 +43,6 @@ export function generations(
     return res.status(404).send({
       code: "feature_not_available",
       message: "The feature is not available",
-    });
-  }
-
-  // Special case to replicate a broken custom prompt
-  if (customPrompt && customPrompt === "custom prompt broken") {
-    logger.info("Returning 400. Custom prompt is invalid");
-    return res.status(400).send({
-      code: "validation",
-      message: "invalid",
-      detail: { customPrompt: "custom prompt is invalid" },
     });
   }
 
@@ -107,10 +96,6 @@ export function generations(
 
   if (createOutline && outline) {
     outline += "\n4. Some extra step.";
-  }
-
-  if (customPrompt) {
-    outline += "\n5. Custom prompt step.";
   }
 
   return res.send({
