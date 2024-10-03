@@ -23,8 +23,8 @@ export async function applyFileInspectionForKeywords(
       const topLevelKeys = Object.keys(parsedYaml[0]);
       const ansibleTopLevelKeys = ["hosts", "import_playbook"];
 
-      const found = ansibleTopLevelKeys.some(
-        (key) => topLevelKeys.indexOf(key) >= 0,
+      const found = ansibleTopLevelKeys.some((key) =>
+        topLevelKeys.includes(key),
       );
 
       if (found) {
