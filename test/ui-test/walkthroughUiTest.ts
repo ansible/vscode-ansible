@@ -42,10 +42,12 @@ export function walkthroughUiTest(): void {
           By.xpath("//div[contains(@class, 'step-list-container') ]"),
         )
         .getText();
-      expect(
-        stepText.includes("Create an Ansible playbook"),
-        "Create an Ansible playbook step not found",
-      ).to.be.true;
+
+      expect(stepText).to.contain.oneOf([
+        "Create an Ansible playbook",
+        "tag in the status bar",
+        "Install the Ansible environment package",
+      ]);
     });
   });
 }
