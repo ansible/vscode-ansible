@@ -83,7 +83,7 @@ class Errors {
           ? responseErrorData.message
           : "unknown";
       }
-      const items = (err?.response?.data as Record<string, unknown>) ?? {};
+      const items = (err.response?.data as Record<string, unknown>) ?? {};
       const detail = Object.hasOwn(items, "detail")
         ? items["detail"]
         : undefined;
