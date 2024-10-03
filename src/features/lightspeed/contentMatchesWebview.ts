@@ -5,7 +5,6 @@ import { SettingsManager } from "../../settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
-  IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
 } from "../../interfaces/lightspeed";
