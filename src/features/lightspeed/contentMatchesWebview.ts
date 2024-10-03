@@ -5,6 +5,7 @@ import { SettingsManager } from "../../settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
+  IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
 } from "../../interfaces/lightspeed";
@@ -81,7 +82,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       contentMatchesRequestData.model = model;
     }
 
-    this.client.outputChannel.appendLine(
+    this.client.outputChannel?.appendLine(
       `${getCurrentUTCDateTime().toISOString()}: request content matches from Ansible Lightspeed:\n${JSON.stringify(
         contentMatchesRequestData,
       )}`,
@@ -89,7 +90,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     const outputData: ContentMatchesResponseParams | IError =
       await this.apiInstance.contentMatchesRequest(contentMatchesRequestData);
-    this.client.outputChannel.appendLine(
+    this.client.outputChannel?.appendLine(
       `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
         outputData,
       )}`,
@@ -155,7 +156,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private async getErrorWebviewContent(error: IError) {
     let detail: unknown = error.detail;
     if (typeof error.detail === "string") {
-      detail = error.detail;
+      detail = error.detail as string;
     } else if (typeof error.detail === "object") {
       detail = JSON.stringify(error.detail, undefined, "  ");
     }
@@ -245,7 +246,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
       const contentMatchValue = contentMatchResponses.contentmatches[taskIndex];
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
-        contentMatchValue.contentmatch,
+        <IContentMatchParams[]>(<IContentMatch>contentMatchValue).contentmatch,
         taskNameDescription || "",
         rhUserHasSeat === true,
       );
@@ -288,10 +289,10 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   ): string {
     let taskContentMatch = "";
     for (let index = 0; index < contentMatchesResponse.length; index++) {
-      taskContentMatch += this.renderContentMatches(
+      taskContentMatch += `${this.renderContentMatches(
         contentMatchesResponse[index],
         rhUserHasSeat,
-      );
+      )}`;
     }
 
     return `
