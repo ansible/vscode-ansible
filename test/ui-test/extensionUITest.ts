@@ -3,7 +3,6 @@ import {
   ActivityBar,
   SideBarView,
   ViewControl,
-  ExtensionsViewSection,
   Workbench,
 } from "vscode-extension-tester";
 
