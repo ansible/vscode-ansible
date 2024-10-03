@@ -3,6 +3,7 @@ import { lightspeedUILoginTest } from "./lightspeedAuthUiTest";
 import { lightspeedOneClickTrialUITest } from "./lightspeedOneClickTrialUITest";
 import { lightspeedUIAssetsTest } from "./lightspeedUiTest";
 import { terminalUITests } from "./terminalUiTest";
+import { walkthroughUiTest } from "./walkthroughUiTest";
 
 describe("VSCode Ansible - UI tests", function () {
   this.timeout(30000);
@@ -18,4 +19,5 @@ describe("VSCode Ansible - UI tests", function () {
     // lightspeedUILoginTest();
     // lightspeedUISignOutTest();
   }
+  walkthroughUiTest();
 });
