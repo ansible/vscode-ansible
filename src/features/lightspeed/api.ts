@@ -297,12 +297,6 @@ export class LightSpeedAPI {
       return {} as ExplanationResponseParams;
     }
     try {
-      const customPrompt =
-        lightSpeedManager.settingsManager.settings.lightSpeedService
-          .playbookExplanationCustomPrompt;
-      if (customPrompt && customPrompt.length > 0) {
-        inputData.customPrompt = customPrompt;
-      }
       const requestData = {
         ...inputData,
         metadata: { ansibleExtensionVersion: this._extensionVersion },
@@ -342,13 +336,6 @@ export class LightSpeedAPI {
       return {} as GenerationResponseParams;
     }
     try {
-      const customPrompt =
-        lightSpeedManager.settingsManager.settings.lightSpeedService
-          .playbookGenerationCustomPrompt;
-      if (customPrompt && customPrompt.length > 0) {
-        inputData.customPrompt = customPrompt;
-      }
-
       const requestData = {
         ...inputData,
         metadata: { ansibleExtensionVersion: this._extensionVersion },

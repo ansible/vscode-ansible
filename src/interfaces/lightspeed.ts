@@ -142,7 +142,6 @@ export interface ISuggestionDetails {
 
 export interface GenerationRequestParams {
   text: string;
-  customPrompt?: string;
   outline?: string;
   generationId: string;
   createOutline: boolean;
@@ -157,7 +156,6 @@ export interface GenerationResponseParams {
 
 export interface ExplanationRequestParams {
   content: string;
-  customPrompt?: string;
   explanationId: string;
 }
 
