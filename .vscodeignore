@@ -40,6 +40,22 @@
 !package.nls.json
 !syntaxes/**/*
 # walkthrough media files
+!media/walkthroughs/discoverAdt/adt-components.md
+!media/walkthroughs/discoverAdt/adt-create.md
+!media/walkthroughs/discoverAdt/adt-deploy.md
+!media/walkthroughs/discoverAdt/adt-test.md
+!media/walkthroughs/discoverAdt/all-adt-components.png
+!media/walkthroughs/discoverAdt/create-ansible-creator.gif
+!media/walkthroughs/discoverAdt/create-ansible-navigator.png
+!media/walkthroughs/discoverAdt/create-automation-hub.png
+!media/walkthroughs/discoverAdt/create-lightspeed-completion.gif
+!media/walkthroughs/discoverAdt/create-lightspeed-playbook.gif
+!media/walkthroughs/discoverAdt/deploy-ansible-builder.png
+!media/walkthroughs/discoverAdt/deploy-ansible-sign.png
+!media/walkthroughs/discoverAdt/test-ansible-lint.gif
+!media/walkthroughs/discoverAdt/test-molecule.gif
+!media/walkthroughs/discoverAdt/test-pytest-ansible.png
+!media/walkthroughs/discoverAdt/test-tox-ansible.gif
 !media/walkthroughs/gettingStarted/ansible-env/environment-statusbar.png
 !media/walkthroughs/gettingStarted/ansible-env/no-ansible-env copy.png
 !media/walkthroughs/gettingStarted/ansible-env/no-ansible-env.png

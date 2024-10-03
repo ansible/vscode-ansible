@@ -128,6 +128,45 @@
             }
           }
         ]
+      },
+      {
+        "id": "discover-ansible-development-tools",
+        "title": "Discover Ansible Development Tools",
+        "description": "A quick review of the tools that will help you create, test, and deploy your automation code.",
+        "steps": [
+          {
+            "id": "adt-create",
+            "title": "Create",
+            "description": "**Scaffold automation content with Ansible Creator**\nThe fastest way to generate all your ansible content! Whether you are initializing an Ansible Collection or creating the framework for specific plugins, this tool streamlines the process with efficiency and precision based on your requirements.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/creator/) \n-----\n**Manage automation content with Ansible navigator**\nA text-based user interface (TUI) for creating, reviewing, running and troubleshooting Ansible content, including inventories, playbooks, collections, documentation, and execution environments.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/navigator/) \n-----\n**Discover content with Ansible automation hub**\nYour organization's on-premise repository with curated, certified and validated Ansible content.\n[View Documentation ↗](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/managing_automation_content/index) \n-----\n**Build with Ansible Lightspeed**\nAnsible's generative AI service that provides Ansible code based on natural language prompts. Include content explanation and more to help you build with confidence.\n[View Documentation ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) \n[Ansible Lightspeed Trial Walkthrough ↗](https://www.redhat.com/en/products/interactive-walkthrough/install-ansible-lightspeed) ",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-create.md"
+            }
+          },
+          {
+            "id": "adt-test",
+            "title": "Test",
+            "description": "**Test playbooks with Ansible Lint**\nChecks playbooks for style errors, best practices, and other issues to ensure the integrity of your code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/lint/) \n-----\n**Test collections with Ansible Molecule**\nAssists in the development and testing of Ansible Content Collections, playbooks, and roles.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/molecule/) \n-----\n**Test collections with Tox Ansible**\nAn extension to the tox testing utility that provides additional functionality to check Ansible module and plugin Python code under different Python interpreters and Ansible core versions.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/tox-ansible/) \n-----\n**Integrate with pytest using Pytest Ansible**\nA pytest testing framework extension that provides additional functionality for testing Ansible module and plugin Python code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/pytest-ansible/) ",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-test.md"
+            }
+          },
+          {
+            "id": "adt-deploy",
+            "title": "Deploy",
+            "description": "**Build execution environments with Ansible Builder**\nAutomates the process of creating execution environments using schemas and tooling.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/builder/) \n-----\n**Verify Ansible content with Ansible Sign**\nUtility for signing and verifying Ansible project directory contents to ensure a secure software supply chain.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/sign/) ",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-deploy.md"
+            }
+          },
+          {
+            "id": "adt-where-to-start",
+            "title": "Where do I start?",
+            "description": "**Install the Ansible environment package, if you have not already**\nThe Ansible environment package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible environment package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-components.md"
+            }
+          }
+        ]
       }
     ],
     "viewsContainers": {
