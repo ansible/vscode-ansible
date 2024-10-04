@@ -3,6 +3,7 @@ require("assert");
 import { AxiosError, AxiosHeaders } from "axios";
 import { mapError } from "../../../../src/features/lightspeed/handleApiError";
 import assert from "assert";
+import { integer } from "vscode-languageclient";
 
 function createError(
   http_code: number,
@@ -37,6 +38,14 @@ function createError(
 }
 
 describe("testing the error handling", () => {
+  function withDetailTest(statusCode: integer, expectedMessage: string) {
+    const error = mapError(
+      createError(statusCode, { detail: { item: "details" } }),
+    );
+    assert.equal(error.message, expectedMessage);
+    assert.equal(error.detail, "item: details");
+  }
+
   // =================================
   // HTTP 200
   // ---------------------------------
@@ -93,7 +102,7 @@ describe("testing the error handling", () => {
     const error = mapError(
       createError(400, {
         code: "error__preprocess_invalid_yaml",
-        message: "A simple error.",
+        detail: "A simple error.",
       }),
     );
     assert.equal(
@@ -107,7 +116,7 @@ describe("testing the error handling", () => {
     const error = mapError(
       createError(400, {
         code: "error__preprocess_invalid_yaml",
-        message: ["error 1", "error 2"],
+        detail: ["error 1", "error 2"],
       }),
     );
     assert.equal(
@@ -115,6 +124,21 @@ describe("testing the error handling", () => {
       "An error occurred pre-processing the inline suggestion due to invalid YAML. Please contact your administrator.",
     );
     assert.equal(error.detail, "(1) error 1 (2) error 2");
+  });
+
+  it("err generic validation error", () => {
+    const error = mapError(
+      createError(400, {
+        detail: {
+          field1: "field 1 is invalid",
+          field2: "field 2 is also invalid",
+        },
+      }),
+    );
+    assert.equal(
+      error.detail,
+      "field1: field 1 is invalid field2: field 2 is also invalid",
+    );
   });
 
   it("err Feedback validation error", () => {
@@ -135,6 +159,13 @@ describe("testing the error handling", () => {
     const error = mapError(createError(401));
     assert.equal(
       error.message,
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator.",
+    );
+  });
+
+  it("err Unauthorized with detail", () => {
+    withDetailTest(
+      401,
       "You are not authorized to access Ansible Lightspeed. Please contact your administrator.",
     );
   });
@@ -290,6 +321,13 @@ describe("testing the error handling", () => {
       "Your organization does not have a subscription. Please contact your administrator.",
     );
   });
+
+  it("err Forbidden with detail", () => {
+    withDetailTest(
+      403,
+      "You are not authorized to access Ansible Lightspeed. Please contact your administrator.",
+    );
+  });
   // =================================
 
   // =================================
@@ -312,6 +350,13 @@ describe("testing the error handling", () => {
     assert.equal(
       error.message,
       "The requested action is not available in your environment.",
+    );
+  });
+
+  it("err Not found with detail", () => {
+    withDetailTest(
+      404,
+      "The resource could not be found. Please try again later.",
     );
   });
   // =================================
@@ -339,6 +384,13 @@ describe("testing the error handling", () => {
     const error = mapError(createError(429));
     assert.equal(
       error.message,
+      "Too many requests to Ansible Lightspeed. Please try again later.",
+    );
+  });
+
+  it("err Too Many Requests with detail", () => {
+    withDetailTest(
+      429,
       "Too many requests to Ansible Lightspeed. Please try again later.",
     );
   });
@@ -396,6 +448,13 @@ describe("testing the error handling", () => {
     assert.equal(
       error.message,
       "IBM watsonx Code Assistant request/response correlation failed. Please contact your administrator.",
+    );
+  });
+
+  it("err Internal Server Error - Generic with detail", () => {
+    withDetailTest(
+      500,
+      "An error occurred attempting to complete your request. Please try again later.",
     );
   });
   // =================================

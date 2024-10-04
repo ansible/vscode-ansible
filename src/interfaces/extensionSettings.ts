@@ -44,4 +44,6 @@ export interface LightSpeedServiceSettings {
   URL: string;
   suggestions: { enabled: boolean; waitWindow: number };
   model: string | undefined;
+  playbookGenerationCustomPrompt: string | undefined;
+  playbookExplanationCustomPrompt: string | undefined;
 }

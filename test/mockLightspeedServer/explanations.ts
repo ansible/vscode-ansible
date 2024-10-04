@@ -28,6 +28,16 @@ export function explanations(
     });
   }
 
+  // Special case to replicate explanation being unavailable
+  if (playbook !== undefined && playbook.includes("No explanation available")) {
+    logger.info("Returning empty content. Explanation is not available");
+    return res.send({
+      content: "",
+      format,
+      explanationId,
+    });
+  }
+
   // cSpell: disable
   const content = `
 ## Playbook Overview and Structure
