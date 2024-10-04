@@ -111,7 +111,7 @@
           {
             "id": "adt-where-to-start",
             "title": "Where do I start?",
-            "description": "**Install the Ansible environment package, if you have not already**\nThe Ansible environment package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible environment package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
+            "description": "**Install the Ansible environment package, if you have not already**\nThe Ansible environment package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible environment package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.\n-----\n**Check out other walkthroughs**\n[• Create an Ansible Environment](command:ansible.open-walkthrough-create-env) ",
             "media": {
               "markdown": "media/walkthroughs/discoverAdt/adt-components.md"
             }
