@@ -100,7 +100,7 @@
       "ansible-explorer": [
         {
           "id": "ansible-content-creator",
-          "name": "Ansible content creator"
+          "name": "Ansible Development Tools"
         },
         {
           "id": "lightspeed-explorer-webview",
@@ -246,7 +246,7 @@
       },
       {
         "command": "ansible.content-creator.menu",
-        "title": "Open Ansible Content Creator menu"
+        "title": "Open Ansible Development Tools menu"
       },
       {
         "command": "ansible.content-creator.install",

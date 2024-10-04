@@ -243,3 +243,7 @@ a .codicon {
 	border-style: solid;
 	border-radius: 4px;
 }
+
+.playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer > .header > .subtitle {
+	font-size: 1em;
+}
