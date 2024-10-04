@@ -2,7 +2,7 @@
 
 <figure align="center">
   <img src="test-ansible-lint.gif" alt="image missing" />
-  <figcaption>Ansible Lint integration inside the Ansible extension</figcaption>
+  <figcaption>Ansible lint integration inside the Ansible extension</figcaption>
 </figure>
 <br>
 <figure align="center">
@@ -12,11 +12,11 @@
 <br>
 <figure align="center">
   <img src="test-pytest-ansible.png" alt="image missing" />
-  <figcaption>Using Pytest Ansible with VSCode's Test Explorer</figcaption>
+  <figcaption>Using pytest Ansible with VSCode's Test Explorer</figcaption>
 </figure>
 <br>
 <figure align="center">
   <img src="test-tox-ansible.gif" alt="image missing" />
-  <figcaption>Displaying Tox Ansible options and running a test suite</figcaption>
+  <figcaption>Displaying tox Ansible options and running a test suite</figcaption>
 </figure>
 <br>

@@ -2,5 +2,5 @@
 
 <figure align="center">
   <img src="all-adt-components.png" alt="image missing" />
-  <figcaption>All the tools inside the Ansible environment package</figcaption>
+  <figcaption>All the tools inside the Ansible development package</figcaption>
 </figure>
