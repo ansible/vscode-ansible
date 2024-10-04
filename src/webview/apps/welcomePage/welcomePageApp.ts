@@ -87,8 +87,16 @@ function updateAnsibleCreatorAvailabilityStatus() {
         } else {
           // if (systemReadinessDiv)
           //   systemReadinessDiv.style.backgroundColor = "#610000";
-          systemReadinessIcon.innerHTML = `<span class="codicon codicon-error"></span>`;
-          systemReadinessDescription.innerHTML = `<p class="system-description"><b>Looks like your environment is missing some tools</b>.<br>Follow the description in the 'System requirements' section to set up your environment.</p>`;
+          systemReadinessIcon.innerHTML = `<span class="codicon codicon-warning"></span>`;
+          systemReadinessDescription.innerHTML = `
+            <p class="system-description">
+              <b>Looks like you don't have an ansible environment set up yet</b>.
+              <br>
+              Follow the
+                <a href="command:ansible.lightspeed.playbookGeneration">
+                  Set up Ansible environment walkthrough
+                </a>
+            </p>`;
         }
         systemReadinessDiv?.appendChild(systemReadinessIcon);
         systemReadinessDiv?.appendChild(systemReadinessDescription);
