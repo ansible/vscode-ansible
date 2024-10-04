@@ -284,6 +284,13 @@ a:active {
   outline-color: var(--vscode-focusBorder);
 }
 
+.warningsContainer {
+  display: none;
+  width: 100%;
+  color: var(--input-foreground);
+  background: var(--input-background);
+}
+
 .formattedPlaybook {
   display: none;
   width: 100%;

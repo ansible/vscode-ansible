@@ -172,6 +172,7 @@ export async function showPlaybookGenerationPage(
               outline: {
                 playbook: message.playbook,
                 outline: message.outline,
+                warnings: message.warnings,
                 generationId: message.generationId,
               },
             });
@@ -281,6 +282,11 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
     "playbookGeneration",
     "style.css",
   ]);
+  const playbookGenerationUri = getUri(webview, extensionUri, [
+    "media",
+    "playbookGeneration",
+    "playbookGeneration.css",
+  ]);
   const codiconsUri = getUri(webview, extensionUri, [
     "media",
     "codicons",
@@ -299,6 +305,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
         content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};'">
     <link rel="stylesheet" href="${codiconsUri}">
     <link rel="stylesheet" href="${styleUri}">
+    <link rel="stylesheet" href="${playbookGenerationUri}">
     <title>Playbook</title>
 </head>
 
@@ -331,6 +338,23 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
               <ol id="outline-list" contentEditable="true">
                 <li></li>
               </ol>
+            </div>
+            <div class="warningsContainer">
+              <div class="playbookGenerationCategoriesContainer">
+                <div class="header">
+                  <div id="system-readiness" class="statusDisplay">
+                    <section>
+                      <span class="codicon codicon-warning"></span>
+                    </section>
+                    <section>
+                      <p class="system-description">
+                        <b>Warnings were produced for your request. Your custom prompt may need review.</b>
+                      </p>
+                      <ul id="warnings-list" id="warnings"></ul>
+                    </section>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="spinnerContainer">
               <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>

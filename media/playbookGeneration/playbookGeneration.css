@@ -41,6 +41,10 @@ a .codicon {
 	color: green;
 }
 
+.codicon.codicon-warning {
+	margin: 10px;
+	color: orange;
+}
 
 #system-readiness-error {
 	display: flex;

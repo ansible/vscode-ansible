@@ -9,6 +9,7 @@ import {
   TextArea,
 } from "@vscode/webview-ui-toolkit";
 import { EditableList } from "../../common/editableList";
+import { GenerationResponseWarning } from "../../../../interfaces/lightspeed";
 
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
@@ -23,6 +24,7 @@ const TOTAL_PAGES = 3;
 let savedText: string;
 let savedPlaybook: string | undefined;
 let generationId: string | undefined;
+let warnings: GenerationResponseWarning[];
 let darkMode = true;
 let textArea: TextArea;
 let currentPage = 1;
@@ -75,6 +77,9 @@ window.addEventListener("message", async (event) => {
       break;
     }
     case "outline": {
+      // warnings *must* be set before calling setupPage(..)
+      warnings = message.outline.warnings;
+
       setupPage(2);
 
       outline.update(message.outline.outline);
@@ -83,6 +88,17 @@ window.addEventListener("message", async (event) => {
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
+
+      let warningsItemsText = "";
+      if (warnings.length > 0) {
+        warnings.forEach((warning) => {
+          warningsItemsText += `<li>${warning.id}: ${warning.message} ${(warning.details ?? "").length > 0 ? ", " + warning.details : ""}</li>`;
+        });
+      }
+      const warningsList = document.getElementById(
+        "warnings-list",
+      ) as HTMLUListElement;
+      warningsList.innerHTML = warningsItemsText;
 
       outline.focus();
       break;
@@ -173,6 +189,7 @@ async function submitInput() {
     text: savedText,
     playbook: savedPlaybook,
     outline: outline.getSavedValueAsString(),
+    warnings,
     generationId,
   });
   textArea.focus();
@@ -270,6 +287,7 @@ function setupPage(pageNumber: number) {
       setPageNumber(1);
       showBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
+      changeDisplay("warningsContainer", "none");
       changeDisplay("formattedPlaybook", "none");
       changeDisplay("bigIconButtonContainer", "block");
       changeDisplay("examplesContainer", "block");
@@ -286,6 +304,10 @@ function setupPage(pageNumber: number) {
       setPageNumber(2);
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "block");
+      changeDisplay(
+        "warningsContainer",
+        warnings?.length > 0 ? "block" : "none",
+      );
       changeDisplay("formattedPlaybook", "none");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
@@ -306,6 +328,7 @@ function setupPage(pageNumber: number) {
       setPageNumber(3);
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
+      changeDisplay("warningsContainer", "none");
       changeDisplay("formattedPlaybook", "block");
       changeDisplay("bigIconButtonContainer", "none");
       changeDisplay("examplesContainer", "none");
