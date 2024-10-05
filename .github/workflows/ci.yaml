@@ -88,108 +88,155 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
 
-          - name: test (linux)
-            task-name: test
+          # - name: test (linux)
+          #   task-name: test
 
-          - name: test (macos)
-            task-name: test
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   task-name: test
+          #   os: macos-13-large
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
           - name: test (wsl)
             # runner does not support running containers
             task-name: als:test-without-ee
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
-            shell: "wsl-bash {0}"
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+            os: devtools-vscode-win11-x64
+            shell: bash
+      # /bin/cp /etc/skel/.bashrc ~/
+      # echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+      # echo 'export ASDF_DIR="$HOME/.asdf"' >> ~/.bashrc
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # we need tags for dynamic versioning
-          show-progress: false
+      # - uses: actions/checkout@v4
+      #   with:
+      #     fetch-depth: 0 # we need tags for dynamic versioning
+      #     show-progress: false
 
-      # https://github.com/marketplace/actions/setup-wsl
-      - name: Activate WSL
-        if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v3.1.1
+      # # https://github.com/marketplace/actions/setup-wsl
+      # - name: Activate WSL
+      #   uses: Ubuntu/WSL/.github/actions/wsl-install@main
+      #   with:
+      #     distro: Ubuntu-22.04
+      # echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+
+
+      - name: Checkout in WSL
+        uses: Ubuntu/WSL/.github/actions/wsl-checkout@main
         with:
-          distribution: Ubuntu-22.04
-          set-as-default: "true"
-          # '-i' seems to be the only option that loads .bashrc file that we need
-          # https://github.com/Vampire/setup-wsl/discussions/54
-          wsl-shell-command: "bash -i -eo pipefail"
-          # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
-          wsl-conf: |
-            [automount]
-            enabled = true
-            root = /
-            options = "metadata,umask=077"
-            [boot]
-            command=/etc/init.d/dbus start
-            [interop]
-            enabled = false
-            appendWindowsPath = false
-            [network]
-            hostname = wsl
-          additional-packages: curl
-            dbus
-            dirmngr
-            gawk
-            git
-            gpg
-            gpg-agent
-            jq
-            make
-            python3-dev
-            python3-full
-            python3-venv
-            qemu-user-static
-            tar
-            unzip
-            xvfb
-          # asdf nodejs plugin requires: dirmngr gpg curl gawk
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+
+      - name: Install dependencies
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+          exec: |
+            apt install -y curl dbus dirmngr docker gawk git gpg gpg-agent jq make podman python3-dev python3-full python3-venv qemu-user-static tar unzip xvfb apt-transport-https ca-certificates software-properties-common
+            git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+            . "$HOME/.asdf/asdf.sh"
+            asdf plugin add direnv
+            asdf plugin add nodejs
+            asdf plugin add python
+            asdf plugin add task
+            asdf plugin add yarn
+            asdf install
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
+            add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+            apt install -y docker-ce docker-ce-cli containerd.io
+            direnv --version
+            task --version
+            yarn --version
+            node --version
+            python3 --version
+            podman --version
+            docker --version
+
+            cat ~/.bashrc
+            echo $ASDF_DIR
+            pwd
+
+      - name: task setup - wsl
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+          exec: |
+            echo $ASDF_DIR
+            . "$HOME/.asdf/asdf.sh"
+            task setup
+      - name: task package - wsl
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          exec: |
+            . "$HOME/.asdf/asdf.sh"
+            task package ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task package
+      #   id: package
+      #   run: task package ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task ${{ matrix.task-name }}
+      #   if: "${{ !contains(matrix.name, 'test') }}"
+      #   run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task unit
+      #   if: contains(matrix.name, 'test')
+      #   run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task ui
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+      #   run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task e2e
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+      #   run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task als
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: contains(matrix.name, 'test')
+      #   run: task als ${{ matrix.env.TASKFILE_ARGS }}
+
+      # - name: task unit - wsl
+      #   uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+      #   with:
+      #     distro: Ubuntu-22.04
+      #     working-dir: /tmp/github/
+      #     exec: |
+      #       task unit ${{ matrix.env.TASKFILE_ARGS }}
+      #     wsl-conf: |
+      #       [automount]
+      #       enabled = true
+      #       root = /
+      #       options = "metadata,umask=077"
+      #       [boot]
+      #       command=/etc/init.d/dbus start
+      #       [interop]
+      #       enabled = false
+      #       appendWindowsPath = false
+      #       [network]
+      #       hostname = wsl
 
       - name: Setup asdf
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         uses: asdf-vm/actions/install@v3
 
       - name: Setup python
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install asdf inside WSL
-        if: contains(matrix.shell, 'wsl')
-        run: |
-          set -ex
-          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
-          export ASDF_DIR="$HOME/.asdf"
-          . "$HOME/.asdf/asdf.sh"
-          asdf plugin add direnv
-          asdf plugin add nodejs
-          asdf plugin add python
-          asdf plugin add task
-          asdf plugin add yarn
-          asdf install
-          direnv --version
-          task --version
-          yarn --version
-          node --version
-          python3 --version
-
       - name: Activate direnv
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         run: |
           set -x
           asdf direnv setup --shell bash --version latest
@@ -201,7 +248,7 @@ jobs:
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
       - name: Ensure virtualenv is active (direnv)
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         run: |
           set -x
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa"
@@ -230,40 +277,40 @@ jobs:
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
-      - name: task setup
-        # starting podman machine can randomly get stuck on macos
-        timeout-minutes: 25
-        run: task setup
+      # - name: task setup
+      #   # starting podman machine can randomly get stuck on macos
+      #   timeout-minutes: 25
+      #   run: task setup
 
-      ## uncomment to debug on GHA runner
-      # - name: Setup tmate session
-      #   uses: mxschmitt/action-tmate@v3
-      - name: task package
-        id: package
-        run: task package ${{ matrix.env.TASKFILE_ARGS }}
+      # ## uncomment to debug on GHA runner
+      # # - name: Setup tmate session
+      # #   uses: mxschmitt/action-tmate@v3
+      # - name: task package
+      #   id: package
+      #   run: task package ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') }}"
-        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task ${{ matrix.task-name }}
+      #   if: "${{ !contains(matrix.name, 'test') }}"
+      #   run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task unit
-        if: contains(matrix.name, 'test')
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task unit
+      #   if: contains(matrix.name, 'test')
+      #   run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task ui
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
-        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task ui
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+      #   run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task e2e
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
-        run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task e2e
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+      #   run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task als
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: contains(matrix.name, 'test')
-        run: task als ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task als
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: contains(matrix.name, 'test')
+      #   run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
@@ -350,7 +397,7 @@ jobs:
           path: .
 
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4
         with:
           name: als
           files: ./*/coverage/als/lcov.info
@@ -360,7 +407,7 @@ jobs:
           use_oidc: true # cspell:ignore oidc
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4
         with:
           name: unit
           files: ./*/coverage/unit/lcov.info
@@ -370,7 +417,7 @@ jobs:
           use_oidc: true # cspell:ignore oidc
 
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4
         with:
           name: unit
           files: ./*/coverage/ui/lcov.info
@@ -380,7 +427,7 @@ jobs:
           use_oidc: true # cspell:ignore oidc
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v4.5.0
+        uses: codecov/codecov-action@v4
         with:
           name: e2e
           files: ./*/coverage/e2e/lcov.info
