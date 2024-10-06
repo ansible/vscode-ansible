@@ -16,7 +16,7 @@ export function adjustInlineSuggestionIndent(
     newSuggestion = lines
       .map((line, index) => {
         // BOUNDARY: shouldn't extend into the string
-        if (line[position.character - 1].match(/\w/)) {
+        if (line[position.character - 1]?.match(/\w/)) {
           console.error(`ignoring malformed line, indentation: '${line}'`);
           return "";
         }
