@@ -54,6 +54,11 @@ a .codicon {
 	color: red;
 }
 
+.codicon.codicon-warning {
+	margin: 10px;
+	color: red;
+}
+
 .system-description {
 	padding: 0px;
 	margin: 6px;
