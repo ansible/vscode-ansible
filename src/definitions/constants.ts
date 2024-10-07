@@ -39,4 +39,5 @@ export const IncludeVarValidTaskName = [
   "ansible.legacy.include_vars",
 ];
 
-export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 50000;
+# Slightly lower than CloudFront's timeout which is 30s.
+export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 28000;
