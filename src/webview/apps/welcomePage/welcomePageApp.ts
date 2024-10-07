@@ -93,9 +93,9 @@ function updateAnsibleCreatorAvailabilityStatus() {
               <b>Looks like you don't have an ansible environment set up yet</b>.
               <br>
               Follow the
-                <a href="command:ansible.lightspeed.playbookGeneration">
-                  Set up Ansible environment walkthrough
-                </a>
+                <a href="command:ansible.open-walkthrough-create-env">
+                  Set up Ansible environment
+                </a> walkthrough
             </p>`;
         }
         systemReadinessDiv?.appendChild(systemReadinessIcon);
