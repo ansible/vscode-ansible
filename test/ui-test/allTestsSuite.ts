@@ -3,6 +3,7 @@ import { lightspeedUILoginTest } from "./lightspeedAuthUiTest";
 import { lightspeedOneClickTrialUITest } from "./lightspeedOneClickTrialUITest";
 import { lightspeedUIAssetsTest } from "./lightspeedUiTest";
 import { terminalUITests } from "./terminalUiTest";
+import { walkthroughUiTest } from "./walkthroughUiTest";
 import { welcomePageUITest } from "./welcomePageUITest";
 
 describe("VSCode Ansible - UI tests", function () {
@@ -20,4 +21,5 @@ describe("VSCode Ansible - UI tests", function () {
     // lightspeedUILoginTest();
     // lightspeedUISignOutTest();
   }
+  walkthroughUiTest();
 });
