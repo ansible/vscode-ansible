@@ -20,7 +20,7 @@ export default tseslint.config(
   {
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended, // TODO: switch to strictTypeChecked
+      ...tseslint.configs.strictTypeChecked,
       prettierRecommendedConfig,
     ],
     files: [
