@@ -312,9 +312,7 @@ export class LightSpeedAPI {
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-          // This is coming from our former LSP implementation, it may be a good
-          // idea to generalize the use of a <28s timeout to be below CloudFront's 30s
-          signal: AbortSignal.timeout(28000),
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
         },
       );
       return response.data;
@@ -351,9 +349,7 @@ export class LightSpeedAPI {
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
-          // This is coming from our former LSP implementation, it may be a good
-          // idea to generalize the use of a <28s timeout to be below CloudFront's 30s
-          signal: AbortSignal.timeout(28000),
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
         },
       );
       return response.data;
