@@ -5,6 +5,7 @@ import { SettingsManager } from "../../settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
