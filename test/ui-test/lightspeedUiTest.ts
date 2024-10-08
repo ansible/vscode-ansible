@@ -705,6 +705,150 @@ export function lightspeedUIAssetsTest(): void {
       }
     });
 
+    it("Playbook generation webview works as expected (warnings)", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        // Open playbook generation webview.
+        await workbench.executeCommand(
+          "Ansible Lightspeed: Playbook generation",
+        );
+        await sleep(2000);
+        const webView = await new WebView();
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Verify warnings list is not shown
+        let warningsList = await webView.findWebElement(
+          By.xpath("//ul[@id='warnings-list']"), //ul id="warnings-list"
+        );
+        expect(warningsList, "An unordered list should exist.").not.to.be
+          .undefined;
+        expect(
+          await warningsList.isDisplayed(),
+          "An unordered list should not be displayed.",
+        ).to.be.false;
+
+        // Set input text and invoke summaries API
+        const textArea = await webView.findWebElement(
+          By.xpath("//vscode-text-area"),
+        );
+        expect(textArea, "textArea should not be undefined").not.to.be
+          .undefined;
+        const submitButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='submit-button']"),
+        );
+        expect(submitButton, "submitButton should not be undefined").not.to.be
+          .undefined;
+        //
+        // Note: Following line should succeed, but fails for some unknown reasons.
+        //
+        // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
+        await textArea.sendKeys("Create a playbook with warnings");
+        expect(
+          await submitButton.isEnabled(),
+          "submit button should be enabled now",
+        ).to.be.true;
+        await submitButton.click();
+        await sleep(1000);
+
+        // Verify warnings list (basic check)
+        warningsList = await webView.findWebElement(
+          By.xpath("//ul[@id='warnings-list']"), //ul id="warnings-list"
+        );
+        expect(warningsList, "An unordered list should exist.").to.be.not
+          .undefined;
+        expect(
+          await warningsList.isDisplayed(),
+          "An unordered list should be displayed.",
+        ).to.be.true;
+        let text = await warningsList.getText();
+        expect(text.includes("id-1")).to.be.true;
+        expect(text.includes("Warning message")).to.be.true;
+        expect(text.includes("Warning details")).to.be.true;
+
+        // Click Generate playbook button to invoke the generations API
+        const generatePlaybookButton = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='generate-button']"),
+        );
+        expect(
+          generatePlaybookButton,
+          "generatePlaybookButton should not be undefined",
+        ).not.to.be.undefined;
+
+        await generatePlaybookButton.click();
+        await sleep(300);
+
+        // Verify a playbook was generated.
+        const formattedCode = await webView.findWebElement(
+          By.xpath("//span[@id='formatted-code']"),
+        );
+        expect(formattedCode, "formattedCode should not be undefined").not.to.be
+          .undefined;
+        text = await formattedCode.getText();
+        expect(text.startsWith("---")).to.be.true;
+
+        // Verify warnings list is not shown
+        warningsList = await webView.findWebElement(
+          By.xpath("//ul[@id='warnings-list']"), //ul id="warnings-list"
+        );
+        expect(warningsList, "An unordered list should exist.").not.to.be
+          .undefined;
+        expect(
+          await warningsList.isDisplayed(),
+          "An unordered list should not be displayed.",
+        ).to.be.false;
+
+        // Click Back (to Page 2) button
+        const backToPage2Button = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='back-to-page2-button']"),
+        );
+        expect(backToPage2Button, "backToPage2Button should not be undefined")
+          .not.to.be.undefined;
+        await backToPage2Button.click();
+        await sleep(500);
+
+        // Verify warnings list (basic check)
+        warningsList = await webView.findWebElement(
+          By.xpath("//ul[@id='warnings-list']"), //ul id="warnings-list"
+        );
+        expect(warningsList, "An unordered list should exist.").to.be.not
+          .undefined;
+        expect(
+          await warningsList.isDisplayed(),
+          "An unordered list should be displayed.",
+        ).to.be.true;
+
+        // Click Back (to Page 1) button
+        const backToPage1Button = await webView.findWebElement(
+          By.xpath("//vscode-button[@id='back-button']"),
+        );
+        expect(backToPage1Button, "backToPage1Button should not be undefined")
+          .not.to.be.undefined;
+        await backToPage1Button.click();
+        await sleep(500);
+
+        // Verify warnings list is not shown
+        warningsList = await webView.findWebElement(
+          By.xpath("//ul[@id='warnings-list']"), //ul id="warnings-list"
+        );
+        expect(warningsList, "An unordered list should exist.").not.to.be
+          .undefined;
+        expect(
+          await warningsList.isDisplayed(),
+          "An unordered list should not be displayed.",
+        ).to.be.false;
+
+        await webView.switchBack();
+        await workbench.executeCommand("View: Close All Editor Groups");
+      } else {
+        this.skip();
+      }
+    });
+
     it("Playbook explanation webview works as expected", async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
         const folder = "lightspeed";
@@ -994,6 +1138,16 @@ export function lightspeedUIAssetsTest(): void {
           settingsEditor,
           "ansible.lightspeed.URL",
           "https://c.ai.ansible.redhat.com",
+        );
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.modelIdOverride",
+          "",
+        );
+        await updateSettings(
+          settingsEditor,
+          "ansible.lightspeed.includeModelIdOverrideInPlaybookGenExpRequests",
+          false,
         );
         await updateSettings(
           settingsEditor,

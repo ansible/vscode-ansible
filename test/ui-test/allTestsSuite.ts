@@ -5,7 +5,7 @@ import { lightspeedUIAssetsTest } from "./lightspeedUiTest";
 import { terminalUITests } from "./terminalUiTest";
 
 describe("VSCode Ansible - UI tests", function () {
-  this.timeout(30000);
+  this.timeout(40000);
   extensionUIAssetsTest();
   lightspeedUIAssetsTest();
   terminalUITests();

@@ -150,9 +150,16 @@ export interface GenerationRequestParams {
   model?: string;
 }
 
+export interface GenerationResponseWarning {
+  id: string;
+  message: string;
+  details: string;
+}
+
 export interface GenerationResponseParams {
   playbook: string;
   outline?: string;
+  warnings?: GenerationResponseWarning[];
   generationId: string;
 }
 

@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { logger, options, permissionDeniedCanApplyForTrial } from "./server";
+import { GenerationResponseWarning } from "../../src/interfaces/lightspeed";
 
 export function generations(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -118,9 +119,17 @@ export function generations(
     outline += `\n6. model=${model}`;
   }
 
+  let warnings: GenerationResponseWarning[] = [];
+  if (text === "Create a playbook with warnings") {
+    warnings = [
+      { id: "id-1", message: "Warning message", details: "Warning details" },
+    ];
+  }
+
   return res.send({
     playbook,
     outline,
+    warnings,
     generationId,
   });
 }
