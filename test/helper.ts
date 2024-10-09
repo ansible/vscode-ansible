@@ -246,6 +246,10 @@ export async function testDiagnostics(
   if (actualDiagnostics.length && expectedDiagnostics.length) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
+      if (docUri.toString().includes("yaml/invalid_yaml.yml")) {
+        console.log("actualDiagnostic.message: ", actualDiagnostic.message);
+        console.log("expectedDiagnostic.message: ", expectedDiagnostic.message);
+      }
       assert.include(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
       assert.deepEqual(actualDiagnostic.range, expectedDiagnostic.range);
       assert.strictEqual(
