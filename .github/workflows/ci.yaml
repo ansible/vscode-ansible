@@ -177,6 +177,39 @@ jobs:
           exec: |
             . "$HOME/.asdf/asdf.sh"
             task package ${{ matrix.env.TASKFILE_ARGS }}
+      - name: task unit
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+          exec: |
+            . "$HOME/.asdf/asdf.sh"
+            task unit ${{ matrix.env.TASKFILE_ARGS }}
+
+      - name: task ui - wsl
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+          exec: |
+            . "$HOME/.asdf/asdf.sh"
+            task ui ${{ matrix.env.TASKFILE_ARGS }}
+      - name: task e2e - wsl
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+          exec: |
+            . "$HOME/.asdf/asdf.sh"
+            task e2e ${{ matrix.env.TASKFILE_ARGS }}
+      - name: task als - wsl
+        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        with:
+          distro: Ubuntu-22.04
+          working-dir: /tmp/github/
+          exec: |
+            . "$HOME/.asdf/asdf.sh"
+            task als ${{ matrix.env.TASKFILE_ARGS }}
 
       # - name: task package
       #   id: package
