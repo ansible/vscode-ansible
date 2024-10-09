@@ -82,9 +82,7 @@ describe("withInterpreter", () => {
             if (!actualCommand[1] || typeof expectedEnv === "string") {
               expect(false);
             } else {
-              expect(actualCommand[1][key]).to.include(
-                expectedEnv[key] as string,
-              );
+              expect(actualCommand[1][key]).to.include(expectedEnv[key]);
             }
           });
         }

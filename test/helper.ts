@@ -104,15 +104,15 @@ export function setFixtureAnsibleCollectionPathEnv(
   prePendPath: string | undefined = undefined,
 ): void {
   if (prePendPath) {
-    process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
+    process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
   } else {
-    process.env.ANSIBLE_COLLECTIONS_PATHS =
+    process.env.ANSIBLE_COLLECTIONS_PATH =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
   }
 }
 
 export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATHS = undefined;
+  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
 }
 
 export async function enableExecutionEnvironmentSettings(): Promise<void> {
@@ -262,11 +262,11 @@ export async function testHover(
   position: vscode.Position,
   expectedHover: vscode.Hover[],
 ): Promise<void> {
-  const actualHover = (await vscode.commands.executeCommand(
+  const actualHover: vscode.Hover[] = await vscode.commands.executeCommand(
     "vscode.executeHoverProvider",
     docUri,
     position,
-  )) as vscode.Hover[];
+  );
 
   assert.strictEqual(actualHover.length, expectedHover.length);
 

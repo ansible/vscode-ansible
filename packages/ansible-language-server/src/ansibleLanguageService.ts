@@ -171,9 +171,9 @@ export class AnsibleLanguageService {
 
     this.connection.onDidChangeWatchedFiles((params) => {
       try {
-        this.workspaceManager.forEachContext((context) =>
-          context.handleWatchedDocumentChange(params),
-        );
+        this.workspaceManager.forEachContext((context) => {
+          context.handleWatchedDocumentChange(params);
+        });
       } catch (error) {
         this.handleError(error, "onDidChangeWatchedFiles");
       }

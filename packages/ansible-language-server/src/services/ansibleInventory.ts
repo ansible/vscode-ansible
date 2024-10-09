@@ -148,7 +148,7 @@ function parseInventoryHosts(hostObj: inventoryType): HostType[] {
   );
 
   const groupsHavingChildren = topLevelGroups.filter(
-    (item) => hostObj[`${item}`] && hostObj[`${item}`].children,
+    (item) => hostObj[item] && hostObj[item].children,
   );
 
   const otherGroups = getChildGroups(groupsHavingChildren, hostObj);
@@ -188,8 +188,8 @@ function parseInventoryHosts(hostObj: inventoryType): HostType[] {
   let allHosts = [localhostObj, allHostObj, ...ungroupedHostsObjList];
 
   for (const group of allGroups) {
-    if (hostObj[`${group.host}`] && hostObj[`${group.host}`].hosts) {
-      const hostsObj = hostObj[`${group.host}`].hosts.map((item) => {
+    if (hostObj[group.host] && hostObj[group.host].hosts) {
+      const hostsObj = hostObj[group.host].hosts.map((item) => {
         return { host: item, priority: 4 };
       });
       allHosts = [...allHosts, ...hostsObj];
@@ -205,8 +205,8 @@ function getChildGroups(
   res: string[] = [],
 ): string[] {
   for (const host of groupList) {
-    if (hostObj[`${host}`].children) {
-      getChildGroups(hostObj[`${host}`].children, hostObj, res);
+    if (hostObj[host].children) {
+      getChildGroups(hostObj[host].children, hostObj, res);
     } else {
       res.push(host);
     }

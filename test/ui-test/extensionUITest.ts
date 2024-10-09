@@ -3,7 +3,6 @@ import {
   ActivityBar,
   SideBarView,
   ViewControl,
-  ExtensionsViewSection,
   Workbench,
 } from "vscode-extension-tester";
 
@@ -29,9 +28,7 @@ export function extensionUIAssetsTest(): void {
       if (!process.env.COVERAGE) {
         this.retries(3);
         this.timeout(20000); // even 18s failed
-        const section = (await sideBar
-          .getContent()
-          .getSection("Installed")) as ExtensionsViewSection;
+        const section = await sideBar.getContent().getSection("Installed");
         const item = await section.findItem("@installed Ansible");
         expect(item, "Failed to find Ansible extension").not.undefined;
         expect(await item?.getText()).to.contain("Ansible language support");

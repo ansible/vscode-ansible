@@ -118,7 +118,7 @@ describe("Test EditableList", () => {
     // Verify the cursor is located at the end of the last list item.
     const sel = dom.window.getSelection();
     assert.ok(sel);
-    assert.equal(sel?.anchorNode?.textContent, "2. Line 2");
-    assert.equal(sel?.anchorOffset, "2. Line 2".length);
+    assert.equal(sel.anchorNode?.textContent, "2. Line 2");
+    assert.equal(sel.anchorOffset, "2. Line 2".length);
   });
 });

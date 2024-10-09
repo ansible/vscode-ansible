@@ -39,15 +39,15 @@ export function deleteAlsCache(): void {
 
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
-    process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
+    process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
   } else {
-    process.env.ANSIBLE_COLLECTIONS_PATHS =
+    process.env.ANSIBLE_COLLECTIONS_PATH =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
   }
 }
 
 export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATHS = undefined;
+  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
 }
 
 export function setAnsibleConfigEnv(): void {
@@ -122,7 +122,7 @@ export function smartFilter(
 
   // Sort completion list based on `sortText` property of the completion item
   completionList.sort((a: CompletionItem, b: CompletionItem) =>
-    a.sortText && b.sortText ? a.sortText.localeCompare(b?.sortText) : 0,
+    a.sortText && b.sortText ? a.sortText.localeCompare(b.sortText) : 0,
   );
 
   // Construct a new Fuse object to do fuzzy search with key as `filterText` property of the completion item

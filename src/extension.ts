@@ -723,6 +723,18 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
     ),
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.open-walkthrough-create-env",
+      () => {
+        vscode.commands.executeCommand(
+          "workbench.action.openWalkthrough",
+          "redhat.ansible#create-ansible-environment",
+          false,
+        );
+      },
+    ),
+  );
 
   // open ansible language server logs
   context.subscriptions.push(

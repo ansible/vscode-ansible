@@ -18,7 +18,7 @@ export function getAnsibleFileType(
   let parsedAnsibleDocument;
   for (const pattern in AnsibleFileTypes) {
     if (Object.prototype.hasOwnProperty.call(AnsibleFileTypes, pattern)) {
-      if (minimatch(filePath, pattern as string)) {
+      if (minimatch(filePath, pattern)) {
         return AnsibleFileTypes[pattern];
       }
     }

@@ -49,7 +49,7 @@ export function contentmatches(_req: {
   // const model = _req.body.model;
   const suggestions = _req.body.suggestions;
   // const suggestionId = _req.body.suggestionId;
-  return suggestions[0].indexOf("ansible.builtin.file") !== -1
+  return suggestions[0].includes("ansible.builtin.file")
     ? RESPONSE_DATA
     : NO_MATCHES;
 }
