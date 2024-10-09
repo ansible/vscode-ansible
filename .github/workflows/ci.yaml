@@ -175,6 +175,7 @@ jobs:
         with:
           distro: Ubuntu-22.04
           exec: |
+            echo $ASDF_DIR
             . "$HOME/.asdf/asdf.sh"
             task package ${{ matrix.env.TASKFILE_ARGS }}
 
