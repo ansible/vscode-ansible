@@ -553,7 +553,7 @@ function getSuggestionMatchType(
     inlinePosition.position.line - 1,
   );
   const spacesBeforePromptStart =
-    lineToExtractPrompt?.text.match(/^ +/)?.[0].length || 0;
+    lineToExtractPrompt.text.match(/^ +/)?.[0].length || 0;
 
   const taskMatchedPattern =
     lineToExtractPrompt.text.match(SINGLE_TASK_REGEX_EP);
@@ -561,7 +561,7 @@ function getSuggestionMatchType(
     inlinePosition.position,
   );
   const spacesBeforeCursor =
-    currentLineText?.text
+    currentLineText.text
       .slice(0, inlinePosition.position.character)
       .match(/^ +/)?.[0].length || 0;
 

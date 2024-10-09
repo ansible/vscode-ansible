@@ -10,8 +10,9 @@ export interface PromiseAdapter<T, U> {
   ): any;
 }
 
-const passthrough = (value: any, resolve: (value?: any) => void) =>
+const passthrough = (value: any, resolve: (value?: any) => void) => {
   resolve(value);
+};
 
 /**
  * Return a promise that resolves with the next emitted event, or with some future
@@ -36,7 +37,9 @@ export function promiseFromEvent<T, U>(
 
   return {
     promise: new Promise<U>((resolve, reject) => {
-      cancel.event(() => reject("Cancelled"));
+      cancel.event(() => {
+        reject("Cancelled");
+      });
       subscription = event((value: T) => {
         try {
           Promise.resolve(adapter(value, resolve, reject)).catch(reject);

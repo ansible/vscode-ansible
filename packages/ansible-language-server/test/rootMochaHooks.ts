@@ -14,7 +14,7 @@ export const mochaHooks = (): Mocha.RootHookObject => {
     beforeEach(this: Mocha.Context) {
       if (skipEE() && this.currentTest?.fullTitle().includes("@ee")) {
         console.warn(
-          `Skipped test due to environment conditions: ${this.currentTest?.title}`,
+          `Skipped test due to environment conditions: ${this.currentTest.title}`,
         );
         this.skip();
       } else {

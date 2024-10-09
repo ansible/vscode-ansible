@@ -180,7 +180,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
       assert.equal(feedbackRequestApiCalls.length, 1);
       const inputData: FeedbackRequestParams = feedbackRequestSpy.args[0][0];
-      assert(inputData?.inlineSuggestion?.action === UserAction.REJECTED);
+      assert(inputData.inlineSuggestion?.action === UserAction.REJECTED);
       const ret = feedbackRequestSpy.returnValues[0];
       assert(Object.keys(ret).length === 0); // ret should be equal to {}
 
@@ -248,7 +248,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
       const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
       assert.equal(feedbackRequestApiCalls.length, 1);
       const inputData: FeedbackRequestParams = feedbackRequestSpy.args[0][0];
-      assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
+      assert(inputData.inlineSuggestion?.action === UserAction.IGNORED);
       const ret = feedbackRequestSpy.returnValues[0];
       assert(Object.keys(ret).length === 0); // ret should be equal to {}
     });
@@ -359,7 +359,7 @@ async function invokeInlineSuggestion(
 ): Promise<vscode.TextEditor> {
   const editor = vscode.window.activeTextEditor;
   assert(editor);
-  const doc = editor?.document;
+  const doc = editor.document;
   assert(doc);
 
   // Set the cursor to the position where the bare minimum provider provides

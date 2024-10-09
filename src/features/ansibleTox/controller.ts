@@ -63,9 +63,9 @@ export class AnsibleToxController {
       watcher.onDidChange((uri) =>
         this.parseTestsInFileContents(this.getOrCreateFile(uri)),
       );
-      watcher.onDidDelete((uri) =>
-        this.controller.items.delete(uri.toString()),
-      );
+      watcher.onDidDelete((uri) => {
+        this.controller.items.delete(uri.toString());
+      });
       const files = await vscode.workspace.findFiles(pattern);
       files.forEach(this.getOrCreateFile);
       watchers.push(watcher);
