@@ -167,15 +167,14 @@ jobs:
           distro: Ubuntu-22.04
           working-dir: /tmp/github/
           exec: |
-            echo $ASDF_DIR
             . "$HOME/.asdf/asdf.sh"
             task setup
       - name: task package - wsl
         uses: Ubuntu/WSL/.github/actions/wsl-bash@main
         with:
           distro: Ubuntu-22.04
+          working-dir: /tmp/github/
           exec: |
-            echo $ASDF_DIR
             . "$HOME/.asdf/asdf.sh"
             task package ${{ matrix.env.TASKFILE_ARGS }}
 
