@@ -126,7 +126,7 @@ jobs:
 
 
       - name: Checkout in WSL
-        uses: Ubuntu/WSL/.github/actions/wsl-checkout@main
+        uses: alisonlhart/WSL/.github/actions/wsl-checkout@main
         with:
           distro: Ubuntu-22.04
           working-dir: /tmp/github/vscode-ansible
