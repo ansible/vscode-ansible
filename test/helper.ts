@@ -262,7 +262,7 @@ export async function testHover(
   position: vscode.Position,
   expectedHover: vscode.Hover[],
 ): Promise<void> {
-  const actualHover = await vscode.commands.executeCommand(
+  const actualHover: vscode.Hover[] = await vscode.commands.executeCommand(
     "vscode.executeHoverProvider",
     docUri,
     position,
