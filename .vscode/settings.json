@@ -36,5 +36,6 @@
     ".vscode-test": true
   },
   "redhat.telemetry.enabled": false,
-  "eslint.useESLintClass": true
+"eslint.useESLintClass": true,
+"ansible.validation.lint.enabled": false
 }
