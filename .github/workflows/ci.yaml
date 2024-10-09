@@ -164,6 +164,7 @@ jobs:
           working-dir: /tmp/github/vscode-ansible
           exec: |
             . "$HOME/.asdf/asdf.sh"
+            export NODE_OPTIONS=--max_old_space_size=8192
             task setup
       - name: task package - wsl
         uses: Ubuntu/WSL/.github/actions/wsl-bash@main
@@ -172,6 +173,7 @@ jobs:
           working-dir: /tmp/github/vscode-ansible
           exec: |
             . "$HOME/.asdf/asdf.sh"
+            export NODE_OPTIONS=--max_old_space_size=8192
             task package ${{ matrix.env.TASKFILE_ARGS }}
       - name: task unit
         uses: Ubuntu/WSL/.github/actions/wsl-bash@main
@@ -180,6 +182,7 @@ jobs:
           working-dir: /tmp/github/vscode-ansible
           exec: |
             . "$HOME/.asdf/asdf.sh"
+            export NODE_OPTIONS=--max_old_space_size=8192
             task unit ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ui - wsl
@@ -189,6 +192,7 @@ jobs:
           working-dir: /tmp/github/vscode-ansible
           exec: |
             . "$HOME/.asdf/asdf.sh"
+            export NODE_OPTIONS=--max_old_space_size=8192
             task ui ${{ matrix.env.TASKFILE_ARGS }}
       - name: task e2e - wsl
         uses: Ubuntu/WSL/.github/actions/wsl-bash@main
@@ -197,6 +201,7 @@ jobs:
           working-dir: /tmp/github/
           exec: |
             . "$HOME/.asdf/asdf.sh"
+            export NODE_OPTIONS=--max_old_space_size=8192
             task e2e ${{ matrix.env.TASKFILE_ARGS }}
       - name: task als - wsl
         uses: Ubuntu/WSL/.github/actions/wsl-bash@main
@@ -205,6 +210,7 @@ jobs:
           working-dir: /tmp/github/vscode-ansible
           exec: |
             . "$HOME/.asdf/asdf.sh"
+            export NODE_OPTIONS=--max_old_space_size=8192
             task als ${{ matrix.env.TASKFILE_ARGS }}
 
       # - name: task package
