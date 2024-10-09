@@ -83,7 +83,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       contentMatchesRequestData.model = model;
     }
 
-    this.client.outputChannel.appendLine(
+    this.client.outputChannel?.appendLine(
       `${getCurrentUTCDateTime().toISOString()}: request content matches from Ansible Lightspeed:\n${JSON.stringify(
         contentMatchesRequestData,
       )}`,
@@ -91,7 +91,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
     const outputData: ContentMatchesResponseParams | IError =
       await this.apiInstance.contentMatchesRequest(contentMatchesRequestData);
-    this.client.outputChannel.appendLine(
+    this.client.outputChannel?.appendLine(
       `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
         outputData,
       )}`,
