@@ -17,7 +17,7 @@ export function formatModule(
     sections.push("**DEPRECATED**");
     if (route?.deprecation) {
       if (route.deprecation.warningText) {
-        sections.push(`${route.deprecation.warningText}`);
+        sections.push(route.deprecation.warningText);
       }
       sections.push(
         `Removal date: ${route.deprecation.removalDate}, removal version: ${route.deprecation.removalVersion}`,
@@ -50,16 +50,16 @@ export function formatModule(
 
 export function formatTombstone(route: IPluginRoute): MarkupContent {
   const sections: string[] = [];
-  if (route?.tombstone) {
+  if (route.tombstone) {
     sections.push("**REMOVED**");
     if (route.tombstone.warningText) {
-      sections.push(`${route.tombstone.warningText}`);
+      sections.push(route.tombstone.warningText);
     }
     sections.push(
       `Removal date: ${route.tombstone.removalDate}, removal version: ${route.tombstone.removalVersion}`,
     );
   }
-  if (route?.redirect) {
+  if (route.redirect) {
     sections.push(`Use *${route.redirect}* instead.`);
   }
   return {

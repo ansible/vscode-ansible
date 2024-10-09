@@ -23,7 +23,7 @@ enum ChompingStyle {
 async function askForVaultId(ansibleCfg: utilAnsibleCfg.AnsibleVaultConfig) {
   const vaultId = "default";
 
-  const identityList = ansibleCfg.defaults?.vault_identity_list
+  const identityList = ansibleCfg.defaults.vault_identity_list
     ?.split(",")
     .map((id: string) => id.split("@", 2)[0].trim());
   if (!identityList) {
@@ -216,7 +216,7 @@ const encryptInline = async (
   );
   console.debug(`encryptedText == '${encryptedText}'`);
 
-  return encryptedText?.trim();
+  return encryptedText.trim();
 };
 
 const decryptInline = async (
@@ -250,7 +250,7 @@ const pipeTextThroughCmd = (
     child.stdout?.setEncoding("utf8");
     let outputText = "";
     let errorText = "";
-    if (!child?.stdin || !child?.stdout || !child?.stderr) {
+    if (!child.stdin || !child.stdout || !child.stderr) {
       return undefined;
     }
 
@@ -265,8 +265,8 @@ const pipeTextThroughCmd = (
         resolve(outputText);
       }
     });
-    child.stdin?.write(text);
-    child.stdin?.end();
+    child.stdin.write(text);
+    child.stdin.end();
   });
 };
 

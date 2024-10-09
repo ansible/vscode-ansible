@@ -5,6 +5,7 @@ import { SettingsManager } from "../../settings";
 import {
   ContentMatchesRequestParams,
   ContentMatchesResponseParams,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   IContentMatch,
   IContentMatchParams,
   ISuggestionDetails,
@@ -156,7 +157,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private async getErrorWebviewContent(error: IError) {
     let detail: unknown = error.detail;
     if (typeof error.detail === "string") {
-      detail = error.detail as string;
+      detail = error.detail;
     } else if (typeof error.detail === "object") {
       detail = JSON.stringify(error.detail, undefined, "  ");
     }
@@ -246,7 +247,7 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
 
       const contentMatchValue = contentMatchResponses.contentmatches[taskIndex];
       contentMatchesHtml += this.renderContentMatchWithTasKDescription(
-        <IContentMatchParams[]>(<IContentMatch>contentMatchValue).contentmatch,
+        contentMatchValue.contentmatch,
         taskNameDescription || "",
         rhUserHasSeat === true,
       );
@@ -289,10 +290,10 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   ): string {
     let taskContentMatch = "";
     for (let index = 0; index < contentMatchesResponse.length; index++) {
-      taskContentMatch += `${this.renderContentMatches(
+      taskContentMatch += this.renderContentMatches(
         contentMatchesResponse[index],
         rhUserHasSeat,
-      )}`;
+      );
     }
 
     return `
