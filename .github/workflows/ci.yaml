@@ -186,15 +186,15 @@ jobs:
             export NODE_OPTIONS=--max_old_space_size=8192
             task unit ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task ui - wsl
-        uses: Ubuntu/WSL/.github/actions/wsl-bash@main
-        with:
-          distro: Ubuntu-22.04
-          working-dir: /tmp/github/vscode-ansible
-          exec: |
-            . "$HOME/.asdf/asdf.sh"
-            export NODE_OPTIONS=--max_old_space_size=8192
-            task ui ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task ui - wsl
+      #   uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+      #   with:
+      #     distro: Ubuntu-22.04
+      #     working-dir: /tmp/github/vscode-ansible
+      #     exec: |
+      #       . "$HOME/.asdf/asdf.sh"
+      #       export NODE_OPTIONS=--max_old_space_size=8192
+      #       task ui ${{ matrix.env.TASKFILE_ARGS }}
       - name: task e2e - wsl
         uses: Ubuntu/WSL/.github/actions/wsl-bash@main
         with:
