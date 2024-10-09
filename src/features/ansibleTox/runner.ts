@@ -47,7 +47,7 @@ export async function getToxEnvs(
       channel.appendLine(stderr);
       channel.show(true);
     }
-    return stdout?.trim().split(os.EOL);
+    return stdout.trim().split(os.EOL);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (err: any) {
     const channel = getOutputChannel();

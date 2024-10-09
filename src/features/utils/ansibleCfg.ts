@@ -26,7 +26,7 @@ export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
     return vscode.workspace.workspaceFolders?.[0]?.name;
   }
 
-  return vscode.workspace.getWorkspaceFolder(editorDocumentUri)?.uri?.path;
+  return vscode.workspace.getWorkspaceFolder(editorDocumentUri)?.uri.path;
 }
 
 export type AnsibleVaultConfig = {
@@ -61,10 +61,10 @@ export async function scanAnsibleCfg(
     cfgFiles
       .map((cf) => untildify(cf))
       .map(async (cp) => await getValueByCfg(cp)),
-  )?.catch(() => undefined);
+  ).catch(() => undefined);
   const cfg = cfgs?.find(
     (c) =>
-      !!c?.defaults?.vault_identity_list || !!c?.defaults?.vault_password_file,
+      !!c?.defaults.vault_identity_list || !!c?.defaults.vault_password_file,
   );
   console.log(
     typeof cfg != "undefined"
@@ -87,8 +87,8 @@ export async function getValueByCfg(
   }
 
   const parsedConfig = ini.parse(await fs.promises.readFile(path, "utf-8"));
-  const vault_identity_list = parsedConfig?.defaults?.vault_identity_list;
-  const vault_password_file = parsedConfig?.defaults?.vault_password_file;
+  const vault_identity_list = parsedConfig.defaults?.vault_identity_list;
+  const vault_password_file = parsedConfig.defaults?.vault_password_file;
 
   if (!vault_identity_list && !vault_password_file) {
     return undefined;

@@ -185,7 +185,9 @@ export class ValidationManager {
   public handleDocumentClosed(fileUri: string): void {
     const referencedFiles = this.referencedFilesByOrigin.get(fileUri);
     if (referencedFiles) {
-      referencedFiles.forEach((f) => this.handleFileUnreferenced(f));
+      referencedFiles.forEach((f) => {
+        this.handleFileUnreferenced(f);
+      });
       // remove the diagnostics origin file from tracking
       this.referencedFilesByOrigin.delete(fileUri);
     }

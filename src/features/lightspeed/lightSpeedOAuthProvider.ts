@@ -302,15 +302,13 @@ export class LightSpeedAuthenticationProvider
         Promise.race([
           receivedRedirectUrl,
           new Promise<OAuthAccount>((_, reject) => {
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    "Cancelling the Ansible Lightspeed login after 60s. Try again.",
-                  ),
+            setTimeout(() => {
+              reject(
+                new Error(
+                  "Cancelling the Ansible Lightspeed login after 60s. Try again.",
                 ),
-              LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
-            );
+              );
+            }, LIGHTSPEED_SERVICE_LOGIN_TIMEOUT);
           }),
           promiseFromEvent<any, any>(
             token.onCancellationRequested,
@@ -471,7 +469,7 @@ export class LightSpeedAuthenticationProvider
       },
     );
 
-    return account ? (account as OAuthAccount) : undefined;
+    return account ? account : undefined;
   }
 
   /**

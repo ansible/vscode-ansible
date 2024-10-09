@@ -33,7 +33,7 @@ function testGetLoggedInUserDetails(): void {
       const { userInfo } = getLoggedInUserDetails(session);
       assert.equal(userInfo?.userType, "Licensed");
       assert.isTrue(userInfo?.subscribed);
-      assert.isUndefined(userInfo?.role);
+      assert.isUndefined(userInfo.role);
     });
 
     it(`Verify an unseated user`, function () {
@@ -41,7 +41,7 @@ function testGetLoggedInUserDetails(): void {
       const { userInfo } = getLoggedInUserDetails(session);
       assert.equal(userInfo?.userType, "Unlicensed");
       assert.isTrue(userInfo?.subscribed);
-      assert.isUndefined(userInfo?.role);
+      assert.isUndefined(userInfo.role);
     });
 
     it(`Verify an unseated user of an unsubscribed org`, function () {
@@ -57,7 +57,7 @@ function testGetLoggedInUserDetails(): void {
       const { userInfo } = getLoggedInUserDetails(session);
       assert.equal(userInfo?.userType, "Licensed");
       assert.isTrue(userInfo?.subscribed);
-      assert.equal(userInfo?.role, "Administrator");
+      assert.equal(userInfo.role, "Administrator");
     });
   });
 }
