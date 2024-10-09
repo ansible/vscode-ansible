@@ -5,13 +5,21 @@ import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import * as ini from "ini";
 import { getBinDetail } from "../contentCreator/utils";
+import { Log } from "../../utils/logger";
 
 export class AnsibleWelcomePage {
   public static currentPanel: AnsibleWelcomePage | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
+  private walkthroughs: [] = [];
+  private _logger: Log;
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+    this._logger = new Log();
+    this.walkthroughs =
+      vscode.extensions.getExtension(
+        "redhat.ansible",
+      )?.packageJSON?.contributes?.walkthroughs;
     this._panel = panel;
     this._panel.webview.html = this._getWebviewContent(
       this._panel.webview,
@@ -85,6 +93,8 @@ export class AnsibleWelcomePage {
       "codicons",
       "codicon.css",
     ]);
+
+    const logo = getUri(webview, extensionUri, ["images", "logo.png"]);
 
     return /*html*/ `
     <html>
@@ -179,17 +189,52 @@ export class AnsibleWelcomePage {
               <div class="index-list getting-started">
                 <div id="system-check">
                   <div class="icon">
-                    <h2>System requirements:</h2>
+                    <h2>Walkthroughs</h2>
                   </div>
 
-                  <div id=install-status class="statusDisplay"></div>
+                  <ul id="walkthrough-list">
+                    ${this.walkthroughs.map((item: any) => {
+                      return `<button
+                        class="walkthrough-item"
+                        x-dispatch="selectCategory:redhat.ansible#${item.id}"
+                        title="${item.description}">
+                          <div class="featured-badge"></div>
+                          <div class="main-content">
+                            <img class="category-icon icon-widget" src=${logo}/>
+                            <h3 class="category-title max-lines-3" x-category-title-for="redhat.ansible#${item.id}">
+                              ${item.title}
+                            </h3>
+                            <div class="no-badge"></div>
+                            <a class="codicon codicon-close hide-category-button"
+                              tabindex="0"
+                              x-dispatch="hideCategory:redhat.ansible#${item.id}"
+                              title="Hide"
+                              role="button"
+                              aria-label="Hide">
+                            </a>
+                          </div>
+                          <div class="description-content">
+                            ${item.description}
+                          </div>
+                          <div class="category-progress"
+                            x-data-category-id="redhat.ansible#discover-ansible-development-tools">
+                            <div class="progress-bar-outer" role="progressbar">
+                              <div class="progress-bar-inner" aria-valuemin="0" aria-valuenow="1" aria-valuemax="4" title="1 of 4 steps complete" style="width: 25%;">
+                              </div>
+                            </div>
+                          </div>
+                        </button>`;
+                    })}
+                  </ul>
 
-                  <div class="refresh-button-div">
+                  <!-- <div id=install-status class="statusDisplay"></div> -->
+
+                  <!-- <div class="refresh-button-div">
                     <vscode-button id="refresh">
                       <span class="codicon codicon-refresh"></span>
                       &nbsp; Refresh
                     </vscode-button>
-                  </div>
+                  </div> -->
 
                 </div>
               </div>
