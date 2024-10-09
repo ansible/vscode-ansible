@@ -246,7 +246,11 @@ export async function testDiagnostics(
   if (actualDiagnostics.length && expectedDiagnostics.length) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
-      assert.include(actualDiagnostic.message, expectedDiagnostic.message, `Expected ${expectedDiagnostic.message}, got ${actualDiagnostic.message}`); // subset of expected message
+      assert.include(
+        actualDiagnostic.message,
+        expectedDiagnostic.message,
+        `Expected ${expectedDiagnostic.message}, got ${actualDiagnostic.message}`,
+      ); // subset of expected message
       assert.deepEqual(actualDiagnostic.range, expectedDiagnostic.range);
       assert.strictEqual(
         actualDiagnostic.severity,
