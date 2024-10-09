@@ -102,7 +102,7 @@ export class AnsiblePlaybookRunProvider {
         (terminal) => terminal.name === "Ansible Terminal",
       );
       if (reuse_terminal) {
-        return reuse_terminal as vscode.Terminal;
+        return reuse_terminal;
       }
     }
     const terminal = vscode.window.createTerminal({
@@ -117,7 +117,7 @@ export class AnsiblePlaybookRunProvider {
         }
       }),
     );
-    return terminal as vscode.Terminal;
+    return terminal;
   }
 
   /**
@@ -208,7 +208,7 @@ function extractTargetFsPath(
     vscode.window.activeTextEditor?.document.uri,
   ]
     .filter((p) => p instanceof vscode.Uri)
-    .map((p) => <vscode.Uri>p)
+    .map((p) => p)
     .filter((p) => p.scheme === "file");
   return pathCandidates[0]?.fsPath;
 }

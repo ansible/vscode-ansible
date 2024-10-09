@@ -49,7 +49,7 @@ export const playbookExplanation = async (extensionUri: vscode.Uri) => {
     return;
   }
   const document = vscode.window.activeTextEditor.document;
-  if (document?.languageId !== "ansible") {
+  if (document.languageId !== "ansible") {
     return;
   }
 

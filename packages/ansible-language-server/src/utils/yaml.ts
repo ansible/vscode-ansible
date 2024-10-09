@@ -608,7 +608,7 @@ export function isCursorInsideJinjaBrackets(
   position: Position,
   path: Node[],
 ): boolean {
-  const node = path?.[path?.length - 1];
+  const node = path[path.length - 1];
   let nodeObject: string | string[];
 
   try {
@@ -641,7 +641,7 @@ export function isCursorInsideJinjaBrackets(
   // this is a safety check in case of multiple jinja inline brackets in a single line
   let jinjaInlineBracketEndIndex = lineAfterCursor.indexOf(" }}");
   if (
-    lineAfterCursor.indexOf("{{ ") !== -1 &&
+    lineAfterCursor.includes("{{ ") &&
     lineAfterCursor.indexOf("{{ ") < jinjaInlineBracketEndIndex
   ) {
     jinjaInlineBracketEndIndex = -1;

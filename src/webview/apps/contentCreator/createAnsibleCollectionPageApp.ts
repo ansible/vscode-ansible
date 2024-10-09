@@ -96,22 +96,22 @@ function main() {
     "open-folder-button",
   ) as Button;
 
-  initNamespaceNameTextField?.addEventListener("input", toggleCreateButton);
-  initCollectionNameTextField?.addEventListener("input", toggleCreateButton);
-  initPathUrlTextField?.addEventListener("input", toggleCreateButton);
+  initNamespaceNameTextField.addEventListener("input", toggleCreateButton);
+  initCollectionNameTextField.addEventListener("input", toggleCreateButton);
+  initPathUrlTextField.addEventListener("input", toggleCreateButton);
 
   folderExplorerButton.addEventListener("click", openExplorer);
   fileExplorerButton.addEventListener("click", openExplorer);
 
-  initCreateButton?.addEventListener("click", handleInitCreateClick);
+  initCreateButton.addEventListener("click", handleInitCreateClick);
   initCreateButton.disabled = true;
 
-  initClearButton?.addEventListener("click", handleInitClearClick);
+  initClearButton.addEventListener("click", handleInitClearClick);
 
-  initClearLogsButton?.addEventListener("click", handleInitClearLogsClick);
-  initOpenLogFileButton?.addEventListener("click", handleInitOpenLogFileClick);
-  initCopyLogsButton?.addEventListener("click", handleInitCopyLogsClick);
-  initOpenScaffoldedFolderButton?.addEventListener(
+  initClearLogsButton.addEventListener("click", handleInitClearLogsClick);
+  initOpenLogFileButton.addEventListener("click", handleInitOpenLogFileClick);
+  initCopyLogsButton.addEventListener("click", handleInitCopyLogsClick);
+  initOpenScaffoldedFolderButton.addEventListener(
     "click",
     handleInitOpenScaffoldedFolderClick,
   );

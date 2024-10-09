@@ -21,9 +21,9 @@ export function mapError(err: AxiosError): IError {
   }
 
   // If the error is unknown fallback to defaults
-  const items = (err?.response?.data as Record<string, unknown>) ?? {};
+  const items = (err.response?.data as Record<string, unknown>) ?? {};
   const detail = Object.hasOwn(items, "detail") ? items["detail"] : undefined;
-  const status: number | string = err?.response?.status ?? err?.code ?? 500;
+  const status: number | string = err.response?.status ?? err.code ?? 500;
   if (err instanceof CanceledError) {
     return ERRORS_CONNECTION_CANCELED_TIMEOUT;
   }
