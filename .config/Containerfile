@@ -1,4 +1,4 @@
-FROM ghcr.io/ansible/community-ansible-dev-tools:latest as DEFAULT_EE
+FROM ghcr.io/ansible/community-ansible-dev-tools:latest AS DEFAULT_EE
 # This file is updated by dependabot and used to determine not only which
 # version of community-ansible-dev-tools we are supposed to use for testing execution
 # environments but also to dynamically retrieve the same set of constraints
