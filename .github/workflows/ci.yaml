@@ -137,7 +137,6 @@ jobs:
           distro: Ubuntu-22.04
           working-dir: /tmp/github/vscode-ansible
           exec: |
-            git fetch --quiet --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/* +${{ github.sha }}:${{ github.ref }}
             apt install -y curl dbus dirmngr docker gawk git gpg gpg-agent jq make podman python3-dev python3-full python3-venv qemu-user-static tar unzip xvfb apt-transport-https ca-certificates software-properties-common
             git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
             . "$HOME/.asdf/asdf.sh"
