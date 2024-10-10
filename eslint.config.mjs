@@ -20,7 +20,7 @@ export default tseslint.config(
   {
     extends: [
       eslint.configs.recommended,
-      ...tseslint.configs.recommended, // TODO: switch to strictTypeChecked
+      ...tseslint.configs.strictTypeChecked,
       prettierRecommendedConfig,
     ],
     files: [
@@ -48,16 +48,37 @@ export default tseslint.config(
     },
     rules: {
       eqeqeq: ["error", "smart"],
+      // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-non-null-assertion": "error",
-      "@typescript-eslint/no-unused-vars": "error",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unnecessary-condition": "off",
+      "@typescript-eslint/use-unknown-in-catch-callback-variable": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/prefer-promise-reject-errors": "off",
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-base-to-string": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-redundant-type-constituents": "off",
+      "@typescript-eslint/no-confusing-void-expression": "off",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/require-await": "off",
+      "@typescript-eslint/restrict-plus-operands": "off",
+      "@typescript-eslint/no-dynamic-delete": "off",
+      "@typescript-eslint/no-unsafe-enum-comparison": "off",
+      "@typescript-eslint/prefer-literal-enum-member": "off",
+      "@typescript-eslint/no-misused-promises": "off",
+      "@typescript-eslint/no-floating-promises": "off",
+      "@typescript-eslint/await-thenable": "off",
+      "@typescript-eslint/restrict-template-expressions": "off",
+      "@typescript-eslint/only-throw-error": "off",
       "no-case-declarations": "error",
       "no-constant-condition": "error",
       "no-control-regex": "error",
       "no-empty-function": "error",
       "no-prototype-builtins": "error",
       "tsdoc/syntax": "error",
-      // Needed for tseslint.configs.strictTypeChecked
       // "@typescript-eslint/require-await": "error",
       // "@typescript-eslint/await-thenable": "error",
       "@typescript-eslint/unbound-method": "error",

@@ -145,7 +145,7 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          assert(inputData.inlineSuggestion?.action === UserAction.ACCEPTED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
         });
@@ -164,7 +164,7 @@ export function testLightspeed(): void {
           assert.equal(feedbackRequestApiCalls.length, 1);
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
-          assert(inputData?.inlineSuggestion?.action === UserAction.ACCEPTED);
+          assert(inputData.inlineSuggestion?.action === UserAction.ACCEPTED);
           const ret = feedbackRequestSpy.returnValues[0];
           assert(Object.keys(ret).length === 0); // ret should be equal to {}
         });
@@ -178,7 +178,7 @@ export function testLightspeed(): void {
           const inputData: FeedbackRequestParams =
             feedbackRequestSpy.args[0][0];
           assert(
-            inputData?.inlineSuggestion?.action === UserAction.REJECTED,
+            inputData.inlineSuggestion?.action === UserAction.REJECTED,
             JSON.stringify(inputData, null),
           );
           const ret = feedbackRequestSpy.returnValues[0];
@@ -289,7 +289,7 @@ export function testLightspeed(): void {
         const feedbackRequestApiCalls = feedbackRequestSpy.getCalls();
         assert.equal(feedbackRequestApiCalls.length, 1);
         const inputData: FeedbackRequestParams = feedbackRequestSpy.args[0][0];
-        assert(inputData?.inlineSuggestion?.action === UserAction.IGNORED);
+        assert(inputData.inlineSuggestion?.action === UserAction.IGNORED);
         const ret = feedbackRequestSpy.returnValues[0];
         assert(Object.keys(ret).length === 0); // ret should be equal to {}
       });
@@ -393,10 +393,7 @@ export function testLightspeed(): void {
       const invalidCursorPosTest = testInvalidCursorPosition();
       invalidCursorPosTest.forEach(({ taskName, newLineSpaces }) => {
         it(`Should not give inline suggestion for task prompt '${taskName}' with new line spaces ${newLineSpaces}`, async function () {
-          await testInlineSuggestionCursorPositions(
-            taskName,
-            newLineSpaces as number,
-          );
+          await testInlineSuggestionCursorPositions(taskName, newLineSpaces);
         });
       });
     });

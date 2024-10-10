@@ -18,7 +18,13 @@ export class LightspeedFeedbackWebviewProvider {
 
   private constructor(panel: WebviewPanel, extensionUri: Uri) {
     this._panel = panel;
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
 
     // Set the HTML content for the webview panel
     this._panel.webview.html = this._getWebviewContent(

@@ -45,9 +45,9 @@ export async function configureModelines(
     }),
   );
 
-  setImmediate(
-    async () => await applyModeLines(vscode.window.activeTextEditor),
-  );
+  setImmediate(async () => {
+    await applyModeLines(vscode.window.activeTextEditor);
+  });
 }
 
 /**

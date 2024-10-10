@@ -215,10 +215,14 @@ export class SettingsManager {
       this.documentSettings = newDocumentSettings;
 
       // fire handlers
-      handlersToFire.forEach((h) => h());
+      handlersToFire.forEach((h) => {
+        h();
+      });
     } else {
       if (params.settings.ansible) {
-        this.configurationChangeHandlers.forEach((h) => h());
+        this.configurationChangeHandlers.forEach((h) => {
+          h();
+        });
       }
       this.globalSettings = params.settings.ansible || this.defaultSettings;
     }

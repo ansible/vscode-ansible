@@ -51,7 +51,7 @@ export class ExecutionEnvironment {
         this.settings.executionEnvironment.volumeMounts;
 
       const setEngineSuccess = this.setContainerEngine();
-      if (setEngineSuccess === false) {
+      if (!setEngineSuccess) {
         this.isServiceInitialized = false;
         return;
       }
@@ -61,7 +61,7 @@ export class ExecutionEnvironment {
         this.settings.executionEnvironment.containerOptions;
 
       const pullSuccess = await this.pullContainerImage();
-      if (pullSuccess === false) {
+      if (!pullSuccess) {
         this.isServiceInitialized = false;
         return;
       }
@@ -85,10 +85,7 @@ export class ExecutionEnvironment {
       );
       return;
     }
-    const containerName = `${this._container_image.replace(
-      /[^a-z0-9]/gi,
-      "_",
-    )}`;
+    const containerName = this._container_image.replace(/[^a-z0-9]/gi, "_");
     let progressTracker;
 
     try {
