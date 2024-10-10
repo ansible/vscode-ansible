@@ -14,6 +14,7 @@ import {
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
+import * as syntaxHighlighter from "../utils/syntaxHighlighter";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
@@ -45,7 +46,7 @@ function contentMatch(generationId: string, playbook: string) {
 
 async function sendActionEvent(
   action: PlaybookGenerationActionType,
-  toPage?: number | undefined,
+  toPage?: number,
 ) {
   if (currentPanel && wizardId) {
     const fromPage = currentPage;
@@ -211,15 +212,6 @@ export async function showPlaybookGenerationPage(
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let syntaxHighlighter: any;
-        try {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
-        } catch (error) {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
-        }
         const html = await syntaxHighlighter.codeToHtml(
           playbook,
           darkMode ? "dark-plus" : "light-plus",
