@@ -850,11 +850,13 @@ export async function inlineSuggestionCommitHandler() {
   vscode.commands.executeCommand("editor.action.inlineSuggest.commit");
 
   // If the suggestion does not seem to be ours, exit early.
-  if (!inlineSuggestionData["suggestionId"]) {
+  const suggestionId = inlineSuggestionData["suggestionId"];
+  if (!suggestionId) {
     return;
   }
 
   console.log("[inline-suggestions] User accepted the inline suggestion.");
+  acceptSuggestion(suggestionId);
 }
 
 export async function inlineSuggestionHideHandler(
@@ -978,6 +980,14 @@ export async function ignorePendingSuggestion() {
   }
 }
 
+async function acceptSuggestion(suggestionId: string) {
+  await inlineSuggestionUserActionHandler(suggestionId, UserAction.ACCEPTED);
+  // Show training matches for the accepted suggestion.
+  vscode.commands.executeCommand(
+    LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
+  );
+}
+
 export async function inlineSuggestionTextDocumentChangeHandler(
   e: vscode.TextDocumentChangeEvent,
 ) {
@@ -999,14 +1009,7 @@ export async function inlineSuggestionTextDocumentChangeHandler(
         console.log(
           "[inline-suggestions] Detected a text change that matches to the current suggestion.",
         );
-        await inlineSuggestionUserActionHandler(
-          suggestionId,
-          UserAction.ACCEPTED,
-        );
-        // Show training matches for the accepted suggestion.
-        vscode.commands.executeCommand(
-          LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
-        );
+        acceptSuggestion(suggestionId);
       }
     });
   }
