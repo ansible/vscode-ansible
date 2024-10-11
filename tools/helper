@@ -6,8 +6,6 @@ import glob
 import subprocess
 import logging
 import sys
-from datetime import datetime
-
 
 def run(cmd: str):
     """Helper to easy calling subprocess."""
@@ -16,42 +14,18 @@ def run(cmd: str):
 
 def cli():
     """Main."""
-    parser = argparse.ArgumentParser(prog="helper", description="Build process helper")
-    parser.add_argument(
-        "--version",
-        action="store_true",
-        help="Retrieve marketplace compatible version number to be used during build.",
-    )
-    parser.add_argument(
-        "--publish",
-        action="store_true",
-        help="Publish already built vsix file to marketplaces.",
-    )
-    parser.add_argument("--package", action="store_true", help="Package the extension.")
+    parser = argparse.ArgumentParser(
+        prog='helper',
+        description='Build process helper')
+    parser.add_argument('--version', action='store_true', help="Retrieve marketplace compatible version number to be used during build.")
+    parser.add_argument('--publish', action='store_true', help="Publish already built vsix file to marketplaces.")
+    parser.add_argument('--package', action='store_true', help="Package the extension.")
 
     opt, _ = parser.parse_known_args()
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    logging.basicConfig(level=logging.INFO, format='%(message)s')
 
     pre_release = False
-    result = {}
-    try:
-        result = subprocess.run(
-            'git describe --dirty --tags --long --match "v*.*"',
-            shell=True,
-            capture_output=True,
-            check=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError as e:
-        logging.error(e)
-        logging.error(e.output)
-        result = subprocess.CompletedProcess(
-            "",
-            0,
-            f"v{datetime.now().strftime('%y')}.{datetime.now().month}.1-1-g39ab6c3",
-            None,
-        )
-    # result = subprocess.run('git describe --dirty --tags --long --match "v*.*"', shell=True, capture_output=True, check=True, text=True)
+    result = subprocess.run('git describe --dirty --tags --long --match "v*.*"', shell=True, capture_output=True, check=True, text=True)
     git_tag = result.stdout.rstrip()
     logging.debug('git describe (with --match "v*.*") returned: %s', git_tag)
     tag, commits_since, suffix = git_tag.split("-", 2)
@@ -59,25 +33,8 @@ def cli():
     version_info = [int(x) for x in version.split(".")]
     if "-dirty" in suffix or commits_since != "0":
         pre_release = True
-        # If pre_release = True, we need to calculate the time difference from the
-        # first stable release of the month with a "*.0" tag
-        try:
-            result = subprocess.run(
-                'git describe --dirty --tags --long --match "v*.*.0"',
-                shell=True,
-                capture_output=True,
-                check=True,
-                text=True,
-            )
-        except subprocess.CalledProcessError as e:
-            logging.error(e)
-            logging.error(e.output)
-            result = subprocess.CompletedProcess(
-                "",
-                0,
-                f"v{datetime.now().strftime('%y')}.{datetime.now().month}.1-1-g39ab6c3",
-                None,
-            )
+        # If pre_release = True, we need to calculate the time difference from the first stable release of the month with a "*.0" tag
+        result = subprocess.run('git describe --dirty --tags --long --match "v*.*.0"', shell=True, capture_output=True, check=True, text=True)
         git_tag = result.stdout.rstrip()
         logging.debug('git describe (with --match "v*.*.0") returned: %s', git_tag)
         tag, commits_since, suffix = git_tag.split("-", 2)
@@ -103,61 +60,30 @@ def cli():
             logging.error(msg)
             sys.exit(2)
         # determine the PATCH value, which is the time passed between last tag and last commit
-        try:
-            last_tag_timestamp = int(
-                subprocess.run(
-                    f"git -P log -1 --format=%ct {tag}",
-                    shell=True,
-                    capture_output=True,
-                    check=True,
-                    text=True,
-                ).stdout.rstrip()
-            )
-            last_commit_timestamp = int(
-                subprocess.run(
-                    "git -P show --no-patch --format=%ct HEAD",
-                    shell=True,
-                    capture_output=True,
-                    check=True,
-                    text=True,
-                ).stdout.rstrip()
-            )
-        except subprocess.CalledProcessError as e:
-            logging.error(e)
-            logging.error(e.output)
-            last_tag_timestamp = 1721335286
-            last_commit_timestamp = 1722605520
+        last_tag_timestamp = int(subprocess.run(f"git -P log -1 --format=%ct {tag}", shell=True, capture_output=True, check=True, text=True).stdout.rstrip())
+        last_commit_timestamp = int(subprocess.run("git -P show --no-patch --format=%ct HEAD", shell=True, capture_output=True, check=True, text=True).stdout.rstrip())
         version_info[2] = last_commit_timestamp - last_tag_timestamp
     version = ".".join([str(x) for x in version_info])
-    logging.info(
-        "Determined version=%s and pre_release=%s base on git describe result: %s",
-        version,
-        pre_release,
-        git_tag,
-    )
+    logging.info("Determined version=%s and pre_release=%s base on git describe result: %s", version, pre_release, git_tag)
 
     if opt.version:
         print(version)
         sys.exit(0)
-    pre_release_arg = "--pre-release" if pre_release else ""
+    pre_release_arg="--pre-release" if pre_release else ""
     if opt.publish:
-        vsix_files = glob.glob("*.vsix")
+        vsix_files = glob.glob('*.vsix')
         if len(vsix_files) != 1:
             msg = f"Publish command requires presence of exactly one '.vsix' on disk, found: {vsix_files}"
             logging.error(msg)
             sys.exit(2)
-        run(
-            f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath {vsix_files[0]} --readme-path docs/README.md"
-        )
+        run(f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath {vsix_files[0]} --readme-path docs/README.md")
         run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
         run("rm -f ./*.vsix")
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-        run(
-            f"yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
-        )
+        run(f"yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}")
         # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
         run("zipinfo -1 ./*.vsix > out/log/package.log")
         run("tools/dirty.sh")
