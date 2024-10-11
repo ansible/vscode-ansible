@@ -57,7 +57,7 @@
             "title": "Create an Ansible playbook",
             "description": "This will activate Ansible development tools. Make sure the file is saved as \".yml\" or \".yaml\" .\n[Create Ansible Playbook](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D)",
             "media": {
-              "image": "media/walkthroughs/gettingStarted/open-folder.png",
+              "image": "media/walkthroughs/createAnsibleEnv/open-folder.png",
               "altText": "No image found"
             }
           },
@@ -66,7 +66,7 @@
             "title": "Make sure you see the \"Ansible\" tag in the status bar",
             "description": "If your Ansible playbook was successfully created, you should see an Ansible tag in the status bar. If not, you can [change the language](command:ansible.walkthrough.gettingStarted.setLanguage).\nHovering over the Ansible tag can tell you about installed versions or environment issues. If tools are missing or warnings are present, continue to the next step to fix the environment.",
             "media": {
-              "markdown": "media/walkthroughs/gettingStarted/selectAnsibleLanguage.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md"
             }
           },
           {
@@ -74,7 +74,7 @@
             "title": "Install the Ansible development package",
             "description": "The Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools. \n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
             "media": {
-              "markdown": "media/walkthroughs/gettingStarted/install-adt-components.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/install-adt-components.md"
             }
           }
         ]
