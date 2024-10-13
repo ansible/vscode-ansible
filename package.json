@@ -74,7 +74,7 @@
             "title": "Install the Ansible development package",
             "description": "The Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools. \n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
             "media": {
-              "markdown": "media/walkthroughs/createAnsibleEnv/install-adt-components.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/adt-components.md"
             }
           }
         ]
