@@ -30,8 +30,8 @@ export class CommandRunner {
     stderr: string;
   }> {
     let executablePath: string;
-    let command: string | undefined;
-    let runEnv: NodeJS.ProcessEnv | undefined;
+    let command: string = "";
+    let runEnv: NodeJS.ProcessEnv;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
     let interpreterPathFromConfig = this.settings.python.interpreterPath;
     if (interpreterPathFromConfig.includes("${workspaceFolder}")) {
@@ -53,12 +53,14 @@ export class CommandRunner {
 
     // prepare command and env for local run
     if (!isEEEnabled) {
-      [command, runEnv] = withInterpreter(
+      const result = withInterpreter(
         executablePath,
         args,
         interpreterPath,
         this.settings.python.activationScript,
       );
+      command = result.command;
+      runEnv = result.env;
     } else {
       // prepare command and env for execution environment run
       const executionEnvironment = await this.context.executionEnvironment;
@@ -66,9 +68,9 @@ export class CommandRunner {
         `${executable} ${args}`,
         mountPaths,
       );
-      runEnv = undefined;
+      runEnv = {};
     }
-    if (command === undefined) {
+    if (command === "") {
       return { stdout: "", stderr: "" };
     }
 
