@@ -27,6 +27,12 @@ const getBinDetailTests = [
     arg: "--version",
     expected: "failed",
   },
+  {
+    name: "valid binary (ansible-creator)",
+    command: "ansible-creator",
+    arg: "--version",
+    expected: "ansible-creator",
+  },
 ];
 
 const runCommandTests = [

@@ -13,8 +13,8 @@ export type AnsibleCollectionFormInterface = {
 
 export type AnsibleProjectFormInterface = {
   destinationPath: string;
-  scmOrgName: string;
-  scmProjectName: string;
+  namespaceName: string;
+  collectionName: string;
   verbosity: string;
   logToFile: boolean;
   logFilePath: string;
