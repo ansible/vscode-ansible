@@ -1,3 +1,4 @@
+import { contentCreatorUiTest } from "./contentCreatorUiTest";
 import { extensionUIAssetsTest } from "./extensionUITest";
 import { lightspeedUILoginTest } from "./lightspeedAuthUiTest";
 import { lightspeedOneClickTrialUITest } from "./lightspeedOneClickTrialUITest";
@@ -22,4 +23,5 @@ describe("VSCode Ansible - UI tests", function () {
     // lightspeedUISignOutTest();
   }
   walkthroughUiTest();
+  contentCreatorUiTest();
 });
