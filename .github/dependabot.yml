@@ -29,6 +29,8 @@ updates:
       # @types/vscode should be manually bumped when we also update
       # engines.vscode inside package.json
       - dependency-name: "@types/vscode"
+      - dependency-name: "codecov/codecov-action"
+        versions: ["4.6.0"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

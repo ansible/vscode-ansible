@@ -26,7 +26,13 @@ export class AnsibleWelcomePage {
       extensionUri,
     );
     this._setWebviewMessageListener(this._panel.webview);
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
   }
 
   public static render(extensionUri: vscode.Uri) {

@@ -42,7 +42,7 @@ function main() {
   ansibleCreatorVersionStatusText = document.createElement("section");
 
   refreshButton = document.getElementById("refresh") as Button;
-  refreshButton?.addEventListener("click", handleRefreshClick);
+  refreshButton.addEventListener("click", handleRefreshClick);
 
   updateAnsibleCreatorAvailabilityStatus();
 }

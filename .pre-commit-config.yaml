@@ -22,7 +22,7 @@ exclude: >
 minimum_pre_commit_version: 2.9.0 # types_or
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.13.3
+    rev: v8.14.0
     hooks:
       - id: cspell
         # name: Spell check with cspell

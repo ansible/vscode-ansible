@@ -9,7 +9,7 @@ class Error implements IError {
 
   private getCode(err: AxiosError): string {
     const responseErrorData = <AxiosError<{ code?: string; message?: string }>>(
-      err?.response?.data
+      err.response?.data
     );
     const code: string = Object.prototype.hasOwnProperty.call(
       responseErrorData,
@@ -71,7 +71,7 @@ class Errors {
     if (e) {
       const responseErrorData = <
         AxiosError<{ code?: string; message?: unknown }>
-      >err?.response?.data;
+      >err.response?.data;
 
       // If the Error does not have a default message use the payload message
       let message = e.message;
@@ -83,7 +83,7 @@ class Errors {
           ? responseErrorData.message
           : "unknown";
       }
-      const items = (err?.response?.data as Record<string, unknown>) ?? {};
+      const items = (err.response?.data as Record<string, unknown>) ?? {};
       const detail = Object.hasOwn(items, "detail")
         ? items["detail"]
         : undefined;
@@ -271,11 +271,11 @@ ERRORS.addError(
       "line and column where you requested a suggestion.",
     undefined,
     (err: AxiosError) => {
-      const body: unknown = err?.response?.data;
+      const body: unknown = err.response?.data;
       let bodyContainsCloudFront: boolean = false;
       let bodyContainsCloudFrontBlocked: boolean = false;
       const headerContainsCloudFrontServer: boolean =
-        (err?.response?.headers["server"] || "").toLowerCase() === "cloudfront";
+        (err.response?.headers["server"] || "").toLowerCase() === "cloudfront";
       if (typeof body === "string") {
         bodyContainsCloudFront =
           (body.toLowerCase().match("cloudfront")?.length || 0) > 0;
