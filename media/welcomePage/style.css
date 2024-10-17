@@ -266,6 +266,13 @@ ul#walkthrough-list {
     list-style: none;
     margin: 0;
     padding-left: 0;
+	box-sizing: border-box;
+    font-size: 13px;
+    line-height: normal;
+    margin: 8px 8px 8px 0;
+    padding: 3px 6px 6px;
+    text-align: left;
+    width: calc(100% - 16px);
 }
 
 ul#walkthrough-list button {
@@ -280,6 +287,16 @@ ul#walkthrough-list button {
     margin: 1px 0;
     padding: 16px;
     text-align: left;
+}
+
+ul#walkthrough-list button:hover {
+    background: var(--vscode-welcomePage-tileHoverBackground);
+    outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	cursor: pointer;
+}
+
+ul#walkthrough-list button:focus {
+    outline: none;
 }
 
 ul#walkthrough-list > .walkthrough-item {
@@ -319,6 +336,10 @@ ul#walkthrough-list > .walkthrough-item img.category-icon {
 
 ul#walkthrough-list > .walkthrough-item .icon-widget {
     color: var(--vscode-textLink-foreground);
+	font-size: 20px;
+    padding-right: 8px;
+    position: relative;
+    top: 3px;
 }
 
 ul#walkthrough-list > .walkthrough-item .category-title {
