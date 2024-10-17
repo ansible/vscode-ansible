@@ -17,7 +17,7 @@ export function contentCreatorUiTest(): void {
 
     before(async () => {
       workbench = new Workbench();
-      editorView = new EditorView()
+      editorView = new EditorView();
       if (editorView) {
         await editorView.closeAllEditors();
       }
