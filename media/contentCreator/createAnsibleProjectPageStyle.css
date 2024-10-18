@@ -19,14 +19,14 @@ vscode-text-area {
     margin-bottom: 6px;
 }
 
-.scm-org-project-div {
+.playbook-project-div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
 }
 
-#scm-org-name, #scm-project-name {
+#namespace-name, #collection-name {
     width:49%;
     display:inline-block;
 }
