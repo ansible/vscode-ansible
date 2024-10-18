@@ -18,6 +18,7 @@ function getAnsibleTestInfo() {
   const ansibleInfo: ansibleMetaDataEntryType = {};
   ansibleInfo["core version"] = ".";
   ansibleInfo["location"] = "/ansible";
+  // eslint-disable-next-line chai-friendly/no-unused-expressions
   (ansibleInfo["config file path"] = path.resolve(
     __dirname,
     "..",
