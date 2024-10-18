@@ -1,11 +1,6 @@
 {
   "activationEvents": [
-    "onCommand:extension.ansible-navigator.run",
-    "onCommand:extension.ansible-playbook.run",
-    "onCommand:extension.ansible.vault",
-    "onLanguage:ansible",
     "onLanguage:yaml",
-    "onCommand:extension.resync-ansible-inventory",
     "workspaceContains:tox-ansible.ini",
     "onWebviewPanel:ansible-content-creator"
   ],
