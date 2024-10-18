@@ -94,7 +94,7 @@ function updateAnsibleCreatorAvailabilityStatus() {
               <br>
               Follow the
                 <a href="command:ansible.open-walkthrough-create-env">
-                  Set up Ansible environment
+                  Create Ansible environment
                 </a> walkthrough
             </p>`;
         }
