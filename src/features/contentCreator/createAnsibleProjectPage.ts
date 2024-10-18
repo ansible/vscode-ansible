@@ -143,7 +143,7 @@ export class CreateAnsibleProject {
                 <div class="verbose-div">
                   <div class="dropdown-container">
                     <label for="verbosity-dropdown">Output Verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown" position="below">
+                    <vscode-dropdown id="verbosity-dropdown">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>

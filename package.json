@@ -401,6 +401,11 @@
         "title": "Ansible Lightspeed: Playbook generation"
       },
       {
+        "command": "ansible.lightspeed.roleGeneration",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
+        "title": "Ansible Lightspeed: Role generation"
+      },
+      {
         "command": "ansible.lightspeed.thumbsUpDown",
         "title": "Send Lightspeed Thumbs Up/Down Feedback"
       },
