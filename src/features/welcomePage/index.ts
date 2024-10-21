@@ -11,8 +11,8 @@ export class AnsibleWelcomePage {
   public static currentPanel: AnsibleWelcomePage | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
-  private walkthroughs: [] = [];
-  private _logger: Log;
+  private readonly walkthroughs: [] = [];
+  private readonly _logger: Log;
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._logger = new Log();
