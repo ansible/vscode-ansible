@@ -735,7 +735,36 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
     ),
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.create-playbook-options",
+      async () => {
+        if (
+          await workspace.getConfiguration("ansible").get("lightspeed.enabled")
+        ) {
+          vscode.commands.executeCommand(
+            "ansible.lightspeed.playbookGeneration",
+          );
+        } else {
+          vscode.commands.executeCommand("ansible.create-empty-playbook");
+        }
+      },
+    ),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.create-empty-playbook", () => {
+      const playbookTemplate = `---\n# Write your playbook below.\n# Replace these contents with the tasks you'd like to complete and the modules you need.\n# For help getting started, check out https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook\n`;
 
+      vscode.workspace
+        .openTextDocument({
+          content: playbookTemplate,
+          language: "ansible",
+        })
+        .then((newDocument) => {
+          vscode.window.showTextDocument(newDocument);
+        });
+    }),
+  );
   // open ansible language server logs
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.open-language-server-logs", () => {
