@@ -171,6 +171,14 @@ export class AnsibleWelcomePage {
                 <h2>Start</h2>
                 <div class="catalogue">
                   <h3>
+                    <a href="command:ansible.lightspeed.playbookGeneration">
+                      <span class="codicon codicon-file-code"></span> Playbook with Ansible Lightspeed
+                    </a>
+                  </h3>
+                  <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
+                </div>
+                <div class="catalogue">
+                  <h3>
                     <a href="command:ansible.content-creator.create-ansible-project">
                     <span class="codicon codicon-file-zip"></span> New playbook project
                     </a>
