@@ -104,6 +104,7 @@ esbenp
 extest
 extester
 fgierlinger
+fileicon
 fqcn
 fredericgiquel
 ganeshrn
