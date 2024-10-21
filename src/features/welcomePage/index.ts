@@ -106,20 +106,12 @@ export class AnsibleWelcomePage {
       "logo.png",
     ]);
 
-    function openWalkthrough(walkthroughCommand: string) {
-      vscode.commands.executeCommand(
-        "workbench.action.openWalkthrough",
-        walkthroughCommand,
-        false,
-      );
-    }
-
     const renderWalkthroughList = this.walkthroughs
       .map((item: any) => {
         return `<button
         class="walkthrough-item"
         x-dispatch="selectCategory:redhat.ansible#${item.id}"
-        click=${openWalkthrough(`redhat.ansible#${item.id}`)}
+        id=redhat.ansible#${item.id}
         title="${item.description}">
           <div class="featured-badge"></div>
           <div class="main-content">
@@ -177,14 +169,6 @@ export class AnsibleWelcomePage {
             <div class="categories-column-left">
               <div class="index-list start-container">
                 <h2>Start</h2>
-                <!-- <div class="catalogue">
-                  <h3>
-                    <a href="command:ansible.lightspeed.playbookGeneration">
-                      <span class="codicon codicon-file-code"></span> Playbook with Ansible Lightspeed
-                    </a>
-                  </h3>
-                  <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
-                </div> -->
                 <div class="catalogue">
                   <h3>
                     <a href="command:ansible.content-creator.create-ansible-project">
@@ -204,14 +188,14 @@ export class AnsibleWelcomePage {
                 </div>
                 <div class="catalogue">
                   <h3>
-                    <a href="command:ansible.content-creator.create-ansible-collection">
+                    <a href="command:ansible.create-playbook-options">
                     <span class="codicon codicon-new-file"></span> New playbook
                     </a>
                   </h3>
                   <p>Create a new playbook
                   </p>
                 </div>
-                <div class="catalogue">
+                <!-- <div class="catalogue">
                   <h3>
                     <a href="command:ansible.content-creator.create-ansible-collection">
                     <span class="codicon codicon-layers"></span> New execution environment
@@ -219,33 +203,33 @@ export class AnsibleWelcomePage {
                   </h3>
                   <p>Create a new execution environment.
                   </p>
-                </div>
-                <div class="catalogue">
+                </div> -->
+                <!-- <div class="catalogue">
                   <h3>
                     <a href="command:ansible.content-creator.create-ansible-collection">
                     <span class="codicon codicon-symbol-property"></span> Launch Ansible Navigator
                     </a>
                   </h3>
-                  <!-- <p>Create a new execution environment.
-                  </p> -->
-                </div>
+                  <p>Create a new execution environment.
+                  </p>
+                </div> -->
                 <div class="catalogue">
                   <h3>
-                    <a href="command:ansible.content-creator.create-ansible-collection">
+                    <a href="https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html-single/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/index#using-code-bot-for-suggestions_lightspeed-user-guide">
                     <span class="codicon codicon-symbol-property"></span> Go to Ansible code bot
                     </a>
                   </h3>
-                  <!-- <p>Create a new execution environment.
-                  </p> -->
+                  <p>Scans your code repositories to recommend code quality improvements.
+                  </p>
                 </div>
                 <div class="catalogue">
                   <h3>
-                    <a href="command:ansible.content-creator.create-ansible-collection">
+                    <a href="command:workbench.action.files.openFile">
                     <span class="codicon codicon-symbol-property"></span> Explain playbook
                     </a>
                   </h3>
-                  <!-- <p>Create a new execution environment.
-                  </p> -->
+                  <p>Explain a playbook
+                  </p>
                 </div>
               </div>
 
@@ -328,15 +312,14 @@ export class AnsibleWelcomePage {
   private _setWebviewMessageListener(webview: vscode.Webview) {
     webview.onDidReceiveMessage(
       async (message) => {
-        const command = message.message;
+        const command = message.message || message.command;
         switch (command) {
-          case "refresh-page":
-            await this.refreshPage();
-            return;
-
           case "set-system-status-view":
             await this.getSystemDetails(webview);
             return;
+
+          case "walkthrough":
+            await this.openWalkthrough(message.walkthrough);
         }
       },
       undefined,
@@ -344,9 +327,11 @@ export class AnsibleWelcomePage {
     );
   }
 
-  private async refreshPage() {
-    await vscode.commands.executeCommand(
-      "workbench.action.webview.reloadWebviewAction",
+  private async openWalkthrough(walkthrough: string) {
+    vscode.commands.executeCommand(
+      "workbench.action.openWalkthrough",
+      walkthrough,
+      false,
     );
   }
 

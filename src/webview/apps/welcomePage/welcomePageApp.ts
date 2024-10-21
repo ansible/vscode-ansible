@@ -1,5 +1,4 @@
 import {
-  Button,
   allComponents,
   provideVSCodeDesignSystem,
 } from "@vscode/webview-ui-toolkit";
@@ -10,7 +9,6 @@ const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
 let systemReadinessDiv: HTMLElement | null;
-let systemCheckDiv: HTMLElement | null;
 let installStatusDiv: HTMLElement | null;
 
 let systemReadinessIcon: HTMLElement;
@@ -21,13 +19,10 @@ let pythonVersionStatusText: HTMLElement;
 let pythonLocationStatusText: HTMLElement;
 let ansibleCreatorVersionStatusText: HTMLElement;
 let ansibleDevEnvironmentStatusText: HTMLElement;
-let refreshButton: Button;
+let walkthroughList: HTMLCollectionOf<Element> | null;
 
 function main() {
   systemReadinessDiv = document.getElementById("system-readiness");
-
-  systemCheckDiv = document.getElementById("system-check");
-  if (systemCheckDiv) systemCheckDiv.style.visibility = "hidden";
 
   installStatusDiv = document.getElementById("install-status");
 
@@ -41,15 +36,20 @@ function main() {
   ansibleDevEnvironmentStatusText = document.createElement("section");
   ansibleCreatorVersionStatusText = document.createElement("section");
 
-  refreshButton = document.getElementById("refresh") as Button;
-  refreshButton.addEventListener("click", handleRefreshClick);
+  walkthroughList = document.getElementsByClassName("walkthrough-item");
+  Array.from(walkthroughList).forEach((walkthrough) => {
+    walkthrough.addEventListener("click", handleWalkthroughClick);
+  });
 
   updateAnsibleCreatorAvailabilityStatus();
 }
 
-function handleRefreshClick() {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function handleWalkthroughClick(e: any) {
+  const id: string = e.target["id"] || e.target["parentNode"]["id"];
   vscode.postMessage({
-    message: "refresh-page",
+    command: "walkthrough",
+    walkthrough: id,
   });
 }
 
@@ -95,7 +95,10 @@ function updateAnsibleCreatorAvailabilityStatus() {
               Follow the
                 <a href="command:ansible.open-walkthrough-create-env">
                   Create Ansible environment
-                </a> walkthrough
+                </a> walkthrough, or
+                <a href="command:ansible.python.set.interpreter">
+                  switch to another environment
+                </a> that has the setup ready.
             </p>`;
         }
         systemReadinessDiv?.appendChild(systemReadinessIcon);
@@ -159,6 +162,5 @@ function updateAnsibleCreatorAvailabilityStatus() {
 
       // `;
     }
-    if (systemCheckDiv) systemCheckDiv.style.visibility = "visible";
   });
 }
