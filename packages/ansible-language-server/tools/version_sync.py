@@ -11,9 +11,7 @@ def sync_als_version_in_vscode_ansible_devel():
     with open("../vscode-ansible/package.json") as fp:
         package_json_vscode_ansible = json.load(fp)
 
-    package_json_vscode_ansible["dependencies"][
-        "@ansible/ansible-language-server"
-    ] = version_als
+    package_json_vscode_ansible["dependencies"]["@ansible/ansible-language-server"] = version_als
     with open("../vscode-ansible/package.json", "w") as fp:
         json.dump(package_json_vscode_ansible, fp, indent=4)
 
