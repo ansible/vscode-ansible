@@ -13,6 +13,12 @@ on:
     branches: ["main", "devel/*"]
   schedule:
     - cron: "0 0 * * *"
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Publish a pre-release'
+        required: false
+        default: 'false'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
@@ -397,9 +403,9 @@ jobs:
           jobs: ${{ toJSON(needs) }}
 
   publish:
-    if: github.ref_type == 'tag' || github.ref == 'refs/heads/main'
+    if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
-    environment: release # manual approval
+    environment: release
     needs:
       - check
     steps:
@@ -438,7 +444,7 @@ jobs:
 
   publish-npm:
     environment: release
-    if: needs.build.outputs.can_release_to_npm == 'true' && (github.ref_type == 'tag' || github.ref == 'refs/heads/main')
+    if: needs.build.outputs.can_release_to_npm == 'true' && (github.ref_type == 'tag' || github.event.inputs.publish == 'true')
     runs-on: ubuntu-latest
     needs:
       - build
