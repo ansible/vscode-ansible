@@ -14,6 +14,28 @@ def run(cmd: str):
     return subprocess.run(cmd, shell=True, check=True)
 
 
+def get_tags(cmd: str):
+    """Get tags for the user using git commands."""
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.error(e)
+        logging.error(e.output)
+        result = subprocess.CompletedProcess(
+            "",
+            0,
+            f"v{datetime.now().strftime('%y')}.{datetime.now().month}.1-1-no_tags",
+            None,
+        )
+    return result
+
+
 def cli():
     """Main."""
     parser = argparse.ArgumentParser(prog="helper", description="Build process helper")
@@ -33,25 +55,7 @@ def cli():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     pre_release = False
-    result = {}
-    try:
-        result = subprocess.run(
-            'git describe --dirty --tags --long --match "v*.*"',
-            shell=True,
-            capture_output=True,
-            check=True,
-            text=True,
-        )
-    except subprocess.CalledProcessError as e:
-        logging.error(e)
-        logging.error(e.output)
-        result = subprocess.CompletedProcess(
-            "",
-            0,
-            f"v{datetime.now().strftime('%y')}.{datetime.now().month}.1-1-g39ab6c3",
-            None,
-        )
-    # result = subprocess.run('git describe --dirty --tags --long --match "v*.*"', shell=True, capture_output=True, check=True, text=True)
+    result = get_tags('git describe --dirty --tags --long --match "v*.*"')
     git_tag = result.stdout.rstrip()
     logging.debug('git describe (with --match "v*.*") returned: %s', git_tag)
     tag, commits_since, suffix = git_tag.split("-", 2)
@@ -61,23 +65,7 @@ def cli():
         pre_release = True
         # If pre_release = True, we need to calculate the time difference from the
         # first stable release of the month with a "*.0" tag
-        try:
-            result = subprocess.run(
-                'git describe --dirty --tags --long --match "v*.*.0"',
-                shell=True,
-                capture_output=True,
-                check=True,
-                text=True,
-            )
-        except subprocess.CalledProcessError as e:
-            logging.error(e)
-            logging.error(e.output)
-            result = subprocess.CompletedProcess(
-                "",
-                0,
-                f"v{datetime.now().strftime('%y')}.{datetime.now().month}.1-1-g39ab6c3",
-                None,
-            )
+        result = get_tags('git describe --dirty --tags --long --match "v*.*.0"')
         git_tag = result.stdout.rstrip()
         logging.debug('git describe (with --match "v*.*.0") returned: %s', git_tag)
         tag, commits_since, suffix = git_tag.split("-", 2)
