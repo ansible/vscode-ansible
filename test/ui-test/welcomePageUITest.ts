@@ -11,55 +11,56 @@ import { sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 export function welcomePageUITest(): void {
-  describe("ADT sidebar and welcome page is displayed as expected", async () => {
-    let view: ViewControl;
-    let sideBar: SideBarView;
-    let adtSection: ViewSection;
-    let welcomePageWebView: WebView;
+  let view: ViewControl;
+  let sideBar: SideBarView;
+  let adtSection: ViewSection;
+  let welcomePageWebView: WebView;
 
-    before(async () => {
-      // Open Ansible Development Tools by clicking the Getting started button on the side bar
-      view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
-      sideBar = await view.openView();
-      // to get the content part
-      adtSection = await sideBar
-        .getContent()
-        .getSection("Ansible Development Tools");
+  before(async () => {
+    // Open Ansible Development Tools by clicking the Getting started button on the side bar
+    view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+    sideBar = await view.openView();
+    // to get the content part
+    adtSection = await sideBar
+      .getContent()
+      .getSection("Ansible Development Tools");
 
-      const title = await adtSection.getTitle();
-      expect(title).not.to.be.undefined;
-      expect(title).to.equals("Ansible Development Tools");
+    const title = await adtSection.getTitle();
+    expect(title).not.to.be.undefined;
+    expect(title).to.equals("Ansible Development Tools");
 
-      const getStartedButton = await adtSection.findElement(
-        By.xpath(
-          "//a[contains(@class, 'monaco-button') and " +
-            ".//span/text()='Get started']",
-        ),
-      );
+    const getStartedButton = await adtSection.findElement(
+      By.xpath(
+        "//a[contains(@class, 'monaco-button') and " +
+          ".//span/text()='Get started']",
+      ),
+    );
 
-      expect(getStartedButton).not.to.be.undefined;
+    expect(getStartedButton).not.to.be.undefined;
 
-      if (getStartedButton) {
-        await getStartedButton.click();
-      }
-      await sleep(3000);
+    if (getStartedButton) {
+      await getStartedButton.click();
+    }
+    await sleep(3000);
 
-      welcomePageWebView = await new WebView();
-      expect(welcomePageWebView, "welcomePageWebView should not be undefined")
-        .not.to.be.undefined;
-      await welcomePageWebView.switchToFrame(3000);
-      expect(
-        welcomePageWebView,
-        "welcomePageWebView should not be undefined after switching to its frame",
-      ).not.to.be.undefined;
-    });
+    welcomePageWebView = await new WebView();
+    expect(welcomePageWebView, "welcomePageWebView should not be undefined").not
+      .to.be.undefined;
+    await welcomePageWebView.switchToFrame(3000);
+    expect(
+      welcomePageWebView,
+      "welcomePageWebView should not be undefined after switching to its frame",
+    ).not.to.be.undefined;
+  });
 
-    after(async function () {
-      if (view) {
-        await view.closeView();
-      }
-    });
+  after(async function () {
+    await welcomePageWebView.switchBack();
+    if (view) {
+      await view.closeView();
+    }
+  });
 
+  describe("Verify welcome page sidebar and title is displayed as expected", async () => {
     it("check for header and subtitle", async function () {
       const adtHeaderTitle = await welcomePageWebView.findWebElement(
         By.className("title caption"),
@@ -76,10 +77,10 @@ export function welcomePageUITest(): void {
       expect(await adtSubheader.getText()).includes(
         "Create, test and deploy Ansible content",
       );
-
-      // await welcomePageWebView.switchBack();
     });
+  });
 
+  describe("Check for start section and related links", async () => {
     it("Check if start and walkthrough list section is visible", async () => {
       const startSection = await welcomePageWebView.findWebElement(
         By.className("index-list start-container"),
@@ -97,10 +98,8 @@ export function welcomePageUITest(): void {
       );
 
       expect(await newPlaybookProjectOption.getText()).to.equal(
-        "New playbook project",
+        "Playbook with Ansible Lightspeed",
       );
-
-      await welcomePageWebView.switchBack();
     });
   });
 }
