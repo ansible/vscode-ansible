@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 """Utility that helps with extension building and testing."""
+
 import argparse
 import glob
 import subprocess
@@ -75,7 +76,10 @@ def cli():
         if len(version_info) == 2:
             version_info.append(0)
         if len(version_info) != 3:
-            msg = f"Unsupported version tag ({version}) found, we only support MINOR.MAJOR.PATCH pattern."
+            msg = (
+                f"Unsupported version tag ({version}) found, we only support MINOR.MAJOR.PATCH"
+                " pattern."
+            )
             logging.error(msg)
             sys.exit(2)
         if version_info[1] % 2 == 0:
@@ -87,7 +91,10 @@ def cli():
             else:
                 version_info[1] += 1
         else:
-            msg = f"Last git tag ({tag}) had a MINOR version number ({version_info[1]}) that was odd. Odd numbers are reserved for pre-release versions. Remove the tag and try again."
+            msg = (
+                f"Last git tag ({tag}) had a MINOR version number ({version_info[1]}) that was odd."
+                " Odd numbers are reserved for pre-release versions. Remove the tag and try again."
+            )
             logging.error(msg)
             sys.exit(2)
         # determine the PATCH value, which is the time passed between last tag and last commit
@@ -131,11 +138,15 @@ def cli():
     if opt.publish:
         vsix_files = glob.glob("*.vsix")
         if len(vsix_files) != 1:
-            msg = f"Publish command requires presence of exactly one '.vsix' on disk, found: {vsix_files}"
+            msg = (
+                "Publish command requires presence of exactly one '.vsix' on disk, found:"
+                f" {vsix_files}"
+            )
             logging.error(msg)
             sys.exit(2)
         run(
-            f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath {vsix_files[0]} --readme-path docs/README.md"
+            f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath"
+            f" {vsix_files[0]} --readme-path docs/README.md"
         )
         run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
@@ -144,7 +155,8 @@ def cli():
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run(
-            f"yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
+            "yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json"
+            f" --readme-path docs/README.md {pre_release_arg} {version}"
         )
         # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
         run("zipinfo -1 ./*.vsix > out/log/package.log")
