@@ -46,7 +46,10 @@ function main() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function handleWalkthroughClick(e: any) {
-  const id: string = e.target["id"] || e.target["parentNode"]["id"];
+  const id: string =
+    e.target["id"] ||
+    e.target["parentNode"]["id"] ||
+    e.target["offsetParent"]["id"];
   vscode.postMessage({
     command: "walkthrough",
     walkthrough: id,

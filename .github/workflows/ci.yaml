@@ -120,7 +120,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v3.1.1
+        uses: Vampire/setup-wsl@v3.1.3
         with:
           distribution: Ubuntu-22.04
           set-as-default: "true"

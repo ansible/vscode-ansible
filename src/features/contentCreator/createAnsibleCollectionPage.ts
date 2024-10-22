@@ -353,7 +353,7 @@ export class CreateAnsibleCollection {
       ? initPath
       : `${os.homedir()}/.ansible/collections/ansible_collections`;
 
-    let ansibleCreatorInitCommand = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
+    let ansibleCreatorInitCommand = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
 
     // adjust collection url for using it in ade and opening it in workspace
     // NOTE: this is done in order to synchronize the behavior of ade and extension

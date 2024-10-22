@@ -80,6 +80,55 @@
         ]
       },
       {
+        "id": "start-automating-playbook",
+        "title": "Start automating with your first Ansible playbook",
+        "description": "Create your first automation playbook while learning best practices.",
+        "steps": [
+          {
+            "id": "enable-lightspeed-playbook",
+            "title": "Enable Ansible Lightspeed",
+            "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md"
+            }
+          },
+          {
+            "id": "create-project-playbook",
+            "title": "Create an Ansible playbook project",
+            "description": "Create a pre-configured Ansible playbook project repository.\n[Create an Ansible playbook project](command:ansible.content-creator.create-ansible-project)",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md"
+            }
+          },
+          {
+            "id": "create-ansible-playbook",
+            "title": "Create an Ansible playbook",
+            "description": "Ansible Playbooks are lists of tasks that automatically execute for your specified inventory or groups of hosts.\nWithin your playbook project, create a new Ansible Playbook.\nIf Ansible Lightspeed is enabled in settings, a generation template will appear. Otherwise, this creates an empty playbook for you to modify.\n[Create Ansible playbook](command:ansible.create-playbook-options)",
+            "media": {
+              "image": "media/walkthroughs/startAutomatingPlaybook/create-playbook.png",
+              "altText": "No image found"
+            }
+          },
+          {
+            "id": "save-ansible-playbook",
+            "title": "Save your playbook to a playbook project",
+            "description": "Save your playbook in your new playbook project.\nWe recommend saving your playbooks under the **playbooks/** folder inside your project.",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md"
+            }
+          },
+          {
+            "id": "learn-more-playbook",
+            "title": "Learn more about playbooks",
+            "description": "If you want to become a master, start digging into our Ansible playbook learning resources.\n[Check out learning resources ↗](https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook)",
+            "media": {
+              "image": "media/walkthroughs/startAutomatingPlaybook/learning.png",
+              "altText": "No image found"
+            }
+          }
+        ]
+      },
+      {
         "id": "discover-ansible-development-tools",
         "title": "Discover Ansible Development Tools",
         "description": "A quick review of the tools that will help you create, test, and deploy your automation code.",
@@ -282,6 +331,14 @@
       {
         "command": "ansible.python-settings.open",
         "title": "Ansible: Open Python Settings"
+      },
+      {
+        "command": "ansible.create-empty-playbook",
+        "title": "Ansible: Create an empty Ansible playbook"
+      },
+      {
+        "command": "ansible.create-playbook-options",
+        "title": "Ansible: Create an empty playbook or with Lightspeed (if enabled)"
       },
       {
         "command": "ansible.content-creator.menu",
@@ -877,6 +934,7 @@
     "ini": "^4.1.3",
     "marked": "^13.0.3",
     "minimatch": "^9.0.5",
+    "semver": "^7.6.3",
     "start-server-and-test": "^2.0.5",
     "uuid": "^10.0.0",
     "vscode-languageclient": "^9.0.1",

@@ -40,3 +40,5 @@ export const IncludeVarValidTaskName = [
 ];
 
 export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 50000;
+
+export const ANSIBLE_CREATOR_VERSION_MIN = "24.10.1";
