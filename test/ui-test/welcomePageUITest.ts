@@ -2,6 +2,7 @@ import { config, expect } from "chai";
 import {
   ActivityBar,
   By,
+  EditorView,
   SideBarView,
   ViewControl,
   ViewSection,
@@ -11,7 +12,7 @@ import { sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 export function welcomePageUITest(): void {
-  describe("Verify welcome page sidebar and title is displayed as expected", async () => {
+  describe("Verify welcome page is displayed as expected", async () => {
     let view: ViewControl;
     let sideBar: SideBarView;
     let adtSection: ViewSection;
@@ -24,12 +25,6 @@ export function welcomePageUITest(): void {
       adtSection = await sideBar
         .getContent()
         .getSection("Ansible Development Tools");
-    });
-
-    after(async function () {
-      if (view) {
-        await view.closeView();
-      }
     });
 
     it("check for title and get started button", async function () {
@@ -86,6 +81,49 @@ export function welcomePageUITest(): void {
         "Create, test and deploy Ansible content",
       );
 
+      await welcomePageWebView.switchBack();
+    });
+
+    it("Check if start and walkthrough list section is visible", async () => {
+      const welcomePageWebView = await new WebView();
+      expect(welcomePageWebView, "welcomePageWebView should not be undefined")
+        .not.to.be.undefined;
+      await welcomePageWebView.switchToFrame(3000);
+      expect(
+        welcomePageWebView,
+        "welcomePageWebView should not be undefined after switching to its frame",
+      ).not.to.be.undefined;
+
+      const startSection = await welcomePageWebView.findWebElement(
+        By.className("index-list start-container"),
+      );
+
+      const walkthroughSection = await welcomePageWebView.findWebElement(
+        By.className("index-list getting-started"),
+      );
+
+      expect(startSection).not.to.be.undefined;
+      expect(walkthroughSection).not.to.be.undefined;
+
+      const playbookWithLightspeedOption = await startSection.findElement(
+        By.css("h3"),
+      );
+
+      expect(await playbookWithLightspeedOption.getText()).to.equal(
+        "Playbook with Ansible Lightspeed",
+      );
+
+      const walkthroughItems = await walkthroughSection.findElements(
+        By.className("walkthrough-item"),
+      );
+      expect(walkthroughItems.length).to.greaterThanOrEqual(2);
+
+      const firstWalkthrough = walkthroughItems[0].findElement(By.css("h3"));
+      expect(await firstWalkthrough.getText()).to.equal(
+        "Create an Ansible environment",
+      );
+      await firstWalkthrough.click();
+      await sleep(2000);
       await welcomePageWebView.switchBack();
     });
   });
