@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-'''
+"""
 Example custom dynamic inventory script for Ansible, in Python.
-'''
+"""
 
 import argparse
 from time import sleep
@@ -11,6 +11,7 @@ try:
     import json
 except ImportError:
     import simplejson as json
+
 
 class ExampleInventory(object):
 
@@ -29,40 +30,37 @@ class ExampleInventory(object):
         else:
             self.inventory = self.empty_inventory()
 
-        print (json.dumps(self.inventory));
+        print(json.dumps(self.inventory))
 
     # Example inventory for testing.
     def example_inventory(self):
         sleep(1)
         return {
-            'python_hosts': {
-                'hosts': ['10.220.21.24', '10.220.21.27'],
-                'vars': {
-                    'ansible_ssh_user': 'projectuser',
+            "python_hosts": {
+                "hosts": ["10.220.21.24", "10.220.21.27"],
+                "vars": {
+                    "ansible_ssh_user": "projectuser",
+                },
+            },
+            "_meta": {
+                "hostvars": {
+                    "10.220.21.24": {"host_specific_var": "testhost"},
+                    "10.220.21.27": {"host_specific_var": "towerhost"},
                 }
             },
-            '_meta': {
-                'hostvars': {
-                    '10.220.21.24': {
-                        'host_specific_var': 'testhost'
-                    },
-                    '10.220.21.27': {
-                        'host_specific_var': 'towerhost'
-                    }
-                }
-            }
         }
 
     # Empty inventory for testing.
     def empty_inventory(self):
-        return {'_meta': {'hostvars': {}}}
+        return {"_meta": {"hostvars": {}}}
 
     # Read the command line args passed to the script.
     def read_cli_args(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('--list', action = 'store_true')
-        parser.add_argument('--host', action = 'store')
+        parser.add_argument("--list", action="store_true")
+        parser.add_argument("--host", action="store")
         self.args = parser.parse_args()
+
 
 # Get the inventory.
 ExampleInventory()

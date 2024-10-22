@@ -252,3 +252,138 @@ a .codicon {
 .playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer > .header > .subtitle {
 	font-size: 1em;
 }
+
+div.index-list.getting-started #system-check h2 {
+	font-size: 1.5em;
+	font-weight: 400;
+	line-height: normal;
+	margin-bottom: 5px;
+	margin-top: 0;
+}
+
+ul#walkthrough-list {
+	list-style: none;
+    padding: 3px 6px 6px;
+    padding-left: 0;
+	box-sizing: border-box;
+    font-size: 13px;
+    line-height: normal;
+    margin: 8px 8px 8px 0;
+    text-align: left;
+    width: calc(100% - 16px);
+}
+
+ul#walkthrough-list button {
+	/* border: 1px solid var(--vscode-contrastBorder); */
+	background: var(--vscode-welcomePage-tileBackground);
+	border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 13px;
+    margin: 1px 0;
+    padding: 16px;
+    text-align: left;
+}
+
+ul#walkthrough-list button:hover {
+    background: var(--vscode-welcomePage-tileHoverBackground);
+    outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+	cursor: pointer;
+}
+
+ul#walkthrough-list button:focus {
+    outline: none;
+}
+
+ul#walkthrough-list > .walkthrough-item {
+	border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+
+	box-sizing: border-box;
+    font-size: 13px;
+    line-height: normal;
+    margin: 8px 8px 8px 0;
+    padding: 3px 6px 6px;
+    text-align: left;
+    width: calc(100% - 16px);
+}
+
+ul#walkthrough-list > .walkthrough-item .featured-badge {
+	left: -8px;
+    position: relative;
+    top: -4px;
+}
+
+ul#walkthrough-list > .walkthrough-item .main-content {
+	align-items: center;
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+ul#walkthrough-list > .walkthrough-item img.category-icon {
+    max-height: 20px;
+    max-width: 20px;
+    padding-right: 8px;
+    position: relative;
+    top: auto;
+}
+
+ul#walkthrough-list > .walkthrough-item .icon-widget {
+    color: var(--vscode-textLink-foreground);
+	font-size: 20px;
+    padding-right: 8px;
+    position: relative;
+    top: 3px;
+}
+
+ul#walkthrough-list > .walkthrough-item .category-title {
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 500;
+    margin: 4px 0;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+ul#walkthrough-list > .walkthrough-item .category-title.max-lines-3 {
+    line-clamp: 3;
+    display: box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+ul#walkthrough-list > .walkthrough-item .codicon.hide-category-button {
+    margin-left: auto;
+    right: 8px;
+    top: 4px;
+}
+
+ul#walkthrough-list > .walkthrough-item .hide-category-button {
+    border-radius: 5px;
+    padding: 3px;
+	visibility: hidden;
+}
+
+.codicon[class*=codicon-] {
+    font-size: 16px;
+}
+
+ul#walkthrough-list > .walkthrough-item .description-content:not(:empty) {
+    margin-bottom: 8px;
+}
+
+ul#walkthrough-list > .walkthrough-item .description-content {
+    margin-left: 28px;
+    text-align: left;
+}
+
+ul#walkthrough-list > .walkthrough-item .category-progress {
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    width: 100%;
+}
