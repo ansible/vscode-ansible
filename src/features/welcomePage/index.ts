@@ -5,13 +5,21 @@ import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import * as ini from "ini";
 import { getBinDetail } from "../contentCreator/utils";
+import { Log } from "../../utils/logger";
 
 export class AnsibleWelcomePage {
   public static currentPanel: AnsibleWelcomePage | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
+  private readonly walkthroughs: [] = [];
+  private readonly _logger: Log;
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
+    this._logger = new Log();
+    this.walkthroughs =
+      vscode.extensions.getExtension(
+        "redhat.ansible",
+      )?.packageJSON?.contributes?.walkthroughs;
     this._panel = panel;
     this._panel.webview.html = this._getWebviewContent(
       this._panel.webview,
@@ -92,6 +100,48 @@ export class AnsibleWelcomePage {
       "codicon.css",
     ]);
 
+    const logo = getUri(webview, extensionUri, [
+      "media",
+      "welcomePage",
+      "logo.png",
+    ]);
+
+    const renderWalkthroughList = this.walkthroughs
+      .map((item: any) => {
+        return `<button
+        class="walkthrough-item"
+        x-dispatch="selectCategory:redhat.ansible#${item.id}"
+        id=redhat.ansible#${item.id}
+        title="${item.description}">
+          <div class="featured-badge"></div>
+          <div class="main-content">
+            <img class="category-icon icon-widget" src=${logo} alt="Ansible"/>
+            <h3 class="category-title max-lines-3" x-category-title-for="redhat.ansible#${item.id}">
+              ${item.title}
+            </h3>
+            <div class="no-badge"></div>
+            <a class="codicon codicon-close hide-category-button"
+              tabindex="0"
+              x-dispatch="hideCategory:redhat.ansible#${item.id}"
+              title="Hide"
+              role="button"
+              aria-label="Hide">
+            </a>
+          </div>
+          <div class="description-content">
+            ${item.description}
+          </div>
+          <div class="category-progress"
+            x-data-category-id="redhat.ansible#discover-ansible-development-tools">
+            <div class="progress-bar-outer" role="progressbar">
+              <div class="progress-bar-inner" aria-valuemin="0" aria-value="1" aria-valuemax="4" title="1 of 4 steps complete" style="width: 25%;">
+              </div>
+            </div>
+          </div>
+        </button>`;
+      })
+      .join("");
+
     return /*html*/ `
     <html>
 
@@ -118,7 +168,7 @@ export class AnsibleWelcomePage {
             </div>
             <div class="categories-column-left">
               <div class="index-list start-container">
-                <h2>Create</h2>
+                <h2>Start</h2>
                 <div class="catalogue">
                   <h3>
                     <a href="command:ansible.lightspeed.playbookGeneration">
@@ -130,7 +180,7 @@ export class AnsibleWelcomePage {
                 <div class="catalogue">
                   <h3>
                     <a href="command:ansible.content-creator.create-ansible-project">
-                    <span class="codicon codicon-file-zip"></span> Ansible playbook project
+                    <span class="codicon codicon-file-zip"></span> New playbook project
                     </a>
                   </h3>
                   <p>Create a foundational framework and structure for setting your Ansible project with playbooks, roles, variables, templates, and other files.</p>
@@ -138,10 +188,55 @@ export class AnsibleWelcomePage {
                 <div class="catalogue">
                   <h3>
                     <a href="command:ansible.content-creator.create-ansible-collection">
-                    <span class="codicon codicon-layers"></span> Ansible collection project
+                    <span class="codicon codicon-file-zip"></span> New collection project
                     </a>
                   </h3>
                   <p>Create a structure for your Ansible collection that includes modules, plugins, molecule scenarios and tests.
+                  </p>
+                </div>
+                <div class="catalogue">
+                  <h3>
+                    <a href="command:ansible.create-playbook-options">
+                    <span class="codicon codicon-new-file"></span> New playbook
+                    </a>
+                  </h3>
+                  <p>Create a new playbook
+                  </p>
+                </div>
+                <!-- <div class="catalogue">
+                  <h3>
+                    <a href="command:ansible.content-creator.create-ansible-collection">
+                    <span class="codicon codicon-layers"></span> New execution environment
+                    </a>
+                  </h3>
+                  <p>Create a new execution environment.
+                  </p>
+                </div> -->
+                <!-- <div class="catalogue">
+                  <h3>
+                    <a href="command:ansible.content-creator.create-ansible-collection">
+                    <span class="codicon codicon-symbol-property"></span> Launch Ansible Navigator
+                    </a>
+                  </h3>
+                  <p>Create a new execution environment.
+                  </p>
+                </div> -->
+                <div class="catalogue">
+                  <h3>
+                    <a href="https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html-single/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/index#using-code-bot-for-suggestions_lightspeed-user-guide">
+                    <span class="codicon codicon-symbol-property"></span> Go to Ansible code bot
+                    </a>
+                  </h3>
+                  <p>Scans your code repositories to recommend code quality improvements.
+                  </p>
+                </div>
+                <div class="catalogue">
+                  <h3>
+                    <a href="command:workbench.action.files.openFile">
+                    <span class="codicon codicon-symbol-property"></span> Explain playbook
+                    </a>
+                  </h3>
+                  <p>Explain a playbook
                   </p>
                 </div>
               </div>
@@ -185,17 +280,21 @@ export class AnsibleWelcomePage {
               <div class="index-list getting-started">
                 <div id="system-check">
                   <div class="icon">
-                    <h2>System requirements:</h2>
+                    <h2>Walkthroughs</h2>
                   </div>
 
-                  <div id=install-status class="statusDisplay"></div>
+                  <ul id="walkthrough-list">
+                    ${renderWalkthroughList}
+                  </ul>
 
-                  <div class="refresh-button-div">
+                  <!-- <div id=install-status class="statusDisplay"></div> -->
+
+                  <!-- <div class="refresh-button-div">
                     <vscode-button id="refresh">
                       <span class="codicon codicon-refresh"></span>
                       &nbsp; Refresh
                     </vscode-button>
-                  </div>
+                  </div> -->
 
                 </div>
               </div>
@@ -221,15 +320,14 @@ export class AnsibleWelcomePage {
   private _setWebviewMessageListener(webview: vscode.Webview) {
     webview.onDidReceiveMessage(
       async (message) => {
-        const command = message.message;
+        const command = message.message || message.command;
         switch (command) {
-          case "refresh-page":
-            await this.refreshPage();
-            return;
-
           case "set-system-status-view":
             await this.getSystemDetails(webview);
             return;
+
+          case "walkthrough":
+            await this.openWalkthrough(message.walkthrough);
         }
       },
       undefined,
@@ -237,9 +335,11 @@ export class AnsibleWelcomePage {
     );
   }
 
-  private async refreshPage() {
-    await vscode.commands.executeCommand(
-      "workbench.action.webview.reloadWebviewAction",
+  private async openWalkthrough(walkthrough: string) {
+    vscode.commands.executeCommand(
+      "workbench.action.openWalkthrough",
+      walkthrough,
+      false,
     );
   }
 
