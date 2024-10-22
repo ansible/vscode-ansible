@@ -27,12 +27,6 @@ export function welcomePageUITest(): void {
         .getSection("Ansible Development Tools");
     });
 
-    // after(async function () {
-    //   if (view) {
-    //     await view.closeView();
-    //   }
-    // });
-
     it("check for title and get started button", async function () {
       const title = await adtSection.getTitle();
       const getStartedButton = await adtSection.findElement(
