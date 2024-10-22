@@ -7,14 +7,38 @@ import glob
 import subprocess
 import logging
 import sys
+from datetime import datetime
 
 
-def run(cmd: str):
+def run(cmd: str) -> subprocess.CompletedProcess[bytes]:
     """Helper to easy calling subprocess."""
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def cli():
+def get_tags(cmd: str) -> subprocess.CompletedProcess[str]:
+    """Get tags for the user using git commands."""
+    try:
+        result = subprocess.run(
+            cmd,
+            shell=True,
+            capture_output=True,
+            check=True,
+            text=True,
+        )
+    except subprocess.CalledProcessError as e:
+        logging.warning("This repository is missing tags. Fetch tags from upstream repository.")
+        logging.error(e)
+        logging.error(e.output)
+        result = subprocess.CompletedProcess(
+            "",
+            0,
+            f"v{datetime.now().strftime('%y')}.{datetime.now().month}.1-1-no_tags",
+            None,
+        )
+    return result
+
+
+def cli() -> None:
     """Main."""
     parser = argparse.ArgumentParser(prog="helper", description="Build process helper")
     parser.add_argument(
@@ -33,13 +57,7 @@ def cli():
     logging.basicConfig(level=logging.INFO, format="%(message)s")
 
     pre_release = False
-    result = subprocess.run(
-        'git describe --dirty --tags --long --match "v*.*"',
-        shell=True,
-        capture_output=True,
-        check=True,
-        text=True,
-    )
+    result = get_tags('git describe --dirty --tags --long --match "v*.*"')
     git_tag = result.stdout.rstrip()
     logging.debug('git describe (with --match "v*.*") returned: %s', git_tag)
     tag, commits_since, suffix = git_tag.split("-", 2)
@@ -47,14 +65,9 @@ def cli():
     version_info = [int(x) for x in version.split(".")]
     if "-dirty" in suffix or commits_since != "0":
         pre_release = True
-        # If pre_release = True, we need to calculate the time difference from the first stable release of the month with a "*.0" tag
-        result = subprocess.run(
-            'git describe --dirty --tags --long --match "v*.*.0"',
-            shell=True,
-            capture_output=True,
-            check=True,
-            text=True,
-        )
+        # If pre_release = True, we need to calculate the time difference from the
+        # first stable release of the month with a "*.0" tag
+        result = get_tags('git describe --dirty --tags --long --match "v*.*.0"')
         git_tag = result.stdout.rstrip()
         logging.debug('git describe (with --match "v*.*.0") returned: %s', git_tag)
         tag, commits_since, suffix = git_tag.split("-", 2)
@@ -86,24 +99,30 @@ def cli():
             logging.error(msg)
             sys.exit(2)
         # determine the PATCH value, which is the time passed between last tag and last commit
-        last_tag_timestamp = int(
-            subprocess.run(
-                f"git -P log -1 --format=%ct {tag}",
-                shell=True,
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.rstrip()
-        )
-        last_commit_timestamp = int(
-            subprocess.run(
-                "git -P show --no-patch --format=%ct HEAD",
-                shell=True,
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.rstrip()
-        )
+        try:
+            last_tag_timestamp = int(
+                subprocess.run(
+                    f"git -P log -1 --format=%ct {tag}",
+                    shell=True,
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                ).stdout.rstrip()
+            )
+            last_commit_timestamp = int(
+                subprocess.run(
+                    "git -P show --no-patch --format=%ct HEAD",
+                    shell=True,
+                    capture_output=True,
+                    check=True,
+                    text=True,
+                ).stdout.rstrip()
+            )
+        except subprocess.CalledProcessError as e:
+            logging.error(e)
+            logging.error(e.output)
+            last_tag_timestamp = 1721335286
+            last_commit_timestamp = 1722605520
         version_info[2] = last_commit_timestamp - last_tag_timestamp
     version = ".".join([str(x) for x in version_info])
     logging.info(

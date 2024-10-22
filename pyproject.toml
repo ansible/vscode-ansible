@@ -8,7 +8,7 @@ builtin = "clear,rare,code"
 check-filenames = true
 check-hidden = true
 ignore-words = ".config/dictionary.txt"
-skip = "out,node_modules,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,.yarn,dictionary.txt,settings.md"
+skip = "out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,.yarn,dictionary.txt,settings.md"
 
 # We have no python tests in this project, but we keep this config to prevent
 # vscode python extension from showing errors while trying to collect tests.
