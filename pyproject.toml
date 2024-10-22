@@ -1,3 +1,8 @@
+[tool.black]
+enable-unstable-feature = ["string_processing"]
+line-length = 100
+preview = true
+
 [tool.codespell]
 builtin = "clear,rare,code"
 check-filenames = true
@@ -24,3 +29,9 @@ norecursedirs = [
     "out",
     "node_modules",
 ]
+
+[tool.ruff]
+exclude = ["examples"]
+fix = true
+line-length = 100
+target-version = "py310"
