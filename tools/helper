@@ -10,12 +10,12 @@ import sys
 from datetime import datetime
 
 
-def run(cmd: str):
+def run(cmd: str) -> subprocess.CompletedProcess[bytes]:
     """Helper to easy calling subprocess."""
     return subprocess.run(cmd, shell=True, check=True)
 
 
-def get_tags(cmd: str):
+def get_tags(cmd: str) -> subprocess.CompletedProcess[str]:
     """Get tags for the user using git commands."""
     try:
         result = subprocess.run(
@@ -37,7 +37,7 @@ def get_tags(cmd: str):
     return result
 
 
-def cli():
+def cli() -> None:
     """Main."""
     parser = argparse.ArgumentParser(prog="helper", description="Build process helper")
     parser.add_argument(
