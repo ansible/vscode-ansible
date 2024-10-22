@@ -26,6 +26,7 @@ def get_tags(cmd: str) -> subprocess.CompletedProcess[str]:
             text=True,
         )
     except subprocess.CalledProcessError as e:
+        logging.warning("This repository is missing tags. Fetch tags from upstream repository.")
         logging.error(e)
         logging.error(e.output)
         result = subprocess.CompletedProcess(
