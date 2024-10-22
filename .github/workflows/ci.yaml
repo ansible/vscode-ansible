@@ -11,6 +11,8 @@ on:
       - "v*.*"
   pull_request:
     branches: ["main", "devel/*"]
+  schedule:
+    - cron: "0 0 * * *"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
