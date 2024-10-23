@@ -23,5 +23,3 @@ mkdocstrings-python
 pillow
 pymdown-extensions
 slugify
-# for community-ansible-dev-tools image
-ansible-pylibssh==1.1.0

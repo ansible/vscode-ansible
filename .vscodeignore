@@ -9,6 +9,7 @@
 !LICENSE
 !docs/README.md
 !images/ansible.svg
+!images/ansible-fileicon.svg
 !images/logo.png
 !jinja-language-configuration.json
 !media/style.css
@@ -61,4 +62,10 @@
 !media/walkthroughs/discoverAdt/test-ansible-lint.gif
 !media/walkthroughs/discoverAdt/test-molecule.gif
 !media/walkthroughs/discoverAdt/test-pytest-ansible.png
-!media/walkthroughs/discoverAdt/test-tox-ansible.gif
+!media/walkthroughs/startAutomatingPlaybook/create-lightspeed-completion.gif
+!media/walkthroughs/startAutomatingPlaybook/create-lightspeed-playbook.gif
+!media/walkthroughs/startAutomatingPlaybook/create-playbook.png
+!media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md
+!media/walkthroughs/startAutomatingPlaybook/learning.png
+!media/walkthroughs/startAutomatingPlaybook/open-folder.png
+!media/walkthroughs/startAutomatingPlaybook/playbook-project.md
