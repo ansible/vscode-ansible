@@ -16,9 +16,9 @@ on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Publish a pre-release'
+        description: "Publish a pre-release"
         required: false
-        default: 'false'
+        default: "false"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}

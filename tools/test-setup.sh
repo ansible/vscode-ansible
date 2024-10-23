@@ -176,7 +176,7 @@ fi
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman gh libssh
         podman machine ls --noheading | grep '\*' || time podman machine init
         podman machine ls --noheading | grep "Currently running" || {
             # do not use full path as it varies based on architecture
