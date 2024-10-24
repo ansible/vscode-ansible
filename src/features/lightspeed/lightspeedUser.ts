@@ -246,7 +246,7 @@ export class LightspeedUser {
       session = await vscode.authentication.getSession(
         useProviderType,
         this.getScopesForAuthProviderType(useProviderType),
-        { createIfNone },
+        { forceNewSession: true },
       );
       if (session) {
         this._userType = useProviderType;
