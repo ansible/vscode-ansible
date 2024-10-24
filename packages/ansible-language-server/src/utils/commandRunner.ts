@@ -1,7 +1,10 @@
 import { URI } from "vscode-uri";
 import { Connection } from "vscode-languageserver";
 import { withInterpreter, asyncExec } from "./misc";
-import { getAnsibleCommandExecPath } from "./execPath";
+import {
+  getAnsibleCommandExecPath,
+  replaceWorkspaceFolderInPath,
+} from "./execPath";
 import { WorkspaceFolderContext } from "../services/workspaceManager";
 import { ExtensionSettings } from "../interfaces/extensionSettings";
 
@@ -33,20 +36,18 @@ export class CommandRunner {
     let command: string | undefined;
     let runEnv: NodeJS.ProcessEnv | undefined;
     const isEEEnabled = this.settings.executionEnvironment.enabled;
-    let interpreterPathFromConfig = this.settings.python.interpreterPath;
-    if (interpreterPathFromConfig.includes("${workspaceFolder}")) {
-      const workspaceFolder = URI.parse(this.context.workspaceFolder.uri).path;
-      interpreterPathFromConfig = interpreterPathFromConfig.replace(
-        "${workspaceFolder}",
-        workspaceFolder,
-      );
-    }
+    const interpreterPathFromSettings = replaceWorkspaceFolderInPath(
+      this.settings.python.interpreterPath,
+      this.context,
+    );
 
-    const interpreterPath = isEEEnabled ? "python3" : interpreterPathFromConfig;
+    const interpreterPath = isEEEnabled
+      ? "python3"
+      : interpreterPathFromSettings;
     if (executable.startsWith("ansible")) {
       executablePath = isEEEnabled
         ? executable
-        : getAnsibleCommandExecPath(executable, this.settings);
+        : getAnsibleCommandExecPath(executable, this.settings, this.context);
     } else {
       executablePath = executable;
     }
