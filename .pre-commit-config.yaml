@@ -19,7 +19,7 @@ exclude: >
     .config/requirements.in|
     .*.svg
   )$
-minimum_pre_commit_version: 4.0.1 # Related to https://github.com/ekalinin/nodeenv/issues/369
+minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v8.15.2
