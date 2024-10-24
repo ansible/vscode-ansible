@@ -77,7 +77,9 @@ fi
 
 log notice "Install required build tools"
 for PLUGIN in yarn nodejs task python direnv; do
-    asdf plugin add $PLUGIN
+    if ! asdf plugin-list | grep -q $PLUGIN; then
+        asdf plugin add $PLUGIN
+    fi
 done
 asdf install
 
