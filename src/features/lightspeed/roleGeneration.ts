@@ -253,11 +253,12 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
       }
       case "openEditor": {
         const { playbook } = message;
-        await openNewPlaybookEditor(playbook);
         await sendActionEvent(
           PlaybookGenerationActionType.CLOSE_ACCEPT,
           undefined,
         );
+        await openNewPlaybookEditor(playbook);
+        await openNewPlaybookEditor(playbook);
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;
         panel.dispose();
@@ -340,6 +341,9 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
           <p>
             Collection name: "<span id="collectionName"></span>"&nbsp;
             <a class="backAnchor" id="backAnchorCollectionName">Edit</a>
+          </p>
+          <p>
+            Role name: <vscode-text-field id="roleName" value="my_role"></vscode-text-field>
           </p>
         </div>
         <div class="firstMessage">
