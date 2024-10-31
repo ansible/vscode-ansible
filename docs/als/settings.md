@@ -49,6 +49,11 @@ Specify any additional parameters that should be added to the pull command when 
 . Default value:
 ``""``
 
+## [`ansible.executionEnvironment.volumeMounts`](#executionEnvironment.volumeMounts) { #executionEnvironment.volumeMounts data-toc-label=executionEnvironment.volumeMounts }
+Add a dictionary entry to the array with the volume mount source path (key: &#x27;src&#x27;), destination (key: &#x27;dest&#x27;), and options (key: &#x27;options&#x27;)
+. Default value:
+``""``
+
 ## [`ansible.executionEnvironment.containerOptions`](#executionEnvironment.containerOptions) { #executionEnvironment.containerOptions data-toc-label=executionEnvironment.containerOptions }
 Extra parameters passed to the container engine command example: &#x27;--net&#x3D;host&#x27;
 . Default value:
@@ -83,12 +88,4 @@ Path to the ansible-lint executable
 Optional command line arguments to be appended to ansible-lint invocation
 . Default value:
 ``""``
-
-## [`ansible.executionEnvironment.volumeMounts`](#executionEnvironment.volumeMounts) { #executionEnvironment.volumeMounts data-toc-label=executionEnvironment.volumeMounts }
-  - **src**: The name of the local volume or path to be mounted within execution environment.. Default value:
-`""`
-  - **dest**: The path where the file or directory are mounted in the container.. Default value:
-`""`
-  - **options**: The field is optional, and is a comma-separated list of options, such as ro,Z. Default value:
-`""`
 
