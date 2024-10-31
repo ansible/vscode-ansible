@@ -277,9 +277,9 @@ if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
         exit 99
     fi
 fi
-log notice "Upgrading pip ..."
+log notice "Upgrading pip and uv ..."
 
-python3 -m pip install -q -U pip
+python3 -m pip install -q -U pip uv
 # Fail fast if user has broken dependencies
 python3 -m pip check || {
         log error "pip check failed with exit code $?"
@@ -294,7 +294,7 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from community-ansible-dev-tools EE in order
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
-    python3 -m pip install -q \
+    python3 -m uv pip install -q \
         -r .config/requirements.in
 fi
 
