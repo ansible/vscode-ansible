@@ -72,11 +72,7 @@ interface ExecutionEnvironmentSettingsWithDescription extends SettingsEntry {
     policy: { default: IPullPolicy; description: string };
     arguments: { default: string; description: string };
   };
-  volumeMounts: Array<{
-    src: { default: string; description: string };
-    dest: { default: string; description: string };
-    options: { default: string; description: string };
-  }>;
+  volumeMounts: { default: Array<IVolumeMounts>; description: string };
   containerOptions: { default: string; description: string };
 }
 
@@ -98,11 +94,7 @@ export interface SettingsEntry {
     | SettingsEntry
     | string
     | boolean
-    | Array<{
-        src: { default: string; description: string };
-        dest: { default: string; description: string };
-        options: { default: string; description: string };
-      }>;
+    | Array<IVolumeMounts>;
 }
 
 interface AnsibleSettingsWithDescription extends SettingsEntry {
