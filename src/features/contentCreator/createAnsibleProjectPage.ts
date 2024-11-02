@@ -2,17 +2,20 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleProjectFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, runCommand } from "./utils";
+import { expandPath, getBinDetail, runCommand } from "./utils";
+import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
 
 export class CreateAnsibleProject {
   public static currentPanel: CreateAnsibleProject | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
+  public static readonly viewType = "CreateProject";
 
   private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri) {
     this._panel = panel;
@@ -21,7 +24,13 @@ export class CreateAnsibleProject {
       extensionUri,
     );
     this._setWebviewMessageListener(this._panel.webview);
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
+    this._panel.onDidDispose(
+      () => {
+        this.dispose();
+      },
+      null,
+      this._disposables,
+    );
   }
 
   public static render(extensionUri: vscode.Uri) {
@@ -122,9 +131,9 @@ export class CreateAnsibleProject {
                   </section>
                 </vscode-text-field>
 
-                <div class="scm-org-project-div">
-                  <vscode-text-field id="scm-org-name" form="init-form" placeholder="Enter scm organization name" size="512">SCM organization *</vscode-text-field>
-                  <vscode-text-field id="scm-project-name" form="init-form" placeholder="Enter scm project name" size="512">SCM project *</vscode-text-field>
+                <div class="playbook-project-div">
+                <vscode-text-field id="namespace-name" form="init-form" placeholder="Enter namespace name" size="512">Namespace *</vscode-text-field>
+                <vscode-text-field id="collection-name" form="init-form" placeholder="Enter collection name" size="512">Collection *</vscode-text-field>
                 </div>
 
                 <div id="full-collection-path" class="full-collection-path">
@@ -134,7 +143,7 @@ export class CreateAnsibleProject {
                 <div class="verbose-div">
                   <div class="dropdown-container">
                     <label for="verbosity-dropdown">Output Verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown" position="below">
+                    <vscode-dropdown id="verbosity-dropdown">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>
@@ -271,6 +280,26 @@ export class CreateAnsibleProject {
     );
   }
 
+  // Get ansible-creator version and check which command should be used
+  public async getCreatorCommand(
+    namespace: string,
+    collection: string,
+    url: string,
+  ): Promise<string> {
+    let command = "";
+    const creatorVersion = (
+      await getBinDetail("ansible-creator", "--version")
+    ).toString();
+    console.log("ansible-creator version: ", creatorVersion);
+
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+      command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
+    } else {
+      command = `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
+    }
+    return command;
+  }
+
   public async openExplorerDialog(
     selectOption: string,
   ): Promise<string | undefined> {
@@ -298,8 +327,8 @@ export class CreateAnsibleProject {
   ) {
     const {
       destinationPath,
-      scmOrgName,
-      scmProjectName,
+      namespaceName,
+      collectionName,
       logToFile,
       logFilePath,
       logFileAppend,
@@ -310,9 +339,13 @@ export class CreateAnsibleProject {
 
     const destinationPathUrl = destinationPath
       ? destinationPath
-      : `${os.homedir()}/${scmOrgName}-${scmProjectName}`;
+      : `${os.homedir()}/${namespaceName}-${collectionName}`;
 
-    let ansibleCreatorInitCommand = `ansible-creator init --project=ansible-project --init-path=${destinationPathUrl} --scm-org=${scmOrgName} --scm-project=${scmProjectName} --no-ansi`;
+    let ansibleCreatorInitCommand = await this.getCreatorCommand(
+      namespaceName,
+      collectionName,
+      destinationPathUrl,
+    );
 
     if (isForced) {
       ansibleCreatorInitCommand += " --force";
@@ -381,6 +414,16 @@ export class CreateAnsibleProject {
         status: commandPassed,
       },
     } as PostMessageEvent);
+
+    if (commandPassed === "passed") {
+      const selection = await vscode.window.showInformationMessage(
+        `Ansible playbook project created at: ${destinationPathUrl}`,
+        `Open playbook project ↗`,
+      );
+      if (selection === "Open playbook project ↗") {
+        this.openFolderInWorkspace(destinationPathUrl);
+      }
+    }
   }
 
   public async openLogFile(fileUrl: string) {

@@ -9,7 +9,7 @@ const SKIP_PODMAN = (process.env.SKIP_PODMAN ?? "0") === "1";
 const SKIP_DOCKER = (process.env.SKIP_DOCKER ?? "0") === "1";
 let EE_VERSION = "N/A";
 const DEFAULT_CONTAINER =
-  pkg?.contributes?.configuration[6]?.properties[
+  pkg.contributes.configuration[6]?.properties[
     "ansible.executionEnvironment.image"
   ]?.default ?? "";
 
@@ -60,7 +60,7 @@ try {
 }
 
 const containers = new Set([
-  `ghcr.io/ansible/creator-ee:${EE_VERSION}`,
+  `ghcr.io/ansible/community-ansible-dev-tools:${EE_VERSION}`,
   DEFAULT_CONTAINER,
 ]);
 

@@ -57,6 +57,6 @@ export class LightspeedFeedbackWebviewViewProvider
   }
 
   private _setWebviewMessageListener(webviewView: WebviewView) {
-    return setWebviewMessageListener(webviewView.webview);
+    setWebviewMessageListener(webviewView.webview);
   }
 }

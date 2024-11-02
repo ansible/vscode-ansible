@@ -10,6 +10,7 @@ import {
 } from "vscode-languageserver/node";
 import { ValidationManager } from "../src/services/validationManager";
 import { ExtensionSettings } from "../src/interfaces/extensionSettings";
+import { rmSync } from "fs";
 
 import Fuse from "fuse.js";
 
@@ -20,6 +21,7 @@ export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   "collections",
 );
 export const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
+  FIXTURES_BASE_PATH,
   "playbook_adjacent_collection",
   "collections",
 );
@@ -29,17 +31,24 @@ export const ANSIBLE_CONFIG_FILE = path.resolve(
   "ansible.cfg",
 );
 
+export function deleteAlsCache(): void {
+  const hostCacheBasePath = path.resolve(
+    `${process.env.HOME}/.cache/ansible-language-server/`,
+  );
+  rmSync(hostCacheBasePath, { recursive: true, force: true });
+}
+
 export function setFixtureAnsibleCollectionPathEnv(prePendPath?: string): void {
   if (prePendPath) {
-    process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
+    process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
   } else {
-    process.env.ANSIBLE_COLLECTIONS_PATHS =
+    process.env.ANSIBLE_COLLECTIONS_PATH =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
   }
 }
 
 export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATHS = undefined;
+  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
 }
 
 export function setAnsibleConfigEnv(): void {
@@ -58,12 +67,12 @@ export async function enableExecutionEnvironmentSettings(
     {
       src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
       dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
-      options: undefined,
+      options: "ro", // read-only option for volume mounts
     },
     {
       src: ANSIBLE_ADJACENT_COLLECTIONS__PATH,
       dest: ANSIBLE_ADJACENT_COLLECTIONS__PATH,
-      options: undefined,
+      options: "ro", // read-only option for volume mounts
     },
   ];
 }
@@ -72,6 +81,7 @@ export async function disableExecutionEnvironmentSettings(
   docSettings: Thenable<ExtensionSettings>,
 ): Promise<void> {
   (await docSettings).executionEnvironment.enabled = false;
+  (await docSettings).executionEnvironment.volumeMounts = [];
 }
 
 export function resolveDocUri(filename: string): string {
@@ -113,7 +123,7 @@ export function smartFilter(
 
   // Sort completion list based on `sortText` property of the completion item
   completionList.sort((a: CompletionItem, b: CompletionItem) =>
-    a.sortText && b.sortText ? a.sortText.localeCompare(b?.sortText) : 0,
+    a.sortText && b.sortText ? a.sortText.localeCompare(b.sortText) : 0,
   );
 
   // Construct a new Fuse object to do fuzzy search with key as `filterText` property of the completion item

@@ -51,7 +51,7 @@ export class ExecutionEnvironment {
         this.settings.executionEnvironment.volumeMounts;
 
       const setEngineSuccess = this.setContainerEngine();
-      if (setEngineSuccess === false) {
+      if (!setEngineSuccess) {
         this.isServiceInitialized = false;
         return;
       }
@@ -61,7 +61,7 @@ export class ExecutionEnvironment {
         this.settings.executionEnvironment.containerOptions;
 
       const pullSuccess = await this.pullContainerImage();
-      if (pullSuccess === false) {
+      if (!pullSuccess) {
         this.isServiceInitialized = false;
         return;
       }
@@ -85,10 +85,7 @@ export class ExecutionEnvironment {
       );
       return;
     }
-    const containerName = `${this._container_image.replace(
-      /[^a-z0-9]/gi,
-      "_",
-    )}`;
+    const containerName = this._container_image.replace(/[^a-z0-9]/gi, "_");
     let progressTracker;
 
     try {
@@ -218,13 +215,9 @@ export class ExecutionEnvironment {
       ...["-v", `${workspaceFolderPath}:${workspaceFolderPath}`],
     );
 
-    // TODO: add condition to check file path exists or not
     for (const mountPath of mountPaths || []) {
-      // push to array only if mount path is valid
-      if (mountPath === "" || !fs.existsSync(mountPath)) {
-        this.connection.console.error(
-          `Volume mount source path '${mountPath}' does not exist. Ignoring this volume mount entry.`,
-        );
+      // push to array only if mount path isn't an empty string, then let podman produce errors as needed
+      if (mountPath === "") {
         continue;
       }
 
@@ -361,9 +354,8 @@ export class ExecutionEnvironment {
 
   private cleanUpContainer(containerName: string): void {
     const cleanUpCommands = [
-      `sh -c '${this._container_engine} ps -q --filter "name=${containerName}" | xargs ${this._container_engine} stop'`,
-      // docker does not have the --ignore flag, so we need to list and pipe
-      `sh -c '${this._container_engine} container ls -aq -f 'name=${containerName}' | xargs ${this._container_engine} rm --force'`,
+      `${this._container_engine} stop $(${this._container_engine} ps -q --filter "name=${containerName}")`,
+      `${this._container_engine} rm $(${this._container_engine} container ls -aq -f 'name=${containerName}')`,
     ];
 
     if (!this.doesContainerNameExist(containerName)) {
@@ -403,18 +395,6 @@ export class ExecutionEnvironment {
       const fsSrcPath = volumeMounts.src;
       const fsDestPath = volumeMounts.dest;
       const options = volumeMounts.options;
-      if (fsSrcPath === "" || !fs.existsSync(fsSrcPath)) {
-        this.connection.console.error(
-          `Volume mount source path '${fsSrcPath}' does not exist. Ignoring this volume mount entry.`,
-        );
-        continue;
-      }
-      if (fsDestPath === "") {
-        this.connection.console.error(
-          `Volume mount destination path '${fsDestPath}' not provided. Ignoring this volume mount entry.`,
-        );
-        continue;
-      }
 
       let mountPath = `${fsSrcPath}:${fsDestPath}`;
       if (options && options !== "") {

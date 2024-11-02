@@ -173,6 +173,11 @@ export class LightspeedUser {
         this._logger.error(
           `[ansible-lightspeed-user] error message: ${error.message}`,
         );
+        /* istanbul ignore next */
+        console.error(
+          "[ansible-lightspeed-user] error response data: ",
+          error.response?.data,
+        );
         throw new Error(error.message);
       } else {
         this._logger.error(
@@ -414,7 +419,7 @@ export class LightspeedUser {
         const userType = sessionInfo.userInfo?.userType || "";
         const userRole =
           sessionInfo.userInfo?.role !== undefined
-            ? sessionInfo.userInfo?.role
+            ? sessionInfo.userInfo.role
             : "";
         content = `
           <p>Logged in as: ${userName}</p>
@@ -435,14 +440,14 @@ export class LightspeedUser {
         "[ansible-lightspeed-user] User authentication session not found for seat check.",
       );
       return undefined;
-    } else if (userDetails?.rhUserHasSeat) {
+    } else if (userDetails.rhUserHasSeat) {
       this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails?.displayNameWithUserType}" has a seat.`,
+        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" has a seat.`,
       );
       return true;
     } else {
       this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails?.displayNameWithUserType}" does not have a seat.`,
+        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" does not have a seat.`,
       );
       return false;
     }
@@ -455,14 +460,14 @@ export class LightspeedUser {
         "[ansible-lightspeed-user] User authentication session not found for subscription check.",
       );
       return undefined;
-    } else if (userDetails?.rhOrgHasSubscription) {
+    } else if (userDetails.rhOrgHasSubscription) {
       this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails?.displayNameWithUserType}" has an Org with a subscription.`,
+        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" has an Org with a subscription.`,
       );
       return true;
     } else {
       this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails?.displayNameWithUserType}" does not have an Org with a subscription.`,
+        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" does not have an Org with a subscription.`,
       );
       return false;
     }

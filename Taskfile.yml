@@ -114,6 +114,7 @@ tasks:
     desc: Lint the project
     cmds:
       - task: install
+      - task: als:package # to produce the tgz file that can-release is using
       - packages/ansible-language-server/tools/can-release.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
@@ -159,6 +160,7 @@ tasks:
     cmds:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
+      - bash -c 'rm -rf ./out/test-resources ./out/ext'
       - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
     interactive: true
   test-unit:

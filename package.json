@@ -43,83 +43,121 @@
   "contributes": {
     "walkthroughs": [
       {
-        "id": "getting-started-with-ansible-extension",
-        "title": "Getting started with Ansible Extension",
-        "description": "You first step for knowing and setting up the extension with all the developer features that the Ansible extension has to offer!",
+        "id": "create-ansible-environment",
+        "title": "Create an Ansible environment",
+        "description": "To access Ansible development tools, create an Ansible environment.",
         "steps": [
           {
-            "id": "create-ansible-file",
-            "title": "Create an Ansible-YAML file",
-            "description": "[Open](command:toSide:workbench.action.files.openFile) or [create](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D) a Ansible-YAML file - make sure to save it as \".yml\" or \".yaml\".\n[Create Ansible Playbook](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D)\n\n💡 It's normal to see some red tags in the status bar. This is because necessary ansible tools are not installed. We will fix this as we more forward.",
+            "id": "create-ansible-playbook",
+            "title": "Create an Ansible playbook",
+            "description": "This will activate Ansible development tools. Make sure the file is saved as \".yml\" or \".yaml\" .\n[Create Ansible Playbook](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D)",
             "media": {
-              "image": "media/walkthroughs/gettingStarted/open-folder.png",
+              "image": "media/walkthroughs/createAnsibleEnv/open-folder.png",
               "altText": "No image found"
             }
           },
           {
-            "id": "check-ansible-language",
-            "title": "Ensure \"Ansible\" language",
-            "description": "All the language support is only available for an Ansible file. Make sure that the language of the file is \"Ansible\". If not,\n[Change Language](command:ansible.walkthrough.gettingStarted.setLanguage)\n🔍 Check out this [section](https://github.com/ansible/vscode-ansible?tab=readme-ov-file#language-association-to-yaml-files) to learn more about ansible language association to yaml files.",
+            "id": "check-ansible-tag",
+            "title": "Make sure you see the \"Ansible\" tag in the status bar",
+            "description": "If your Ansible playbook was successfully created, you should see an Ansible tag in the status bar. If not, you can [change the language](command:ansible.walkthrough.gettingStarted.setLanguage).\nHovering over the Ansible tag can tell you about installed versions or environment issues. If tools are missing or warnings are present, continue to the next step to fix the environment.",
             "media": {
-              "markdown": "media/walkthroughs/gettingStarted/selectAnsibleLanguage.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md"
             }
           },
           {
-            "id": "check-ansible-statusbar-tag",
-            "title": "Check out the Ansible Version tag",
-            "description": "Hovering over the \"Ansible version\" written in the status-bar can tell you about your entire workspace environment. The following symbols convey the following message: \n $(bracket-dot) - All the required tools are present in the environment.\n $(warning) - Ansible Lint is missing in the environment. Partial diagnostics will be present in the extension.\n $(error) - Ansible is missing in the environment. None of the features in the extension will work properly.\n**Tools missing?** Move on to the next step to set up your environment properly.",
+            "id": "install-ansible-development-package",
+            "title": "Install the Ansible development package",
+            "description": "The Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools. \n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
             "media": {
-              "markdown": "media/walkthroughs/gettingStarted/ansibleEnvironment.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/adt-components.md"
+            }
+          }
+        ]
+      },
+      {
+        "id": "start-automating-playbook",
+        "title": "Start automating with your first Ansible playbook",
+        "description": "Create your first automation playbook while learning best practices.",
+        "steps": [
+          {
+            "id": "enable-lightspeed-playbook",
+            "title": "Enable Ansible Lightspeed",
+            "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md"
             }
           },
           {
-            "id": "set-up-ansible-environment",
-            "title": "Set up an Ansible Environment",
-            "description": "Select or create a new environment for the extension to pick up the ansible binaries.\n💡 This option also lets you to create a new virtual environment too!.\n[Select Environment](command:ansible.python.set.interpreter)\nIf the ansible tools are missing, install the recommended tools within your environment in just one click for a smooth experience.\n[Install Ansible Tools](command:ansible.install-ansible-dev-tools)",
+            "id": "create-project-playbook",
+            "title": "Create an Ansible playbook project",
+            "description": "Create a pre-configured Ansible playbook project repository.\n[Create an Ansible playbook project](command:ansible.content-creator.create-ansible-project)",
             "media": {
-              "image": "media/walkthroughs/gettingStarted/all-adt-tools.png",
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md"
+            }
+          },
+          {
+            "id": "create-ansible-playbook",
+            "title": "Create an Ansible playbook",
+            "description": "Ansible Playbooks are lists of tasks that automatically execute for your specified inventory or groups of hosts.\nWithin your playbook project, create a new Ansible Playbook.\nIf Ansible Lightspeed is enabled in settings, a generation template will appear. Otherwise, this creates an empty playbook for you to modify.\n[Create Ansible playbook](command:ansible.create-playbook-options)",
+            "media": {
+              "image": "media/walkthroughs/startAutomatingPlaybook/create-playbook.png",
               "altText": "No image found"
             }
           },
           {
-            "id": "start-writing-ansible-playbook",
-            "title": "Start writing ansible playbook",
-            "description": "As you start writing your ansible playbook, the extension will provide all the language support for ansible. \n$(bracket) **Syntax highlighting**\nDistinguishes Ansible keywords, module names and options, jinja expressions and YAML components with distinct highlighting. \n $(gather) **Auto completion**\n Suggests completions based on context, such as vars, plays, blocks, or tasks. \n $(bug) **Diagnostics**\nProvides instant feedback on ansible syntax errors as you type. Additionally, validates ansible content for best practices. \n $(eye) **Hovering**\n Displays documentation when hovering over Ansible elements, sourced from Python module implementations. \n $(go-to-file) **Go to definition**\n Navigates to module implementations, with simple by actions such as clicking while holding ctrl/cmd or using context menus.\nYou can also check the language services logs if required.\n[Open Ansible Services Logs](command:ansible.open-language-server-logs)",
+            "id": "save-ansible-playbook",
+            "title": "Save your playbook to a playbook project",
+            "description": "Save your playbook in your new playbook project.\nWe recommend saving your playbooks under the **playbooks/** folder inside your project.",
             "media": {
-              "markdown": "media/walkthroughs/gettingStarted/languageFeatures.md"
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md"
             }
           },
           {
-            "id": "run-ansible-playbook",
-            "title": "Run the playbook",
-            "description": "Once done writing the playbook, you can run the playbook without having to leave the editor. Simply right-click on the active editor and go to \"Run playbook via...\"\n💡 If you have \"Ansible Navigator\" installed, you can choose to run your playbook using ansible navigator.",
+            "id": "learn-more-playbook",
+            "title": "Learn more about playbooks",
+            "description": "If you want to become a master, start digging into our Ansible playbook learning resources.\n[Check out learning resources ↗](https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook)",
             "media": {
-              "image": "media/walkthroughs/gettingStarted/run-ansible-playbook.png",
+              "image": "media/walkthroughs/startAutomatingPlaybook/learning.png",
               "altText": "No image found"
             }
-          },
+          }
+        ]
+      },
+      {
+        "id": "discover-ansible-development-tools",
+        "title": "Discover Ansible Development Tools",
+        "description": "A quick review of the tools that will help you create, test, and deploy your automation code.",
+        "steps": [
           {
-            "id": "explore-ansible-extension-settings",
-            "title": "Know your Ansible Extension Settings",
-            "description": "The extension provides various settings categorised into sections to give you full control over configurations.\n[Open Extension Settings](command:toSide:ansible.extension-settings.open)\n 🔍 Check out this [section](https://ansible.readthedocs.io/projects/vscode-ansible/#configuration) to learn about each setting and how to use them.",
-            "completionEvents": [
-              "onCommand:ansible.extension-settings.open"
-            ],
+            "id": "adt-create",
+            "title": "Create",
+            "description": "**Scaffold automation content with Ansible creator**\nThe fastest way to generate all your Ansible content! Whether you are initializing an Ansible collection or creating the framework for specific plugins, this tool streamlines the process with efficiency and precision based on your requirements.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/creator/) \n-----\n**Manage automation content with Ansible navigator**\nA text-based user interface (TUI) for creating, reviewing, running and troubleshooting Ansible content, including inventories, playbooks, collections, documentation, and execution environments.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/navigator/) \n-----\n**Discover content with Ansible automation hub**\nYour organization's on-premise repository with curated, certified and validated Ansible content.\n[View Documentation ↗](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/managing_automation_content/index) \n-----\n**Build with Ansible Lightspeed**\nAnsible's generative AI service that provides Ansible code based on natural language prompts. Include content explanation and more to help you build with confidence.\n[View Documentation ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) \n[Ansible Lightspeed Trial Walkthrough ↗](https://www.redhat.com/en/products/interactive-walkthrough/install-ansible-lightspeed) ",
             "media": {
-              "image": "media/walkthroughs/gettingStarted/ansible-extension-settings.png",
-              "altText": "No image found for extension settings"
+              "markdown": "media/walkthroughs/discoverAdt/adt-create.md"
             }
           },
           {
-            "id": "explore-more-resources",
-            "title": "Explore more resources",
-            "description": "📚 Learn what is an Ansible Playbook and how to write one using best practices in this [article](https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook).\n🔬 Read about the capabilities of various [Ansible Development Tools](https://ansible.readthedocs.io/projects/dev-tools/) to make the best use of them.\n🗒️ Take a look at our [Release Notes](https://github.com/ansible/vscode-ansible/releases) to learn more about the latest features.\n[Learn more](https://www.ansible.com/blog/deep-dive-on-ansible-vscode-extension/)",
-            "completionEvents": [
-              "onLink:https://www.ansible.com/blog/deep-dive-on-ansible-vscode-extension/"
-            ],
+            "id": "adt-test",
+            "title": "Test",
+            "description": "**Test playbooks with Ansible lint**\nChecks playbooks for style errors, best practices, and other issues to ensure the integrity of your code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/lint/) \n-----\n**Test collections with Ansible Molecule**\nAssists in the development and testing of Ansible collections, playbooks, and roles.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/molecule/) \n-----\n**Test collections with tox Ansible**\nAn extension to the tox testing utility that provides additional functionality to check Ansible module and plugin Python code under different Python interpreters and Ansible core versions.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/tox-ansible/) \n-----\n**Integrate with pytest using pytest Ansible**\nA pytest testing framework extension that provides additional functionality for testing Ansible module and plugin Python code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/pytest-ansible/) ",
             "media": {
-              "image": "media/walkthroughs/gettingStarted/learn-more.png",
-              "altText": "No image found"
+              "markdown": "media/walkthroughs/discoverAdt/adt-test.md"
+            }
+          },
+          {
+            "id": "adt-deploy",
+            "title": "Deploy",
+            "description": "**Build execution environments with Ansible builder**\nAutomates the process of creating execution environments using schemas and tooling.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/builder/) \n-----\n**Verify Ansible content with Ansible sign**\nUtility for signing and verifying Ansible project directory contents to ensure a secure software supply chain.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/sign/) ",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-deploy.md"
+            }
+          },
+          {
+            "id": "adt-where-to-start",
+            "title": "Where do I start?",
+            "description": "**Install the Ansible development package, if you have not already**\nThe Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.\n-----\n**Check out other walkthroughs**\n[• Create an Ansible Environment](command:ansible.open-walkthrough-create-env) ",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-components.md"
             }
           }
         ]
@@ -145,7 +183,7 @@
       "ansible-explorer": [
         {
           "id": "ansible-content-creator",
-          "name": "Ansible content creator"
+          "name": "Ansible Development Tools"
         },
         {
           "id": "lightspeed-explorer-webview",
@@ -290,8 +328,16 @@
         "title": "Ansible: Open Python Settings"
       },
       {
+        "command": "ansible.create-empty-playbook",
+        "title": "Ansible: Create an empty Ansible playbook"
+      },
+      {
+        "command": "ansible.create-playbook-options",
+        "title": "Ansible: Create an empty playbook or with Lightspeed (if enabled)"
+      },
+      {
         "command": "ansible.content-creator.menu",
-        "title": "Open Ansible Content Creator menu"
+        "title": "Open Ansible Development Tools menu"
       },
       {
         "command": "ansible.content-creator.install",
@@ -348,6 +394,11 @@
       {
         "command": "ansible.lightspeed.playbookGeneration",
         "title": "Ansible Lightspeed: Playbook generation"
+      },
+      {
+        "command": "ansible.lightspeed.roleGeneration",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
+        "title": "Ansible Lightspeed: Role generation"
       },
       {
         "command": "ansible.lightspeed.thumbsUpDown",
@@ -537,7 +588,7 @@
           "ansible.executionEnvironment.image": {
             "scope": "resource",
             "type": "string",
-            "default": "ghcr.io/ansible/creator-ee:latest",
+            "default": "ghcr.io/ansible/community-ansible-dev-tools:latest",
             "markdownDescription": "Specify the name of the execution environment image.",
             "order": 3
           },
@@ -564,26 +615,9 @@
           "ansible.executionEnvironment.volumeMounts": {
             "scope": "resource",
             "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "src": {
-                  "type": "string",
-                  "markdownDescription": "The name of the local volume or path to be mounted within execution environment.",
-                  "order": 6
-                },
-                "dest": {
-                  "type": "string",
-                  "markdownDescription": "The path where the file or directory are mounted in the container.",
-                  "order": 7
-                },
-                "options": {
-                  "type": "string",
-                  "markdownDescription": "The field is optional, and is a comma-separated list of options, such as `ro,Z.`",
-                  "order": 8
-                }
-              }
-            }
+            "default": [],
+            "markdownDescription": "Add a dictionary entry to the array with the volume mount source path (key: 'src'), destination (key: 'dest'), and options (key: 'options')",
+            "order": 6
           }
         }
       },
@@ -878,11 +912,12 @@
     "@shikijs/core": "^1.12.0",
     "@types/ini": "^4.1.1",
     "@vscode/webview-ui-toolkit": "^1.4.0",
-    "axios": "^1.7.2",
-    "express": "^4.19.2",
+    "axios": "^1.7.4",
+    "express": "^4.20.0",
     "ini": "^4.1.3",
     "marked": "^13.0.3",
     "minimatch": "^9.0.5",
+    "semver": "^7.6.3",
     "start-server-and-test": "^2.0.5",
     "uuid": "^10.0.0",
     "vscode-languageclient": "^9.0.1",
@@ -912,7 +947,7 @@
     "@typescript-eslint/parser": "^7.18.0",
     "@vscode/test-electron": "^2.4.0",
     "@vscode/vsce": "^2.31.1",
-    "axios": "^1.7.2",
+    "axios": "^1.7.4",
     "chai": "^4.5.0",
     "depcheck": "^1.4.7",
     "eslint": "^9.8.0",
@@ -944,7 +979,7 @@
     "typescript-eslint": "^7.18.0",
     "vscode-extension-tester": "^8.3.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
-    "webpack": "^5.93.0",
+    "webpack": "^5.94.0",
     "webpack-cli": "^5.1.4",
     "winston": "^3.13.1",
     "yargs": "^17.7.2",
@@ -1016,7 +1051,7 @@
     "als-compile": "yarn workspace @ansible/ansible-language-server compile"
   },
   "version": "0.0.0",
-  "packageManager": "yarn@4.3.1",
+  "packageManager": "yarn@4.5.0",
   "vsce": {
     "dependencies": false,
     "yarn": false

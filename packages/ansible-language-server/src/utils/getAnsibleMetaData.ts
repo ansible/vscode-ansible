@@ -146,17 +146,17 @@ async function getPythonInfo() {
     return pythonInfo;
   }
 
-  pythonInfo["version"] = pythonVersionResult?.stdout
-    ?.trim()
-    ?.split(" ")
-    ?.pop()
+  pythonInfo["version"] = pythonVersionResult.stdout
+    .trim()
+    .split(" ")
+    .pop()
     ?.trim();
 
   const pythonPathResult = await getResultsThroughCommandRunner(
     "python3",
     '-c "import sys; print(sys.executable)"',
   );
-  pythonInfo["location"] = pythonPathResult?.stdout?.trim();
+  pythonInfo["location"] = pythonPathResult?.stdout.trim();
 
   return pythonInfo;
 }
@@ -192,11 +192,11 @@ async function getAnsibleLintInfo() {
   }
 
   ansibleLintInfo["version"] =
-    ansibleLintVersion?.split("using")[0]?.trim()?.split(" ")?.pop()?.trim() ||
+    ansibleLintVersion.split("using")[0]?.trim()?.split(" ")?.pop()?.trim() ||
     undefined;
 
   ansibleLintInfo["location"] =
-    ansibleLintPathResult?.stdout?.trim() || undefined;
+    ansibleLintPathResult?.stdout.trim() || undefined;
 
   ansibleLintInfo["config file path"] =
     context.ansibleLint.ansibleLintConfigFilePath;

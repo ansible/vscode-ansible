@@ -35,6 +35,7 @@ WSLENV
 Webviews
 YOLO
 aarch
+afterall
 ajinkyau
 akira
 alefragnani
@@ -57,6 +58,7 @@ bitness
 bthornto
 cacheable
 cfgs
+charliermarsh
 checode
 chromedriver
 chronographer
@@ -103,6 +105,7 @@ esbenp
 extest
 extester
 fgierlinger
+fileicon
 fqcn
 fredericgiquel
 ganeshrn

@@ -121,11 +121,11 @@ const webviewConfig = {
 const contentCreatorMenuWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/welcomePageApp.ts",
+  entry: "./src/webview/apps/welcomePage/welcomePageApp.ts",
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/welcomePageApp.js",
+    filename: "./client/webview/apps/welcomePage/welcomePageApp.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
@@ -165,6 +165,19 @@ const playbookExplanationWebviewConfig = {
   output: {
     path: path.resolve(__dirname, "out"),
     filename: "./client/webview/apps/lightspeed/playbookExplanation/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
+const roleGenerationWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/roleGeneration/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/roleGeneration/main.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
@@ -213,6 +226,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     playbookExplorerWebviewConfig,
     playbookGenerationWebviewConfig,
     playbookExplanationWebviewConfig,
+    roleGenerationWebviewConfig,
     createAnsibleProjectWebviewConfig,
   ];
 };

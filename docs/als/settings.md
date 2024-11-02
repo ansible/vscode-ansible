@@ -37,7 +37,7 @@ Toggle usage of an execution environment
 ## [`ansible.executionEnvironment.image`](#executionEnvironment.image) { #executionEnvironment.image data-toc-label=executionEnvironment.image }
 Name of the execution environment to be used
 . Default value:
-``ghcr.io/ansible/creator-ee:latest``
+``ghcr.io/ansible/community-ansible-dev-tools:latest``
 
 ## [`ansible.executionEnvironment.pull.policy`](#executionEnvironment.pull.policy) { #executionEnvironment.pull.policy data-toc-label=executionEnvironment.pull.policy }
 Image pull policy to be used. Valid values are &#x27;always&#x27;, &#x27;missing&#x27;, &#x27;never&#x27; and &#x27;tag&#x27;. always will always pull the image when extension is activated or reloaded. &#x27;missing&#x27; will pull if not locally available. &#x27;never&#x27; will never pull the image and &#x27;tag&#x27; will always pull if the image tag is &#x27;latest&#x27;, otherwise pull if not locally available.
@@ -46,6 +46,11 @@ Image pull policy to be used. Valid values are &#x27;always&#x27;, &#x27;missing
 
 ## [`ansible.executionEnvironment.pull.arguments`](#executionEnvironment.pull.arguments) { #executionEnvironment.pull.arguments data-toc-label=executionEnvironment.pull.arguments }
 Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. &#x27;-–tls-verify&#x3D;false&#x27;
+. Default value:
+``""``
+
+## [`ansible.executionEnvironment.volumeMounts`](#executionEnvironment.volumeMounts) { #executionEnvironment.volumeMounts data-toc-label=executionEnvironment.volumeMounts }
+Add a dictionary entry to the array with the volume mount source path (key: &#x27;src&#x27;), destination (key: &#x27;dest&#x27;), and options (key: &#x27;options&#x27;)
 . Default value:
 ``""``
 
@@ -83,12 +88,4 @@ Path to the ansible-lint executable
 Optional command line arguments to be appended to ansible-lint invocation
 . Default value:
 ``""``
-
-## [`ansible.executionEnvironment.volumeMounts`](#executionEnvironment.volumeMounts) { #executionEnvironment.volumeMounts data-toc-label=executionEnvironment.volumeMounts }
-  - **src**: The name of the local volume or path to be mounted within execution environment.. Default value:
-`""`
-  - **dest**: The path where the file or directory are mounted in the container.. Default value:
-`""`
-  - **options**: The field is optional, and is a comma-separated list of options, such as ro,Z. Default value:
-`""`
 

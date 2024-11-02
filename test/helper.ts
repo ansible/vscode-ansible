@@ -9,6 +9,7 @@ import { integer } from "vscode-languageclient";
 import axios from "axios";
 import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
 import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
+import { rmSync } from "fs";
 
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
@@ -92,19 +93,26 @@ export async function updateSettings(
   return ansibleConfiguration.update(setting, value);
 }
 
+export function deleteAlsCache(): void {
+  const hostCacheBasePath = path.resolve(
+    `${process.env.HOME}/.cache/ansible-language-server/`,
+  );
+  rmSync(hostCacheBasePath, { recursive: true, force: true });
+}
+
 export function setFixtureAnsibleCollectionPathEnv(
   prePendPath: string | undefined = undefined,
 ): void {
   if (prePendPath) {
-    process.env.ANSIBLE_COLLECTIONS_PATHS = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
+    process.env.ANSIBLE_COLLECTIONS_PATH = `${prePendPath}:${ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH}`;
   } else {
-    process.env.ANSIBLE_COLLECTIONS_PATHS =
+    process.env.ANSIBLE_COLLECTIONS_PATH =
       ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH;
   }
 }
 
 export function unSetFixtureAnsibleCollectionPathEnv(): void {
-  process.env.ANSIBLE_COLLECTIONS_PATHS = undefined;
+  process.env.ANSIBLE_COLLECTIONS_PATH = undefined;
 }
 
 export async function enableExecutionEnvironmentSettings(): Promise<void> {
@@ -115,7 +123,7 @@ export async function enableExecutionEnvironmentSettings(): Promise<void> {
     {
       src: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
       dest: ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH,
-      options: undefined,
+      options: "ro", // read-only option for volume mounts
     },
   ];
   await updateSettings("executionEnvironment.volumeMounts", volumeMounts);
@@ -123,6 +131,7 @@ export async function enableExecutionEnvironmentSettings(): Promise<void> {
 
 export async function disableExecutionEnvironmentSettings(): Promise<void> {
   await updateSettings("executionEnvironment.enabled", false);
+  await updateSettings("executionEnvironment.volumeMounts", []);
 }
 
 export async function enableLightspeedSettings(): Promise<void> {
@@ -253,11 +262,11 @@ export async function testHover(
   position: vscode.Position,
   expectedHover: vscode.Hover[],
 ): Promise<void> {
-  const actualHover = (await vscode.commands.executeCommand(
+  const actualHover: vscode.Hover[] = await vscode.commands.executeCommand(
     "vscode.executeHoverProvider",
     docUri,
     position,
-  )) as vscode.Hover[];
+  );
 
   assert.strictEqual(actualHover.length, expectedHover.length);
 

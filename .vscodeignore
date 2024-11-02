@@ -9,6 +9,7 @@
 !LICENSE
 !docs/README.md
 !images/ansible.svg
+!images/ansible-fileicon.svg
 !images/logo.png
 !jinja-language-configuration.json
 !media/style.css
@@ -40,25 +41,31 @@
 !package.nls.json
 !syntaxes/**/*
 # walkthrough media files
-!media/walkthroughs/gettingStarted/ansible-env/environment-statusbar.png
-!media/walkthroughs/gettingStarted/ansible-env/no-ansible-env copy.png
-!media/walkthroughs/gettingStarted/ansible-env/no-ansible-env.png
-!media/walkthroughs/gettingStarted/ansible-env/no-ansible-lint-env copy.png
-!media/walkthroughs/gettingStarted/ansible-env/no-ansible-lint-env.png
-!media/walkthroughs/gettingStarted/ansible-env/ok-env copy.png
-!media/walkthroughs/gettingStarted/ansible-env/ok-env.png
-!media/walkthroughs/gettingStarted/ansible-features/ansible-lint-crop.gif
-!media/walkthroughs/gettingStarted/ansible-features/go-to-definition-crop.gif
-!media/walkthroughs/gettingStarted/ansible-features/hover-documentation-module-crop.png
-!media/walkthroughs/gettingStarted/ansible-features/smart-completions-crop.gif
-!media/walkthroughs/gettingStarted/ansible-features/syntax-highlighting-crop.png
-!media/walkthroughs/gettingStarted/ansibleEnvironment.md
-!media/walkthroughs/gettingStarted/languageFeatures.md
-!media/walkthroughs/gettingStarted/selectAnsibleLanguage.md
-!media/walkthroughs/gettingStarted/all-adt-tools.png
-!media/walkthroughs/gettingStarted/ansible-extension-settings.png
-!media/walkthroughs/gettingStarted/language-selector.png
-!media/walkthroughs/gettingStarted/language-statusbar.png
-!media/walkthroughs/gettingStarted/learn-more.png
-!media/walkthroughs/gettingStarted/open-folder.png
-!media/walkthroughs/gettingStarted/run-ansible-playbook.png
+!media/walkthroughs/createAnsibleEnv/adt-components.md
+!media/walkthroughs/createAnsibleEnv/adt-components.png
+!media/walkthroughs/createAnsibleEnv/language-selector.png
+!media/walkthroughs/createAnsibleEnv/language-statusbar.png
+!media/walkthroughs/createAnsibleEnv/open-folder.png
+!media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md
+!media/walkthroughs/discoverAdt/adt-components.md
+!media/walkthroughs/discoverAdt/adt-create.md
+!media/walkthroughs/discoverAdt/adt-deploy.md
+!media/walkthroughs/discoverAdt/adt-test.md
+!media/walkthroughs/discoverAdt/all-adt-components.png
+!media/walkthroughs/discoverAdt/create-ansible-creator.gif
+!media/walkthroughs/discoverAdt/create-ansible-navigator.png
+!media/walkthroughs/discoverAdt/create-automation-hub.png
+!media/walkthroughs/discoverAdt/create-lightspeed-completion.gif
+!media/walkthroughs/discoverAdt/create-lightspeed-playbook.gif
+!media/walkthroughs/discoverAdt/deploy-ansible-builder.png
+!media/walkthroughs/discoverAdt/deploy-ansible-sign.png
+!media/walkthroughs/discoverAdt/test-ansible-lint.gif
+!media/walkthroughs/discoverAdt/test-molecule.gif
+!media/walkthroughs/discoverAdt/test-pytest-ansible.png
+!media/walkthroughs/startAutomatingPlaybook/create-lightspeed-completion.gif
+!media/walkthroughs/startAutomatingPlaybook/create-lightspeed-playbook.gif
+!media/walkthroughs/startAutomatingPlaybook/create-playbook.png
+!media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md
+!media/walkthroughs/startAutomatingPlaybook/learning.png
+!media/walkthroughs/startAutomatingPlaybook/open-folder.png
+!media/walkthroughs/startAutomatingPlaybook/playbook-project.md

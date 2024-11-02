@@ -76,6 +76,7 @@ window.addEventListener("message", async (event) => {
     }
     case "outline": {
       setupPage(2);
+
       outline.update(message.outline.outline);
       savedPlaybook = message.outline.playbook;
       generationId = message.outline.generationId;
@@ -233,10 +234,10 @@ function getTextAreaInShadowDOM() {
 function adjustTextAreaHeight() {
   const textarea = getTextAreaInShadowDOM();
   if (textarea?.scrollHeight) {
-    const scrollHeight = textarea?.scrollHeight;
+    const scrollHeight = textarea.scrollHeight;
     if (scrollHeight < TEXTAREA_MAX_HEIGHT) {
-      if (textarea?.style.height) {
-        const height = parseInt(textarea?.style.height);
+      if (textarea.style.height) {
+        const height = parseInt(textarea.style.height);
         if (height >= scrollHeight) {
           return;
         }

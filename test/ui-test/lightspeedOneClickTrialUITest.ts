@@ -50,6 +50,8 @@ export function lightspeedOneClickTrialUITest(): void {
         "ansible.lightspeed.suggestions.enabled",
         true,
       );
+      // Close settings and other open editors (if any)
+      await new EditorView().closeAllEditors();
 
       // Set "UI Test" and "One Click" options for mock server
       await axios.post(
@@ -157,7 +159,7 @@ export function lightspeedOneClickTrialUITest(): void {
       await explorerView.switchBack();
     });
 
-    it("Invoke Playbook generation without experimental features enabled", async () => {
+    it("Invoke Playbook generation", async () => {
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
       await sleep(2000);
       playbookGeneration = await new WebView();
@@ -192,27 +194,13 @@ export function lightspeedOneClickTrialUITest(): void {
       await playbookGeneration.switchBack();
       await sleep(2000);
       await expectNotification(
-        "Your organization does not have a subscription. " +
-          "Please contact your administrator.",
-      );
-    });
-
-    it("Invoke Playbook generation with experimental features enabled", async () => {
-      await workbench.executeCommand(
-        "Ansible Lightspeed: Enable experimental features",
-      );
-      await playbookGeneration.switchToFrame(5000);
-      await submitButton.click();
-      await playbookGeneration.switchBack();
-      await sleep(2000);
-      await expectNotification(
         trialNotificationMessage,
         true, // click button
       );
       await new EditorView().closeAllEditors();
     });
 
-    it("Invoke Playbook explanation with experimental features enabled", async () => {
+    it("Invoke Playbook explanation", async () => {
       const folder = "lightspeed";
       const file = "playbook_4.yml";
       const filePath = getFixturePath(folder, file);
@@ -233,7 +221,7 @@ export function lightspeedOneClickTrialUITest(): void {
       await new EditorView().closeAllEditors();
     });
 
-    it("Invoke Completion with experimental features enabled", async () => {
+    it("Invoke Completion", async () => {
       const folder = "lightspeed";
       const file = "playbook_3.yml";
       const filePath = getFixturePath(folder, file);
@@ -267,7 +255,7 @@ export function lightspeedOneClickTrialUITest(): void {
         "Accounts",
       )) as ActionsControl;
       expect(actions).not.to.be.undefined;
-      await actions?.click();
+      await actions.click();
       const menus = await workbench.findElements(By.className("context-view"));
       expect(menus.length).greaterThan(0);
       const menu = new ContextMenu(workbench);

@@ -302,15 +302,13 @@ export class LightSpeedAuthenticationProvider
         Promise.race([
           receivedRedirectUrl,
           new Promise<OAuthAccount>((_, reject) => {
-            setTimeout(
-              () =>
-                reject(
-                  new Error(
-                    "Cancelling the Ansible Lightspeed login after 60s. Try again.",
-                  ),
+            setTimeout(() => {
+              reject(
+                new Error(
+                  "Cancelling the Ansible Lightspeed login after 60s. Try again.",
                 ),
-              LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
-            );
+              );
+            }, LIGHTSPEED_SERVICE_LOGIN_TIMEOUT);
           }),
           promiseFromEvent<any, any>(
             token.onCancellationRequested,
@@ -400,6 +398,11 @@ export class LightSpeedAuthenticationProvider
           "[ansible-lightspeed-oauth] error message: ",
           error.message,
         );
+        /* istanbul ignore next */
+        console.error(
+          "[ansible-lightspeed-oauth] error response data: ",
+          error.response?.data,
+        );
         throw new Error("An unexpected error occurred");
       } else {
         console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
@@ -466,7 +469,7 @@ export class LightSpeedAuthenticationProvider
       },
     );
 
-    return account ? (account as OAuthAccount) : undefined;
+    return account ? account : undefined;
   }
 
   /**

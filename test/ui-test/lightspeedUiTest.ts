@@ -194,7 +194,7 @@ export function lightspeedUIAssetsTest(): void {
     });
 
     it("Playbook generation webview works as expected (full path) - part 1", async function () {
-      // Open Ansible Content Creator by clicking the Getting started button on the side bar
+      // Open Ansible Development Tools by clicking the Getting started button on the side bar
       const view = (await new ActivityBar().getViewControl(
         "Ansible",
       )) as ViewControl;
@@ -212,7 +212,7 @@ export function lightspeedUIAssetsTest(): void {
       }
       await sleep(5000);
 
-      // Open Playbook Generation UI by clicking the create content button on Ansible Content Creator
+      // Open Playbook Generation UI by clicking the create content button on Ansible Development Tools
       const contentCreatorWebView = await new WebView();
       expect(
         contentCreatorWebView,
@@ -234,7 +234,7 @@ export function lightspeedUIAssetsTest(): void {
         await createContentButton.click();
       }
       await contentCreatorWebView.switchBack();
-      await new EditorView().closeEditor("Ansible content creator");
+      await new EditorView().closeEditor("Ansible Development Tools");
       await sleep(2000);
 
       // Start operations on Playbook Generation UI
@@ -693,6 +693,7 @@ export function lightspeedUIAssetsTest(): void {
         expect(group, "Group 1 of the editor view should be undefined").to.be
           .undefined;
 
+        await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");
       } else {
         this.skip();
@@ -737,6 +738,48 @@ export function lightspeedUIAssetsTest(): void {
             "Explaining a playbook with no tasks in the playbook is not supported.",
           ),
         ).to.be.true;
+
+        await webView.switchBack();
+        await workbench.executeCommand("View: Close All Editor Groups");
+      } else {
+        this.skip();
+      }
+    });
+
+    it("Playbook explanation webview works as expected, no explanation", async function () {
+      if (process.env.TEST_LIGHTSPEED_URL) {
+        const folder = "lightspeed";
+        const file = "playbook_explanation_none.yml";
+        const filePath = getFixturePath(folder, file);
+
+        // Open file in the editor
+        await VSBrowser.instance.openResources(filePath);
+
+        // Open playbook explanation webview.
+        await workbench.executeCommand(
+          "Explain the playbook with Ansible Lightspeed",
+        );
+        await sleep(2000);
+
+        // Locate the playbook explanation webview
+        const webView = (await new EditorView().openEditor(
+          "Explanation",
+          1,
+        )) as WebView;
+        expect(webView, "webView should not be undefined").not.to.be.undefined;
+        await webView.switchToFrame(5000);
+        expect(
+          webView,
+          "webView should not be undefined after switching to its frame",
+        ).not.to.be.undefined;
+
+        // Find the main div element of the webview and verify the expected text is found.
+        const mainDiv = await webView.findWebElement(
+          By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+        );
+        expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
+        const text = await mainDiv.getText();
+        expect(text.includes("No explanation provided")).to.be.true;
 
         await webView.switchBack();
         await workbench.executeCommand("View: Close All Editor Groups");

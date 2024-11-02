@@ -22,8 +22,8 @@ window.addEventListener("load", main);
 let destinationPathUrlTextField: TextField;
 let folderExplorerButton: Button;
 
-let scmOrgNameTextField: TextField;
-let scmProjectNameTextField: TextField;
+let namespaceNameTextField: TextField;
+let collectionNameTextField: TextField;
 
 let initCreateButton: Button;
 let initClearButton: Button;
@@ -59,9 +59,11 @@ function main() {
   ) as TextField;
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
 
-  scmOrgNameTextField = document.getElementById("scm-org-name") as TextField;
-  scmProjectNameTextField = document.getElementById(
-    "scm-project-name",
+  namespaceNameTextField = document.getElementById(
+    "namespace-name",
+  ) as TextField;
+  collectionNameTextField = document.getElementById(
+    "collection-name",
   ) as TextField;
 
   forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
@@ -95,22 +97,22 @@ function main() {
   ) as Button;
 
   // projectNameTextField?.addEventListener("input", toggleCreateButton);
-  destinationPathUrlTextField?.addEventListener("input", toggleCreateButton);
-  scmOrgNameTextField?.addEventListener("input", toggleCreateButton);
-  scmProjectNameTextField?.addEventListener("input", toggleCreateButton);
+  destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
+  namespaceNameTextField.addEventListener("input", toggleCreateButton);
+  collectionNameTextField.addEventListener("input", toggleCreateButton);
 
   folderExplorerButton.addEventListener("click", openExplorer);
   fileExplorerButton.addEventListener("click", openExplorer);
 
-  initCreateButton?.addEventListener("click", handleInitCreateClick);
+  initCreateButton.addEventListener("click", handleInitCreateClick);
   initCreateButton.disabled = true;
 
-  initClearButton?.addEventListener("click", handleInitClearClick);
+  initClearButton.addEventListener("click", handleInitClearClick);
 
-  initClearLogsButton?.addEventListener("click", handleInitClearLogsClick);
-  initOpenLogFileButton?.addEventListener("click", handleInitOpenLogFileClick);
-  initCopyLogsButton?.addEventListener("click", handleInitCopyLogsClick);
-  initOpenScaffoldedFolderButton?.addEventListener(
+  initClearLogsButton.addEventListener("click", handleInitClearLogsClick);
+  initOpenLogFileButton.addEventListener("click", handleInitOpenLogFileClick);
+  initCopyLogsButton.addEventListener("click", handleInitCopyLogsClick);
+  initOpenScaffoldedFolderButton.addEventListener(
     "click",
     handleInitOpenScaffoldedFolderClick,
   );
@@ -166,11 +168,11 @@ function toggleCreateButton() {
   if (!destinationPathUrlTextField.value.trim()) {
     initCollectionPathElement.innerHTML = `${
       destinationPathUrlTextField.placeholder
-    }/${scmOrgNameTextField.value.trim()}-${scmProjectNameTextField.value.trim()}`;
+    }/${namespaceNameTextField.value.trim()}-${collectionNameTextField.value.trim()}`;
 
     if (
-      !scmOrgNameTextField.value.trim() ||
-      !scmProjectNameTextField.value.trim()
+      !namespaceNameTextField.value.trim() ||
+      !collectionNameTextField.value.trim()
     ) {
       initCollectionPathElement.innerHTML =
         destinationPathUrlTextField.placeholder;
@@ -181,8 +183,8 @@ function toggleCreateButton() {
   }
 
   if (
-    scmOrgNameTextField.value.trim() &&
-    scmProjectNameTextField.value.trim()
+    namespaceNameTextField.value.trim() &&
+    collectionNameTextField.value.trim()
   ) {
     initCreateButton.disabled = false;
   } else {
@@ -193,8 +195,8 @@ function toggleCreateButton() {
 function handleInitClearClick() {
   // projectNameTextField.value = "";
   destinationPathUrlTextField.value = "";
-  scmOrgNameTextField.value = "";
-  scmProjectNameTextField.value = "";
+  namespaceNameTextField.value = "";
+  collectionNameTextField.value = "";
 
   initCollectionPathElement.innerHTML = destinationPathUrlTextField.placeholder;
 
@@ -232,8 +234,8 @@ function handleInitCreateClick() {
     payload: {
       // projectName: projectNameTextField.value.trim(),
       destinationPath: destinationPathUrlTextField.value.trim(),
-      scmOrgName: scmOrgNameTextField.value.trim(),
-      scmProjectName: scmProjectNameTextField.value.trim(),
+      namespaceName: namespaceNameTextField.value.trim(),
+      collectionName: collectionNameTextField.value.trim(),
       verbosity: verboseDropdown.currentValue.trim(),
       logToFile: logToFileCheckbox.checked,
       logFilePath: logFilePath.value.trim(),

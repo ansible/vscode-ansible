@@ -93,7 +93,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
             severity: 0,
             message:
               "Syntax Error while loading YAML.\n" +
-              "  mapping values are not allowed in this context\n",
+              "  mapping values are not allowed in this context",
             range: new vscode.Range(
               new vscode.Position(6, 21),
               new vscode.Position(6, integer.MAX_VALUE),

@@ -1,19 +1,18 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { LanguageClient } from "vscode-languageclient/node";
 import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
-import { SettingsManager } from "../../settings";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
-import { LightspeedUser } from "./lightspeedUser";
-import { GenerationResponse } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
+import { IError } from "./utils/errors";
+import { GenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
   PlaybookGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
+import { LightSpeedAPI } from "./api";
 
 let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
@@ -70,52 +69,33 @@ async function sendActionEvent(
 }
 
 async function generatePlaybook(
+  apiInstance: LightSpeedAPI,
   text: string,
   outline: string | undefined,
   generationId: string,
-  client: LanguageClient,
-  lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
   panel: vscode.WebviewPanel,
-): Promise<GenerationResponse> {
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-
+): Promise<GenerationResponseParams | IError> {
   try {
     panel.webview.postMessage({ command: "startSpinner" });
     const createOutline = outline === undefined;
-    const playbook: GenerationResponse = await client.sendRequest(
-      "playbook/generation",
-      {
-        accessToken,
-        URL: settingsManager.settings.lightSpeedService.URL,
+
+    const response: GenerationResponseParams | IError =
+      await apiInstance.generationRequest({
         text,
         outline,
         createOutline,
         generationId,
         wizardId,
-      },
-    );
-    return playbook;
+      });
+    return response;
   } finally {
     panel.webview.postMessage({ command: "stopSpinner" });
   }
 }
 
-export async function showPlaybookGenerationPage(
-  extensionUri: vscode.Uri,
-  client: LanguageClient,
-  lightspeedAuthenticatedUser: LightspeedUser,
-  settingsManager: SettingsManager,
-) {
+export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
-    return;
-  }
-
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-  if (!accessToken) {
     return;
   }
 
@@ -157,21 +137,17 @@ export async function showPlaybookGenerationPage(
         try {
           if (!message.outline) {
             generatePlaybook(
+              lightSpeedManager.apiInstance,
               message.text,
               undefined,
               message.generationId,
-              client,
-              lightspeedAuthenticatedUser,
-              settingsManager,
               panel,
-            ).then(async (response: GenerationResponse) => {
+            ).then(async (response: GenerationResponseParams | IError) => {
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
-                response = oneClickTrialProvider.mapError(response);
                 if (!(await oneClickTrialProvider.showPopup(response))) {
-                  vscode.window.showErrorMessage(
-                    response.message ?? UNKNOWN_ERROR,
-                  );
+                  const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+                  vscode.window.showErrorMessage(errorMessage);
                 }
               } else {
                 panel.webview.postMessage({
@@ -204,16 +180,15 @@ export async function showPlaybookGenerationPage(
         if (!playbook) {
           try {
             const response = await generatePlaybook(
+              lightSpeedManager.apiInstance,
               message.text,
               message.outline,
               message.generationId,
-              client,
-              lightspeedAuthenticatedUser,
-              settingsManager,
               panel,
             );
             if (isError(response)) {
-              vscode.window.showErrorMessage(response.message ?? UNKNOWN_ERROR);
+              const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+              vscode.window.showErrorMessage(errorMessage);
               break;
             }
             playbook = response.playbook;
@@ -268,7 +243,7 @@ export async function showPlaybookGenerationPage(
         );
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;
-        panel?.dispose();
+        panel.dispose();
         break;
       }
     }
@@ -376,18 +351,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </div>
             <div class="exampleTextContainer">
               <p>
-                Create a RHEL 9.2 Azure virtual machine named RHEL-VM in resource group named
-                RH attached to the VNET my-vnet and subnet my-subnet with a public ip address and
-                a security group to allow traffic over port 22.
-              </p>
-            </div>
-            <div class="exampleTextContainer">
-              <p>
-                Create a t2.micro EC2 instance using image id ami-01cc36e92a4e9a428 in region
-                east-us-1 in the tenancy B918A05F-80C1-46C7-A85F-CB4B12472970 using
-                subnet-0a908847e7212345 with a public ip and with key name test-servers and
-                with security group ssh-servers and a tag "env:develop", then output the
-                public ip and the private ip address through a debug message.
+                Create a security group named web-servers in AWS, allowing inbound SSH access on port 22 and HTTP access on port 80 from any IP address
               </p>
             </div>
         </div>

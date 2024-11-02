@@ -1,25 +1,8 @@
 import * as vscode from "vscode";
-import { IError } from "@ansible/ansible-language-server/src/interfaces/lightspeedApi";
-import { lightSpeedManager } from "../../../extension";
+import { IError } from "./errors";
 import { LightSpeedCommands } from "../../../definitions/lightspeed";
 
 export class OneClickTrialProvider {
-  public mapError(mappedError: IError): IError {
-    // Don't show "Apply for Trial" message if experimental features are not enabled
-    if (
-      mappedError?.code === "permission_denied__can_apply_for_trial" &&
-      !lightSpeedManager.lightspeedExplorerProvider
-        .lightspeedExperimentalEnabled
-    ) {
-      return {
-        code: "permission_denied__user_has_no_subscription",
-        message:
-          "Your organization does not have a subscription. Please contact your administrator.",
-      };
-    }
-    return mappedError;
-  }
-
   public async showPopup(error?: IError): Promise<boolean> {
     if (error?.code === "permission_denied__can_apply_for_trial") {
       const buttonLabel = "Start a trial";
