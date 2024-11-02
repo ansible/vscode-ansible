@@ -68,25 +68,11 @@ export class SettingsManager {
             "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. '-–tls-verify=false'",
         },
       },
-      volumeMounts: [
-        {
-          src: {
-            default: "",
-            description:
-              "The name of the local volume or path to be mounted within execution environment.",
-          },
-          dest: {
-            default: "",
-            description:
-              "The path where the file or directory are mounted in the container.",
-          },
-          options: {
-            default: "",
-            description:
-              "The field is optional, and is a comma-separated list of options, such as ro,Z",
-          },
-        },
-      ],
+      volumeMounts: {
+        default: [],
+        description:
+          "Add a dictionary entry to the array with the volume mount source path (key: 'src'), destination (key: 'dest'), and options (key: 'options')",
+      },
       containerOptions: {
         default: "",
         description:
