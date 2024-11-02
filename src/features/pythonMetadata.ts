@@ -98,7 +98,7 @@ export class PythonInterpreterManager {
           `#### Change environment\nCurrent python path: ${interpreterPath}`,
           true,
         );
-        this.pythonInterpreterStatusBarItem.backgroundColor = "";
+        this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor("statusBar.background");;
       } else {
         this.pythonInterpreterStatusBarItem.text = "Invalid python environment";
         this.pythonInterpreterStatusBarItem.backgroundColor = new ThemeColor(

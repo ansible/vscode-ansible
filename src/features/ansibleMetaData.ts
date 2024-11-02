@@ -101,7 +101,7 @@ export class MetadataManager {
           this.metadataStatusBarItem.text = this.ansibleMetaData.eeEnabled
             ? `$(bracket-dot) [EE] ${this.cachedAnsibleVersion}`
             : `$(bracket-dot) ${this.cachedAnsibleVersion}`;
-          this.metadataStatusBarItem.backgroundColor = "";
+          this.metadataStatusBarItem.backgroundColor = new ThemeColor("statusBar.background");
           this.metadataStatusBarItem.tooltip = tooltip;
 
           if (!this.ansibleMetaData.ansibleLintPresent) {
