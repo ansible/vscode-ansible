@@ -1,5 +1,3 @@
-require("assert");
-
 import { ContentMatchesWebview } from "../../../src/features/lightspeed/contentMatchesWebview";
 import { SettingsManager } from "../../../src/settings";
 import { LanguageClient } from "vscode-languageclient/node";

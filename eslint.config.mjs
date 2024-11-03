@@ -15,7 +15,14 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 
 export default tseslint.config(
   {
-    ignores: ["**/out/", ".vscode-test/*", ".yarn/*", "media/*", "site/*", "commitlint.config.js"],
+    ignores: [
+      "**/out/",
+      ".vscode-test/*",
+      ".yarn/*",
+      "media/*",
+      "site/*",
+      "commitlint.config.js",
+    ],
   },
   {
     extends: [
@@ -87,6 +94,13 @@ export default tseslint.config(
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",
       // "@typescript-eslint/no-unsafe-return": "error",
+    },
+  },
+  {
+    files: ["**/test/**/*.ts"],
+    rules: {
+      // https://stackoverflow.com/a/46412499/99834
+      "@typescript-eslint/no-unused-expressions": "off",
     },
   },
 );

@@ -1,5 +1,3 @@
-require("assert");
-
 import { updateRolesContext } from "../../../../src/features/lightspeed/utils/updateRolesContext";
 import assert from "assert";
 import sinon from "sinon";

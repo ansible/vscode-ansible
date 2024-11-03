@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import path = require("path");
+import * as path from "path";
 import {
   ansibleMetaDataEntryType,
   ansibleMetaDataType,

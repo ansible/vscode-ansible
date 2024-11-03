@@ -1,4 +1,4 @@
-import { getHighlighterCore, HighlighterCore } from "@shikijs/core";
+import { createHighlighterCore, HighlighterCore } from "@shikijs/core";
 import darkPlus from "shiki/themes/dark-plus.mjs";
 import lightPlus from "shiki/themes/light-plus.mjs";
 import { default as yamlLang } from "shiki/langs/yaml.mjs";
@@ -8,7 +8,7 @@ let highlighter: HighlighterCore;
 
 export async function codeToHtml(code: string, theme: string, lang: string) {
   if (!highlighter) {
-    highlighter = await getHighlighterCore({
+    highlighter = await createHighlighterCore({
       themes: [darkPlus, lightPlus],
       langs: [yamlLang],
       loadWasm: getWasm,

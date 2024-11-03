@@ -204,8 +204,7 @@ function logWrapper(
   };
 }
 
-interface CustomConsole extends Console {}
-const customConsole: CustomConsole = Object.create(console);
+const customConsole = Object.create(console);
 
 customConsole.info = logWrapper(console.info as LogFunction, chalk.blue);
 customConsole.error = logWrapper(console.error as LogFunction, chalk.red);

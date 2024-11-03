@@ -44,7 +44,7 @@ function contentMatch(generationId: string, playbook: string) {
 
 async function sendActionEvent(
   action: PlaybookGenerationActionType,
-  toPage?: number | undefined,
+  toPage?: number,
 ) {
   if (currentPanel && wizardId) {
     const fromPage = currentPage;
@@ -201,15 +201,9 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let syntaxHighlighter: any;
-        try {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
-        } catch (error) {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
-        }
+        const syntaxHighlighter = await import(
+          /* webpackIgnore: true */ "../../features/utils/syntaxHighlighter"
+        );
         const html = await syntaxHighlighter.codeToHtml(
           playbook,
           darkMode ? "dark-plus" : "light-plus",
