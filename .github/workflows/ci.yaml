@@ -414,12 +414,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - run: corepack enable
+      - name: node post install
+        run: |
+          corepack enable
+          npm config set fund false
 
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
+          node-version-file: .tool-versions
 
       - name: Download the artifact
         uses: actions/download-artifact@v4
@@ -458,7 +463,9 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v4
         with:
-          node-version: 18
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
+          node-version-file: .tool-versions
           registry-url: "https://registry.npmjs.org"
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
