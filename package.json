@@ -989,10 +989,10 @@
   "engineStrict": true,
   "engines": {
     "//": "node version affects only development, it does not affect VS Code runtime",
-    "node": ">=16.0",
+    "node": ">=20.0",
     "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
     "vscode": "^1.85.0",
-    "yarn": ">=3.2.1"
+    "yarn": ">=4.5.1"
   },
   "extensionDependencies": [
     "ms-python.python",

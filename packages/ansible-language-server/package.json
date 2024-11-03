@@ -24,7 +24,7 @@
   },
   "icon": "icon.png",
   "engines": {
-    "node": ">=14.0",
+    "node": ">=20.0",
     "npm": ">=7.11.2"
   },
   "bin": "bin/ansible-language-server",
