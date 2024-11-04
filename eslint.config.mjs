@@ -6,6 +6,7 @@ import tsParser from "@typescript-eslint/parser";
 import ts from "@typescript-eslint/eslint-plugin";
 import tsdocPlugin from "eslint-plugin-tsdoc";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
+import pluginChaiFriendly from "eslint-plugin-chai-friendly";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -15,7 +16,14 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 
 export default tseslint.config(
   {
-    ignores: ["**/out/", ".vscode-test/*", ".yarn/*", "media/*", "site/*", "commitlint.config.js"],
+    ignores: [
+      "**/out/",
+      ".vscode-test/*",
+      ".yarn/*",
+      "media/*",
+      "site/*",
+      "commitlint.config.js",
+    ],
   },
   {
     extends: [
@@ -63,6 +71,7 @@ export default tseslint.config(
       "@typescript-eslint/no-confusing-void-expression": "off",
       "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/require-await": "off",
       "@typescript-eslint/restrict-plus-operands": "off",
       "@typescript-eslint/no-dynamic-delete": "off",
@@ -87,6 +96,16 @@ export default tseslint.config(
       // "@typescript-eslint/restrict-template-expressions": "error",
       // "@typescript-eslint/no-unsafe-argument": "error",
       // "@typescript-eslint/no-unsafe-return": "error",
+    },
+  },
+  {
+    plugins: { "chai-friendly": pluginChaiFriendly },
+    files: ["**/test/**/*.{js,ts,tsx}"],
+    rules: {
+      "no-unused-expressions": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "chai-friendly/no-unused-expressions": "error",
     },
   },
 );

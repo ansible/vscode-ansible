@@ -2211,6 +2211,7 @@ __metadata:
     eslint-config-prettier: "npm:^9.1.0"
     eslint-formatter-gha: "npm:^1.5.1"
     eslint-formatter-unix: "npm:^8.40.0"
+    eslint-plugin-chai-friendly: "npm:^1.0.1"
     eslint-plugin-prettier: "npm:^5.2.1"
     eslint-plugin-tsdoc: "npm:^0.3.0"
     express: "npm:^4.21.1"
@@ -3848,6 +3849,15 @@ __metadata:
   version: 8.40.0
   resolution: "eslint-formatter-unix@npm:8.40.0"
   checksum: 10/5228e59fa1facf472cf1f1781e98dc9dcec8b8624bfe65da24fc55c63bb1adef6dea616197c0d2711dd8eed875e79d7ca0a9fc0063418fce9f1d029f1fb7a2b1
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-chai-friendly@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "eslint-plugin-chai-friendly@npm:1.0.1"
+  peerDependencies:
+    eslint: ">=3.0.0"
+  checksum: 10/459c0162b606d290bc6b10caa7bd7b67a3ce3d37d98ee1b9b91646842553d7282887858efd20cb6a6b8cbaa42746e83258244a32bce0e1d038ebe5559e747730
   languageName: node
   linkType: hard
 

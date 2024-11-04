@@ -253,7 +253,7 @@ export class LazyModuleDocumentation implements IModuleMetadata {
           if (m.groups.name === DOCUMENTATION) {
             // determine documentation start/end lines for definition provider
             let startLine =
-              contents.substr(0, m.index).match(/\n/g)?.length || 0;
+              contents.substring(0, m.index).match(/\n/g)?.length || 0;
             startLine += m.groups.pre.match(/\n/g)?.length || 0;
             const endLine =
               startLine + (m.groups.doc.match(/\n/g)?.length || 0);

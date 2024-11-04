@@ -71,14 +71,13 @@ repos:
         language: system
         verbose: true # do not remove, as this allows warnings to be displayed on GHA
         args:
-          # default format is not vscode friendly
           - --no-warn-ignored
           - --color
           - --format=gha
-          - --format=unix
           - --fix
           # - --max-warnings
           # - "0"
+        pass_filenames: false
         files: \.m?[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
         types: [file]
 

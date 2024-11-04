@@ -613,7 +613,7 @@ export function isCursorInsideJinjaBrackets(
 
   try {
     nodeObject = node.toJSON();
-  } catch (error) {
+  } catch {
     // return early if invalid yaml syntax
     return false;
   }

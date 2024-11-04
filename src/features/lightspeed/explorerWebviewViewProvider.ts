@@ -88,7 +88,7 @@ export class LightspeedExplorerWebviewViewProvider
     if (document !== undefined && document.languageId === "ansible") {
       try {
         return isPlaybook(document.getText());
-      } catch (error) {
+      } catch {
         return false;
       }
     }
