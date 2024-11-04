@@ -12,6 +12,7 @@ config.truncateThreshold = 0;
 export function walkthroughUiTest(): void {
   let workbench: Workbench;
   let editorView: EditorView;
+  let settingsEditor: SettingsEditor;
 
   before(async () => {
     workbench = new Workbench();
@@ -23,128 +24,68 @@ export function walkthroughUiTest(): void {
       await editorView.closeAllEditors();
     }
   });
-
-  describe("Check for the walkthrough - Create an Ansible environment", async () => {
-    it("Open the walkthrough and check the elements", async function () {
-      const commandInput = await workbench.openCommandPrompt();
-      await workbench.executeCommand("Welcome: Open Walkthrough");
-      await commandInput.setText("Create an Ansible environment");
-      await commandInput.confirm();
-
-      await sleep(1000);
-
-      // Select the editor window
-      const welcomeTab = await editorView.getTabByTitle("Welcome");
-      expect(welcomeTab).is.not.undefined;
-
-      // Locate walkthrough title text
-      const titleText = await welcomeTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'getting-started-category') ]"),
-        )
-        .getText();
-      expect(
-        titleText.includes("Create an Ansible environment"),
-        "Create an Ansible environment title not found",
-      ).to.be.true;
-
-      // Locate one of the steps
-      const stepText = await welcomeTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'step-list-container') ]"),
-        )
-        .getText();
-
-      expect(stepText).to.contain.oneOf([
-        "Create an Ansible playbook",
-        "tag in the status bar",
-        "Install the Ansible environment package",
-      ]);
-    });
-  });
-
-  describe("Check for the walkthrough - Discover Ansible Development Tools", async () => {
-    it("Open the walkthrough and check the elements", async function () {
-      const commandInput = await workbench.openCommandPrompt();
-      await workbench.executeCommand("Welcome: Open Walkthrough");
-      await commandInput.setText("Discover Ansible Development Tools");
-      await commandInput.confirm();
-
-      await sleep(1000);
-
-      // Select the editor window
-      const welcomeTab = await editorView.getTabByTitle("Welcome");
-      expect(welcomeTab).is.not.undefined;
-
-      // Locate walkthrough title text
-      const titleText = await welcomeTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'getting-started-category') ]"),
-        )
-        .getText();
-      expect(
-        titleText.includes("Discover Ansible Development Tools"),
-        "Discover Ansible Development Tools title not found",
-      ).to.be.true;
-
-      // Locate one of the steps
-      const stepText = await welcomeTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'step-list-container') ]"),
-        )
-        .getText();
-
-      expect(stepText).to.contain.oneOf([
-        "Create",
-        "Test",
-        "Deploy",
-        "Where do I start",
-      ]);
-    });
-  });
-  describe("Check for the walkthrough - Start automating with your first Ansible playbook", async () => {
-    let settingsEditor: SettingsEditor;
-
-    it("Check walkthrough elements", async function () {
-      const commandInput = await workbench.openCommandPrompt();
-      await workbench.executeCommand("Welcome: Open Walkthrough");
-      await commandInput.setText(
+  describe("Check walkthroughs, elements and associated commands", async () => {
+    const walkthroughs = [
+      [
+        "Create an Ansible environment",
+        [
+          "Create an Ansible playbook",
+          "tag in the status bar",
+          "Install the Ansible environment package",
+        ],
+      ],
+      [
+        "Discover Ansible Development Tools",
+        ["Create", "Test", "Deploy", "Where do I start"],
+      ],
+      [
         "Start automating with your first Ansible playbook",
-      );
-      await commandInput.confirm();
+        [
+          "Enable Ansible Lightspeed",
+          "Create an Ansible playbook project",
+          "Create an Ansible playbook",
+          "Save your playbook to a playbook project",
+          "Learn more about playbooks",
+        ],
+      ],
+    ];
 
-      await sleep(1500);
+    walkthroughs.forEach(([walkthroughName, steps]) => {
+      it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
+        const commandInput = await workbench.openCommandPrompt();
+        await workbench.executeCommand("Welcome: Open Walkthrough");
+        await commandInput.setText(`${walkthroughName}`);
+        await commandInput.confirm();
 
-      // Select the editor window
-      const mainTab = await editorView.getTabByTitle("Welcome");
-      expect(mainTab).is.not.undefined;
+        await sleep(1000);
 
-      // Locate walkthrough title text
-      const headerText = await mainTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'getting-started-category') ]"),
-        )
-        .getText();
-      expect(
-        headerText.includes("Start automating with your"),
-        "Start automating with your first Ansible playbook title not found",
-      ).to.be.true;
+        // Select the editor window
+        const welcomeTab = await editorView.getTabByTitle("Welcome");
+        expect(welcomeTab).is.not.undefined;
 
-      // Locate one of the steps
-      const stepTitles = await mainTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'step-list-container') ]"),
-        )
-        .getText();
+        // Locate walkthrough title text
+        const titleText = await welcomeTab
+          .findElement(
+            By.xpath("//div[contains(@class, 'getting-started-category') ]"),
+          )
+          .getText();
+        expect(
+          titleText.includes(`${walkthroughName}`),
+          `${walkthroughName} title not found`,
+        ).to.be.true;
 
-      expect(stepTitles).to.contain.oneOf([
-        "Enable Ansible Lightspeed",
-        "Create an Ansible playbook project",
-        "Create an Ansible playbook",
-        "Save your playbook to a playbook project",
-        "Learn more about playbooks",
-      ]);
+        // Locate one of the steps
+        const fullStepText = await welcomeTab
+          .findElement(
+            By.xpath("//div[contains(@class, 'step-list-container') ]"),
+          )
+          .getText();
+
+        const stepText = fullStepText.split("\n")[0];
+        expect(steps, "No walkthrough step").to.include(stepText);
+      });
     });
+
     it("Check empty playbook command option", async function () {
       settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);

@@ -61,6 +61,7 @@ import { CreateAnsibleCollection } from "./features/contentCreator/createAnsible
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
+import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
 import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
@@ -540,15 +541,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
-  // Command to render a webview-based note view
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
       async () => {
-        await showPlaybookGenerationPage(
-          context.extensionUri,
-          lightSpeedManager.lightspeedAuthenticatedUser,
-        );
+        await showPlaybookGenerationPage(context.extensionUri);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_ROLE_GENERATION,
+      async () => {
+        await showRoleGenerationPage(context.extensionUri);
       },
     ),
   );

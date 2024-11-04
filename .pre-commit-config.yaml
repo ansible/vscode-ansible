@@ -19,7 +19,7 @@ exclude: >
     .config/requirements.in|
     .*.svg
   )$
-minimum_pre_commit_version: 2.9.0 # types_or
+minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v8.15.2
@@ -37,12 +37,14 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
+        # https://github.com/shellcheck-py/shellcheck-py/issues/132
+        language_version: python3.12
         args:
           - --color=always
           - -e
           - SC1091
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.0
+    rev: v0.7.2
     hooks:
       - id: ruff
         args:

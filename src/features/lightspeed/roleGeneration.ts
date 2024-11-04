@@ -68,7 +68,7 @@ async function sendActionEvent(
   }
 }
 
-async function generatePlaybook(
+async function generateRole(
   apiInstance: LightSpeedAPI,
   text: string,
   outline: string | undefined,
@@ -93,13 +93,15 @@ async function generatePlaybook(
   }
 }
 
-export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
+export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
+    vscode.window.showErrorMessage("Lightspeed is not enabled.");
     return;
   }
 
   if (currentPanel) {
+    console.log("Current panel");
     currentPanel.reveal();
     return;
   }
@@ -136,7 +138,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
       case "outline": {
         try {
           if (!message.outline) {
-            generatePlaybook(
+            generateRole(
               lightSpeedManager.apiInstance,
               message.text,
               undefined,
@@ -179,7 +181,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
         const darkMode = message.darkMode;
         if (!playbook) {
           try {
-            const response = await generatePlaybook(
+            const response = await generateRole(
               lightSpeedManager.apiInstance,
               message.text,
               message.outline,
@@ -263,12 +265,12 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
     "webview",
     "apps",
     "lightspeed",
-    "playbookGeneration",
+    "roleGeneration",
     "main.js",
   ]);
   const styleUri = getUri(webview, extensionUri, [
     "media",
-    "playbookGeneration",
+    "roleGeneration",
     "style.css",
   ]);
   const codiconsUri = getUri(webview, extensionUri, [
@@ -294,27 +296,47 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
 
 <body>
     <div class="playbookGeneration">
-        <h2 id="main-header">Create a playbook with Ansible Lightspeed</h2>
+        <h2 id="main-header">Create a role with Ansible Lightspeed</h2>
         <div class="pageNumber" id="page-number">1 of 3</div>
+
+        <div id="roleInfo">
+          <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Learn more about roles🔗</a>
+        </div>
+        <div>
+          <div class="dropdown-container" id="collection_selector">
+            <label for="selectedCollectionName">Select the collection to create role in:</label>
+            <vscode-dropdown id="selectedCollectionName" position="below">
+              <vscode-option value="my_corp.prepare_instance">my_corp.prepare_instance</vscode-option>
+              <vscode-option value="my_corp.deploy_db">my_corp.deploy_db</vscode-option>
+            </vscode-dropdown>
+          <p>
+          Ansible recommends creating roles within  collection. Description to why...
+          </p>
+          </div>
+        </div>
         <div class="promptContainer">
-          <span>
+          <p>
             "<span id="prompt"></span>"&nbsp;
-            <a class="backAnchor" id="back-anchor">Edit</a>
-          </span>
+            <a class="backAnchor" id="backAnchorPrompt">Edit</a>
+          </p>
+          <p>
+            Collection name: "<span id="collectionName"></span>"&nbsp;
+            <a class="backAnchor" id="backAnchorCollectionName">Edit</a>
+          </p>
         </div>
         <div class="firstMessage">
-          <h4>What do you want the playbook to accomplish?</h3>
+          <h4>What do you want the role to accomplish?</h4>
         </div>
         <div class="secondMessage">
-          <h4>Review the suggested steps for your playbook and modify as needed.</h3>
+          <h4>Review the suggested steps for your role and modify as needed.</h3>
         </div>
         <div class="thirdMessage">
-          <h4>The following playbook was generated for you:</h3>
+          <h4>The following role was generated for you:</h3>
         </div>
         <div class="mainContainer">
           <div class="editArea">
             <vscode-text-area rows=5 resize="vertical"
-                placeholder="I want to write a playbook that will..."
+                placeholder="I want to write a role that will..."
                 id="playbook-text-area">
             </vscode-text-area>
             <div class="outlineContainer">
@@ -326,8 +348,15 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
               <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>
             </div>
           </div>
-          <div class="formattedPlaybook">
-            <span id="formatted-code"></span>
+          <div id=formattedOutput>
+            <p>tasks/main.yml:</p>
+            <div class="formattedPlaybook" style="block">
+              <span id="formattedTasksCode"></span>
+            </div>
+            <p>defaults/main.yml:</p>
+            <div class="formattedPlaybook" style="block">
+              <span id="formattedDefaultsCode"></span>
+            </div>
           </div>
           <div class="bigIconButtonContainer">
             <vscode-button class="biggerButton" id="submit-button" disabled>
@@ -346,12 +375,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             <h4>Examples</h4>
             <div class="exampleTextContainer">
               <p>
-                Create IIS websites on port 8080 and 8081 and open firewall
-              </p>
-            </div>
-            <div class="exampleTextContainer">
-              <p>
-                Create a security group named web-servers in AWS, allowing inbound SSH access on port 22 and HTTP access on port 80 from any IP address
+                Install and configure Nginx
               </p>
             </div>
         </div>
@@ -361,18 +385,18 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </vscode-button>
         </div>
         <div class="generatePlaybookContainer">
-          <vscode-button class="biggerButton" id="generate-button">
-              Generate playbook
+          <vscode-button class="biggerButton" id="generateButton">
+              Generate role
           </vscode-button>
-          <vscode-button class="biggerButton" id="back-button" appearance="secondary">
+          <vscode-button class="biggerButton" id="backButton" appearance="secondary">
               Back
           </vscode-button>
         </div>
         <div class="openEditorContainer">
-          <vscode-button class="biggerButton" id="open-editor-button">
+          <vscode-button class="biggerButton" id="openEditorButton">
               Open editor
           </vscode-button>
-          <vscode-button class="biggerButton" id="back-to-page2-button" appearance="secondary">
+          <vscode-button class="biggerButton" id="backToPage2Button" appearance="secondary">
               Back
           </vscode-button>
         </div>

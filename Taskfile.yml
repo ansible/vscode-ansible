@@ -98,6 +98,8 @@ tasks:
       - yarn dlx depcheck
       - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
+      - task: lint
+      - task: build
     interactive: true
   docs:
     dir: "{{ .TASKFILE_DIR }}"
