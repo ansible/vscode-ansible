@@ -54,7 +54,7 @@
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.11",
     "vscode-uri": "^3.0.8",
-    "yaml": "^2.5.0"
+    "yaml": "^2.6.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.20",

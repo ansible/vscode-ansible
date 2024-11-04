@@ -922,7 +922,7 @@
     "uuid": "^11.0.2",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.0.8",
-    "yaml": "^2.5.0"
+    "yaml": "^2.6.0"
   },
   "description": "Ansible language support",
   "devDependencies": {
@@ -981,7 +981,7 @@
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.96.1",
     "webpack-cli": "^5.1.4",
-    "winston": "^3.13.1",
+    "winston": "^3.16.0",
     "yargs": "^17.7.2",
     "yarn-audit-fix": "^10.1.0"
   },
