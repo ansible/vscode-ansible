@@ -110,7 +110,7 @@ export class ImagePuller {
         encoding: "utf-8",
       });
       return true;
-    } catch (error) {
+    } catch {
       this.connection.console.log(
         `'${this._containerImage}' image inspection failed, image assumed to be corrupted or missing`,
       );
