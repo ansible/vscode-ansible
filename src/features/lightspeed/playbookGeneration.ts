@@ -4,7 +4,6 @@ import { Webview, Uri, WebviewPanel } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
-import { LightspeedUser } from "./lightspeedUser";
 import { IError } from "./utils/errors";
 import { GenerationResponseParams } from "../../interfaces/lightspeed";
 import {
@@ -94,18 +93,9 @@ async function generatePlaybook(
   }
 }
 
-export async function showPlaybookGenerationPage(
-  extensionUri: vscode.Uri,
-  lightspeedAuthenticatedUser: LightspeedUser,
-) {
+export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
-    return;
-  }
-
-  const accessToken =
-    await lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-  if (!accessToken) {
     return;
   }
 
@@ -361,11 +351,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </div>
             <div class="exampleTextContainer">
               <p>
-                Create a t2.micro EC2 instance using image id ami-01cc36e92a4e9a428 in region
-                east-us-1 in the tenancy B918A05F-80C1-46C7-A85F-CB4B12472970 using
-                subnet-0a908847e7212345 with a public ip and with key name test-servers and
-                with security group ssh-servers and a tag "env:develop", then output the
-                public ip and the private ip address through a debug message.
+                Create a security group named web-servers in AWS, allowing inbound SSH access on port 22 and HTTP access on port 80 from any IP address
               </p>
             </div>
         </div>

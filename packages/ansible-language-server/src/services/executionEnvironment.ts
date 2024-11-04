@@ -215,13 +215,9 @@ export class ExecutionEnvironment {
       ...["-v", `${workspaceFolderPath}:${workspaceFolderPath}`],
     );
 
-    // TODO: add condition to check file path exists or not
     for (const mountPath of mountPaths || []) {
-      // push to array only if mount path is valid
-      if (mountPath === "" || !fs.existsSync(mountPath)) {
-        this.connection.console.error(
-          `Volume mount source path '${mountPath}' does not exist. Ignoring this volume mount entry.`,
-        );
+      // push to array only if mount path isn't an empty string, then let podman produce errors as needed
+      if (mountPath === "") {
         continue;
       }
 
@@ -399,18 +395,6 @@ export class ExecutionEnvironment {
       const fsSrcPath = volumeMounts.src;
       const fsDestPath = volumeMounts.dest;
       const options = volumeMounts.options;
-      if (fsSrcPath === "" || !fs.existsSync(fsSrcPath)) {
-        this.connection.console.error(
-          `Volume mount source path '${fsSrcPath}' does not exist. Ignoring this volume mount entry.`,
-        );
-        continue;
-      }
-      if (fsDestPath === "") {
-        this.connection.console.error(
-          `Volume mount destination path '${fsDestPath}' not provided. Ignoring this volume mount entry.`,
-        );
-        continue;
-      }
 
       let mountPath = `${fsSrcPath}:${fsDestPath}`;
       if (options && options !== "") {

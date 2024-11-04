@@ -21,6 +21,7 @@ export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   "collections",
 );
 export const ANSIBLE_ADJACENT_COLLECTIONS__PATH = path.resolve(
+  FIXTURES_BASE_PATH,
   "playbook_adjacent_collection",
   "collections",
 );

@@ -202,7 +202,7 @@ any level (User, Remote, Workspace and/or Folder).
   the image and setting tag will always pull if the image tag is 'latest',
   otherwise pull if not locally available.
 - `ansible.executionEnvironment.volumeMounts`: The setting contains volume mount
-  information for each entry in the list. Individual entry consist of a
+  information for each dict entry in the list. Individual entry consists of
   - `src`: The name of the local volume or path to be mounted within execution
     environment.
   - `dest`: The path where the file or directory are mounted in the container.

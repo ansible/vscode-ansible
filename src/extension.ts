@@ -61,6 +61,7 @@ import { CreateAnsibleCollection } from "./features/contentCreator/createAnsible
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
+import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
 import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
@@ -540,15 +541,20 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
-  // Command to render a webview-based note view
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
       async () => {
-        await showPlaybookGenerationPage(
-          context.extensionUri,
-          lightSpeedManager.lightspeedAuthenticatedUser,
-        );
+        await showPlaybookGenerationPage(context.extensionUri);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      LightSpeedCommands.LIGHTSPEED_ROLE_GENERATION,
+      async () => {
+        await showRoleGenerationPage(context.extensionUri);
       },
     ),
   );
@@ -735,7 +741,36 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
     ),
   );
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.create-playbook-options",
+      async () => {
+        if (
+          await workspace.getConfiguration("ansible").get("lightspeed.enabled")
+        ) {
+          vscode.commands.executeCommand(
+            "ansible.lightspeed.playbookGeneration",
+          );
+        } else {
+          vscode.commands.executeCommand("ansible.create-empty-playbook");
+        }
+      },
+    ),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.create-empty-playbook", () => {
+      const playbookTemplate = `---\n# Write your playbook below.\n# Replace these contents with the tasks you'd like to complete and the modules you need.\n# For help getting started, check out https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook\n`;
 
+      vscode.workspace
+        .openTextDocument({
+          content: playbookTemplate,
+          language: "ansible",
+        })
+        .then((newDocument) => {
+          vscode.window.showTextDocument(newDocument);
+        });
+    }),
+  );
   // open ansible language server logs
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.open-language-server-logs", () => {

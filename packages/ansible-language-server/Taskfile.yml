@@ -64,7 +64,6 @@ tasks:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
-      # - bash -c 'asdf local nodejs latest:18 latest:$(asdf nodejs resolve lts)'
       - task: .test
   test-node-lts:
     dir: "{{ .TASKFILE_DIR }}"

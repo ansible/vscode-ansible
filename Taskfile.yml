@@ -98,6 +98,8 @@ tasks:
       - yarn dlx depcheck
       - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
+      - task: lint
+      - task: build
     interactive: true
   docs:
     dir: "{{ .TASKFILE_DIR }}"
@@ -114,6 +116,7 @@ tasks:
     desc: Lint the project
     cmds:
       - task: install
+      - task: als:package # to produce the tgz file that can-release is using
       - packages/ansible-language-server/tools/can-release.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"

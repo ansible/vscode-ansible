@@ -77,7 +77,9 @@ fi
 
 log notice "Install required build tools"
 for PLUGIN in yarn nodejs task python direnv; do
-    asdf plugin add $PLUGIN
+    if ! asdf plugin-list | grep -q $PLUGIN; then
+        asdf plugin add $PLUGIN
+    fi
 done
 asdf install
 
@@ -176,7 +178,7 @@ fi
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman gh libssh
         podman machine ls --noheading | grep '\*' || time podman machine init
         podman machine ls --noheading | grep "Currently running" || {
             # do not use full path as it varies based on architecture
@@ -275,9 +277,9 @@ if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
         exit 99
     fi
 fi
-log notice "Upgrading pip ..."
+log notice "Upgrading pip and uv ..."
 
-python3 -m pip install -q -U pip
+python3 -m pip install -q -U pip uv
 # Fail fast if user has broken dependencies
 python3 -m pip check || {
         log error "pip check failed with exit code $?"
@@ -292,7 +294,7 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from community-ansible-dev-tools EE in order
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
-    python3 -m pip install -q \
+    python3 -m uv pip install -q \
         -r .config/requirements.in
 fi
 

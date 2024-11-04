@@ -10,22 +10,24 @@ updates:
       - dependabot-deps-updates
       - skip-changelog
     versioning-strategy: increase
-    open-pull-requests-limit: 2
+    open-pull-requests-limit: 3
     groups:
       dependencies:
         patterns:
           - "*"
+        update-types: [minor, patch]
         exclude-patterns:
           - "@types/vscode"
           - "vscode-extension-tester"
       extester:
         # Separated as it is likely to also require tuning our test code for passing
+        update-types: [major, minor, patch]
         patterns:
           - "vscode-extension-tester"
     ignore:
       # requires ESM https://github.com/ansible/vscode-ansible/issues/1225
       - dependency-name: chai
-        versions: ["5.x"]
+        update-types: ["version-update:semver-major"]
       # @types/vscode should be manually bumped when we also update
       # engines.vscode inside package.json
       - dependency-name: "@types/vscode"

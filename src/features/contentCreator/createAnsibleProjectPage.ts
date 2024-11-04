@@ -143,7 +143,7 @@ export class CreateAnsibleProject {
                 <div class="verbose-div">
                   <div class="dropdown-container">
                     <label for="verbosity-dropdown">Output Verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown" position="below">
+                    <vscode-dropdown id="verbosity-dropdown">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>
@@ -414,6 +414,16 @@ export class CreateAnsibleProject {
         status: commandPassed,
       },
     } as PostMessageEvent);
+
+    if (commandPassed === "passed") {
+      const selection = await vscode.window.showInformationMessage(
+        `Ansible playbook project created at: ${destinationPathUrl}`,
+        `Open playbook project ↗`,
+      );
+      if (selection === "Open playbook project ↗") {
+        this.openFolderInWorkspace(destinationPathUrl);
+      }
+    }
   }
 
   public async openLogFile(fileUrl: string) {
