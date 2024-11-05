@@ -252,6 +252,7 @@ uuidv
 uuidv4
 varInfiles
 venvs
+virt
 vnet
 vscodeignore
 vscoss
