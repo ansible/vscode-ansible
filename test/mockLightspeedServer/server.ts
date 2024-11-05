@@ -70,8 +70,12 @@ export default class Server {
   private init(app: Application): void {
     app.use(morganLogger);
     app.use(express.json());
-    app.get("/", (req, res) => res.send("Lightspeed Mock"));
-    app.get("/trial", (req, res) => res.send("One Click Trial"));
+    app.get("/", (req, res) => {
+      res.status(200).send("Lightspeed Mock");
+    });
+    app.get("/trial", (req, res) => {
+      res.status(200).send("One Click Trial");
+    });
 
     app.post(`${API_ROOT}/ai/completions`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
@@ -80,7 +84,7 @@ export default class Server {
 
     app.post(`${API_ROOT}/ai/contentmatches`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
-      return res.send(contentmatches(req));
+      res.send(contentmatches(req));
     });
 
     app.post(`${API_ROOT}/ai/generations`, async (req, res) => {
@@ -94,37 +98,37 @@ export default class Server {
     });
 
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {
-      return feedback(req, res);
+      feedback(req, res);
     });
 
     app.get(`${API_ROOT}/me`, (req, res) => {
-      return res.send(me());
+      res.send(me());
     });
 
     app.get(`${API_ROOT}/me/summary`, (req, res) => {
-      return res.send(meMarkdown());
+      res.send(meMarkdown());
     });
 
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
       logger.info(req.query);
       const redirectUri = decodeURIComponent(req.query.redirect_uri);
       openUrl(`${redirectUri}&code=CODE`);
-      return res.send({});
+      res.send({});
     });
 
-    app.post("/o/token", (req, res) =>
+    app.post("/o/token", (req, res) => {
       res.send({
         access_token: "ACCESS_TOKEN",
         refresh_token: "REFRESH_TOKEN",
         expires_in: 3600,
-      }),
-    );
+      });
+    });
 
-    app.get("/__debug__/feedbacks", (req, res) =>
+    app.get("/__debug__/feedbacks", (req, res) => {
       res.send({
         feedbacks: getFeedbacks(),
-      }),
-    );
+      });
+    });
 
     app.post("/__debug__/options", (req, res) => {
       options = readOptions(req.body);
