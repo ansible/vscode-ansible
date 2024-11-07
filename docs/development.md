@@ -24,8 +24,8 @@ configuration or just **Launch Extension**.
 
 ### Debug with local language server source code
 
-You may compile both client and server using the `task build` command.
-Then you may launch the **Client + Server (source)** configuration.
+You may compile both client and server using the `task build` command. Then you
+may launch the **Client + Server (source)** configuration.
 
 ### Debug a web-packed application
 
