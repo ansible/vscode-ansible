@@ -934,7 +934,7 @@
     "@types/minimatch": "^5.1.2",
     "@types/mocha": "^10.0.9",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.8.7",
+    "@types/node": "^22.9.0",
     "@types/selenium-webdriver": "^4.1.27",
     "@types/sinon": "^17.0.3",
     "@types/tmp": "^0.2.6",
