@@ -24,13 +24,8 @@ configuration or just **Launch Extension**.
 
 ### Debug with local language server source code
 
-For this mode to work, you'll first need to clone the repository containing the
-language server code into the `ansible-language-server` directory _next to_ the
-root directory of this repository. Remember to `yarn install` in that directory.
-
-Once the language server directory is prepared, you may compile both client and
-server using the `yarn run compile-withserver` command. Then you may launch the
-**Client + Server (source)** configuration.
+You may compile both client and server using the `task build` command. Then you
+may launch the **Client + Server (source)** configuration.
 
 ### Debug a web-packed application
 
