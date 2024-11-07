@@ -424,7 +424,7 @@ export class CreateAnsibleCollection {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
-    const [command, runEnv] = withInterpreter(
+    const { command, env } = withInterpreter(
       extSettings.settings,
       ansibleCreatorInitCommand,
       "",
@@ -433,7 +433,7 @@ export class CreateAnsibleCollection {
     let commandOutput = "";
 
     // execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommand(command, runEnv);
+    const ansibleCreatorExecutionResult = await runCommand(command, env);
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
@@ -442,14 +442,14 @@ export class CreateAnsibleCollection {
       // ade command inherits only the verbosity options from ansible-creator command
       console.debug("[ade] command: ", adeCommand);
 
-      const [command, runEnv] = withInterpreter(
+      const { command, env } = withInterpreter(
         extSettings.settings,
         adeCommand,
         "",
       );
 
       // execute ade command
-      const adeExecutionResult = await runCommand(command, runEnv);
+      const adeExecutionResult = await runCommand(command, env);
       commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
       commandOutput += adeExecutionResult.output;
     }
