@@ -1,3 +1,4 @@
+ABRT
 Ansible
 Anson
 CFLAGS
@@ -15,6 +16,7 @@ Jenkinsfile
 Launay
 Maciążek
 Nalawade
+OPTSTRING
 OSTYPE
 Ondrej
 PYTHONBREAKPOINT
@@ -31,6 +33,7 @@ TLDR
 Taskfile
 Testenvs
 Tomasz
+WITHTEST
 WSLENV
 Webviews
 YOLO
@@ -180,6 +183,7 @@ pgrep
 piptools
 pipx
 pkgcache
+pkill
 podman
 precheck
 preid
