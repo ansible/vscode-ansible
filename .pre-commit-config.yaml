@@ -69,14 +69,14 @@ repos:
         name: eslint
         entry: npx eslint
         language: system
-        verbose: true # do not remove, as this allows warnings to be displayed on GHA
         args:
           - --no-warn-ignored
           - --color
           - --format=gha
           - --fix
-          # - --max-warnings
-          # - "0"
+          - --cache
+          - --max-warnings
+          - "0"
         pass_filenames: false
         files: \.m?[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
         types: [file]

@@ -102,6 +102,7 @@ envdir
 envrc
 eqeqeq
 esbenp
+eslintcache
 extest
 extester
 fgierlinger
