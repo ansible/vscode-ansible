@@ -143,7 +143,8 @@ repos:
             packages/ansible-language-server/scripts/tsconfig.json|
             packages/ansible-language-server/scripts/tsconfig.esm.json|
             packages/ansible-language-server/scripts/tsconfig.umd.json|
-            packages/ansible-language-server/tsconfig.json
+            packages/ansible-language-server/tsconfig.json|
+            test/units/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
           )$
       - id: debug-statements
         language_version: python3

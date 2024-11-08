@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { Webview, Uri, WebviewPanel } from "vscode";
+import { Webview, Uri, WebviewPanel, workspace } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
+import { CollectionFinder } from "./utils/scanner";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { IError } from "./utils/errors";
 import { GenerationResponseParams } from "../../interfaces/lightspeed";
@@ -91,6 +92,20 @@ async function generateRole(
   } finally {
     panel.webview.postMessage({ command: "stopSpinner" });
   }
+}
+
+async function getCollectionsFromWorkspace() {
+  const workspaceFolders = workspace.workspaceFolders;
+  let collectionsFound: string[] = [];
+  if (workspaceFolders) {
+    const workspaceDirectories = workspaceFolders.map((f) => f.uri.fsPath);
+    const collectionFinder = new CollectionFinder(workspaceDirectories);
+    await collectionFinder.refreshCache();
+    collectionsFound = collectionFinder.cache.map(
+      (i) => `${i.namespace}.${i.name}`,
+    );
+  }
+  return collectionsFound;
 }
 
 export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
@@ -253,13 +268,13 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
   });
 
   panel.title = "Ansible Lightspeed";
-  panel.webview.html = getWebviewContent(panel.webview, extensionUri);
+  panel.webview.html = await getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "init" });
 
   await sendActionEvent(PlaybookGenerationActionType.OPEN, 1);
 }
 
-export function getWebviewContent(webview: Webview, extensionUri: Uri) {
+export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
   const webviewUri = getUri(webview, extensionUri, [
     "out",
     "client",
@@ -280,6 +295,10 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
     "codicon.css",
   ]);
   const nonce = getNonce();
+
+  const collectionsListHTML: string = (await getCollectionsFromWorkspace())
+    .map((i: string) => `<vscode-option value="${i}">${i}</vscode-option>`)
+    .join("\n");
 
   return /*html*/ `
   <!DOCTYPE html>
@@ -307,8 +326,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
           <div class="dropdown-container" id="collection_selector">
             <label for="selectedCollectionName">Select the collection to create role in:</label>
             <vscode-dropdown id="selectedCollectionName" position="below">
-              <vscode-option value="my_corp.prepare_instance">my_corp.prepare_instance</vscode-option>
-              <vscode-option value="my_corp.deploy_db">my_corp.deploy_db</vscode-option>
+              ${collectionsListHTML}
             </vscode-dropdown>
           <p>
           Ansible recommends creating roles within  collection. Description to why...
