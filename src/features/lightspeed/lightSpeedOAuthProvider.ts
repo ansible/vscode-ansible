@@ -135,7 +135,7 @@ export class LightSpeedAuthenticationProvider
    * @param scopes - Scopes
    * @returns
    */
-  public async getSessions(): Promise<readonly LightspeedAuthSession[]> {
+  public async getSessions(): Promise<LightspeedAuthSession[]> {
     const allSessions = await this.context.secrets.get(SESSIONS_SECRET_KEY);
 
     if (allSessions) {

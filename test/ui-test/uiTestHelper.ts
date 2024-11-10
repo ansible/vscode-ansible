@@ -54,7 +54,7 @@ export async function getModalDialogAndMessage(details = false): Promise<{
       if (message !== undefined) {
         return { dialog, message };
       }
-    } catch (error) {
+    } catch {
       await sleep(1000);
     }
   }

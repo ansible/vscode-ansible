@@ -12,7 +12,7 @@ export function getContainerEngine(containerEngine: string): string {
       child_process.execSync(`which ${ce}`, {
         encoding: "utf-8",
       });
-    } catch (error) {
+    } catch {
       continue;
     }
     engine = ce;

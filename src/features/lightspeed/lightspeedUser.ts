@@ -312,7 +312,7 @@ export class LightspeedUser {
         markdownUserInfo = await this.getUserInfoFromMarkdown(
           session.accessToken,
         );
-      } catch (error) {
+      } catch {
         markdownUserInfo = "";
       }
       this._markdownUserDetails = markdownUserInfo;

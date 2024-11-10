@@ -98,6 +98,8 @@ tasks:
       - yarn dlx depcheck
       - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
+      - task: lint
+      - task: build
     interactive: true
   docs:
     dir: "{{ .TASKFILE_DIR }}"
@@ -152,7 +154,7 @@ tasks:
     cmds:
       - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - '{{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn run _coverage-all'''
+      - '{{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
@@ -161,7 +163,7 @@ tasks:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
       - bash -c 'rm -rf ./out/test-resources ./out/ext'
-      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && yarn _coverage-ui-with-mock-lightspeed-server'''
+      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report

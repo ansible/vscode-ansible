@@ -19,7 +19,7 @@ function getObjectKeys(content: string): string[] {
     if (typeof lastObject === "object") {
       return Object.keys(lastObject);
     }
-  } catch (error) {
+  } catch {
     return [];
   }
   return [];

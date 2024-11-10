@@ -31,10 +31,14 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          cache: yarn
+          cache-dependency-path: "**/yarn.lock"
+          node-version-file: .tool-versions
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: node post install
+        run: |
+          corepack enable
+          npm config set fund false
 
       - name: Configure Git
         run: |

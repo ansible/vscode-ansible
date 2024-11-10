@@ -1,5 +1,5 @@
 direnv 2.34.0
-nodejs 18.19.1
+nodejs 20.18.0
 # asdf install task latest
 task 3.37.2
 yarn 1.22.19

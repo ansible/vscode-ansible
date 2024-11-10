@@ -391,7 +391,7 @@ export class CreateAnsibleProject {
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
-    const [command, runEnv] = withInterpreter(
+    const { command, env } = withInterpreter(
       extSettings.settings,
       ansibleCreatorInitCommand,
       "",
@@ -400,7 +400,7 @@ export class CreateAnsibleProject {
     let commandOutput = "";
 
     // execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommand(command, runEnv);
+    const ansibleCreatorExecutionResult = await runCommand(command, env);
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const commandPassed = ansibleCreatorExecutionResult.status;
