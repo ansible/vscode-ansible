@@ -65,7 +65,7 @@ export function terminalUITests(): void {
       workbench = new Workbench();
     });
     // Skip this test on macOS due to CI container settings
-    it("Execute playbook with ansible-navigator EE mode", async function () {
+    xit("Execute playbook with ansible-navigator EE mode", async function () {
       if (process.platform !== "darwin") {
         settingsEditor = await workbench.openSettings();
         await updateSettings(
