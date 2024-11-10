@@ -248,6 +248,7 @@ unstash
 untildify
 userdata
 usermod
+userns
 uuidv
 uuidv4
 varInfiles
