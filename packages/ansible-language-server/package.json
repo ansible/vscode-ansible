@@ -50,7 +50,7 @@
     "glob": "^11.0.0",
     "ini": "^5.0.0",
     "lodash": "^4.17.21",
-    "uuid": "^11.0.2",
+    "uuid": "^11.0.3",
     "vscode-languageserver": "^9.0.1",
     "vscode-languageserver-textdocument": "^1.0.12",
     "vscode-uri": "^3.0.8",
