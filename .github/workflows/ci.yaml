@@ -149,9 +149,9 @@ jobs:
         if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: asdf-vm/actions/install@v3
 
-      - name: ⚙️ Allow unprivileged user namespace (ubuntu)
-        if: ${{ matrix.name == 'test (linux)' }}
-        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+#      - name: ⚙️ Allow unprivileged user namespace (ubuntu)
+#        if: ${{ matrix.name == 'test (linux)' }}
+#        run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
       - name: Setup python
         if: ${{ !contains(matrix.shell, 'wsl') }}
