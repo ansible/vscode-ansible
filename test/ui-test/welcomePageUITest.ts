@@ -5,11 +5,13 @@ import {
   SideBarView,
   ViewControl,
   ViewSection,
-  WebView,
   WebviewView,
-  Workbench,
 } from "vscode-extension-tester";
-import { sleep } from "./uiTestHelper";
+import {
+  sleep,
+  getWebviewByLocator,
+  workbenchExecuteCommand,
+} from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 export function welcomePageUITest(): void {
@@ -17,12 +19,10 @@ export function welcomePageUITest(): void {
     let view: ViewControl;
     let sideBar: SideBarView;
     let webviewView: InstanceType<typeof WebviewView>;
-    let workbench: Workbench;
     let adtSection: ViewSection;
 
     before(async () => {
       // Open Ansible Development Tools by clicking the Getting started button on the side bar
-      workbench = new Workbench();
       view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
       sideBar = await view.openView();
       await sleep(2000);
@@ -37,7 +37,7 @@ export function welcomePageUITest(): void {
     it("check for title and get started button", async function () {
       const title = await adtSection.getTitle();
 
-      await workbench.executeCommand(
+      await workbenchExecuteCommand(
         "Ansible: Focus on Ansible Development Tools View",
       );
 
@@ -67,17 +67,12 @@ export function welcomePageUITest(): void {
     });
 
     it("check for header and subtitle", async function () {
-      const welcomePageWebView = await new WebView();
-      expect(welcomePageWebView, "welcomePageWebView should not be undefined")
-        .not.to.be.undefined;
-      await welcomePageWebView.switchToFrame(3000);
-      expect(
-        welcomePageWebView,
-        "welcomePageWebView should not be undefined after switching to its frame",
-      ).not.to.be.undefined;
+      const welcomePageWebView = await getWebviewByLocator(
+        By.xpath("//h1[text()='Ansible Development Tools']"),
+      );
 
       const adtHeaderTitle = await welcomePageWebView.findWebElement(
-        By.className("title caption"),
+        By.xpath("//h1[text()='Ansible Development Tools']"),
       );
       expect(adtHeaderTitle).not.to.be.undefined;
       expect(await adtHeaderTitle.getText()).to.equals(
@@ -96,25 +91,15 @@ export function welcomePageUITest(): void {
     });
 
     it("Check if start and walkthrough list section is visible", async () => {
-      const welcomePageWebView = await new WebView();
-      expect(welcomePageWebView, "welcomePageWebView should not be undefined")
-        .not.to.be.undefined;
-      await welcomePageWebView.switchToFrame(3000);
-      expect(
-        welcomePageWebView,
-        "welcomePageWebView should not be undefined after switching to its frame",
-      ).not.to.be.undefined;
+      const welcomePageWebView = await getWebviewByLocator(
+        By.className("index-list start-container"),
+      );
 
       const startSection = await welcomePageWebView.findWebElement(
         By.className("index-list start-container"),
       );
 
-      const walkthroughSection = await welcomePageWebView.findWebElement(
-        By.className("index-list getting-started"),
-      );
-
       expect(startSection).not.to.be.undefined;
-      expect(walkthroughSection).not.to.be.undefined;
 
       const playbookWithLightspeedOption = await startSection.findElement(
         By.css("h3"),
@@ -124,12 +109,17 @@ export function welcomePageUITest(): void {
         "Playbook with Ansible Lightspeed",
       );
 
-      const walkthroughItems = await walkthroughSection.findElements(
-        By.className("walkthrough-item"),
+      const walkthroughSection = await getWebviewByLocator(
+        By.xpath("//button[@class='walkthrough-item']"),
+      );
+      const walkthroughItems = await walkthroughSection.findWebElements(
+        By.xpath("//button[@class='walkthrough-item']"),
       );
       expect(walkthroughItems.length).to.greaterThanOrEqual(2);
 
-      const firstWalkthrough = walkthroughItems[0].findElement(By.css("h3"));
+      const firstWalkthrough = await walkthroughSection.findWebElement(
+        By.xpath("//h3[contains(text(), 'Create an Ansible environment')]"),
+      );
       expect(await firstWalkthrough.getText()).to.equal(
         "Create an Ansible environment",
       );
