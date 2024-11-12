@@ -60,7 +60,9 @@ export function walkthroughUiTest(): void {
         await sleep(1000);
 
         // Select the editor window
-        const welcomeTab = await editorView.getTabByTitle("Welcome");
+        const welcomeTab = await editorView.getTabByTitle(
+          "Walkthrough: Ansible",
+        );
         expect(welcomeTab).is.not.undefined;
 
         // Locate walkthrough title text

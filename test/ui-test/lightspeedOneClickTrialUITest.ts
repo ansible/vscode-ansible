@@ -19,6 +19,7 @@ import {
   expectNotification,
   getFixturePath,
   getModalDialogAndMessage,
+  getWebviewByLocator,
   sleep,
   updateSettings,
 } from "./uiTestHelper";
@@ -174,14 +175,9 @@ export function lightspeedOneClickTrialUITest(): void {
     it("Invoke Playbook generation", async () => {
       await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
       await sleep(2000);
-      playbookGeneration = await new WebView();
-      expect(playbookGeneration, "webView should not be undefined").not.to.be
-        .undefined;
-      await playbookGeneration.switchToFrame(5000);
-      expect(
-        playbookGeneration,
-        "webView should not be undefined after switching to its frame",
-      ).not.to.be.undefined;
+      playbookGeneration = await getWebviewByLocator(
+        By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
+      );
 
       // Set input text and invoke summaries API
       const textArea = await playbookGeneration.findWebElement(
