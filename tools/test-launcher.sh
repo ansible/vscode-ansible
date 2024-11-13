@@ -59,7 +59,20 @@ fi
 ${EXTEST} get-vscode -c "${CODE_VERSION}" -s out/test-resources
 ${EXTEST} get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 if [[ "$COVERAGE" == "" ]]; then
-    ${EXTEST} install-vsix -f ansible-*.vsix -e out/ext -s out/test-resources
+    vsix=$(find . -maxdepth 1 -name '*.vsix')
+    if [ -z "${vsix}" ]; then
+        echo "Building the vsix package"
+        yarn package
+        vsix=$(find . -maxdepth 1 -name '*.vsix')
+    fi
+    # shellcheck disable=SC2086
+    if [ "$(find src test -newer ${vsix})" != "" ]; then
+        echo "Rebuilding the vsix package (it was outdated)"
+        yarn package
+        vsix=$(find . -maxdepth 1 -name '*.vsix')
+    fi
+
+    ${EXTEST} install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
 ${EXTEST} install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
 
