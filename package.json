@@ -2,7 +2,7 @@
   "activationEvents": [
     "onLanguage:yaml",
     "workspaceContains:tox-ansible.ini",
-    "onWebviewPanel:ansible-content-creator"
+    "onWebviewPanel:ansible-home"
   ],
   "badges": [
     {
@@ -182,8 +182,9 @@
     "views": {
       "ansible-explorer": [
         {
-          "id": "ansible-content-creator",
-          "name": "Ansible Development Tools"
+          "id": "ansible-home",
+          "name": "Ansible Development Tools",
+          "type": "webview"
         },
         {
           "id": "lightspeed-explorer-webview",
@@ -208,12 +209,6 @@
         }
       ]
     },
-    "viewsWelcome": [
-      {
-        "view": "ansible-content-creator",
-        "contents": "Elevate automation with a toolkit for efficient Ansible content creation.\n[Get started](command:ansible.content-creator.menu)"
-      }
-    ],
     "jsonValidation": [
       {
         "fileMatch": [

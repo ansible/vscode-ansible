@@ -93,7 +93,7 @@ function updateAnsibleCreatorAvailabilityStatus() {
           systemReadinessIcon.innerHTML = `<span class="codicon codicon-warning"></span>`;
           systemReadinessDescription.innerHTML = `
             <p class="system-description">
-              <b>Looks like you don't have an ansible environment set up yet</b>.
+              <b>Looks like you don't have an Ansible environment set up yet</b>.
               <br>
               Follow the
                 <a href="command:ansible.open-walkthrough-create-env">
