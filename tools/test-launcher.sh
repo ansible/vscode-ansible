@@ -18,6 +18,7 @@ COVERAGE="${COVERAGE:-}"
 EXTEST=./node_modules/.bin/extest
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
 TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
+COVERAGE_ARG=""
 
 
 OPTSTRING=":c"
@@ -40,7 +41,7 @@ if [[ "${COVERAGE}" == "1" ]]; then
 fi
 
 
-if [[ "$MOCK_LIGHTSPEED_API" != "" ]]; then
+if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
     if [[ -n "${TEST_LIGHTSPEED_URL}" ]]; then
         echo "MOCK_LIGHTSPEED_API is true, the existing TEST_LIGHTSPEED_URL envvar will be ignored!"
     fi
