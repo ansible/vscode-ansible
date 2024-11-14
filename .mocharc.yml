@@ -6,3 +6,4 @@ timeout: 10001 # default is 2000
 # red slow marker to distract us until we sort that part yet. Red is expected
 # to appear on unexpected long tests, not on an expected duration.
 slow: 25000
+bail: true
