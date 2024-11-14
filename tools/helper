@@ -160,6 +160,7 @@ def cli() -> None:
             f" --readme-path docs/README.md {pre_release_arg} {version}"
         )
         # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+        run("mkdir -p out/log")
         run("zipinfo -1 ./*.vsix > out/log/package.log")
         run("tools/dirty.sh")
         print(f"Generated ansible-{version}")
