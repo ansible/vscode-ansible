@@ -66,6 +66,13 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="https://ansible.readthedocs.io/projects/dev-tools/" title="Ansible Development Tools documentation">
+                <span class="codicon codicon-rocket"></span> Documentation
+              </a>
+            </h3>
+          </div>
         <h3>INITIALIZE</h3>
         <p>Initialize a new Ansible project</p>
           <div class="catalogue">
