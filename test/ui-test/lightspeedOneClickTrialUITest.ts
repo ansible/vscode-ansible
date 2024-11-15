@@ -6,6 +6,9 @@ import {
   EditorView,
   InputBox,
   ModalDialog,
+  SideBarView,
+  ViewControl,
+  ViewSection,
   VSBrowser,
   WebElement,
   WebView,
@@ -34,6 +37,9 @@ export function lightspeedOneClickTrialUITest(): void {
     let dialogMessage: string;
     let playbookGeneration: WebView;
     let submitButton: WebElement;
+    let sideBar: SideBarView;
+    let view: ViewControl;
+    let adtView: ViewSection;
 
     before(async () => {
       // Enable Lightspeed and open Ansible Light view on sidebar
@@ -62,9 +68,14 @@ export function lightspeedOneClickTrialUITest(): void {
     });
 
     it("Focus on Ansible Lightspeed View", async () => {
-      await new Workbench().executeCommand(
-        "Ansible: Focus on Ansible Lightspeed View",
-      );
+      view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+      sideBar = await view.openView();
+
+      adtView = await sideBar
+        .getContent()
+        .getSection("Ansible Development Tools");
+      adtView.collapse();
+
       await sleep(3000);
       explorerView = new WebviewView();
       expect(explorerView, "contentCreatorWebView should not be undefined").not
@@ -73,6 +84,7 @@ export function lightspeedOneClickTrialUITest(): void {
 
     it("Click Connect button Ansible Lightspeed webview", async () => {
       await explorerView.switchToFrame(5000);
+
       const connectButton = await explorerView.findWebElement(
         By.id("lightspeed-explorer-connect"),
       );

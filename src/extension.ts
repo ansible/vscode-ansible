@@ -54,6 +54,7 @@ import { PythonInterpreterManager } from "./features/pythonMetadata";
 import { AnsibleToxController } from "./features/ansibleTox/controller";
 import { AnsibleToxProvider } from "./features/ansibleTox/provider";
 import { findProjectDir } from "./features/ansibleTox/utils";
+import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { AnsibleWelcomePage } from "./features/welcomePage";
@@ -367,6 +368,17 @@ export async function activate(context: ExtensionContext): Promise<void> {
       lightSpeedManager.statusBarProvider.updateLightSpeedStatusbar();
     }),
   );
+
+  const quickLinksHome = new QuickLinksWebviewViewProvider(
+    context.extensionUri,
+  );
+
+  const quickLinksDisposable = window.registerWebviewViewProvider(
+    QuickLinksWebviewViewProvider.viewType,
+    quickLinksHome,
+  );
+
+  context.subscriptions.push(quickLinksDisposable);
 
   // handle lightSpeed feedback
   const lightspeedFeedbackProvider = new LightspeedFeedbackWebviewViewProvider(
