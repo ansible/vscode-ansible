@@ -1,0 +1,56 @@
+.index-list a {
+	text-decoration: none;
+    font-size: 14px;
+    font-family: sans-serif;
+}
+
+.index-list p {
+    font-family: sans-serif;
+    font-weight: lighter;
+    color: dimgrey;
+}
+
+#system-readiness {
+	display: flex;
+	flex-direction: row;
+	margin-top: 14px;
+	background-color: var(--vscode-input-background);
+}
+
+.codicon.codicon-warning {
+	margin: 10px;
+	color: red;
+}
+
+.index-list {
+	margin-bottom: 36px;
+}
+
+.catalogue {
+	margin-bottom: 12px;
+}
+
+.catalogue h3 {
+	margin: 0px;
+    font-weight: lighter;
+}
+
+.catalogue p {
+	margin: 0px;
+    font-weight: lighter;
+}
+
+.index-list h3 {
+    font-family: sans-serif;
+    font-weight: lighter;
+    color: dimgrey;
+}
+
+
+.codicon[class*=codicon-] {
+    font-size: 16px;
+}
+
+img.category-icon {
+    max-height: 20px;
+}

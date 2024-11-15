@@ -5,6 +5,9 @@ import {
   ContextMenu,
   InputBox,
   ModalDialog,
+  SideBarView,
+  ViewControl,
+  ViewSection,
   WebviewView,
   Workbench,
 } from "vscode-extension-tester";
@@ -21,6 +24,9 @@ export function lightspeedUILoginTest(): void {
     let explorerView: WebviewView;
     let modalDialog: ModalDialog;
     let dialogMessage: string;
+    let sideBar: SideBarView;
+    let viewControl: ViewControl;
+    let adtView: ViewSection;
 
     before(async () => {
       // Enable Lightspeed and open Ansible Light view on sidebar
@@ -32,13 +38,20 @@ export function lightspeedUILoginTest(): void {
         "ansible.lightspeed.URL",
         process.env.TEST_LIGHTSPEED_URL,
       );
+
+      viewControl = (await new ActivityBar().getViewControl(
+        "Ansible",
+      )) as ViewControl;
+      sideBar = await viewControl.openView();
+
+      adtView = await sideBar
+        .getContent()
+        .getSection("Ansible Development Tools");
+      adtView.collapse();
+      await sleep(3000);
     });
 
     it("Focus on Ansible Lightspeed View", async () => {
-      await new Workbench().executeCommand(
-        "Ansible: Focus on Ansible Lightspeed View",
-      );
-      await sleep(3000);
       explorerView = new WebviewView();
       expect(explorerView, "contentCreatorWebView should not be undefined").not
         .to.be.undefined;

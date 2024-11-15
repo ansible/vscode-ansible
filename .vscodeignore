@@ -25,6 +25,9 @@
 !media/contentCreator/createAnsibleProjectPageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
+!media/welcomePage/lightspeed.png
+!media/welcomePage/logo.png
+!media/welcomePage/quickLinksStyle.css
 !media/playbookGeneration/playbookGeneration.css
 !media/playbookGeneration/style.css
 !out/client/src/extension.js
@@ -36,6 +39,7 @@
 !out/client/webview/apps/contentCreator/welcomePageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
+!out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/server/src/server.js
 !package.json
 !package.nls.json

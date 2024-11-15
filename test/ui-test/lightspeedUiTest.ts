@@ -12,6 +12,7 @@ import {
   SettingsEditor,
   WebView,
   ModalDialog,
+  ViewSection,
   WebviewView,
   WebElement,
 } from "vscode-extension-tester";
@@ -30,6 +31,7 @@ export function lightspeedUIAssetsTest(): void {
     let workbench: Workbench;
     let view: ViewControl;
     let sideBar: SideBarView;
+    let adtView: ViewSection;
     let webviewView: InstanceType<typeof WebviewView>;
 
     before(async function () {
@@ -42,9 +44,13 @@ export function lightspeedUIAssetsTest(): void {
 
       await sideBar.getContent().getSection("Ansible Lightspeed");
 
-      await workbench.executeCommand(
-        "Ansible: Focus on Ansible Lightspeed View",
-      );
+      adtView = await sideBar
+        .getContent()
+        .getSection("Ansible Development Tools");
+      adtView.collapse();
+
+      await sleep(2000);
+
       webviewView = new WebviewView();
       expect(webviewView).not.undefined;
       await webviewView.switchToFrame(1000);
@@ -165,6 +171,8 @@ export function lightspeedUIAssetsTest(): void {
     let webView: WebView;
     let outlineList: WebElement;
     let resetButton: WebElement;
+    let adtView: ViewSection;
+    let webviewView: InstanceType<typeof WebviewView>;
 
     before(async function () {
       if (process.env.TEST_LIGHTSPEED_URL) {
@@ -199,18 +207,28 @@ export function lightspeedUIAssetsTest(): void {
         "Ansible",
       )) as ViewControl;
       const sideBar = await view.openView();
+      adtView = await sideBar
+        .getContent()
+        .getSection("Ansible Development Tools");
+      adtView.expand();
+      await sleep(1000);
 
-      const getStartedButton = await sideBar.findElement(
+      webviewView = new WebviewView();
+      expect(webviewView).not.undefined;
+      await webviewView.switchToFrame(1000);
+
+      const welcomePageLink = await webviewView.findWebElement(
         By.xpath(
-          "//a[contains(@class, 'monaco-button') and " +
-            ".//span/text()='Get started']",
+          "//a[contains(@title, 'Ansible Development Tools welcome page')]",
         ),
       );
-      expect(getStartedButton).not.to.be.undefined;
-      if (getStartedButton) {
-        await getStartedButton.click();
+
+      expect(welcomePageLink).not.to.be.undefined;
+      if (welcomePageLink) {
+        await welcomePageLink.click();
       }
       await sleep(5000);
+      webviewView.switchBack();
 
       // Open Playbook Generation UI by clicking the create content button on Ansible Development Tools
       const contentCreatorWebView = await new WebView();
