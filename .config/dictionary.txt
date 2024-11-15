@@ -1,3 +1,4 @@
+ABRT
 Ansible
 Anson
 CFLAGS
@@ -15,6 +16,7 @@ Jenkinsfile
 Launay
 Maciążek
 Nalawade
+OPTSTRING
 OSTYPE
 Ondrej
 PYTHONBREAKPOINT
@@ -31,6 +33,7 @@ TLDR
 Taskfile
 Testenvs
 Tomasz
+WITHTEST
 WSLENV
 Webviews
 YOLO
@@ -102,6 +105,7 @@ envdir
 envrc
 eqeqeq
 esbenp
+eslintcache
 extest
 extester
 fgierlinger
@@ -180,6 +184,7 @@ pgrep
 piptools
 pipx
 pkgcache
+pkill
 podman
 precheck
 preid
@@ -247,6 +252,7 @@ uuidv
 uuidv4
 varInfiles
 venvs
+virt
 vnet
 vscodeignore
 vscoss

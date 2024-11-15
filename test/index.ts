@@ -2,10 +2,9 @@ import * as path from "path";
 import Mocha from "mocha";
 import { glob } from "glob";
 import { MochaOptions } from "vscode-extension-tester";
+import NYC from "nyc";
 
 function setupCoverage() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const NYC = require("nyc");
   const nyc = new NYC({
     cwd: path.join(__dirname, "..", "..", ".."),
     reporter: ["text", "html", "lcov"],

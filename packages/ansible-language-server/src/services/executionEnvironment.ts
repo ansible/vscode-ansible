@@ -323,7 +323,7 @@ export class ExecutionEnvironment {
           child_process.execSync(`command -v ${ce}`, {
             encoding: "utf-8",
           });
-        } catch (error) {
+        } catch {
           this.connection.console.info(`Container engine '${ce}' not found`);
           continue;
         }
@@ -384,7 +384,7 @@ export class ExecutionEnvironment {
         { shell: false },
       );
       containerNameExist = result.toString() !== "";
-    } catch (error) {
+    } catch {
       containerNameExist = false;
     }
     return containerNameExist;

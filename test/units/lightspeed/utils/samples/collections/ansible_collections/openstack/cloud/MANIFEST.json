@@ -1,0 +1,7 @@
+{
+  "collection_info": {
+    "namespace": "openstack",
+    "name": "cloud",
+    "version": "2.1.0"
+  }
+}

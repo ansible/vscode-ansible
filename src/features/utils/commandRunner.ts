@@ -16,7 +16,7 @@ export function withInterpreter(
   settings: ExtensionSettings,
   runExecutable: string,
   cmdArgs: string,
-): [string, NodeJS.ProcessEnv | undefined] {
+): { command: string; env: NodeJS.ProcessEnv } {
   let command = `${runExecutable} ${cmdArgs}`; // base case
 
   const newEnv = Object.assign({}, process.env, {
@@ -29,7 +29,7 @@ export function withInterpreter(
   const activationScript = settings.activationScript;
   if (activationScript) {
     command = `bash -c 'source ${activationScript} && ${runExecutable} ${cmdArgs}'`;
-    return [command, undefined];
+    return { command: command, env: process.env };
   }
 
   const interpreterPath = settings.interpreterPath;
@@ -46,5 +46,5 @@ export function withInterpreter(
     newEnv["PATH"] = `${pathEntry}:${process.env.PATH}`;
     delete newEnv.PYTHONHOME;
   }
-  return [command, newEnv];
+  return { command: command, env: newEnv } as const;
 }

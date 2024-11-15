@@ -44,7 +44,7 @@ function contentMatch(generationId: string, playbook: string) {
 
 async function sendActionEvent(
   action: PlaybookGenerationActionType,
-  toPage?: number | undefined,
+  toPage?: number,
 ) {
   if (currentPanel && wizardId) {
     const fromPage = currentPage;
@@ -206,7 +206,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
         try {
           syntaxHighlighter =
             await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
-        } catch (error) {
+        } catch {
           syntaxHighlighter =
             await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
         }

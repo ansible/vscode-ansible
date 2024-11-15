@@ -71,18 +71,18 @@ describe("withInterpreter", () => {
           interpreterPath,
           activationScript,
         );
-        expect(actualCommand[0]).to.equal(expectedCommand);
+        expect(actualCommand.command).to.equal(expectedCommand);
 
         if (expectedEnv) {
           const expectedKeys = Object.keys(expectedEnv);
 
           expectedKeys.forEach((key) => {
-            expect(actualCommand[1]).to.haveOwnProperty(key);
-            expect(typeof actualCommand[1] === "object");
-            if (!actualCommand[1] || typeof expectedEnv === "string") {
+            expect(actualCommand.env).to.haveOwnProperty(key);
+            expect(typeof actualCommand.env === "object");
+            if (!actualCommand.env || typeof expectedEnv === "string") {
               expect(false);
             } else {
-              expect(actualCommand[1][key]).to.include(expectedEnv[key]);
+              expect(actualCommand.env[key]).to.include(expectedEnv[key]);
             }
           });
         }
