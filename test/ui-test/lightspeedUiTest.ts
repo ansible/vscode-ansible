@@ -622,6 +622,33 @@ export function lightspeedUIAssetsTest(): void {
       );
     });
 
+    it("Playbook generation webview (multiple instances)", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      if (!process.env.TEST_LIGHTSPEED_URL) {
+        this.skip();
+      }
+
+      // Ensure all previous instances are closed
+      await workbenchExecuteCommand("View: Close All Editor Groups");
+      await sleep(1000);
+
+      // Open playbook generation webview.
+      await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
+      await sleep(1000);
+
+      // Open another playbook generation webview.
+      await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
+      await sleep(1000);
+
+      const editorView = new EditorView();
+      const titles = await editorView.getOpenEditorTitles();
+      expect(
+        titles.filter((value) => value === "Ansible Lightspeed").length,
+      ).to.equal(2);
+
+      await workbenchExecuteCommand("View: Close All Editor Groups");
+    });
+
     it("Playbook explanation webview works as expected", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();

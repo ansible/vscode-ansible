@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { Webview, Uri, WebviewPanel } from "vscode";
+import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
@@ -14,7 +14,6 @@ import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
 
-let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
 let currentPage: number | undefined;
 
@@ -46,7 +45,7 @@ async function sendActionEvent(
   action: PlaybookGenerationActionType,
   toPage?: number,
 ) {
-  if (currentPanel && wizardId) {
+  if (wizardId) {
     const fromPage = currentPage;
     currentPage = toPage;
     try {
@@ -99,11 +98,6 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
     return;
   }
 
-  if (currentPanel) {
-    currentPanel.reveal();
-    return;
-  }
-
   // Create a new panel and update the HTML
   const panel = vscode.window.createWebviewPanel(
     "noteDetailView",
@@ -123,11 +117,9 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
 
   panel.onDidDispose(async () => {
     await sendActionEvent(PlaybookGenerationActionType.CLOSE_CANCEL, undefined);
-    currentPanel = undefined;
     wizardId = undefined;
   });
 
-  currentPanel = panel;
   wizardId = uuidv4();
 
   panel.webview.onDidReceiveMessage(async (message) => {
