@@ -57,8 +57,8 @@ export function contentCreatorUiTest(): void {
         By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
       );
 
-      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not.to.be
-        .undefined;
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
       await overwriteCheckbox.click();
 
       createButton = await playbookProject.findWebElement(
