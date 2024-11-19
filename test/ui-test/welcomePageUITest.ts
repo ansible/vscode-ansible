@@ -6,6 +6,8 @@ import {
   ViewControl,
   ViewSection,
   WebView,
+  WebviewView,
+  Workbench,
 } from "vscode-extension-tester";
 import { sleep } from "./uiTestHelper";
 
@@ -14,47 +16,57 @@ export function welcomePageUITest(): void {
   describe("Verify welcome page is displayed as expected", async () => {
     let view: ViewControl;
     let sideBar: SideBarView;
+    let webviewView: InstanceType<typeof WebviewView>;
+    let workbench: Workbench;
     let adtSection: ViewSection;
 
     before(async () => {
       // Open Ansible Development Tools by clicking the Getting started button on the side bar
+      workbench = new Workbench();
       view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
       sideBar = await view.openView();
+      await sleep(2000);
+
       // to get the content part
       adtSection = await sideBar
         .getContent()
         .getSection("Ansible Development Tools");
+      adtSection.expand();
     });
 
     it("check for title and get started button", async function () {
       const title = await adtSection.getTitle();
-      const getStartedButton = await adtSection.findElement(
+
+      await workbench.executeCommand(
+        "Ansible: Focus on Ansible Development Tools View",
+      );
+
+      webviewView = new WebviewView();
+      expect(webviewView).not.undefined;
+      await webviewView.switchToFrame(1000);
+
+      const body = await webviewView.findWebElement(By.xpath("//body"));
+      const welcomeMessage = await body.getText();
+      expect(welcomeMessage).to.contain("LAUNCH");
+
+      const getStartedLink = await webviewView.findWebElement(
         By.xpath(
-          "//a[contains(@class, 'monaco-button') and " +
-            ".//span/text()='Get started']",
+          "//a[contains(@title, 'Ansible Development Tools welcome page')]",
         ),
       );
 
       expect(title).not.to.be.undefined;
       expect(title).to.equals("Ansible Development Tools");
-      expect(getStartedButton).not.to.be.undefined;
+      expect(getStartedLink).not.to.be.undefined;
+
+      if (getStartedLink) {
+        await getStartedLink.click();
+      }
+      await sleep(3000);
+      webviewView.switchBack();
     });
 
     it("check for header and subtitle", async function () {
-      const getStartedButton = await adtSection.findElement(
-        By.xpath(
-          "//a[contains(@class, 'monaco-button') and " +
-            ".//span/text()='Get started']",
-        ),
-      );
-
-      expect(getStartedButton).not.to.be.undefined;
-
-      if (getStartedButton) {
-        await getStartedButton.click();
-      }
-      await sleep(3000);
-
       const welcomePageWebView = await new WebView();
       expect(welcomePageWebView, "welcomePageWebView should not be undefined")
         .not.to.be.undefined;
