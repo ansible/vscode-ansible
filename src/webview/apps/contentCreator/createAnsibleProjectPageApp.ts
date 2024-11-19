@@ -28,7 +28,7 @@ let collectionNameTextField: TextField;
 let initCreateButton: Button;
 let initClearButton: Button;
 
-let forceCheckbox: Checkbox;
+let overwriteCheckbox: Checkbox;
 
 let logToFileCheckbox: Checkbox;
 let logToFileOptionsDiv: HTMLElement | null;
@@ -66,7 +66,7 @@ function main() {
     "collection-name",
   ) as TextField;
 
-  forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
 
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox",
@@ -200,7 +200,7 @@ function handleInitClearClick() {
 
   initCollectionPathElement.innerHTML = destinationPathUrlTextField.placeholder;
 
-  forceCheckbox.checked = false;
+  overwriteCheckbox.checked = false;
   verboseDropdown.currentValue = "Off";
 
   initCreateButton.disabled = true;
@@ -241,7 +241,7 @@ function handleInitCreateClick() {
       logFilePath: logFilePath.value.trim(),
       logFileAppend: logFileAppendCheckbox.checked,
       logLevel: logLevelDropdown.currentValue.trim(),
-      isForced: forceCheckbox.checked,
+      isOverwritten: overwriteCheckbox.checked,
     } as AnsibleProjectFormInterface,
   });
 

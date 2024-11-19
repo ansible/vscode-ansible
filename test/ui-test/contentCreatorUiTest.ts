@@ -53,13 +53,13 @@ export function contentCreatorUiTest(): void {
         .not.to.be.undefined;
       await collectionTextField.sendKeys("test_collection");
 
-      const forceCheckbox = await playbookProject.findWebElement(
-        By.xpath("//vscode-checkbox[@id='force-checkbox']"),
+      const overwriteCheckbox = await playbookProject.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
       );
 
-      expect(forceCheckbox, "forceCheckbox should not be undefined").not.to.be
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not.to.be
         .undefined;
-      await forceCheckbox.click();
+      await overwriteCheckbox.click();
 
       createButton = await playbookProject.findWebElement(
         By.xpath("//vscode-button[@id='create-button']"),

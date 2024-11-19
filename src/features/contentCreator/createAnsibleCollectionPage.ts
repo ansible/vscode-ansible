@@ -186,7 +186,7 @@ export class CreateAnsibleCollection {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the current work in the specified directory and reset it with the Ansible collection.</i></vscode-checkbox>
+                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible collection.</i></vscode-checkbox>
                 </div>
 
                 <div class="checkbox-div">
@@ -345,7 +345,7 @@ export class CreateAnsibleCollection {
       logFileAppend,
       logLevel,
       verbosity,
-      isForced,
+      isOverwritten,
       isEditableModeInstall,
     } = payload;
 
@@ -376,8 +376,8 @@ export class CreateAnsibleCollection {
 
     let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
 
-    if (isForced) {
-      ansibleCreatorInitCommand += " --force";
+    if (isOverwritten) {
+      ansibleCreatorInitCommand += " --overwrite";
     }
 
     switch (verbosity) {

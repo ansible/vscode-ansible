@@ -185,7 +185,7 @@ export class CreateAnsibleProject {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the current work in the specified directory and reset it with the Ansible project.</i></vscode-checkbox>
+                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible project.</i></vscode-checkbox>
                 </div>
 
                 <div class="group-buttons">
@@ -334,7 +334,7 @@ export class CreateAnsibleProject {
       logFileAppend,
       logLevel,
       verbosity,
-      isForced,
+      isOverwritten,
     } = payload;
 
     const destinationPathUrl = destinationPath
@@ -347,8 +347,8 @@ export class CreateAnsibleProject {
       destinationPathUrl,
     );
 
-    if (isForced) {
-      ansibleCreatorInitCommand += " --force";
+    if (isOverwritten) {
+      ansibleCreatorInitCommand += " --overwrite";
     }
 
     switch (verbosity) {

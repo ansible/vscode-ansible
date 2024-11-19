@@ -27,7 +27,7 @@ let folderExplorerButton: Button;
 let initCreateButton: Button;
 let initClearButton: Button;
 
-let forceCheckbox: Checkbox;
+let overwriteCheckbox: Checkbox;
 let editableModeInstall: Checkbox;
 
 let logToFileCheckbox: Checkbox;
@@ -64,7 +64,7 @@ function main() {
   initPathUrlTextField = document.getElementById("path-url") as TextField;
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
 
-  forceCheckbox = document.getElementById("force-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
   editableModeInstall = document.getElementById(
     "editable-mode-checkbox",
   ) as Checkbox;
@@ -217,7 +217,7 @@ function handleInitClearClick() {
 
   initCollectionNameElement.innerHTML = "namespace.collection";
 
-  forceCheckbox.checked = false;
+  overwriteCheckbox.checked = false;
   editableModeInstall.checked = false;
   verboseDropdown.currentValue = "Off";
 
@@ -258,7 +258,7 @@ function handleInitCreateClick() {
       logFilePath: logFilePath.value.trim(),
       logFileAppend: logFileAppendCheckbox.checked,
       logLevel: logLevelDropdown.currentValue.trim(),
-      isForced: forceCheckbox.checked,
+      isOverwritten: overwriteCheckbox.checked,
       isEditableModeInstall: editableModeInstall.checked,
     } as AnsibleCollectionFormInterface,
   });

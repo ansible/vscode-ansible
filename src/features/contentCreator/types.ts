@@ -7,7 +7,7 @@ export type AnsibleCollectionFormInterface = {
   logFilePath: string;
   logFileAppend: boolean;
   logLevel: string;
-  isForced: boolean;
+  isOverwritten: boolean;
   isEditableModeInstall: boolean;
 };
 
@@ -20,7 +20,7 @@ export type AnsibleProjectFormInterface = {
   logFilePath: string;
   logFileAppend: boolean;
   logLevel: string;
-  isForced: boolean;
+  isOverwritten: boolean;
 };
 
 export type PostMessageEvent =
