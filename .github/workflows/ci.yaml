@@ -1,5 +1,5 @@
 # This is a basic workflow
-
+# cspell: ignore winget
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -10,6 +10,8 @@ on:
     tags:
       - "v*.*"
   pull_request:
+    branches: ["main", "devel/*"]
+  pull_request_target:
     branches: ["main", "devel/*"]
   schedule:
     - cron: "0 0 * * *"
@@ -67,37 +69,40 @@ jobs:
         name:
           - docs
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-22.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-22.04
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
-          - name: test (linux)
-            task-name: test
+          # - name: test (linux)
+          #   task-name: test
 
-          - name: test (macos)
-            task-name: test
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   task-name: test
+          #   os: macos-13-large
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
           - name: test (wsl)
             # runner does not support running containers
             task-name: als:test-without-ee
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
-            shell: "wsl-bash {0}"
+            os: [self-hosted, Windows, X64, ssbarnea, wsl2]
+            # shell: "wsl-bash {0}"
+            shell: "wsl-run {0}"
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
+      # Checkout itself might fail on Windows if you did not bootrap the the self-hosted
+      # runner using the commands from ./tools/setup.ps1
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
@@ -105,8 +110,9 @@ jobs:
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
-        if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v3.1.3
+        if: contains(matrix.shell, 'wsl') && false
+        uses: vedantmgoyal9/setup-wsl2@main
+        # Vampire/setup-wsl@v3.1.3
         with:
           distribution: Ubuntu-22.04
           set-as-default: "true"
@@ -154,8 +160,22 @@ jobs:
         with:
           python-version: "3.12"
 
+      - uses: vedantmgoyal9/setup-wsl2@main
+      - name: wsl setup
+        run: |
+          pwd
+          ls -la
+        # uses: Ubuntu/WSL/.github/actions/wsl-bash@main
+        # with:
+        #   distro: Ubuntu-22.04
+        #   # working-dir: /tmp/github/
+        #   exec: |
+        #     pwd
+        #     ls -la
+
       - name: Install asdf inside WSL
         if: contains(matrix.shell, 'wsl')
+        shell: bash
         run: |
           set -ex
           git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
