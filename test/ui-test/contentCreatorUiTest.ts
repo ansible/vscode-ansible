@@ -1,11 +1,5 @@
-import {
-  By,
-  EditorView,
-  WebElement,
-  WebView,
-  Workbench,
-} from "vscode-extension-tester";
-import { sleep } from "./uiTestHelper";
+import { By, EditorView, WebElement, Workbench } from "vscode-extension-tester";
+import { getWebviewByLocator, sleep } from "./uiTestHelper";
 import { config, expect } from "chai";
 
 config.truncateThreshold = 0;
@@ -32,14 +26,10 @@ export function contentCreatorUiTest(): void {
       await workbench.executeCommand(command);
       await sleep(4000);
 
-      const webview = (await new EditorView().openEditor(editorTitle)) as WebView;
-      expect(webview, "webView should not be undefined").not.to.be.undefined;
-
-      await webview.switchToFrame(5000);
-      expect(
-        webview,
-        "webView should not be undefined after switching to its frame",
-      ).not.to.be.undefined;
+      await new EditorView().openEditor("Create Ansible project");
+      const playbookProject = await getWebviewByLocator(
+        By.xpath("//vscode-text-field[@id='namespace-name']"),
+      );
 
       const namespaceTextField = await webview.findWebElement(
         By.xpath("//vscode-text-field[@id='namespace-name']"),
