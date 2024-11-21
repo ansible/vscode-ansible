@@ -34,25 +34,29 @@ export function contentCreatorUiTest(): void {
       const namespaceTextField = await webview.findWebElement(
         By.xpath("//vscode-text-field[@id='namespace-name']"),
       );
-      expect(namespaceTextField, "namespaceTextField should not be undefined").not.to.be.undefined;
+      expect(namespaceTextField, "namespaceTextField should not be undefined")
+        .not.to.be.undefined;
       await namespaceTextField.sendKeys(namespaceName);
 
       const collectionTextField = await webview.findWebElement(
         By.xpath("//vscode-text-field[@id='collection-name']"),
       );
-      expect(collectionTextField, "collectionTextField should not be undefined").not.to.be.undefined;
+      expect(collectionTextField, "collectionTextField should not be undefined")
+        .not.to.be.undefined;
       await collectionTextField.sendKeys(collectionName);
 
       const overwriteCheckbox = await webview.findWebElement(
         By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
       );
-      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not.to.be.undefined;
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
       await overwriteCheckbox.click();
 
       createButton = await webview.findWebElement(
         By.xpath("//vscode-button[@id='create-button']"),
       );
-      expect(createButton, "createButton should not be undefined").not.to.be.undefined;
+      expect(createButton, "createButton should not be undefined").not.to.be
+        .undefined;
 
       expect(
         await createButton.isEnabled(),
