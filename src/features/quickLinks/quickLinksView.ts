@@ -101,7 +101,7 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.create-playbook-options" title="Create a playbook template">
+              <a href="command:ansible.create-empty-playbook" title="Create a playbook template">
                 <span class="codicon codicon-new-file"></span> Playbook template
               </a>
             </h3>
