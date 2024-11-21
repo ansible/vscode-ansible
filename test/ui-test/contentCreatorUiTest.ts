@@ -1,5 +1,5 @@
-import { By, EditorView, WebElement, Workbench } from "vscode-extension-tester";
-import { getWebviewByLocator, sleep } from "./uiTestHelper";
+import { By, EditorView, WebElement, Workbench, WebView} from "vscode-extension-tester";
+import { sleep } from "./uiTestHelper";
 import { config, expect } from "chai";
 
 config.truncateThreshold = 0;
@@ -26,37 +26,37 @@ export function contentCreatorUiTest(): void {
       await workbench.executeCommand(command);
       await sleep(4000);
 
-      await new EditorView().openEditor("Create Ansible project");
-      const playbookProject = await getWebviewByLocator(
-        By.xpath("//vscode-text-field[@id='namespace-name']"),
-      );
+      const webview = (await new EditorView().openEditor(editorTitle)) as WebView;
+      expect(webview, "webView should not be undefined").not.to.be.undefined;
+
+      await webview.switchToFrame(5000);
+      expect(
+        webview,
+        "webView should not be undefined after switching to its frame",
+      ).not.to.be.undefined;
 
       const namespaceTextField = await webview.findWebElement(
         By.xpath("//vscode-text-field[@id='namespace-name']"),
       );
-      expect(namespaceTextField, "namespaceTextField should not be undefined")
-        .not.to.be.undefined;
+      expect(namespaceTextField, "namespaceTextField should not be undefined").not.to.be.undefined;
       await namespaceTextField.sendKeys(namespaceName);
 
       const collectionTextField = await webview.findWebElement(
         By.xpath("//vscode-text-field[@id='collection-name']"),
       );
-      expect(collectionTextField, "collectionTextField should not be undefined")
-        .not.to.be.undefined;
+      expect(collectionTextField, "collectionTextField should not be undefined").not.to.be.undefined;
       await collectionTextField.sendKeys(collectionName);
 
       const overwriteCheckbox = await webview.findWebElement(
         By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
       );
-      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
-        .to.be.undefined;
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not.to.be.undefined;
       await overwriteCheckbox.click();
 
       createButton = await webview.findWebElement(
         By.xpath("//vscode-button[@id='create-button']"),
       );
-      expect(createButton, "createButton should not be undefined").not.to.be
-        .undefined;
+      expect(createButton, "createButton should not be undefined").not.to.be.undefined;
 
       expect(
         await createButton.isEnabled(),
