@@ -286,8 +286,8 @@ export class CreateAnsibleProject {
     ).toString();
     console.log("ansible-creator version: ", creatorVersion);
     return creatorVersion;
-  } 
-  
+  }
+
   public async getCreatorCommand(
     namespace: string,
     collection: string,
