@@ -2,12 +2,14 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleCollectionFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, getBinDetail, runCommand } from "./utils";
+import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
 
 export class CreateAnsibleCollection {
   public static currentPanel: CreateAnsibleCollection | undefined;
@@ -332,6 +334,14 @@ export class CreateAnsibleCollection {
     return;
   }
 
+  private async getCreatorVersion(): Promise<string> {
+    const creatorVersion = (
+      await getBinDetail("ansible-creator", "--version")
+    ).toString();
+    console.log("ansible-creator version: ", creatorVersion);
+    return creatorVersion;
+  }
+
   public async runInitCommand(
     payload: AnsibleCollectionFormInterface,
     webView: vscode.Webview,
@@ -376,8 +386,13 @@ export class CreateAnsibleCollection {
 
     let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
 
+    const creatorVersion = await this.getCreatorVersion();
     if (isOverwritten) {
-      ansibleCreatorInitCommand += " --overwrite";
+      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+        ansibleCreatorInitCommand += " --overwrite";
+      } else {
+        ansibleCreatorInitCommand += " --force";
+      }
     }
 
     switch (verbosity) {

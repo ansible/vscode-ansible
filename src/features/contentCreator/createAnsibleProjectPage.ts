@@ -280,17 +280,21 @@ export class CreateAnsibleProject {
     );
   }
 
-  // Get ansible-creator version and check which command should be used
+  private async getCreatorVersion(): Promise<string> {
+    const creatorVersion = (
+      await getBinDetail("ansible-creator", "--version")
+    ).toString();
+    console.log("ansible-creator version: ", creatorVersion);
+    return creatorVersion;
+  } 
+  
   public async getCreatorCommand(
     namespace: string,
     collection: string,
     url: string,
   ): Promise<string> {
     let command = "";
-    const creatorVersion = (
-      await getBinDetail("ansible-creator", "--version")
-    ).toString();
-    console.log("ansible-creator version: ", creatorVersion);
+    const creatorVersion = await this.getCreatorVersion();
 
     if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
       command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
@@ -347,8 +351,13 @@ export class CreateAnsibleProject {
       destinationPathUrl,
     );
 
+    const creatorVersion = await this.getCreatorVersion();
     if (isOverwritten) {
-      ansibleCreatorInitCommand += " --overwrite";
+      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+        ansibleCreatorInitCommand += " --overwrite";
+      } else {
+        ansibleCreatorInitCommand += " --force";
+      }
     }
 
     switch (verbosity) {
