@@ -777,7 +777,8 @@
         },
         {
           "group": "2_main@1",
-          "command": "ansible.lightspeed.playbookExplanation"
+          "command": "ansible.lightspeed.playbookExplanation",
+          "when": "redhat.ansible.lightspeedSuggestionsEnabled && editorLangId == ansible"
         }
       ],
       "explorer/context": [
