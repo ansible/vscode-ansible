@@ -4,7 +4,8 @@ import { completions } from "./completion";
 import { contentmatches } from "./contentmatches";
 import { explanations } from "./explanations";
 import { feedback, getFeedbacks } from "./feedback";
-import { generations } from "./generations";
+import { playbookGeneration } from "./playbookGeneration";
+import { roleGeneration } from "./roleGeneration";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
@@ -89,7 +90,12 @@ export default class Server {
 
     app.post(`${API_ROOT}/ai/generations`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
-      return generations(req, res);
+      return playbookGeneration(req, res);
+    });
+
+    app.post(`${API_ROOT}/ai/generations/role`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
+      return roleGeneration(req, res);
     });
 
     app.post(`${API_ROOT}/ai/explanations`, async (req, res) => {

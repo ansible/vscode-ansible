@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { logger, options, permissionDeniedCanApplyForTrial } from "./server";
 
-export function generations(
+export function playbookGeneration(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   req: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
