@@ -185,7 +185,7 @@ export class CreateAnsibleProject {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the current work in the specified directory and reset it with the Ansible project.</i></vscode-checkbox>
+                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible project.</i></vscode-checkbox>
                 </div>
 
                 <div class="group-buttons">
@@ -280,17 +280,21 @@ export class CreateAnsibleProject {
     );
   }
 
-  // Get ansible-creator version and check which command should be used
+  private async getCreatorVersion(): Promise<string> {
+    const creatorVersion = (
+      await getBinDetail("ansible-creator", "--version")
+    ).toString();
+    console.log("ansible-creator version: ", creatorVersion);
+    return creatorVersion;
+  }
+
   public async getCreatorCommand(
     namespace: string,
     collection: string,
     url: string,
   ): Promise<string> {
     let command = "";
-    const creatorVersion = (
-      await getBinDetail("ansible-creator", "--version")
-    ).toString();
-    console.log("ansible-creator version: ", creatorVersion);
+    const creatorVersion = await this.getCreatorVersion();
 
     if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
       command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
@@ -334,7 +338,7 @@ export class CreateAnsibleProject {
       logFileAppend,
       logLevel,
       verbosity,
-      isForced,
+      isOverwritten,
     } = payload;
 
     const destinationPathUrl = destinationPath
@@ -347,8 +351,13 @@ export class CreateAnsibleProject {
       destinationPathUrl,
     );
 
-    if (isForced) {
-      ansibleCreatorInitCommand += " --force";
+    const creatorVersion = await this.getCreatorVersion();
+    if (isOverwritten) {
+      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+        ansibleCreatorInitCommand += " --overwrite";
+      } else {
+        ansibleCreatorInitCommand += " --force";
+      }
     }
 
     switch (verbosity) {

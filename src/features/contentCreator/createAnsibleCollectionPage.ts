@@ -2,12 +2,14 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleCollectionFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, getBinDetail, runCommand } from "./utils";
+import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
 
 export class CreateAnsibleCollection {
   public static currentPanel: CreateAnsibleCollection | undefined;
@@ -186,7 +188,7 @@ export class CreateAnsibleCollection {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="force-checkbox" form="init-form">Force <br><i>Forcing will delete the current work in the specified directory and reset it with the Ansible collection.</i></vscode-checkbox>
+                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible collection.</i></vscode-checkbox>
                 </div>
 
                 <div class="checkbox-div">
@@ -332,6 +334,14 @@ export class CreateAnsibleCollection {
     return;
   }
 
+  private async getCreatorVersion(): Promise<string> {
+    const creatorVersion = (
+      await getBinDetail("ansible-creator", "--version")
+    ).toString();
+    console.log("ansible-creator version: ", creatorVersion);
+    return creatorVersion;
+  }
+
   public async runInitCommand(
     payload: AnsibleCollectionFormInterface,
     webView: vscode.Webview,
@@ -345,7 +355,7 @@ export class CreateAnsibleCollection {
       logFileAppend,
       logLevel,
       verbosity,
-      isForced,
+      isOverwritten,
       isEditableModeInstall,
     } = payload;
 
@@ -376,8 +386,13 @@ export class CreateAnsibleCollection {
 
     let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
 
-    if (isForced) {
-      ansibleCreatorInitCommand += " --force";
+    const creatorVersion = await this.getCreatorVersion();
+    if (isOverwritten) {
+      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+        ansibleCreatorInitCommand += " --overwrite";
+      } else {
+        ansibleCreatorInitCommand += " --force";
+      }
     }
 
     switch (verbosity) {
