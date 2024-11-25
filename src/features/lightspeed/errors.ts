@@ -184,6 +184,20 @@ ERRORS.addError(
   ),
 );
 ERRORS.addError(400, new Error("error__feedback_validation"));
+ERRORS.addError(
+  400,
+  new Error(
+    "error__wca_inference_failure",
+    "IBM watsonx Code Assistant inference failed. Please check your input and try again.",
+  ),
+);
+ERRORS.addError(
+  400,
+  new Error(
+    "error__wca_validation_failure",
+    "IBM watsonx Code Assistant failed to validate the response from the model. Please check your input and try again.",
+  ),
+);
 
 ERRORS.addError(
   403,

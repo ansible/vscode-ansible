@@ -150,6 +150,34 @@ describe("testing the error handling", () => {
     );
     assert.equal(error.message, "A field was invalid.");
   });
+
+  it("err WCA inference failure", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__wca_inference_failure",
+        message:
+          "IBM watsonx Code Assistant inference failed. Please check your input and try again.",
+      }),
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant inference failed. Please check your input and try again.",
+    );
+  });
+
+  it("err WCA validation failure", () => {
+    const error = mapError(
+      createError(400, {
+        code: "error__wca_validation_failure",
+        detail: { reason: "error 1" },
+      }),
+    );
+    assert.equal(
+      error.message,
+      "IBM watsonx Code Assistant failed to validate the response from the model. Please check your input and try again.",
+    );
+    assert.equal(error.detail, "reason: error 1");
+  });
   // =================================
 
   // =================================
