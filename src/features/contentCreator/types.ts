@@ -23,6 +23,13 @@ export type AnsibleProjectFormInterface = {
   isOverwritten: boolean;
 };
 
+export type DevfileFormInterface = {
+  destinationPath: string;
+  name: string;
+  image: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";
@@ -42,4 +49,8 @@ export type PostMessageEvent =
   | {
       command: "file-uri";
       arguments: { selectedUri: string | undefined };
+    }
+  | {
+      command: "folder-path";
+      arguments: { folder: string; ready: boolean };
     };

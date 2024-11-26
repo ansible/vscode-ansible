@@ -347,6 +347,10 @@
         "title": "Ansible: Create New Playbook Project"
       },
       {
+        "command": "ansible.content-creator.create-devfile",
+        "title": "Ansible: Create a Devfile"
+      },
+      {
         "command": "ansible.content-creator.create",
         "title": "Ansible Content Creator: Create"
       },
