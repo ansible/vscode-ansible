@@ -12,11 +12,13 @@ import {
   FeedbackRequestParams,
   FeedbackResponseParams,
   GenerationRequestParams,
-  GenerationResponseParams,
+  PlaybookGenerationResponseParams,
+  RoleGenerationResponseParams,
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_PLAYBOOK_EXPLANATION_URL,
   LIGHTSPEED_PLAYBOOK_GENERATION_URL,
+  LIGHTSPEED_ROLE_GENERATION_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
@@ -325,13 +327,13 @@ export class LightSpeedAPI {
     }
   }
 
-  public async generationRequest(
+  public async playbookGenerationRequest(
     inputData: GenerationRequestParams,
-  ): Promise<GenerationResponseParams | IError> {
+  ): Promise<PlaybookGenerationResponseParams | IError> {
     const axiosInstance = await this.getApiInstance();
     if (axiosInstance === undefined) {
       console.error("Ansible Lightspeed instance is not initialized.");
-      return {} as GenerationResponseParams;
+      return {} as PlaybookGenerationResponseParams;
     }
     try {
       const requestData = {
@@ -346,6 +348,42 @@ export class LightSpeedAPI {
       const response = await axiosInstance.post(
         LIGHTSPEED_PLAYBOOK_GENERATION_URL,
         //LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
+        requestData,
+        {
+          timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
+        },
+      );
+      return response.data;
+    } catch (error) {
+      const err = error as AxiosError;
+      const mappedError: IError = await mapError(err);
+      // Do not show trial popup for errors on content matches because either
+      // completions or generations API should have been called already.
+      return mappedError;
+    }
+  }
+
+  public async roleGenerationRequest(
+    inputData: GenerationRequestParams,
+  ): Promise<RoleGenerationResponseParams | IError> {
+    const axiosInstance = await this.getApiInstance();
+    if (axiosInstance === undefined) {
+      console.error("Ansible Lightspeed instance is not initialized.");
+      return {} as RoleGenerationResponseParams;
+    }
+    try {
+      const requestData = {
+        ...inputData,
+        metadata: { ansibleExtensionVersion: this._extensionVersion },
+      };
+      console.log(
+        `[ansible-lightspeed] Role Generation request sent to lightspeed: ${JSON.stringify(
+          requestData,
+        )}`,
+      );
+      const response = await axiosInstance.post(
+        LIGHTSPEED_ROLE_GENERATION_URL,
         requestData,
         {
           timeout: ANSIBLE_LIGHTSPEED_API_TIMEOUT,

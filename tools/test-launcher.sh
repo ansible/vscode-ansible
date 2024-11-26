@@ -6,10 +6,10 @@ set -o pipefail
 cleanup()
 {
     echo "Final clean up"
-    if [ -s out/log/express.log ]; then
-        cat out/log/express.log
-        cat out/log/mock-server.log
-    fi
+#    if [ -s out/log/express.log ]; then
+#        # cat out/log/express.log
+#        # cat out/log/mock-server.log
+#    fi
 }
 
 trap "cleanup" HUP INT ABRT BUS TERM EXIT
@@ -103,6 +103,10 @@ if [[ "$COVERAGE" == "" ]]; then
         echo "Rebuilding the vsix package (it was outdated)"
         yarn package
         vsix=$(find . -maxdepth 1 -name '*.vsix')
+    fi
+    if [ "$(find test/ui-test/ -newer out/client/test/index.d.ts)" != "" ]; then
+	echo "ui-test TypeScript files have been changed. Recompiling!"
+	yarn compile
     fi
 
     ${EXTEST} install-vsix -f "${vsix}" -e out/ext -s out/test-resources
