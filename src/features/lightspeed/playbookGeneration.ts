@@ -8,7 +8,7 @@ import { IError } from "./utils/errors";
 import { GenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
-  PlaybookGenerationActionType,
+  WizardGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
@@ -42,7 +42,7 @@ function contentMatch(generationId: string, playbook: string) {
 }
 
 async function sendActionEvent(
-  action: PlaybookGenerationActionType,
+  action: WizardGenerationActionType,
   toPage?: number,
 ) {
   if (wizardId) {
@@ -116,7 +116,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   );
 
   panel.onDidDispose(async () => {
-    await sendActionEvent(PlaybookGenerationActionType.CLOSE_CANCEL, undefined);
+    await sendActionEvent(WizardGenerationActionType.CLOSE_CANCEL, undefined);
     wizardId = undefined;
   });
 
@@ -223,14 +223,14 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
       }
       case "transition": {
         const { toPage } = message;
-        await sendActionEvent(PlaybookGenerationActionType.TRANSITION, toPage);
+        await sendActionEvent(WizardGenerationActionType.TRANSITION, toPage);
         break;
       }
       case "openEditor": {
         const { playbook } = message;
         await openNewPlaybookEditor(playbook);
         await sendActionEvent(
-          PlaybookGenerationActionType.CLOSE_ACCEPT,
+          WizardGenerationActionType.CLOSE_ACCEPT,
           undefined,
         );
         // Clear wizardId to suppress another CLOSE event at dispose()
@@ -245,7 +245,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "init" });
 
-  await sendActionEvent(PlaybookGenerationActionType.OPEN, 1);
+  await sendActionEvent(WizardGenerationActionType.OPEN, 1);
 }
 
 export function getWebviewContent(webview: Webview, extensionUri: Uri) {

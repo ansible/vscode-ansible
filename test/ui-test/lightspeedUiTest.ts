@@ -24,7 +24,7 @@ import {
   workbenchExecuteCommand,
   openSettings,
 } from "./uiTestHelper";
-import { PlaybookGenerationActionType } from "../../src/definitions/lightspeed";
+import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
@@ -433,18 +433,18 @@ export function lightspeedUIAssetsTest(): void {
 
       /* verify generated events */
       const expected = [
-        [PlaybookGenerationActionType.OPEN, undefined, 1],
-        [PlaybookGenerationActionType.TRANSITION, 1, 2],
-        [PlaybookGenerationActionType.TRANSITION, 2, 1],
-        [PlaybookGenerationActionType.TRANSITION, 1, 2],
-        [PlaybookGenerationActionType.TRANSITION, 2, 1],
-        [PlaybookGenerationActionType.TRANSITION, 1, 2],
-        [PlaybookGenerationActionType.TRANSITION, 2, 3],
-        [PlaybookGenerationActionType.TRANSITION, 3, 2],
-        [PlaybookGenerationActionType.TRANSITION, 2, 3],
-        [PlaybookGenerationActionType.TRANSITION, 3, 2],
-        [PlaybookGenerationActionType.TRANSITION, 2, 3],
-        [PlaybookGenerationActionType.CLOSE_ACCEPT, 3, undefined],
+        [WizardGenerationActionType.OPEN, undefined, 1],
+        [WizardGenerationActionType.TRANSITION, 1, 2],
+        [WizardGenerationActionType.TRANSITION, 2, 1],
+        [WizardGenerationActionType.TRANSITION, 1, 2],
+        [WizardGenerationActionType.TRANSITION, 2, 1],
+        [WizardGenerationActionType.TRANSITION, 1, 2],
+        [WizardGenerationActionType.TRANSITION, 2, 3],
+        [WizardGenerationActionType.TRANSITION, 3, 2],
+        [WizardGenerationActionType.TRANSITION, 2, 3],
+        [WizardGenerationActionType.TRANSITION, 3, 2],
+        [WizardGenerationActionType.TRANSITION, 2, 3],
+        [WizardGenerationActionType.CLOSE_ACCEPT, 3, undefined],
       ];
       const res = await axios.get(
         `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
@@ -560,10 +560,10 @@ export function lightspeedUIAssetsTest(): void {
 
       /* verify generated events */
       const expected = [
-        [PlaybookGenerationActionType.OPEN, undefined, 1],
-        [PlaybookGenerationActionType.TRANSITION, 1, 2],
-        [PlaybookGenerationActionType.TRANSITION, 2, 3],
-        [PlaybookGenerationActionType.CLOSE_ACCEPT, 3, undefined],
+        [WizardGenerationActionType.OPEN, undefined, 1],
+        [WizardGenerationActionType.TRANSITION, 1, 2],
+        [WizardGenerationActionType.TRANSITION, 2, 3],
+        [WizardGenerationActionType.CLOSE_ACCEPT, 3, undefined],
       ];
       const res = await axios.get(
         `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
