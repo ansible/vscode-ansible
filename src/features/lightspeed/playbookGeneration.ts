@@ -5,7 +5,7 @@ import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { IError } from "./utils/errors";
-import { GenerationResponseParams } from "../../interfaces/lightspeed";
+import { PlaybookGenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
   WizardGenerationActionType,
@@ -73,13 +73,13 @@ async function generatePlaybook(
   outline: string | undefined,
   generationId: string,
   panel: vscode.WebviewPanel,
-): Promise<GenerationResponseParams | IError> {
+): Promise<PlaybookGenerationResponseParams | IError> {
   try {
     panel.webview.postMessage({ command: "startSpinner" });
     const createOutline = outline === undefined;
 
-    const response: GenerationResponseParams | IError =
-      await apiInstance.generationRequest({
+    const response: PlaybookGenerationResponseParams | IError =
+      await apiInstance.playbookGenerationRequest({
         text,
         outline,
         createOutline,
@@ -134,20 +134,22 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
               undefined,
               message.generationId,
               panel,
-            ).then(async (response: GenerationResponseParams | IError) => {
-              if (isError(response)) {
-                const oneClickTrialProvider = getOneClickTrialProvider();
-                if (!(await oneClickTrialProvider.showPopup(response))) {
-                  const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
-                  vscode.window.showErrorMessage(errorMessage);
+            ).then(
+              async (response: PlaybookGenerationResponseParams | IError) => {
+                if (isError(response)) {
+                  const oneClickTrialProvider = getOneClickTrialProvider();
+                  if (!(await oneClickTrialProvider.showPopup(response))) {
+                    const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+                    vscode.window.showErrorMessage(errorMessage);
+                  }
+                } else {
+                  panel.webview.postMessage({
+                    command: "outline",
+                    outline: response,
+                  });
                 }
-              } else {
-                panel.webview.postMessage({
-                  command: "outline",
-                  outline: response,
-                });
-              }
-            });
+              },
+            );
           } else {
             panel.webview.postMessage({
               command: "outline",
