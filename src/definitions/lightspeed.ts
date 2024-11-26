@@ -24,7 +24,7 @@ export enum ThumbsUpDownAction {
   DOWN = 1, //Thumbs Down
 }
 
-export enum PlaybookGenerationActionType {
+export enum WizardGenerationActionType {
   OPEN = 0, // Open wizard
   CLOSE_CANCEL = 1, // Close wizard without accepting the generated playbook
   TRANSITION = 2, // Page transition

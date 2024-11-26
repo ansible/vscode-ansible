@@ -1,7 +1,7 @@
 import { AuthenticationSession } from "vscode";
 import {
   LIGHTSPEED_USER_TYPE,
-  PlaybookGenerationActionType,
+  WizardGenerationActionType,
   ThumbsUpDownAction,
   UserAction,
 } from "../definitions/lightspeed";
@@ -84,7 +84,7 @@ export interface PlaybookFeedbackEvent {
 
 export interface PlaybookGenerationActionEvent {
   wizardId: string;
-  action: PlaybookGenerationActionType;
+  action: WizardGenerationActionType;
   fromPage?: number;
   toPage?: number;
 }
