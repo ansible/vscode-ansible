@@ -12,6 +12,7 @@ import {
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
+import { codeToHtml } from "./utils/codeToHtml";
 import { LightSpeedAPI } from "./api";
 
 let wizardId: string | undefined;
@@ -193,20 +194,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let syntaxHighlighter: any;
-        try {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
-        } catch {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
-        }
-        const html = await syntaxHighlighter.codeToHtml(
-          playbook,
-          darkMode ? "dark-plus" : "light-plus",
-          "yaml",
-        );
+        const html = await codeToHtml(playbook, darkMode);
 
         panel.webview.postMessage({
           command: "playbook",
