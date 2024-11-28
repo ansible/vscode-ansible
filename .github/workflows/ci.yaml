@@ -280,6 +280,7 @@ jobs:
             out/log
             out/test-resources/settings/logs
             out/userdata/logs
+            out/test-resources/screenshots
           if-no-files-found: ignore
           retention-days: 90
 
