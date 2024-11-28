@@ -20,6 +20,7 @@
   "ansibleServer.trace.server": "verbose",
   "ansible.lightspeed.enabled": false,
   "ansible.lightspeed.suggestions.enabled": false,
+  "ansible.lightspeed.URL": "https://c.ai.ansible.redhat.com",
 
   "extensions.autoUpdate": false,
   "extensions.autoCheckUpdates": false,
