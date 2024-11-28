@@ -5,6 +5,10 @@ set -o pipefail
 
 cleanup()
 {
+    if [ -s out/log/express.log ]; then
+        echo "FINAL Lightspeed server log:"
+        cat out/log/express.log
+    fi
     pkill -P $$
     wait
 }
@@ -81,11 +85,30 @@ export TEST_LIGHTSPEED_URL
 export TEST_LIGHTSPEED_ACCESS_TOKEN
 export COVERAGE
 
+
+cp test/testFixtures/settings.json out/settings.json
+if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
+    sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
+fi
+
+
 if [[ "${TEST_TYPE}" == "ui" ]]; then
-    ${EXTEST} run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings test/testFixtures/settings.json out/client/test/ui-test/allTestsSuite.js
-    exit $?
+    # shellcheck disable=SC2044
+
+
+    for test_file in $(find out/client/test/ui-test/ -name '*Test.js'); do
+        echo "🧐Starting ${test_file}"
+
+        sed -i.bak "s/ansible.lightspeed.enabled": .*/ansible.lightspeed.enabled": false,/" out/settings.json
+        if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_file}"; then
+            sed -i.bak "s/ansible.lightspeed.enabled": .*,/ansible.lightspeed.enabled": true,/" out/settings.json
+            sed -i.bak "s/ansible.lightspeed.suggestions.enabled: .*,/ansible.lightspeed.suggestions.enabled: true,/" out/settings.json
+        fi
+
+        ${EXTEST} run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
+        echo "" > out/log/express.log
+    done
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
     node ./out/client/test/testRunner
-    exit $?
 fi
