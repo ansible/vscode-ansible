@@ -347,6 +347,10 @@
         "title": "Ansible: Create New Playbook Project"
       },
       {
+        "command": "ansible.content-creator.create-lookup-plugin",
+        "title": "Ansible: Create a Lookup plugin"
+      },
+      {
         "command": "ansible.content-creator.create",
         "title": "Ansible Content Creator: Create"
       },

@@ -71,6 +71,7 @@ import {
   AuthProviderType,
 } from "./features/lightspeed/lightspeedUser";
 import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
+import { CreateAnsibleLookupPlugin } from "./features/contentCreator/createLookupPluginPage";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -535,6 +536,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.create-ansible-project",
       () => {
         CreateAnsibleProject.render(context.extensionUri);
+      },
+    ),
+  );
+
+  // open web-view for creating a lookup plugin in a collection
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-lookup-plugin",
+      () => {
+        CreateAnsibleLookupPlugin.render(context.extensionUri);
       },
     ),
   );

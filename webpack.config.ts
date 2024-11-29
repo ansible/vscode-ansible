@@ -224,6 +224,20 @@ const createAnsibleProjectWebviewConfig = {
   },
 };
 
+const createLookupPluginWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/createLookupPluginPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename:
+      "./client/webview/apps/contentCreator/createLookupPluginPageApp.ts",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
@@ -241,6 +255,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     playbookExplanationWebviewConfig,
     roleGenerationWebviewConfig,
     createAnsibleProjectWebviewConfig,
+    createLookupPluginWebviewConfig,
     quickLinksWebviewConfig,
   ];
 };

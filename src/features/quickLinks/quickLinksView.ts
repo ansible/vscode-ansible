@@ -106,6 +106,13 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.content-creator.create-lookup-plugin" title="Create a lookup plugin and add to an Ansible collection.">
+                <span class="codicon codicon-new-file"></span> Lookup Plugin
+              </a>
+            </h3>
+          </div>
     </div>
     <!-- Component registration code -->
     <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
