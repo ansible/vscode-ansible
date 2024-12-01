@@ -834,29 +834,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redhat-developer/locators@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "@redhat-developer/locators@npm:1.7.0"
+"@redhat-developer/locators@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "@redhat-developer/locators@npm:1.8.0"
   peerDependencies:
     "@redhat-developer/page-objects": ">=1.0.0"
     selenium-webdriver: ">=4.6.1"
-  checksum: 10/660e365d665ef9904831293e366c9d5b85c216cef00a374b1fc3d298fc676fe8405607a0f66f140392de4545c7c0f967966f51d4a2012189d353203a7eba28ad
+  checksum: 10/7906bf2fecffd03c096e60dc736ce7ddec847bc07e5c62ff5b99377345d243c0c45fae33fc631b85959334f138e7acc87db202a217a3eb38a736cdedb0250755
   languageName: node
   linkType: hard
 
-"@redhat-developer/page-objects@npm:^1.7.0":
-  version: 1.7.0
-  resolution: "@redhat-developer/page-objects@npm:1.7.0"
+"@redhat-developer/page-objects@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "@redhat-developer/page-objects@npm:1.8.0"
   dependencies:
     clipboardy: "npm:^4.0.0"
     clone-deep: "npm:^4.0.1"
     compare-versions: "npm:^6.1.1"
     fs-extra: "npm:^11.2.0"
-    type-fest: "npm:^4.26.1"
+    type-fest: "npm:^4.27.0"
   peerDependencies:
     selenium-webdriver: ">=4.6.1"
     typescript: ">=4.6.2"
-  checksum: 10/9f854132dc3ca17a428a82d800fa1e828d7f3c56c5fbe1f1bdf785f2eb96efcbc009caee9ee9e33ef0a9c71a75e57327a423e181253e4615b4465c4973856ef7
+  checksum: 10/e702d896fec765c79cabcd8c3b4f24a8e1d338852d2b1666a080bc0c7686c53a035b057d9755936b9a2dd1efab0e0c08f8a58269c047064966cfec5b9b03efe0
   languageName: node
   linkType: hard
 
@@ -2207,7 +2207,7 @@ __metadata:
     typescript: "npm:^5.7.2"
     typescript-eslint: "npm:^8.15.0"
     uuid: "npm:^11.0.3"
-    vscode-extension-tester: "npm:^8.9.0"
+    vscode-extension-tester: "npm:^8.10.0"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.0.8"
     warnings-to-errors-webpack-plugin: "npm:^2.3.0"
@@ -4735,9 +4735,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"got@npm:^14.4.3":
-  version: 14.4.4
-  resolution: "got@npm:14.4.4"
+"got@npm:^14.4.4":
+  version: 14.4.5
+  resolution: "got@npm:14.4.5"
   dependencies:
     "@sindresorhus/is": "npm:^7.0.1"
     "@szmarczak/http-timer": "npm:^5.0.1"
@@ -4750,7 +4750,7 @@ __metadata:
     p-cancelable: "npm:^4.0.1"
     responselike: "npm:^3.0.0"
     type-fest: "npm:^4.26.1"
-  checksum: 10/18502a1b6abbf92d6ad80dd7d6baf68967df4c0b15662b9065490b7c910fd3e236f3ba81cc6d2af2fe055fe5ab75c08b0b8c97ad7721e202b1826b69a0910f57
+  checksum: 10/8570a7e495d5fe5989e4729dc2bd29ec76b90c95412e53efb1835820f8116635192f11cab80b75c99ec6ece453d0f18d50d06a87baddaa22dd9214041c2ed2af
   languageName: node
   linkType: hard
 
@@ -8953,10 +8953,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.26.1":
-  version: 4.26.1
-  resolution: "type-fest@npm:4.26.1"
-  checksum: 10/b82676194f80af228cb852e320d2ea8381c89d667d2e4d9f2bdfc8f254bccc039c7741a90c53617a4de0c9fdca8265ed18eb0888cd628f391c5c381c33a9f94b
+"type-fest@npm:^4.26.1, type-fest@npm:^4.27.0":
+  version: 4.29.0
+  resolution: "type-fest@npm:4.29.0"
+  checksum: 10/e13757fcbad2c7ee2418c4a888eb4de8f44ecabdc67f8a00b6d5c7af5f39c605154382f99f8f134f31c1f81bfbe3bf8d7e72e5129373afdb41b6b9199e74d062
   languageName: node
   linkType: hard
 
@@ -9297,12 +9297,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vscode-extension-tester@npm:^8.9.0":
-  version: 8.9.0
-  resolution: "vscode-extension-tester@npm:8.9.0"
+"vscode-extension-tester@npm:^8.10.0":
+  version: 8.10.0
+  resolution: "vscode-extension-tester@npm:8.10.0"
   dependencies:
-    "@redhat-developer/locators": "npm:^1.7.0"
-    "@redhat-developer/page-objects": "npm:^1.7.0"
+    "@redhat-developer/locators": "npm:^1.8.0"
+    "@redhat-developer/page-objects": "npm:^1.8.0"
     "@types/selenium-webdriver": "npm:^4.1.27"
     "@vscode/vsce": "npm:^3.2.1"
     c8: "npm:^10.1.2"
@@ -9311,7 +9311,7 @@ __metadata:
     find-up: "npm:7.0.0"
     fs-extra: "npm:^11.2.0"
     glob: "npm:^11.0.0"
-    got: "npm:^14.4.3"
+    got: "npm:^14.4.4"
     hpagent: "npm:^1.2.0"
     js-yaml: "npm:^4.1.0"
     sanitize-filename: "npm:^1.6.3"
@@ -9323,7 +9323,7 @@ __metadata:
     typescript: ">=4.6.2"
   bin:
     extest: out/cli.js
-  checksum: 10/552bd2d0dba7ed1d3891d142ffa59b06bc8e12669e95d74de1439f8edd3169cef7f61f11353b084462d9e094415af723abe33dde826e87445febec0c98c163c5
+  checksum: 10/ddbcd93072a54ee5cf2611a3f98aa1afa0130cdcce8c17e2f6835145d713a126d029ad8f01b2f5b576293caadb05e3eb5404c5aed8102cead736b6177d776d51
   languageName: node
   linkType: hard
 
