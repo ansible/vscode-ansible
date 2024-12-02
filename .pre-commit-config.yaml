@@ -14,6 +14,7 @@ ci:
     - codecov
     - depcheck
     - eslint
+    - compare-devfile
 exclude: >
   (?x)^(
     .config/requirements.in|
@@ -104,6 +105,12 @@ repos:
         language: system
         files: "codecov.yml"
         pass_filenames: false
+
+      - id: compare-devfile
+        name: Compare extension devfile with ansible-creator
+        entry: tools/compare_devfile.sh
+        language: script
+
   - repo: https://github.com/ScribeMD/pre-commit-hooks
     rev: 0.16.3
     hooks:
