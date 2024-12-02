@@ -155,8 +155,6 @@ export function contentCreatorUiTest(): void {
       await createDevfileButton.click();
       await sleep(1000);
 
-      await sleep(1000);
-
       const devfileClearLogsButton = await devfileWebview.findWebElement(
         By.xpath("//vscode-button[@id='clear-logs-button']"),
       );

@@ -301,15 +301,15 @@ export class CreateDevfile {
       },
     } as PostMessageEvent);
 
-    if (commandResult === "passed") {
-      const selection = await vscode.window.showInformationMessage(
-        `Devfile created at: ${destinationPathUrl}`,
-        `Open devfile ↗`,
-      );
-      if (selection === "Open devfile ↗") {
-        this.openDevfile(destinationPathUrl);
-      }
-    }
+    // if (commandResult === "passed") {
+    //   const selection = await vscode.window.showInformationMessage(
+    //     `Devfile created at: ${destinationPathUrl}`,
+    //     `Open devfile ↗`,
+    //   );
+    //   if (selection === "Open devfile ↗") {
+    //     this.openDevfile(destinationPathUrl);
+    //   }
+    // }
   }
 
   public createDevfile(
