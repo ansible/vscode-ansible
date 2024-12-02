@@ -153,9 +153,7 @@ export function contentCreatorUiTest(): void {
       );
       await overwriteDevfileCheckbox.click();
       await createDevfileButton.click();
-      await sleep(500);
-
-      await createDevfileButton.click();
+      await sleep(1000);
 
       await sleep(1000);
 
