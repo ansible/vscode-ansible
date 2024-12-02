@@ -3,6 +3,8 @@ Ansible
 Anson
 CFLAGS
 Containerfile
+Devfile
+Devfiles
 Dockal
 Dpkg
 Elio
@@ -13,6 +15,7 @@ Ganesh
 HORIZONTALLINE
 IAM
 Jenkinsfile
+KUBEDOCK
 Launay
 Maciążek
 Nalawade

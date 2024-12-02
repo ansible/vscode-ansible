@@ -1,0 +1,15 @@
+schemaVersion: 2.2.2
+metadata:
+  name: {{ dev_file_name }}
+components:
+  - name: tooling-container
+    container:
+      image: {{ dev_file_image }}
+      memoryRequest: 256M
+      memoryLimit: 6Gi
+      cpuRequest: 250m
+      cpuLimit: 2000m
+      args: ["tail", "-f", "/dev/null"]
+      env:
+        - name: KUBEDOCK_ENABLED
+          value: "true"

@@ -89,4 +89,115 @@ export function contentCreatorUiTest(): void {
       );
     });
   });
+  describe("Test devfile generation webview (without creator)", () => {
+    let workbench: Workbench;
+    let createDevfileButton: WebElement;
+    let editorView: EditorView;
+
+    before(async () => {
+      workbench = new Workbench();
+    });
+    it("Check create-devfile webview elements", async () => {
+      await workbench.executeCommand("Ansible: Create a Devfile");
+      await sleep(2000);
+
+      await new EditorView().openEditor("Create Devfile");
+      const devfileWebview = await getWebviewByLocator(
+        By.xpath("//vscode-text-field[@id='path-url']"),
+      );
+
+      const descriptionText = await (
+        await devfileWebview.findWebElement(
+          By.xpath("//div[@class='description-div']"),
+        )
+      ).getText();
+
+      expect(
+        descriptionText,
+        "descriptionText should contain 'Devfiles are yaml files'",
+      ).to.contain("Devfiles are yaml files");
+
+      const devfileDestination = await devfileWebview.findWebElement(
+        By.xpath("//vscode-text-field[@id='path-url']"),
+      );
+
+      expect(devfileDestination, "devfileDestination should not be undefined")
+        .not.to.be.undefined;
+
+      await devfileDestination.sendKeys("~");
+
+      const devfileNameTextField = await devfileWebview.findWebElement(
+        By.xpath("//vscode-text-field[@id='devfile-name']"),
+      );
+
+      expect(
+        devfileNameTextField,
+        "devfileNameTextField should not be undefined",
+      ).not.to.be.undefined;
+
+      await devfileNameTextField.sendKeys("test");
+
+      createDevfileButton = await devfileWebview.findWebElement(
+        By.xpath("//vscode-button[@id='create-button']"),
+      );
+      expect(createDevfileButton, "createDevfileButton should not be undefined")
+        .not.to.be.undefined;
+
+      expect(
+        await createDevfileButton.isEnabled(),
+        "createDevfileButton button should be enabled now",
+      ).to.be.true;
+
+      const overwriteDevfileCheckbox = await devfileWebview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+      );
+      await overwriteDevfileCheckbox.click();
+      await createDevfileButton.click();
+      await sleep(500);
+
+      await createDevfileButton.click();
+
+      await sleep(1000);
+
+      const devfileClearLogsButton = await devfileWebview.findWebElement(
+        By.xpath("//vscode-button[@id='clear-logs-button']"),
+      );
+
+      expect(
+        devfileClearLogsButton,
+        "devfileClearLogsButton should not be undefined",
+      ).not.to.be.undefined;
+
+      await devfileClearLogsButton.click();
+
+      const resetButton = await devfileWebview.findWebElement(
+        By.xpath("//vscode-button[@id='reset-button']"),
+      );
+
+      expect(resetButton, "resetButton should not be undefined").not.to.be
+        .undefined;
+
+      await resetButton.click();
+
+      // Check that the devfile can't be generated if the dir doesn't exist
+      await devfileDestination.sendKeys("~/test");
+      await devfileNameTextField.sendKeys("test");
+      await createDevfileButton.click();
+      await resetButton.click();
+      await sleep(1000);
+
+      // Check that the devfile can't be generated if it already exists
+      await devfileDestination.sendKeys("~");
+      await devfileNameTextField.sendKeys("test");
+      await createDevfileButton.click();
+      await sleep(1000);
+
+      await devfileWebview.switchBack();
+
+      editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
+    });
+  });
 }

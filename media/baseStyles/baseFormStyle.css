@@ -18,6 +18,16 @@ body {
     margin: 25px 0px 50px;
 }
 
+.title-description-div {
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: column nowrap;
+    width: 100%;
+    max-width: 650px;
+    text-align: left;
+    margin: 25px 0px 40px;
+}
+
 h1 {
     border: none;
     font-size: 2.7em;
