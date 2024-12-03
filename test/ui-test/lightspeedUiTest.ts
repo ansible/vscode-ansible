@@ -168,7 +168,6 @@ export function lightspeedUIAssetsTest(): void {
     let outlineList: WebElement;
     let resetButton: WebElement;
     let adtView: ViewSection;
-    let webView: WebView;
     let webviewView: InstanceType<typeof WebviewView>;
 
     before(async function () {
@@ -198,23 +197,6 @@ export function lightspeedUIAssetsTest(): void {
         // await sleep(500); // Needed?
       }
     });
-
-    async function handleResetOutlineDialog(title: string = "Ok") {
-      await webView.switchBack();
-      const resetOutlineDialog = new ModalDialog();
-      await resetOutlineDialog.pushButton(title);
-      await sleep(250);
-      // Sadly we need to switch context and so we must reload the WebView elements
-      webView = await getWebviewByLocator(
-        By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
-      );
-      outlineList = await webView.findWebElement(
-        By.xpath("//ol[@id='outline-list']"),
-      );
-      resetButton = await webView.findWebElement(
-        By.xpath("//vscode-button[@id='reset-button']"),
-      );
-    }
 
     it("Playbook generation webview works as expected (full path) - part 1", async function () {
       // Open Ansible Development Tools by clicking the Getting started button on the side bar
@@ -264,7 +246,7 @@ export function lightspeedUIAssetsTest(): void {
       await sleep(2000);
 
       // Start operations on Playbook Generation UI
-      webView = await getWebviewByLocator(
+      const webView = await getWebviewByLocator(
         By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
       );
 
@@ -318,10 +300,6 @@ export function lightspeedUIAssetsTest(): void {
         .undefined;
       await resetButton.click();
       await sleep(500);
-
-      // Confirm reset of Outline
-      await handleResetOutlineDialog();
-
       text = await outlineList.getText();
       expect(!text.includes("# COMMENT\n"));
 
@@ -384,10 +362,6 @@ export function lightspeedUIAssetsTest(): void {
       // Click reset button and make sure the string "(status=400)" is removed
       await resetButton.click();
       await sleep(500);
-
-      // Confirm reset of Outline
-      await handleResetOutlineDialog();
-
       text = await outlineList.getText();
       expect(!text.includes("(status=400)"));
 
@@ -602,80 +576,6 @@ export function lightspeedUIAssetsTest(): void {
         expect(evt.fromPage).equals(expected[i][1]);
         expect(evt.toPage).equals(expected[i][2]);
       }
-    });
-
-    it("Playbook generation (outline reset)", async function () {
-      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
-      if (!process.env.TEST_LIGHTSPEED_URL) {
-        this.skip();
-      }
-
-      // Open playbook generation webview.
-      await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-      await sleep(2000);
-      const webView = await getWebviewByLocator(
-        By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
-      );
-
-      // Set input text and invoke summaries API
-      const textArea = await webView.findWebElement(
-        By.xpath("//vscode-text-area"),
-      );
-      expect(textArea, "textArea should not be undefined").not.to.be.undefined;
-      const submitButton = await webView.findWebElement(
-        By.xpath("//vscode-button[@id='submit-button']"),
-      );
-      expect(submitButton, "submitButton should not be undefined").not.to.be
-        .undefined;
-      //
-      // Note: Following line should succeed, but fails for some unknown reasons.
-      //
-      // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
-      await textArea.sendKeys("Create an azure network.");
-      expect(
-        await submitButton.isEnabled(),
-        "submit button should be enabled now",
-      ).to.be.true;
-      await submitButton.click();
-      await sleep(1000);
-
-      // Verify outline output and text edit
-      const outlineList = await webView.findWebElement(
-        By.xpath("//ol[@id='outline-list']"),
-      );
-      expect(outlineList, "An ordered list should exist.").to.be.not.undefined;
-      let text = await outlineList.getText();
-      expect(text.includes("Create virtual network peering")).to.be.true;
-
-      // Test Reset button
-      await outlineList.sendKeys("# COMMENT\n");
-      text = await outlineList.getText();
-      expect(text.includes("# COMMENT\n"));
-
-      resetButton = await webView.findWebElement(
-        By.xpath("//vscode-button[@id='reset-button']"),
-      );
-      expect(resetButton, "resetButton should not be undefined").not.to.be
-        .undefined;
-      expect(
-        await resetButton.isEnabled(),
-        "submit button should be enabled now",
-      ).to.be.true;
-
-      await resetButton.click();
-      await sleep(500);
-
-      // Cancel reset of Outline
-      await handleResetOutlineDialog("Cancel");
-
-      text = await outlineList.getText();
-      expect(text.includes("# COMMENT\n"));
-      expect(
-        await resetButton.isEnabled(),
-        "submit button should be enabled now",
-      ).to.be.true;
-
-      await workbenchExecuteCommand("View: Close All Editor Groups");
     });
 
     it("Playbook generation webview works as expected (feature unavailable)", async function () {
