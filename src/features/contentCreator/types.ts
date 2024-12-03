@@ -23,6 +23,17 @@ export type AnsibleProjectFormInterface = {
   isOverwritten: boolean;
 };
 
+export type FilterPluginInterface = {
+  pluginName: string;
+  collectionPath: string;
+  verbosity: string;
+  logToFile: boolean;
+  logFilePath: string;
+  logFileAppend: boolean;
+  logLevel: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";
