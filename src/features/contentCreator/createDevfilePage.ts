@@ -9,6 +9,7 @@ import * as fs from "fs";
 import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
 import { randomUUID } from "crypto";
+import { DevfileImages } from "../../definitions/constants";
 
 export class CreateDevfile {
   public static currentPanel: CreateDevfile | undefined;
@@ -142,7 +143,7 @@ export class CreateDevfile {
                   <div class="dropdown-container">
                     <label for="image-dropdown">Container image</label>
                     <vscode-dropdown id="image-dropdown">
-                      <vscode-option>ghcr.io/ansible/ansible-workspace-env-reference:latest</vscode-option>
+                      <vscode-option>Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)</vscode-option>
                     </vscode-dropdown>
                   </div>
                 </div>
@@ -253,6 +254,11 @@ export class CreateDevfile {
     return folder;
   }
 
+  public getContainerImage(dropdownImage: string) {
+    const image = dropdownImage.split(" ")[0]; // Splits on the space after the name (e.g "Upstream (image)")
+    return DevfileImages[image as keyof typeof DevfileImages];
+  }
+
   public async runDevfileCreateProcess(
     payload: DevfileFormInterface,
     webView: vscode.Webview,
@@ -269,6 +275,8 @@ export class CreateDevfile {
 
     const devfileExists = fs.existsSync(expandPath(destinationPathUrl));
 
+    const imageURL = this.getContainerImage(image);
+
     if (devfileExists && !isOverwritten) {
       message = `Error: Devfile already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
       commandResult = "failed";
@@ -276,7 +284,7 @@ export class CreateDevfile {
       commandResult = this.createDevfile(
         destinationPathUrl,
         name,
-        image,
+        imageURL,
         extensionUri,
       );
       if (commandResult === "failed") {
