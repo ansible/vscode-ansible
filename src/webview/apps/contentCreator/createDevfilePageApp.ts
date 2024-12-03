@@ -166,7 +166,7 @@ function handleResetClick() {
 
   overwriteCheckbox.checked = false;
   imageDropdown.currentValue =
-    "ghcr.io/ansible/ansible-workspace-env-reference:latest";
+    "Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)";
 
   devfileCreateButton.disabled = true;
 }
