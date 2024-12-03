@@ -238,25 +238,6 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
         panel.dispose();
         break;
       }
-      case "resetOutline": {
-        vscode.window
-          .showInformationMessage(
-            "Are you sure?",
-            {
-              modal: true,
-              detail: "Resetting the outline will loose your changes.",
-            },
-            "Ok",
-          )
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          .then((value: any) => {
-            if (value === "Ok") {
-              panel.webview.postMessage({
-                command: "resetOutline",
-              });
-            }
-          });
-      }
     }
   });
 
