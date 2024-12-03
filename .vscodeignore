@@ -23,6 +23,7 @@
 !media/contentCreator/icons/ansible-logo-red.png
 !media/contentCreator/createAnsibleCollectionPageStyle.css
 !media/contentCreator/createAnsibleProjectPageStyle.css
+!media/contentCreator/createDevfilePageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
 !media/welcomePage/lightspeed.png
@@ -39,6 +40,7 @@
 !out/client/webview/apps/contentCreator/welcomePageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
+!out/client/webview/apps/contentCreator/createDevfilePageApp.js
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/server/src/server.js
 !package.json
@@ -73,3 +75,6 @@
 !media/walkthroughs/startAutomatingPlaybook/learning.png
 !media/walkthroughs/startAutomatingPlaybook/open-folder.png
 !media/walkthroughs/startAutomatingPlaybook/playbook-project.md
+
+# resources
+!resources/contentCreator/createDevfile/devfile-template.txt
