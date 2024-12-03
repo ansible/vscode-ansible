@@ -961,7 +961,7 @@
     "globals": "^15.13.0",
     "jsdom": "^25.0.1",
     "lodash": "^4.17.21",
-    "mocha": "^10.8.2",
+    "mocha": "^11.0.1",
     "mochawesome": "^7.1.3",
     "mochawesome-report-generator": "^6.2.0",
     "morgan": "^1.10.0",
