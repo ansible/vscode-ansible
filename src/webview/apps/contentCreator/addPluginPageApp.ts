@@ -10,7 +10,7 @@ import {
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
 import {
-  FilterPluginInterface,
+  PluginInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
 
@@ -51,7 +51,7 @@ let logFileUrl = "";
 let projectUrl = "";
 
 function main() {
-  // elements for scaffolding ansible filter plugin interface
+  // elements for scaffolding ansible plugin interface
   pluginNameTextField = document.getElementById("plugin-name") as TextField;
 
   collectionPathUrlTextField = document.getElementById("path-url") as TextField;
@@ -221,7 +221,7 @@ function handleInitCreateClick() {
       logFileAppend: logFileAppendCheckbox.checked,
       logLevel: logLevelDropdown.currentValue.trim(),
       isOverwritten: overwriteCheckbox.checked,
-    } as FilterPluginInterface,
+    } as PluginInterface,
   });
 
   window.addEventListener(

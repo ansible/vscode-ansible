@@ -23,7 +23,7 @@ export type AnsibleProjectFormInterface = {
   isOverwritten: boolean;
 };
 
-export type FilterPluginInterface = {
+export type PluginInterface = {
   pluginName: string;
   collectionPath: string;
   verbosity: string;

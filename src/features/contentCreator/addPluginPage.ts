@@ -5,14 +5,14 @@ import * as os from "os";
 import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { FilterPluginInterface, PostMessageEvent } from "./types";
+import { PluginInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, getBinDetail, runCommand } from "./utils";
 import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
 
-export class AddFilterPlugin {
-  public static currentPanel: AddFilterPlugin | undefined;
+export class AddPlugin {
+  public static currentPanel: AddPlugin | undefined;
   private readonly _panel: vscode.WebviewPanel;
   private _disposables: vscode.Disposable[] = [];
   public static readonly viewType = "CreateProject";
@@ -34,11 +34,11 @@ export class AddFilterPlugin {
   }
 
   public static render(extensionUri: vscode.Uri) {
-    if (AddFilterPlugin.currentPanel) {
-      AddFilterPlugin.currentPanel._panel.reveal(vscode.ViewColumn.One);
+    if (AddPlugin.currentPanel) {
+      AddPlugin.currentPanel._panel.reveal(vscode.ViewColumn.One);
     } else {
       const panel = vscode.window.createWebviewPanel(
-        "add-filter-plugin",
+        "add-plugin",
         "Add Plugin",
         vscode.ViewColumn.One,
         {
@@ -52,12 +52,12 @@ export class AddFilterPlugin {
         },
       );
 
-      AddFilterPlugin.currentPanel = new AddFilterPlugin(panel, extensionUri);
+      AddPlugin.currentPanel = new AddPlugin(panel, extensionUri);
     }
   }
 
   public dispose() {
-    AddFilterPlugin.currentPanel = undefined;
+    AddPlugin.currentPanel = undefined;
 
     this._panel.dispose();
 
@@ -79,14 +79,14 @@ export class AddFilterPlugin {
       "webview",
       "apps",
       "contentCreator",
-      "AddFilterPluginPageApp.js",
+      "AddPluginPageApp.js",
     ]);
 
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
       "contentCreator",
-      "AddFilterPluginPageStyle.css",
+      "AddPluginPageStyle.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [
@@ -259,7 +259,7 @@ export class AddFilterPlugin {
             return;
           }
           case "init-create":
-            payload = message.payload as FilterPluginInterface;
+            payload = message.payload as PluginInterface;
             await this.runAddCommand(payload, webview);
             return;
 
@@ -301,7 +301,7 @@ export class AddFilterPlugin {
   ): Promise<string> {
     let command = "";
 
-    command = `ansible-creator add plugin filter ${pluginName} ${url} --no-ansi`;
+    command = `ansible-creator add plugin plugin_type ${pluginName} ${url} --no-ansi`;
     return command;
   }
 
@@ -327,7 +327,7 @@ export class AddFilterPlugin {
   }
 
   public async runAddCommand(
-    payload: FilterPluginInterface,
+    payload: PluginInterface,
     webView: vscode.Webview,
   ) {
     const {
@@ -425,7 +425,7 @@ export class AddFilterPlugin {
 
     if (commandPassed === "passed") {
       const selection = await vscode.window.showInformationMessage(
-        `Filter plugin added at: ${destinationPathUrl}`,
+        `Plugin added at: ${destinationPathUrl}`,
         `Open playbook project ↗`,
       );
       if (selection === "Open playbook project ↗") {

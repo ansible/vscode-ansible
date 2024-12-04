@@ -224,14 +224,14 @@ const createAnsibleProjectWebviewConfig = {
   },
 };
 
-const addFilterPluginWebviewConfig = {
+const addPluginWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/addFilterPluginPageApp.ts",
+  entry: "./src/webview/apps/contentCreator/addPluginPageApp.ts",
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/addFilterPluginPageApp.js",
+    filename: "./client/webview/apps/contentCreator/addPluginPageApp.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
@@ -254,7 +254,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     playbookExplanationWebviewConfig,
     roleGenerationWebviewConfig,
     createAnsibleProjectWebviewConfig,
-    addFilterPluginWebviewConfig,
+    addPluginWebviewConfig,
     quickLinksWebviewConfig,
   ];
 };

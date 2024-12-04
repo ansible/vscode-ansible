@@ -347,8 +347,8 @@
         "title": "Ansible: Create New Playbook Project"
       },
       {
-        "command": "ansible.content-creator.add-filter-plugin",
-        "title": "Ansible: Add a Filter Plugin"
+        "command": "ansible.content-creator.add-plugin",
+        "title": "Ansible: Add a Plugin"
       },
       {
         "command": "ansible.content-creator.create",
