@@ -132,6 +132,17 @@ export class AddFilterPlugin {
                 <vscode-text-field id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512">Plugin name *</vscode-text-field>
                 </div>
 
+                <div class="verbose-div">
+                  <div class="dropdown-container">
+                    <label for="verbosity-dropdown">Plugin Type *</label>
+                    <vscode-dropdown id="verbosity-dropdown">
+                      <vscode-option>Filter</vscode-option>
+                      <vscode-option>Lookup</vscode-option>
+                      <vscode-option>Action</vscode-option>
+                    </vscode-dropdown>
+                  </div>
+                </div>
+
                 <div id="full-collection-path" class="full-collection-path">
                   <p>Project path:&nbsp</p>
                 </div>
