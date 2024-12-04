@@ -232,7 +232,7 @@ const createLookupPluginWebviewConfig = {
   output: {
     path: path.resolve(__dirname, "out"),
     filename:
-      "./client/webview/apps/contentCreator/createLookupPluginPageApp.ts",
+      "./client/webview/apps/contentCreator/createLookupPluginPageApp.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
