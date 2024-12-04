@@ -71,7 +71,6 @@ function main() {
   folderExplorerButton.addEventListener("click", openFolderExplorer);
 
   devfileCreateButton.addEventListener("click", handleCreateClick);
-  devfileCreateButton.disabled = true;
 
   devfileClearButton.addEventListener("click", handleResetClick);
 
@@ -96,6 +95,15 @@ function main() {
   destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
 
   devfileNameTextField.value = devfileNameTextField.placeholder;
+
+  if (
+    devfileNameTextField.value.trim() &&
+    destinationPathUrlTextField.value.trim()
+  ) {
+    devfileCreateButton.disabled = false;
+  } else {
+    devfileCreateButton.disabled = true;
+  }
 
   devfilePathDiv?.appendChild(devfilePathElement);
 }
@@ -146,8 +154,7 @@ function toggleCreateButton() {
 
   if (
     devfileNameTextField.value.trim() &&
-    (destinationPathUrlTextField.value.trim() ||
-      destinationPathUrlTextField.placeholder !== "")
+    destinationPathUrlTextField.value.trim()
   ) {
     devfileCreateButton.disabled = false;
   } else {
@@ -157,7 +164,7 @@ function toggleCreateButton() {
 
 function handleResetClick() {
   destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
-  devfileNameTextField.value = "";
+  devfileNameTextField.value = devfileNameTextField.placeholder;
 
   if (destinationPathUrlTextField.placeholder !== "") {
     devfilePathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devfile.yaml`;
@@ -170,7 +177,14 @@ function handleResetClick() {
   imageDropdown.currentValue =
     "Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)";
 
-  devfileCreateButton.disabled = true;
+  if (
+    devfileNameTextField.value.trim() &&
+    destinationPathUrlTextField.value.trim()
+  ) {
+    devfileCreateButton.disabled = false;
+  } else {
+    devfileCreateButton.disabled = true;
+  }
 }
 
 function handleCreateClick() {
