@@ -95,6 +95,8 @@ function main() {
 
   destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
 
+  devfileNameTextField.value = devfileNameTextField.placeholder;
+
   devfilePathDiv?.appendChild(devfilePathElement);
 }
 
