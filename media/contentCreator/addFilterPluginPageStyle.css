@@ -9,26 +9,6 @@
     margin-bottom: 14px;
 }
 
-h3 {
-    border: none;
-    font-size: 1.1em;
-    font-style: normal;
-    font-weight: normal;
-    margin: 0;
-    color: var(--vscode-foreground);
-    white-space: wrap;
-}
-
-.description-div {
-    box-sizing: border-box;
-    display: flex;
-    flex-flow: column nowrap;
-    width: 100%;
-    max-width: 650px;
-    text-align: left;
-    margin: 0px 0px 40px;
-}
-
 vscode-text-field {
     margin-top: 6px;
     margin-bottom: 6px;
@@ -39,14 +19,14 @@ vscode-text-area {
     margin-bottom: 6px;
 }
 
-.devfile-name-div {
+.plugin-name-div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
 }
 
-#devfile-name {
+#plugin-name {
     width:49%;
     display:inline-block;
 }
@@ -59,7 +39,7 @@ vscode-text-area {
     width: 100%;
 }
 
-.image-div {
+.verbose-div {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
     margin-top: 12px;
@@ -68,10 +48,10 @@ vscode-text-area {
 }
 
 vscode-dropdown {
-    width: 400px;
+    width: 200px;
 }
 
-.full-devfile-path {
+.full-collection-path {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
     color: var(--vscode-descriptionForeground);

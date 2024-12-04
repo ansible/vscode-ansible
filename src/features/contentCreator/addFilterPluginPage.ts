@@ -5,7 +5,7 @@ import * as os from "os";
 import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { AnsibleProjectFormInterface, PostMessageEvent } from "./types";
+import { FilterPluginInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, getBinDetail, runCommand } from "./utils";
@@ -39,7 +39,7 @@ export class AddFilterPlugin {
     } else {
       const panel = vscode.window.createWebviewPanel(
         "add-filter-plugin",
-        "Add Filter Plugin",
+        "Add Plugin",
         vscode.ViewColumn.One,
         {
           enableScripts: true,
@@ -112,7 +112,7 @@ export class AddFilterPlugin {
 
         <body>
             <div class="title-div">
-              <h1>Add a filter plugin</h1>
+              <h1>Add plugins to your existing Collection</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 
@@ -128,9 +128,8 @@ export class AddFilterPlugin {
                   </section>
                 </vscode-text-field>
 
-                <div class="playbook-project-div">
-                <vscode-text-field id="namespace-name" form="init-form" placeholder="Enter namespace name" size="512">Namespace *</vscode-text-field>
-                <vscode-text-field id="collection-name" form="init-form" placeholder="Enter collection name" size="512">Collection *</vscode-text-field>
+                <div class="plugin-name-div">
+                <vscode-text-field id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512">Plugin name *</vscode-text-field>
                 </div>
 
                 <div id="full-collection-path" class="full-collection-path">
@@ -249,8 +248,8 @@ export class AddFilterPlugin {
             return;
           }
           case "init-create":
-            payload = message.payload as AnsibleProjectFormInterface;
-            await this.runInitCommand(payload, webview);
+            payload = message.payload as FilterPluginInterface;
+            await this.runAddCommand(payload, webview);
             return;
 
           case "init-copy-logs":
@@ -286,18 +285,12 @@ export class AddFilterPlugin {
   }
 
   public async getCreatorCommand(
-    namespace: string,
-    collection: string,
+    pluginName: string,
     url: string,
   ): Promise<string> {
     let command = "";
-    const creatorVersion = await this.getCreatorVersion();
 
-    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-      command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
-    } else {
-      command = `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
-    }
+    command = `ansible-creator add plugin filter ${pluginName} ${url} --no-ansi`;
     return command;
   }
 
@@ -322,14 +315,13 @@ export class AddFilterPlugin {
     return selectedUri;
   }
 
-  public async runInitCommand(
-    payload: AnsibleProjectFormInterface,
+  public async runAddCommand(
+    payload: FilterPluginInterface,
     webView: vscode.Webview,
   ) {
     const {
-      destinationPath,
-      namespaceName,
-      collectionName,
+      pluginName,
+      collectionPath,
       logToFile,
       logFilePath,
       logFileAppend,
@@ -338,37 +330,36 @@ export class AddFilterPlugin {
       isOverwritten,
     } = payload;
 
-    const destinationPathUrl = destinationPath
-      ? destinationPath
-      : `${os.homedir()}/${namespaceName}-${collectionName}`;
+    const destinationPathUrl = collectionPath
+      ? collectionPath
+      : `${os.homedir()}/${collectionPath}`;
 
-    let ansibleCreatorInitCommand = await this.getCreatorCommand(
-      namespaceName,
-      collectionName,
+    let ansibleCreatorAddCommand = await this.getCreatorCommand(
+      pluginName,
       destinationPathUrl,
     );
 
     const creatorVersion = await this.getCreatorVersion();
     if (isOverwritten) {
       if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-        ansibleCreatorInitCommand += " --overwrite";
+        ansibleCreatorAddCommand += " --overwrite";
       } else {
-        ansibleCreatorInitCommand += " --force";
+        ansibleCreatorAddCommand += " --force";
       }
     }
 
     switch (verbosity) {
       case "Off":
-        ansibleCreatorInitCommand += "";
+        ansibleCreatorAddCommand += "";
         break;
       case "Low":
-        ansibleCreatorInitCommand += " -v";
+        ansibleCreatorAddCommand += " -v";
         break;
       case "Medium":
-        ansibleCreatorInitCommand += " -vv";
+        ansibleCreatorAddCommand += " -vv";
         break;
       case "High":
-        ansibleCreatorInitCommand += " -vvv";
+        ansibleCreatorAddCommand += " -vvv";
         break;
     }
 
@@ -381,25 +372,25 @@ export class AddFilterPlugin {
         logFilePathUrl = `${os.tmpdir()}/ansible-creator.log`;
       }
 
-      ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
+      ansibleCreatorAddCommand += ` --lf=${logFilePathUrl}`;
 
-      ansibleCreatorInitCommand += ` --ll=${logLevel.toLowerCase()}`;
+      ansibleCreatorAddCommand += ` --ll=${logLevel.toLowerCase()}`;
 
       if (logFileAppend) {
-        ansibleCreatorInitCommand += ` --la=true`;
+        ansibleCreatorAddCommand += ` --la=true`;
       } else {
-        ansibleCreatorInitCommand += ` --la=false`;
+        ansibleCreatorAddCommand += ` --la=false`;
       }
     }
 
-    console.debug("[ansible-creator] command: ", ansibleCreatorInitCommand);
+    console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
 
     const extSettings = new SettingsManager();
     await extSettings.initialize();
 
     const { command, env } = withInterpreter(
       extSettings.settings,
-      ansibleCreatorInitCommand,
+      ansibleCreatorAddCommand,
       "",
     );
 
@@ -423,7 +414,7 @@ export class AddFilterPlugin {
 
     if (commandPassed === "passed") {
       const selection = await vscode.window.showInformationMessage(
-        `Ansible playbook project created at: ${destinationPathUrl}`,
+        `Filter plugin added at: ${destinationPathUrl}`,
         `Open playbook project ↗`,
       );
       if (selection === "Open playbook project ↗") {

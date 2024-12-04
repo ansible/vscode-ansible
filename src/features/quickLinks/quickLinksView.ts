@@ -108,8 +108,8 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.content-creator.add-filter-plugin" title="Add a filter plugin to your existing Ansible collection">
-                <span class="codicon codicon-new-file"></span> Filter Plugin
+              <a href="command:ansible.content-creator.add-filter-plugin" title="Add plugins">
+                <span class="codicon codicon-new-file"></span> Plugins
               </a>
             </h3>
           </div>

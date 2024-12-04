@@ -51,7 +51,7 @@ let logFileUrl = "";
 let projectUrl = "";
 
 function main() {
-  // elements for scaffolding ansible lookup plugin interface
+  // elements for scaffolding ansible filter plugin interface
   pluginNameTextField = document.getElementById("plugin-name") as TextField;
 
   collectionPathUrlTextField = document.getElementById("path-url") as TextField;
@@ -174,7 +174,7 @@ function toggleCreateButton() {
   if (!collectionPathUrlTextField.value.trim()) {
     initCollectionPathElement.innerHTML = `${
       collectionPathUrlTextField.placeholder
-    }/plugins/lookup/${pluginNameTextField.value.trim()}`;
+    }/plugins/filter/${pluginNameTextField.value.trim()}`;
 
     if (!pluginNameTextField.value.trim()) {
       initCollectionPathElement.innerHTML =
