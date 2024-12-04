@@ -117,6 +117,7 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
             <h3>
               <a href="command:ansible.content-creator.create-devfile" title="Create a devfile and add it to an existing Ansible project">
                 <span class="codicon codicon-new-file"></span> Devfile
+                <span class="new-badge">NEW</span>
               </a>
             </h3>
           </div>
