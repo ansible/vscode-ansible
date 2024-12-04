@@ -23,6 +23,13 @@ export type AnsibleProjectFormInterface = {
   isOverwritten: boolean;
 };
 
+export type DevfileFormInterface = {
+  destinationPath: string;
+  name: string;
+  image: string;
+  isOverwritten: boolean;
+};
+
 export type PluginInterface = {
   pluginName: string;
   collectionPath: string;

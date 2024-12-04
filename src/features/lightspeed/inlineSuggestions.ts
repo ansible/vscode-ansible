@@ -25,6 +25,10 @@ import {
   shouldRequestInlineSuggestions,
   shouldTriggerMultiTaskSuggestion,
 } from "./utils/data";
+import {
+  shouldRequestForPromptPosition,
+  getContentWithMultiLinePromptForMultiTasksSuggestions,
+} from "./utils/multiLinePromptForMultiTasks";
 import { IAnsibleFileType } from "../../interfaces/lightspeed";
 import { getAnsibleFileType } from "../utils/ansible";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
@@ -350,9 +354,13 @@ async function requestSuggestion(
     inlineSuggestionData["documentUri"] = documentInfo.documentUri;
     inlineSuggestionData["activityId"] = activityId;
 
+    const promptContent = getContentWithMultiLinePromptForMultiTasksSuggestions(
+      documentInfo.documentContent,
+    );
+
     lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
     return await requestInlineSuggest(
-      documentInfo.documentContent,
+      promptContent,
       documentInfo.parsedAnsibleDocument,
       documentInfo.documentUri,
       activityId,
@@ -665,16 +673,20 @@ async function getInlineSuggestionState(
 
   const documentInfo = loadFile(inlinePosition);
   const hasValidPrompt: boolean =
-    shouldTriggerMultiTaskSuggestion(
+    shouldRequestForPromptPosition(
+      documentInfo.documentContent,
+      inlinePosition.position.line,
+    ) &&
+    (shouldTriggerMultiTaskSuggestion(
       documentInfo.documentContent,
       suggestionMatchInfo.spacesBeforePromptStart,
       inlinePosition.position.line,
       documentInfo.ansibleFileType,
     ) ||
-    shouldRequestInlineSuggestions(
-      documentInfo.parsedAnsibleDocument,
-      documentInfo.ansibleFileType,
-    );
+      shouldRequestInlineSuggestions(
+        documentInfo.parsedAnsibleDocument,
+        documentInfo.ansibleFileType,
+      ));
 
   if (!hasValidPrompt) {
     return InlineSuggestionState.ShouldNotTriggerSuggestion;
