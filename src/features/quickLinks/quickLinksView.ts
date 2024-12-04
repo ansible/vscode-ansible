@@ -73,6 +73,13 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.extension-settings.open" title="Ansible extension settings">
+                <span class="codicon codicon-settings-gear"></span> Settings
+              </a>
+            </h3>
+          </div>
         <h3>INITIALIZE</h3>
         <p>Initialize a new Ansible project</p>
           <div class="catalogue">
