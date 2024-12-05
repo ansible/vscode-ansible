@@ -113,7 +113,7 @@ export class AddPlugin {
         <body>
             <div class="title-div">
               <h1>Add a plugin to an existing collection</h1>
-              <p class="subtitle">Streamlining automation</p>
+              <p class="subtitle">Extending automation with python</p>
             </div>
 
             <form id="init-form">
@@ -134,11 +134,10 @@ export class AddPlugin {
 
                 <div class="verbose-div">
                   <div class="dropdown-container">
-                    <label for="verbosity-dropdown">Plugin Type *</label>
+                    <label for="verbosity-dropdown">Plugin type *</label>
                     <vscode-dropdown id="verbosity-dropdown">
-                      <vscode-option>Filter</vscode-option>
-                      <vscode-option>Lookup</vscode-option>
-                      <vscode-option>Action</vscode-option>
+                      <vscode-option>Filter (data manipulation)</vscode-option>
+                      <vscode-option>Lookup (access external data)</vscode-option>
                     </vscode-dropdown>
                   </div>
                 </div>
@@ -149,7 +148,7 @@ export class AddPlugin {
 
                 <div class="verbose-div">
                   <div class="dropdown-container">
-                    <label for="verbosity-dropdown">Output Verbosity</label>
+                    <label for="verbosity-dropdown">Output verbosity</label>
                     <vscode-dropdown id="verbosity-dropdown">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
@@ -192,7 +191,7 @@ export class AddPlugin {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible project.</i></vscode-checkbox>
+                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will replace an existing plugin with the same name if present in the collection.</i></vscode-checkbox>
                 </div>
 
                 <div class="group-buttons">
@@ -226,8 +225,8 @@ export class AddPlugin {
                     &nbsp; Open Log File
                   </vscode-button>
                   <vscode-button id="open-folder-button" form="init-form" disabled>
-                    <span class="codicon codicon-folder-active"></span>
-                    &nbsp; Open Project
+                    <span class="codicon codicon-go-to-file"></span>
+                    &nbsp; Open Plugin
                   </vscode-button>
                 </div>
               </section>
