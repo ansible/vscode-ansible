@@ -65,7 +65,10 @@ export class CreateDevcontainer {
         },
       );
 
-      CreateDevcontainer.currentPanel = new CreateDevcontainer(panel, extensionUri);
+      CreateDevcontainer.currentPanel = new CreateDevcontainer(
+        panel,
+        extensionUri,
+      );
     }
   }
 
@@ -218,7 +221,11 @@ export class CreateDevcontainer {
           }
           case "devcontainer-create":
             payload = message.payload as DevcontainerFormInterface;
-            await this.runDevcontainerCreateProcess(payload, webview, extensionUri);
+            await this.runDevcontainerCreateProcess(
+              payload,
+              webview,
+              extensionUri,
+            );
             return;
 
           case "open-devcontainer":
@@ -350,8 +357,14 @@ export class CreateDevcontainer {
 
     try {
       devcontainer = fs.readFileSync(absoluteTemplatePath, "utf8");
-      devcontainer = devcontainer.replace("{{ dev_file_name }}", fullDevcontainerName);
-      devcontainer = devcontainer.replace("{{ dev_file_image }}", devcontainerImage);
+      devcontainer = devcontainer.replace(
+        "{{ dev_file_name }}",
+        fullDevcontainerName,
+      );
+      devcontainer = devcontainer.replace(
+        "{{ dev_file_image }}",
+        devcontainerImage,
+      );
       fs.writeFileSync(expandedDestUrl, devcontainer);
       return "passed";
     } catch (err) {

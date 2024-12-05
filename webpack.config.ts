@@ -244,7 +244,8 @@ const createDevcontainerWebviewConfig = {
   experiments: { outputModule: true },
   output: {
     path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/createDevcontainerPageApp.js",
+    filename:
+      "./client/webview/apps/contentCreator/createDevcontainerPageApp.js",
     libraryTarget: "module",
     chunkFormat: "module",
   },
