@@ -9,13 +9,13 @@ import {
   EditorView,
   WebView,
   ModalDialog,
-  WebElement,
 } from "vscode-extension-tester";
 import {
   getFixturePath,
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  dismissNotifications,
 } from "./uiTestHelper";
 import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
@@ -24,7 +24,6 @@ config.truncateThreshold = 0;
 
 describe("Verify playbook generation features work as expected", function () {
   let workbench: Workbench;
-  let resetButton: WebElement;
 
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
@@ -44,18 +43,14 @@ describe("Verify playbook generation features work as expected", function () {
     // );
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
-    const notifications = await workbench.getNotifications();
-    for (let i = 0; i < notifications.length; i++) {
-      const n = notifications[i];
-      await n.dismiss();
-    }
+    await dismissNotifications(workbench);
   });
 
   it("Playbook generation webview works as expected (full path) - part 2", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
     await sleep(3000);
 
-    const webView = await getWebviewByLocator(
+    let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
     );
 
@@ -80,7 +75,7 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(2000);
 
     // 2nd page
-    const outlineList = await webView.findWebElement(
+    let outlineList = await webView.findWebElement(
       By.xpath("//ol[@id='outline-list']"),
     );
     // Input "(status=400)" to simulate an API error
@@ -90,12 +85,26 @@ describe("Verify playbook generation features work as expected", function () {
     await generatePlaybookButton.click(); // Click Generate Playbook button
     await sleep(2000);
 
-    resetButton = await webView.findWebElement(
+    const resetButton = await webView.findWebElement(
       By.xpath("//vscode-button[@id='reset-button']"),
     );
     // Click reset button and make sure the string "(status=400)" is removed
     await resetButton.click();
     await sleep(500);
+
+    // Confirm reset of Outline
+    await webView.switchBack();
+    const resetOutlineDialog = new ModalDialog();
+    await resetOutlineDialog.pushButton("Ok");
+    await sleep(250);
+    // Sadly we need to switch context and so we must reload the WebView elements
+    webView = await getWebviewByLocator(
+      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
+    );
+    outlineList = await webView.findWebElement(
+      By.xpath("//ol[@id='outline-list']"),
+    );
+
     text = await outlineList.getText();
     expect(!text.includes("(status=400)"));
 
