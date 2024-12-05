@@ -40,8 +40,6 @@ export function openUrl(url: string) {
     errorText += data;
   });
   child.stderr.on("end", function () {
-    if (errorText) {
-      throw new Error(errorText);
-    }
+    console.log(`error: ${errorText}`);
   });
 }

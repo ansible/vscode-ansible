@@ -88,6 +88,12 @@ export class CreateDevfile {
     const nonce = getNonce();
 
     const workspaceDir = this.getWorkspaceFolder();
+    let projectName = "";
+
+    if (workspaceDir !== "") {
+      const projectNameSplit = workspaceDir.split("/");
+      projectName = projectNameSplit[projectNameSplit.length - 1];
+    }
 
     const webviewUri = getUri(webview, extensionUri, [
       "out",
@@ -132,7 +138,7 @@ export class CreateDevfile {
                 </vscode-text-field>
 
                 <div class="devfile-name-div">
-                <vscode-text-field id="devfile-name" form="devfile-form" placeholder="Enter Ansible project name" size="512">Ansible project name *</vscode-text-field>
+                <vscode-text-field id="devfile-name" form="devfile-form" placeholder="${projectName}" size="512">Ansible project name *</vscode-text-field>
                 </div>
 
                 <div id="full-devfile-path" class="full-devfile-path">

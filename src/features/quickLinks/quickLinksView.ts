@@ -73,6 +73,13 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.extension-settings.open" title="Ansible extension settings">
+                <span class="codicon codicon-settings-gear"></span> Settings
+              </a>
+            </h3>
+          </div>
         <h3>INITIALIZE</h3>
         <p>Initialize a new Ansible project</p>
           <div class="catalogue">
@@ -117,6 +124,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
             <h3>
               <a href="command:ansible.create-empty-playbook" title="Create a playbook template">
                 <span class="codicon codicon-new-file"></span> Playbook template
+              </a>
+            </h3>
+          </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.content-creator.create-devfile" title="Create a devfile and add it to an existing Ansible project">
+                <span class="codicon codicon-new-file"></span> Devfile
+                <span class="new-badge">NEW</span>
               </a>
             </h3>
           </div>

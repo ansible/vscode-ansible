@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import {
   provideVSCodeDesignSystem,
   Button,
@@ -13,6 +12,54 @@ import {
 } from "@vscode/webview-ui-toolkit";
 import { EditableList } from "../../common/editableList";
 
+import { getSingletonHighlighterCore, HighlighterCore } from "@shikijs/core";
+import darkPlus from "shiki/themes/dark-plus.mjs";
+import lightPlus from "shiki/themes/light-plus.mjs";
+import { default as yamlLang } from "shiki/langs/yaml.mjs";
+import getWasm from "shiki/wasm";
+import { RoleGenerationListEntry } from "../../../../interfaces/lightspeed";
+
+let highlighter: HighlighterCore;
+
+export async function codeToHtml(code: string) {
+  function isDarkMode(): boolean {
+    const element = document.getElementById("main-header");
+
+    if (!element) {
+      return false;
+    }
+    const style = window.getComputedStyle(element);
+    const color = style.getPropertyValue("color");
+    const re = /rgb.?\((\d+), (\d+), (\d+)/;
+    const found = color.match(re);
+    if (found) {
+      const r = parseInt(found[1]);
+      const g = parseInt(found[2]);
+      const b = parseInt(found[3]);
+      return r > 128 && g > 128 && b > 128;
+    }
+    return false;
+  }
+
+  // Detect whether a dark or a light color theme is used.
+  const theme = isDarkMode() ? "dark-plus" : "light-plus";
+
+  if (!highlighter) {
+    highlighter = await getSingletonHighlighterCore({
+      themes: [darkPlus, lightPlus],
+      langs: [yamlLang],
+      loadWasm: getWasm,
+    });
+  }
+
+  const html = highlighter.codeToHtml(code, {
+    theme,
+    lang: "yaml",
+  });
+
+  return html;
+}
+
 provideVSCodeDesignSystem().register(
   vsCodeButton(),
   vsCodeDropdown(),
@@ -26,9 +73,7 @@ const TEXTAREA_MAX_HEIGHT = 500;
 const TOTAL_PAGES = 3;
 
 let savedText: string;
-let savedPlaybook: string | undefined;
-let generationId: string | undefined;
-let darkMode = true;
+
 let textArea: TextArea;
 let currentPage = 1;
 
@@ -55,21 +100,6 @@ window.addEventListener("load", () => {
     setButtonEnabled("reset-button", outline.isChanged());
     setButtonEnabled("generateButton", !outline.isEmpty());
   });
-
-  // Detect whether a dark or a light color theme is used.
-  const element = document.getElementById("main-header");
-  if (element) {
-    const style = window.getComputedStyle(element);
-    const color = style.getPropertyValue("color");
-    const re = /rgb.?\((\d+), (\d+), (\d+)/;
-    const found = color.match(re);
-    if (found) {
-      const r = parseInt(found[1]);
-      const g = parseInt(found[2]);
-      const b = parseInt(found[3]);
-      darkMode = r > 128 && g > 128 && b > 128;
-    }
-  }
 });
 
 window.addEventListener("message", async (event) => {
@@ -84,8 +114,6 @@ window.addEventListener("message", async (event) => {
       setupPage(2);
 
       outline.update(message.outline.outline);
-      savedPlaybook = message.outline.playbook;
-      generationId = message.outline.generationId;
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
@@ -93,23 +121,22 @@ window.addEventListener("message", async (event) => {
       outline.focus();
       break;
     }
-    case "playbook": {
+    case "displayFiles": {
       setupPage(3);
-      savedPlaybook = message.playbook.playbook;
-      generationId = message.playbook.generationId;
-      outline.save();
+      const payload = message.payload;
+      const files = payload.files as RoleGenerationListEntry[];
 
-      const formattedTasksCode = document.getElementById(
-        "formattedTasksCode",
-      ) as Element;
-      formattedTasksCode.innerHTML = message.playbook.html;
-      const formattedDefaultsCode = document.getElementById(
-        "formattedDefaultsCode",
-      ) as Element;
-      formattedDefaultsCode.innerHTML = message.playbook.html;
+      let output = "";
+      for (const file of files) {
+        const fragment = `<p>${file.path}:</p>
+        <div class="formattedPlaybook" style="block">
+          <span id="formattedTasksCode">${await codeToHtml(file.content)}</span>
+        </div>`;
+        output = output.concat(fragment);
+      }
 
-      const pre = document.getElementsByTagName("pre")[0];
-      pre.style.backgroundColor = "";
+      const filesOutputDiv = document.getElementById("filesOutput") as Element;
+      filesOutputDiv.innerHTML = output;
       break;
     }
     case "startSpinner": {
@@ -182,8 +209,9 @@ async function submitInput() {
   if (savedText !== textArea.value) {
     savedText = textArea.value;
     outline.update("");
-    savedPlaybook = undefined;
-    generationId = uuidv4();
+    vscode.postMessage({
+      command: "reset",
+    });
   }
 
   setButtonEnabled("submit-button", false);
@@ -191,9 +219,7 @@ async function submitInput() {
   vscode.postMessage({
     command: "outline",
     text: savedText,
-    playbook: savedPlaybook,
     outline: outline.getSavedValueAsString(),
-    generationId,
   });
   textArea.focus();
 }
@@ -215,14 +241,13 @@ function backToPage2() {
 
 async function generateCode() {
   const text = savedText;
-  let playbook: string | undefined;
 
   // If user made any changes to the generated outline, generate a playbook with a new generationId.
   // Otherwise, just use the generated playbook.
   if (outline.isChanged()) {
-    generationId = uuidv4();
-  } else {
-    playbook = savedPlaybook;
+    vscode.postMessage({
+      command: "reset",
+    });
   }
 
   setButtonEnabled("generateButton", false);
@@ -233,16 +258,12 @@ async function generateCode() {
     command: "generateCode",
     text,
     outline: EditableList.listToString(outline.getFromUI()),
-    playbook,
-    generationId,
-    darkMode,
   });
 }
 
 async function openEditor() {
   vscode.postMessage({
     command: "openEditor",
-    playbook: savedPlaybook,
   });
 }
 
@@ -302,7 +323,7 @@ function setupPage(pageNumber: number) {
       changeDisplay("promptContainer", "none");
       changeDisplay("openEditorContainer", "none");
       setButtonEnabled("submit-button", true);
-      hideBlockElement("formattedOutput");
+      hideBlockElement("filesOutput");
       break;
     case 2:
       setPageNumber(2);
@@ -324,7 +345,7 @@ function setupPage(pageNumber: number) {
       setButtonEnabled("reset-button", false);
       setButtonEnabled("backButton", true);
       setButtonEnabled("generateButton", true);
-      hideBlockElement("formattedOutput");
+      hideBlockElement("filesOutput");
       break;
     case 3:
       setPageNumber(3);
@@ -340,8 +361,7 @@ function setupPage(pageNumber: number) {
       changeDisplay("thirdMessage", "block");
       changeDisplay("generatePlaybookContainer", "none");
       changeDisplay("openEditorContainer", "block");
-      showBlockElement("formattedOutput");
-
+      showBlockElement("filesOutput");
       break;
   }
 }

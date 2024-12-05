@@ -1,6 +1,7 @@
 import {
-  GenerationResponseParams,
   ExplanationResponseParams,
+  PlaybookGenerationResponseParams,
+  RoleGenerationResponseParams,
 } from "../../../interfaces/lightspeed";
 
 export interface IError {
@@ -12,7 +13,11 @@ export interface IError {
 export const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
 export function isError(
-  response: GenerationResponseParams | ExplanationResponseParams | IError,
+  response:
+    | ExplanationResponseParams
+    | PlaybookGenerationResponseParams
+    | RoleGenerationResponseParams
+    | IError,
 ): response is IError {
   return (response as IError).code !== undefined;
 }

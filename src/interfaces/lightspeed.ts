@@ -89,6 +89,13 @@ export interface PlaybookGenerationActionEvent {
   toPage?: number;
 }
 
+export interface RoleGenerationActionEvent {
+  wizardId: string;
+  action: WizardGenerationActionType;
+  fromPage?: number;
+  toPage?: number;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   sentimentFeedback?: SentimentFeedbackEvent;
@@ -98,6 +105,7 @@ export interface FeedbackRequestParams {
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationAction?: PlaybookGenerationActionEvent;
+  roleGenerationAction?: RoleGenerationActionEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
   model?: string;
 }
@@ -148,8 +156,25 @@ export interface GenerationRequestParams {
   wizardId?: string;
 }
 
-export interface GenerationResponseParams {
+export interface PlaybookGenerationResponseParams {
   playbook: string;
+  outline?: string;
+  generationId: string;
+}
+
+export enum RoleGenerationFileType {
+  Default = "default",
+  Task = "task",
+}
+
+export interface RoleGenerationListEntry {
+  path: string;
+  file_type: RoleGenerationFileType;
+  content: string;
+}
+
+export interface RoleGenerationResponseParams {
+  files: RoleGenerationListEntry[];
   outline?: string;
   generationId: string;
 }

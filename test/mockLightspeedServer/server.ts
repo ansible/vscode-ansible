@@ -47,11 +47,7 @@ export const logger = winston.createLogger({
   ],
 });
 
-let url = new URL("http://127.0.0.1:3000");
-// Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
-if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
-  url = new URL(process.env.TEST_LIGHTSPEED_URL);
-}
+const url = new URL("http://localhost:3000");
 
 export function permissionDeniedCanApplyForTrial(): {
   code: string;
@@ -139,6 +135,10 @@ export default class Server {
     app.post("/__debug__/options", (req, res) => {
       options = readOptions(req.body);
       res.status(200).send();
+    });
+
+    app.get("/__debug__/kill", () => {
+      process.exit(0);
     });
 
     app.listen(parseInt(url.port), url.hostname, () => {
