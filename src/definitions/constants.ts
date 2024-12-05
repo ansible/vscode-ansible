@@ -47,3 +47,7 @@ export const ANSIBLE_CREATOR_VERSION_MIN = "24.10.1";
 export const DevfileImages = {
   Upstream: "ghcr.io/ansible/ansible-workspace-env-reference:latest",
 };
+
+export const DevcontainerImages = {
+  Upstream: "ghcr.io/ansible/ansible-workspace-env-reference:latest",
+};
