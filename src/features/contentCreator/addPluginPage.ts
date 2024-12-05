@@ -112,7 +112,7 @@ export class AddPlugin {
 
         <body>
             <div class="title-div">
-              <h1>Add plugins to your existing Collection</h1>
+              <h1>Add a plugin to an existing collection</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 
@@ -120,7 +120,7 @@ export class AddPlugin {
               <section class="component-container">
 
                 <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}"
-                  size="512">Destination directory
+                  size="512">Collection root directory
                   <section slot="end" class="explorer-icon">
                     <vscode-button id="folder-explorer" appearance="icon">
                       <span class="codicon codicon-folder-opened"></span>
