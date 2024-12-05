@@ -10,7 +10,7 @@ import {
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
 import {
-  PluginInterface,
+  PluginFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
 
@@ -214,6 +214,7 @@ function handleInitCreateClick() {
     command: "init-create",
     payload: {
       pluginName: pluginNameTextField.value.trim(),
+      // pluginType: pluginTypeDropdown.currentValue.trim(),
       collectionPath: collectionPathUrlTextField.value.trim(),
       verbosity: verboseDropdown.currentValue.trim(),
       logToFile: logToFileCheckbox.checked,
@@ -221,7 +222,7 @@ function handleInitCreateClick() {
       logFileAppend: logFileAppendCheckbox.checked,
       logLevel: logLevelDropdown.currentValue.trim(),
       isOverwritten: overwriteCheckbox.checked,
-    } as PluginInterface,
+    } as PluginFormInterface,
   });
 
   window.addEventListener(

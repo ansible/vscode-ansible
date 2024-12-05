@@ -30,8 +30,9 @@ export type DevfileFormInterface = {
   isOverwritten: boolean;
 };
 
-export type PluginInterface = {
+export type PluginFormInterface = {
   pluginName: string;
+  pluginType: string;
   collectionPath: string;
   verbosity: string;
   logToFile: boolean;

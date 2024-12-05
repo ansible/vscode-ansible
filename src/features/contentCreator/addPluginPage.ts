@@ -5,7 +5,7 @@ import * as os from "os";
 import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
-import { PluginInterface, PostMessageEvent } from "./types";
+import { PluginFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, getBinDetail, runCommand } from "./utils";
@@ -259,7 +259,7 @@ export class AddPlugin {
             return;
           }
           case "init-create":
-            payload = message.payload as PluginInterface;
+            payload = message.payload as PluginFormInterface;
             await this.runAddCommand(payload, webview);
             return;
 
@@ -301,7 +301,7 @@ export class AddPlugin {
   ): Promise<string> {
     let command = "";
 
-    command = `ansible-creator add plugin plugin_type ${pluginName} ${url} --no-ansi`;
+    command = `ansible-creator add plugin filter ${pluginName} ${url} --no-ansi`;
     return command;
   }
 
@@ -327,11 +327,12 @@ export class AddPlugin {
   }
 
   public async runAddCommand(
-    payload: PluginInterface,
+    payload: PluginFormInterface,
     webView: vscode.Webview,
   ) {
     const {
       pluginName,
+      pluginType,
       collectionPath,
       logToFile,
       logFilePath,
@@ -425,10 +426,10 @@ export class AddPlugin {
 
     if (commandPassed === "passed") {
       const selection = await vscode.window.showInformationMessage(
-        `Plugin added at: ${destinationPathUrl}`,
-        `Open playbook project ↗`,
+        `Filter Plugin added at: ${destinationPathUrl}`,
+        `Open collection project ↗`,
       );
-      if (selection === "Open playbook project ↗") {
+      if (selection === "Open collection project ↗") {
         this.openFolderInWorkspace(destinationPathUrl);
       }
     }
@@ -456,14 +457,14 @@ export class AddPlugin {
       });
     }
 
-    // open site.yml file in the editor
-    const playbookFileUrl = vscode.Uri.joinPath(
+    // open the galaxy file in the editor
+    const galaxyFileUrl = vscode.Uri.joinPath(
       vscode.Uri.parse(folderUrl),
-      "site.yml",
+      "galaxy.yml",
     ).fsPath;
-    console.log(`[ansible-creator] Playbook file url: ${playbookFileUrl}`);
-    const parsedUrl = vscode.Uri.parse(`vscode://file${playbookFileUrl}`);
-    console.log(`[ansible-creator] Parsed playbook file url: ${parsedUrl}`);
+    console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
+    const parsedUrl = vscode.Uri.parse(`vscode://file${galaxyFileUrl}`);
+    console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
 
