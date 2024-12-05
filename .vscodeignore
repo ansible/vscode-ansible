@@ -26,7 +26,8 @@
 !media/contentCreator/createDevfilePageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
-!media/welcomePage/lightspeed.png
+!media/quickLinks/lightspeed.png
+!media/quickLinks/quickLinksStyle.css
 !media/welcomePage/logo.png
 !media/welcomePage/quickLinksStyle.css
 !media/playbookGeneration/playbookGeneration.css
