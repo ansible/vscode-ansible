@@ -57,11 +57,13 @@ describe("Verify playbook generation features work as expected", function () {
       .getContent()
       .getSection("Ansible Development Tools");
     adtView.expand();
-    await sleep(2000);
+    await sleep(3000);
+    console.log("Expanded ADT view");
 
     webviewView = new WebviewView();
     expect(webviewView).not.undefined;
     await webviewView.switchToFrame(1000);
+    console.log("Switched to sidebar webview");
 
     const welcomePageLink = await webviewView.findWebElement(
       By.xpath(
