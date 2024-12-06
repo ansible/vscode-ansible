@@ -38,7 +38,9 @@ function sendThumbsup() {
     "thumbsdown-button",
   ) as Button;
   thumbsUpButton.setAttribute("class", "iconButtonSelected");
+  thumbsUpButton.setAttribute("disabled", "true");
   thumbsDownButton.setAttribute("class", "iconButton");
+  thumbsDownButton.setAttribute("disabled", "true");
   vscode.postMessage({
     command: "thumbsUp",
     action: ThumbsUpDownAction.UP,
@@ -51,7 +53,9 @@ function sendThumbsdown() {
     "thumbsdown-button",
   ) as Button;
   thumbsUpButton.setAttribute("class", "iconButton");
+  thumbsUpButton.setAttribute("disabled", "true");
   thumbsDownButton.setAttribute("class", "iconButtonSelected");
+  thumbsDownButton.setAttribute("disabled", "true");
   vscode.postMessage({
     command: "thumbsDown",
     action: ThumbsUpDownAction.DOWN,
