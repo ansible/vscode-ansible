@@ -1,20 +1,19 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { Webview, Uri, WebviewPanel } from "vscode";
+import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { IError } from "./utils/errors";
-import { GenerationResponseParams } from "../../interfaces/lightspeed";
+import { PlaybookGenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
-  PlaybookGenerationActionType,
+  WizardGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
 
-let currentPanel: WebviewPanel | undefined;
 let wizardId: string | undefined;
 let currentPage: number | undefined;
 
@@ -43,10 +42,10 @@ function contentMatch(generationId: string, playbook: string) {
 }
 
 async function sendActionEvent(
-  action: PlaybookGenerationActionType,
+  action: WizardGenerationActionType,
   toPage?: number,
 ) {
-  if (currentPanel && wizardId) {
+  if (wizardId) {
     const fromPage = currentPage;
     currentPage = toPage;
     try {
@@ -74,13 +73,13 @@ async function generatePlaybook(
   outline: string | undefined,
   generationId: string,
   panel: vscode.WebviewPanel,
-): Promise<GenerationResponseParams | IError> {
+): Promise<PlaybookGenerationResponseParams | IError> {
   try {
     panel.webview.postMessage({ command: "startSpinner" });
     const createOutline = outline === undefined;
 
-    const response: GenerationResponseParams | IError =
-      await apiInstance.generationRequest({
+    const response: PlaybookGenerationResponseParams | IError =
+      await apiInstance.playbookGenerationRequest({
         text,
         outline,
         createOutline,
@@ -96,11 +95,6 @@ async function generatePlaybook(
 export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
-    return;
-  }
-
-  if (currentPanel) {
-    currentPanel.reveal();
     return;
   }
 
@@ -122,12 +116,10 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   );
 
   panel.onDidDispose(async () => {
-    await sendActionEvent(PlaybookGenerationActionType.CLOSE_CANCEL, undefined);
-    currentPanel = undefined;
+    await sendActionEvent(WizardGenerationActionType.CLOSE_CANCEL, undefined);
     wizardId = undefined;
   });
 
-  currentPanel = panel;
   wizardId = uuidv4();
 
   panel.webview.onDidReceiveMessage(async (message) => {
@@ -142,20 +134,22 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
               undefined,
               message.generationId,
               panel,
-            ).then(async (response: GenerationResponseParams | IError) => {
-              if (isError(response)) {
-                const oneClickTrialProvider = getOneClickTrialProvider();
-                if (!(await oneClickTrialProvider.showPopup(response))) {
-                  const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
-                  vscode.window.showErrorMessage(errorMessage);
+            ).then(
+              async (response: PlaybookGenerationResponseParams | IError) => {
+                if (isError(response)) {
+                  const oneClickTrialProvider = getOneClickTrialProvider();
+                  if (!(await oneClickTrialProvider.showPopup(response))) {
+                    const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+                    vscode.window.showErrorMessage(errorMessage);
+                  }
+                } else {
+                  panel.webview.postMessage({
+                    command: "outline",
+                    outline: response,
+                  });
                 }
-              } else {
-                panel.webview.postMessage({
-                  command: "outline",
-                  outline: response,
-                });
-              }
-            });
+              },
+            );
           } else {
             panel.webview.postMessage({
               command: "outline",
@@ -231,20 +225,39 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
       }
       case "transition": {
         const { toPage } = message;
-        await sendActionEvent(PlaybookGenerationActionType.TRANSITION, toPage);
+        await sendActionEvent(WizardGenerationActionType.TRANSITION, toPage);
         break;
       }
       case "openEditor": {
         const { playbook } = message;
         await openNewPlaybookEditor(playbook);
         await sendActionEvent(
-          PlaybookGenerationActionType.CLOSE_ACCEPT,
+          WizardGenerationActionType.CLOSE_ACCEPT,
           undefined,
         );
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;
         panel.dispose();
         break;
+      }
+      case "resetOutline": {
+        vscode.window
+          .showInformationMessage(
+            "Are you sure?",
+            {
+              modal: true,
+              detail: "Resetting the outline will loose your changes.",
+            },
+            "Ok",
+          )
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .then((value: any) => {
+            if (value === "Ok") {
+              panel.webview.postMessage({
+                command: "resetOutline",
+              });
+            }
+          });
       }
     }
   });
@@ -253,7 +266,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
   panel.webview.html = getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "init" });
 
-  await sendActionEvent(PlaybookGenerationActionType.OPEN, 1);
+  await sendActionEvent(WizardGenerationActionType.OPEN, 1);
 }
 
 export function getWebviewContent(webview: Webview, extensionUri: Uri) {

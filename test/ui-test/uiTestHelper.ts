@@ -3,9 +3,11 @@ import { expect } from "chai";
 import path from "path";
 import {
   By,
+  Locator,
   ModalDialog,
   SettingsEditor,
   Workbench,
+  WebView,
 } from "vscode-extension-tester";
 
 // Returns testFixtures/ path by default, and can
@@ -83,5 +85,78 @@ export async function expectNotification(
     for (const notification of notifications) {
       notification.dismiss();
     }
+  }
+}
+
+export async function getWebviewByLocator(locator: Locator): Promise<WebView> {
+  const wv = await new WebView();
+  const driver = wv.getDriver();
+
+  driver.switchTo().defaultContent();
+
+  const iframes = await wv.findElements(
+    By.xpath("//iframe[@class='webview ready']"),
+  );
+
+  for (let i = iframes.length - 1; i >= 0; i--) {
+    await driver.switchTo().defaultContent();
+    await driver.switchTo().frame(iframes[i]);
+
+    const iframeName = await driver.executeScript("return self.name");
+
+    const activeFrame = await driver.findElement(By.id("active-frame"));
+    await driver.switchTo().frame(activeFrame);
+
+    const elements = await driver.findElements(locator);
+    // console.log(`Switched to active-frame of iframe ${iframeName}`);
+    // console.log(elements);
+    if (elements.length === 0) {
+      console.log(`locator=${locator} not found :-(`);
+      continue;
+    }
+    console.log(`locator=${locator} found in iframe ${iframeName}!`);
+
+    return wv;
+  }
+  // debugger;
+  throw new Error("Cannot find any matching view");
+}
+
+export async function workbenchExecuteCommand(command: string) {
+  const workbench = new Workbench();
+  workbench.getDriver().switchTo().defaultContent();
+  for (let i = 0; i < 5; i++) {
+    try {
+      return await workbench.executeCommand(command);
+    } catch (e) {
+      console.log(`workbenchExecuteCommand: i=${i} exception ${e}`);
+      if (i > 3) {
+        throw e;
+      }
+    }
+  }
+}
+
+export async function openSettings() {
+  const workbench = new Workbench();
+
+  for (let i = 0; i < 5; i++) {
+    try {
+      return await workbench.openSettings();
+    } catch (e) {
+      console.log(`openSettings: i=${i} exception ${e}`);
+      if (i > 3) {
+        throw e;
+      }
+    }
+  }
+
+  throw new Error("Something bad happened");
+}
+
+export async function dismissNotifications(workbench: Workbench) {
+  const notifications = await workbench.getNotifications();
+  for (const n of notifications) {
+    await n.dismiss();
   }
 }

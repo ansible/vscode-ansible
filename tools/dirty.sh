@@ -6,6 +6,9 @@
 RED='\033[0;31m'
 NC='\033[0m' # No Color
 
+if [ "${VSCODE_INJECTION}" = "1" ]; then
+   exit 0
+fi
 git diff --quiet --exit-code || {
     >&2 echo -e "${RED}ERROR: Found files either untracked missing from .gitignore or modified and tracked:${NC}"
     >&2 git ls-files --exclude-standard --others

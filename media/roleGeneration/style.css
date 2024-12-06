@@ -290,7 +290,6 @@ a:active {
 
 .formattedPlaybook {
   width: 100%;
-  height: 25em;
   border-style: solid;
   border-width: thin;
   border-color: var(--vscode-widget-border);

@@ -4,7 +4,8 @@ import { completions } from "./completion";
 import { contentmatches } from "./contentmatches";
 import { explanations } from "./explanations";
 import { feedback, getFeedbacks } from "./feedback";
-import { generations } from "./generations";
+import { playbookGeneration } from "./playbookGeneration";
+import { roleGeneration } from "./roleGeneration";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
@@ -46,11 +47,7 @@ export const logger = winston.createLogger({
   ],
 });
 
-let url = new URL("http://127.0.0.1:3000");
-// Do not try to use envvars on macos -- ref: https://github.com/microsoft/vscode/issues/204005
-if (process.platform !== "darwin" && process.env.TEST_LIGHTSPEED_URL) {
-  url = new URL(process.env.TEST_LIGHTSPEED_URL);
-}
+const url = new URL("http://localhost:3000");
 
 export function permissionDeniedCanApplyForTrial(): {
   code: string;
@@ -89,7 +86,12 @@ export default class Server {
 
     app.post(`${API_ROOT}/ai/generations`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
-      return generations(req, res);
+      return playbookGeneration(req, res);
+    });
+
+    app.post(`${API_ROOT}/ai/generations/role`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
+      return roleGeneration(req, res);
     });
 
     app.post(`${API_ROOT}/ai/explanations`, async (req, res) => {
@@ -133,6 +135,10 @@ export default class Server {
     app.post("/__debug__/options", (req, res) => {
       options = readOptions(req.body);
       res.status(200).send();
+    });
+
+    app.get("/__debug__/kill", () => {
+      process.exit(0);
     });
 
     app.listen(parseInt(url.port), url.hostname, () => {

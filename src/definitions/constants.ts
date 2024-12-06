@@ -43,3 +43,7 @@ export const IncludeVarValidTaskName = [
 export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 28000;
 
 export const ANSIBLE_CREATOR_VERSION_MIN = "24.10.1";
+
+export const DevfileImages = {
+  Upstream: "ghcr.io/ansible/ansible-workspace-env-reference:latest",
+};

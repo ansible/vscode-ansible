@@ -1,42 +1,48 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { Webview, Uri, WebviewPanel, workspace } from "vscode";
+import { Webview, Uri, workspace } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { CollectionFinder } from "./utils/scanner";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { IError } from "./utils/errors";
-import { GenerationResponseParams } from "../../interfaces/lightspeed";
 import {
+  RoleGenerationResponseParams,
+  RoleGenerationListEntry,
+} from "../../interfaces/lightspeed";
+import {
+  WizardGenerationActionType,
   LightSpeedCommands,
-  PlaybookGenerationActionType,
 } from "../../definitions/lightspeed";
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
 
-let currentPanel: WebviewPanel | undefined;
-let wizardId: string | undefined;
+let wizardId: string | undefined = uuidv4();
 let currentPage: number | undefined;
+let files: RoleGenerationListEntry[] = [];
 
-async function openNewPlaybookEditor(playbook: string) {
-  const options = {
-    language: "ansible",
-    content: playbook,
-  };
-
-  const doc = await vscode.workspace.openTextDocument(options);
-  await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
+async function openNewEditorTabs(files: RoleGenerationListEntry[]) {
+  for (const file of files) {
+    const options = {
+      language: "ansible",
+      content: file.content,
+    };
+    const doc = await vscode.workspace.openTextDocument(options);
+    await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
+  }
 }
 
-function contentMatch(generationId: string, playbook: string) {
-  lightSpeedManager.contentMatchesProvider.suggestionDetails = [
-    {
-      suggestionId: generationId,
-      suggestion: playbook,
-      isPlaybook: true,
-    },
-  ];
+function contentMatch(generationId: string, files: RoleGenerationListEntry[]) {
+  for (const file of files) {
+    lightSpeedManager.contentMatchesProvider.suggestionDetails = [
+      {
+        suggestionId: generationId,
+        suggestion: file.content,
+        isPlaybook: false,
+      },
+    ];
+  }
   // Show training matches for the accepted suggestion.
   vscode.commands.executeCommand(
     LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES,
@@ -44,10 +50,10 @@ function contentMatch(generationId: string, playbook: string) {
 }
 
 async function sendActionEvent(
-  action: PlaybookGenerationActionType,
+  action: WizardGenerationActionType,
   toPage?: number,
 ) {
-  if (currentPanel && wizardId) {
+  if (wizardId) {
     const fromPage = currentPage;
     currentPage = toPage;
     try {
@@ -75,13 +81,13 @@ async function generateRole(
   outline: string | undefined,
   generationId: string,
   panel: vscode.WebviewPanel,
-): Promise<GenerationResponseParams | IError> {
+): Promise<RoleGenerationResponseParams | IError> {
   try {
     panel.webview.postMessage({ command: "startSpinner" });
     const createOutline = outline === undefined;
 
-    const response: GenerationResponseParams | IError =
-      await apiInstance.generationRequest({
+    const response: RoleGenerationResponseParams | IError =
+      await apiInstance.roleGenerationRequest({
         text,
         outline,
         createOutline,
@@ -115,12 +121,6 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
     return;
   }
 
-  if (currentPanel) {
-    console.log("Current panel");
-    currentPanel.reveal();
-    return;
-  }
-
   // Create a new panel and update the HTML
   const panel = vscode.window.createWebviewPanel(
     "noteDetailView",
@@ -139,17 +139,18 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
   );
 
   panel.onDidDispose(async () => {
-    await sendActionEvent(PlaybookGenerationActionType.CLOSE_CANCEL, undefined);
-    currentPanel = undefined;
+    await sendActionEvent(WizardGenerationActionType.CLOSE_CANCEL, undefined);
     wizardId = undefined;
   });
-
-  currentPanel = panel;
-  wizardId = uuidv4();
 
   panel.webview.onDidReceiveMessage(async (message) => {
     const command = message.command;
     switch (command) {
+      case "reset": {
+        wizardId = uuidv4();
+        files = [];
+        break;
+      }
       case "outline": {
         try {
           if (!message.outline) {
@@ -159,7 +160,7 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
               undefined,
               message.generationId,
               panel,
-            ).then(async (response: GenerationResponseParams | IError) => {
+            ).then(async (response: RoleGenerationResponseParams | IError) => {
               if (isError(response)) {
                 const oneClickTrialProvider = getOneClickTrialProvider();
                 if (!(await oneClickTrialProvider.showPopup(response))) {
@@ -191,16 +192,17 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
       }
 
       case "generateCode": {
-        let { playbook, generationId } = message;
-        const outline = message.outline;
-        const darkMode = message.darkMode;
-        if (!playbook) {
+        //let { files, generationId } = message;
+        const text = message.text as string;
+        const outline = message.outline as string;
+        const generationId = uuidv4();
+        if (files.length === 0) {
           try {
             const response = await generateRole(
               lightSpeedManager.apiInstance,
-              message.text,
-              message.outline,
-              message.generationId,
+              text,
+              outline,
+              generationId,
               panel,
             );
             if (isError(response)) {
@@ -208,8 +210,7 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
               vscode.window.showErrorMessage(errorMessage);
               break;
             }
-            playbook = response.playbook;
-            generationId = response.generationId;
+            files = response.files;
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (e: any) {
@@ -218,51 +219,50 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let syntaxHighlighter: any;
-        try {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
-        } catch {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
-        }
-        const html = await syntaxHighlighter.codeToHtml(
-          playbook,
-          darkMode ? "dark-plus" : "light-plus",
-          "yaml",
-        );
-
         panel.webview.postMessage({
-          command: "playbook",
-          playbook: {
-            playbook,
-            generationId,
-            outline,
-            html,
+          command: "displayFiles",
+          payload: {
+            files: files,
           },
         });
 
-        contentMatch(generationId, playbook);
+        contentMatch(generationId, files);
         break;
       }
       case "transition": {
         const { toPage } = message;
-        await sendActionEvent(PlaybookGenerationActionType.TRANSITION, toPage);
+        await sendActionEvent(WizardGenerationActionType.TRANSITION, toPage);
         break;
       }
       case "openEditor": {
-        const { playbook } = message;
         await sendActionEvent(
-          PlaybookGenerationActionType.CLOSE_ACCEPT,
+          WizardGenerationActionType.CLOSE_ACCEPT,
           undefined,
         );
-        await openNewPlaybookEditor(playbook);
-        await openNewPlaybookEditor(playbook);
+        await openNewEditorTabs(files);
         // Clear wizardId to suppress another CLOSE event at dispose()
         wizardId = undefined;
         panel.dispose();
         break;
+      }
+      case "resetOutline": {
+        vscode.window
+          .showInformationMessage(
+            "Are you sure?",
+            {
+              modal: true,
+              detail: "Resetting the outline will loose your changes.",
+            },
+            "Ok",
+          )
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .then((value: any) => {
+            if (value === "Ok") {
+              panel.webview.postMessage({
+                command: "resetOutline",
+              });
+            }
+          });
       }
     }
   });
@@ -271,7 +271,7 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
   panel.webview.html = await getWebviewContent(panel.webview, extensionUri);
   panel.webview.postMessage({ command: "init" });
 
-  await sendActionEvent(PlaybookGenerationActionType.OPEN, 1);
+  await sendActionEvent(WizardGenerationActionType.OPEN, 1);
 }
 
 export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
@@ -307,8 +307,6 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};'">
     <link rel="stylesheet" href="${codiconsUri}">
     <link rel="stylesheet" href="${styleUri}">
     <title>Playbook</title>
@@ -370,15 +368,8 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
               <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>
             </div>
           </div>
-          <div id=formattedOutput>
-            <p>tasks/main.yml:</p>
-            <div class="formattedPlaybook" style="block">
-              <span id="formattedTasksCode"></span>
-            </div>
-            <p>defaults/main.yml:</p>
-            <div class="formattedPlaybook" style="block">
-              <span id="formattedDefaultsCode"></span>
-            </div>
+          <div id=filesOutput />
+
           </div>
           <div class="bigIconButtonContainer">
             <vscode-button class="biggerButton" id="submit-button" disabled>

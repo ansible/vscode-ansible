@@ -23,22 +23,27 @@
 !media/contentCreator/icons/ansible-logo-red.png
 !media/contentCreator/createAnsibleCollectionPageStyle.css
 !media/contentCreator/createAnsibleProjectPageStyle.css
+!media/contentCreator/createDevfilePageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
-!media/welcomePage/lightspeed.png
+!media/quickLinks/lightspeed.png
+!media/quickLinks/quickLinksStyle.css
 !media/welcomePage/logo.png
 !media/welcomePage/quickLinksStyle.css
 !media/playbookGeneration/playbookGeneration.css
 !media/playbookGeneration/style.css
+!media/roleGeneration/style.css
 !out/client/src/extension.js
 !out/syntaxHighlighter/src/syntaxHighlighter.js
 !out/client/webview/apps/lightspeed/main.js
 !out/client/webview/apps/lightspeed/explorer/main.js
 !out/client/webview/apps/lightspeed/playbookExplanation/main.js
 !out/client/webview/apps/lightspeed/playbookGeneration/main.js
+!out/client/webview/apps/lightspeed/roleGeneration/main.js
 !out/client/webview/apps/contentCreator/welcomePageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
+!out/client/webview/apps/contentCreator/createDevfilePageApp.js
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/server/src/server.js
 !package.json
@@ -73,3 +78,6 @@
 !media/walkthroughs/startAutomatingPlaybook/learning.png
 !media/walkthroughs/startAutomatingPlaybook/open-folder.png
 !media/walkthroughs/startAutomatingPlaybook/playbook-project.md
+
+# resources
+!resources/contentCreator/createDevfile/devfile-template.txt

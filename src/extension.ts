@@ -71,6 +71,7 @@ import {
   AuthProviderType,
 } from "./features/lightspeed/lightspeedUser";
 import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
+import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -535,6 +536,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.create-ansible-project",
       () => {
         CreateAnsibleProject.render(context.extensionUri);
+      },
+    ),
+  );
+
+  // open web-view for creating devfile
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-devfile",
+      () => {
+        CreateDevfile.render(context.extensionUri);
       },
     ),
   );

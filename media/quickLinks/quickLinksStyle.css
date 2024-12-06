@@ -54,3 +54,15 @@
 img.category-icon {
     max-height: 20px;
 }
+
+.new-badge {
+    height: 15px;
+    width: 35px;
+    border: 1px solid gray;
+    border-radius: 30px;
+    text-align: center;
+    color: gray;
+    font-size: 9px;
+    line-height: 15px;
+    float: right;
+}
