@@ -29,7 +29,7 @@
 !media/quickLinks/lightspeed.png
 !media/quickLinks/quickLinksStyle.css
 !media/welcomePage/logo.png
-!media/welcomePage/quickLinksStyle.css
+!media/welcomePage/style.css
 !media/playbookGeneration/playbookGeneration.css
 !media/playbookGeneration/style.css
 !media/roleGeneration/style.css
@@ -45,6 +45,7 @@
 !out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
 !out/client/webview/apps/contentCreator/createDevfilePageApp.js
 !out/client/webview/apps/quickLinks/quickLinksApp.js
+!out/client/webview/apps/welcomePage/welcomePageApp.js
 !out/server/src/server.js
 !package.json
 !package.nls.json
