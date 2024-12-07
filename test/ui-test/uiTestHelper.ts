@@ -153,3 +153,10 @@ export async function openSettings() {
 
   throw new Error("Something bad happened");
 }
+
+export async function dismissNotifications(workbench: Workbench) {
+  const notifications = await workbench.getNotifications();
+  for (const n of notifications) {
+    await n.dismiss();
+  }
+}

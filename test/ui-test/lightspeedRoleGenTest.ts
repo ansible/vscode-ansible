@@ -10,11 +10,13 @@ import {
   EditorView,
   ModalDialog,
   until,
+  WebView,
 } from "vscode-extension-tester";
 import {
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  dismissNotifications,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -40,11 +42,7 @@ describe("Verify Role generation feature works as expected", function () {
     );
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
-    const notifications = await workbench.getNotifications();
-    for (let i = 0; i < notifications.length; i++) {
-      const n = notifications[i];
-      await n.dismiss();
-    }
+    await dismissNotifications(workbench);
   });
 
   after(async function () {
@@ -106,13 +104,15 @@ describe("Verify Role generation feature works as expected", function () {
 });
 
 describe("Verify Role generation reset button works as expected", function () {
+  let webView: WebView;
+
   before(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
   });
 
-  it("Go on the 2nd page and change the collection name", async function () {
+  async function setupPage1() {
     await VSBrowser.instance.openResources(
       "test/units/lightspeed/utils/samples/",
     );
@@ -122,28 +122,30 @@ describe("Verify Role generation reset button works as expected", function () {
     );
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
-    const notifications = await workbench.getNotifications();
-    for (let i = 0; i < notifications.length; i++) {
-      const n = notifications[i];
-      await n.dismiss();
-    }
+    await dismissNotifications(workbench);
 
     await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
     await sleep(500);
-    const webView = await getWebviewByLocator(
+    webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
     );
     const textArea = await webView.findWebElement(
       By.xpath("//vscode-text-area"),
     );
     await textArea.sendKeys("Install and configure Nginx");
+  }
 
-    (
-      await webView.findWebElement(
-        By.xpath("//vscode-button[@id='submit-button']"),
-      )
-    ).click();
+  async function gotoPage2() {
+    const submitButton = await webView.findWebElement(
+      By.xpath("//vscode-button[@id='submit-button']"),
+    );
+    await submitButton.click();
     await sleep(5000);
+  }
+
+  it("Go on the 2nd page and change the collection name", async function () {
+    await setupPage1();
+    await gotoPage2();
 
     await webView.findWebElement(
       By.xpath("//*[contains(text(), 'Review the suggested')]"),
@@ -158,5 +160,59 @@ describe("Verify Role generation reset button works as expected", function () {
     await getWebviewByLocator(
       By.xpath("//*[text()='What do you want the role to accomplish?']"),
     );
+
+    await workbenchExecuteCommand("View: Close All Editor Groups");
+  });
+
+  it("Role generation (outline reset, cancel)", async function () {
+    await setupPage1();
+    await gotoPage2();
+
+    // Verify outline output and text edit
+    let outlineList = await webView.findWebElement(
+      By.xpath("//ol[@id='outline-list']"),
+    );
+    expect(outlineList, "An ordered list should exist.").to.be.not.undefined;
+    let text = await outlineList.getText();
+    expect(text.includes("Install the Nginx packages")).to.be.true;
+
+    // Test Reset button
+    await outlineList.sendKeys("# COMMENT\n");
+    text = await outlineList.getText();
+    expect(text.includes("# COMMENT\n"));
+
+    let resetButton = await webView.findWebElement(
+      By.xpath("//vscode-button[@id='reset-button']"),
+    );
+    expect(resetButton, "resetButton should not be undefined").not.to.be
+      .undefined;
+    expect(await resetButton.isEnabled(), "reset button should be enabled now")
+      .to.be.true;
+
+    await resetButton.click();
+    await sleep(500);
+
+    // Cancel reset of Outline
+    await webView.switchBack();
+    const resetOutlineDialog = new ModalDialog();
+    await resetOutlineDialog.pushButton("Cancel");
+    await sleep(250);
+    // Sadly we need to switch context and so we must reload the WebView elements
+    webView = await getWebviewByLocator(
+      By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
+    );
+    outlineList = await webView.findWebElement(
+      By.xpath("//ol[@id='outline-list']"),
+    );
+    resetButton = await webView.findWebElement(
+      By.xpath("//vscode-button[@id='reset-button']"),
+    );
+
+    text = await outlineList.getText();
+    expect(text.includes("# COMMENT\n"));
+    expect(await resetButton.isEnabled(), "reset button should be enabled now")
+      .to.be.true;
+
+    await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 });
