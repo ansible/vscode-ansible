@@ -39,7 +39,7 @@ export class EditableList {
         values.push(node.textContent.trim());
       }
     });
-    return values;
+    return values.length === 0 ? [""] : values;
   }
 
   setToUI(values: string[]) {
@@ -71,9 +71,6 @@ export class EditableList {
   }
 
   isChanged() {
-    if (!this.savedValues) {
-      return true;
-    }
     const values = this.getFromUI();
     if (this.savedValues.length !== values.length) {
       return true;
