@@ -20,10 +20,6 @@ function setListener(id: string, func: any) {
 function main() {
   setListener("lightspeed-explorer-connect", lightspeedConnect);
   setListener(
-    "lightspeed-explorer-playbook-generation-submit",
-    lightspeedExplorerPlaybookGeneration,
-  );
-  setListener(
     "lightspeed-explorer-playbook-explanation-submit",
     lightspeedExplorerPlaybookExplanation,
   );
@@ -31,10 +27,6 @@ function main() {
 
 function lightspeedConnect() {
   vscode.postMessage({ command: "connect" });
-}
-
-function lightspeedExplorerPlaybookGeneration() {
-  vscode.postMessage({ command: "generate" });
 }
 
 function lightspeedExplorerPlaybookExplanation() {
