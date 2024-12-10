@@ -20,6 +20,7 @@ const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
 let pluginNameTextField: TextField;
+let pluginTypeDropdown: Dropdown;
 
 let collectionPathUrlTextField: TextField;
 let folderExplorerButton: Button;
@@ -53,6 +54,7 @@ let projectUrl = "";
 function main() {
   // elements for scaffolding ansible plugin interface
   pluginNameTextField = document.getElementById("plugin-name") as TextField;
+  pluginTypeDropdown = document.getElementById("plugin-dropdown") as Dropdown;
 
   collectionPathUrlTextField = document.getElementById("path-url") as TextField;
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
@@ -154,6 +156,7 @@ function openExplorer(event: any) {
 
 function handleInitClearClick() {
   pluginNameTextField.value = "";
+  pluginTypeDropdown.currentValue = "filter";
   collectionPathUrlTextField.value = "";
 
   initCollectionPathElement.innerHTML = collectionPathUrlTextField.placeholder;
@@ -214,7 +217,7 @@ function handleInitCreateClick() {
     command: "init-create",
     payload: {
       pluginName: pluginNameTextField.value.trim(),
-      // pluginType: pluginTypeDropdown.currentValue.trim(),
+      pluginType: pluginTypeDropdown.currentValue.trim(),
       collectionPath: collectionPathUrlTextField.value.trim(),
       verbosity: verboseDropdown.currentValue.trim(),
       logToFile: logToFileCheckbox.checked,

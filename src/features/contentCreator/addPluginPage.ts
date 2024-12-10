@@ -132,12 +132,12 @@ export class AddPlugin {
                 <vscode-text-field id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512">Plugin name *</vscode-text-field>
                 </div>
 
-                <div class="verbose-div">
+                <div class="plugin-type-div">
                   <div class="dropdown-container">
-                    <label for="verbosity-dropdown">Plugin type *</label>
-                    <vscode-dropdown id="verbosity-dropdown">
-                      <vscode-option>Filter (data manipulation)</vscode-option>
-                      <vscode-option>Lookup (access external data)</vscode-option>
+                    <label for="plugin-dropdown">Plugin type *</label>
+                    <vscode-dropdown id="plugin-dropdown">
+                      <vscode-option>filter</vscode-option>
+                      <vscode-option>lookup</vscode-option>
                     </vscode-dropdown>
                   </div>
                 </div>
@@ -229,6 +229,11 @@ export class AddPlugin {
                     &nbsp; Open Plugin
                   </vscode-button>
                 </div>
+
+                <div id="mandatory-field" class="mandatory-field">
+                  <p>Asterisk are the mandatory fields</p>
+                </div>
+
               </section>
             </form>
 
@@ -296,11 +301,12 @@ export class AddPlugin {
 
   public async getCreatorCommand(
     pluginName: string,
+    pluginType: string,
     url: string,
   ): Promise<string> {
     let command = "";
 
-    command = `ansible-creator add plugin filter ${pluginName} ${url} --no-ansi`;
+    command = `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
     return command;
   }
 
@@ -343,10 +349,11 @@ export class AddPlugin {
 
     const destinationPathUrl = collectionPath
       ? collectionPath
-      : `${os.homedir()}/${collectionPath}`;
+      : `${os.homedir()}/.ansible/collections/ansible_collections`;
 
     let ansibleCreatorAddCommand = await this.getCreatorCommand(
       pluginName,
+      pluginType,
       destinationPathUrl,
     );
 
@@ -425,10 +432,10 @@ export class AddPlugin {
 
     if (commandPassed === "passed") {
       const selection = await vscode.window.showInformationMessage(
-        `Filter Plugin added at: ${destinationPathUrl}`,
-        `Open collection project ↗`,
+        `${pluginType} plugin '${pluginName}' added at: ${destinationPathUrl}/plugins`,
+        `Open collection plugin ↗`,
       );
-      if (selection === "Open collection project ↗") {
+      if (selection === "Open collection plugin ↗") {
         this.openFolderInWorkspace(destinationPathUrl);
       }
     }
@@ -456,7 +463,7 @@ export class AddPlugin {
       });
     }
 
-    // open the galaxy file in the editor
+    // open the plugin file in the editor
     const galaxyFileUrl = vscode.Uri.joinPath(
       vscode.Uri.parse(folderUrl),
       "galaxy.yml",

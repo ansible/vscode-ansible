@@ -31,6 +31,14 @@ vscode-text-area {
     display:inline-block;
 }
 
+.plugin-type-div {
+    display: flex; /* Use flexbox */
+    flex-direction: row; /* Arrange child elements vertically */
+    margin-top: 12px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
 .checkbox-div {
     display: flex; /* Use flexbox */
     flex-direction: column; /* Arrange child elements vertically */
