@@ -359,7 +359,7 @@ jobs:
       - name: Upload ui test coverage data [3/4]
         uses: codecov/codecov-action@v5.1.1
         with:
-          name: unit
+          name: ui
           files: ./*/coverage/ui/lcov.info
           flags: ui
           disable_search: true
