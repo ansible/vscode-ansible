@@ -2,7 +2,7 @@
 
 # Pull devfile template from ansible-creator
 CREATOR_REPO="https://github.com/ansible/ansible-creator.git"
-CREATOR_DEVFILE_TEMPLATE="src/ansible_creator/resources/common/devfile/devfile.yaml.j2"
+CREATOR_DEVFILE_TEMPLATE="src/ansible_creator/resources/common/devcontainer/.devcontainer/devcontainer.json.j2"
 EXTENSION_DEVFILE_TEMPLATE="resources/contentCreator/createDevfile/devfile-template.txt"
 
 # Clone ansible-creator repo
