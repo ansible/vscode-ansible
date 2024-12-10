@@ -10,7 +10,7 @@ import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
 import { randomUUID } from "crypto";
 import { DevcontainerImages } from "../../definitions/constants";
-import { DevcontainerRecommendedExtensions } from "../../definitions/constants"; 
+import { DevcontainerRecommendedExtensions } from "../../definitions/constants";
 
 export class CreateDevcontainer {
   public static currentPanel: CreateDevcontainer | undefined;
@@ -274,7 +274,7 @@ export class CreateDevcontainer {
     const image = dropdownImage.split(" ")[0]; // Splits on the space after the name (e.g "Upstream (image)")
     return DevcontainerImages[image as keyof typeof DevcontainerImages];
   }
-  
+
   public getRecommendedExtensions() {
     return DevcontainerRecommendedExtensions.RECOMMENDED_EXTENSIONS;
   }
@@ -284,8 +284,7 @@ export class CreateDevcontainer {
     webView: vscode.Webview,
     extensionUri: vscode.Uri,
   ) {
-    const { destinationPath, image, isOverwritten } =
-      payload;
+    const { destinationPath, image, isOverwritten } = payload;
     let commandResult: string;
     let message: string;
     let commandOutput = "";

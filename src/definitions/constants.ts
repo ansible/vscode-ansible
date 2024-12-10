@@ -53,9 +53,10 @@ export const DevfileImages = {
 export const DevcontainerImages = {
   Auto: "ghcr.io/ansible/community-ansible-dev-tools:latest",
   Upstream: "ghcr.io/ansible/community-ansible-dev-tools:latest",
-  Downstream: "registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest",
+  Downstream:
+    "registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest",
 };
 
 export const DevcontainerRecommendedExtensions = {
-RECOMMENDED_EXTENSIONS: ["redhat.ansible", "redhat.vscode-redhat-account"],
+  RECOMMENDED_EXTENSIONS: ["redhat.ansible", "redhat.vscode-redhat-account"],
 };

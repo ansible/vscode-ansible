@@ -26,7 +26,7 @@
       "name": "Run createDevcontainerPage.ts",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/createDevcontainerPage.ts"
-    },
+    }
     // {
     //   "name": "Launch Extension",
     //   "type": "extensionHost",
