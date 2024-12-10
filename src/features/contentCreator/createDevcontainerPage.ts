@@ -358,11 +358,7 @@ export class CreateDevcontainer {
     try {
       devcontainer = fs.readFileSync(absoluteTemplatePath, "utf8");
       devcontainer = devcontainer.replace(
-        "{{ dev_file_name }}",
-        fullDevcontainerName,
-      );
-      devcontainer = devcontainer.replace(
-        "{{ dev_file_image }}",
+        "{{ dev_container_image }}",
         devcontainerImage,
       );
       fs.writeFileSync(expandedDestUrl, devcontainer);

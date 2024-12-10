@@ -1,15 +1,24 @@
-schemaVersion: 2.2.2
-metadata:
-  name: {{ dev_file_name }}
-components:
-  - name: tooling-container
-    container:
-      image: {{ dev_file_image }}
-      memoryRequest: 256M
-      memoryLimit: 6Gi
-      cpuRequest: 250m
-      cpuLimit: 2000m
-      args: ["tail", "-f", "/dev/null"]
-      env:
-        - name: KUBEDOCK_ENABLED
-          value: "true"
+{
+  "name": "ansible-dev-container-codespaces",
+  "image": "{{ dev_container_image }}",
+  "containerUser": "root",
+  "runArgs": [
+    "--security-opt",
+    "seccomp=unconfined",
+    "--security-opt",
+    "label=disable",
+    "--cap-add=SYS_ADMIN",
+    "--cap-add=SYS_RESOURCE",
+    "--device",
+    "/dev/fuse",
+    "--security-opt",
+    "apparmor=unconfined",
+    "--hostname=ansible-dev-container"
+  ],
+  "updateRemoteUserUID": true,
+  "customizations": {
+    "vscode": {
+      "extensions": {{ recommended_extensions | json }}
+    }
+  }
+}
