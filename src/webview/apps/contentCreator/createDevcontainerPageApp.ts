@@ -182,9 +182,9 @@ function handleResetClick() {
 
   overwriteCheckbox.checked = false;
   imageDropdown.currentValue =
-    "Auto (ghcr.io/ansible/community-ansible-dev-tools:latest)"
-    "Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)"
-    "Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)"
+    "Auto (ghcr.io/ansible/community-ansible-dev-tools:latest)";
+  ("Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)");
+  ("Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)");
 
   if (
     devcontainerNameTextField.value.trim() &&
