@@ -2,21 +2,25 @@
 
 # Pull devcontainer template from ansible-creator
 CREATOR_REPO="https://github.com/ansible/ansible-creator.git"
-CREATOR_DEVCONTAINER_TEMPLATE="src/ansible_creator/resources/common/devcontainer/.devcontainer/devcontainer.json.j2"
-EXTENSION_DEVCONTAINER_TEMPLATE="resources/contentCreator/createDevcontainer/devcontainer-template.txt"
+CREATOR_DEVCONTAINER_TEMPLATE="src/ansible_creator/resources/common/devcontainer/.devcontainer"
+EXTENSION_DEVCONTAINER_TEMPLATE="resources/contentCreator/createDevcontainer/.devcontainer"
 
 # Clone ansible-creator repo
 
 TEMP_DIR=$(mktemp -d)
 git clone --depth 1 --branch main "$CREATOR_REPO" "$TEMP_DIR"
 
-# Compare the files
-if diff "$TEMP_DIR/$CREATOR_DEVCONTAINER_TEMPLATE" "$EXTENSION_DEVCONTAINER_TEMPLATE" > /dev/null; then
+#Compare the directories
+DIFF_OUTPUT=$(diff -r "$TEMP_DIR/$CREATOR_DEVCONTAINER_TEMPLATE" "$EXTENSION_DEVCONTAINER_TEMPLATE")
+
+if [ -z "$DIFF_OUTPUT" ]; then
     echo "Devcontainer template matches ansible-creator devcontainer template."
     rm -rf "$TEMP_DIR"
     exit 0
 else
     echo "Devcontainer template under resources/ does not match the template ansible-creator is using."
+    echo "Differences:"
+    echo "$DIFF_OUTPUT"
     rm -rf "$TEMP_DIR"
     exit 1
 fi

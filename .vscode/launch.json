@@ -21,63 +21,70 @@
   ],
   "configurations": [
     {
-      "name": "Launch Extension",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/examples"
-      ],
-      "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
-      "preLaunchTask": "npm: watch"
-    },
-    {
-      "name": "Launch Extension (webpacked)",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "${workspaceFolder}/examples"
-      ],
-      "env": {
-        "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
-      },
-      "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
-      "preLaunchTask": "Webpack Watch"
-    },
-    {
-      "name": "Attach to Server",
       "type": "node",
-      "request": "attach",
-      "timeout": 30000,
-      "port": 6010,
-      "restart": true,
-      "runtimeArgs": ["--max-old-space-size=4096"],
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"]
-    },
-    {
-      "name": "Attach to Server (src)",
-      "type": "node",
-      "request": "attach",
-      "timeout": 30000,
-      "port": 6010,
-      "restart": true,
-      "runtimeArgs": ["--max-old-space-size=4096"],
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
-      "preLaunchTask": "npm: watch-server"
-    },
-    {
-      "name": "Extension Tests",
-      "type": "extensionHost",
       "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}",
-        "--extensionTestsPath=${workspaceFolder}/out/client/test/index"
-      ],
-      "outFiles": ["${workspaceFolder}/out/test/**/*.js"]
-    }
+      "name": "Run createDevcontainerPage.ts",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/createDevcontainerPage.ts"
+    },
+    // {
+    //   "name": "Launch Extension",
+    //   "type": "extensionHost",
+    //   "request": "launch",
+    //   "runtimeExecutable": "${execPath}",
+    //   "args": [
+    //     "--extensionDevelopmentPath=${workspaceFolder}",
+    //     "${workspaceFolder}/examples"
+    //   ],
+    //   "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
+    //   "preLaunchTask": "npm: watch"
+    // },
+    // {
+    //   "name": "Launch Extension (webpacked)",
+    //   "type": "extensionHost",
+    //   "request": "launch",
+    //   "runtimeExecutable": "${execPath}",
+    //   "args": [
+    //     "--extensionDevelopmentPath=${workspaceFolder}",
+    //     "${workspaceFolder}/examples"
+    //   ],
+    //   "env": {
+    //     "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
+    //   },
+    //   "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
+    //   "preLaunchTask": "Webpack Watch"
+    // },
+    // {
+    //   "name": "Attach to Server",
+    //   "type": "node",
+    //   "request": "attach",
+    //   "timeout": 30000,
+    //   "port": 6010,
+    //   "restart": true,
+    //   "runtimeArgs": ["--max-old-space-size=4096"],
+    //   "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"]
+    // },
+    // {
+    //   "name": "Attach to Server (src)",
+    //   "type": "node",
+    //   "request": "attach",
+    //   "timeout": 30000,
+    //   "port": 6010,
+    //   "restart": true,
+    //   "runtimeArgs": ["--max-old-space-size=4096"],
+    //   "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
+    //   "preLaunchTask": "npm: watch-server"
+    // },
+    // {
+    //   "name": "Extension Tests",
+    //   "type": "extensionHost",
+    //   "request": "launch",
+    //   "runtimeExecutable": "${execPath}",
+    //   "args": [
+    //     "--extensionDevelopmentPath=${workspaceFolder}",
+    //     "--extensionTestsPath=${workspaceFolder}/out/client/test/index"
+    //   ],
+    //   "outFiles": ["${workspaceFolder}/out/test/**/*.js"]
+    // }
   ]
 }

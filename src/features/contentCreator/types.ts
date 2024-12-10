@@ -32,7 +32,6 @@ export type DevfileFormInterface = {
 
 export type DevcontainerFormInterface = {
   destinationPath: string;
-  name: string;
   image: string;
   isOverwritten: boolean;
 };
