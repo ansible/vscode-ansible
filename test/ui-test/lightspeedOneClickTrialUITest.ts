@@ -11,7 +11,6 @@ import {
   ViewControl,
   ViewSection,
   VSBrowser,
-  until,
   WebElement,
   WebView,
   WebviewView,
@@ -30,12 +29,6 @@ import axios from "axios";
 
 const trialNotificationMessage =
   "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
-
-before(function () {
-  if (process.platform !== "darwin") {
-    this.skip();
-  }
-});
 
 describe("Test One Click Trial feature", () => {
   let workbench: Workbench;
@@ -265,11 +258,6 @@ describe("Test One Click Trial feature", () => {
     await tab.select();
     await tab.sendKeys(Key.CONTROL, "z", "z", "z", Key.NULL);
     await editorView.closeAllEditors();
-
-    // The undo's don't seem to (always) work.. So discard changes
-    const dialog = new ModalDialog();
-    await dialog.pushButton(`Don't Save`);
-    await dialog.getDriver().wait(until.stalenessOf(dialog), 2000);
   });
 
   it("Sign out using Accounts global action", async () => {
