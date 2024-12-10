@@ -5,6 +5,8 @@ CFLAGS
 Containerfile
 Devfile
 Devfiles
+Devcontainer
+Devcontainers
 Dockal
 Dpkg
 Elio

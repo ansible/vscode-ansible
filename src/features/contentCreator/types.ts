@@ -30,6 +30,13 @@ export type DevfileFormInterface = {
   isOverwritten: boolean;
 };
 
+export type DevcontainerFormInterface = {
+  destinationPath: string;
+  name: string;
+  image: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";
