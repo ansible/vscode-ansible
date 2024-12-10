@@ -29,6 +29,7 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
+seccomp
 SIGINT
 SIGTERM
 Sbarnea

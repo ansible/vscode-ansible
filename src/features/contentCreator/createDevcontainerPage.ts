@@ -10,6 +10,7 @@ import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
 import { randomUUID } from "crypto";
 import { DevcontainerImages } from "../../definitions/constants";
+import { DevcontainerRecommendedExtensions } from "../../definitions/constants"; 
 
 export class CreateDevcontainer {
   public static currentPanel: CreateDevcontainer | undefined;
@@ -152,7 +153,9 @@ export class CreateDevcontainer {
                   <div class="dropdown-container">
                     <label for="image-dropdown">Container image</label>
                     <vscode-dropdown id="image-dropdown">
-                      <vscode-option>Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)</vscode-option>
+                      <vscode-option>Auto (ghcr.io/ansible/community-ansible-dev-tools:latest)</vscode-option>
+                      <vscode-option>Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)</vscode-option>
+                      <vscode-option>Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)</vscode-option>
                     </vscode-dropdown>
                   </div>
                 </div>
@@ -271,24 +274,31 @@ export class CreateDevcontainer {
     const image = dropdownImage.split(" ")[0]; // Splits on the space after the name (e.g "Upstream (image)")
     return DevcontainerImages[image as keyof typeof DevcontainerImages];
   }
+  
+  public getRecommendedExtensions() {
+    return DevcontainerRecommendedExtensions.RECOMMENDED_EXTENSIONS;
+  }
 
   public async runDevcontainerCreateProcess(
     payload: DevcontainerFormInterface,
     webView: vscode.Webview,
     extensionUri: vscode.Uri,
   ) {
-    const { destinationPath, name, image, isOverwritten } = payload;
+    const { destinationPath, image, isOverwritten } =
+      payload;
     let commandResult: string;
     let message: string;
     let commandOutput = "";
 
     commandOutput += `------------------------------------ devcontainer generation logs ------------------------------------\n`;
 
-    const destinationPathUrl = `${destinationPath}/devcontainer.yaml`;
+    const destinationPathUrl = `${destinationPath}/devcontainer.json`;
 
     const devcontainerExists = fs.existsSync(expandPath(destinationPathUrl));
 
     const imageURL = this.getContainerImage(image);
+
+    const recommendedExtensions = this.getRecommendedExtensions();
 
     if (devcontainerExists && !isOverwritten) {
       message = `Error: Devcontainer already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
@@ -296,7 +306,7 @@ export class CreateDevcontainer {
     } else {
       commandResult = this.createDevcontainer(
         destinationPathUrl,
-        name,
+        recommendedExtensions,
         imageURL,
         extensionUri,
       );
@@ -335,19 +345,15 @@ export class CreateDevcontainer {
 
   public createDevcontainer(
     destinationUrl: string,
-    devcontainerName: string,
+    recommendedExtensions: string[],
     devcontainerImage: string,
     extensionUri: vscode.Uri,
   ) {
     let devcontainer: string;
     const relativeTemplatePath =
-      "resources/contentCreator/createDevcontainer/devcontainer-template.txt";
+      "resources/contentCreator/createDevcontainer/.devcontainer";
 
     const expandedDestUrl = expandPath(destinationUrl);
-
-    const uuid = randomUUID().slice(0, 8);
-    const fullDevcontainerName = `${devcontainerName}-${uuid}`;
-
     const absoluteTemplatePath = vscode.Uri.joinPath(
       extensionUri,
       relativeTemplatePath,
@@ -360,6 +366,10 @@ export class CreateDevcontainer {
       devcontainer = devcontainer.replace(
         "{{ dev_container_image }}",
         devcontainerImage,
+      );
+      devcontainer = devcontainer.replace(
+        "{{ recommended_extensions | json }}",
+        JSON.stringify(recommendedExtensions),
       );
       fs.writeFileSync(expandedDestUrl, devcontainer);
       return "passed";

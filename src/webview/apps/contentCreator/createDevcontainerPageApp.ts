@@ -93,7 +93,7 @@ function main() {
   devcontainerPathElement = document.createElement("p");
 
   if (destinationPathUrlTextField.placeholder !== "") {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.yaml`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.json`;
   } else {
     devcontainerPathElement.innerHTML =
       "No folders are open in the workspace - Enter a destination directory.";
@@ -150,13 +150,13 @@ function toggleCreateButton() {
   //   update <p> tag text
   if (!destinationPathUrlTextField.value.trim()) {
     if (destinationPathUrlTextField.placeholder !== "") {
-      devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.yaml`;
+      devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.json`;
     } else {
       devcontainerPathElement.innerHTML =
         "No folders are open in the workspace - Enter a destination directory.";
     }
   } else {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.value.trim()}/devcontainer.yaml`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.value.trim()}/devcontainer.json`;
   }
 
   if (
@@ -174,7 +174,7 @@ function handleResetClick() {
   devcontainerNameTextField.value = devcontainerNameTextField.placeholder;
 
   if (destinationPathUrlTextField.placeholder !== "") {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.yaml`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.json`;
   } else {
     devcontainerPathElement.innerHTML =
       "No folders are open in the workspace - Enter a destination directory.";
@@ -182,7 +182,9 @@ function handleResetClick() {
 
   overwriteCheckbox.checked = false;
   imageDropdown.currentValue =
-    "Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)";
+    "Auto (ghcr.io/ansible/community-ansible-dev-tools:latest)"
+    "Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)"
+    "Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)"
 
   if (
     devcontainerNameTextField.value.trim() &&
@@ -207,7 +209,6 @@ function handleCreateClick() {
     command: "devcontainer-create",
     payload: {
       destinationPath: path,
-      name: devcontainerNameTextField.value.trim(),
       image: imageDropdown.currentValue.trim(),
       isOverwritten: overwriteCheckbox.checked,
     } as DevcontainerFormInterface,
