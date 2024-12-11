@@ -8,7 +8,6 @@ import { DevcontainerFormInterface, PostMessageEvent } from "./types";
 import * as fs from "fs";
 import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
-import { randomUUID } from "crypto";
 import { DevcontainerImages } from "../../definitions/constants";
 import { DevcontainerRecommendedExtensions } from "../../definitions/constants";
 
