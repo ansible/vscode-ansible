@@ -7,6 +7,7 @@ import {
   Workbench,
   VSBrowser,
   EditorView,
+  until,
   WebView,
   ModalDialog,
 } from "vscode-extension-tester";
@@ -173,6 +174,7 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
     const dialog = new ModalDialog();
     await dialog.pushButton(`Don't Save`);
+    await dialog.getDriver().wait(until.stalenessOf(dialog), 2000);
 
     /* verify generated events */
     const expected = [

@@ -4,6 +4,7 @@ import {
   EditorView,
   ModalDialog,
   SettingsEditor,
+  until,
   Workbench,
 } from "vscode-extension-tester";
 import { updateSettings, sleep } from "./uiTestHelper";
@@ -98,5 +99,6 @@ describe("Check walkthroughs, elements and associated commands", async () => {
     await workbench.executeCommand("View: Close All Editor Groups");
     const dialogBox = new ModalDialog();
     await dialogBox.pushButton(`Don't Save`);
+    await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
   });
 });
