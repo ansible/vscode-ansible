@@ -93,7 +93,7 @@ function main() {
   devcontainerPathElement = document.createElement("p");
 
   if (destinationPathUrlTextField.placeholder !== "") {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.json`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
   } else {
     devcontainerPathElement.innerHTML =
       "No folders are open in the workspace - Enter a destination directory.";
@@ -150,13 +150,13 @@ function toggleCreateButton() {
   //   update <p> tag text
   if (!destinationPathUrlTextField.value.trim()) {
     if (destinationPathUrlTextField.placeholder !== "") {
-      devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.json`;
+      devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
     } else {
       devcontainerPathElement.innerHTML =
         "No folders are open in the workspace - Enter a destination directory.";
     }
   } else {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.value.trim()}/devcontainer.json`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.value.trim()}/.devcontainer`;
   }
 
   if (
@@ -174,7 +174,7 @@ function handleResetClick() {
   devcontainerNameTextField.value = devcontainerNameTextField.placeholder;
 
   if (destinationPathUrlTextField.placeholder !== "") {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devcontainer.json`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
   } else {
     devcontainerPathElement.innerHTML =
       "No folders are open in the workspace - Enter a destination directory.";

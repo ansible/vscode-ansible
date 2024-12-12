@@ -290,7 +290,7 @@ export class CreateDevcontainer {
 
     commandOutput += `------------------------------------ devcontainer generation logs ------------------------------------\n`;
 
-    const destinationPathUrl = `${destinationPath}/.devcontainer`;
+    const destinationPathUrl = `${destinationPath}`;
 
     const devcontainerExists = fs.existsSync(expandPath(destinationPathUrl));
 
