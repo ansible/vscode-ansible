@@ -31,6 +31,12 @@ import axios from "axios";
 const trialNotificationMessage =
   "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
 
+before(function () {
+  if (process.platform !== "darwin") {
+    this.skip();
+  }
+});
+
 describe("Test One Click Trial feature", () => {
   let workbench: Workbench;
   let explorerView: WebviewView;
@@ -43,21 +49,12 @@ describe("Test One Click Trial feature", () => {
   let adtView: ViewSection;
 
   beforeEach(function () {
-    if (process.platform === "darwin") {
-      this.skip();
-    }
-
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
   });
 
   before(async () => {
-    // We need this because before() is called ... before beforeEach()
-    if (process.platform === "darwin") {
-      return;
-    }
-
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }

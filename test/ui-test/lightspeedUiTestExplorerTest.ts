@@ -28,6 +28,12 @@ import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 import { expect } from "chai";
 import axios from "axios";
 
+before(function () {
+  if (process.platform !== "darwin") {
+    this.skip();
+  }
+});
+
 describe("Test Lightspeed Explorer features", () => {
   let workbench: Workbench;
   let explorerView: WebviewView;
@@ -38,21 +44,12 @@ describe("Test Lightspeed Explorer features", () => {
   let adtView: ViewSection;
 
   beforeEach(function () {
-    if (process.platform === "darwin") {
-      this.skip();
-    }
-
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
   });
 
   before(async () => {
-    // We need this because before() is called ... before beforeEach()
-    if (process.platform === "darwin") {
-      return;
-    }
-
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
