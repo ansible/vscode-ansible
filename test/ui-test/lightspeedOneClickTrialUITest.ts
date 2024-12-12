@@ -23,6 +23,7 @@ import {
   getModalDialogAndMessage,
   getWebviewByLocator,
   sleep,
+  workbenchExecuteCommand,
 } from "./uiTestHelper";
 import { Key } from "selenium-webdriver";
 import { expect } from "chai";
@@ -62,7 +63,7 @@ describe("Test One Click Trial feature", () => {
     // Enable Lightspeed and open Ansible Light view on sidebar
     workbench = new Workbench();
     // Close settings and other open editors (if any)
-    await new EditorView().closeAllEditors();
+    await workbenchExecuteCommand("View: Close All Editor Groups");
 
     // Set "UI Test" and "One Click" options for mock server
     await axios.post(
@@ -207,7 +208,7 @@ describe("Test One Click Trial feature", () => {
       trialNotificationMessage,
       true, // click button
     );
-    await new EditorView().closeAllEditors();
+    await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 
   it("Invoke Playbook explanation", async () => {
@@ -228,7 +229,7 @@ describe("Test One Click Trial feature", () => {
       trialNotificationMessage,
       true, // click button
     );
-    await new EditorView().closeAllEditors();
+    await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 
   it("Invoke Completion", async () => {
@@ -255,7 +256,7 @@ describe("Test One Click Trial feature", () => {
     // Revert changes made
     await tab.select();
     await tab.sendKeys(Key.CONTROL, "z", "z", "z", Key.NULL);
-    await editorView.closeAllEditors();
+    await workbenchExecuteCommand("View: Close All Editor Groups");
 
     // The undo's don't seem to (always) work.. So discard changes
     const dialog = new ModalDialog();
