@@ -30,6 +30,18 @@ export type DevfileFormInterface = {
   isOverwritten: boolean;
 };
 
+export type PluginFormInterface = {
+  pluginName: string;
+  pluginType: string;
+  collectionPath: string;
+  verbosity: string;
+  logToFile: boolean;
+  logFilePath: string;
+  logFileAppend: boolean;
+  logLevel: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";
