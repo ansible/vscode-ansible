@@ -290,7 +290,7 @@ export class CreateDevcontainer {
 
     commandOutput += `------------------------------------ devcontainer generation logs ------------------------------------\n`;
 
-    const destinationPathUrl = `${destinationPath}/devcontainer.json`;
+    const destinationPathUrl = `${destinationPath}/.devcontainer`;
 
     const devcontainerExists = fs.existsSync(expandPath(destinationPathUrl));
 
@@ -347,7 +347,6 @@ export class CreateDevcontainer {
     devcontainerImage: string,
     extensionUri: vscode.Uri,
   ) {
-    let devcontainer: string;
     const relativeTemplatePath =
       "resources/contentCreator/createDevcontainer/.devcontainer";
 
@@ -358,18 +357,47 @@ export class CreateDevcontainer {
     )
       .toString()
       .replace("file://", "");
+    console.log({ absoluteTemplatePath });
+
+    const scaffold = (sourcePath: string, targetPath: string) => {
+      if (!fs.existsSync(targetPath)) {
+        fs.mkdirSync(targetPath, { recursive: true });
+      }
+
+      const items = fs.readdirSync(sourcePath, { withFileTypes: true });
+
+      items.forEach((item) => {
+        const sourceItemPath = `${sourcePath}/${item.name}`;
+        const targetItemPath = `${targetPath}/${item.name}`;
+        const TargetItemPath = targetItemPath.replace(
+          "devcontainer-template.txt",
+          "devcontainer.json",
+        );
+
+        if (item.isDirectory()) {
+          scaffold(sourceItemPath, targetItemPath);
+        } else if (item.isFile()) {
+          let devcontainer = fs.readFileSync(sourceItemPath, {
+            encoding: "utf8",
+            flag: "r",
+          });
+
+          devcontainer = devcontainer.replace(
+            "{{ dev_container_image }}",
+            devcontainerImage,
+          );
+          devcontainer = devcontainer.replace(
+            "{{ recommended_extensions | json }}",
+            JSON.stringify(recommendedExtensions),
+          );
+
+          fs.writeFileSync(TargetItemPath, devcontainer);
+        }
+      });
+    };
 
     try {
-      devcontainer = fs.readFileSync(absoluteTemplatePath, "utf8");
-      devcontainer = devcontainer.replace(
-        "{{ dev_container_image }}",
-        devcontainerImage,
-      );
-      devcontainer = devcontainer.replace(
-        "{{ recommended_extensions | json }}",
-        JSON.stringify(recommendedExtensions),
-      );
-      fs.writeFileSync(expandedDestUrl, devcontainer);
+      scaffold(absoluteTemplatePath, `${expandedDestUrl}/.devcontainer`);
       return "passed";
     } catch (err) {
       console.error("Devcontainer could not be created. Error: ", err);
