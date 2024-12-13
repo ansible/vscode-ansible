@@ -125,7 +125,7 @@ export class CreateDevcontainer {
               <p class="subtitle">Leverage Red Hat Openshift Dev Spaces</p>
             </div>
             <div class="description-div">
-              <h3>Devcontainers are yaml files used for development environment customization.<br><br>Enter your project details below to utilize a devcontainer template designed for Red Hat OpenShift Dev Spaces.</h3>
+              <h3>Devcontainers are json files used for development environment customization.<br><br>Enter your project details below to utilize a devcontainer template designed for Red Hat OpenShift Dev Spaces.</h3>
             </div>
 
             <form id="devcontainer-form">
@@ -290,7 +290,7 @@ export class CreateDevcontainer {
 
     commandOutput += `------------------------------------ devcontainer generation logs ------------------------------------\n`;
 
-    const destinationPathUrl = `${destinationPath}`;
+    const destinationPathUrl = destinationPath;
 
     const devcontainerExists = fs.existsSync(expandPath(destinationPathUrl));
 
