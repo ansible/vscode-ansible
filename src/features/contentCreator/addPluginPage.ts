@@ -230,8 +230,8 @@ export class AddPlugin {
                   </vscode-button>
                 </div>
 
-                <div id="mandatory-field" class="mandatory-field">
-                  <p>Asterisk are the mandatory fields</p>
+                <div id="required-fields" class="required-fields">
+                  <p>Fields marked with an asterisk (*) are required</p>
                 </div>
 
               </section>

@@ -65,6 +65,11 @@ vscode-dropdown {
     color: var(--vscode-descriptionForeground);
 }
 
+.required-fields {
+    margin-top: 10px;
+    color: var(--vscode-descriptionForeground);
+}
+
 .group-buttons {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
