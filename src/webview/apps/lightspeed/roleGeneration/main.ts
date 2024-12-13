@@ -154,6 +154,11 @@ window.addEventListener("message", async (event) => {
       }
       break;
     }
+    case "resetOutline": {
+      setButtonEnabled("reset-button", false);
+      outline.reset();
+      outline.focus();
+    }
   }
 });
 
@@ -225,8 +230,9 @@ async function submitInput() {
 }
 
 function reset() {
-  outline.reset();
-  outline.focus();
+  vscode.postMessage({
+    command: "resetOutline",
+  });
 }
 
 function backToPage1() {

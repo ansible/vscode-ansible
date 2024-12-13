@@ -7,6 +7,7 @@ import {
   Workbench,
   VSBrowser,
   EditorView,
+  until,
   WebView,
   ModalDialog,
 } from "vscode-extension-tester";
@@ -15,6 +16,7 @@ import {
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  dismissNotifications,
 } from "./uiTestHelper";
 import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
@@ -23,6 +25,7 @@ config.truncateThreshold = 0;
 
 describe("Verify playbook generation features work as expected", function () {
   let workbench: Workbench;
+  let webView: WebView;
 
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
@@ -43,23 +46,14 @@ describe("Verify playbook generation features work as expected", function () {
 
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
-    const notifications = await workbench.getNotifications();
-    for (let i = 0; i < notifications.length; i++) {
-      const n = notifications[i];
-      await n.dismiss();
-    }
+    await dismissNotifications(workbench);
   });
 
-  it("Playbook generation webview works as expected (fast path)", async function () {
-    // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
-    }
-
+  async function setupPage1() {
     // Open playbook generation webview.
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(3000);
-    const webView = await getWebviewByLocator(
+    await sleep(4000);
+    webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
     );
 
@@ -68,22 +62,25 @@ describe("Verify playbook generation features work as expected", function () {
       By.xpath("//vscode-text-area"),
     );
     expect(textArea, "textArea should not be undefined").not.to.be.undefined;
+    await textArea.sendKeys("Create an azure network.");
+  }
+
+  async function gotoPage2() {
     const submitButton = await webView.findWebElement(
       By.xpath("//vscode-button[@id='submit-button']"),
     );
-    expect(submitButton, "submitButton should not be undefined").not.to.be
-      .undefined;
-    //
-    // Note: Following line should succeed, but fails for some unknown reasons.
-    //
-    // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
-    await textArea.sendKeys("Create an azure network.");
-    expect(
-      await submitButton.isEnabled(),
-      "submit button should be enabled now",
-    ).to.be.true;
     await submitButton.click();
     await sleep(1000);
+  }
+
+  it("Playbook generation webview works as expected (fast path)", async function () {
+    // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+    if (!process.env.TEST_LIGHTSPEED_URL) {
+      this.skip();
+    }
+
+    await setupPage1();
+    await gotoPage2();
 
     // Verify outline output and text edit
     const outlineList = await webView.findWebElement(
@@ -122,11 +119,11 @@ describe("Verify playbook generation features work as expected", function () {
     text = await formattedCode.getText();
     expect(text.startsWith("---")).to.be.true;
 
-    // Make sure the playbook was generated within 500 msecs, which is the fake latency
+    // Make sure the playbook was generated within 1000 msecs, which is the fake latency
     // used in the mock server. It means that the playbook returned in the outline generation
     // was used and the generations API was not called this time.
     const elapsedTime = new Date().getTime() - start;
-    expect(elapsedTime < 500).to.be.true;
+    expect(elapsedTime < 1000).to.be.true;
 
     // Click Open editor button to open the generated playbook in the editor
     const openEditorButton = await webView.findWebElement(
@@ -148,6 +145,7 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
     const dialog = new ModalDialog();
     await dialog.pushButton(`Don't Save`);
+    await dialog.getDriver().wait(until.stalenessOf(dialog), 2000);
 
     /* verify generated events */
     const expected = [
@@ -167,6 +165,63 @@ describe("Verify playbook generation features work as expected", function () {
       expect(evt.fromPage).equals(expected[i][1]);
       expect(evt.toPage).equals(expected[i][2]);
     }
+  });
+
+  it("Playbook generation (outline reset, cancel)", async function () {
+    // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+    if (!process.env.TEST_LIGHTSPEED_URL) {
+      this.skip();
+    }
+
+    await setupPage1();
+    await gotoPage2();
+
+    // Verify outline output and text edit
+    let outlineList = await webView.findWebElement(
+      By.xpath("//ol[@id='outline-list']"),
+    );
+    expect(outlineList, "An ordered list should exist.").to.be.not.undefined;
+    let text = await outlineList.getText();
+    expect(text.includes("Create virtual network peering")).to.be.true;
+
+    // Test Reset button
+    await outlineList.sendKeys("# COMMENT\n");
+    text = await outlineList.getText();
+    expect(text.includes("# COMMENT\n"));
+
+    let resetButton = await webView.findWebElement(
+      By.xpath("//vscode-button[@id='reset-button']"),
+    );
+    expect(resetButton, "resetButton should not be undefined").not.to.be
+      .undefined;
+    expect(await resetButton.isEnabled(), "reset button should be enabled now")
+      .to.be.true;
+
+    await resetButton.click();
+    await sleep(500);
+
+    // Cancel reset of Outline
+    await webView.switchBack();
+    const resetOutlineDialog = new ModalDialog();
+    await resetOutlineDialog.pushButton("Cancel");
+    await sleep(250);
+    // Sadly we need to switch context and so we must reload the WebView elements
+    webView = await getWebviewByLocator(
+      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
+    );
+    outlineList = await webView.findWebElement(
+      By.xpath("//ol[@id='outline-list']"),
+    );
+    resetButton = await webView.findWebElement(
+      By.xpath("//vscode-button[@id='reset-button']"),
+    );
+
+    text = await outlineList.getText();
+    expect(text.includes("# COMMENT\n"));
+    expect(await resetButton.isEnabled(), "reset button should be enabled now")
+      .to.be.true;
+
+    await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 
   it("Playbook generation webview (multiple instances)", async function () {

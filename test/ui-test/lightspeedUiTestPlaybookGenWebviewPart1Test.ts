@@ -4,24 +4,23 @@ import { expect, config } from "chai";
 import {
   ActivityBar,
   By,
+  ModalDialog,
   ViewControl,
   Workbench,
   ViewSection,
   WebviewView,
-  WebElement,
 } from "vscode-extension-tester";
 import {
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  dismissNotifications,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 describe("Verify playbook generation features work as expected", function () {
   let workbench: Workbench;
-  let outlineList: WebElement;
-  let resetButton: WebElement;
   let adtView: ViewSection;
   let webviewView: InstanceType<typeof WebviewView>;
 
@@ -45,11 +44,7 @@ describe("Verify playbook generation features work as expected", function () {
 
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
-    const notifications = await workbench.getNotifications();
-    for (let i = 0; i < notifications.length; i++) {
-      const n = notifications[i];
-      await n.dismiss();
-    }
+    await dismissNotifications(workbench);
   });
 
   it("Ensures we can go from DevTools to Playbook generation", async function () {
@@ -62,11 +57,13 @@ describe("Verify playbook generation features work as expected", function () {
       .getContent()
       .getSection("Ansible Development Tools");
     adtView.expand();
-    await sleep(1000);
+    await sleep(3000);
+    console.log("Expanded ADT view");
 
     webviewView = new WebviewView();
     expect(webviewView).not.undefined;
     await webviewView.switchToFrame(1000);
+    console.log("Switched to sidebar webview");
 
     const welcomePageLink = await webviewView.findWebElement(
       By.xpath(
@@ -92,7 +89,7 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(2000);
 
     // Start operations on Playbook Generation UI
-    const webView = await getWebviewByLocator(
+    let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
     );
 
@@ -118,7 +115,7 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(2000);
 
     // Verify outline output and text edit
-    outlineList = await webView.findWebElement(
+    let outlineList = await webView.findWebElement(
       By.xpath("//ol[@id='outline-list']"),
     );
     expect(outlineList, "An ordered list should exist.");
@@ -139,13 +136,27 @@ describe("Verify playbook generation features work as expected", function () {
     expect(text.includes("Create an azure network."));
 
     // Test Reset button
-    resetButton = await webView.findWebElement(
+    const resetButton = await webView.findWebElement(
       By.xpath("//vscode-button[@id='reset-button']"),
     );
     expect(resetButton, "resetButton should not be undefined").not.to.be
       .undefined;
     await resetButton.click();
     await sleep(500);
+
+    // Confirm reset of Outline
+    await webView.switchBack();
+    const resetOutlineDialog = new ModalDialog();
+    await resetOutlineDialog.pushButton("Ok");
+    await sleep(250);
+    // Sadly we need to switch context and so we must reload the WebView elements
+    webView = await getWebviewByLocator(
+      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
+    );
+    outlineList = await webView.findWebElement(
+      By.xpath("//ol[@id='outline-list']"),
+    );
+
     text = await outlineList.getText();
     expect(!text.includes("# COMMENT\n"));
 

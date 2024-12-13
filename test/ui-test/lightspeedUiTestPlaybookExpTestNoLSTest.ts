@@ -2,7 +2,11 @@
 
 import { expect } from "chai";
 import { Workbench } from "vscode-extension-tester";
-import { sleep, workbenchExecuteCommand } from "./uiTestHelper";
+import {
+  sleep,
+  workbenchExecuteCommand,
+  dismissNotifications,
+} from "./uiTestHelper";
 
 describe("Verify playbook generation page is not opened when Lightspeed is not enabled", function () {
   let workbench: Workbench;
@@ -15,11 +19,7 @@ describe("Verify playbook generation page is not opened when Lightspeed is not e
     await sleep(3000);
 
     workbench = await new Workbench();
-    const notifications = await workbench.getNotifications();
-    for (let i = 0; i < notifications.length; i++) {
-      const n = notifications[i];
-      await n.dismiss();
-    }
+    await dismissNotifications(workbench);
   });
 
   it("Playbook generation command shows an error message when Lightspeed is not enabled", async function () {

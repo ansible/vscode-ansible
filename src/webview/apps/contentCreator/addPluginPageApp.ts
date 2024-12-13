@@ -177,7 +177,7 @@ function toggleCreateButton() {
   if (!collectionPathUrlTextField.value.trim()) {
     initCollectionPathElement.innerHTML = `${
       collectionPathUrlTextField.placeholder
-    }/plugins/filter/${pluginNameTextField.value.trim()}`;
+    }/plugins/${pluginTypeDropdown.currentValue.trim()}/${pluginNameTextField.value.trim()}`;
 
     if (!pluginNameTextField.value.trim()) {
       initCollectionPathElement.innerHTML =
