@@ -282,7 +282,11 @@ export class AddPlugin {
 
           case "init-open-scaffolded-folder":
             payload = message.payload;
-            await this.openFolderInWorkspace(payload.projectUrl);
+            await this.openFolderInWorkspace(
+              payload.projectUrl,
+              payload.pluginName,
+              payload.pluginType,
+            );
             return;
         }
       },
@@ -433,10 +437,10 @@ export class AddPlugin {
     if (commandPassed === "passed") {
       const selection = await vscode.window.showInformationMessage(
         `${pluginType} plugin '${pluginName}' added at: ${destinationPathUrl}/plugins`,
-        `Open collection plugin ↗`,
+        `Open plugin file ↗`,
       );
-      if (selection === "Open collection plugin ↗") {
-        this.openFolderInWorkspace(destinationPathUrl);
+      if (selection === "Open plugin file ↗") {
+        this.openFolderInWorkspace(destinationPathUrl, pluginName, pluginType);
       }
     }
   }
@@ -449,7 +453,11 @@ export class AddPlugin {
     this.openFileInEditor(parsedUrl.toString());
   }
 
-  public async openFolderInWorkspace(folderUrl: string) {
+  public async openFolderInWorkspace(
+    folderUrl: string,
+    pluginName: string,
+    pluginType: string,
+  ) {
     const folderUri = vscode.Uri.parse(expandPath(folderUrl));
 
     // add folder to a new workspace
@@ -464,12 +472,9 @@ export class AddPlugin {
     }
 
     // open the plugin file in the editor
-    const galaxyFileUrl = vscode.Uri.joinPath(
-      vscode.Uri.parse(folderUrl),
-      "galaxy.yml",
-    ).fsPath;
-    console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
-    const parsedUrl = vscode.Uri.parse(`vscode://file${galaxyFileUrl}`);
+    const pluginFileUrl = `${folderUrl}/plugins/${pluginType}/${pluginName}.py`;
+    console.log(`[ansible-creator] Plugin file url: ${pluginFileUrl}`);
+    const parsedUrl = vscode.Uri.parse(`vscode://file${pluginFileUrl}`);
     console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
