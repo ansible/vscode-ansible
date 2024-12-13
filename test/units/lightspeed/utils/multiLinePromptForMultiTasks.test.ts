@@ -103,6 +103,15 @@ tasks:
 });
 
 describe("Test shouldRequestForPromptPosition", () => {
+  it("should trigger request even when document starts with empty line", () => {
+    const promptContent = `
+---
+# Create a key-pair called lightspeed-key-pair &
+# create a vpc & create vpc_id var     `;
+    const shouldRequest = shouldRequestForPromptPosition(promptContent, 4);
+    assert.equal(shouldRequest, true);
+  });
+
   it("should not make request when prompt line start with '# ' and end with ' &' for tasks", () => {
     const promptContent = `---
 # Create a key-pair called lightspeed-key-pair &
