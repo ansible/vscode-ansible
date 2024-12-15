@@ -2,6 +2,7 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as path from "path";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { DevcontainerFormInterface, PostMessageEvent } from "./types";
@@ -292,7 +293,9 @@ export class CreateDevcontainer {
 
     const destinationPathUrl = destinationPath;
 
-    const devcontainerExists = fs.existsSync(expandPath(destinationPathUrl));
+    const devcontainerExists = fs.existsSync(
+      path.join(expandPath(destinationPathUrl), ".devcontainer"),
+    );
 
     const imageURL = this.getContainerImage(image);
 
@@ -358,6 +361,10 @@ export class CreateDevcontainer {
       .toString()
       .replace("file://", "");
     console.log({ absoluteTemplatePath });
+
+    if (!fs.existsSync(expandedDestUrl)) {
+      return "failed";
+    }
 
     const scaffold = (sourcePath: string, targetPath: string) => {
       if (!fs.existsSync(targetPath)) {
