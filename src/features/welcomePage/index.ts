@@ -229,7 +229,7 @@ export class AnsibleWelcomePage {
                   <p>Scans your code repositories to recommend code quality improvements.
                   </p>
                 </div>
-                <div class="catalogue">
+                <!-- <div class="catalogue">
                   <h3>
                     <a href="command:workbench.action.files.openFile">
                     <span class="codicon codicon-symbol-property"></span> Explain playbook
@@ -237,7 +237,7 @@ export class AnsibleWelcomePage {
                   </h3>
                   <p>Explain a playbook
                   </p>
-                </div>
+                </div> -->
               </div>
 
               <!-- <div class="index-list start-container">
