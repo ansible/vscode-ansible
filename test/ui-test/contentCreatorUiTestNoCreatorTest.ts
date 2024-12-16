@@ -79,50 +79,50 @@ describe("Test devfile and devcontainer generation webview (without creator)", (
 });
 
 // describe("Test devcontainer generation webview (without creator)", () => {
-  it("Check create-devcontainer webview elements", async () => {
-    const devcontainerWebview = await openCreateWebview(
-      "Ansible: Create a Devcontainer",
-      "Create Devcontainer",
+it("Check create-devcontainer webview elements", async () => {
+  const devcontainerWebview = await openCreateWebview(
+    "Ansible: Create a Devcontainer",
+    "Create Devcontainer",
+  );
+
+  const descriptionText = await (
+    await devcontainerWebview.findWebElement(
+      By.xpath("//div[@class='description-div']"),
+    )
+  ).getText();
+  expect(descriptionText).to.contain("Devcontainers are json files");
+
+  await checkAndInteractWithField(devcontainerWebview, "path-url", "~");
+  await checkAndInteractWithField(
+    devcontainerWebview,
+    "devcontainer-name",
+    "test",
+  );
+
+  await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
+
+  const overwriteDevcontainerCheckbox =
+    await devcontainerWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
     );
+  await overwriteDevcontainerCheckbox.click();
 
-    const descriptionText = await (
-      await devcontainerWebview.findWebElement(
-        By.xpath("//div[@class='description-div']"),
-      )
-    ).getText();
-    expect(descriptionText).to.contain("Devcontainers are json files");
+  await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
+  await sleep(1000);
+  await clickButtonAndCheckEnabled(devcontainerWebview, "clear-logs-button");
+  await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
 
-    await checkAndInteractWithField(devcontainerWebview, "path-url", "~");
-    await checkAndInteractWithField(
-      devcontainerWebview,
-      "devcontainer-name",
-      "test",
-    );
+  await checkAndInteractWithField(devcontainerWebview, "path-url", "~/test");
+  await checkAndInteractWithField(
+    devcontainerWebview,
+    "devcontainer-name",
+    "test",
+  );
 
-    await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
+  await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
 
-    const overwriteDevcontainerCheckbox =
-      await devcontainerWebview.findWebElement(
-        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
-      );
-    await overwriteDevcontainerCheckbox.click();
-
-    await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
-    await sleep(1000);
-    await clickButtonAndCheckEnabled(devcontainerWebview, "clear-logs-button");
-    await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
-
-    await checkAndInteractWithField(devcontainerWebview, "path-url", "~/test");
-    await checkAndInteractWithField(
-      devcontainerWebview,
-      "devcontainer-name",
-      "test",
-    );
-
-    await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
-
-    await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
-    await sleep(1000);
-    await devcontainerWebview.switchBack();
-  });
+  await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
+  await sleep(1000);
+  await devcontainerWebview.switchBack();
+});
 // });
