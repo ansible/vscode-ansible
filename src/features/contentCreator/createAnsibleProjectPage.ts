@@ -8,7 +8,7 @@ import { getNonce } from "../utils/getNonce";
 import { AnsibleProjectFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, getBinDetail, runCommand } from "./utils";
+import { expandPath, getCreatorVersion, runCommand } from "./utils";
 import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
 
 export class CreateAnsibleProject {
@@ -280,21 +280,13 @@ export class CreateAnsibleProject {
     );
   }
 
-  private async getCreatorVersion(): Promise<string> {
-    const creatorVersion = (
-      await getBinDetail("ansible-creator", "--version")
-    ).toString();
-    console.log("ansible-creator version: ", creatorVersion);
-    return creatorVersion;
-  }
-
-  public async getCreatorCommand(
+  public async getPlaybookCreatorCommand(
     namespace: string,
     collection: string,
     url: string,
   ): Promise<string> {
     let command = "";
-    const creatorVersion = await this.getCreatorVersion();
+    const creatorVersion = await getCreatorVersion();
 
     if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
       command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
@@ -345,19 +337,24 @@ export class CreateAnsibleProject {
       ? destinationPath
       : `${os.homedir()}/${namespaceName}-${collectionName}`;
 
-    let ansibleCreatorInitCommand = await this.getCreatorCommand(
+    let ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
       namespaceName,
       collectionName,
       destinationPathUrl,
     );
 
-    const creatorVersion = await this.getCreatorVersion();
-    if (isOverwritten) {
-      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-        ansibleCreatorInitCommand += " --overwrite";
-      } else {
-        ansibleCreatorInitCommand += " --force";
-      }
+    const creatorVersion = await getCreatorVersion();
+    const exceedMinVersion = semver.gte(
+      creatorVersion,
+      ANSIBLE_CREATOR_VERSION_MIN,
+    );
+
+    if (exceedMinVersion && isOverwritten) {
+      ansibleCreatorInitCommand += " --overwrite";
+    } else if (!exceedMinVersion && isOverwritten) {
+      ansibleCreatorInitCommand += " --force";
+    } else if (exceedMinVersion && !isOverwritten) {
+      ansibleCreatorInitCommand += " --no-overwrite";
     }
 
     switch (verbosity) {
