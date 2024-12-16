@@ -89,7 +89,7 @@ vscode-checkbox i {
     display: none;
     flex-direction: column;
     border-style: dotted;
-    border-color: var(--focus-border);;
+    border-color: var(--focus-border);
     border-width: 0.5px;
     padding: 8px;
 }
