@@ -2,9 +2,9 @@ export function shouldRequestForPromptPosition(
   documentContent: string,
   promptLine: number,
 ): boolean {
-  const documentLines = documentContent.trim().split("\n");
+  const documentLines = documentContent.split("\n").map((l) => l.trim());
   if (documentLines.length > 0 && promptLine > 0) {
-    const promptLineText = documentLines[promptLine - 1].trim();
+    const promptLineText = documentLines[promptLine - 1];
     if (promptLineText.startsWith("# ") && promptLineText.endsWith(" &")) {
       // should do not make request for prompt that ends with "&"
       return false;
