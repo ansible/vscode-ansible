@@ -39,18 +39,6 @@ vscode-text-area {
     margin-bottom: 6px;
 }
 
-.devcontainer-name-div {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-
-#devcontainer-name {
-    width: 49%;
-    display: inline-block;
-}
-
 .checkbox-div {
     display: flex;
     /* Use flexbox */

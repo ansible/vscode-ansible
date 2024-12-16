@@ -22,8 +22,6 @@ window.addEventListener("load", main);
 let destinationPathUrlTextField: TextField;
 let folderExplorerButton: Button;
 
-let devcontainerNameTextField: TextField;
-
 let devcontainerCreateButton: Button;
 let devcontainerClearButton: Button;
 
@@ -47,10 +45,6 @@ function main() {
   ) as TextField;
   folderExplorerButton = document.getElementById("folder-explorer") as Button;
 
-  devcontainerNameTextField = document.getElementById(
-    "devcontainer-name",
-  ) as TextField;
-
   overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
 
   imageDropdown = document.getElementById("image-dropdown") as Dropdown;
@@ -70,7 +64,6 @@ function main() {
   ) as Button;
 
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
-  devcontainerNameTextField.addEventListener("input", toggleCreateButton);
 
   folderExplorerButton.addEventListener("click", openFolderExplorer);
 
@@ -101,12 +94,7 @@ function main() {
 
   destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
 
-  devcontainerNameTextField.value = devcontainerNameTextField.placeholder;
-
-  if (
-    devcontainerNameTextField.value.trim() &&
-    destinationPathUrlTextField.value.trim()
-  ) {
+  if (destinationPathUrlTextField.value.trim()) {
     devcontainerCreateButton.disabled = false;
   } else {
     devcontainerCreateButton.disabled = true;
@@ -159,10 +147,7 @@ function toggleCreateButton() {
     devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.value.trim()}/.devcontainer`;
   }
 
-  if (
-    devcontainerNameTextField.value.trim() &&
-    destinationPathUrlTextField.value.trim()
-  ) {
+  if (destinationPathUrlTextField.value.trim()) {
     devcontainerCreateButton.disabled = false;
   } else {
     devcontainerCreateButton.disabled = true;
@@ -171,7 +156,6 @@ function toggleCreateButton() {
 
 function handleResetClick() {
   destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
-  devcontainerNameTextField.value = devcontainerNameTextField.placeholder;
 
   if (destinationPathUrlTextField.placeholder !== "") {
     devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
@@ -188,10 +172,7 @@ function handleResetClick() {
   ];
   imageDropdown.currentValue = imageDropdownOptions[0];
 
-  if (
-    devcontainerNameTextField.value.trim() &&
-    destinationPathUrlTextField.value.trim()
-  ) {
+  if (destinationPathUrlTextField.value.trim()) {
     devcontainerCreateButton.disabled = false;
   } else {
     devcontainerCreateButton.disabled = true;

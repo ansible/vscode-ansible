@@ -39,7 +39,7 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
   await button.click();
 }
 
-describe("Test devfile and devcontainer generation webview (without creator)", () => {
+describe("Test devfile generation webview (without creator)", () => {
   it("Check create-devfile webview elements", async () => {
     const devfileWebview = await openCreateWebview(
       "Ansible: Create a Devfile",
@@ -78,12 +78,12 @@ describe("Test devfile and devcontainer generation webview (without creator)", (
   });
 });
 
-// describe("Test devcontainer generation webview (without creator)", () => {
-it("Check create-devcontainer webview elements", async () => {
-  const devcontainerWebview = await openCreateWebview(
-    "Ansible: Create a Devcontainer",
-    "Create Devcontainer",
-  );
+describe("Test devcontainer generation webview (without creator)", () => {
+  it("Check create-devcontainer webview elements", async () => {
+    const devcontainerWebview = await openCreateWebview(
+      "Ansible: Create a Devcontainer",
+      "Create Devcontainer",
+    );
 
   const descriptionText = await (
     await devcontainerWebview.findWebElement(
@@ -92,12 +92,7 @@ it("Check create-devcontainer webview elements", async () => {
   ).getText();
   expect(descriptionText).to.contain("Devcontainers are json files");
 
-  await checkAndInteractWithField(devcontainerWebview, "path-url", "~");
-  await checkAndInteractWithField(
-    devcontainerWebview,
-    "devcontainer-name",
-    "test",
-  );
+    await checkAndInteractWithField(devcontainerWebview, "path-url", "~");
 
   await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
 
@@ -112,17 +107,12 @@ it("Check create-devcontainer webview elements", async () => {
   await clickButtonAndCheckEnabled(devcontainerWebview, "clear-logs-button");
   await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
 
-  await checkAndInteractWithField(devcontainerWebview, "path-url", "~/test");
-  await checkAndInteractWithField(
-    devcontainerWebview,
-    "devcontainer-name",
-    "test",
-  );
+    await checkAndInteractWithField(devcontainerWebview, "path-url", "~/test");
 
   await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
 
-  await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
-  await sleep(1000);
-  await devcontainerWebview.switchBack();
+    await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
+    await sleep(1000);
+    await devcontainerWebview.switchBack();
+  });
 });
-// });
