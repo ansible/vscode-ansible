@@ -39,7 +39,7 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
   await button.click();
 }
 
-describe("Test devfile generation webview (without creator)", () => {
+describe("Test devfile and devcontainer generation webview (without creator)", () => {
   it("Check create-devfile webview elements", async () => {
     const devfileWebview = await openCreateWebview(
       "Ansible: Create a Devfile",
@@ -78,7 +78,7 @@ describe("Test devfile generation webview (without creator)", () => {
   });
 });
 
-describe("Test devcontainer generation webview (without creator)", () => {
+// describe("Test devcontainer generation webview (without creator)", () => {
   it("Check create-devcontainer webview elements", async () => {
     const devcontainerWebview = await openCreateWebview(
       "Ansible: Create a Devcontainer",
@@ -125,4 +125,4 @@ describe("Test devcontainer generation webview (without creator)", () => {
     await sleep(1000);
     await devcontainerWebview.switchBack();
   });
-});
+// });
