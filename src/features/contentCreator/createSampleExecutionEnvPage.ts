@@ -8,7 +8,7 @@ import { getNonce } from "../utils/getNonce";
 import { AnsibleSampleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, getBinDetail, runCommand } from "./utils";
+import { expandPath, runCommand, getCreatorVersion } from "./utils";
 import { ANSIBLE_CREATOR_EE_VERSION_MIN } from "../../definitions/constants";
 
 export class CreateSampleExecutionEnv {
@@ -276,14 +276,6 @@ export class CreateSampleExecutionEnv {
     );
   }
 
-  private async getCreatorVersion(): Promise<string> {
-    const creatorVersion = (
-      await getBinDetail("ansible-creator", "--version")
-    ).toString();
-    console.log("ansible-creator version: ", creatorVersion);
-    return creatorVersion;
-  }
-
   public async getCreatorCommand(url: string): Promise<string> {
     let command = "";
 
@@ -395,7 +387,7 @@ export class CreateSampleExecutionEnv {
     let commandResult: string;
 
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
-    const creatorVersion = await this.getCreatorVersion();
+    const creatorVersion = await getCreatorVersion();
     if (semver.gte(creatorVersion, ANSIBLE_CREATOR_EE_VERSION_MIN)) {
       // execute ansible-creator command
       const ansibleCreatorExecutionResult = await runCommand(command, env);
