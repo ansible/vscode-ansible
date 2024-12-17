@@ -84,3 +84,57 @@ describe("Test Ansible playbook project scaffolding", () => {
     );
   });
 });
+
+describe("Test Ansible sample execution environment file scaffolding", () => {
+  let createEEButton: WebElement;
+  let editorView: EditorView;
+
+  async function testWebViewElements(command: string, editorTitle: string) {
+    await workbenchExecuteCommand(command);
+    await sleep(4000);
+
+    await new EditorView().openEditor(editorTitle);
+    const eeWebview = await getWebviewByLocator(
+      By.xpath("//vscode-text-field[@id='path-url']"),
+    );
+
+    const eeDestination = await eeWebview.findWebElement(
+      By.xpath("//vscode-text-field[@id='path-url']"),
+    );
+    expect(eeDestination, "eeDestination should not be undefined").not.to.be
+      .undefined;
+    await eeDestination.sendKeys("~");
+
+    const overwriteCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+    );
+    expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+      .to.be.undefined;
+    await overwriteCheckbox.click();
+
+    createEEButton = await eeWebview.findWebElement(
+      By.xpath("//vscode-button[@id='create-button']"),
+    );
+    expect(createEEButton, "createEEButton should not be undefined").not.to.be
+      .undefined;
+
+    expect(
+      await createEEButton.isEnabled(),
+      "createEEbutton should be enabled now",
+    ).to.be.true;
+
+    await createEEButton.click();
+    await eeWebview.switchBack();
+    editorView = new EditorView();
+    if (editorView) {
+      await editorView.closeAllEditors();
+    }
+  }
+
+  it("Check create-sample-execution-env-file webview elements", async () => {
+    await testWebViewElements(
+      "Ansible: Create a sample Ansible Execution Environment file",
+      "Create Sample Ansible Execution Environment",
+    );
+  });
+});

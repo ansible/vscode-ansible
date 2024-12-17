@@ -30,6 +30,16 @@ export type DevfileFormInterface = {
   isOverwritten: boolean;
 };
 
+export type AnsibleSampleExecutionEnvInterface = {
+  destinationPath: string;
+  verbosity: string;
+  logToFile: boolean;
+  logFilePath: string;
+  logFileAppend: boolean;
+  logLevel: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";
