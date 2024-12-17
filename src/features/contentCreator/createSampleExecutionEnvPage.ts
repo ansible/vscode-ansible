@@ -9,7 +9,7 @@ import { AnsibleSampleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, getBinDetail, runCommand } from "./utils";
-import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
+import { ANSIBLE_CREATOR_EE_VERSION_MIN } from "../../definitions/constants";
 
 export class CreateSampleExecutionEnv {
   public static currentPanel: CreateSampleExecutionEnv | undefined;
@@ -341,13 +341,8 @@ export class CreateSampleExecutionEnv {
     let ansibleCreatorSampleEECommand =
       await this.getCreatorCommand(destinationPathUrl);
 
-    const creatorVersion = await this.getCreatorVersion();
     if (isOverwritten) {
-      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-        ansibleCreatorSampleEECommand += " --overwrite";
-      } else {
-        ansibleCreatorSampleEECommand += " --force";
-      }
+      ansibleCreatorSampleEECommand += " --overwrite";
     }
 
     switch (verbosity) {
@@ -397,12 +392,21 @@ export class CreateSampleExecutionEnv {
     );
 
     let commandOutput = "";
+    let commandResult: string;
 
-    // execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommand(command, env);
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
-    commandOutput += ansibleCreatorExecutionResult.output;
-    const commandPassed = ansibleCreatorExecutionResult.status;
+    const creatorVersion = await this.getCreatorVersion();
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_EE_VERSION_MIN)) {
+      // execute ansible-creator command
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
+    } else {
+      commandOutput += ansibleCreatorSampleEECommand;
+      commandOutput += `\nMinimum ansible-creator version needed to scaffold an execution-environment.yml file is 25.1.0\n`;
+      commandOutput += `Please upgrade ansible-creator to minimum required version and try again.`;
+      commandResult = "failed";
+    }
 
     await webView.postMessage({
       command: "execution-log",
@@ -410,11 +414,11 @@ export class CreateSampleExecutionEnv {
         commandOutput: commandOutput,
         logFileUrl: logFilePathUrl,
         projectUrl: destinationPathUrl,
-        status: commandPassed,
+        status: commandResult,
       },
     } as PostMessageEvent);
 
-    if (commandPassed === "passed") {
+    if (commandResult === "passed") {
       const selection = await vscode.window.showInformationMessage(
         `Ansible Sample Execution Environment file created at: ${destinationPathUrl}`,
         `Open Sample Execution Environment file ↗`,
