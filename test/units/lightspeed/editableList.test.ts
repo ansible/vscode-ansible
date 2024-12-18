@@ -66,6 +66,8 @@ describe("Test EditableList", () => {
       domWithEmptyList.window,
     );
     assert.equal(emptyEditableList.isEmpty(), true);
+    assert.equal(emptyEditableList.getFromUI().length, 1);
+    assert.equal(emptyEditableList.getFromUI()[0], "");
   });
 
   it("Test constructor", async () => {
