@@ -322,16 +322,6 @@ export class CreateDevcontainer {
         status: commandResult,
       },
     } as PostMessageEvent);
-
-    // if (commandResult === "passed") {
-    //   const selection = await vscode.window.showInformationMessage(
-    //     `Devcontainer created at: ${destinationPathUrl}`,
-    //     `Open devcontainer ↗`,
-    //   );
-    //   if (selection === "Open devcontainer ↗") {
-    //     this.openDevcontainer(destinationPathUrl);
-    //   }
-    // }
   }
 
   public createDevcontainer(
