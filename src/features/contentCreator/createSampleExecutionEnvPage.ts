@@ -100,7 +100,6 @@ export class CreateSampleExecutionEnv {
     ]);
 
     const workspaceDir = this.getWorkspaceFolder();
-    const tempDir = os.tmpdir();
 
     return /*html*/ `
       <html>
@@ -149,38 +148,6 @@ export class CreateSampleExecutionEnv {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="log-to-file-checkbox" form="init-form">Log output to a file <br><i>Default path:
-                      ${tempDir}/ansible-creator.log.</i></vscode-checkbox>
-                </div>
-
-                <div id="log-to-file-options-div">
-                  <vscode-text-field id="log-file-path" class="required" form="init-form" placeholder="${tempDir}/ansible-creator.log"
-                    size="512">Log file path
-                    <section slot="end" class="explorer-icon">
-                    <vscode-button id="file-explorer" appearance="icon">
-                      <span class="codicon codicon-file"></span>
-                    </vscode-button>
-                  </section>
-                  </vscode-text-field>
-
-                  <vscode-checkbox id="log-file-append-checkbox" form="init-form">Append</i></vscode-checkbox>
-
-                  <div class="log-level-div">
-                    <div class="dropdown-container">
-                      <label for="log-level-dropdown">Log level</label>
-                      <vscode-dropdown id="log-level-dropdown" position="below">
-                        <vscode-option>Debug</vscode-option>
-                        <vscode-option>Info</vscode-option>
-                        <vscode-option>Warning</vscode-option>
-                        <vscode-option>Error</vscode-option>
-                        <vscode-option>Critical</vscode-option>
-                      </vscode-dropdown>
-                    </div>
-                  </div>
-
-                </div>
-
-                <div class="checkbox-div">
                   <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwrite the existing execution-environment.yml file.</i></vscode-checkbox>
                 </div>
 
@@ -205,14 +172,6 @@ export class CreateSampleExecutionEnv {
                   <vscode-button id="clear-logs-button" form="init-form" appearance="secondary">
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
-                  </vscode-button>
-                  <vscode-button id="copy-logs-button" form="init-form" appearance="secondary">
-                    <span class="codicon codicon-copy"></span>
-                    &nbsp; Copy Logs
-                  </vscode-button>
-                  <vscode-button id="open-log-file-button" form="init-form" appearance="secondary" disabled>
-                    <span class="codicon codicon-open-preview"></span>
-                    &nbsp; Open Log File
                   </vscode-button>
                   <vscode-button id="open-file-button" form="init-form" disabled>
                     <span class="codicon codicon-go-to-file"></span>
@@ -250,19 +209,6 @@ export class CreateSampleExecutionEnv {
           case "init-create":
             payload = message.payload as AnsibleSampleExecutionEnvInterface;
             await this.runInitCommand(payload, webview);
-            return;
-
-          case "init-copy-logs":
-            payload = message.payload;
-            vscode.env.clipboard.writeText(payload.initExecutionLogs);
-            await vscode.window.showInformationMessage(
-              "Logs copied to clipboard",
-            );
-            return;
-
-          case "init-open-log-file":
-            payload = message.payload;
-            await this.openLogFile(payload.logFileUrl);
             return;
 
           case "init-open-scaffolded-file":
@@ -316,15 +262,7 @@ export class CreateSampleExecutionEnv {
     payload: AnsibleSampleExecutionEnvInterface,
     webView: vscode.Webview,
   ) {
-    const {
-      destinationPath,
-      logToFile,
-      logFilePath,
-      logFileAppend,
-      logLevel,
-      verbosity,
-      isOverwritten,
-    } = payload;
+    const { destinationPath, verbosity, isOverwritten } = payload;
 
     const destinationPathUrl = destinationPath
       ? destinationPath
@@ -352,26 +290,6 @@ export class CreateSampleExecutionEnv {
         break;
     }
 
-    let logFilePathUrl = "";
-
-    if (logToFile) {
-      if (logFilePath) {
-        logFilePathUrl = logFilePath;
-      } else {
-        logFilePathUrl = `${os.tmpdir()}/ansible-creator.log`;
-      }
-
-      ansibleCreatorSampleEECommand += ` --lf=${logFilePathUrl}`;
-
-      ansibleCreatorSampleEECommand += ` --ll=${logLevel.toLowerCase()}`;
-
-      if (logFileAppend) {
-        ansibleCreatorSampleEECommand += ` --la=true`;
-      } else {
-        ansibleCreatorSampleEECommand += ` --la=false`;
-      }
-    }
-
     console.debug("[ansible-creator] command: ", ansibleCreatorSampleEECommand);
 
     const extSettings = new SettingsManager();
@@ -394,8 +312,7 @@ export class CreateSampleExecutionEnv {
       commandOutput += ansibleCreatorExecutionResult.output;
       commandResult = ansibleCreatorExecutionResult.status;
     } else {
-      commandOutput += ansibleCreatorSampleEECommand;
-      commandOutput += `\nMinimum ansible-creator version needed to scaffold an execution-environment.yml file is 25.1.0\n`;
+      commandOutput += `Minimum ansible-creator version needed to scaffold an execution-environment.yml file is 25.1.0\n`;
       commandOutput += `Please upgrade ansible-creator to minimum required version and try again.`;
       commandResult = "failed";
     }
@@ -404,7 +321,6 @@ export class CreateSampleExecutionEnv {
       command: "execution-log",
       arguments: {
         commandOutput: commandOutput,
-        logFileUrl: logFilePathUrl,
         projectUrl: destinationPathUrl,
         status: commandResult,
       },
@@ -419,14 +335,6 @@ export class CreateSampleExecutionEnv {
         this.openFileInWorkspace(destinationPathUrl);
       }
     }
-  }
-
-  public async openLogFile(fileUrl: string) {
-    const logFileUrl = vscode.Uri.file(expandPath(fileUrl)).fsPath;
-    console.log(`[ansible-creator] New Log file url: ${logFileUrl}`);
-    const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
-    console.log(`[ansible-creator] Parsed log file url: ${parsedUrl}`);
-    this.openFileInEditor(parsedUrl.toString());
   }
 
   public async openFileInWorkspace(fileUrl: string) {
