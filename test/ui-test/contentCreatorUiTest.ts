@@ -96,7 +96,7 @@ describe("Test collection plugins scaffolding", () => {
     pluginType: string,
   ) {
     await workbenchExecuteCommand(command);
-    await sleep(4000);
+    await sleep(6000);
 
     await new EditorView().openEditor(editorTitle);
     const webview = await getWebviewByLocator(
@@ -148,7 +148,7 @@ describe("Test collection plugins scaffolding", () => {
       "Ansible: Add a Plugin",
       "Add Plugin",
       "test_plugin_name",
-      "filter",
+      "lookup",
     );
   });
 });

@@ -120,7 +120,7 @@ export class AddPlugin {
               <section class="component-container">
 
                 <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}"
-                  size="512">Collection root directory
+                  size="512">Collection root directory *
                   <section slot="end" class="explorer-icon">
                     <vscode-button id="folder-explorer" appearance="icon">
                       <span class="codicon codicon-folder-opened"></span>
