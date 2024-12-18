@@ -8,8 +8,16 @@ import { getNonce } from "../utils/getNonce";
 import { AnsibleCollectionFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, getBinDetail, runCommand } from "./utils";
-import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
+import {
+  expandPath,
+  getBinDetail,
+  getCreatorVersion,
+  runCommand,
+} from "./utils";
+import {
+  ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
+  ANSIBLE_CREATOR_VERSION_MIN,
+} from "../../definitions/constants";
 
 export class CreateAnsibleCollection {
   public static currentPanel: CreateAnsibleCollection | undefined;
@@ -334,12 +342,20 @@ export class CreateAnsibleCollection {
     return;
   }
 
-  private async getCreatorVersion(): Promise<string> {
-    const creatorVersion = (
-      await getBinDetail("ansible-creator", "--version")
-    ).toString();
-    console.log("ansible-creator version: ", creatorVersion);
-    return creatorVersion;
+  public async getCollectionCreatorCommand(
+    namespaceName: string,
+    collectionName: string,
+    initPathUrl: string,
+  ): Promise<string> {
+    let command = "";
+    const creatorVersion = await getCreatorVersion();
+
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_COLLECTION_VERSION_MIN)) {
+      command = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
+    } else {
+      command = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
+    }
+    return command;
   }
 
   public async runInitCommand(
@@ -363,7 +379,11 @@ export class CreateAnsibleCollection {
       ? initPath
       : `${os.homedir()}/.ansible/collections/ansible_collections`;
 
-    let ansibleCreatorInitCommand = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
+    let ansibleCreatorInitCommand = await this.getCollectionCreatorCommand(
+      namespaceName,
+      collectionName,
+      initPathUrl,
+    );
 
     // adjust collection url for using it in ade and opening it in workspace
     // NOTE: this is done in order to synchronize the behavior of ade and extension
@@ -386,13 +406,18 @@ export class CreateAnsibleCollection {
 
     let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
 
-    const creatorVersion = await this.getCreatorVersion();
-    if (isOverwritten) {
-      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-        ansibleCreatorInitCommand += " --overwrite";
-      } else {
-        ansibleCreatorInitCommand += " --force";
-      }
+    const creatorVersion = await getCreatorVersion();
+    const exceedMinVersion = semver.gte(
+      creatorVersion,
+      ANSIBLE_CREATOR_VERSION_MIN,
+    );
+
+    if (exceedMinVersion && isOverwritten) {
+      ansibleCreatorInitCommand += " --overwrite";
+    } else if (!exceedMinVersion && isOverwritten) {
+      ansibleCreatorInitCommand += " --force";
+    } else if (exceedMinVersion && !isOverwritten) {
+      ansibleCreatorInitCommand += " --no-overwrite";
     }
 
     switch (verbosity) {

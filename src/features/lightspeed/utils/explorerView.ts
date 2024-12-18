@@ -70,6 +70,12 @@ export function getWebviewContentWithActiveSession(
     "style.css",
   ]);
   const nonce = getNonce();
+  const generateForm = `<div class="button-container">
+  <form id="playbook-generation-form">
+    <vscode-button id="lightspeed-explorer-playbook-generation-submit" class="lightspeedExplorerButton">Generate a playbook</vscode-button>
+  <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
+  </form>
+  </div>`;
   const explainForm = `<div class="button-container">
   <form id="playbook-explanation-form">
     <vscode-button id="lightspeed-explorer-playbook-explanation-submit" class="lightspeedExplorerButton" ${
@@ -97,6 +103,7 @@ export function getWebviewContentWithActiveSession(
     <body>
     <div id="lightspeedExplorerView">
       ${content}
+      ${generateForm}
       ${explainForm}
     </div>
     </body>
@@ -119,6 +126,9 @@ export function setWebviewMessageListener(
       switch (command) {
         case "connect":
           commands.executeCommand("ansible.lightspeed.oauth");
+          return;
+        case "generate":
+          commands.executeCommand("ansible.lightspeed.playbookGeneration");
           return;
         case "explain":
           commands.executeCommand("ansible.lightspeed.playbookExplanation");

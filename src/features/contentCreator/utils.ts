@@ -19,6 +19,14 @@ export async function getBinDetail(cmd: string, arg: string) {
   }
 }
 
+export async function getCreatorVersion(): Promise<string> {
+  const creatorVersion = (
+    await getBinDetail("ansible-creator", "--version")
+  ).toString();
+  console.log("ansible-creator version: ", creatorVersion);
+  return creatorVersion;
+}
+
 export async function runCommand(
   command: string,
   runEnv: NodeJS.ProcessEnv | undefined,
