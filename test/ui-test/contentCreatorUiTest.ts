@@ -180,3 +180,71 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     );
   });
 });
+
+describe("Test collection plugins scaffolding", () => {
+  let createButton: WebElement;
+  let editorView: EditorView;
+
+  async function testWebViewElements(
+    command: string,
+    editorTitle: string,
+    pluginName: string,
+    pluginType: string,
+  ) {
+    await workbenchExecuteCommand(command);
+    await sleep(10000);
+
+    await new EditorView().openEditor(editorTitle);
+    const webview = await getWebviewByLocator(
+      By.xpath("//vscode-text-field[@id='plugin-name']"),
+    );
+
+    const pluginNameTextField = await webview.findWebElement(
+      By.xpath("//vscode-text-field[@id='plugin-name']"),
+    );
+    expect(pluginNameTextField, "pluginNameTextField should not be undefined")
+      .not.to.be.undefined;
+    await pluginNameTextField.sendKeys(pluginName);
+
+    const pluginTypeDropdown = await webview.findWebElement(
+      By.xpath("//vscode-dropdown[@id='plugin-dropdown']"),
+    );
+    expect(pluginTypeDropdown, "pluginTypeDropdown should not be undefined").not
+      .to.be.undefined;
+    await pluginTypeDropdown.sendKeys(pluginType);
+
+    const overwriteCheckbox = await webview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+    );
+    expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+      .to.be.undefined;
+    await overwriteCheckbox.click();
+
+    createButton = await webview.findWebElement(
+      By.xpath("//vscode-button[@id='create-button']"),
+    );
+    expect(createButton, "createButton should not be undefined").not.to.be
+      .undefined;
+
+    expect(
+      await createButton.isEnabled(),
+      "Create button should be enabled now",
+    ).to.be.true;
+
+    await createButton.click();
+    await webview.switchBack();
+    editorView = new EditorView();
+    if (editorView) {
+      await editorView.closeAllEditors();
+    }
+  }
+
+  it("Check add-plugin webview elements", async () => {
+    await testWebViewElements(
+      "Ansible: Add a Plugin",
+      "Add Plugin",
+      "test_plugin_name",
+      "lookup",
+    );
+  });
+});
