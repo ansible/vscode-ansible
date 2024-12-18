@@ -178,7 +178,7 @@ export class CreateDevcontainer {
                   </vscode-button>
                   <vscode-button id="open-file-button" form="devcontainer-form" disabled>
                     <span class="codicon codicon-go-to-file"></span>
-                    &nbsp; Open Devcontainer
+                    &nbsp; Explore Devcontainer
                   </vscode-button>
                 </div>
               </section>
@@ -305,7 +305,7 @@ export class CreateDevcontainer {
         message =
           "ERROR: Could not create devcontainer. Please check that your destination path exists and write permissions are configured for it.";
       } else {
-        message = `Creating new devcontainer at ${destinationPathUrl}`;
+        message = `Created new devcontainer at ${destinationPathUrl}`;
       }
     }
     commandOutput += message;
@@ -402,8 +402,25 @@ export class CreateDevcontainer {
     }
   }
 
-  public openDevcontainer(fileUrl: string) {
-    const updatedUrl = expandPath(fileUrl);
+  public async openDevcontainer(folderUrl: string) {
+    const updatedUrl = vscode.Uri.parse(expandPath(folderUrl));
+    if (vscode.workspace.workspaceFolders?.length === 0) {
+      vscode.workspace.updateWorkspaceFolders(0, null, { uri: updatedUrl });
+    } else {
+      await vscode.commands.executeCommand("vscode.openFolder", updatedUrl, {
+        forceNewWindow: true,
+      });
+
+      const devFileUrl = vscode.Uri.joinPath(
+        vscode.Uri.parse(folderUrl),
+        ".devcontainer/devcontainer.json",
+      ).fsPath;
+      const parsedUrl = vscode.Uri.parse(`vscode://file${devFileUrl}`);
+      this.openFileInEditor(parsedUrl.toString());
+    }
+  }
+  public openFileInEditor(folderUrl: string) {
+    const updatedUrl = expandPath(folderUrl);
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 }
