@@ -251,6 +251,19 @@ const createSampleExecutionEnvWebviewConfig = {
   },
 };
 
+const addPluginWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/addPluginPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/contentCreator/addPluginPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
@@ -269,6 +282,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     roleGenerationWebviewConfig,
     createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,
+    addPluginWebviewConfig,
     quickLinksWebviewConfig,
     createSampleExecutionEnvWebviewConfig,
   ];
