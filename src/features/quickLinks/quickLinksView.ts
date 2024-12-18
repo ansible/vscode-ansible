@@ -121,6 +121,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.content-creator.create-sample-execution-env-file" title="Create a sample Execution Environment file.">
+                <span class="codicon codicon-new-file"></span> Execution Environment template
+                <span class="new-badge">NEW</span>
+              </a>
+            </h3>
+          </div>
     </div>
     <!-- Component registration code -->
     <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
