@@ -60,7 +60,7 @@ describe("Test Ansible playbook project scaffolding", () => {
     ).to.be.true;
 
     await createButton.click();
-    await sleep(500);
+    await sleep(1000);
 
     output = await webview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
@@ -74,7 +74,7 @@ describe("Test Ansible playbook project scaffolding", () => {
     await overwriteCheckbox.click();
 
     await createButton.click();
-    await sleep(500);
+    await sleep(1000);
 
     output = await webview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
