@@ -561,7 +561,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       },
     ),
   );
-  
+
   // open web-view for creating devcontainer
   context.subscriptions.push(
     vscode.commands.registerCommand(
