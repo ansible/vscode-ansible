@@ -353,9 +353,15 @@ export class CreateAnsibleProject {
       ansibleCreatorInitCommand += " --overwrite";
     } else if (!exceedMinVersion && isOverwritten) {
       ansibleCreatorInitCommand += " --force";
-    } else if (exceedMinVersion && !isOverwritten) {
-      ansibleCreatorInitCommand += " --no-overwrite";
     }
+
+    // TODO: Uncomment the below code once the following bugs are resolved
+    // https://github.com/ansible/vscode-ansible/issues/1730
+    // https://github.com/ansible/ansible-creator/issues/343
+
+    // else if (exceedMinVersion && !isOverwritten) {
+    //   ansibleCreatorInitCommand += " --no-overwrite";
+    // }
 
     switch (verbosity) {
       case "Off":
@@ -408,7 +414,19 @@ export class CreateAnsibleProject {
     // execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
     commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
-    commandOutput += ansibleCreatorExecutionResult.output;
+
+    // TODO: Refactor to remove conditional below once the following bugs are resolved
+    // https://github.com/ansible/vscode-ansible/issues/1730
+    // https://github.com/ansible/ansible-creator/issues/343
+    const result = ansibleCreatorExecutionResult.output;
+
+    if (result.includes("Do you want to proceed?")) {
+      commandOutput += `The destination directory contains files that will be overwritten, but the "Overwrite" option was not selected.\n`;
+      commandOutput += `Please select the "Overwrite" option and try again.`;
+    } else {
+      commandOutput += result;
+    }
+
     const commandPassed = ansibleCreatorExecutionResult.status;
 
     await webView.postMessage({

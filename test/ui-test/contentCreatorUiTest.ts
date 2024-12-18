@@ -11,6 +11,7 @@ config.truncateThreshold = 0;
 describe("Test Ansible playbook project scaffolding", () => {
   let createButton: WebElement;
   let editorView: EditorView;
+  let output: WebElement;
 
   async function testWebViewElements(
     command: string,
@@ -59,6 +60,33 @@ describe("Test Ansible playbook project scaffolding", () => {
     ).to.be.true;
 
     await createButton.click();
+    await sleep(500);
+
+    output = await webview.findWebElement(
+      By.xpath("//vscode-text-area[@id='log-text-area']"),
+    );
+    expect(
+      await output.getAttribute("current-value"),
+      "Creator output should contain success message",
+    ).contains("project created at");
+
+    // retry without overwrite selected
+    await overwriteCheckbox.click();
+
+    await createButton.click();
+    await sleep(500);
+
+    output = await webview.findWebElement(
+      By.xpath("//vscode-text-area[@id='log-text-area']"),
+    );
+    expect(
+      await output.getAttribute("current-value"),
+      "Creator output should contain overwrite failure message",
+    ).contains(
+      "The destination directory contains files that will be overwritten",
+    );
+    await sleep(500);
+
     await webview.switchBack();
     editorView = new EditorView();
     if (editorView) {
