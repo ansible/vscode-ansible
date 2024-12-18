@@ -96,7 +96,7 @@ describe("Test collection plugins scaffolding", () => {
     pluginType: string,
   ) {
     await workbenchExecuteCommand(command);
-    await sleep(6000);
+    await sleep(10000);
 
     await new EditorView().openEditor(editorTitle);
     const webview = await getWebviewByLocator(
