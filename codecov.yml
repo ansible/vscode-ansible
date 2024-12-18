@@ -19,6 +19,7 @@ ignore:
   - src/webview/apps/contentCreator/createAnsibleCollectionPageApp.ts
   - src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts
   - src/webview/apps/contentCreator/createDevfilePageApp.ts
+  - src/webview/apps/contentCreator/createSampleExecutionEnvPageApp.ts
   - src/webview/apps/contentCreator/createDevcontainerPageApp.ts
   - src/webview/apps/welcomePage/welcomePageApp.ts
   - src/webview/apps/quickLinks/quickLinksApp.ts

@@ -237,6 +237,20 @@ const createDevfileWebviewConfig = {
   },
 };
 
+const createSampleExecutionEnvWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/createSampleExecutionEnvPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename:
+      "./client/webview/apps/contentCreator/createSampleExecutionEnvPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 const createDevcontainerWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -271,5 +285,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,
     quickLinksWebviewConfig,
+    createSampleExecutionEnvWebviewConfig,
   ];
 };

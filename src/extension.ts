@@ -72,6 +72,7 @@ import {
 } from "./features/lightspeed/lightspeedUser";
 import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
+import { CreateSampleExecutionEnv } from "./features/contentCreator/createSampleExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
 
 export let client: LanguageClient;
@@ -551,6 +552,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  // open web-view for creating sample Execution Environment file
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-sample-execution-env-file",
+      () => {
+        CreateSampleExecutionEnv.render(context.extensionUri);
+      },
+    ),
+  );
+  
   // open web-view for creating devcontainer
   context.subscriptions.push(
     vscode.commands.registerCommand(
