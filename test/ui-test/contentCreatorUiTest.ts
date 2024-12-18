@@ -13,6 +13,12 @@ describe("Test Ansible playbook project scaffolding", () => {
   let editorView: EditorView;
   let output: WebElement;
 
+  before(async () => {
+    // Install ansible-creator
+    await workbenchExecuteCommand("Install Ansible Content Creator");
+    await sleep(2000);
+  });
+
   async function testWebViewElements(
     command: string,
     editorTitle: string,
@@ -20,7 +26,7 @@ describe("Test Ansible playbook project scaffolding", () => {
     collectionName: string,
   ) {
     await workbenchExecuteCommand(command);
-    await sleep(4000);
+    await sleep(5000);
 
     await new EditorView().openEditor(editorTitle);
     const webview = await getWebviewByLocator(
@@ -60,11 +66,12 @@ describe("Test Ansible playbook project scaffolding", () => {
     ).to.be.true;
 
     await createButton.click();
-    await sleep(1000);
+    await sleep(500);
 
     output = await webview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
     );
+
     expect(
       await output.getAttribute("current-value"),
       "Creator output should contain success message",
@@ -74,7 +81,7 @@ describe("Test Ansible playbook project scaffolding", () => {
     await overwriteCheckbox.click();
 
     await createButton.click();
-    await sleep(1000);
+    await sleep(500);
 
     output = await webview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
