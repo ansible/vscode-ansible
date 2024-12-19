@@ -30,13 +30,6 @@ let initClearButton: Button;
 
 let overwriteCheckbox: Checkbox;
 
-let logToFileCheckbox: Checkbox;
-let logToFileOptionsDiv: HTMLElement | null;
-let logFilePath: TextField;
-let fileExplorerButton: Button;
-let logFileAppendCheckbox: Checkbox;
-let logLevelDropdown: Dropdown;
-
 let verboseDropdown: Dropdown;
 
 let initCollectionPathDiv: HTMLElement | null;
@@ -44,11 +37,8 @@ let initCollectionPathElement: HTMLElement;
 
 let initLogsTextArea: TextArea;
 let initClearLogsButton: Button;
-let initOpenLogFileButton: Button;
-let initCopyLogsButton: Button;
 let initOpenScaffoldedFolderButton: Button;
 
-let logFileUrl = "";
 let projectUrl = "";
 
 function main() {
@@ -61,30 +51,12 @@ function main() {
 
   overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
 
-  logToFileCheckbox = document.getElementById(
-    "log-to-file-checkbox",
-  ) as Checkbox;
-  logToFileCheckbox.addEventListener("change", toggleLogToFileOptions);
-
-  logToFileOptionsDiv = document.getElementById("log-to-file-options-div");
-
-  logFilePath = document.getElementById("log-file-path") as TextField;
-  fileExplorerButton = document.getElementById("file-explorer") as Button;
-  logFileAppendCheckbox = document.getElementById(
-    "log-file-append-checkbox",
-  ) as Checkbox;
-  logLevelDropdown = document.getElementById("log-level-dropdown") as Dropdown;
-
   verboseDropdown = document.getElementById("verbosity-dropdown") as Dropdown;
   initCreateButton = document.getElementById("create-button") as Button;
   initClearButton = document.getElementById("clear-button") as Button;
 
   initLogsTextArea = document.getElementById("log-text-area") as TextArea;
   initClearLogsButton = document.getElementById("clear-logs-button") as Button;
-  initOpenLogFileButton = document.getElementById(
-    "open-log-file-button",
-  ) as Button;
-  initCopyLogsButton = document.getElementById("copy-logs-button") as Button;
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
   ) as Button;
@@ -93,7 +65,6 @@ function main() {
   collectionPathUrlTextField.addEventListener("input", toggleCreateButton);
 
   folderExplorerButton.addEventListener("click", openExplorer);
-  fileExplorerButton.addEventListener("click", openExplorer);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
   initCreateButton.disabled = true;
@@ -101,8 +72,6 @@ function main() {
   initClearButton.addEventListener("click", handleInitClearClick);
 
   initClearLogsButton.addEventListener("click", handleInitClearLogsClick);
-  initOpenLogFileButton.addEventListener("click", handleInitOpenLogFileClick);
-  initCopyLogsButton.addEventListener("click", handleInitCopyLogsClick);
   initOpenScaffoldedFolderButton.addEventListener(
     "click",
     handleInitOpenScaffoldedFolderClick,
@@ -145,8 +114,6 @@ function openExplorer(event: any) {
           if (source === "folder-explorer") {
             collectionPathUrlTextField.value = selectedUri;
             initCollectionPathElement.innerHTML = selectedUri;
-          } else {
-            logFilePath.value = selectedUri;
           }
         }
       }
@@ -165,11 +132,6 @@ function handleInitClearClick() {
   verboseDropdown.currentValue = "Off";
 
   initCreateButton.disabled = true;
-
-  logToFileCheckbox.checked = false;
-  logFilePath.value = "";
-  logFileAppendCheckbox.checked = false;
-  logLevelDropdown.currentValue = "Debug";
 }
 
 function toggleCreateButton() {
@@ -195,21 +157,6 @@ function toggleCreateButton() {
   }
 }
 
-function toggleLogToFileOptions() {
-  if (logToFileCheckbox.checked) {
-    if (
-      logToFileOptionsDiv?.style.display === "" ||
-      logToFileOptionsDiv?.style.display === "none"
-    ) {
-      logToFileOptionsDiv.style.display = "flex";
-    }
-  } else {
-    if (logToFileOptionsDiv?.style.display === "flex") {
-      logToFileOptionsDiv.style.display = "none";
-    }
-  }
-}
-
 function handleInitCreateClick() {
   initCreateButton.disabled = true;
 
@@ -220,10 +167,6 @@ function handleInitCreateClick() {
       pluginType: pluginTypeDropdown.currentValue.trim(),
       collectionPath: collectionPathUrlTextField.value.trim(),
       verbosity: verboseDropdown.currentValue.trim(),
-      logToFile: logToFileCheckbox.checked,
-      logFilePath: logFilePath.value.trim(),
-      logFileAppend: logFileAppendCheckbox.checked,
-      logLevel: logLevelDropdown.currentValue.trim(),
       isOverwritten: overwriteCheckbox.checked,
     } as PluginFormInterface,
   });
@@ -236,14 +179,6 @@ function handleInitCreateClick() {
       switch (message.command) {
         case "execution-log":
           initLogsTextArea.value = message.arguments.commandOutput;
-          logFileUrl = message.arguments.logFileUrl;
-
-          if (logFileUrl) {
-            initOpenLogFileButton.disabled = false;
-          } else {
-            initOpenLogFileButton.disabled = true;
-          }
-
           if (
             message.arguments.status &&
             message.arguments.status === "passed"
@@ -267,24 +202,6 @@ function handleInitCreateClick() {
 
 function handleInitClearLogsClick() {
   initLogsTextArea.value = "";
-}
-
-function handleInitOpenLogFileClick() {
-  vscode.postMessage({
-    command: "init-open-log-file",
-    payload: {
-      logFileUrl: logFileUrl,
-    },
-  });
-}
-
-function handleInitCopyLogsClick() {
-  vscode.postMessage({
-    command: "init-copy-logs",
-    payload: {
-      initExecutionLogs: initLogsTextArea.value,
-    },
-  });
 }
 
 function handleInitOpenScaffoldedFolderClick() {

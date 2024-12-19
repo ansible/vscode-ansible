@@ -41,10 +41,6 @@ export type PluginFormInterface = {
   pluginType: string;
   collectionPath: string;
   verbosity: string;
-  logToFile: boolean;
-  logFilePath: string;
-  logFileAppend: boolean;
-  logLevel: string;
   isOverwritten: boolean;
 };
 
