@@ -109,16 +109,3 @@ vscode-checkbox i {
     line-height: normal;
     margin-bottom: 2px;
 }
-
-#log-to-file-options-div {
-    display: none;
-    flex-direction: column;
-    border-style: dotted;
-    border-color: var(--focus-border);
-    border-width: 0.5px;
-    padding: 8px;
-}
-
-.log-level-div {
-    margin: 4px 0px;
-}
