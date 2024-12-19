@@ -128,7 +128,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     ).to.be.true;
 
     await createEEButton.click();
-    await sleep(1000);
+    await sleep(2000);
 
     output = await eeWebview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
@@ -147,7 +147,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     await overwriteCheckbox.click();
 
     await createEEButton.click();
-    await sleep(1000);
+    await sleep(2000);
 
     output = await eeWebview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
