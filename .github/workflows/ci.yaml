@@ -228,7 +228,11 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
       - name: task package
         id: package
-        run: task package ${{ matrix.env.TASKFILE_ARGS }}
+        run: |
+            echo $NODE_OPTIONS
+            export NODE_OPTIONS="--max-old-space-size=8192"
+            echo $NODE_OPTIONS
+            task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
