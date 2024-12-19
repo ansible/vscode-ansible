@@ -1,0 +1,26 @@
+{
+  "name": "ansible-dev-container-podman",
+  "image": "{{ dev_container_image }}",
+  "containerUser": "root",
+  "runArgs": [
+    "--cap-add=SYS_ADMIN",
+    "--cap-add=SYS_RESOURCE",
+    "--device",
+    "/dev/fuse",
+    "--security-opt",
+    "seccomp=unconfined",
+    "--security-opt",
+    "label=disable",
+    "--security-opt",
+    "apparmor=unconfined",
+    "--userns=host",
+    "--hostname=ansible-dev-container",
+    "--volume",
+    "ansible-dev-tools-container-storage:/var/lib/containers"
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": {{ recommended_extensions | json }}
+    }
+  }
+}

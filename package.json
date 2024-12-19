@@ -355,6 +355,10 @@
         "title": "Ansible: Create a Sample Execution Environment file"
       },
       {
+        "command": "ansible.content-creator.create-devcontainer",
+        "title": "Ansible: Create a Devcontainer"
+      },
+      {
         "command": "ansible.content-creator.create",
         "title": "Ansible Content Creator: Create"
       },
