@@ -143,7 +143,6 @@ export class CreateDevcontainer {
                   <div class="dropdown-container">
                     <label for="image-dropdown">Container image</label>
                     <vscode-dropdown id="image-dropdown">
-                      <vscode-option>Auto (ghcr.io/ansible/community-ansible-dev-tools:latest)</vscode-option>
                       <vscode-option>Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)</vscode-option>
                       <vscode-option>Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)</vscode-option>
                     </vscode-dropdown>
@@ -401,11 +400,11 @@ export class CreateDevcontainer {
         forceNewWindow: true,
       });
 
-      const devFileUrl = vscode.Uri.joinPath(
+      const fileUrl = vscode.Uri.joinPath(
         vscode.Uri.parse(folderUrl),
         ".devcontainer/devcontainer.json",
       ).fsPath;
-      const parsedUrl = vscode.Uri.parse(`vscode://file${devFileUrl}`);
+      const parsedUrl = vscode.Uri.parse(`vscode://file${fileUrl}`);
       this.openFileInEditor(parsedUrl.toString());
     }
   }

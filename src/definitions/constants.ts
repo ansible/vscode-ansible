@@ -53,7 +53,6 @@ export const DevfileImages = {
 };
 
 export const DevcontainerImages = {
-  Auto: "ghcr.io/ansible/community-ansible-dev-tools:latest",
   Upstream: "ghcr.io/ansible/community-ansible-dev-tools:latest",
   Downstream:
     "registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest",
