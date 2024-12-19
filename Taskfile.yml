@@ -186,6 +186,8 @@ tasks:
     generates:
       - "*.vsix"
     cmds:
+      - echo $NODE_OPTIONS
+      - export NODE_OPTIONS="--max-old-space-size=8192"
       - task: build
       # while not a real dependency, we want to build both all the time:
       - task: als:package
