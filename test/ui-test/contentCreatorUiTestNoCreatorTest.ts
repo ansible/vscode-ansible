@@ -71,6 +71,8 @@ describe("Test devfile generation webview (without creator)", () => {
     await checkAndInteractWithField(devfileWebview, "path-url", "~/test");
     await checkAndInteractWithField(devfileWebview, "devfile-name", "test");
     await clickButtonAndCheckEnabled(devfileWebview, "create-button");
+    await overwriteDevfileCheckbox.click();
+    await clickButtonAndCheckEnabled(devfileWebview, "create-button");
 
     await clickButtonAndCheckEnabled(devfileWebview, "reset-button");
     await sleep(1000);
@@ -109,6 +111,9 @@ describe("Test devcontainer generation webview (without creator)", () => {
 
     await checkAndInteractWithField(devcontainerWebview, "path-url", "~/test");
 
+    await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
+
+    await overwriteDevcontainerCheckbox.click();
     await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
 
     await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
