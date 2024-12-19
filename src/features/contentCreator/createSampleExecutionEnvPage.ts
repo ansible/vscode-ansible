@@ -314,7 +314,7 @@ export class CreateSampleExecutionEnv {
       commandOutput += ansibleCreatorExecutionResult.output;
       commandResult = ansibleCreatorExecutionResult.status;
     } else {
-      commandOutput += `Minimum ansible-creator version needed to scaffold an execution-environment.yml file is 24.12.1\n`;
+      commandOutput += `Minimum ansible-creator version needed to scaffold an execution-environment.yml file is ${ANSIBLE_CREATOR_EE_VERSION_MIN}\n`;
       commandOutput += `Please upgrade ansible-creator to minimum required version and try again.`;
       commandResult = "failed";
     }
