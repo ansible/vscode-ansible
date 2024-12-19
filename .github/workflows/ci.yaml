@@ -176,8 +176,6 @@ jobs:
 
       - name: Activate direnv
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        env:
-          NODE_OPTIONS: "--max_old_space_size=8192"
         run: |
           set -x
           asdf direnv setup --shell bash --version latest
@@ -229,9 +227,7 @@ jobs:
       - name: task package
         id: package
         run: |
-            echo $NODE_OPTIONS
             export NODE_OPTIONS="--max-old-space-size=8192"
-            echo $NODE_OPTIONS
             task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
