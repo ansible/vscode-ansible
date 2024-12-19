@@ -93,9 +93,15 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
   let editorView: EditorView;
   let output: WebElement;
 
+  before(async () => {
+    // Install ansible-creator
+    await workbenchExecuteCommand("Install Ansible Content Creator");
+    await sleep(2000);
+  });
+
   async function testWebViewElements(command: string, editorTitle: string) {
     await workbenchExecuteCommand(command);
-    await sleep(4000);
+    await sleep(5000);
 
     await new EditorView().openEditor(editorTitle);
     const eeWebview = await getWebviewByLocator(
@@ -128,7 +134,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     ).to.be.true;
 
     await createEEButton.click();
-    await sleep(2000);
+    await sleep(1000);
 
     output = await eeWebview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
@@ -147,7 +153,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     await overwriteCheckbox.click();
 
     await createEEButton.click();
-    await sleep(2000);
+    await sleep(1000);
 
     output = await eeWebview.findWebElement(
       By.xpath("//vscode-text-area[@id='log-text-area']"),
