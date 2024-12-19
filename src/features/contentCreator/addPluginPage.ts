@@ -242,14 +242,6 @@ export class AddPlugin {
     );
   }
 
-  private async getCreatorVersion(): Promise<string> {
-    const creatorVersion = (
-      await getBinDetail("ansible-creator", "--version")
-    ).toString();
-    console.log("ansible-creator version: ", creatorVersion);
-    return creatorVersion;
-  }
-
   public async getCreatorCommand(
     pluginName: string,
     pluginType: string,
@@ -299,13 +291,10 @@ export class AddPlugin {
       destinationPathUrl,
     );
 
-    const creatorVersion = await this.getCreatorVersion();
     if (isOverwritten) {
-      if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-        ansibleCreatorAddCommand += " --overwrite";
-      } else {
-        ansibleCreatorAddCommand += " --force";
-      }
+      ansibleCreatorAddCommand += " --overwrite";
+    } else {
+      ansibleCreatorAddCommand += " --no-overwrite";
     }
 
     switch (verbosity) {
