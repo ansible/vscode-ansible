@@ -196,8 +196,17 @@ describe("Test collection plugins scaffolding", () => {
 
     await new EditorView().openEditor(editorTitle);
     const webview = await getWebviewByLocator(
-      By.xpath("//vscode-text-field[@id='plugin-name']"),
+      By.xpath("//vscode-text-field[@id='path-url']"),
     );
+
+    const collectionPathUrlTextField = await webview.findWebElement(
+      By.xpath("//vscode-text-field[@id='path-url']"),
+    );
+    expect(
+      collectionPathUrlTextField,
+      "collectionPathUrlTextField should not be undefined",
+    ).not.to.be.undefined;
+    await collectionPathUrlTextField.sendKeys("~");
 
     const pluginNameTextField = await webview.findWebElement(
       By.xpath("//vscode-text-field[@id='plugin-name']"),
