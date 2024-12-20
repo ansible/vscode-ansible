@@ -129,6 +129,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.content-creator.create-devcontainer" title="Create a devcontainer and add it to an existing Ansible project">
+                <span class="codicon codicon-new-file"></span> Devcontainer
+                <span class="new-badge">NEW</span>
+              </a>
+            </h3>
+          </div>
     </div>
     <!-- Component registration code -->
     <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
