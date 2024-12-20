@@ -176,8 +176,6 @@ jobs:
 
       - name: Activate direnv
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        env:
-          NODE_OPTIONS: "--max_old_space_size=8192"
         run: |
           set -x
           asdf direnv setup --shell bash --version latest
