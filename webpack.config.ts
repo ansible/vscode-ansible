@@ -251,6 +251,20 @@ const createSampleExecutionEnvWebviewConfig = {
   },
 };
 
+const createDevcontainerWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/createDevcontainerPageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename:
+      "./client/webview/apps/contentCreator/createDevcontainerPageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 const addPluginWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -282,6 +296,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     roleGenerationWebviewConfig,
     createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,
+    createDevcontainerWebviewConfig,
     addPluginWebviewConfig,
     quickLinksWebviewConfig,
     createSampleExecutionEnvWebviewConfig,

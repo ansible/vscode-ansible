@@ -51,3 +51,13 @@ export const ANSIBLE_CREATOR_EE_VERSION_MIN = "24.12.1";
 export const DevfileImages = {
   Upstream: "ghcr.io/ansible/ansible-workspace-env-reference:latest",
 };
+
+export const DevcontainerImages = {
+  Upstream: "ghcr.io/ansible/community-ansible-dev-tools:latest",
+  Downstream:
+    "registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest",
+};
+
+export const DevcontainerRecommendedExtensions = {
+  RECOMMENDED_EXTENSIONS: ["redhat.ansible", "redhat.vscode-redhat-account"],
+};
