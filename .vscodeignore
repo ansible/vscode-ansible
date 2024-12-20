@@ -24,6 +24,7 @@
 !media/contentCreator/createAnsibleCollectionPageStyle.css
 !media/contentCreator/createAnsibleProjectPageStyle.css
 !media/contentCreator/createDevfilePageStyle.css
+!media/contentCreator/createSampleExecutionEnvPageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
 !media/quickLinks/lightspeed.png
@@ -44,6 +45,7 @@
 !out/client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
 !out/client/webview/apps/contentCreator/createDevfilePageApp.js
+!out/client/webview/apps/contentCreator/createSampleExecutionEnvPageApp.js
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/client/webview/apps/welcomePage/welcomePageApp.js
 !out/server/src/server.js
