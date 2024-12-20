@@ -2,14 +2,12 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
-import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { PluginFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, getBinDetail, runCommand } from "./utils";
-import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
+import { expandPath, runCommand } from "./utils";
 
 export class AddPlugin {
   public static currentPanel: AddPlugin | undefined;
@@ -96,7 +94,6 @@ export class AddPlugin {
     ]);
 
     const homeDir = os.homedir();
-    const tempDir = os.tmpdir();
 
     return /*html*/ `
       <html>

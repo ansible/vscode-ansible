@@ -100,16 +100,9 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
         <p>Add resources to an existing Ansible project</p>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.lightspeed.playbookGeneration" title="Generate a playbook with Ansible Lightspeed">
-                <span class="codicon codicon-new-file"></span> Playbook
-                <img class="category-icon icon-widget" src=${lightspeed_logo} alt="(powered by Ansible Lightspeed)" title="Generate a playbook with Ansible Lightspeed"/>
-              </a>
-            </h3>
-          </div>
-          <div class="catalogue">
-            <h3>
-              <a href="command:ansible.create-empty-playbook" title="Create a playbook template">
-                <span class="codicon codicon-new-file"></span> Playbook template
+              <a href="command:ansible.content-creator.add-plugin" title="Add a plugin to an existing collection">
+                <span class="codicon codicon-new-file"></span> Collection plugin
+                <span class="new-badge">NEW</span>
               </a>
             </h3>
           </div>
@@ -131,9 +124,16 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.content-creator.add-plugin" title="Add a plugin to an existing collection">
-                <span class="codicon codicon-new-file"></span> Collection plugin
-                <span class="new-badge">NEW</span>
+              <a href="command:ansible.lightspeed.playbookGeneration" title="Generate a playbook with Ansible Lightspeed">
+                <span class="codicon codicon-new-file"></span> Playbook
+                <img class="category-icon icon-widget" src=${lightspeed_logo} alt="(powered by Ansible Lightspeed)" title="Generate a playbook with Ansible Lightspeed"/>
+              </a>
+            </h3>
+          </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.create-empty-playbook" title="Create a playbook template">
+                <span class="codicon codicon-new-file"></span> Playbook template
               </a>
             </h3>
           </div>
