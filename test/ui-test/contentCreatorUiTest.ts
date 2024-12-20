@@ -7,6 +7,7 @@ import {
 import { config, expect } from "chai";
 import fs from "fs";
 import path from "path";
+import * as vscode from "vscode";
 import os from "os";
 
 config.truncateThreshold = 0;
@@ -184,6 +185,13 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
 describe("Test collection plugins scaffolding", () => {
   let createButton: WebElement;
   let editorView: EditorView;
+  let output: WebElement;
+
+  before(async () => {
+    // Install ansible-creator
+    await workbenchExecuteCommand("Install Ansible Content Creator");
+    await sleep(2000);
+  });
 
   async function testWebViewElements(
     command: string,
@@ -199,6 +207,8 @@ describe("Test collection plugins scaffolding", () => {
       By.xpath("//vscode-text-field[@id='path-url']"),
     );
 
+    const workspaceDir = await getWorkspaceFolder();
+    const collectionWorkspaceDir = `${workspaceDir}/collections/ansible_collections/my_namespace/my_collection`;
     const collectionPathUrlTextField = await webview.findWebElement(
       By.xpath("//vscode-text-field[@id='path-url']"),
     );
@@ -206,7 +216,7 @@ describe("Test collection plugins scaffolding", () => {
       collectionPathUrlTextField,
       "collectionPathUrlTextField should not be undefined",
     ).not.to.be.undefined;
-    await collectionPathUrlTextField.sendKeys("~");
+    await collectionPathUrlTextField.sendKeys(collectionWorkspaceDir);
 
     const pluginNameTextField = await webview.findWebElement(
       By.xpath("//vscode-text-field[@id='plugin-name']"),
@@ -241,11 +251,51 @@ describe("Test collection plugins scaffolding", () => {
     ).to.be.true;
 
     await createButton.click();
+    await sleep(1000);
+
+    output = await webview.findWebElement(
+      By.xpath("//vscode-text-area[@id='log-text-area']"),
+    );
+
+    expect(
+      await output.getAttribute("current-value"),
+      "Creator output should contain success message",
+    ).contains("plugin added to");
+
+    // Modify the content of the file to create an overwrite failure
+    const pluginFileUrl = `${collectionWorkspaceDir}/plugins/${pluginType}/${pluginName}.py`;
+    fs.writeFileSync(pluginFileUrl, "modify file content", "utf8");
+
+    // retry without overwrite selected
+    await overwriteCheckbox.click();
+
+    await createButton.click();
+    await sleep(1000);
+
+    output = await webview.findWebElement(
+      By.xpath("//vscode-text-area[@id='log-text-area']"),
+    );
+    expect(
+      await output.getAttribute("current-value"),
+      "Creator output should contain overwrite failure message",
+    ).contains(
+      "The destination directory contains files that can be overwritten",
+    );
+    await sleep(500);
+
     await webview.switchBack();
     editorView = new EditorView();
     if (editorView) {
       await editorView.closeAllEditors();
     }
+  }
+
+  async function getWorkspaceFolder() {
+    let folder: string = "";
+    if (vscode.workspace.workspaceFolders) {
+      folder = vscode.workspace.workspaceFolders[0].uri.path;
+    }
+    return folder;
   }
 
   it("Check add-plugin webview elements", async () => {
