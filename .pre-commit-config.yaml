@@ -27,6 +27,8 @@ repos:
     rev: v8.16.0
     hooks:
       - id: cspell
+        args:
+          -  --config=cspell.config.yaml
         # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
