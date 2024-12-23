@@ -1,0 +1,9 @@
+ansible-compat @ git+https://github.com/ansible/ansible-compat@main
+ansible-creator @ git+https://github.com/ansible/ansible-creator@main
+ansible-dev-environment @ git+https://github.com/ansible/ansible-dev-environment@main
+ansible-dev-tools @ git+https://github.com/ansible/ansible-dev-tools@main
+ansible-lint @ git+https://github.com/ansible/ansible-lint@main
+ansible-navigator @ git+https://github.com/ansible/ansible-navigator@main
+molecule @ git+https://github.com/ansible/molecule@main
+pytest-ansible @ git+https://github.com/ansible/pytest-ansible@main
+tox-ansible @ git+https://github.com/ansible/tox-ansible@main
