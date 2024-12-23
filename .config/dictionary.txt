@@ -5,6 +5,8 @@ CFLAGS
 Containerfile
 Devfile
 Devfiles
+Devcontainer
+Devcontainers
 Dockal
 Dpkg
 Elio
@@ -226,6 +228,7 @@ suboption
 suboptions
 subshells
 sysninja
+seccomp
 taskfile
 tasklist
 testenv
@@ -253,6 +256,7 @@ userdata
 usermod
 uuidv
 uuidv4
+userns
 varInfiles
 venvs
 virt

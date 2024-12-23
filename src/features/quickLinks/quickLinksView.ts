@@ -124,6 +124,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
+              <a href="command:ansible.content-creator.create-devcontainer" title="Create a devcontainer and add it to an existing Ansible project">
+                <span class="codicon codicon-new-file"></span> Devcontainer
+                <span class="new-badge">NEW</span>
+              </a>
+            </h3>
+          </div>
+          <div class="catalogue">
+            <h3>
               <a href="command:ansible.lightspeed.playbookGeneration" title="Generate a playbook with Ansible Lightspeed">
                 <span class="codicon codicon-new-file"></span> Playbook
                 <img class="category-icon icon-widget" src=${lightspeed_logo} alt="(powered by Ansible Lightspeed)" title="Generate a playbook with Ansible Lightspeed"/>
