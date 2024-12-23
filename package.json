@@ -992,7 +992,7 @@
     "vscode-extension-tester": "^8.10.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.97.1",
-    "webpack-cli": "^5.1.4",
+    "webpack-cli": "^6.0.1",
     "winston": "^3.17.0",
     "yargs": "^17.7.2",
     "yarn-audit-fix": "^10.1.1"
