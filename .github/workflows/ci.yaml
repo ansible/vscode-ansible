@@ -29,7 +29,7 @@ env:
   PRETTIER_LEGACY_CLI: "1" # https://github.com/prettier/prettier/issues/15832
   # https://docs.github.com/en/actions/learn-github-actions/environment-variables
   # https://devblogs.microsoft.com/commandline/share-environment-vars-between-wsl-and-windows/
-  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
 
@@ -41,6 +41,8 @@ jobs:
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
+      # NODE_OPTIONS must be kept in sync with one inside .envrc file
+      NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
     defaults:
@@ -183,15 +185,27 @@ jobs:
           asdf exec direnv allow
           asdf exec direnv reload
 
-          asdf exec direnv exec . bash -c 'echo "VIRTUAL_ENV=${VIRTUAL_ENV}"' >> "$GITHUB_ENV"
+          # https://github.com/direnv/direnv/wiki/GitHubActions
+          # Github prevents export of NODE_OPTIONS to GITHUB_ENV due to security reasons:
+          # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
+          asdf exec direnv export gha >> "$GITHUB_ENV"
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
-      - name: Ensure virtualenv is active (direnv)
+
+      - name: Ensure .envrc file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
-          set -x
-          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa"
-          test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3"
+          set -ex
+          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
+            echo "VIRTUAL_ENV mismatch"
+            exit 99
+          }
+          test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
+            echo "python3 mismatch"
+            exit 98
+          }
+          # Ensure NODE_OPTIONS config on CI is identical with the one in .envrc
+          [[ "${NODE_OPTIONS:-}" == "$(asdf exec direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .envrc and ci.yaml"; exit 97; }
 
       - name: Enable caching
         uses: actions/cache@v4
@@ -227,7 +241,6 @@ jobs:
       - name: task package
         id: package
         run: |
-            export NODE_OPTIONS="--max-old-space-size=8192"
             task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
