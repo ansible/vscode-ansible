@@ -191,7 +191,6 @@ jobs:
           asdf exec direnv export gha >> "$GITHUB_ENV"
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
-
       - name: Ensure .envrc file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |

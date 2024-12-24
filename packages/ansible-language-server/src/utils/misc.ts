@@ -58,7 +58,8 @@ export function withInterpreter(
   });
 
   if (activationScript) {
-    command = `bash -c 'source ${activationScript} && ${executable} ${args}'`;
+    // keep it sh as this can be either bash or zsh
+    command = `sh -c 'source ${activationScript} && ${executable} ${args}'`;
     return { command: command, env: process.env };
   }
 

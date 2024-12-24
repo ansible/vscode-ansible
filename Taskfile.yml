@@ -22,7 +22,7 @@ vars:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
+    sh: sh -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
 tasks:
   default:
     desc: Run most commands
@@ -110,7 +110,7 @@ tasks:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
       - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
-      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
+      - sh -c 'source "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
       - tools/dirty.sh
   lint:
     desc: Lint the project
@@ -154,7 +154,7 @@ tasks:
     cmds:
       - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - '{{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
+      - '{{.XVFB}} sh -c ''source "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
@@ -162,8 +162,8 @@ tasks:
     cmds:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - bash -c 'rm -rf ./out/test-resources ./out/ext'
-      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - sh -c 'rm -rf ./out/test-resources ./out/ext'
+      - ' {{.XVFB}} sh -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report

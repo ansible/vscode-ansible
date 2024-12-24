@@ -28,7 +28,8 @@ export async function getToxEnvs(
   )) as string;
 
   if (activationScript) {
-    command = `bash -c 'source ${activationScript} && ${command}'`;
+    // keep it sh as this can be either bash or zsh
+    command = `sh -c 'source ${activationScript} && ${command}'`;
   }
   if (interpreterPath && interpreterPath !== "") {
     const virtualEnv = path.resolve(interpreterPath, "../..");

@@ -58,7 +58,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - bash -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
+      - sh -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
     interactive: true
   test:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
@@ -72,7 +72,7 @@ tasks:
       - task: shared:install
       # switch to last nodejs version listed in .tool-versions
       - git clean -dxf
-      - bash -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
+      - sh -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
       - node --version
       - task: .test
       # restore implicit node version
@@ -85,7 +85,7 @@ tasks:
       - task: build
       - >
         source {{.VIRTUAL_ENV}}/bin/activate &&
-        bash -c 'npm run test-with-ee'
+        sh -c 'npm run test-with-ee'
     interactive: true
   test-without-ee:
     desc: Run only non-ee tests
@@ -94,7 +94,7 @@ tasks:
       - task: build
       - >
         source {{.VIRTUAL_ENV}}/bin/activate &&
-        bash -c 'npm run test-without-ee'
+        sh -c 'npm run test-without-ee'
     interactive: true
   package:
     desc: Package extension
