@@ -18,7 +18,7 @@ tasks:
       ARCH: "{{ARCH}}"
     cmds:
       - python3 ./tools/precheck.py
-      - bash ./tools/test-setup.sh
+      - ./tools/test-setup.sh
     sources:
       - tools/test-setup.sh
       - .config/requirements.in
