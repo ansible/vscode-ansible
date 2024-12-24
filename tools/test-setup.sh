@@ -75,16 +75,20 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    exit 2
 fi
 
-log notice "Install required build tools"
-for PLUGIN in yarn nodejs task python direnv; do
-    if ! asdf plugin-list | grep -q $PLUGIN; then
-        asdf plugin add $PLUGIN
-    fi
-done
-asdf install
+log notice "Install required build tools (mise/asdf)..."
 
-log notice "Report current build tool versions..."
-asdf current
+VERSION_MANAGER=mise
+if type mise >/dev/null; then
+    VERSION_MANAGER=mise
+else
+    curl https://mise.run | sh
+fi
+mise install
+
+command -v npm  >/dev/null 2>&1 || {
+    log error "Failed to find npm."
+    exit 56
+}
 
 if [[ "${OSTYPE:-}" != darwin* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
@@ -333,11 +337,6 @@ for CMD in ansible ansible-lint; do
 done
 unset CMD
 
-command -v npm  >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
-    asdf install
-}
-
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || {
         # Check if npm has permissions to install packages (system installed does not)
@@ -479,7 +478,7 @@ env:
 tools:
   ansible-lint: $(get_version ansible-lint)
   ansible: $(get_version ansible)
-  asdf: $(get_version asdf)
+  $VERSION_MANAGER: $(get_version $VERSION_MANAGER)
   bash: $(get_version bash)
   gh: $(get_version gh || echo null)
   git: $(get_version git)

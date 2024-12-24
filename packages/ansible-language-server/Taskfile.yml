@@ -43,9 +43,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Update dependencies
     cmds:
-      - npm install -g npm@latest
-      # - installs tools from .tool-versions
-      - asdf install
+      - task: shared:setup
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - npm outdated
       # bumps some developments dependencies

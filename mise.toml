@@ -1,0 +1,15 @@
+[env]
+# https://mise.jdx.dev/mise-cookbook/nodejs.html#add-node-modules-binaries-to-the-path
+_.path = ['./node_modules/.bin']
+
+# 'vsa' is acronym for 'visual studio ansible'
+# we use HOME location below to avoid polluting the project directory with,
+# temporary data and to allow us to mount the codebase on multiple machines
+# for build and testing purposes.
+# export VIRTUAL_ENV="${HOME}/.local/share/virtualenvs/vsa"
+
+# https://mise.jdx.dev/mise-cookbook/python.html
+_.python.venv = { path = "~/.local/share/virtualenvs/vsa", create = true }
+
+[settings]
+env_file = '.env'
