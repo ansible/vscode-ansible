@@ -108,7 +108,7 @@ npm install -g @ansible/ansible-language-server
 ## Language Server Settings
 
 For details on settings, their descriptions and their default values refer to
-[settings](https://als.readthedocs.io/en/latest/settings/).
+[settings](https://ansible.readthedocs.io/projects/vscode-ansible/als/settings/).
 
 ## Developer support
 
