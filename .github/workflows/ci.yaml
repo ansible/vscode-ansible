@@ -79,6 +79,11 @@ jobs:
           - name: test (linux)
             task-name: test
 
+          - name: test-devel (linux)
+            task-name: test
+            env:
+              DEVEL: 1
+
           - name: test (macos)
             task-name: test
             os: macos-13-large

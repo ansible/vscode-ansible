@@ -294,8 +294,12 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from community-ansible-dev-tools EE in order
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
+    PIP_DEVEL_ARGS=()
+    if [[ "${DEVEL:-}" == "1" ]]; then
+        PIP_DEVEL_ARGS=("-r" ".config/requirements-devel.in")
+    fi
     python3 -m uv pip install -q \
-        -r .config/requirements.in
+        -r .config/requirements.in "${PIP_DEVEL_ARGS[@]}"
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
@@ -477,7 +481,11 @@ env:
   OS: ${OS:-null}    # taskfile
   OSTYPE: ${OSTYPE}
 tools:
+  ade: $(get_version ade)
+  ansible-builder: $(get_version ansible-builder)
+  ansible-creator: $(get_version ansible-creator)
   ansible-lint: $(get_version ansible-lint)
+  ansible-navigator: $(get_version ansible-navigator)
   ansible: $(get_version ansible)
   asdf: $(get_version asdf)
   bash: $(get_version bash)
