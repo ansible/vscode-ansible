@@ -1,0 +1,77 @@
+[env]
+# https://mise.jdx.dev/mise-cookbook/nodejs.html#add-node-modules-binaries-to-the-path
+_.path = ['./node_modules/.bin']
+
+# 'vsa' is acronym for 'visual studio ansible'
+# we use HOME location below to avoid polluting the project directory with,
+# temporary data and to allow us to mount the codebase on multiple machines
+# for build and testing purposes.
+# export VIRTUAL_ENV="${HOME}/.local/share/virtualenvs/vsa"
+
+# https://mise.jdx.dev/mise-cookbook/python.html
+# "~/.local/share/virtualenvs/vsa"
+# _.python.venv = {path = "{{env.WORKON_HOME}}/vsa", create = true}
+# _.python.venv = {path = "~/vsa", create = false}
+# WORKON_HONE
+
+# https://github.com/nodejs/corepack/issues/550
+COREPACK_ENABLE_DOWNLOAD_PROMPT = 0
+
+HOSTNAME = "{{ get_env(name='HOSTNAME', default='vsa') }}"
+NODE_OPTIONS = "--max-old-space-size=8192"
+PYTHONUNBUFFERED = "1"
+DYLD_FALLBACK_LIBRARY_PATH = "/opt/homebrew/lib:{{ get_env(name='LD_LIBRARY_PATH', default='20') }}"
+# 'vsa' is acronym for 'visual studio ansible'
+# we use HOME location below to avoid polluting the project directory with,
+# temporary data and to allow us to mount the codebase on multiple machines
+# for build and testing purposes.
+# export VIRTUAL_ENV="${HOME}/.local/share/virtualenvs/vsa"
+
+
+# Hack needed on MacOS to build docs due to libcairo build.
+[settings]
+env_file = '.env'
+# Needs to be enabled for hooks to work
+experimental = true
+
+[tools]
+# do not add tools unsupported on windows such: gh, yarn 
+direnv = "latest"
+node = ["20.18.0", "latest"]
+# 3.12 is needed by one pre-commit hook
+python = ["3.13", "3.12"]
+task = "latest"
+
+[hooks]
+# Do not use other hooks than preinstall or postinstall because they will
+# not work without 'mise activate' command, something that we do not use on CI.
+
+# Enabling corepack will install the `pnpm` package manager specified in package.json
+preinstall = "bash -c 'echo 123'"
+postinstall = ["echo 'ZZZZ {% os() %}'"]
+#  &&
+# {% if os() != "linux" %}
+#     echo "You are on Windows!"
+# {% endif %}
+# {% if get_env(name='MISE_ENV', default='') == 'windows' %}
+#   echo 123
+# {% endif %}
+# npx corepack enable
+# """
+
+# Command such `yarn webpack-dev` might fail with
+# Reached heap limit Allocation failed - JavaScript heap out of memory
+# https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
+# default 16 MiB for 64-bit systems and 8 MiB for 32-bit systems
+# && yarn install"
+
+# {% set xwin = '' %}
+# {% set features = '' %}
+# {% if get_env(name='MISE_ENV', default='') == 'windows' %}
+#   {% set xwin = ' xwin' %}
+# {% endif %}
+# {% if get_env(name='CI', default='') != 'true' %}
+#   {% set features = ' --features transparent,devtools' %}
+# {% endif %}
+# cargo{{xwin}} build --bin webview{{features}}
+# """

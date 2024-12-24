@@ -3,10 +3,10 @@ Ansible
 Anson
 CFLAGS
 Containerfile
-Devfile
-Devfiles
 Devcontainer
 Devcontainers
+Devfile
+Devfiles
 Dockal
 Dpkg
 Elio
@@ -24,6 +24,7 @@ Nalawade
 OPTSTRING
 OSTYPE
 Ondrej
+PKGMGR
 PYTHONBREAKPOINT
 PYTHONHOME
 Pinkney
@@ -141,6 +142,7 @@ kimbernator
 koalaman
 lcov
 lextudio
+libcairo
 libgbm
 libonig
 libssh
@@ -167,7 +169,6 @@ mycollection
 mymodule
 mynamespace
 myuser
-nqry
 ncurc
 neovim
 netcommon
@@ -178,6 +179,7 @@ notest
 notfound
 npmjs
 npmrc
+nqry
 nsible
 nvim
 openshiftapps
@@ -190,7 +192,6 @@ pgrep
 piptools
 pipx
 pkgcache
-PKGMGR
 pkill
 podman
 precheck
@@ -202,6 +203,7 @@ printenv
 priyamsahoo
 projectuser
 prsahoo
+pwsh
 pylintrc
 pyparsing
 pyup
@@ -213,6 +215,7 @@ ritwickdey
 ro
 rollup
 rulebooks
+seccomp
 seealso
 servernum
 setuptools
@@ -231,7 +234,6 @@ suboption
 suboptions
 subshells
 sysninja
-seccomp
 taskfile
 tasklist
 testenv
@@ -257,9 +259,9 @@ unstash
 untildify
 userdata
 usermod
+userns
 uuidv
 uuidv4
-userns
 varInfiles
 venvs
 virt

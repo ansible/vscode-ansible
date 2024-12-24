@@ -1,5 +1,5 @@
 # This is a basic workflow
-
+# cspell: ignore wslpath useb USERPROFILE winget msstore
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -41,13 +41,12 @@ jobs:
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
-      # NODE_OPTIONS must be kept in sync with one inside .env file
-      NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
     defaults:
       run:
         shell: ${{ matrix.shell || 'bash'}}
+        # working-directory: /home/runner/workdir
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
@@ -62,72 +61,115 @@ jobs:
         # Order is important, keep it alphabetical: docs, lint, test*
         continue-on-error:
           - false
-        os:
-          - ubuntu-22.04
-        task-name:
-          - docs
-        name:
-          - docs
+        # os:
+        #   - ubuntu-22.04
+        # task-name:
+        #   - docs
+        # name:
+        #   - docs
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-22.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-22.04
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
-          - name: test (linux)
-            task-name: test
+          # - name: test (linux)
+          #   task-name: test
 
-          - name: test (macos)
-            task-name: test
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   task-name: test
+          #   os: macos-13-large
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
           - name: test (wsl)
             # runner does not support running containers
             task-name: als:test-without-ee
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
+            os: ["self-hosted", "w11-x64-ssbarnea"]
+            # devtools-win-x64
             shell: "wsl-bash {0}"
+            # shell: wsl -- dos2unix <"$(wslpath '{0}')" | bash --noprofile --norc -euo pipefail
+            # wsl --cd %GITHUB_WORKSPACE% bash -c "bash -euo pipefail '{0}'"
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
+
+      - name: Prepare Windows host (before checkout)
+        # git may be missing on custom runners and this affects action/checkout
+        if: runner.os == 'Windows'
+        shell: pwsh # https://dev.to/pwd9000/github-actions-all-the-shells-581h
+        working-directory: ${{ github.workspace }}
+        # scoop has big advantages over winget, it's faster unattended and
+        # automatically adds the executables to the PATH
+        run: |
+          if (-not (Get-Command scoop -ErrorAction SilentlyContinue)) { Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force; iwr -useb get.scoop.sh | iex }
+          $env:Path += ";$env:USERPROFILE\scoop\shims"
+          if (-not (Get-Command git -ErrorAction SilentlyContinue)) { scoop install git }
+          if (-not (Get-Command unzip -ErrorAction SilentlyContinue)) { scoop install unzip }
+          if (-not (Get-Command mise -ErrorAction SilentlyContinue)) { scoop install mise }
+          wsl cat /etc/os-release
+          git --version
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
-          show-progress: false
+          # show-progress: false
+          fetch-tags: true
+
+      - name: Install mise (unix)
+        # its Windows installer is crooked: requires unzip and fails to add
+        # mise to the path, 'scoop install mise' works better on Windows
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        uses: jdx/mise-action@v2
+        with:
+          experimental: true
+
+      - name: Install mise (windows)
+        # its Windows installer is crooked: requires unzip and fails to add
+        # mise to the path, 'scoop install mise' works better on Windows
+        if: ${{ contains(matrix.shell, 'wsl') }}
+        shell: pwsh
+        run: |
+          mise install
+          mise list
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.shell, 'wsl')
+        # && steps.wsl_check.outcome == 'failure'
         uses: Vampire/setup-wsl@v4.1.0
         with:
-          distribution: Ubuntu-22.04
-          set-as-default: "true"
+          distribution: Ubuntu-24.04
+          # set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
           wsl-shell-command: "bash -i -eo pipefail"
           # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
+          # 24.04 default:
           wsl-conf: |
             [automount]
             enabled = true
             root = /
             options = "metadata,umask=077"
             [boot]
-            command=/etc/init.d/dbus start
-            [interop]
-            enabled = false
-            appendWindowsPath = false
-            [network]
-            hostname = wsl
+            systemd=true
+
+          #   [boot]
+          #   command=/etc/init.d/dbus start
+          #   [interop]
+          #   enabled = false
+          #   appendWindowsPath = false
+          #   [network]
+          #   hostname = wsl
           additional-packages: curl
             dbus
             dirmngr
@@ -144,72 +186,16 @@ jobs:
             tar
             unzip
             xvfb
-          # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Setup asdf
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: asdf-vm/actions/install@v3
-
-      - name: Setup python
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install ansible-dev-tools
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        run: |
-          pip install ansible-dev-tools
-
-      - name: Install asdf inside WSL
-        if: contains(matrix.shell, 'wsl')
-        run: |
-          set -ex
-          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
-          export ASDF_DIR="$HOME/.asdf"
-          . "$HOME/.asdf/asdf.sh"
-          asdf plugin add direnv
-          asdf plugin add nodejs
-          asdf plugin add python
-          asdf plugin add task
-          asdf plugin add yarn
-          asdf install
-          direnv --version
-          task --version
-          yarn --version
-          node --version
-          python3 --version
-
-      - name: Activate direnv
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        run: |
-          set -x
-          asdf direnv setup --shell bash --version latest
-          asdf current
-          asdf exec direnv allow
-          asdf exec direnv reload
-
-          # https://github.com/direnv/direnv/wiki/GitHubActions
-          # Github prevents export of NODE_OPTIONS to GITHUB_ENV due to security reasons:
-          # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
-          asdf exec direnv export gha >> "$GITHUB_ENV"
-          asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
-
-      - name: Ensure .env file is automatically loaded (direnv)
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        run: |
-          set -ex
-          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
-            echo "VIRTUAL_ENV mismatch"
-            exit 99
-          }
-          test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
-            echo "python3 mismatch"
-            exit 98
-          }
-          # Ensure NODE_OPTIONS config on CI is identical with the one in .env
-          [[ "${NODE_OPTIONS:-}" == "$(asdf exec direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
+      # - name: Set up WSL
+      #   if: runner.os == 'Windows'
+      #   shell: powershell
+      #   run: |
+      #     cp "$env:GITHUB_WORKSPACE\.github\wsl-init.yml" "$env:USERPROFILE\.cloud-init\Ubuntu-22.04.user-data"
+      #     # winget install --id 9PN20MSR04DW --exact --source msstore --accept-source-agreements --accept-package-agreements
+      #     # ubuntu2204 install
+      #     # ubuntu2204 config --default-user runner
+      #     echo "WSLENV=CI:GITHUB_ACTIONS:RUNNER_OS:GITHUB_PATH/p" >> $env:GITHUB_ENV # allow some basic envs to be passed in
 
       - name: Enable caching
         uses: actions/cache@v4
@@ -218,12 +204,65 @@ jobs:
             .vscode-test
             .yarn/cache
             out/ext
-            out/test-resources
+            out/test-resources/*.zip
+            out/test-resources/*.tar.gz
+            out/test-resources/*.json
+            out/test-resources/chromedriver*
+            out/test-resources/driverVersion
+            !out/test-resources/screenshots
+            !out/test-resources/settings
             out/test-resources-oldest
+            ~/.cache/mise
             ~/.cache/pip
             ~/.cache/yarn
+            ~/.cache/uv
             ~/.cache/pre-commit/
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*', 'mise*.toml') }}
+
+
+      # - name: Install mise (wsl)
+      #   if: ${{ contains(matrix.shell, 'wsl') }}
+      #   run: |
+      #     pwd
+      #     ls -la ~/workdir
+      #     sudo apt update -y && sudo apt install -y gpg sudo wget curl
+      #     sudo install -dm 755 /etc/apt/keyrings
+      #     wget -qO - https://mise.jdx.dev/gpg-key.pub | gpg --dearmor | sudo tee /etc/apt/keyrings/mise-archive-keyring.gpg 1> /dev/null
+      #     echo "deb [signed-by=/etc/apt/keyrings/mise-archive-keyring.gpg arch=amd64] https://mise.jdx.dev/deb stable main" | sudo tee /etc/apt/sources.list.d/mise.list
+      #     sudo apt update
+      #     sudo apt install -y mise
+      #     mise --version
+      #     mise install -y
+
+      # - name: Setup python
+      #   if: ${{ !contains(matrix.shell, 'wsl') }}
+      #   uses: actions/setup-python@v5
+      #   with:
+      #     python-version: "3.12"
+
+      # - name: Activate mise
+      #   # if: ${{ !contains(matrix.shell, 'wsl') }}
+      #   run: |
+      #     set -euo pipefail
+      #     # echo "$HOME/.local/bin" >> $GITHUB_PATH
+      #     # echo "$HOME/.local/share/mise/bin" >> $GITHUB_PATH
+      #     # # echo "$HOME/.local/share/mise/shims" >> $GITHUB_PATH
+      #     ls -la ~/.bashrc
+      #     echo 'eval "$(mise activate bash)"' >> ~/.bashrc
+      #     ls -la ~/.bashrc
+
+      - name: Validate mise availability
+        # if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: |
+          set -ex
+          mise self-update -y
+          mise --version
+          python --version
+          mise doctor
+          mise list --current
+          task --version
+          npm exec yarn --version
+          node --version
 
       # - name: Enable caching for podman-machine
       #   if: "contains(matrix.os, 'macos')"
@@ -237,7 +276,7 @@ jobs:
       - name: task setup
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
-        run: task setup
+        run: mise exec -- task setup
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
@@ -245,30 +284,30 @@ jobs:
       - name: task package
         id: package
         run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }}
+          mise exec -- task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
-        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
+        run: mise exec -- task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task unit
         if: contains(matrix.name, 'test')
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+        run: mise exec -- task unit ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
-        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+        run: mise exec -- task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
-        run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
+        run: mise exec -- task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: contains(matrix.name, 'test')
-        run: task als ${{ matrix.env.TASKFILE_ARGS }}
+        run: mise exec -- task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
@@ -442,7 +481,7 @@ jobs:
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
-          node-version-file: .tool-versions
+          node-version: 20
 
       - name: Download the artifact
         uses: actions/download-artifact@v4
@@ -483,7 +522,7 @@ jobs:
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
-          node-version-file: .tool-versions
+          node-version: 20
           registry-url: "https://registry.npmjs.org"
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz

@@ -33,7 +33,7 @@ jobs:
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
-          node-version-file: .tool-versions
+          node-version: 20
 
       - name: node post install
         run: |

@@ -12,7 +12,7 @@ env: &env
   DOCKER_CLI_HINTS: "false"
 vars:
   EE_VERSION:
-    sh: ./tools/get-image-version
+    sh: python ./tools/get-image-version
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 tasks:
@@ -43,10 +43,8 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Update dependencies
     cmds:
-      - npm install -g npm@latest
-      # - installs tools from .tool-versions
-      - asdf install
-      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
+      - task: shared:setup
+      - "{{.VIRTUAL_ENV}}/bin/python -m pre_commit autoupdate"
       - npm outdated
       # bumps some developments dependencies
       - npx ncu -u --dep dev
@@ -58,7 +56,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - bash -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
+      - mise exec -- bash -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
     interactive: true
   test:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
@@ -68,15 +66,17 @@ tasks:
   test-node-lts:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Run all tests using node-lts (future)
+    env:
+      # tells mise to use nodejs version listed in 'mise.latest.toml'
+      MISE_ENV: latest
     cmds:
       - task: shared:install
-      # switch to last nodejs version listed in .tool-versions
       - git clean -dxf
-      - bash -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
+      - mise use node@latest
       - node --version
       - task: .test
       # restore implicit node version
-      - defer: git checkout HEAD .tool-versions
+      - defer: git checkout HEAD mise.toml
       - defer: git clean -dxf
   test-with-ee:
     dir: "{{ .TASKFILE_DIR }}"
@@ -108,7 +108,7 @@ tasks:
       - "*.tgz"
     cmds:
       - task: build
-      - rm -f {{ .TASKFILE_DIR }}/*.tgz
+      - yarn rimraf --glob "{{ .TASKFILE_DIR }}/*.tgz"
       - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   release:
