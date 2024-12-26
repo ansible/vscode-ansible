@@ -333,7 +333,7 @@ jobs:
           path: .
 
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.1.2
         with:
           name: als
           files: ./*/coverage/als/lcov.info
@@ -343,7 +343,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.1.2
         with:
           name: unit
           files: ./*/coverage/unit/lcov.info
@@ -353,7 +353,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.1.2
         with:
           name: ui
           files: ./*/coverage/ui/lcov.info
@@ -363,7 +363,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.1.2
         with:
           name: e2e
           files: ./*/coverage/e2e/lcov.info
