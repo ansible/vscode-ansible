@@ -19,7 +19,7 @@ describe("withInterpreter", () => {
       interpreterPath: "",
       activationScript: "/path/to/venv/bin/activate",
       expectedCommand:
-        "bash -c 'source /path/to/venv/bin/activate && ansible-lint playbook.yml'",
+        "sh -c 'source /path/to/venv/bin/activate && ansible-lint playbook.yml'",
       expectedEnv: {},
     },
     {

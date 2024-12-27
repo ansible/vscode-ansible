@@ -29,5 +29,6 @@
   "security.workspace.trust.startupPrompt": "never",
   "redhat.telemetry.enabled": false,
   "telemetry.telemetryLevel": "off",
+  "terminal.integrated.shell.osx": "/bin/zsh",
   "workbench.startupEditor": "none"
 }

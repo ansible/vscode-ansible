@@ -460,7 +460,8 @@ export class ExecutionEnvironment {
       ) {
         command += ` ${this.settingsContainerOptions} `;
       }
-      command += ` --name ${containerName} ${this._container_image} bash`;
+      // Do not add zsh/bash here in order to use the default shell of the container
+      command += ` --name ${containerName} ${this._container_image}`;
 
       this.connection.console.log(`run container with command '${command}'`);
       child_process.execSync(command, {
