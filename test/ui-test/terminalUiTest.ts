@@ -6,7 +6,12 @@ import {
   VSBrowser,
   SettingsEditor,
 } from "vscode-extension-tester";
-import { getFixturePath, updateSettings, sleep } from "./uiTestHelper";
+import {
+  getFixturePath,
+  updateSettings,
+  sleep,
+  workbenchExecuteCommand,
+} from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -61,6 +66,8 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
   const file = "playbook.yml";
   const playbookFile = getFixturePath(folder, file);
   before(async function () {
+    await workbenchExecuteCommand("Ansible: Install Ansible Development Tools");
+    await sleep(2000);
     workbench = new Workbench();
   });
   // Skip this test on macOS due to CI container settings
