@@ -1,4 +1,4 @@
-direnv 2.34.0
+direnv 2.35.0
 nodejs 20.18.0
 # asdf install task latest
 task 3.37.2

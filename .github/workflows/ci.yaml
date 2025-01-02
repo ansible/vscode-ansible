@@ -41,7 +41,7 @@ jobs:
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
-      # NODE_OPTIONS must be kept in sync with one inside .envrc file
+      # NODE_OPTIONS must be kept in sync with one inside .env file
       NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
@@ -192,7 +192,7 @@ jobs:
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
 
-      - name: Ensure .envrc file is automatically loaded (direnv)
+      - name: Ensure .env file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
           set -ex
@@ -204,8 +204,8 @@ jobs:
             echo "python3 mismatch"
             exit 98
           }
-          # Ensure NODE_OPTIONS config on CI is identical with the one in .envrc
-          [[ "${NODE_OPTIONS:-}" == "$(asdf exec direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .envrc and ci.yaml"; exit 97; }
+          # Ensure NODE_OPTIONS config on CI is identical with the one in .env
+          [[ "${NODE_OPTIONS:-}" == "$(asdf exec direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Enable caching
         uses: actions/cache@v4
