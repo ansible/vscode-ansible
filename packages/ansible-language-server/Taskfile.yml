@@ -7,7 +7,7 @@ includes:
     dir: ../..
     internal: true
 env: &env
-  # basically the same thing from .envrc file:
+  # basically the same thing from .env file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"
 vars:
