@@ -11,7 +11,7 @@ import os from "os";
 
 config.truncateThreshold = 0;
 
-describe("Test Ansible playbook project scaffolding", () => {
+describe("Test Ansible playbook and collection project scaffolding", () => {
   let createButton: WebElement;
   let editorView: EditorView;
 
