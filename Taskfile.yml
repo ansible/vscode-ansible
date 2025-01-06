@@ -14,7 +14,7 @@ env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
-  # basically the same thing from .envrc file:
+  # basically the same thing from .env file:
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
