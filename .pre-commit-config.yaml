@@ -24,7 +24,7 @@ exclude: >
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.16.0
+    rev: v8.17.0
     hooks:
       - id: cspell
         args:
@@ -48,7 +48,7 @@ repos:
           - -e
           - SC1091
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.8.6
     hooks:
       - id: ruff
         args:
@@ -178,7 +178,7 @@ repos:
           )$
   - repo: https://github.com/pycontribs/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.3.3"
+    rev: "v3.4.2"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
@@ -205,7 +205,7 @@ repos:
             docs/development/webview_guide.md
           $
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.19.0
+    rev: v9.20.0
     hooks:
       - id: commitlint
         stages: [commit-msg]
