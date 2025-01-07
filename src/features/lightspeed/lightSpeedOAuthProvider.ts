@@ -16,7 +16,6 @@ import {
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
-import axios from "axios";
 import { SettingsManager } from "../../settings";
 import {
   generateCodeVerifier,
@@ -38,6 +37,8 @@ import {
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { getFetch } from "./api";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -360,54 +361,58 @@ export class LightSpeedAuthenticationProvider
       "Content-Type": "application/x-www-form-urlencoded",
     };
 
-    const postData = {
-      client_id: LIGHTSPEED_CLIENT_ID,
-      code: code,
-      code_verifier: CODE_VERIFIER,
-      redirect_uri: this._externalRedirectUri,
-      grant_type: "authorization_code",
-    };
-
     console.log(
       "[ansible-lightspeed-oauth] Sending request for access token...",
     );
 
     try {
-      const { data } = await axios.post(
+      const fetch = getFetch();
+
+      const response = await fetch(
         `${getBaseUri(this.settingsManager)}/o/token/`,
-        postData,
         {
-          headers: headers,
+          method: "POST",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
+          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(CODE_VERIFIER)}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._externalRedirectUri)}`,
+          headers,
         },
       );
 
-      const account: OAuthAccount = {
-        type: "oauth",
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token,
-        expiresAtTimestampInSeconds: calculateTokenExpiryTime(data.expires_in),
-        // scope: data.scope,
-      };
-      // store the account info
-      this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
+      const data = await response.json();
 
-      return account;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "[ansible-lightspeed-oauth] error message: ",
-          error.message,
-        );
-        /* istanbul ignore next */
-        console.error(
-          "[ansible-lightspeed-oauth] error response data: ",
-          error.response?.data,
-        );
-        throw new Error("An unexpected error occurred");
+      if (response.ok) {
+        const account: OAuthAccount = {
+          type: "oauth",
+          accessToken: data?.access_token,
+          refreshToken: data?.refresh_token,
+          expiresAtTimestampInSeconds: calculateTokenExpiryTime(
+            data?.expires_in,
+          ),
+          // scope: data.scope,
+        };
+        // store the account info
+        this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
+
+        return account;
       } else {
-        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
-        throw new Error("An unexpected error occurred");
+        console.error(
+          `[ansible-lightspeed-oauth] call to get access token returned non-2xx response. Status: ${response.status}. Body: `,
+          data,
+        );
+
+        throw new Error(`Request failed with status code: ${response.status}`);
       }
+    } catch (error) {
+      const err = error as Error;
+      console.error(
+        `[ansible-lightspeed-oauth] Error occurred: ${err.message}`,
+        {
+          name: err.name,
+          message: err.message,
+          stack: err.stack,
+        },
+      );
+      throw err;
     }
   }
 
@@ -420,12 +425,6 @@ export class LightSpeedAuthenticationProvider
       "Content-Type": "application/x-www-form-urlencoded",
     };
 
-    const postData = {
-      client_id: LIGHTSPEED_CLIENT_ID,
-      refresh_token: currentAccount.refreshToken,
-      grant_type: "refresh_token",
-    };
-
     console.log(
       "[ansible-lightspeed-oauth] Sending request for a new access token...",
     );
@@ -436,18 +435,28 @@ export class LightSpeedAuthenticationProvider
         location: ProgressLocation.Notification,
       },
       async () => {
-        return axios
-          .post(`${getBaseUri(this.settingsManager)}/o/token/`, postData, {
-            headers: headers,
-          })
-          .then((response) => {
-            const data = response.data;
+        try {
+          const fetch = getFetch();
+
+          const response = await fetch(
+            `${getBaseUri(this.settingsManager)}/o/token/`,
+            {
+              method: "POST",
+              signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
+              body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&refresh_token=${encodeURIComponent(currentAccount.refreshToken)}&grant_type=refresh_token`,
+              headers,
+            },
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
             const account: OAuthAccount = {
               ...currentAccount,
-              accessToken: data.access_token,
-              refreshToken: data.refresh_token,
+              accessToken: data?.access_token,
+              refreshToken: data?.refresh_token,
               expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-                data.expires_in,
+                data?.expires_in,
               ),
               // scope: data.scope,
             };
@@ -459,13 +468,28 @@ export class LightSpeedAuthenticationProvider
             );
 
             return account;
-          })
-          .catch((error) => {
+          } else {
             console.error(
-              `[ansible-lightspeed-oauth] Request token failed with error: ${error}`,
+              `[ansible-lightspeed-oauth] call to get new access token returned non-2xx response. Status: ${response.status}. Body: `,
+              data,
             );
-            return;
-          });
+
+            throw new Error(
+              `Request failed with status code: ${response.status}`,
+            );
+          }
+        } catch (error) {
+          const err = error as Error;
+          console.error(
+            `[ansible-lightspeed-oauth] Error occurred: ${err.message}`,
+            {
+              name: err.name,
+              message: err.message,
+              stack: err.stack,
+            },
+          );
+          throw err;
+        }
       },
     );
 
@@ -561,31 +585,40 @@ export class LightSpeedAuthenticationProvider
     );
 
     try {
-      const { data } = await axios.get(
+      const fetch = getFetch();
+
+      const response = await fetch(
         `${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
+          method: "GET",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      return data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "[ansible-lightspeed-oauth] error message: ",
-          error.message,
-        );
-        console.error(
-          "[ansible-lightspeed-oauth] error response data: ",
-          error.response?.data,
-        );
-        throw new Error(error.message);
+      if (response.ok) {
+        const data = await response.json();
+        return data;
       } else {
-        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
-        throw new Error("An unexpected error occurred");
+        console.error(
+          `[ansible-lightspeed-oauth] call to get user info returned non-2xx response. Status: ${response.status}`,
+        );
+
+        throw new Error(`Request failed with status code: ${response.status}`);
       }
+    } catch (error) {
+      const err = error as Error;
+      console.error(
+        `[ansible-lightspeed-oauth] Error occurred: ${err.message}`,
+        {
+          name: err.name,
+          message: err.message,
+          stack: err.stack,
+        },
+      );
+      throw err;
     }
   }
 

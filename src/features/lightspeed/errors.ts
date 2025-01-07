@@ -1,21 +1,18 @@
-import { AxiosError } from "axios";
-import { IError } from "./utils/errors";
+import { HTTPError, IError } from "./utils/errors";
 
 class Error implements IError {
   readonly code: string;
   readonly message?: string;
   readonly detail?: unknown;
-  readonly check: (err: AxiosError) => boolean;
+  readonly check: (err: HTTPError) => boolean;
 
-  private getCode(err: AxiosError): string {
-    const responseErrorData = <AxiosError<{ code?: string; message?: string }>>(
-      err.response?.data
-    );
+  private getCode(err: HTTPError): string {
+    const responseErrorData = <HTTPError>err.body;
     const code: string = Object.prototype.hasOwnProperty.call(
       responseErrorData,
       "code",
     )
-      ? (responseErrorData.code as string)
+      ? (responseErrorData.code as unknown as string)
       : "unknown";
     return code;
   }
@@ -24,7 +21,7 @@ class Error implements IError {
     code: string,
     message?: string,
     detail?: unknown,
-    check?: (err: AxiosError) => boolean,
+    check?: (err: HTTPError) => boolean,
   ) {
     this.code = code;
     this.message = message;
@@ -32,7 +29,7 @@ class Error implements IError {
     if (check) {
       this.check = check;
     } else {
-      this.check = (err: AxiosError) => {
+      this.check = (err: HTTPError) => {
         return this.code === this.getCode(err);
       };
     }
@@ -54,7 +51,7 @@ class Errors {
     this.errors.get(statusCode)?.push(error);
   }
 
-  public getError(err: AxiosError): Error | undefined {
+  public getError(err: HTTPError): Error | undefined {
     if (err && !("response" in err)) {
       return undefined;
     }
@@ -69,9 +66,7 @@ class Errors {
     });
 
     if (e) {
-      const responseErrorData = <
-        AxiosError<{ code?: string; message?: unknown }>
-      >err.response?.data;
+      const responseErrorData = <HTTPError>err.body;
 
       // If the Error does not have a default message use the payload message
       let message = e.message;
@@ -83,7 +78,7 @@ class Errors {
           ? responseErrorData.message
           : "unknown";
       }
-      const items = (err.response?.data as Record<string, unknown>) ?? {};
+      const items = (err.body as Record<string, unknown>) ?? {};
       const detail = Object.hasOwn(items, "detail")
         ? items["detail"]
         : undefined;
@@ -284,12 +279,13 @@ ERRORS.addError(
       "Please open a ticket with Red Hat support and include the content of your editor up to the \n" +
       "line and column where you requested a suggestion.",
     undefined,
-    (err: AxiosError) => {
-      const body: unknown = err.response?.data;
+    (err: HTTPError) => {
+      const body: unknown = err.body;
       let bodyContainsCloudFront: boolean = false;
       let bodyContainsCloudFrontBlocked: boolean = false;
       const headerContainsCloudFrontServer: boolean =
-        (err.response?.headers["server"] || "").toLowerCase() === "cloudfront";
+        (err.response?.headers.get("server") || "").toLowerCase() ===
+        "cloudfront";
       if (typeof body === "string") {
         bodyContainsCloudFront =
           (body.toLowerCase().match("cloudfront")?.length || 0) > 0;
