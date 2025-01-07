@@ -36,6 +36,20 @@ export type AnsibleSampleExecutionEnvInterface = {
   isOverwritten: boolean;
 };
 
+export type DevcontainerFormInterface = {
+  destinationPath: string;
+  image: string;
+  isOverwritten: boolean;
+};
+
+export type PluginFormInterface = {
+  pluginName: string;
+  pluginType: string;
+  collectionPath: string;
+  verbosity: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";

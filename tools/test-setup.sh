@@ -76,15 +76,26 @@ if [[ -z "${HOSTNAME:-}" ]]; then
 fi
 
 log notice "Install required build tools"
-for PLUGIN in yarn nodejs task python direnv; do
-    if ! asdf plugin-list | grep -q $PLUGIN; then
-        asdf plugin add $PLUGIN
-    fi
-done
-asdf install
+if type mise >/dev/null; then
+    log notice "Found mise..."
+    mise install
+    mise ls
+    mise doctor
+elif type asdf >/dev/null; then
+    log notice "Found asdf..."
+    for PLUGIN in yarn nodejs task python direnv; do
+        if ! asdf plugin-list | grep -q $PLUGIN; then
+            asdf plugin add $PLUGIN
+        fi
+    done
+    asdf install
 
-log notice "Report current build tool versions..."
-asdf current
+    log notice "Report current build tool versions..."
+    asdf current
+else
+    log fatal "Neither mise nor asdf found."
+    exit 3
+fi
 
 if [[ "${OSTYPE:-}" != darwin* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
@@ -479,7 +490,6 @@ env:
 tools:
   ansible-lint: $(get_version ansible-lint)
   ansible: $(get_version ansible)
-  asdf: $(get_version asdf)
   bash: $(get_version bash)
   gh: $(get_version gh || echo null)
   git: $(get_version git)

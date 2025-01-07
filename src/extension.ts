@@ -65,6 +65,7 @@ import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGenera
 import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
 import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
+import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
@@ -73,6 +74,7 @@ import {
 import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateSampleExecutionEnv } from "./features/contentCreator/createSampleExecutionEnvPage";
+import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -557,6 +559,26 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.create-sample-execution-env-file",
       () => {
         CreateSampleExecutionEnv.render(context.extensionUri);
+      },
+    ),
+  );
+
+  // open web-view for creating devcontainer
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-devcontainer",
+      () => {
+        CreateDevcontainer.render(context.extensionUri);
+      },
+    ),
+  );
+
+  // open web-view for adding a plugin in an ansible collection
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.add-plugin",
+      () => {
+        AddPlugin.render(context.extensionUri);
       },
     ),
   );

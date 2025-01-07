@@ -15,6 +15,7 @@ ci:
     - depcheck
     - eslint
     - compare-devfile
+    - compare-devcontainer
 exclude: >
   (?x)^(
     .config/requirements.in|
@@ -26,6 +27,8 @@ repos:
     rev: v8.16.0
     hooks:
       - id: cspell
+        args:
+          -  --config=cspell.config.yaml
         # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
     rev: v2.3.0
@@ -109,6 +112,11 @@ repos:
       - id: compare-devfile
         name: Compare extension devfile with ansible-creator
         entry: tools/compare_devfile.sh
+        language: script
+
+      - id: compare-devcontainer
+        name: Compare extension devcontainer with ansible-creator
+        entry: tools/compare_devcontainer.sh
         language: script
 
   - repo: https://github.com/ScribeMD/pre-commit-hooks
