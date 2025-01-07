@@ -100,8 +100,8 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
         <p>Add resources to an existing Ansible project</p>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.content-creator.add-plugin" title="Add a plugin to an existing collection">
-                <span class="codicon codicon-new-file"></span> Collection plugin
+              <a href="command:ansible.content-creator.create-devcontainer" title="Create a devcontainer and add it to an existing Ansible project">
+                <span class="codicon codicon-new-file"></span> Devcontainer
                 <span class="new-badge">NEW</span>
               </a>
             </h3>
@@ -124,8 +124,8 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.content-creator.create-devcontainer" title="Create a devcontainer and add it to an existing Ansible project">
-                <span class="codicon codicon-new-file"></span> Devcontainer
+              <a href="command:ansible.content-creator.add-plugin" title="Add a plugin to an existing collection">
+                <span class="codicon codicon-new-file"></span> Collection plugin
                 <span class="new-badge">NEW</span>
               </a>
             </h3>
