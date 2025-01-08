@@ -64,7 +64,7 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
   before(async function () {
     workbench = new Workbench();
     // Install ansible-navigator
-    await workbenchExecuteCommand("Install Ansible Navigator");
+    await workbenchExecuteCommand("Ansible: Install Ansible Development Tools");
     await sleep(2000);
   });
 
