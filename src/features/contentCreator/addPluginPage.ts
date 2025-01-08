@@ -125,10 +125,6 @@ export class AddPlugin {
                   </section>
                 </vscode-text-field>
 
-                <div class="plugin-name-div">
-                <vscode-text-field id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512">Plugin name *</vscode-text-field>
-                </div>
-
                 <div class="plugin-type-div">
                   <div class="dropdown-container">
                     <label for="plugin-dropdown">Plugin type *</label>
@@ -137,6 +133,10 @@ export class AddPlugin {
                       <vscode-option>lookup</vscode-option>
                     </vscode-dropdown>
                   </div>
+                </div>
+
+                <div class="plugin-name-div">
+                <vscode-text-field id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512">Plugin name *</vscode-text-field>
                 </div>
 
                 <div id="full-collection-path" class="full-collection-path">
