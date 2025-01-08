@@ -420,16 +420,6 @@ export class CreateAnsibleProject {
         status: commandPassed,
       },
     } as PostMessageEvent);
-
-    if (commandPassed === "passed") {
-      const selection = await vscode.window.showInformationMessage(
-        `Ansible playbook project created at: ${destinationPathUrl}`,
-        `Open playbook project ↗`,
-      );
-      if (selection === "Open playbook project ↗") {
-        this.openFolderInWorkspace(destinationPathUrl);
-      }
-    }
   }
 
   public async openLogFile(fileUrl: string) {
