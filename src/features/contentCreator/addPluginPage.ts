@@ -77,14 +77,14 @@ export class AddPlugin {
       "webview",
       "apps",
       "contentCreator",
-      "AddPluginPageApp.js",
+      "addPluginPageApp.js",
     ]);
 
     const nonce = getNonce();
     const styleUri = getUri(webview, extensionUri, [
       "media",
       "contentCreator",
-      "AddPluginPageStyle.css",
+      "addPluginPageStyle.css",
     ]);
 
     const codiconsUri = getUri(webview, extensionUri, [

@@ -156,6 +156,11 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Install ansible-dev-tools
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: |
+          pip install ansible-dev-tools
+
       - name: Install asdf inside WSL
         if: contains(matrix.shell, 'wsl')
         run: |
