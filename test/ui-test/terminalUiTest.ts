@@ -1,5 +1,4 @@
 import { expect, config } from "chai";
-import { workbenchExecuteCommand } from "./uiTestHelper";
 import fs from "fs";
 import {
   Workbench,
@@ -63,11 +62,7 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
   const playbookFile = getFixturePath(folder, file);
   before(async function () {
     workbench = new Workbench();
-    // Install ansible-navigator
-    await workbenchExecuteCommand("Ansible: Install Ansible Development Tools");
-    await sleep(2000);
   });
-
   // Skip this test on macOS due to CI container settings
   it("Execute playbook with ansible-navigator EE mode", async function () {
     if (process.platform !== "darwin") {

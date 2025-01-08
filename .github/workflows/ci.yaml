@@ -156,11 +156,6 @@ jobs:
         with:
           python-version: "3.12"
 
-      # - name: Install ansible-dev-tools
-      #   if: ${{ !contains(matrix.shell, 'wsl') }}
-      #   run: |
-      #     pip install ansible-dev-tools
-
       - name: Install asdf inside WSL
         if: contains(matrix.shell, 'wsl')
         run: |
@@ -196,6 +191,10 @@ jobs:
           asdf exec direnv export gha >> "$GITHUB_ENV"
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
+      - name: Install ansible-dev-tools
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: |
+          pip install ansible-dev-tools
 
       - name: Ensure .env file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
