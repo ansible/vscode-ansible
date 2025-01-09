@@ -108,6 +108,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
+              <a href="command:ansible.content-creator.create-devcontainer" title="Create a devcontainer and add it to an existing Ansible project">
+                <span class="codicon codicon-new-file"></span> Devcontainer
+                <span class="new-badge">NEW</span>
+              </a>
+            </h3>
+          </div>
+          <div class="catalogue">
+            <h3>
               <a href="command:ansible.content-creator.create-devfile" title="Create a devfile and add it to an existing Ansible project">
                 <span class="codicon codicon-new-file"></span> Devfile
                 <span class="new-badge">NEW</span>
@@ -117,15 +125,7 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           <div class="catalogue">
             <h3>
               <a href="command:ansible.content-creator.create-sample-execution-env-file" title="Create a sample Execution Environment file.">
-                <span class="codicon codicon-new-file"></span> Execution Environment template
-                <span class="new-badge">NEW</span>
-              </a>
-            </h3>
-          </div>
-          <div class="catalogue">
-            <h3>
-              <a href="command:ansible.content-creator.create-devcontainer" title="Create a devcontainer and add it to an existing Ansible project">
-                <span class="codicon codicon-new-file"></span> Devcontainer
+                <span class="codicon codicon-new-file"></span> Execution environment template
                 <span class="new-badge">NEW</span>
               </a>
             </h3>
