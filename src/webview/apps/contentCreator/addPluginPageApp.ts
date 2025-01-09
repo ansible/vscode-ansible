@@ -37,7 +37,7 @@ let initCollectionPathElement: HTMLElement;
 
 let initLogsTextArea: TextArea;
 let initClearLogsButton: Button;
-let initOpenScaffoldedFolderButton: Button;
+let initOpenPluginFileButton: Button;
 
 let projectUrl = "";
 
@@ -57,8 +57,8 @@ function main() {
 
   initLogsTextArea = document.getElementById("log-text-area") as TextArea;
   initClearLogsButton = document.getElementById("clear-logs-button") as Button;
-  initOpenScaffoldedFolderButton = document.getElementById(
-    "open-folder-button",
+  initOpenPluginFileButton = document.getElementById(
+    "open-file-button",
   ) as Button;
 
   pluginNameTextField.addEventListener("input", toggleCreateButton);
@@ -72,9 +72,9 @@ function main() {
   initClearButton.addEventListener("click", handleInitClearClick);
 
   initClearLogsButton.addEventListener("click", handleInitClearLogsClick);
-  initOpenScaffoldedFolderButton.addEventListener(
+  initOpenPluginFileButton.addEventListener(
     "click",
-    handleInitOpenScaffoldedFolderClick,
+    handleInitOpenPluginFileClick,
   );
 
   initCollectionPathDiv = document.getElementById("full-collection-path");
@@ -183,9 +183,9 @@ function handleInitCreateClick() {
             message.arguments.status &&
             message.arguments.status === "passed"
           ) {
-            initOpenScaffoldedFolderButton.disabled = false;
+            initOpenPluginFileButton.disabled = false;
           } else {
-            initOpenScaffoldedFolderButton.disabled = true;
+            initOpenPluginFileButton.disabled = true;
           }
 
           projectUrl = message.arguments.projectUrl
@@ -204,9 +204,9 @@ function handleInitClearLogsClick() {
   initLogsTextArea.value = "";
 }
 
-function handleInitOpenScaffoldedFolderClick() {
+function handleInitOpenPluginFileClick() {
   vscode.postMessage({
-    command: "init-open-scaffolded-folder",
+    command: "init-open-scaffolded-file",
     payload: {
       projectUrl: projectUrl,
     },
