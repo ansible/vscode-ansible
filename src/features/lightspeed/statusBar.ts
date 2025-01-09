@@ -116,9 +116,7 @@ export class LightspeedStatusBar {
   }
 
   public async lightSpeedStatusBarClickHandler() {
-    if (await this.lightspeedAuthenticatedUser.isAuthenticated()) {
-      vscode.commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FEEDBACK);
-    } else {
+    if (!(await this.lightspeedAuthenticatedUser.isAuthenticated())) {
       vscode.commands.executeCommand(
         LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
       );
