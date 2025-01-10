@@ -1,54 +1,52 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import {
-  allComponents,
-  Button,
-  Checkbox,
-  TextArea,
-  TextField,
-  provideVSCodeDesignSystem,
-  Dropdown,
-} from "@vscode/webview-ui-toolkit";
-import {
   AnsibleCollectionFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-
-provideVSCodeDesignSystem().register(allComponents);
+import "@vscode-elements/elements";
+import {
+  VscodeButton,
+  VscodeCheckbox,
+  VscodeIcon,
+  VscodeSingleSelect,
+  VscodeTextarea,
+  VscodeTextfield,
+} from "@vscode-elements/elements";
 
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-let initNamespaceNameTextField: TextField;
-let initCollectionNameTextField: TextField;
-let initPathUrlTextField: TextField;
-let folderExplorerButton: Button;
+let initNamespaceNameTextField: VscodeTextfield;
+let initCollectionNameTextField: VscodeTextfield;
+let initPathUrlTextField: VscodeTextfield;
+let folderExplorerIcon: VscodeIcon;
 
-let initCreateButton: Button;
-let initClearButton: Button;
+let initCreateButton: VscodeButton;
+let initClearButton: VscodeButton;
 
-let overwriteCheckbox: Checkbox;
-let editableModeInstall: Checkbox;
+let overwriteCheckbox: VscodeCheckbox;
+let editableModeInstall: VscodeCheckbox;
 
-let logToFileCheckbox: Checkbox;
+let logToFileCheckbox: VscodeCheckbox;
 let logToFileOptionsDiv: HTMLElement | null;
-let logFilePath: TextField;
-let fileExplorerButton: Button;
-let logFileAppendCheckbox: Checkbox;
-let logLevelDropdown: Dropdown;
+let logFilePath: VscodeTextfield;
+let fileExplorerButton: VscodeButton;
+let logFileAppendCheckbox: VscodeCheckbox;
+let logLevelDropdown: VscodeSingleSelect;
 
-let verboseDropdown: Dropdown;
+let verboseDropdown: VscodeSingleSelect;
 
 let initCollectionNameDiv: HTMLElement | null;
 let initCollectionPathDiv: HTMLElement | null;
 let initCollectionNameElement: HTMLElement;
 let initCollectionPathElement: HTMLElement;
 
-let initLogsTextArea: TextArea;
-let initClearLogsButton: Button;
-let initOpenLogFileButton: Button;
-let initCopyLogsButton: Button;
-let initOpenScaffoldedFolderButton: Button;
+let initLogsTextArea: VscodeTextarea;
+let initClearLogsButton: VscodeButton;
+let initOpenLogFileButton: VscodeButton;
+let initCopyLogsButton: VscodeButton;
+let initOpenScaffoldedFolderButton: VscodeButton;
 
 let logFileUrl = "";
 let collectionUrl = "";
@@ -57,50 +55,60 @@ function main() {
   // elements for init interface
   initNamespaceNameTextField = document.getElementById(
     "namespace-name",
-  ) as TextField;
+  ) as VscodeTextfield;
   initCollectionNameTextField = document.getElementById(
     "collection-name",
-  ) as TextField;
-  initPathUrlTextField = document.getElementById("path-url") as TextField;
-  folderExplorerButton = document.getElementById("folder-explorer") as Button;
+  ) as VscodeTextfield;
+  initPathUrlTextField = document.getElementById("path-url") as VscodeTextfield;
+  folderExplorerIcon = document.getElementById("folder-explorer") as VscodeIcon;
 
-  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById(
+    "overwrite-checkbox",
+  ) as VscodeCheckbox;
   editableModeInstall = document.getElementById(
     "editable-mode-checkbox",
-  ) as Checkbox;
+  ) as VscodeCheckbox;
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox",
-  ) as Checkbox;
+  ) as VscodeCheckbox;
   logToFileCheckbox.addEventListener("change", toggleLogToFileOptions);
 
   logToFileOptionsDiv = document.getElementById("log-to-file-options-div");
 
-  logFilePath = document.getElementById("log-file-path") as TextField;
-  fileExplorerButton = document.getElementById("file-explorer") as Button;
+  logFilePath = document.getElementById("log-file-path") as VscodeTextfield;
+  fileExplorerButton = document.getElementById("file-explorer") as VscodeButton;
   logFileAppendCheckbox = document.getElementById(
     "log-file-append-checkbox",
-  ) as Checkbox;
-  logLevelDropdown = document.getElementById("log-level-dropdown") as Dropdown;
+  ) as VscodeCheckbox;
+  logLevelDropdown = document.getElementById(
+    "log-level-dropdown",
+  ) as VscodeSingleSelect;
 
-  verboseDropdown = document.getElementById("verbosity-dropdown") as Dropdown;
-  initCreateButton = document.getElementById("create-button") as Button;
-  initClearButton = document.getElementById("clear-button") as Button;
+  verboseDropdown = document.getElementById(
+    "verbosity-dropdown",
+  ) as VscodeSingleSelect;
+  initCreateButton = document.getElementById("create-button") as VscodeButton;
+  initClearButton = document.getElementById("clear-button") as VscodeButton;
 
-  initLogsTextArea = document.getElementById("log-text-area") as TextArea;
-  initClearLogsButton = document.getElementById("clear-logs-button") as Button;
+  initLogsTextArea = document.getElementById("log-text-area") as VscodeTextarea;
+  initClearLogsButton = document.getElementById(
+    "clear-logs-button",
+  ) as VscodeButton;
   initOpenLogFileButton = document.getElementById(
     "open-log-file-button",
-  ) as Button;
-  initCopyLogsButton = document.getElementById("copy-logs-button") as Button;
+  ) as VscodeButton;
+  initCopyLogsButton = document.getElementById(
+    "copy-logs-button",
+  ) as VscodeButton;
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
-  ) as Button;
+  ) as VscodeButton;
 
   initNamespaceNameTextField.addEventListener("input", toggleCreateButton);
   initCollectionNameTextField.addEventListener("input", toggleCreateButton);
   initPathUrlTextField.addEventListener("input", toggleCreateButton);
 
-  folderExplorerButton.addEventListener("click", openExplorer);
+  folderExplorerIcon.addEventListener("click", openExplorer);
   fileExplorerButton.addEventListener("click", openExplorer);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
@@ -124,14 +132,15 @@ function main() {
   initCollectionNameDiv?.appendChild(initCollectionNameElement);
 
   initCollectionPathElement = document.createElement("p");
-  initCollectionPathElement.innerHTML = initPathUrlTextField.placeholder;
+  initCollectionPathElement.innerHTML =
+    initPathUrlTextField.placeholder as string;
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
 
   toggleEditableModeInstallCheckBox();
 }
 
 function openExplorer(event: any) {
-  const source = event.target.parentNode.id;
+  const source = event.target.id;
 
   let selectOption;
 
@@ -219,14 +228,14 @@ function handleInitClearClick() {
 
   overwriteCheckbox.checked = false;
   editableModeInstall.checked = false;
-  verboseDropdown.currentValue = "Off";
+  verboseDropdown.value = "Off";
 
   initCreateButton.disabled = true;
 
   logToFileCheckbox.checked = false;
   logFilePath.value = "";
   logFileAppendCheckbox.checked = false;
-  logLevelDropdown.currentValue = "Debug";
+  logLevelDropdown.value = "Debug";
 }
 
 function toggleLogToFileOptions() {
@@ -253,11 +262,11 @@ function handleInitCreateClick() {
       namespaceName: initNamespaceNameTextField.value.trim(),
       collectionName: initCollectionNameTextField.value.trim(),
       initPath: initPathUrlTextField.value.trim(),
-      verbosity: verboseDropdown.currentValue.trim(),
+      verbosity: verboseDropdown.value.trim(),
       logToFile: logToFileCheckbox.checked,
       logFilePath: logFilePath.value.trim(),
       logFileAppend: logFileAppendCheckbox.checked,
-      logLevel: logLevelDropdown.currentValue.trim(),
+      logLevel: logLevelDropdown.value.trim(),
       isOverwritten: overwriteCheckbox.checked,
       isEditableModeInstall: editableModeInstall.checked,
     } as AnsibleCollectionFormInterface,
