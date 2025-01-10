@@ -83,22 +83,6 @@ def cli() -> None:
             )
             logging.error(msg)
             sys.exit(2)
-        if version_info[1] % 2 == 0:
-            # if the second segment of version_info is equal to 12 (December), increment the first segment (year) and set the second segment to 1 (January)
-            if version_info[1] == 12:
-                version_info[0] += 1
-                version_info[1] = 1
-            # otherwise, increment the second segment of version_info to point to the next month with an odd number
-            else:
-                version_info[1] += 1
-        else:
-            msg = (
-                f"Last git tag ({tag}) had a MINOR version number ({version_info[1]}) that was odd."
-                " Odd numbers are reserved for pre-release versions. Remove the tag and try again."
-            )
-            logging.error(msg)
-            sys.exit(2)
-        # determine the PATCH value, which is the time passed between last tag and last commit
         try:
             last_tag_timestamp = int(
                 subprocess.run(
