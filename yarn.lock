@@ -1332,17 +1332,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/selenium-webdriver@npm:^4.1.27":
-  version: 4.1.27
-  resolution: "@types/selenium-webdriver@npm:4.1.27"
-  dependencies:
-    "@types/node": "npm:*"
-    "@types/ws": "npm:*"
-  checksum: 10/0cc1e1586b4643e87c29e5d7a3eb4508b36a6b9da24862f824f18306807f3f4c032b6644d19a5ce1b0094d6719cc768a1a0ff654dd18fd90ba93466fc0073e58
-  languageName: node
-  linkType: hard
-
-"@types/selenium-webdriver@npm:^4.1.28":
+"@types/selenium-webdriver@npm:^4.1.27, @types/selenium-webdriver@npm:^4.1.28":
   version: 4.1.28
   resolution: "@types/selenium-webdriver@npm:4.1.28"
   dependencies:
@@ -4580,23 +4570,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "glob@npm:11.0.0"
-  dependencies:
-    foreground-child: "npm:^3.1.0"
-    jackspeak: "npm:^4.0.1"
-    minimatch: "npm:^10.0.0"
-    minipass: "npm:^7.1.2"
-    package-json-from-dist: "npm:^1.0.0"
-    path-scurry: "npm:^2.0.0"
-  bin:
-    glob: dist/esm/bin.mjs
-  checksum: 10/e66939201d11ae30fe97e3364ac2be5c59d6c9bfce18ac633edfad473eb6b46a7553f6f73658f67caaf6cccc1df1ae336298a45e9021fa5695fd78754cc1603e
-  languageName: node
-  linkType: hard
-
-"glob@npm:^11.0.1":
+"glob@npm:^11.0.0, glob@npm:^11.0.1":
   version: 11.0.1
   resolution: "glob@npm:11.0.1"
   dependencies:
@@ -9138,16 +9112,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.3":
-  version: 11.0.4
-  resolution: "uuid@npm:11.0.4"
-  bin:
-    uuid: dist/esm/bin/uuid
-  checksum: 10/5fd9832d2819f4535c92805f381e26ac254dfc601424a1000bc277ea38440538385db948645ef23c800906eeda28d3da9e037b049e71b2efe1eff1d05c9f61a2
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^11.0.5":
+"uuid@npm:^11.0.3, uuid@npm:^11.0.5":
   version: 11.0.5
   resolution: "uuid@npm:11.0.5"
   bin:
