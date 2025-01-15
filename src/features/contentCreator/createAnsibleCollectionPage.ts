@@ -389,6 +389,7 @@ export class CreateAnsibleCollection {
     initPathUrl: string,
   ): Promise<string> {
     let command = "";
+    // try {
     const creatorVersion = await getCreatorVersion();
 
     if (semver.gte(creatorVersion, ANSIBLE_CREATOR_COLLECTION_VERSION_MIN)) {
@@ -397,6 +398,14 @@ export class CreateAnsibleCollection {
       command = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
     }
     return command;
+    // } catch (e: any) {
+    //   await webView.postMessage({
+    //     command: "execution-log",
+    //     arguments: {
+    //       commandOutput: e.message,
+    //     },
+    //   });
+    // }
   }
 
   public async runInitCommand(
@@ -515,7 +524,7 @@ export class CreateAnsibleCollection {
 
     // execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
 
