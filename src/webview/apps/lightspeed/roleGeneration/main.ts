@@ -100,6 +100,8 @@ window.addEventListener("load", () => {
     setButtonEnabled("reset-button", outline.isChanged());
     setButtonEnabled("generateButton", !outline.isEmpty());
   });
+  hideBlockElement("collectionSelectorContainer");
+  changeDisplay("spinnerContainer", "block");
 });
 
 window.addEventListener("message", async (event) => {
@@ -158,6 +160,39 @@ window.addEventListener("message", async (event) => {
       setButtonEnabled("reset-button", false);
       outline.reset();
       outline.focus();
+      break;
+    }
+    case "displayCollectionList": {
+      console.log(`Updating displayCollectionList ${message}`);
+      console.log(message);
+      const collectionList = message.collectionList;
+      if (collectionList.length === 0) {
+        const div = document.getElementById(
+          "collectionSelectorContainer",
+        ) as Element;
+        console.log(div);
+        div.innerHTML =
+          "<strong>No collection found. Please create a collection in your workspace first.</strong>";
+        showBlockElement("collectionSelectorContainer");
+        changeDisplay("spinnerContainer", "none");
+        break;
+      } else {
+        const collectionsListHTML: string = collectionList
+          .map(
+            (i: string) => `<vscode-option value="${i}">${i}</vscode-option>`,
+          )
+          .join("\n");
+
+        const div = document.getElementById(
+          "selectedCollectionName",
+        ) as Element;
+        console.log(div);
+        div.innerHTML = collectionsListHTML;
+      }
+
+      showBlockElement("collectionSelectorContainer");
+      changeDisplay("spinnerContainer", "none");
+      break;
     }
   }
 });
@@ -316,7 +351,7 @@ function setupPage(pageNumber: number) {
     case 1:
       setPageNumber(1);
       showBlockElement("roleInfo");
-      showBlockElement("collection_selector");
+      showBlockElement("collectionSelectorContainer");
       showBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
       changeDisplay("bigIconButtonContainer", "block");
@@ -334,7 +369,7 @@ function setupPage(pageNumber: number) {
     case 2:
       setPageNumber(2);
       hideBlockElement("roleInfo");
-      hideBlockElement("collection_selector");
+      hideBlockElement("collectionSelectorContainer");
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "block");
       changeDisplay("bigIconButtonContainer", "none");
@@ -356,7 +391,7 @@ function setupPage(pageNumber: number) {
     case 3:
       setPageNumber(3);
       hideBlockElement("roleInfo");
-      hideBlockElement("collection_selector");
+      hideBlockElement("collectionSelectorContainer");
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
       changeDisplay("bigIconButtonContainer", "none");
