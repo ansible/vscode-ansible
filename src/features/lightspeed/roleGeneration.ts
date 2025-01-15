@@ -1,9 +1,8 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { Webview, Uri, workspace } from "vscode";
+import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
-import { CollectionFinder } from "./utils/scanner";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
 import { IError } from "./utils/errors";
 import {
@@ -17,6 +16,7 @@ import {
 import { isError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
+import { getCollectionsFromWorkspace } from "./roleGeneration/collectionSelectorElement";
 
 let wizardId: string | undefined = uuidv4();
 let currentPage: number | undefined;
@@ -98,20 +98,6 @@ async function generateRole(
   } finally {
     panel.webview.postMessage({ command: "stopSpinner" });
   }
-}
-
-async function getCollectionsFromWorkspace() {
-  const workspaceFolders = workspace.workspaceFolders;
-  let collectionsFound: string[] = [];
-  if (workspaceFolders) {
-    const workspaceDirectories = workspaceFolders.map((f) => f.uri.fsPath);
-    const collectionFinder = new CollectionFinder(workspaceDirectories);
-    await collectionFinder.refreshCache();
-    collectionsFound = collectionFinder.cache.map(
-      (i) => `${i.namespace}.${i.name}`,
-    );
-  }
-  return collectionsFound;
 }
 
 export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
@@ -296,9 +282,10 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
   ]);
   const nonce = getNonce();
 
-  const collectionsListHTML: string = (await getCollectionsFromWorkspace())
-    .map((i: string) => `<vscode-option value="${i}">${i}</vscode-option>`)
-    .join("\n");
+  webview.postMessage({
+    command: "displayCollectionList",
+    collectionList: await getCollectionsFromWorkspace(),
+  });
 
   return /*html*/ `
   <!DOCTYPE html>
@@ -320,16 +307,15 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
         <div id="roleInfo">
           <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Learn more about roles🔗</a>
         </div>
-        <div>
-          <div class="dropdown-container" id="collection_selector">
-            <label for="selectedCollectionName">Select the collection to create role in:</label>
-            <vscode-dropdown id="selectedCollectionName" position="below">
-              ${collectionsListHTML}
-            </vscode-dropdown>
+        <div class="dropdown-container" id="collectionSelectorContainer">
+          <label for="selectedCollectionName">Select the collection to create role in:</label>
+          <vscode-dropdown id="selectedCollectionName" position="below">
+          </vscode-dropdown>
           <p>
-          Ansible recommends creating roles within  collection. Description to why...
+          A collection can contain one or more roles in the roles/ directory and these are almost
+          identical to standalone roles, except you need to move plugins out of the individual
+          roles, and use the FQCN in some places, as detailed in the next section.
           </p>
-          </div>
         </div>
         <div class="promptContainer">
           <p>
