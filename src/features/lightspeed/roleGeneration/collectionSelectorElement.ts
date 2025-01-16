@@ -1,16 +1,16 @@
-import { CollectionFinder } from "../utils/scanner";
+import { CollectionFinder, AnsibleCollection } from "../utils/scanner";
 import { workspace } from "vscode";
 
-export async function getCollectionsFromWorkspace() {
+export async function getCollectionsFromWorkspace(): Promise<
+  AnsibleCollection[]
+> {
   const workspaceFolders = workspace.workspaceFolders;
-  let collectionsFound: string[] = [];
-  if (workspaceFolders) {
-    const workspaceDirectories = workspaceFolders.map((f) => f.uri.fsPath);
-    const collectionFinder = new CollectionFinder(workspaceDirectories);
-    await collectionFinder.refreshCache();
-    collectionsFound = collectionFinder.cache.map(
-      (i) => `${i.namespace}.${i.name}`,
-    );
+
+  if (!workspaceFolders) {
+    return [];
   }
-  return collectionsFound;
+  const workspaceDirectories = workspaceFolders.map((f) => f.uri.fsPath);
+  const collectionFinder = new CollectionFinder(workspaceDirectories);
+  await collectionFinder.refreshCache();
+  return collectionFinder.cache;
 }

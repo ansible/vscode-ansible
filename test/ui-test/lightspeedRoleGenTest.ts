@@ -1,15 +1,15 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
+import fs from "fs";
 
 import {
   By,
-  Workbench,
-  VSBrowser,
   EditorView,
   ModalDialog,
-  until,
+  VSBrowser,
   WebView,
+  Workbench,
 } from "vscode-extension-tester";
 import {
   sleep,
@@ -20,6 +20,24 @@ import {
 
 config.truncateThreshold = 0;
 
+function cleanUpTmpfile() {
+  fs.rm(
+    "test/units/lightspeed/utils/samples/collections/ansible_collections/community/dummy/roles/install_nginx",
+    {
+      recursive: true,
+      force: true,
+    },
+    (err) => {
+      if (err) {
+        // File deletion failed
+        console.error(err.message);
+        return;
+      }
+      console.log("File deleted successfully");
+    },
+  );
+}
+
 describe("Verify Role generation feature works as expected", function () {
   let workbench: Workbench;
 
@@ -27,6 +45,9 @@ describe("Verify Role generation feature works as expected", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
+  });
+  beforeEach(function () {
+    cleanUpTmpfile();
   });
   before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
@@ -45,6 +66,7 @@ describe("Verify Role generation feature works as expected", function () {
   });
 
   after(async function () {
+    cleanUpTmpfile();
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     // Reset the feedback event queue
@@ -61,7 +83,7 @@ describe("Verify Role generation feature works as expected", function () {
   it("Role generation webview works as expected", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
     await sleep(500);
-    const webView = await getWebviewByLocator(
+    let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
     );
     const textArea = await webView.findWebElement(
@@ -85,11 +107,24 @@ describe("Verify Role generation feature works as expected", function () {
       )
     ).click();
 
+    cleanUpTmpfile();
+
     await sleep(5000);
 
     await (
       await webView.findWebElement(
-        By.xpath("//vscode-button[@id='openEditorButton']"),
+        By.xpath("//vscode-button[@id='saveRoleButton']"),
+      )
+    ).click();
+
+    webView = await getWebviewByLocator(
+      By.xpath("//a[text()='tasks/install_nginx/tasks/main.yml']"),
+    );
+
+    await sleep(500);
+    await (
+      await webView.findWebElement(
+        By.xpath("//a[text()='tasks/install_nginx/tasks/main.yml']"),
       )
     ).click();
 
@@ -102,9 +137,6 @@ describe("Verify Role generation feature works as expected", function () {
     expect(titles[0].includes("- name"));
     expect(titles[1].includes("install_nginx_packages:"));
     await workbenchExecuteCommand("View: Close All Editor Groups");
-    const dialog = new ModalDialog();
-    await dialog.pushButton(`Don't Save`);
-    await dialog.getDriver().wait(until.stalenessOf(dialog), 2000);
 
     driver.switchTo().defaultContent();
   });
@@ -117,6 +149,9 @@ describe("Verify Role generation reset button works as expected", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
+  });
+  beforeEach(function () {
+    cleanUpTmpfile();
   });
 
   async function setupPage1() {
