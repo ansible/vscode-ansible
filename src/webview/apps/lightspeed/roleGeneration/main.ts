@@ -74,7 +74,6 @@ const TOTAL_PAGES = 3;
 
 let savedText: string;
 
-let textArea: TextArea;
 let currentPage = 1;
 
 let outline: EditableList;
@@ -89,19 +88,19 @@ window.addEventListener("load", () => {
   setListener("backAnchorCollectionName", backToPage1);
   setListener("backButton", backToPage1);
   setListener("backToPage2Button", backToPage2);
-  setListener("openEditorButton", openEditor);
+  //setListener("openEditorButton", openEditor);
+  setListener("generateRoleButton", saveRole);
 
-  textArea = document.getElementById("playbook-text-area") as TextArea;
   setListenerOnTextArea();
   savedText = "";
+  const roleName = document.getElementById("roleName");
+  roleName?.addEventListener("input", checkRoleName);
 
   outline = new EditableList("outline-list");
   outline.element.addEventListener("input", () => {
     setButtonEnabled("reset-button", outline.isChanged());
     setButtonEnabled("generateButton", !outline.isEmpty());
   });
-  hideBlockElement("collectionSelectorContainer");
-  changeDisplay("spinnerContainer", "block");
 });
 
 window.addEventListener("message", async (event) => {
@@ -109,13 +108,16 @@ window.addEventListener("message", async (event) => {
 
   switch (message.command) {
     case "init": {
-      textArea.focus();
+      setupPage(1);
       break;
     }
     case "outline": {
       setupPage(2);
 
       outline.update(message.outline.outline);
+
+      const roleName = document.getElementById("roleName") as HTMLInputElement;
+      roleName.value = message.outline.role;
 
       const prompt = document.getElementById("prompt") as HTMLSpanElement;
       prompt.textContent = savedText;
@@ -163,14 +165,11 @@ window.addEventListener("message", async (event) => {
       break;
     }
     case "displayCollectionList": {
-      console.log(`Updating displayCollectionList ${message}`);
-      console.log(message);
       const collectionList = message.collectionList;
       if (collectionList.length === 0) {
         const div = document.getElementById(
           "collectionSelectorContainer",
         ) as Element;
-        console.log(div);
         div.innerHTML =
           "<strong>No collection found. Please create a collection in your workspace first.</strong>";
         showBlockElement("collectionSelectorContainer");
@@ -186,12 +185,39 @@ window.addEventListener("message", async (event) => {
         const div = document.getElementById(
           "selectedCollectionName",
         ) as Element;
-        console.log(div);
         div.innerHTML = collectionsListHTML;
       }
 
       showBlockElement("collectionSelectorContainer");
       changeDisplay("spinnerContainer", "none");
+      break;
+    }
+    case "invalidRoleName": {
+      showBlockElement("roleAlreadyExists");
+      const roleNameParagraph = document.getElementById(
+        "roleNameContainer",
+      ) as HTMLParagraphElement;
+      roleNameParagraph.style.background = "#FFB6C1";
+      setButtonEnabled("generateButton", false);
+      break;
+    }
+    case "validRoleName": {
+      hideBlockElement("roleAlreadyExists");
+      const roleNameParagraph = document.getElementById(
+        "roleNameContainer",
+      ) as HTMLParagraphElement;
+      roleNameParagraph.style.background = "";
+      setButtonEnabled("generateButton", true);
+      break;
+    }
+    case "addGenerateRoleLogEntry": {
+      const content: string = message.content;
+      const logArea = document.getElementById(
+        "saveRoleLogArea",
+      ) as HTMLUListElement;
+      const li = document.createElement("li");
+      li.innerHTML = content; // added line
+      logArea.appendChild(li);
       break;
     }
   }
@@ -208,6 +234,7 @@ function setListener(id: string, func: any) {
 }
 
 function setListenerOnTextArea() {
+  const textArea = document.getElementById("playbook-text-area") as TextArea;
   textArea.addEventListener("input", async () => {
     const input = textArea.value;
     setButtonEnabled("submit-button", input.length > 0);
@@ -246,6 +273,7 @@ async function submitInput() {
     collectionName.textContent = selectedCollectionName.value;
   }
   // If the saved text is not the current one, clear saved values and assign a new generationId
+  const textArea = document.getElementById("playbook-text-area") as TextArea;
   if (savedText !== textArea.value) {
     savedText = textArea.value;
     outline.update("");
@@ -261,7 +289,7 @@ async function submitInput() {
     text: savedText,
     outline: outline.getSavedValueAsString(),
   });
-  textArea.focus();
+  //textArea.focus();
 }
 
 function reset() {
@@ -272,7 +300,6 @@ function reset() {
 
 function backToPage1() {
   setupPage(1);
-  textArea.focus();
 }
 
 function backToPage2() {
@@ -302,10 +329,33 @@ async function generateCode() {
   });
 }
 
-async function openEditor() {
+// async function openEditor() {
+//   vscode.postMessage({
+//     command: "openEditor",
+//   });
+// }
+
+async function checkRoleName() {
+  const roleName = (document.getElementById("roleName") as HTMLInputElement)
+    ?.value;
+  const fqcn = document.getElementById("collectionName")?.textContent;
   vscode.postMessage({
-    command: "openEditor",
+    command: "checkRoleName",
+    roleName,
+    fqcn,
   });
+}
+
+async function saveRole() {
+  const roleName = (document.getElementById("roleName") as HTMLInputElement)
+    ?.value;
+  const fqcn = document.getElementById("collectionName")?.textContent;
+  vscode.postMessage({
+    command: "saveRole",
+    roleName,
+    fqcn,
+  });
+  setButtonEnabled("generateRoleButton", false);
 }
 
 function getTextAreaInShadowDOM() {
@@ -346,11 +396,23 @@ function setButtonEnabled(id: string, enabled: boolean) {
   element.disabled = !enabled;
 }
 
+function resetSaveRoleLogs() {
+  const logArea = document.getElementById(
+    "saveRoleLogArea",
+  ) as HTMLUListElement;
+  while (logArea.firstChild) {
+    logArea.firstChild.remove();
+  }
+}
+
 function setupPage(pageNumber: number) {
+  const textArea = document.getElementById("playbook-text-area") as TextArea;
   switch (pageNumber) {
     case 1:
       setPageNumber(1);
+      hideBlockElement("roleAlreadyExists");
       showBlockElement("roleInfo");
+      hideBlockElement("roleNameContainer");
       showBlockElement("collectionSelectorContainer");
       showBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
@@ -360,15 +422,18 @@ function setupPage(pageNumber: number) {
       changeDisplay("firstMessage", "block");
       changeDisplay("secondMessage", "none");
       changeDisplay("thirdMessage", "none");
-      changeDisplay("generatePlaybookContainer", "none");
+      changeDisplay("generateRoleContainer", "none");
       changeDisplay("promptContainer", "none");
-      changeDisplay("openEditorContainer", "none");
+      changeDisplay("saveRoleContainer", "none");
       setButtonEnabled("submit-button", true);
       hideBlockElement("filesOutput");
+      textArea.focus();
       break;
     case 2:
       setPageNumber(2);
+      hideBlockElement("roleAlreadyExists");
       hideBlockElement("roleInfo");
+      showBlockElement("roleNameContainer");
       hideBlockElement("collectionSelectorContainer");
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "block");
@@ -380,9 +445,9 @@ function setupPage(pageNumber: number) {
       changeDisplay("firstMessage", "none");
       changeDisplay("secondMessage", "block");
       changeDisplay("thirdMessage", "none");
-      changeDisplay("generatePlaybookContainer", "block");
+      changeDisplay("generateRoleContainer", "block");
       changeDisplay("promptContainer", "block");
-      changeDisplay("openEditorContainer", "none");
+      changeDisplay("saveRoleContainer", "none");
       setButtonEnabled("reset-button", false);
       setButtonEnabled("backButton", true);
       setButtonEnabled("generateButton", true);
@@ -390,7 +455,9 @@ function setupPage(pageNumber: number) {
       break;
     case 3:
       setPageNumber(3);
+      hideBlockElement("roleAlreadyExists");
       hideBlockElement("roleInfo");
+      showBlockElement("roleNameContainer");
       hideBlockElement("collectionSelectorContainer");
       hideBlockElement("playbook-text-area");
       changeDisplay("outlineContainer", "none");
@@ -400,9 +467,11 @@ function setupPage(pageNumber: number) {
       changeDisplay("firstMessage", "none");
       changeDisplay("secondMessage", "none");
       changeDisplay("thirdMessage", "block");
-      changeDisplay("generatePlaybookContainer", "none");
-      changeDisplay("openEditorContainer", "block");
+      changeDisplay("generateRoleContainer", "none");
+      changeDisplay("saveRoleContainer", "block");
       showBlockElement("filesOutput");
+      setButtonEnabled("generateRoleButton", true);
+      resetSaveRoleLogs();
       break;
   }
 }

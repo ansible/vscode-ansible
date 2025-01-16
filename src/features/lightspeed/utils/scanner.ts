@@ -4,7 +4,7 @@ import * as YAML from "yaml";
 import { Dirent } from "fs";
 import { readdir, readFile } from "node:fs/promises";
 
-class AnsibleCollection {
+export class AnsibleCollection {
   path: string;
   namespace: string;
   name: string;
@@ -13,6 +13,10 @@ class AnsibleCollection {
     this.path = path;
     this.namespace = namespace;
     this.name = name;
+  }
+
+  asString() {
+    return `${this.namespace}.${this.name}`;
   }
 }
 
