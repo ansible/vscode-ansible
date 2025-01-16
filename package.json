@@ -923,6 +923,7 @@
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
     "@shikijs/core": "^1.26.2",
     "@types/ini": "^4.1.1",
+    "@vscode-elements/elements": "^1.9.1",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "axios": "^1.7.9",
     "ini": "^5.0.0",

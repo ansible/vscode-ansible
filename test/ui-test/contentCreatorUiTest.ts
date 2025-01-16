@@ -25,19 +25,24 @@ describe("Test Ansible playbook and collection project scaffolding", () => {
     await sleep(4000);
 
     await new EditorView().openEditor(editorTitle);
+    // TODO: Temp fix, to be removed when playbook project webview is updated
+    const textFieldTag =
+      editorTitle === "Create Ansible collection"
+        ? "vscode-textfield"
+        : "vscode-text-field";
     const webview = await getWebviewByLocator(
-      By.xpath("//vscode-text-field[@id='namespace-name']"),
+      By.xpath(`//${textFieldTag}[@id='namespace-name']`),
     );
 
     const namespaceTextField = await webview.findWebElement(
-      By.xpath("//vscode-text-field[@id='namespace-name']"),
+      By.xpath(`//${textFieldTag}[@id='namespace-name']`),
     );
     expect(namespaceTextField, "namespaceTextField should not be undefined").not
       .to.be.undefined;
     await namespaceTextField.sendKeys(namespaceName);
 
     const collectionTextField = await webview.findWebElement(
-      By.xpath("//vscode-text-field[@id='collection-name']"),
+      By.xpath(`//${textFieldTag}[@id='collection-name']`),
     );
     expect(collectionTextField, "collectionTextField should not be undefined")
       .not.to.be.undefined;
