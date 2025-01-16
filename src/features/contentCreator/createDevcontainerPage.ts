@@ -177,7 +177,7 @@ export class CreateDevcontainer {
                   </vscode-button>
                   <vscode-button id="open-file-button" form="devcontainer-form" disabled>
                     <span class="codicon codicon-go-to-file"></span>
-                    &nbsp; Explore Devcontainer
+                    &nbsp; Open Devcontainer
                   </vscode-button>
                 </div>
               </section>

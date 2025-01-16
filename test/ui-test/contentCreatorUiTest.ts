@@ -182,7 +182,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
 
   it("Check create-sample-execution-env-file webview elements", async () => {
     await testWebViewElements(
-      "Ansible: Create a sample Ansible Execution Environment file",
+      "Ansible: Create a sample Ansible execution environment file",
       "Create Sample Ansible Execution Environment",
     );
   });
