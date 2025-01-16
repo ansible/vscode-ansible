@@ -325,3 +325,19 @@ a:active {
   margin-bottom: 2px;
 }
  */
+
+.codicon.codicon-warning {
+	margin: 10px;
+	color: red;
+}
+
+#errorContainer {
+  padding-top: 10px;
+  background: #e9d4d7;
+  border-top: 2px solid red;
+}
+
+#errorMessage {
+  color: red;
+  font-weight: bold;
+}
