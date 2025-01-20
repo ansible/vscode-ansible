@@ -142,7 +142,7 @@ export class LightSpeedAPI {
       return data;
     } catch (error) {
       isCompletionSuccess = false;
-      const mappedError: IError = await mapError(error as Error);
+      const mappedError: IError = mapError(error as Error);
       if (!(await this._oneClickTrialProvider.showPopup(mappedError))) {
         vscode.window.showErrorMessage(
           `${mappedError.message ?? UNKNOWN_ERROR} ${mappedError.detail ?? ""}`,
@@ -231,7 +231,7 @@ export class LightSpeedAPI {
 
       return data;
     } catch (error) {
-      const mappedError: IError = await mapError(error as Error);
+      const mappedError: IError = mapError(error as Error);
       const errorMessage: string = `${mappedError.message ?? UNKNOWN_ERROR} ${mappedError.detail ?? ""}`;
       if (showInfoMessage) {
         vscode.window.showErrorMessage(errorMessage);
@@ -278,7 +278,7 @@ export class LightSpeedAPI {
 
       return data;
     } catch (error) {
-      const mappedError: IError = await mapError(error as Error);
+      const mappedError: IError = mapError(error as Error);
       return mappedError;
     }
   }
@@ -311,7 +311,7 @@ export class LightSpeedAPI {
 
       return data;
     } catch (error) {
-      const mappedError: IError = await mapError(error as Error);
+      const mappedError: IError = mapError(error as Error);
       return mappedError;
     }
   }
@@ -344,7 +344,7 @@ export class LightSpeedAPI {
 
       return data;
     } catch (error) {
-      const mappedError: IError = await mapError(error as Error);
+      const mappedError: IError = mapError(error as Error);
       return mappedError;
     }
   }
@@ -375,7 +375,7 @@ export class LightSpeedAPI {
 
       return data;
     } catch (error) {
-      const mappedError: IError = await mapError(error as Error);
+      const mappedError: IError = mapError(error as Error);
       return mappedError;
     }
   }

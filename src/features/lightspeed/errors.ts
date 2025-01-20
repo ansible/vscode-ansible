@@ -284,7 +284,7 @@ ERRORS.addError(
       let bodyContainsCloudFront: boolean = false;
       let bodyContainsCloudFrontBlocked: boolean = false;
       const headerContainsCloudFrontServer: boolean =
-        (err.response?.headers.get("server") || "").toLowerCase() ===
+        (err.response?.headers.get("server") ?? "").toLowerCase() ===
         "cloudfront";
       if (typeof body === "string") {
         bodyContainsCloudFront =
