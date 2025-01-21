@@ -2229,7 +2229,6 @@ __metadata:
     "@vscode/test-electron": "npm:^2.4.1"
     "@vscode/vsce": "npm:^3.2.1"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"
-    axios: "npm:^1.7.9"
     chai: "npm:^4.5.0"
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.18.0"
@@ -2381,17 +2380,6 @@ __metadata:
   version: 0.4.0
   resolution: "asynckit@npm:0.4.0"
   checksum: 10/3ce727cbc78f69d6a4722517a58ee926c8c21083633b1d3fdf66fd688f6c127a53a592141bd4866f9b63240a86e9d8e974b13919450bd17fa33c2d22c4558ad8
-  languageName: node
-  linkType: hard
-
-"axios@npm:^1.7.9":
-  version: 1.7.9
-  resolution: "axios@npm:1.7.9"
-  dependencies:
-    follow-redirects: "npm:^1.15.6"
-    form-data: "npm:^4.0.0"
-    proxy-from-env: "npm:^1.1.0"
-  checksum: 10/b7a5f660ea53ba9c2a745bf5ad77ad8bf4f1338e13ccc3f9f09f810267d6c638c03dac88b55dae8dc98b79c57d2d6835be651d58d2af97c174f43d289a9fd007
   languageName: node
   linkType: hard
 
@@ -4366,7 +4354,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"follow-redirects@npm:^1.14.6, follow-redirects@npm:^1.15.6":
+"follow-redirects@npm:^1.14.6":
   version: 1.15.9
   resolution: "follow-redirects@npm:1.15.9"
   peerDependenciesMeta:
@@ -7518,13 +7506,6 @@ __metadata:
     forwarded: "npm:0.2.0"
     ipaddr.js: "npm:1.9.1"
   checksum: 10/f24a0c80af0e75d31e3451398670d73406ec642914da11a2965b80b1898ca6f66a0e3e091a11a4327079b2b268795f6fa06691923fef91887215c3d0e8ea3f68
-  languageName: node
-  linkType: hard
-
-"proxy-from-env@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "proxy-from-env@npm:1.1.0"
-  checksum: 10/f0bb4a87cfd18f77bc2fba23ae49c3b378fb35143af16cc478171c623eebe181678f09439707ad80081d340d1593cd54a33a0113f3ccb3f4bc9451488780ee23
   languageName: node
   linkType: hard
 
