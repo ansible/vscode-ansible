@@ -922,7 +922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/core@npm:2.0.3":
+"@shikijs/core@npm:2.0.3, @shikijs/core@npm:^2.0.3":
   version: 2.0.3
   resolution: "@shikijs/core@npm:2.0.3"
   dependencies:
@@ -936,31 +936,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@shikijs/core@npm:^1.26.2":
-  version: 1.26.2
-  resolution: "@shikijs/core@npm:1.26.2"
-  dependencies:
-    "@shikijs/engine-javascript": "npm:1.26.2"
-    "@shikijs/engine-oniguruma": "npm:1.26.2"
-    "@shikijs/types": "npm:1.26.2"
-    "@shikijs/vscode-textmate": "npm:^10.0.1"
-    "@types/hast": "npm:^3.0.4"
-    hast-util-to-html: "npm:^9.0.4"
-  checksum: 10/800b42edf0eb45489a6e8b2bb8c5d1f984b9a0dcf6f3c5c5aae2e5e43050d07acb26039d276e16130372f4e693a6907263a559cf18d3fdfb8e350de4cb1108d3
-  languageName: node
-  linkType: hard
-
-"@shikijs/engine-javascript@npm:1.26.2":
-  version: 1.26.2
-  resolution: "@shikijs/engine-javascript@npm:1.26.2"
-  dependencies:
-    "@shikijs/types": "npm:1.26.2"
-    "@shikijs/vscode-textmate": "npm:^10.0.1"
-    oniguruma-to-es: "npm:^1.0.0"
-  checksum: 10/e67d0fe3ddbb6173b019f615df4e19150c5272909a65deb9a90ec1f1f1f5b776990713f3b3de597ad5bae85734ebaa683a463cb6b4bb4866b378ca885d1ad981
-  languageName: node
-  linkType: hard
-
 "@shikijs/engine-javascript@npm:2.0.3":
   version: 2.0.3
   resolution: "@shikijs/engine-javascript@npm:2.0.3"
@@ -969,16 +944,6 @@ __metadata:
     "@shikijs/vscode-textmate": "npm:^10.0.1"
     oniguruma-to-es: "npm:^2.2.0"
   checksum: 10/07787b1fc12f4c3f53dc042947657c2896b38fc98f7c15ebc264b7882ebe4a45735d98eca0c26c03210b080d5af251aa1022f6ba9de8d8df3616d47b99a181a6
-  languageName: node
-  linkType: hard
-
-"@shikijs/engine-oniguruma@npm:1.26.2":
-  version: 1.26.2
-  resolution: "@shikijs/engine-oniguruma@npm:1.26.2"
-  dependencies:
-    "@shikijs/types": "npm:1.26.2"
-    "@shikijs/vscode-textmate": "npm:^10.0.1"
-  checksum: 10/6b422c672ba05f2004138271a779215cf2a3b5b0b22e04d9c6081fad74ebd1bfad75c579762c16c708e9a3c2e8d84f6011844cc9504cb8d9b4536503d4d40207
   languageName: node
   linkType: hard
 
@@ -1007,16 +972,6 @@ __metadata:
   dependencies:
     "@shikijs/types": "npm:2.0.3"
   checksum: 10/10494ab4fa2494cff72c8b912c771e2165c177bba965ad2c554af9884c42b3744a5c9741cd46abb002290a7406b45e67ea603e80d648020c297017c5f37d25e7
-  languageName: node
-  linkType: hard
-
-"@shikijs/types@npm:1.26.2":
-  version: 1.26.2
-  resolution: "@shikijs/types@npm:1.26.2"
-  dependencies:
-    "@shikijs/vscode-textmate": "npm:^10.0.1"
-    "@types/hast": "npm:^3.0.4"
-  checksum: 10/f50f2a220b365f0bc53bb4e7dda1b39e7a827d08d7ff865dd4a44b251f49b49692c95b4afe5ebfe27fe01bfeca69997a75e145a34afeff6bcf8bbb5d039a6de2
   languageName: node
   linkType: hard
 
@@ -2250,7 +2205,7 @@ __metadata:
     "@ansible/ansible-language-server": "workspace:^"
     "@eslint/js": "npm:^9.18.0"
     "@redhat-developer/vscode-redhat-telemetry": "npm:^0.9.1"
-    "@shikijs/core": "npm:^1.26.2"
+    "@shikijs/core": "npm:^2.0.3"
     "@types/chai": "npm:^4.3.20"
     "@types/express": "npm:^5.0.0"
     "@types/glob": "npm:^8.1.0"
@@ -7016,17 +6971,6 @@ __metadata:
   dependencies:
     mimic-fn: "npm:^4.0.0"
   checksum: 10/0846ce78e440841335d4e9182ef69d5762e9f38aa7499b19f42ea1c4cd40f0b4446094c455c713f9adac3f4ae86f613bb5e30c99e52652764d06a89f709b3788
-  languageName: node
-  linkType: hard
-
-"oniguruma-to-es@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "oniguruma-to-es@npm:1.0.0"
-  dependencies:
-    emoji-regex-xs: "npm:^1.0.0"
-    regex: "npm:^5.1.1"
-    regex-recursion: "npm:^5.1.1"
-  checksum: 10/cc3120041d72c778da12e15ebfcf7d1b1445266a7d1ac275917c8fd5c8af33fe23e75acb26828723f6747e3c111ea35f1c9ab5c79a995748d7130ffbee33efc0
   languageName: node
   linkType: hard
 
