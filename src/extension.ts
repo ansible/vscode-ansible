@@ -63,7 +63,7 @@ import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
-import { ExecException, execSync, exec } from "child_process";
+import { ExecException, execSync, spawnSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
@@ -175,20 +175,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
         const filePath = uri.fsPath;
         const dirPath =
           vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath ?? process.cwd();
-        const command = `ansible-builder build -f ${filePath}`;
+        const command = "ansible-builder";
+        const args = ["build", "-f", filePath];
 
-        vscode.window.showInformationMessage(`Running: ${command}`);
+        vscode.window.showInformationMessage(
+          `Running: ${command} ${args.join(" ")}`,
+        );
 
-        exec(command, { cwd: dirPath }, (error, stdout, stderr) => {
-          if (error) {
-            vscode.window.showErrorMessage(`Error: ${stderr}`);
-            return;
-          }
-          vscode.window.showInformationMessage(stdout);
-          vscode.window.showInformationMessage(
-            `Execution Environment Image was built successfully!`,
-          );
+        const result = spawnSync(command, args, {
+          cwd: dirPath,
+          encoding: "utf-8",
+          shell: false,
         });
+
+        if (result.error) {
+          vscode.window.showErrorMessage(`Error: ${result.error.message}`);
+          return;
+        }
+
+        if (result.stderr) {
+          vscode.window.showErrorMessage(`Error: ${result.stderr}`);
+          return;
+        }
+
+        vscode.window.showInformationMessage(
+          result.stdout ||
+            "Execution Environment Image was built successfully!",
+        );
       } else {
         vscode.window.showErrorMessage("No file selected.");
       }
