@@ -103,7 +103,6 @@ export interface FeedbackRequestParams {
   issueFeedback?: IssueFeedbackEvent;
   playbookExplanation?: PlaybookExplanationEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
-  playbookGenerationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationAction?: PlaybookGenerationActionEvent;
   roleGenerationAction?: RoleGenerationActionEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
