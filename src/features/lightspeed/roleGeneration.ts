@@ -327,7 +327,7 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
 
           const link = `command:vscode.open?${encodeURIComponent(JSON.stringify(linkUri))}`;
           addFile(
-            `<a href="${link}">tasks/${roleName}/${f.file_type}s/main.yml</a>`,
+            `<a href="${link}">collections/${fqcn.replace(".", "/")}/tasks/${roleName}/${f.file_type}s/main.yml</a>`,
           );
         });
         await Promise.all(promises);
