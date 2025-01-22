@@ -2,6 +2,7 @@
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
 
 import path from "path";
+const webpack = require("webpack");
 
 type EntryType = {
   client?: string;
@@ -71,7 +72,12 @@ const config = {
   node: {
     __dirname: false, // leave the __dirname-behavior intact
   },
-  plugins: [new WarningsToErrorsPlugin()],
+  plugins: [
+    new WarningsToErrorsPlugin(),
+    new webpack.IgnorePlugin({
+      resourceRegExp: /^electron$/,
+    }),
+  ],
   ignoreWarnings: [
     {
       // https://github.com/microsoft/vscode-languageserver-node/issues/1355

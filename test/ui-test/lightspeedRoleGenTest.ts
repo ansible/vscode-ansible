@@ -1,7 +1,6 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import axios from "axios";
 
 import {
   By,
@@ -47,8 +46,16 @@ describe("Verify Role generation feature works as expected", function () {
 
   after(async function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
+
     // Reset the feedback event queue
-    await axios.get(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`);
+    try {
+      await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`, {
+        method: "GET",
+      });
+    } catch (error) {
+      console.error("Failed to reset the feedback event queue", error);
+      expect.fail("Failed to reset the feedback event queue");
+    }
   });
 
   it("Role generation webview works as expected", async function () {

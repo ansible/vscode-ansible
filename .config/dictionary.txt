@@ -58,7 +58,6 @@ autocrlf
 autofix
 automount
 autoupdate
-axios
 backticks
 basepath
 bashate
