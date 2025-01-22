@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { v4 as uuidv4 } from "uuid";
-import { Webview, Uri } from "vscode";
+import { Webview, Uri, workspace } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
@@ -21,17 +21,6 @@ import { getCollectionsFromWorkspace } from "./roleGeneration/collectionSelector
 let wizardId: string | undefined = uuidv4();
 let currentPage: number | undefined;
 let files: RoleGenerationListEntry[] = [];
-
-async function openNewEditorTabs(files: RoleGenerationListEntry[]) {
-  for (const file of files) {
-    const options = {
-      language: "ansible",
-      content: file.content,
-    };
-    const doc = await vscode.workspace.openTextDocument(options);
-    await vscode.window.showTextDocument(doc, vscode.ViewColumn.Active);
-  }
-}
 
 function contentMatch(generationId: string, files: RoleGenerationListEntry[]) {
   for (const file of files) {
@@ -100,11 +89,48 @@ async function generateRole(
   }
 }
 
+async function fileExists(uri: Uri): Promise<boolean> {
+  try {
+    await vscode.workspace.fs.stat(uri);
+  } catch (e) {
+    if (e instanceof vscode.FileSystemError && e.code === "FileNotFound") {
+      return false;
+    }
+  }
+  return true;
+}
+
 export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
   // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
   if (!(await isLightspeedEnabled())) {
     vscode.window.showErrorMessage("Lightspeed is not enabled.");
     return;
+  }
+
+  function addLog(message: string) {
+    panel.webview.postMessage({
+      command: "addGenerateRoleLogEntry",
+      content: message,
+    });
+  }
+
+  async function getRoleBaseDir(fqcn: string, roleName: string): Promise<Uri> {
+    const collectionFound = (await getCollectionsFromWorkspace()).filter(
+      (e) => e.fqcn === fqcn,
+    );
+    if (collectionFound.length === 0) {
+      addLog("<strong>Collection not found in the workspace!</strong>");
+      throw new Error();
+    } else if (collectionFound.length !== 1) {
+      addLog(
+        `<strong>Too many directories found for collection ${fqcn}!</strong>`,
+      );
+      throw new Error();
+    }
+    const roleBaseDirUri = vscode.Uri.file(
+      `${collectionFound[0].path}/roles/${roleName}`,
+    );
+    return roleBaseDirUri;
   }
 
   // Create a new panel and update the HTML
@@ -167,6 +193,7 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
                 playbook: message.playbook,
                 outline: message.outline,
                 generationId: message.generationId,
+                role: message.role,
               },
             });
           }
@@ -178,7 +205,6 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
       }
 
       case "generateCode": {
-        //let { files, generationId } = message;
         const text = message.text as string;
         const outline = message.outline as string;
         const generationId = uuidv4();
@@ -220,17 +246,7 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
         await sendActionEvent(WizardGenerationActionType.TRANSITION, toPage);
         break;
       }
-      case "openEditor": {
-        await sendActionEvent(
-          WizardGenerationActionType.CLOSE_ACCEPT,
-          undefined,
-        );
-        await openNewEditorTabs(files);
-        // Clear wizardId to suppress another CLOSE event at dispose()
-        wizardId = undefined;
-        panel.dispose();
-        break;
-      }
+
       case "resetOutline": {
         vscode.window
           .showInformationMessage(
@@ -249,6 +265,68 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
               });
             }
           });
+        break;
+      }
+
+      case "checkRoleName": {
+        const roleName: string = message.roleName;
+        const fqcn: string = message.fqcn;
+
+        const roleBaseDirUri = await getRoleBaseDir(fqcn, roleName);
+
+        if (roleName.length > 0 && (await fileExists(roleBaseDirUri))) {
+          panel.webview.postMessage({
+            command: "invalidRoleName",
+          });
+        } else {
+          panel.webview.postMessage({
+            command: "validRoleName",
+          });
+        }
+        break;
+      }
+
+      case "saveRole": {
+        const roleName: string = message.roleName;
+        const fqcn: string = message.fqcn;
+
+        const roleBaseDirUri = await getRoleBaseDir(fqcn, roleName);
+
+        const promises = files.map(async (f) => {
+          const dirUri = vscode.Uri.joinPath(
+            roleBaseDirUri,
+            `/${f.file_type}s`,
+          );
+          const fileUri = vscode.Uri.joinPath(
+            roleBaseDirUri,
+            `/${f.file_type}s/main.yml`,
+          );
+          await workspace.fs.createDirectory(dirUri);
+          if (await fileExists(fileUri)) {
+            addLog(
+              `<span class="codicon codicon-warning"></span><strong>File already exists</strong> (${fileUri})!`,
+            );
+            return;
+          }
+          await workspace.fs.writeFile(
+            fileUri,
+            new TextEncoder().encode(f.content),
+          );
+
+          const linkUri = {
+            scheme: "file",
+            path: fileUri.fsPath,
+            authority: "",
+          };
+
+          const link = `command:vscode.open?${encodeURIComponent(JSON.stringify(linkUri))}`;
+          addLog(
+            `<a href="${link}">tasks/${roleName}/${f.file_type}s/main.yml</a> saved`,
+          );
+        });
+        await Promise.all(promises);
+
+        break;
       }
     }
   });
@@ -300,7 +378,7 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
 </head>
 
 <body>
-    <div class="playbookGeneration">
+    <div class="roleGeneration">
         <h2 id="main-header">Create a role with Ansible Lightspeed</h2>
         <div class="pageNumber" id="page-number">1 of 3</div>
 
@@ -326,10 +404,11 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
             Collection name: "<span id="collectionName"></span>"&nbsp;
             <a class="backAnchor" id="backAnchorCollectionName">Edit</a>
           </p>
-          <p>
-            Role name: <vscode-text-field id="roleName" value="my_role"></vscode-text-field>
-          </p>
         </div>
+        <div id="roleNameContainer">
+            Role name: <vscode-text-field id="roleName" value=""></vscode-text-field>
+        </div>
+        <div id="errorContainer"><div class="icon"><i class="codicon codicon-warning"></i> <span id="errorMessage" /></div></div>
         <div class="firstMessage">
           <h4>What do you want the role to accomplish?</h4>
         </div>
@@ -383,7 +462,7 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
                 Continue
             </vscode-button>
         </div>
-        <div class="generatePlaybookContainer">
+        <div class="generateRoleContainer">
           <vscode-button class="biggerButton" id="generateButton">
               Generate role
           </vscode-button>
@@ -391,9 +470,11 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
               Back
           </vscode-button>
         </div>
-        <div class="openEditorContainer">
-          <vscode-button class="biggerButton" id="openEditorButton">
-              Open editor
+        <div class="saveRoleContainer">
+          <ul id="saveRoleLogArea"  placeholder="Output of the command execution"
+           readonly></ul>
+          <vscode-button class="biggerButton" id="saveRoleButton">
+              Save files
           </vscode-button>
           <vscode-button class="biggerButton" id="backToPage2Button" appearance="secondary">
               Back
@@ -401,6 +482,7 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
         </div>
     </div>
     </div>
+
     <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
 </body>
 

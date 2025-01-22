@@ -176,6 +176,7 @@ export interface RoleGenerationResponseParams {
   files: RoleGenerationListEntry[];
   outline?: string;
   generationId: string;
+  role: string;
 }
 
 export interface ExplanationRequestParams {
