@@ -145,11 +145,11 @@ window.addEventListener("message", async (event) => {
       break;
     }
     case "startSpinner": {
-      changeDisplay("spinnerContainer", "block");
+      showBlockElement("spinnerContainer");
       break;
     }
     case "stopSpinner": {
-      changeDisplay("spinnerContainer", "none");
+      hideBlockElement("spinnerContainer");
       if (currentPage === 1) {
         setButtonEnabled("submit-button", true);
       } else if (currentPage === 2) {
@@ -211,11 +211,24 @@ window.addEventListener("message", async (event) => {
     case "addGenerateRoleLogEntry": {
       const content: string = message.content;
       const logArea = document.getElementById(
-        "saveRoleLogArea",
+        "roleFileResultLogAreaList",
       ) as HTMLUListElement;
       const li = document.createElement("li");
       li.innerHTML = content; // added line
       logArea.appendChild(li);
+      break;
+    }
+    case "addGenerateRoleFile": {
+      const content: string = message.content;
+      const logArea = document.getElementById(
+        "roleFileResultFileList",
+      ) as HTMLUListElement;
+      const li = document.createElement("li");
+      li.innerHTML = content; // added line
+      logArea.appendChild(li);
+      showBlockElement("roleFileResultFiles");
+      showBlockElement("roleFileResultContainer");
+
       break;
     }
   }
@@ -250,16 +263,18 @@ function changeDisplay(className: string, displayState: string) {
 
 function showBlockElement(id: string) {
   const element = document.getElementById(id);
-  if (element) {
-    element.style.display = "block";
+  if (!element) {
+    throw new Error("id not found");
   }
+  element.style.display = "block";
 }
 
 function hideBlockElement(id: string) {
   const element = document.getElementById(id);
-  if (element) {
-    element.style.display = "none";
+  if (!element) {
+    throw new Error(`id not found: ${id}`);
   }
+  element.style.display = "none";
 }
 
 async function submitInput() {
@@ -390,82 +405,78 @@ function setButtonEnabled(id: string, enabled: boolean) {
   element.disabled = !enabled;
 }
 
-function resetSaveRoleLogs() {
+function resetRoleFileResultContainer() {
   const logArea = document.getElementById(
-    "saveRoleLogArea",
+    "roleFileResultLogAreaList",
   ) as HTMLUListElement;
   while (logArea.firstChild) {
     logArea.firstChild.remove();
   }
+  const saveRoleFileList = document.getElementById(
+    "roleFileResultFileList",
+  ) as HTMLUListElement;
+  saveRoleFileList.innerHTML = "";
+  hideBlockElement("roleFileResultFiles");
 }
 
 function setupPage(pageNumber: number) {
   const textArea = document.getElementById("playbook-text-area") as TextArea;
+  hideBlockElement("bigIconButtonContainer");
+  hideBlockElement("collectionSelectorContainer");
+  hideBlockElement("continueButtonContainer");
+  hideBlockElement("errorContainer");
+  hideBlockElement("examplesContainer");
+  hideBlockElement("filesOutput");
+  hideBlockElement("firstMessage");
+  hideBlockElement("generateRoleContainer");
+  hideBlockElement("outlineContainer");
+  hideBlockElement("playbook-text-area");
+  hideBlockElement("promptContainer");
+  hideBlockElement("resetFeedbackContainer");
+  hideBlockElement("roleFileResultContainer");
+  hideBlockElement("roleInfo");
+  hideBlockElement("roleNameContainer");
+  hideBlockElement("saveRoleContainer");
+  hideBlockElement("secondMessage");
+  hideBlockElement("spinnerContainer");
+  hideBlockElement("thirdMessage");
+  setButtonEnabled("backButton", false);
+  setButtonEnabled("generateButton", false);
+  setButtonEnabled("reset-button", false);
+
+  resetRoleFileResultContainer();
+
   switch (pageNumber) {
     case 1:
       setPageNumber(1);
-      hideBlockElement("errorContainer");
-      showBlockElement("roleInfo");
-      hideBlockElement("roleNameContainer");
-      showBlockElement("collectionSelectorContainer");
-      showBlockElement("playbook-text-area");
-      changeDisplay("outlineContainer", "none");
-      changeDisplay("bigIconButtonContainer", "block");
-      changeDisplay("examplesContainer", "block");
-      changeDisplay("resetFeedbackContainer", "none");
-      changeDisplay("firstMessage", "block");
-      changeDisplay("secondMessage", "none");
-      changeDisplay("thirdMessage", "none");
-      changeDisplay("generateRoleContainer", "none");
-      changeDisplay("promptContainer", "none");
-      changeDisplay("saveRoleContainer", "none");
       setButtonEnabled("submit-button", true);
-      hideBlockElement("filesOutput");
+      showBlockElement("bigIconButtonContainer");
+      showBlockElement("collectionSelectorContainer");
+      showBlockElement("examplesContainer");
+      showBlockElement("firstMessage");
+      showBlockElement("playbook-text-area");
+      showBlockElement("roleInfo");
       textArea.focus();
       break;
     case 2:
       setPageNumber(2);
-      hideBlockElement("errorContainer");
-      hideBlockElement("roleInfo");
-      showBlockElement("roleNameContainer");
-      hideBlockElement("collectionSelectorContainer");
-      hideBlockElement("playbook-text-area");
-      changeDisplay("outlineContainer", "block");
-      changeDisplay("bigIconButtonContainer", "none");
-      changeDisplay("examplesContainer", "none");
-      changeDisplay("resetFeedbackContainer", "block");
-      changeDisplay("resetContainer", "block");
-      changeDisplay("feedbackContainer", "none");
-      changeDisplay("firstMessage", "none");
-      changeDisplay("secondMessage", "block");
-      changeDisplay("thirdMessage", "none");
-      changeDisplay("generateRoleContainer", "block");
-      changeDisplay("promptContainer", "block");
-      changeDisplay("saveRoleContainer", "none");
-      setButtonEnabled("reset-button", false);
       setButtonEnabled("backButton", true);
       setButtonEnabled("generateButton", true);
-      hideBlockElement("filesOutput");
+      showBlockElement("generateRoleContainer");
+      showBlockElement("outlineContainer");
+      showBlockElement("promptContainer");
+      showBlockElement("resetContainer");
+      showBlockElement("resetFeedbackContainer");
+      showBlockElement("roleNameContainer");
+      showBlockElement("secondMessage");
       break;
     case 3:
       setPageNumber(3);
-      hideBlockElement("errorContainer");
-      hideBlockElement("roleInfo");
-      showBlockElement("roleNameContainer");
-      hideBlockElement("collectionSelectorContainer");
-      hideBlockElement("playbook-text-area");
-      changeDisplay("outlineContainer", "none");
-      changeDisplay("bigIconButtonContainer", "none");
-      changeDisplay("examplesContainer", "none");
-      changeDisplay("resetFeedbackContainer", "none");
-      changeDisplay("firstMessage", "none");
-      changeDisplay("secondMessage", "none");
-      changeDisplay("thirdMessage", "block");
-      changeDisplay("generateRoleContainer", "none");
-      changeDisplay("saveRoleContainer", "block");
-      showBlockElement("filesOutput");
       setButtonEnabled("saveRoleButton", true);
-      resetSaveRoleLogs();
+      showBlockElement("filesOutput");
+      showBlockElement("roleNameContainer");
+      showBlockElement("saveRoleContainer");
+      showBlockElement("thirdMessage");
       break;
   }
 }

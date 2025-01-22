@@ -113,6 +113,12 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
       content: message,
     });
   }
+  function addFile(message: string) {
+    panel.webview.postMessage({
+      command: "addGenerateRoleFile",
+      content: message,
+    });
+  }
 
   async function getRoleBaseDir(fqcn: string, roleName: string): Promise<Uri> {
     const collectionFound = (await getCollectionsFromWorkspace()).filter(
@@ -320,8 +326,8 @@ export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
           };
 
           const link = `command:vscode.open?${encodeURIComponent(JSON.stringify(linkUri))}`;
-          addLog(
-            `<a href="${link}">tasks/${roleName}/${f.file_type}s/main.yml</a> saved`,
+          addFile(
+            `<a href="${link}">tasks/${roleName}/${f.file_type}s/main.yml</a>`,
           );
         });
         await Promise.all(promises);
@@ -395,7 +401,7 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
           roles, and use the FQCN in some places, as detailed in the next section.
           </p>
         </div>
-        <div class="promptContainer">
+        <div id="promptContainer">
           <p>
             "<span id="prompt"></span>"&nbsp;
             <a class="backAnchor" id="backAnchorPrompt">Edit</a>
@@ -409,60 +415,60 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
             Role name: <vscode-text-field id="roleName" value=""></vscode-text-field>
         </div>
         <div id="errorContainer"><div class="icon"><i class="codicon codicon-warning"></i> <span id="errorMessage" /></div></div>
-        <div class="firstMessage">
+        <div id="firstMessage">
           <h4>What do you want the role to accomplish?</h4>
         </div>
-        <div class="secondMessage">
+        <div id="secondMessage">
           <h4>Review the suggested steps for your role and modify as needed.</h3>
         </div>
-        <div class="thirdMessage">
+        <div id="thirdMessage">
           <h4>The following role was generated for you:</h3>
         </div>
-        <div class="mainContainer">
+        <div id="mainContainer">
           <div class="editArea">
             <vscode-text-area rows=5 resize="vertical"
                 placeholder="I want to write a role that will..."
                 id="playbook-text-area">
             </vscode-text-area>
-            <div class="outlineContainer">
+            <div id="outlineContainer">
               <ol id="outline-list" contentEditable="true">
                 <li></li>
               </ol>
             </div>
-            <div class="spinnerContainer">
+            <div id="spinnerContainer">
               <span class="codicon-spinner codicon-loading codicon-modifier-spin" id="loading"></span>
             </div>
           </div>
           <div id=filesOutput />
 
           </div>
-          <div class="bigIconButtonContainer">
+          <div id="bigIconButtonContainer" class="bigIconButtonContainerClass">
             <vscode-button class="biggerButton" id="submit-button" disabled>
               Analyze
             </vscode-button>
           </div>
-          <div class="resetFeedbackContainer">
-            <div class="resetContainer">
+          <div id="resetFeedbackContainer">
+            <div id="resetContainer">
               <vscode-button appearance="secondary" id="reset-button" disabled>
                 Reset
               </vscode-button>
             </div>
           </div>
         </div>
-        <div class="examplesContainer">
+        <div id="examplesContainer">
             <h4>Examples</h4>
-            <div class="exampleTextContainer">
+            <div id="exampleTextContainer">
               <p>
                 Install and configure Nginx
               </p>
             </div>
         </div>
-        <div class="continueButtonContainer">
+        <div id="continueButtonContainer" class="bigIconButtonContainerClass">
             <vscode-button class="biggerButton" id="continue-button">
                 Continue
             </vscode-button>
         </div>
-        <div class="generateRoleContainer">
+        <div id="generateRoleContainer" class="bigIconButtonContainerClass">
           <vscode-button class="biggerButton" id="generateButton">
               Generate role
           </vscode-button>
@@ -470,9 +476,13 @@ export async function getWebviewContent(webview: Webview, extensionUri: Uri) {
               Back
           </vscode-button>
         </div>
-        <div class="saveRoleContainer">
-          <ul id="saveRoleLogArea"  placeholder="Output of the command execution"
-           readonly></ul>
+        <div id="roleFileResultContainer">
+          <ul id="roleFileResultLogAreaList"></ul>
+          <p id="roleFileResultFiles">
+          <strong>Saved files:</strong> <ul id="roleFileResultFileList"></ul>
+          </p>
+        </div>
+        <div id="saveRoleContainer" class="bigIconButtonContainerClass">
           <vscode-button class="biggerButton" id="saveRoleButton">
               Save files
           </vscode-button>
