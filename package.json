@@ -1,6 +1,7 @@
 {
   "activationEvents": [
     "onLanguage:yaml",
+    "onLanguage:yml",
     "workspaceContains:tox-ansible.ini",
     "onWebviewPanel:ansible-home"
   ],
@@ -444,6 +445,10 @@
       {
         "command": "ansible.open-language-server-logs",
         "title": "Ansible: Open Language Server Logs"
+      },
+      {
+        "command": "extension.buildExecutionEnvironment",
+        "title": "Build Ansible Execution Environment"
       }
     ],
     "configuration": [
@@ -795,6 +800,11 @@
           "group": "2_main@1",
           "command": "ansible.lightspeed.playbookExplanation",
           "when": "redhat.ansible.lightspeedSuggestionsEnabled && editorLangId == ansible"
+        },
+        {
+          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
+          "command": "extension.buildExecutionEnvironment",
+          "group": "navigation"
         }
       ],
       "explorer/context": [
@@ -802,6 +812,11 @@
           "group": "2_main@1",
           "submenu": "ansible.playbook.run",
           "when": "isFileSystemResource && resourceLangId == ansible"
+        },
+        {
+          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
+          "command": "extension.buildExecutionEnvironment",
+          "group": "navigation"
         }
       ],
       "view/title": [

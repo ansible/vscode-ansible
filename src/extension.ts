@@ -63,7 +63,7 @@ import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
-import { ExecException, execSync } from "child_process";
+import { ExecException, execSync, exec } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
@@ -167,6 +167,33 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
+
+  const eeBuilderCommand = vscode.commands.registerCommand(
+    "extension.buildExecutionEnvironment",
+    (uri: vscode.Uri) => {
+      if (uri) {
+        const filePath = uri.fsPath;
+        const dirPath =
+          vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath ?? process.cwd();
+        const command = `ansible-builder build -f ${filePath}`;
+
+        vscode.window.showInformationMessage(`Running: ${command}`);
+
+        exec(command, { cwd: dirPath }, (error, stdout, stderr) => {
+          if (error) {
+            vscode.window.showErrorMessage(`Error: ${stderr}`);
+            return;
+          }
+          vscode.window.showInformationMessage(stdout);
+          vscode.window.showInformationMessage(
+            `Execution Environment Image was built successfully!`,
+          );
+        });
+      } else {
+        vscode.window.showErrorMessage("No file selected.");
+      }
+    },
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -833,6 +860,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       lsOutputChannel.show();
     }),
   );
+  context.subscriptions.push(eeBuilderCommand);
 }
 
 const startClient = async (
