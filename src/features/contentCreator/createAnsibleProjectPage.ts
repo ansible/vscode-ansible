@@ -140,20 +140,13 @@ export class CreateAnsibleProject {
                 <div class="playbook-project-div">
                 <vscode-form-group variant="vertical">
                   <vscode-label for="namespace-name">
-                    <span class="normal">Namespace</span>
-                    <sup>*</sup>
+                    <span class="normal">Namespace *</span>
                   </vscode-label>
-                  <vscode-textfield
-                    id="namespace-name"
-                    name="namespace"
-                    form="init-form"
-                    placeholder="Enter namespace name">
-                  </vscode-textfield>
+                  <vscode-textfield id="namespace-name" form="init-form" placeholder="Enter namespace name" size="512"></vscode-textfield>
                 </vscode-form-group>
                 <vscode-form-group variant="vertical">
                   <vscode-label for="collection-name">
-                    <span class="normal">Collection</span>
-                    <sup>*</sup>
+                    <span class="normal">Collection *</span>
                   </vscode-label>
                   <vscode-textfield id="collection-name" form="init-form" placeholder="Enter collection name" size="512"></vscode-textfield>
                 </vscode-form-group>
@@ -166,7 +159,7 @@ export class CreateAnsibleProject {
                 <div class="verbose-div">
                   <div class="dropdown-container">
                     <vscode-label for="verbosity-dropdown">
-                      <span class="normal">Verbosity</span>
+                      <span class="normal">Output Verbosity</span>
                     </vscode-label>
                     <vscode-single-select id="verbosity-dropdown" position="below">
                       <vscode-option>Off</vscode-option>
