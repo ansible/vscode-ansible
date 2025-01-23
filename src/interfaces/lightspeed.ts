@@ -103,7 +103,6 @@ export interface FeedbackRequestParams {
   issueFeedback?: IssueFeedbackEvent;
   playbookExplanation?: PlaybookExplanationEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
-  playbookGenerationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationAction?: PlaybookGenerationActionEvent;
   roleGenerationAction?: RoleGenerationActionEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
@@ -177,6 +176,7 @@ export interface RoleGenerationResponseParams {
   files: RoleGenerationListEntry[];
   outline?: string;
   generationId: string;
+  role: string;
 }
 
 export interface ExplanationRequestParams {

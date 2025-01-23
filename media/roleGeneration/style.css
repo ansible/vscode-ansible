@@ -29,20 +29,7 @@ a:active {
   color: var(--vscode-descriptionForeground);
 }
 
-.playbookGeneration h2 {
-  color: var(--vscode-foreground);
-  text-align: left;
-  margin-block-end: 0.2em;
-  font-weight: 400;
-}
-
-.playbookGeneration h4 {
-  color: var(--vscode-foreground);
-  margin-block-end: 0.2em;
-  font-weight: bold;
-}
-
-.examplesContainer h4 {
+#examplesContainer h4 {
   color: var(--vscode-descriptionForeground);
   font-weight: 400;
 }
@@ -78,7 +65,7 @@ a:active {
   width: 100%
 }
 
-.bigIconButtonContainer {
+.bigIconButtonContainerClass {
   position: relative;
   margin-top: 1em;
   margin-bottom: 0.5em;
@@ -109,7 +96,7 @@ a:active {
   height: calc(var(--design-unit) * 6px);
 }
 
-.spinnerContainer {
+#spinnerContainer {
   background-color: var(--vscode-editor-background, #ffffff80);
   border-style: solid;
   border-radius: 12px;
@@ -144,60 +131,26 @@ a:active {
   height: calc(var(--design-unit) * 12px);
 }
 
-.resetFeedbackContainer {
-  margin: 0.25em;
-  position: relative;
-  width: 100%;
-  height: 36px;
-  display: none;
-}
 
-.resetContainer {
+#resetContainer {
   position: absolute;
   left: 0px;
   bottom: 5px;
   display: flow;
 }
 
-.playbookExplanationSpacer {
-  height: 30px;
-}
 
-.stickyFeedbackContainer {
-  position: sticky;
-  bottom: 0px;
-}
-
-.feedbackContainer {
-  background-color: var(--vscode-editor-background, #ffffff80);
-  position: absolute;
-  right: 0px;
-  bottom: 0px;
-  display: flex;
-  opacity: 0.8;
-}
-
-.generatePlaybookContainer {
-  margin-top: 2em;
-  display: none;
-}
-
-.openEditorContainer {
-  margin-top: 3em;
-  display: none;
-}
-
-.promptContainer {
+#promptContainer {
   margin: 1em;
   display: none;
   color: var(--vscode-descriptionForeground);
 }
 
-.examplesContainer {
+#examplesContainer {
   margin-top: 1em;
 }
 
-.exampleTextContainer {
+#exampleTextContainer {
   margin: 0.5em;
   padding-top: 0px;
   padding-bottom: 0px;
@@ -225,18 +178,6 @@ a:active {
   width: 100%;
 }
 
-.firstMessage {
-  display: block;
-}
-
-.secondMessage {
-  display: none;
-}
-
-.thirdMessage {
-  display: none;
-}
-
 .iconButton {
   width: 36px;
   height: 36px;
@@ -256,7 +197,7 @@ a:active {
   opacity: 1.0;
 }
 
-.outlineContainer {
+#outlineContainer {
   display: none;
   width: 100%;
   height: 12em;
@@ -270,7 +211,7 @@ a:active {
   resize: vertical;
 }
 
-.outlineContainer ol {
+#outlineContainer ol {
   margin-block-start: 0.3em;
   margin-block-end: 0.3em;
   margin-inline-start: 0.3em;
@@ -278,7 +219,7 @@ a:active {
   padding-inline-start: 20px;
 }
 
-.outlineContainer ol:focus {
+#outlineContainer ol:focus {
   outline-style: solid;
   outline-width: thin;
   outline-color: var(--vscode-focusBorder);
@@ -325,3 +266,19 @@ a:active {
   margin-bottom: 2px;
 }
  */
+
+.codicon.codicon-warning {
+	margin: 10px;
+	color: red;
+}
+
+#errorContainer {
+  padding-top: 10px;
+  background: #e9d4d7;
+  border-top: 2px solid red;
+}
+
+#errorMessage {
+  color: red;
+  font-weight: bold;
+}

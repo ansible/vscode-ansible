@@ -4,15 +4,17 @@ import * as YAML from "yaml";
 import { Dirent } from "fs";
 import { readdir, readFile } from "node:fs/promises";
 
-class AnsibleCollection {
+export class AnsibleCollection {
   path: string;
   namespace: string;
   name: string;
+  fqcn: string;
 
   constructor(path: string, namespace: string, name: string) {
     this.path = path;
     this.namespace = namespace;
     this.name = name;
+    this.fqcn = `${this.namespace}.${this.name}`;
   }
 }
 

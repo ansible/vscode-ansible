@@ -21,3 +21,16 @@ export function isError(
 ): response is IError {
   return (response as IError).code !== undefined;
 }
+
+export class HTTPError extends Error {
+  readonly response: Response;
+  readonly code: number;
+  readonly body: object;
+
+  constructor(response: Response, code: number, body: object) {
+    super();
+    this.response = response;
+    this.code = code;
+    this.body = body;
+  }
+}

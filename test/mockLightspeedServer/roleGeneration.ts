@@ -52,6 +52,7 @@ export function roleGeneration(
   return res.send({
     files,
     outline: createOutline ? outline : "",
+    role: "install_nginx",
     generationId,
   });
 }

@@ -625,12 +625,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
             true,
             true,
           );
-        } else if (param.generationId) {
-          lightSpeedManager.apiInstance.feedbackRequest(
-            { playbookGenerationFeedback: param },
-            true,
-            true,
-          );
         } else {
           lightSpeedManager.apiInstance.feedbackRequest(
             { playbookOutlineFeedback: param },

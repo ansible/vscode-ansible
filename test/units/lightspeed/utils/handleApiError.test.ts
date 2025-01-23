@@ -1,38 +1,33 @@
 require("assert");
 
-import { AxiosError, AxiosHeaders } from "axios";
 import { mapError } from "../../../../src/features/lightspeed/handleApiError";
 import assert from "assert";
 import { integer } from "vscode-languageclient";
+import { HTTPError } from "../../../../src/features/lightspeed/utils/errors";
 
 function createError(
   http_code: number,
   data: unknown | string = {},
   err_headers = {},
-): AxiosError {
-  const request = { path: "/wisdom" };
-  const headers = new AxiosHeaders({
+): HTTPError {
+  const headers = {
     ...err_headers,
     "Access-Control-Allow-Origin": "*",
     "Content-Type": "application/json",
-  });
-  const config = {
-    url: "http://localhost:8000",
-    headers,
   };
-  const code = "SOME_ERR";
 
-  const error = new AxiosError("nothing", code, config, request);
-  if (http_code > 0) {
-    const response = {
-      data: data,
-      status: http_code,
-      statusText: "",
-      config: config,
-      headers: headers,
-    };
-    error.response = response;
-  }
+  const options =
+    http_code > 0
+      ? {
+          status: http_code,
+          statusText: "",
+          headers: headers,
+        }
+      : undefined;
+
+  const response = new Response(data as BodyInit, options);
+
+  const error = new HTTPError(response, http_code, data as object);
 
   return error;
 }
@@ -518,13 +513,36 @@ describe("testing the error handling", () => {
   // =================================
   // Miscellaneous
   // ---------------------------------
-  it("err Timeout", () => {
-    const err = createError(0);
-    err.code = AxiosError.ECONNABORTED;
+  it("err Abort", () => {
+    const err = new Error("Connection aborted");
+    err.name = "AbortError";
+
     const error = mapError(err);
     assert.equal(
       error.message,
       "Ansible Lightspeed connection timeout. Please try again later.",
+    );
+  });
+
+  it("err Timeout", () => {
+    const err = new Error("Connection timed out");
+    err.name = "TimeoutError";
+
+    const error = mapError(err);
+    assert.equal(
+      error.message,
+      "Ansible Lightspeed connection timeout. Please try again later.",
+    );
+  });
+
+  it("err Canceled", () => {
+    const err = new Error("Connection canceled");
+    err.name = "CanceledError";
+
+    const error = mapError(err);
+    assert.equal(
+      error.message,
+      "Ansible Lightspeed connection was canceled because of a timeout. Please try again later.",
     );
   });
 
@@ -537,7 +555,7 @@ describe("testing the error handling", () => {
   });
 
   it("err Unexpected Err code", () => {
-    const error = mapError(createError(999));
+    const error = mapError(createError(599));
     assert.equal(
       error.message,
       "An error occurred attempting to complete your request. Please try again later.",
