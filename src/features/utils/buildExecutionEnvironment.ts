@@ -26,7 +26,6 @@ export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
     try {
       const result = spawnSync(command, args, {
         cwd: dirPath,
-        env: { ...process.env, PATH: "/usr/local/bin:/usr/bin:/bin" },
         encoding: "utf-8",
         shell: false,
       });
