@@ -248,11 +248,13 @@ export class CreateAnsibleCollection {
                   </vscode-button>
                 </div>
 
-                <br>
                 <vscode-divider></vscode-divider>
-                <br>
+
+                <vscode-label id="vscode-logs-label" for="log-text-area">
+                  <span class="normal">Logs</span>
+                </vscode-label>
                 <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
-                  resize="vertical" readonly>Logs</vscode-textarea>
+                  resize="vertical" readonly></vscode-textarea>
 
                 <div class="group-buttons">
                   <vscode-button id="clear-logs-button" form="init-form" secondary>
