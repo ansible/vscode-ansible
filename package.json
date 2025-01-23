@@ -448,7 +448,7 @@
       },
       {
         "command": "extension.buildExecutionEnvironment",
-        "title": "Build Ansible Execution Environment"
+        "title": "Build Ansible execution environment"
       }
     ],
     "configuration": [

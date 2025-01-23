@@ -63,7 +63,7 @@ import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
-import { ExecException, execSync, spawnSync } from "child_process";
+import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
@@ -75,6 +75,7 @@ import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateSampleExecutionEnv } from "./features/contentCreator/createSampleExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
+import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -168,44 +169,8 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
 
-  const eeBuilderCommand = vscode.commands.registerCommand(
+  const eeBuilderCommand = rightClickEEBuildCommand(
     "extension.buildExecutionEnvironment",
-    (uri: vscode.Uri) => {
-      if (uri) {
-        const filePath = uri.fsPath;
-        const dirPath =
-          vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath ?? process.cwd();
-        const command = "ansible-builder";
-        const args = ["build", "-f", filePath];
-
-        vscode.window.showInformationMessage(
-          `Running: ${command} ${args.join(" ")}`,
-        );
-
-        const result = spawnSync(command, args, {
-          cwd: dirPath,
-          encoding: "utf-8",
-          shell: false,
-        });
-
-        if (result.error) {
-          vscode.window.showErrorMessage(`Error: ${result.error.message}`);
-          return;
-        }
-
-        if (result.stderr) {
-          vscode.window.showErrorMessage(`Error: ${result.stderr}`);
-          return;
-        }
-
-        vscode.window.showInformationMessage(
-          result.stdout ||
-            "Execution Environment Image was built successfully!",
-        );
-      } else {
-        vscode.window.showErrorMessage("No file selected.");
-      }
-    },
   );
 
   context.subscriptions.push(
