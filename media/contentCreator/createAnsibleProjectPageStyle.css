@@ -43,6 +43,12 @@ vscode-form-group {
     width: 100%;
 }
 
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-left: 5px;
+}
+
 .verbose-div {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
