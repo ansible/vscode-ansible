@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
-import { spawnSync } from "child_process";
+import { withInterpreter } from "../utils/commandRunner";
+import { SettingsManager } from "../../settings";
+import { runCommand } from "../contentCreator/utils";
 
 export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
-  return vscode.commands.registerCommand(commandId, (uri: vscode.Uri) => {
-    if (!uri || !uri.fsPath) {
+  return vscode.commands.registerCommand(commandId, async (uri: vscode.Uri) => {
+    if (!uri?.fsPath) {
       vscode.window.showErrorMessage("No file selected!");
       return;
     }
@@ -11,12 +13,9 @@ export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
     const filePath = uri.fsPath;
     const dirPath = vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath;
 
-    const command = "ansible-builder";
-    const args = ["build", "-f", filePath];
+    const builderCommand = `ansible-builder build -f ${filePath} -c ${dirPath}/context`;
 
-    vscode.window.showInformationMessage(
-      `Running: ${command} ${args.join(" ")}`,
-    );
+    vscode.window.showInformationMessage(`Running: ${builderCommand}`);
 
     if (!dirPath) {
       vscode.window.showErrorMessage("Could not determine workspace folder.");
@@ -24,24 +23,26 @@ export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
     }
 
     try {
-      const result = spawnSync(command, args, {
-        cwd: dirPath,
-        encoding: "utf-8",
-        shell: false,
-      });
+      const extSettings = new SettingsManager();
+      await extSettings.initialize();
 
-      if (result.error) {
-        vscode.window.showErrorMessage(`Build failed: ${result.error.message}`);
-        return;
-      }
+      const { command, env } = withInterpreter(
+        extSettings.settings,
+        builderCommand,
+        "",
+      );
 
-      if (result.stderr) {
-        vscode.window.showErrorMessage(`Error: ${result.stderr}`);
+      const result = await runCommand(command, env);
+
+      if (result.status === "failed") {
+        vscode.window.showErrorMessage(
+          `Build failed with status ${result.status}: \n${result.output.trim()}`,
+        );
         return;
       }
 
       vscode.window.showInformationMessage(
-        `Build successful:\n${result.stdout}`,
+        `Build successful:\n${result.output.trim()}`,
       );
     } catch (error) {
       vscode.window.showErrorMessage(
