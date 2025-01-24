@@ -289,6 +289,15 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      # Remove "invalid" resource files to avoid the following error:
+      #   Error: The path for one of the files in artifact is not valid: /coverage/e2e/lcov-report/vscode-ansible/out/client/src/webpack:/ansible/external commonjs "vscode"?b67b.html. Contains the following character:  Double quote "
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find out -name '*\?*' -exec rm -r {} \; || true
+          find out -name '*"*' -exec rm -r {} \; || true
+          find out -name '*:*' -exec rm -r {} \; || true
+
       - name: Upload test logs and reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -356,6 +365,13 @@ jobs:
           name: logs.zip
           path: .
 
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find . -name '*\?*' -exec rm -r {} \; || true
+          find . -name '*"*' -exec rm -r {} \; || true
+          find . -name '*:*' -exec rm -r {} \; || true
+
       - name: Upload als test coverage data [1/4]
         uses: codecov/codecov-action@v5.1.2
         with:
@@ -380,7 +396,7 @@ jobs:
         uses: codecov/codecov-action@v5.1.2
         with:
           name: ui
-          files: ./*/coverage/ui/lcov.info
+          files: ./*/coverage/ui/lcov.*.info
           flags: ui
           disable_search: true
           fail_ci_if_error: true
