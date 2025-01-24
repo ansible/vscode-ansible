@@ -11,7 +11,7 @@ import {
   Dropdown,
 } from "@vscode/webview-ui-toolkit";
 import { EditableList } from "../../common/editableList";
-
+import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import { getSingletonHighlighterCore, HighlighterCore } from "@shikijs/core";
 import darkPlus from "shiki/themes/dark-plus.mjs";
 import lightPlus from "shiki/themes/light-plus.mjs";
@@ -50,6 +50,7 @@ export async function codeToHtml(code: string) {
       themes: [darkPlus, lightPlus],
       langs: [yamlLang],
       loadWasm: getWasm,
+      engine: createOnigurumaEngine(import("shiki/wasm")),
     });
   }
 
