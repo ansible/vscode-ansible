@@ -117,14 +117,14 @@ describe("Verify Role generation feature works as expected", function () {
       )
     ).click();
 
+    await sleep(500);
     webView = await getWebviewByLocator(
-      By.xpath("//a[contains(text(), 'tasks/install_nginx/tasks/main.yml')]"),
+      By.xpath("//a[contains(text(), 'install_nginx/tasks/main.yml')]"),
     );
 
-    await sleep(500);
     await (
       await webView.findWebElement(
-        By.xpath("//a[contains(text(), 'tasks/install_nginx/tasks/main.yml')]"),
+        By.xpath("//a[contains(text(), 'install_nginx/tasks/main.yml')]"),
       )
     ).click();
 
