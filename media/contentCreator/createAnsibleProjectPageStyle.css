@@ -27,13 +27,11 @@ vscode-form-group {
 
 .playbook-project-div {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    width: 100%;
 }
 
-#namespace-name, #collection-name {
-    width:49%;
+#namespace-name {
+    width:95%;
     display:inline-block;
 }
 
@@ -115,4 +113,8 @@ vscode-checkbox i {
 
 .log-level-div {
     margin: 4px 0px;
+}
+
+vscode-divider {
+    width: 100%;
 }

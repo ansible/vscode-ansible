@@ -225,9 +225,8 @@ export class CreateAnsibleProject {
                   </vscode-button>
                 </div>
 
-                <br>
                 <vscode-divider></vscode-divider>
-                <br>
+
                 <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
                   resize="vertical" readonly>Logs</vscode-textarea>
 
