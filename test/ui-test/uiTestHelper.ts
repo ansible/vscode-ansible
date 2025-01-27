@@ -23,10 +23,9 @@ export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function updateSettings(
+export async function getSettingInUI(
   settingsEditor: SettingsEditor,
   setting: string,
-  value: any,
 ) {
   let settingArray = setting.split(".");
   settingArray = settingArray.map((item) => capitalizeFirstLetter(item));
@@ -37,6 +36,20 @@ export async function updateSettings(
   if (!title) return;
 
   const settingInUI = await settingsEditor.findSetting(title, ...categories);
+  return settingInUI;
+}
+
+export async function updateSettings(
+  settingsEditor: SettingsEditor,
+  setting: string,
+  value: any,
+) {
+  const settingInUI = await getSettingInUI(settingsEditor, setting);
+
+  if (!settingInUI) {
+    return;
+  }
+
   await settingInUI.setValue(value);
   await sleep(1000);
 }

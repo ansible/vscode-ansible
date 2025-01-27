@@ -1,4 +1,11 @@
-import { Disposable, Webview, Uri, commands } from "vscode";
+import {
+  ConfigurationTarget,
+  Disposable,
+  Webview,
+  Uri,
+  commands,
+  workspace,
+} from "vscode";
 import { getUri } from "../../utils/getUri";
 import { getNonce } from "../../utils/getNonce";
 
@@ -117,16 +124,45 @@ export function setWebviewMessageListener(
 ) {
   webview.onDidReceiveMessage(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (message: any) => {
+    async (message: any) => {
       console.log(
         `Lightspeed explorer - Message received: ${JSON.stringify(message)}}`,
       );
       const command = message.command;
 
       switch (command) {
-        case "connect":
+        case "connect": {
+          const ansibleSettings = workspace.getConfiguration("ansible");
+
+          const lightspeedEnabled =
+            await ansibleSettings.get("lightspeed.enabled");
+
+          const lightSpeedSuggestionsEnabled = await ansibleSettings.get(
+            "lightspeed.suggestions.enabled",
+          );
+
+          if (!lightspeedEnabled) {
+            await ansibleSettings.update(
+              "lightspeed.enabled",
+              true,
+              workspace.workspaceFolders
+                ? ConfigurationTarget.Workspace
+                : ConfigurationTarget.Global,
+            );
+          }
+
+          if (!lightSpeedSuggestionsEnabled) {
+            await ansibleSettings.update(
+              "lightspeed.suggestions.enabled",
+              true,
+              workspace.workspaceFolders
+                ? ConfigurationTarget.Workspace
+                : ConfigurationTarget.Global,
+            );
+          }
           commands.executeCommand("ansible.lightspeed.oauth");
           return;
+        }
         case "generate":
           commands.executeCommand("ansible.lightspeed.playbookGeneration");
           return;

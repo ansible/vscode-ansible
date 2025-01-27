@@ -124,10 +124,17 @@ export class LightspeedStatusBar {
   }
 
   public async setLightSpeedStatusBarTooltip(): Promise<void> {
+    const userIsLoggedIn =
+      await this.lightspeedAuthenticatedUser.isAuthenticated();
+    if (!userIsLoggedIn) {
+      lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
+      return;
+    }
     const userDetails =
       await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
     if (!userDetails) {
-      return undefined;
+      lightSpeedManager.statusBarProvider.statusBar.tooltip = undefined;
+      return;
     }
     const statusBarInfo = getLoggedInUserDetails(userDetails);
     const userType = statusBarInfo.userInfo?.userType;
