@@ -35,7 +35,7 @@ __metadata:
     handlebars: "npm:^4.7.8"
     ini: "npm:^5.0.0"
     lodash: "npm:^4.17.21"
-    mocha: "npm:^11.0.1"
+    mocha: "npm:^11.1.0"
     npm-check-updates: "npm:^17.1.14"
     nyc: "npm:^17.1.0"
     rimraf: "npm:^6.0.1"
@@ -1295,16 +1295,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 22.10.7
-  resolution: "@types/node@npm:22.10.7"
-  dependencies:
-    undici-types: "npm:~6.20.0"
-  checksum: 10/64cde1c2f5e5f7d597d3bd462f52c3c2d688a66623eb75d25e1d1d63d384ef553a27100635ad0dbb7d74da517048aa636947863eb624cf85f25d2f22370ce474
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^22.10.10":
+"@types/node@npm:*, @types/node@npm:^22.10.10":
   version: 22.10.10
   resolution: "@types/node@npm:22.10.10"
   dependencies:
@@ -6532,7 +6523,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mocha@npm:^11.0.1":
+"mocha@npm:^11.0.1, mocha@npm:^11.1.0":
   version: 11.1.0
   resolution: "mocha@npm:11.1.0"
   dependencies:
