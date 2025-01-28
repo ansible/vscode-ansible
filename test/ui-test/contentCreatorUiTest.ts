@@ -1,4 +1,11 @@
-import { By, EditorView, WebElement } from "vscode-extension-tester";
+import {
+  By,
+  EditorView,
+  WebElement,
+  Workbench,
+  VSBrowser,
+  SideBarView,
+} from "vscode-extension-tester";
 import {
   getWebviewByLocator,
   sleep,
@@ -182,6 +189,54 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     await testWebViewElements(
       "Ansible: Create a sample Ansible Execution Environment file",
       "Create Sample Ansible Execution Environment",
+    );
+  });
+
+  it("should execute the build command from the right-click context menu", async function () {
+    // Open Explorer view
+    await VSBrowser.instance.openResources("~");
+    const workbench = new Workbench();
+    const explorerControl = await workbench
+      .getActivityBar()
+      .getViewControl("Explorer");
+    if (!explorerControl) {
+      throw new Error("Explorer view control not found");
+    }
+    const explorerView = await explorerControl.openView();
+    if (!(explorerView instanceof SideBarView)) {
+      throw new Error("Explorer view is not a SideBarView");
+    }
+
+    // Find the test file in the explorer
+    const treeSection = await explorerView
+      .getContent()
+      .getSection("Untitled (Workspace)");
+    const treeItem = await treeSection.findItem("execution-environment.yml");
+    if (!treeItem) {
+      throw new Error("Test file not found in the workspace");
+    }
+
+    // Open the context menu and select "Build Ansible Execution Environment"
+    const contextMenu = await treeItem.openContextMenu();
+    const menuItem = await contextMenu.getItem(
+      "Build Ansible Execution Environment",
+    );
+    if (!menuItem) {
+      throw new Error("Build option not found in the context menu");
+    }
+    await menuItem.select();
+
+    // Wait and validate for the success notification
+    const notifications = await workbench.getNotifications();
+    const successNotification = notifications.find((notif) =>
+      notif.getMessage(),
+    );
+    if (!successNotification) {
+      throw new Error("Success notification not found");
+    }
+
+    expect(await successNotification.getMessage()).to.include(
+      "Build successful:",
     );
   });
 });
