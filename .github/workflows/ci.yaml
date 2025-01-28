@@ -389,7 +389,7 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
-      - name: Find and upload UI test coverage data [3/4]
+      - name: Find all the UI test coverage data
         run: |
           COVERAGE_FILES=$(find ./*/coverage/ui/ -name 'lcov.*.info' -print0 | xargs -0 | tr ' ' ',')
           echo "Found coverage files: $COVERAGE_FILES"
