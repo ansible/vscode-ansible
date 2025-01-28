@@ -196,7 +196,6 @@ jobs:
           asdf exec direnv export gha >> "$GITHUB_ENV"
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
-
       - name: Ensure .env file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
@@ -246,7 +245,7 @@ jobs:
       - name: task package
         id: package
         run: |
-            task package ${{ matrix.env.TASKFILE_ARGS }}
+          task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
@@ -380,7 +379,7 @@ jobs:
         uses: codecov/codecov-action@v5.1.2
         with:
           name: ui
-          files: ./*/coverage/ui/lcov.info
+          files: ./*/coverage/ui/lcov.*.info
           flags: ui
           disable_search: true
           fail_ci_if_error: true
