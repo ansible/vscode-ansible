@@ -27,7 +27,6 @@ import {
 } from "./uiTestHelper";
 import { Key } from "selenium-webdriver";
 import { expect } from "chai";
-import axios from "axios";
 
 const trialNotificationMessage =
   "Ansible Lightspeed is not configured for your organization, click here to start a 90-day trial.";
@@ -66,11 +65,21 @@ describe("Test One Click Trial feature", () => {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     // Set "UI Test" and "One Click" options for mock server
-    await axios.post(
-      `${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`,
-      ["--ui-test", "--one-click"],
-      { headers: { "Content-Type": "application/json" } },
-    );
+    try {
+      await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(["--ui-test", "--one-click"]),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to set ui-test and one-click options for lightspeed mock server",
+        error,
+      );
+      expect.fail(
+        "Failed to set ui-test and one-click options for lightspeed mock server",
+      );
+    }
   });
 
   it("Focus on Ansible Lightspeed View", async () => {
@@ -156,12 +165,22 @@ describe("Test One Click Trial feature", () => {
     expect(refreshIcon, "refreshIcon should not be undefined").not.to.be
       .undefined;
 
-    // Set "UI Test", One Click" and "Me Uppercase" options for mock server
-    await axios.post(
-      `${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`,
-      ["--ui-test", "--one-click", "--me-uppercase"],
-      { headers: { "Content-Type": "application/json" } },
-    );
+    // Set "UI Test", "One Click" and "Me Uppercase" options for mock server
+    try {
+      await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(["--ui-test", "--one-click", "--me-uppercase"]),
+      });
+    } catch (error) {
+      console.error(
+        "Failed to set ui-test, one-click and me-uppercase options for lightspeed mock server",
+        error,
+      );
+      expect.fail(
+        "Failed to set ui-test, one-click and me-uppercase options for lightspeed mock server",
+      );
+    }
 
     await refreshIcon.click(); // make sure if it could be clicked
 

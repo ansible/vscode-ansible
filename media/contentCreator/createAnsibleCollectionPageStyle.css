@@ -3,20 +3,36 @@
 .container {
     display: flex;
     flex-direction: column;
+    font-size: 1em;
 }
 
 .element {
     margin-bottom: 14px;
 }
 
-vscode-text-field {
+vscode-textfield {
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+vscode-textarea {
     margin-top: 6px;
     margin-bottom: 6px;
 }
 
-vscode-text-area {
-    margin-top: 6px;
-    margin-bottom: 6px;
+vscode-form-group {
+    width: 100%;
+    margin: 0;
+}
+
+vscode-divider {
+    width: 100%;
+}
+
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-left: 5px;
 }
 
 .checkbox-div {
@@ -59,7 +75,7 @@ vscode-checkbox i {
     font-size: small;
 }
 
-vscode-dropdown {
+vscode-single-select {
     width: 200px;
 }
 
@@ -87,6 +103,7 @@ vscode-dropdown {
 
 #log-to-file-options-div {
     display: none;
+    width: 100%;
     flex-direction: column;
     border-style: dotted;
     border-color: var(--focus-border);;

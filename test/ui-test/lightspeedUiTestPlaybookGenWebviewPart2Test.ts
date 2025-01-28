@@ -1,7 +1,6 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import axios from "axios";
 import {
   By,
   Workbench,
@@ -187,16 +186,33 @@ describe("Verify playbook generation features work as expected", function () {
       [WizardGenerationActionType.TRANSITION, 2, 3],
       [WizardGenerationActionType.CLOSE_ACCEPT, 3, undefined],
     ];
-    const res = await axios.get(
-      `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
-    );
-    expect(res.data.feedbacks.length).equals(expected.length);
-    for (let i = 0; i < expected.length; i++) {
-      const evt: PlaybookGenerationActionEvent =
-        res.data.feedbacks[i].playbookGenerationAction;
-      expect(evt.action).equals(expected[i][0]);
-      expect(evt.fromPage).equals(expected[i][1]);
-      expect(evt.toPage).equals(expected[i][2]);
+
+    try {
+      const response: Response = await fetch(
+        `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+        {
+          method: "GET",
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        expect(data.feedbacks.length).equals(expected.length);
+        for (let i = 0; i < expected.length; i++) {
+          const evt: PlaybookGenerationActionEvent =
+            data.feedbacks[i].playbookGenerationAction;
+          expect(evt.action).equals(expected[i][0]);
+          expect(evt.fromPage).equals(expected[i][1]);
+          expect(evt.toPage).equals(expected[i][2]);
+        }
+      } else {
+        expect.fail(
+          `Failed to get feedback events, request returned status: ${response.status} and text: ${response.statusText}`,
+        );
+      }
+    } catch (error) {
+      console.error("Failed to get feedback events with unknown error", error);
+      expect.fail("Failed to get feedback events with unknown error");
     }
   });
 

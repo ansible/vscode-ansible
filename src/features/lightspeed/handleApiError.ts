@@ -1,6 +1,3 @@
-import { AxiosError } from "axios";
-import { CanceledError } from "axios";
-
 import {
   ERRORS,
   ERRORS_UNAUTHORIZED,
@@ -11,9 +8,9 @@ import {
   ERRORS_CONNECTION_TIMEOUT,
   ERRORS_NOT_FOUND,
 } from "./errors";
-import { IError } from "./utils/errors";
+import { HTTPError, IError } from "./utils/errors";
 
-export function mapError(err: AxiosError): IError {
+function mapHttpError(err: HTTPError): IError {
   // Lookup _known_ errors
   const mappedError = ERRORS.getError(err);
   if (mappedError) {
@@ -21,12 +18,9 @@ export function mapError(err: AxiosError): IError {
   }
 
   // If the error is unknown fallback to defaults
-  const items = (err.response?.data as Record<string, unknown>) ?? {};
+  const items = (err.body as Record<string, unknown>) ?? {};
   const detail = Object.hasOwn(items, "detail") ? items["detail"] : undefined;
   const status: number | string = err.response?.status ?? err.code ?? 500;
-  if (err instanceof CanceledError) {
-    return ERRORS_CONNECTION_CANCELED_TIMEOUT;
-  }
   if (status === 400) {
     return ERRORS_BAD_REQUEST.withDetail(ERRORS.prettyPrintDetail(detail));
   }
@@ -47,12 +41,28 @@ export function mapError(err: AxiosError): IError {
   if (status === 500) {
     return ERRORS_UNKNOWN.withDetail(ERRORS.prettyPrintDetail(detail));
   }
-  if (status === AxiosError.ECONNABORTED) {
-    return ERRORS_CONNECTION_TIMEOUT.withDetail(
-      ERRORS.prettyPrintDetail(detail),
-    );
-  }
 
   console.log(`Lightspeed request failed with unknown error ${err}`);
   return ERRORS_UNKNOWN.withDetail(ERRORS.prettyPrintDetail(detail));
+}
+
+export function mapError(err: Error): IError {
+  if (err.name === "AbortError" || err.name === "TimeoutError") {
+    return ERRORS_CONNECTION_TIMEOUT;
+  }
+  if (err.name === "CanceledError") {
+    return ERRORS_CONNECTION_CANCELED_TIMEOUT;
+  }
+  if (err instanceof HTTPError) {
+    return mapHttpError(err);
+  }
+
+  console.log(
+    `Lightspeed request failed with the following error: ${err.message}`,
+  );
+  return {
+    code: "UNKNOWN_ERROR",
+    message:
+      "An error occurred attempting to complete your request. Please try again later.",
+  };
 }

@@ -12,7 +12,6 @@ import {
   LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { SettingsManager } from "../../settings";
-import axios from "axios";
 import { LightspeedUserDetails } from "../../interfaces/lightspeed";
 import {
   LightSpeedAuthenticationProvider,
@@ -20,6 +19,8 @@ import {
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
 import * as marked from "marked";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { getFetch } from "./api";
 
 export class LightspeedAccessDenied extends Error {
   constructor(message: string) {
@@ -109,38 +110,41 @@ export class LightspeedUser {
     );
 
     try {
-      const { data } = await axios.get(
+      const fetch = getFetch();
+
+      const response = await fetch(
         `${getBaseUri(this._settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
+          method: "GET",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      return data;
-    } catch (error) {
-      if (
-        axios.isAxiosError(error) &&
-        error.response &&
-        error.response.status === 401
-      ) {
-        throw new LightspeedAccessDenied(error.message);
-      } else if (axios.isAxiosError(error)) {
-        this._logger.error(
-          `[ansible-lightspeed-user] error message: ${error.message}`,
-        );
-        console.error(
-          "[ansible-lightspeed-user] error response data: ",
-          error.response?.data,
-        );
-        throw new Error(error.message);
+      if (response.ok) {
+        const data = await response.json();
+        return data;
       } else {
         this._logger.error(
-          `[ansible-lightspeed-user] unexpected error: ${error}`,
+          `[ansible-lightspeed-user] call to get user info returned non-2xx response. Status: ${response.status}`,
         );
-        throw new Error("An unexpected error occurred");
+
+        if (response.status === 401) {
+          throw new LightspeedAccessDenied("Access Denied");
+        } else {
+          throw new Error(
+            `Request failed with status code: ${response.status}`,
+          );
+        }
       }
+    } catch (error) {
+      const err = error as Error;
+      this._logger.error(
+        `[ansible-lightspeed-user] error message: ${err.message}`,
+      );
+      throw err;
     }
   }
 
@@ -150,41 +154,42 @@ export class LightspeedUser {
     );
 
     try {
-      const { data } = await axios.get(
+      const fetch = getFetch();
+
+      const response = await fetch(
         `${getBaseUri(this._settingsManager)}${LIGHTSPEED_MARKDOWN_ME_AUTH_URL}`,
         {
+          method: "GET",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      const markdownData = marked.parseInline(data.content) as string;
-
-      return markdownData;
-    } catch (error) {
-      if (
-        axios.isAxiosError(error) &&
-        error.response &&
-        error.response.status === 401
-      ) {
-        throw new LightspeedAccessDenied(error.message);
-      } else if (axios.isAxiosError(error)) {
-        this._logger.error(
-          `[ansible-lightspeed-user] error message: ${error.message}`,
-        );
-        /* istanbul ignore next */
-        console.error(
-          "[ansible-lightspeed-user] error response data: ",
-          error.response?.data,
-        );
-        throw new Error(error.message);
+      if (response.ok) {
+        const data = await response.json();
+        const markdownData = marked.parseInline(data.content) as string;
+        return markdownData;
       } else {
         this._logger.error(
-          `[ansible-lightspeed-user] unexpected error: ${error}`,
+          `[ansible-lightspeed-user] call to get user info from markdown returned non-2xx response. Status: ${response.status}`,
         );
-        throw new Error("An unexpected error occurred");
+
+        if (response.status === 401) {
+          throw new LightspeedAccessDenied("Access Denied");
+        } else {
+          throw new Error(
+            `Request failed with status code: ${response.status}`,
+          );
+        }
       }
+    } catch (error) {
+      const err = error as Error;
+      this._logger.error(
+        `[ansible-lightspeed-user] error message: ${err.message}`,
+      );
+      throw err;
     }
   }
 
