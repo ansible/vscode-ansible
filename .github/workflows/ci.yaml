@@ -288,6 +288,13 @@ jobs:
           if-no-files-found: error
           retention-days: 90
 
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find out -name '*\?*' -exec rm -r {} \; || true
+          find out -name '*"*' -exec rm -r {} \; || true
+          find out -name '*:*' -exec rm -r {} \; || true
+
       - name: Upload test logs and reports
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
@@ -354,6 +361,13 @@ jobs:
         with:
           name: logs.zip
           path: .
+
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find . -name '*\?*' -exec rm -r {} \; || true
+          find . -name '*"*' -exec rm -r {} \; || true
+          find . -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload als test coverage data [1/4]
         uses: codecov/codecov-action@v5.1.2
