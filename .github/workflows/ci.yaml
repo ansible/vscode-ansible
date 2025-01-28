@@ -375,11 +375,17 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
+      - name: Find and upload UI test coverage data [3/4]
+        run: |
+          COVERAGE_FILES=$(find ./*/coverage/ui/ -name 'lcov.*.info' -print0 | xargs -0 | tr ' ' ',')
+          echo "Found coverage files: $COVERAGE_FILES"
+          echo "COVERAGE_FILES=$COVERAGE_FILES" >> $GITHUB_ENV
+
       - name: Upload ui test coverage data [3/4]
         uses: codecov/codecov-action@v5.1.2
         with:
           name: ui
-          files: ./*/coverage/ui/lcov.*.info
+          files: ${{ env.COVERAGE_FILES }}
           flags: ui
           disable_search: true
           fail_ci_if_error: true
