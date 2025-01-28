@@ -25,6 +25,16 @@ vscode-form-group {
     margin: 0;
 }
 
+vscode-divider {
+    width: 100%;
+}
+
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-left: 5px;
+}
+
 .checkbox-div {
     display: flex; /* Use flexbox */
     flex-direction: column; /* Arrange child elements vertically */

@@ -936,7 +936,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
-    "@shikijs/core": "^1.26.2",
+    "@shikijs/core": "2.1.0",
     "@types/ini": "^4.1.1",
     "@vscode-elements/elements": "^1.10.0",
     "@vscode/webview-ui-toolkit": "^1.4.0",

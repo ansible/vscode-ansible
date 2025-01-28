@@ -5,6 +5,7 @@ import {
   Workbench,
   VSBrowser,
   SideBarView,
+  TreeSection,
 } from "vscode-extension-tester";
 import {
   getWebviewByLocator,
@@ -192,51 +193,65 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     );
   });
 
-  it("should execute the build command from the right-click context menu", async function () {
-    // Open Explorer view
-    await VSBrowser.instance.openResources("~");
+  it("Execute the build command from the right-click menu", async function () {
+    const homeDir = path.resolve(
+      process.env.HOME ?? process.env.USERPROFILE ?? "~",
+    );
+    await VSBrowser.instance.openResources(homeDir);
     const workbench = new Workbench();
-    const explorerControl = await workbench
+    const explorer = await workbench
       .getActivityBar()
       .getViewControl("Explorer");
-    if (!explorerControl) {
+    if (!explorer) {
       throw new Error("Explorer view control not found");
     }
-    const explorerView = await explorerControl.openView();
-    if (!(explorerView instanceof SideBarView)) {
+
+    const sideBar = await explorer.openView();
+    if (!(sideBar instanceof SideBarView)) {
       throw new Error("Explorer view is not a SideBarView");
     }
 
-    // Find the test file in the explorer
-    const treeSection = await explorerView
-      .getContent()
-      .getSection("Untitled (Workspace)");
-    const treeItem = await treeSection.findItem("execution-environment.yml");
-    if (!treeItem) {
+    const sections = await sideBar.getContent().getSections();
+    let explorerTree: TreeSection | null = null;
+
+    for (const section of sections) {
+      const title = await section.getTitle();
+      if (title === path.basename(homeDir)) {
+        explorerTree = section as TreeSection;
+        break;
+      }
+    }
+
+    if (!explorerTree) {
+      throw new Error("Could not find the correct section in the Explorer");
+    }
+
+    const explorerItem = await explorerTree.findItem(
+      "execution-environment.yml",
+    );
+    if (!explorerItem) {
       throw new Error("Test file not found in the workspace");
     }
 
-    // Open the context menu and select "Build Ansible Execution Environment"
-    const contextMenu = await treeItem.openContextMenu();
+    const contextMenu = await explorerItem.openContextMenu();
     const menuItem = await contextMenu.getItem(
-      "Build Ansible Execution Environment",
+      "Build Ansible execution environment",
     );
     if (!menuItem) {
       throw new Error("Build option not found in the context menu");
     }
     await menuItem.select();
 
-    // Wait and validate for the success notification
     const notifications = await workbench.getNotifications();
-    const successNotification = notifications.find((notif) =>
-      notif.getMessage(),
+    const successNotification = notifications.find((notification) =>
+      notification.getMessage(),
     );
     if (!successNotification) {
       throw new Error("Success notification not found");
     }
 
     expect(await successNotification.getMessage()).to.include(
-      "Build successful:",
+      "Build successful",
     );
   });
 });
