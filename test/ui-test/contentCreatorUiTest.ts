@@ -193,7 +193,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     );
   });
 
-  it("Execute the build command from the right-click menu", async function () {
+  it("Executes the build command from the right-click menu", async function () {
     const homeDir = path.resolve(
       process.env.HOME ?? process.env.USERPROFILE ?? "~",
     );
@@ -243,15 +243,16 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     await menuItem.select();
 
     const notifications = await workbench.getNotifications();
-    const successNotification = notifications.find((notification) =>
-      notification.getMessage(),
-    );
+    const successNotification = notifications.find(async (notification) => {
+      const message = await notification.getMessage();
+      return message.includes("Running: ansible-builder");
+    });
     if (!successNotification) {
-      throw new Error("Success notification not found");
+      throw new Error("Successful run notification not found");
     }
 
     expect(await successNotification.getMessage()).to.include(
-      "Build successful",
+      "Running: ansible-builder",
     );
   });
 });
