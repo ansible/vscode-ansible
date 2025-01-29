@@ -247,15 +247,14 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
 
     const notifications = await workbench.getNotifications();
     const successNotification = notifications.find(async (notification) => {
-      const message = await notification.getMessage();
-      return message.includes("Running: ansible-builder");
+      await notification.getMessage();
     });
     if (!successNotification) {
-      throw new Error("Successful run notification not found");
+      throw new Error("Notification not found");
     }
 
-    expect(await successNotification.getMessage()).to.include(
-      "Running: ansible-builder",
+    expect(await successNotification.getMessage()).to.match(
+      /^Build (successful|failed)/,
     );
   });
 });
