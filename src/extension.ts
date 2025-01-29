@@ -147,7 +147,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // handle python status bar
   const pythonInterpreterManager = new PythonInterpreterManager(
     context,
-    client,
     telemetry,
     extSettings,
   );
@@ -160,12 +159,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   /**
    * Handle "Ansible Lightspeed" in the extension
    */
-  lightSpeedManager = new LightSpeedManager(
-    context,
-    client,
-    extSettings,
-    telemetry,
-  );
+  lightSpeedManager = new LightSpeedManager(context, extSettings, telemetry);
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
 
