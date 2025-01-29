@@ -225,6 +225,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     if (!explorerTree) {
       throw new Error("Could not find the correct section in the Explorer");
     }
+    await sleep(3000);
 
     const explorerItem = await explorerTree.findItem(
       "execution-environment.yml",
@@ -241,6 +242,8 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
       throw new Error("Build option not found in the context menu");
     }
     await menuItem.select();
+
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     const notifications = await workbench.getNotifications();
     const successNotification = notifications.find(async (notification) => {
