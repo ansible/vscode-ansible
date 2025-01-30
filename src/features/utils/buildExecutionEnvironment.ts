@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import * as path from "path";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { runCommand } from "../contentCreator/utils";
@@ -27,7 +28,7 @@ export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
     }
 
     const filePath = uri.fsPath;
-    const dirPath = vscode.workspace.getWorkspaceFolder(uri)?.uri.fsPath;
+    const dirPath = path.dirname(filePath);
 
     const builderCommand = `ansible-builder build -f ${filePath} -c ${dirPath}/context`;
 

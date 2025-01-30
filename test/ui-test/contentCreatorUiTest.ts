@@ -3,9 +3,7 @@ import {
   EditorView,
   WebElement,
   Workbench,
-  VSBrowser,
-  SideBarView,
-  TreeSection,
+  InputBox,
 } from "vscode-extension-tester";
 import {
   getWebviewByLocator,
@@ -194,60 +192,46 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
   });
 
   it("Executes the build command from the right-click menu", async function () {
-    const homeDir = path.resolve(
-      process.env.HOME ?? process.env.USERPROFILE ?? "~",
-    );
-    await VSBrowser.instance.openResources(homeDir);
     const workbench = new Workbench();
-    const explorer = await workbench
-      .getActivityBar()
-      .getViewControl("Explorer");
-    if (!explorer) {
-      throw new Error("Explorer view control not found");
-    }
 
-    const sideBar = await explorer.openView();
-    if (!(sideBar instanceof SideBarView)) {
-      throw new Error("Explorer view is not a SideBarView");
-    }
-
-    const sections = await sideBar.getContent().getSections();
-    let explorerTree: TreeSection | null = null;
-
-    for (const section of sections) {
-      const title = await section.getTitle();
-      if (title === path.basename(homeDir)) {
-        explorerTree = section as TreeSection;
-        break;
-      }
-    }
-
-    if (!explorerTree) {
-      throw new Error("Could not find the correct section in the Explorer");
-    }
-    await sleep(3000);
-
-    const explorerItem = await explorerTree.findItem(
-      "execution-environment.yml",
-    );
-    if (!explorerItem) {
-      throw new Error("Test file not found in the workspace");
-    }
-    await explorerItem.select();
-    await sleep(3000);
-
-    await workbench.executeCommand("Build Ansible execution environment");
-    await new Promise((resolve) => setTimeout(resolve, 7000));
-
-    const notifications = await workbench.getNotifications();
-    const successNotification = notifications.find(async (notification) => {
-      await notification.getMessage();
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    let notifications = await workbench.getNotifications();
+    const errorNotification = notifications.find(async (notification) => {
+      return (await notification.getMessage()).includes(
+        "No file selected and no active file found!",
+      );
     });
-    if (!successNotification) {
-      throw new Error("Notification not found");
-    }
+    if (!errorNotification) throw new Error("Notification not found");
 
-    expect(await successNotification.getMessage()).to.match(
+    await workbenchExecuteCommand("File: New Untitled Text file");
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    notifications = await workbench.getNotifications();
+    const fileTypeError = notifications.find(async (notification) => {
+      return (await notification.getMessage()).includes(
+        "Active file is not an execution environment file!",
+      );
+    });
+    if (!fileTypeError) throw new Error("Notification not found");
+
+    await workbenchExecuteCommand("Go to File...");
+    const inputBox = await InputBox.create();
+    await inputBox.setText(
+      path.join(os.homedir(), "execution-environment.yml"),
+    );
+    await inputBox.confirm();
+    await workbenchExecuteCommand("Build Ansible execution environment");
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    notifications = await workbench.getNotifications();
+    const buildResultNotification = notifications.find(async (notification) => {
+      const message = await notification.getMessage();
+      return (
+        message.includes("Build successful") || message.includes("Build failed")
+      );
+    });
+    if (!buildResultNotification) throw new Error("Notification not found");
+
+    expect(await buildResultNotification.getMessage()).to.match(
       /^Build (successful|failed)/,
     );
   });
