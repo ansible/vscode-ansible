@@ -1,0 +1,147 @@
+@import url(../baseStyles/baseFormStyle.css);
+
+.container {
+    display: flex;
+    flex-direction: column;
+    font-size: 1em;
+}
+
+.element {
+    margin-bottom: 14px;
+}
+
+vscode-textfield {
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+vscode-textarea {
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+vscode-form-group {
+    width: 100%;
+    margin: 0;
+}
+
+.checkbox-div {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Arrange child elements vertically */
+    margin-top: 22px;
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.overwriteCheckbox-div {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Arrange child elements vertically */
+    margin-top: 22px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.suggestedCollections-div {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Arrange child elements vertically */
+    margin-top: 18px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    /* Space between columns */
+    justify-content: flex-start;
+    /* Aligns the columns to the left */
+}
+
+#suggestedCollections-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+
+.verbose-div {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: row;
+    /* Arrange child elements vertically */
+    margin-top: 12px;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+vscode-single-select {
+    width: 500px;
+}
+
+.full-destination-path {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: row;
+    /* Arrange child elements vertically */
+    color: var(--vscode-descriptionForeground);
+}
+
+.group-buttons {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: row;
+    /* Arrange child elements vertically */
+}
+
+.p-collection-name {
+    font-style: italic;
+}
+
+vscode-button {
+    margin: 0px 3px;
+}
+
+vscode-checkbox i {
+    color: var(--vscode-descriptionForeground);
+    font-size: small;
+    width: 100%;
+}
+
+vscode-divider {
+    width: 100%;
+}
+
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-left: 5px;
+}
+
+#ade-docs-link {
+    margin-left: 30px;
+    font-style: italic;
+}
+
+.dropdown-container {
+    box-sizing: border-box;
+    display: flex;
+    flex-flow: column nowrap;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.dropdown-container label {
+    display: block;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    font-size: var(--vscode-font-size);
+    line-height: normal;
+    margin-bottom: 2px;
+}

@@ -352,8 +352,8 @@
         "title": "Ansible: Create a Devfile"
       },
       {
-        "command": "ansible.content-creator.create-sample-execution-env-file",
-        "title": "Ansible: Create a Sample Execution Environment file"
+        "command": "ansible.content-creator.create-execution-env-file",
+        "title": "Ansible: Create an Execution Environment file"
       },
       {
         "command": "ansible.content-creator.create-devcontainer",
@@ -940,7 +940,9 @@
     "@types/ini": "^4.1.1",
     "@vscode-elements/elements": "^1.11.0",
     "@vscode/webview-ui-toolkit": "^1.4.0",
+    "ansi-regex": "^6.1.0",
     "ini": "^5.0.0",
+    "js-yaml": "^4.1.0",
     "marked": "^15.0.6",
     "minimatch": "^10.0.1",
     "semver": "^7.6.3",
@@ -955,6 +957,7 @@
     "@types/chai": "^4.3.20",
     "@types/express": "^5.0.0",
     "@types/glob": "^8.1.0",
+    "@types/js-yaml": "4.0.9",
     "@types/jsdom": "^21.1.7",
     "@types/lodash": "^4.17.14",
     "@types/minimatch": "^5.1.2",

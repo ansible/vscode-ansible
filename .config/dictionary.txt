@@ -155,6 +155,7 @@ lssh
 lxml
 markdownlint
 maxlength
+microdnf
 mkdocs
 mocharc
 mochawesome
@@ -188,6 +189,7 @@ pgrep
 piptools
 pipx
 pkgcache
+PKGMGR
 pkill
 podman
 precheck

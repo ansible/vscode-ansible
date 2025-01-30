@@ -30,10 +30,18 @@ export type DevfileFormInterface = {
   isOverwritten: boolean;
 };
 
-export type AnsibleSampleExecutionEnvInterface = {
+export type AnsibleExecutionEnvInterface = {
   destinationPath: string;
   verbosity: string;
   isOverwritten: boolean;
+  isCreateContextEnabled: boolean;
+  isBuildImageEnabled: boolean;
+  baseImage: string;
+  customBaseImage: string;
+  collections: string;
+  systemPackages: string;
+  pythonPackages: string;
+  tag: string;
 };
 
 export type DevcontainerFormInterface = {
