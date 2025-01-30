@@ -25,11 +25,7 @@ describe("Test Ansible playbook and collection project scaffolding", () => {
     await sleep(4000);
 
     await new EditorView().openEditor(editorTitle);
-    // TODO: Temp fix, to be removed when playbook project webview is updated
-    const textFieldTag =
-      editorTitle === "Create Ansible collection"
-        ? "vscode-textfield"
-        : "vscode-text-field";
+    const textFieldTag = "vscode-textfield";
     const webview = await getWebviewByLocator(
       By.xpath(`//${textFieldTag}[@id='namespace-name']`),
     );

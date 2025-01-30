@@ -19,6 +19,12 @@ window.addEventListener("load", main);
 
 let initNamespaceNameTextField: VscodeTextfield;
 let initCollectionNameTextField: VscodeTextfield;
+
+let namespaceInputField: HTMLInputElement;
+let collectionInputField: HTMLInputElement;
+let logFilePathInputField: HTMLInputElement;
+let initPathUrlInputField: HTMLInputElement;
+
 let initPathUrlTextField: VscodeTextfield;
 let folderExplorerIcon: VscodeIcon;
 
@@ -56,6 +62,7 @@ function main() {
   initNamespaceNameTextField = document.getElementById(
     "namespace-name",
   ) as VscodeTextfield;
+
   initCollectionNameTextField = document.getElementById(
     "collection-name",
   ) as VscodeTextfield;
@@ -103,6 +110,20 @@ function main() {
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
   ) as VscodeButton;
+
+  // Workaround for vscode-elements .value limitations for text fields
+  namespaceInputField = initNamespaceNameTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  collectionInputField = initCollectionNameTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  logFilePathInputField = logFilePath.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  initPathUrlInputField = initPathUrlTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
 
   initNamespaceNameTextField.addEventListener("input", toggleCreateButton);
   initCollectionNameTextField.addEventListener("input", toggleCreateButton);
@@ -167,9 +188,9 @@ function openExplorer(event: any) {
 
         if (selectedUri) {
           if (source === "folder-explorer") {
-            initPathUrlTextField.value = selectedUri;
+            initPathUrlInputField.value = selectedUri;
           } else {
-            logFilePath.value = selectedUri;
+            logFilePathInputField.value = selectedUri;
           }
         }
       }
@@ -220,9 +241,11 @@ function toggleEditableModeInstallCheckBox() {
 }
 
 function handleInitClearClick() {
-  initNamespaceNameTextField.value = "";
-  initCollectionNameTextField.value = "";
-  initPathUrlTextField.value = "";
+  namespaceInputField.value = "";
+  collectionInputField.value = "";
+
+  initPathUrlInputField.value = "";
+  logFilePathInputField.value = "";
 
   initCollectionNameElement.innerHTML = "namespace.collection";
 
@@ -232,8 +255,11 @@ function handleInitClearClick() {
 
   initCreateButton.disabled = true;
 
+  if (logToFileOptionsDiv?.style.display === "flex") {
+    logToFileOptionsDiv.style.display = "none";
+  }
+
   logToFileCheckbox.checked = false;
-  logFilePath.value = "";
   logFileAppendCheckbox.checked = false;
   logLevelDropdown.value = "Debug";
 }
