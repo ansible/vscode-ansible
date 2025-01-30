@@ -1,20 +1,14 @@
-"use strict";
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
 
 import path from "path";
 const webpack = require("webpack");
 
 type EntryType = {
-  client?: string;
   server?: string;
-  // YAML syntax highlighter needs to be bundled with language/theme files at build
-  syntaxHighlighter: string;
 };
 
 const entry: EntryType = {
-  client: "./src/extension.ts",
   server: "./packages/ansible-language-server/src/server.ts",
-  syntaxHighlighter: "./src/features/utils/syntaxHighlighter.ts",
 };
 
 const config = {
@@ -86,11 +80,7 @@ const config = {
     },
   ],
   output: {
-    filename: (pathData: { chunk: { name: string } }) => {
-      return pathData.chunk.name === "client"
-        ? "[name]/src/extension.js"
-        : "[name]/src/[name].js";
-    },
+    //filename: (pathData: { chunk: { name: string } }) => "[name]/src/[name].js",
     path: path.resolve(__dirname, "out"),
     libraryTarget: "commonjs2",
     devtoolModuleFilenameTemplate: (info: { id: string }) => {
@@ -189,19 +179,6 @@ const playbookExplanationWebviewConfig = {
   },
 };
 
-const roleGenerationWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/roleGeneration/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/roleGeneration/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const createAnsibleCollectionWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -288,7 +265,6 @@ const addPluginWebviewConfig = {
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
-    delete config.entry.client;
     delete config.entry.server;
   }
   return [
@@ -299,7 +275,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
     playbookExplorerWebviewConfig,
     playbookGenerationWebviewConfig,
     playbookExplanationWebviewConfig,
-    roleGenerationWebviewConfig,
     createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,
