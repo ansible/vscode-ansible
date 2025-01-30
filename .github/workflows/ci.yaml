@@ -196,7 +196,6 @@ jobs:
           asdf exec direnv export gha >> "$GITHUB_ENV"
           asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
-
       - name: Ensure .env file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
@@ -246,7 +245,7 @@ jobs:
       - name: task package
         id: package
         run: |
-            task package ${{ matrix.env.TASKFILE_ARGS }}
+          task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
@@ -288,6 +287,13 @@ jobs:
           path: packages/ansible-language-server/*.tgz
           if-no-files-found: error
           retention-days: 90
+
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find out -name '*\?*' -exec rm -r {} \; || true
+          find out -name '*"*' -exec rm -r {} \; || true
+          find out -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload test logs and reports
         if: ${{ always() }}
@@ -356,8 +362,15 @@ jobs:
           name: logs.zip
           path: .
 
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find . -name '*\?*' -exec rm -r {} \; || true
+          find . -name '*"*' -exec rm -r {} \; || true
+          find . -name '*:*' -exec rm -r {} \; || true
+
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.1.2
+        uses: codecov/codecov-action@v5.3.1
         with:
           name: als
           files: ./*/coverage/als/lcov.info
@@ -367,7 +380,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.1.2
+        uses: codecov/codecov-action@v5.3.1
         with:
           name: unit
           files: ./*/coverage/unit/lcov.info
@@ -376,18 +389,24 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
+      - name: Find all the UI test coverage data
+        run: |
+          COVERAGE_FILES=$(find ./*/coverage/ui/ -name 'lcov.*.info' -print0 | xargs -0 | tr ' ' ',')
+          echo "Found coverage files: $COVERAGE_FILES"
+          echo "COVERAGE_FILES=$COVERAGE_FILES" >> $GITHUB_ENV
+
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.1.2
+        uses: codecov/codecov-action@v5.3.1
         with:
           name: ui
-          files: ./*/coverage/ui/lcov.info
+          files: ${{ env.COVERAGE_FILES }}
           flags: ui
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.1.2
+        uses: codecov/codecov-action@v5.3.1
         with:
           name: e2e
           files: ./*/coverage/e2e/lcov.info
