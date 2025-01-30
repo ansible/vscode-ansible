@@ -47,6 +47,13 @@ let initLogsTextArea: VscodeTextarea;
 let initClearLogsButton: VscodeButton;
 let initOpenScaffoldedFileButton: VscodeButton;
 
+let destinationPathUrlInputField: HTMLInputElement;
+let customBaseImageInputField: HTMLInputElement;
+let systemPackagesInputField: HTMLInputElement;
+let collectionsInputField: HTMLInputElement;
+let pythonPackagesInputField: HTMLInputElement;
+let tagInputField: HTMLInputElement;
+
 let projectUrl = "";
 
 function main() {
@@ -99,6 +106,27 @@ function main() {
   initOpenScaffoldedFileButton = document.getElementById(
     "open-file-button",
   ) as VscodeButton;
+
+  // Workaround for vscode-elements .value limitations for text fields
+  systemPackagesInputField = systemPackagesTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  collectionsInputField = collectionsTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  pythonPackagesInputField = pythonPackagesTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  destinationPathUrlInputField =
+    destinationPathUrlTextField.shadowRoot?.querySelector(
+      "#input",
+    ) as HTMLInputElement;
+  tagInputField = tagTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  customBaseImageInputField = customBaseImageField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
 
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
 
@@ -190,6 +218,7 @@ function openExplorer(event: any) {
         if (selectedUri) {
           if (source === "folder-explorer") {
             destinationPathUrlTextField.value = selectedUri;
+            destinationPathUrlInputField.value = selectedUri;
             initDestinationPathElement.innerHTML = selectedUri;
           }
         }
@@ -232,6 +261,13 @@ function validateBaseImage() {
 
 function handleInitClearClick() {
   destinationPathUrlTextField.value = "";
+
+  destinationPathUrlInputField.value = "";
+  collectionsInputField.value = "";
+  systemPackagesInputField.value = "";
+  pythonPackagesInputField.value = "";
+  tagInputField.value = "";
+  customBaseImageInputField.value = "";
 
   baseImageDropdown.value = "";
   customBaseImageField.value = "";
