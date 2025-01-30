@@ -23,6 +23,7 @@ export default tseslint.config(
       "media/*",
       "site/*",
       "commitlint.config.js",
+      "webviews/**",
     ],
   },
   {

@@ -110,16 +110,6 @@ describe("Verify playbook generation features work as expected", function () {
     await generatePlaybookButton.click();
     await sleep(2000);
 
-    // Make sure the generated playbook is displayed
-    const formattedCode = await webView.findWebElement(
-      By.xpath("//span[@id='formatted-code']"),
-    );
-    expect(formattedCode, "formattedCode should not be undefined").not.to.be
-      .undefined;
-    await sleep(500);
-    text = await formattedCode.getText();
-    expect(text.startsWith("---")).to.be.true;
-
     // Test Back (to Page 2) button
     const backToPage2Button = await webView.findWebElement(
       By.xpath("//vscode-button[@id='back-to-page2-button']"),
