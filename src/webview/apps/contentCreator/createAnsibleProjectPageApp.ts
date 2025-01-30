@@ -23,6 +23,11 @@ let folderExplorerIcon: VscodeIcon;
 let namespaceNameTextField: VscodeTextfield;
 let collectionNameTextField: VscodeTextfield;
 
+let namespaceInputField: HTMLInputElement;
+let collectionInputField: HTMLInputElement;
+let destPathUrlInputField: HTMLInputElement;
+let logFilePathInputField: HTMLInputElement;
+
 let initCreateButton: VscodeButton;
 let initClearButton: VscodeButton;
 
@@ -51,7 +56,6 @@ let projectUrl = "";
 
 function main() {
   // elements for scaffold ansible project interface
-  // projectNameTextField = document.getElementById("project-name") as TextField;
   destinationPathUrlTextField = document.getElementById(
     "path-url",
   ) as VscodeTextfield;
@@ -103,6 +107,20 @@ function main() {
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
   ) as VscodeButton;
+
+  // Workaround for vscode-elements .value limitations for text fields
+  namespaceInputField = namespaceNameTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  collectionInputField = collectionNameTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  destPathUrlInputField = destinationPathUrlTextField.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
+  logFilePathInputField = logFilePath.shadowRoot?.querySelector(
+    "#input",
+  ) as HTMLInputElement;
 
   // projectNameTextField?.addEventListener("input", toggleCreateButton);
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
@@ -161,10 +179,10 @@ function openExplorer(event: any) {
 
         if (selectedUri) {
           if (source === "folder-explorer") {
-            destinationPathUrlTextField.value = selectedUri;
+            destPathUrlInputField.value = selectedUri;
             initCollectionPathElement.innerHTML = selectedUri;
           } else {
-            logFilePath.value = selectedUri;
+            logFilePathInputField.value = selectedUri;
           }
         }
       }
@@ -202,10 +220,10 @@ function toggleCreateButton() {
 }
 
 function handleInitClearClick() {
-  // projectNameTextField.value = "";
-  destinationPathUrlTextField.value = "";
-  namespaceNameTextField.value = "";
-  collectionNameTextField.value = "";
+  namespaceInputField.value = "";
+  collectionInputField.value = "";
+  destPathUrlInputField.value = "";
+  logFilePathInputField.value = "";
 
   initCollectionPathElement.innerHTML =
     destinationPathUrlTextField.placeholder as string;
@@ -215,8 +233,11 @@ function handleInitClearClick() {
 
   initCreateButton.disabled = true;
 
+  if (logToFileOptionsDiv?.style.display === "flex") {
+    logToFileOptionsDiv.style.display = "none";
+  }
+
   logToFileCheckbox.checked = false;
-  logFilePath.value = "";
   logFileAppendCheckbox.checked = false;
   logLevelDropdown.value = "Debug";
 }
