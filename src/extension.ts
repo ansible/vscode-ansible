@@ -75,6 +75,7 @@ import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateSampleExecutionEnv } from "./features/contentCreator/createSampleExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
+import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -167,6 +168,10 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   vscode.commands.executeCommand("setContext", "lightspeedConnectReady", true);
+
+  const eeBuilderCommand = rightClickEEBuildCommand(
+    "extension.buildExecutionEnvironment",
+  );
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -827,6 +832,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
       lsOutputChannel.show();
     }),
   );
+  context.subscriptions.push(eeBuilderCommand);
 }
 
 const startClient = async (

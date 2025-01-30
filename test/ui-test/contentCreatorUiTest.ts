@@ -1,4 +1,10 @@
-import { By, EditorView, WebElement } from "vscode-extension-tester";
+import {
+  By,
+  EditorView,
+  WebElement,
+  Workbench,
+  InputBox,
+} from "vscode-extension-tester";
 import {
   getWebviewByLocator,
   sleep,
@@ -178,6 +184,51 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     await testWebViewElements(
       "Ansible: Create a sample Ansible Execution Environment file",
       "Create Sample Ansible Execution Environment",
+    );
+  });
+
+  it("Executes the build command from the right-click menu", async function () {
+    const workbench = new Workbench();
+
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    let notifications = await workbench.getNotifications();
+    const errorNotification = notifications.find(async (notification) => {
+      return (await notification.getMessage()).includes(
+        "No file selected and no active file found!",
+      );
+    });
+    if (!errorNotification) throw new Error("Notification not found");
+
+    await workbenchExecuteCommand("File: New Untitled Text file");
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    notifications = await workbench.getNotifications();
+    const fileTypeError = notifications.find(async (notification) => {
+      return (await notification.getMessage()).includes(
+        "Active file is not an execution environment file!",
+      );
+    });
+    if (!fileTypeError) throw new Error("Notification not found");
+
+    await workbenchExecuteCommand("Go to File...");
+    const inputBox = await InputBox.create();
+    await inputBox.setText(
+      path.join(os.homedir(), "execution-environment.yml"),
+    );
+    await inputBox.confirm();
+    await workbenchExecuteCommand("Build Ansible execution environment");
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    notifications = await workbench.getNotifications();
+    const buildResultNotification = notifications.find(async (notification) => {
+      const message = await notification.getMessage();
+      return (
+        message.includes("Build successful") || message.includes("Build failed")
+      );
+    });
+    if (!buildResultNotification) throw new Error("Notification not found");
+
+    expect(await buildResultNotification.getMessage()).to.match(
+      /^Build (successful|failed)/,
     );
   });
 });
