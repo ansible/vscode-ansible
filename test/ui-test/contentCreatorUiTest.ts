@@ -233,17 +233,11 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
     if (!explorerItem) {
       throw new Error("Test file not found in the workspace");
     }
+    await explorerItem.select();
+    await sleep(3000);
 
-    const contextMenu = await explorerItem.openContextMenu();
-    const menuItem = await contextMenu.getItem(
-      "Build Ansible execution environment",
-    );
-    if (!menuItem) {
-      throw new Error("Build option not found in the context menu");
-    }
-    await menuItem.select();
-
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await workbench.executeCommand("Build Ansible execution environment");
+    await new Promise((resolve) => setTimeout(resolve, 7000));
 
     const notifications = await workbench.getNotifications();
     const successNotification = notifications.find(async (notification) => {

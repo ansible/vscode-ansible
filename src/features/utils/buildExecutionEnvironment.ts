@@ -6,8 +6,24 @@ import { runCommand } from "../contentCreator/utils";
 export function rightClickEEBuildCommand(commandId: string): vscode.Disposable {
   return vscode.commands.registerCommand(commandId, async (uri: vscode.Uri) => {
     if (!uri?.fsPath) {
-      vscode.window.showErrorMessage("No file selected!");
-      return;
+      const getFileFromEditor = vscode.window.activeTextEditor;
+      if (!getFileFromEditor) {
+        vscode.window.showErrorMessage(
+          "No file selected and no active file found!",
+        );
+        return;
+      }
+      const filePath = getFileFromEditor.document.uri.fsPath;
+      if (
+        !filePath.endsWith("execution-environment.yml") &&
+        !filePath.endsWith("execution-environment.yaml")
+      ) {
+        vscode.window.showErrorMessage(
+          "Active file is not an execution environment file!",
+        );
+        return;
+      }
+      uri = getFileFromEditor.document.uri;
     }
 
     const filePath = uri.fsPath;
