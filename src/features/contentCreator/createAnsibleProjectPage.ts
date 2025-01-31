@@ -106,11 +106,11 @@ export class CreateAnsibleProject {
 
         <head>
           <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};"/>
           <title>AAA</title>
-          <link rel="stylesheet" href="${styleUri}">
-          <link rel="stylesheet" href="${codiconsUri}">
+          <link rel="stylesheet" href="${styleUri}"/>
+          <link rel="stylesheet" href="${codiconsUri}"id="vscode-codicon-stylesheet"/>
         </head>
 
         <body>
@@ -122,18 +122,34 @@ export class CreateAnsibleProject {
             <form id="init-form">
               <section class="component-container">
 
-                <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}"
-                  size="512">Destination directory
-                  <section slot="end" class="explorer-icon">
-                    <vscode-button id="folder-explorer" appearance="icon">
-                      <span class="codicon codicon-folder-opened"></span>
-                    </vscode-button>
-                  </section>
-                </vscode-text-field>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="path-url">
+                    <span class="normal">Destination directory</span>
+                  </vscode-label>
+                  <vscode-textfield id="path-url" class="required" form="init-form" placeholder="${homeDir}"
+                    size="512">
+                    <vscode-icon
+                      slot="content-after"
+                      id="folder-explorer"
+                      name="folder-opened"
+                      action-icon
+                    ></vscode-icon>
+                  </vscode-textfield>
+                </vscode-form-group>
 
                 <div class="playbook-project-div">
-                <vscode-text-field id="namespace-name" form="init-form" placeholder="Enter namespace name" size="512">Namespace *</vscode-text-field>
-                <vscode-text-field id="collection-name" form="init-form" placeholder="Enter collection name" size="512">Collection *</vscode-text-field>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="namespace-name">
+                    <span class="normal">Namespace *</span>
+                  </vscode-label>
+                  <vscode-textfield id="namespace-name" form="init-form" placeholder="Enter namespace name" size="512"></vscode-textfield>
+                </vscode-form-group>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="collection-name">
+                    <span class="normal">Collection *</span>
+                  </vscode-label>
+                  <vscode-textfield id="collection-name" form="init-form" placeholder="Enter collection name" size="512"></vscode-textfield>
+                </vscode-form-group>
                 </div>
 
                 <div id="full-collection-path" class="full-collection-path">
@@ -142,13 +158,15 @@ export class CreateAnsibleProject {
 
                 <div class="verbose-div">
                   <div class="dropdown-container">
-                    <label for="verbosity-dropdown">Output Verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown">
+                    <vscode-label for="verbosity-dropdown">
+                      <span class="normal">Output Verbosity</span>
+                    </vscode-label>
+                    <vscode-single-select id="verbosity-dropdown" position="below">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>
                       <vscode-option>High</vscode-option>
-                    </vscode-dropdown>
+                    </vscode-single-select>
                   </div>
                 </div>
 
@@ -158,27 +176,35 @@ export class CreateAnsibleProject {
                 </div>
 
                 <div id="log-to-file-options-div">
-                  <vscode-text-field id="log-file-path" class="required" form="init-form" placeholder="${tempDir}/ansible-creator.log"
-                    size="512">Log file path
-                    <section slot="end" class="explorer-icon">
-                    <vscode-button id="file-explorer" appearance="icon">
-                      <span class="codicon codicon-file"></span>
-                    </vscode-button>
-                  </section>
-                  </vscode-text-field>
+                  <vscode-form-group variant="vertical">
+                    <vscode-label for="log-file-path">
+                      <span class="normal">Log file path<span>
+                    </vscode-label>
+                    <vscode-textfield id="log-file-path" class="required" form="init-form" placeholder="${tempDir}/ansible-creator.log"
+                      size="512">
+                      <vscode-icon
+                      slot="content-after"
+                      id="file-explorer"
+                      name="file"
+                      action-icon
+                    ></vscode-icon>
+                    </vscode-textfield>
+                  </vscode-form-group>
 
                   <vscode-checkbox id="log-file-append-checkbox" form="init-form">Append</i></vscode-checkbox>
 
                   <div class="log-level-div">
                     <div class="dropdown-container">
-                      <label for="log-level-dropdown">Log level</label>
-                      <vscode-dropdown id="log-level-dropdown" position="below">
+                      <vscode-label for="log-level-dropdown">
+                        <span class="normal">Log level</span>
+                      </vscode-label>
+                      <vscode-single-select id="log-level-dropdown" position="below">
                         <vscode-option>Debug</vscode-option>
                         <vscode-option>Info</vscode-option>
                         <vscode-option>Warning</vscode-option>
                         <vscode-option>Error</vscode-option>
                         <vscode-option>Critical</vscode-option>
-                      </vscode-dropdown>
+                      </vscode-single-select>
                     </div>
                   </div>
 
@@ -189,7 +215,7 @@ export class CreateAnsibleProject {
                 </div>
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-button" form="init-form" appearance="secondary">
+                  <vscode-button id="clear-button" form="init-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear All
                   </vscode-button>
@@ -199,22 +225,25 @@ export class CreateAnsibleProject {
                   </vscode-button>
                 </div>
 
-                <br>
                 <vscode-divider></vscode-divider>
-                <br>
-                <vscode-text-area id="log-text-area" cols="512" rows="10" placeholder="Output of the command execution"
-                  resize="vertical" readonly>Logs</vscode-text-area>
+
+                <vscode-label id="vscode-logs-label" for="log-text-area">
+                  <span class="normal">Logs</span>
+                </vscode-label>
+
+                <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
+                  resize="vertical" readonly></vscode-textarea>
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-logs-button" form="init-form" appearance="secondary">
+                  <vscode-button id="clear-logs-button" form="init-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
-                  <vscode-button id="copy-logs-button" form="init-form" appearance="secondary">
+                  <vscode-button id="copy-logs-button" form="init-form" secondary>
                     <span class="codicon codicon-copy"></span>
                     &nbsp; Copy Logs
                   </vscode-button>
-                  <vscode-button id="open-log-file-button" form="init-form" appearance="secondary" disabled>
+                  <vscode-button id="open-log-file-button" form="init-form" secondary disabled>
                     <span class="codicon codicon-open-preview"></span>
                     &nbsp; Open Log File
                   </vscode-button>
@@ -227,6 +256,16 @@ export class CreateAnsibleProject {
             </form>
 
           <!-- Component registration code -->
+          <script type="module" nonce="${getNonce()}">
+            import "@vscode-elements/elements/dist/vscode-button/index.js";
+            import "@vscode-elements/elements/dist/vscode-checkbox/index.js";
+            import "@vscode-elements/elements/dist/vscode-divider/index.js";
+            import "@vscode-elements/elements/dist/vscode-form-group/index.js";
+            import "@vscode-elements/elements/dist/vscode-label/index.js";
+            import "@vscode-elements/elements/dist/vscode-single-select/index.js";
+            import "@vscode-elements/elements/dist/vscode-textarea/index.js";
+            import "@vscode-elements/elements/dist/vscode-textfield/index.js";
+          </script>
           <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
@@ -407,7 +446,7 @@ export class CreateAnsibleProject {
 
     // execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const commandPassed = ansibleCreatorExecutionResult.status;
 

@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
 import {
@@ -15,7 +14,6 @@ export class LightspeedStatusBar {
   private apiInstance: LightSpeedAPI;
   private lightspeedAuthenticatedUser: LightspeedUser;
   private context;
-  public client;
   public settingsManager: SettingsManager;
   public statusBar: vscode.StatusBarItem;
 
@@ -23,13 +21,11 @@ export class LightspeedStatusBar {
     apiInstance: LightSpeedAPI,
     lightspeedAuthenticatedUser: LightspeedUser,
     context: vscode.ExtensionContext,
-    client: LanguageClient,
     settingsManager: SettingsManager,
   ) {
     this.apiInstance = apiInstance;
     this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
     this.context = context;
-    this.client = client;
     this.settingsManager = settingsManager;
     // create a new project lightspeed status bar item that we can manage
     this.statusBar = this.initialiseStatusBar();
@@ -73,9 +69,6 @@ export class LightspeedStatusBar {
   }
 
   private handleStatusBar() {
-    if (!this.client.isRunning()) {
-      return;
-    }
     try {
       this.getLightSpeedStatusBarText().then((text) => {
         this.statusBar.text = text;

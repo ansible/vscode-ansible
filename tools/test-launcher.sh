@@ -126,7 +126,13 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
         fi
         refresh_settings "${test_file}"
 
+        TEST_COVERAGE_FILE=./out/coverage/ui/lcov.${test_file##*/}.info
         ${EXTEST} run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
+
+        if [[ -f ./out/coverage/ui/lcov.info ]]; then
+            mv ./out/coverage/ui/lcov.info "$TEST_COVERAGE_FILE"
+        fi
+
         stop_server
     done
 fi

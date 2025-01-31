@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { SettingsManager } from "../../settings";
 import {
@@ -10,7 +9,6 @@ import {
   IContentMatchParams,
   ISuggestionDetails,
 } from "../../interfaces/lightspeed";
-import { getCurrentUTCDateTime } from "../utils/dateTime";
 import * as yaml from "yaml";
 import { LightspeedUser } from "./lightspeedUser";
 import { parsePlays } from "./utils/parsePlays";
@@ -22,20 +20,17 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
   private _extensionUri: vscode.Uri;
   private context;
   private lightspeedAuthenticatedUser: LightspeedUser;
-  public client;
   public settingsManager: SettingsManager;
   public apiInstance: LightSpeedAPI;
   public suggestionDetails: ISuggestionDetails[] = [];
 
   constructor(
     context: vscode.ExtensionContext,
-    client: LanguageClient,
     settingsManager: SettingsManager,
     apiInstance: LightSpeedAPI,
     lightspeedAuthenticatedUser: LightspeedUser,
   ) {
     this.context = context;
-    this.client = client;
     this.settingsManager = settingsManager;
     this.apiInstance = apiInstance;
     this._extensionUri = context.extensionUri;
@@ -83,19 +78,9 @@ export class ContentMatchesWebview implements vscode.WebviewViewProvider {
       contentMatchesRequestData.model = model;
     }
 
-    this.client.outputChannel?.appendLine(
-      `${getCurrentUTCDateTime().toISOString()}: request content matches from Ansible Lightspeed:\n${JSON.stringify(
-        contentMatchesRequestData,
-      )}`,
-    );
-
     const outputData: ContentMatchesResponseParams | IError =
       await this.apiInstance.contentMatchesRequest(contentMatchesRequestData);
-    this.client.outputChannel?.appendLine(
-      `${getCurrentUTCDateTime().toISOString()}: response data from Ansible lightspeed:\n${JSON.stringify(
-        outputData,
-      )}`,
-    );
+
     return outputData;
   }
 

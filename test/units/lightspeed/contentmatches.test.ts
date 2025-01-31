@@ -2,7 +2,6 @@ require("assert");
 
 import { ContentMatchesWebview } from "../../../src/features/lightspeed/contentMatchesWebview";
 import { SettingsManager } from "../../../src/settings";
-import { LanguageClient } from "vscode-languageclient/node";
 import sinon from "sinon";
 import assert from "assert";
 
@@ -49,7 +48,6 @@ function createMatchErrorResponse(detail: unknown): IError {
 
 function createContentMatchesWebview(): ContentMatchesWebview {
   const m_context: Partial<ExtensionContext> = {};
-  const m_client: Partial<LanguageClient> = {};
   const m_settings: Partial<SettingsManager> = {};
   m_settings.settings = {} as ExtensionSettings;
   m_settings.settings.lightSpeedService = {} as LightSpeedServiceSettings;
@@ -57,7 +55,6 @@ function createContentMatchesWebview(): ContentMatchesWebview {
   const m_l_user: Partial<LightspeedUser> = {};
   const cmw = new ContentMatchesWebview(
     m_context as ExtensionContext,
-    m_client as LanguageClient,
     m_settings as SettingsManager,
     m_api_instance as LightSpeedAPI,
     m_l_user as LightspeedUser,
