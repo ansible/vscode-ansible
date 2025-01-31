@@ -168,7 +168,7 @@ describe("Test execution-environment generation webview (without creator)", () =
       "Create an Ansible execution environment",
     );
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(eeWebview, "path-url", "~");
     await checkAndInteractWithEEField(
       eeWebview,
       "tag-name",
