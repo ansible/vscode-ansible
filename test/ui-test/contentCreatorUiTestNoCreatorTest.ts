@@ -168,7 +168,7 @@ describe("Test execution-environment generation webview (without creator)", () =
       "Create an Ansible execution environment",
     );
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(eeWebview, "path-url", "~");
     await checkAndInteractWithEEField(
       eeWebview,
       "tag-name",
@@ -237,6 +237,47 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
     await sleep(1000);
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(1000);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "quay.io/fedora/fedora:41",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "collections-name",
+      "ansible.posix, ansible.utils",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "systemPackages-name",
+      "openssh",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "pythonPackages-name",
+      "boto3, flask",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "tag-name",
+      "ansible-ee:latest",
+    );
+    const createContextCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='createContext-checkbox']"),
+    );
+    await createContextCheckbox.click();
+    await sleep(1000);
+
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
