@@ -13,6 +13,7 @@ import {
 import { config, expect } from "chai";
 import path from "path";
 import os from "os";
+import fs from "fs";
 
 config.truncateThreshold = 0;
 
@@ -167,7 +168,7 @@ describe("Test execution-environment generation webview (without creator)", () =
       "Create an Ansible execution environment",
     );
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", "~");
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
     await checkAndInteractWithEEField(
       eeWebview,
       "tag-name",
@@ -195,6 +196,7 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(1000);
 
     const overwriteCheckbox = await eeWebview.findWebElement(
       By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
@@ -206,7 +208,7 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", "~/ee-new-test");
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
     await checkAndInteractWithEEField(
       eeWebview,
       "customBaseImage-name",
@@ -234,8 +236,11 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(1000);
+
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(1000);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await sleep(1000);
@@ -244,6 +249,8 @@ describe("Test execution-environment generation webview (without creator)", () =
 
   it("Executes the build command from the right-click menu", async function () {
     const workbench = new Workbench();
+
+    // Test with no file open in editor
     await workbenchExecuteCommand("Build Ansible execution environment");
     let notifications = await workbench.getNotifications();
     const errorNotification = notifications.find(async (notification) => {
@@ -252,6 +259,8 @@ describe("Test execution-environment generation webview (without creator)", () =
       );
     });
     if (!errorNotification) throw new Error("Notification not found");
+
+    // Test with a file open but not the execution-environment.yml file
     await workbenchExecuteCommand("File: New Untitled Text file");
     await workbenchExecuteCommand("Build Ansible execution environment");
     notifications = await workbench.getNotifications();
@@ -261,6 +270,11 @@ describe("Test execution-environment generation webview (without creator)", () =
       );
     });
     if (!fileTypeError) throw new Error("Notification not found");
+
+    // Test with the execution-environment.yml file
+    const eeFilePath = path.join(os.homedir(), "execution-environment.yml");
+    fs.writeFileSync(eeFilePath, "ver: 4", "utf8");
+
     await workbenchExecuteCommand("Go to File...");
     const inputBox = await InputBox.create();
     await inputBox.setText(
