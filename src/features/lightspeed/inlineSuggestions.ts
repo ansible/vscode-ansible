@@ -167,7 +167,7 @@ function getCompletionState(
   if (isCancellationRequested) {
     return CompletionState.CancellationRequested;
   }
-  if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
+  if (!lightSpeedSetting.suggestions.enabled) {
     return CompletionState.LightspeedIsDisabled;
   }
 
