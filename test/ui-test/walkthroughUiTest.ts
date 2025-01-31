@@ -3,17 +3,15 @@ import {
   By,
   EditorView,
   ModalDialog,
-  SettingsEditor,
   until,
   Workbench,
 } from "vscode-extension-tester";
-import { updateSettings, sleep } from "./uiTestHelper";
+import { sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 let workbench: Workbench;
 let editorView: EditorView;
-let settingsEditor: SettingsEditor;
 
 before(async () => {
   workbench = new Workbench();
@@ -83,7 +81,6 @@ describe("Check walkthroughs, elements and associated commands", async () => {
   });
 
   it("Check empty playbook command option", async function () {
-    settingsEditor = await workbench.openSettings();
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if enabled)",
     );

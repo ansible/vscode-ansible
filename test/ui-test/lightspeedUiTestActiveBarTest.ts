@@ -7,12 +7,7 @@ import {
   WebView,
   ViewSection,
 } from "vscode-extension-tester";
-import {
-  sleep,
-  updateSettings,
-  getWebviewByLocator,
-  openSettings,
-} from "./uiTestHelper";
+import { sleep, getWebviewByLocator } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
