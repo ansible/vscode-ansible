@@ -84,7 +84,6 @@ describe("Check walkthroughs, elements and associated commands", async () => {
 
   it("Check empty playbook command option", async function () {
     settingsEditor = await workbench.openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if enabled)",
     );

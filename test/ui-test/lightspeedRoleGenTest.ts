@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 
 import { expect, config } from "chai";
 import fs from "fs";

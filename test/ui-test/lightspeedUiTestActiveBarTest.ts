@@ -23,9 +23,6 @@ describe("Verify the presence of lightspeed login button in the activity bar", (
   let webviewView: WebView;
 
   before(async function () {
-    const settingsEditor = await openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
-
     view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
     sideBar = await view.openView();
 
@@ -47,8 +44,6 @@ describe("Verify the presence of lightspeed login button in the activity bar", (
     if (webviewView) {
       await webviewView.switchBack();
     }
-    const settingsEditor = await openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);
   });
 
   it("Ansible Lightspeed welcome message is present", async function () {

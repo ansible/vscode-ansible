@@ -329,7 +329,7 @@
       },
       {
         "command": "ansible.create-playbook-options",
-        "title": "Ansible: Create an empty playbook or with Lightspeed (if enabled)"
+        "title": "Ansible: Create a playbook with Lightspeed"
       },
       {
         "command": "ansible.content-creator.menu",
@@ -656,13 +656,6 @@
       {
         "title": "Ansible Lightspeed",
         "properties": {
-          "ansible.lightspeed.enabled": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Enable Ansible Lightspeed.",
-            "order": 0
-          },
           "ansible.lightspeed.URL": {
             "scope": "resource",
             "type": "string",
@@ -742,7 +735,7 @@
         "command": "ansible.lightspeed.inlineSuggest.trigger",
         "extensionName": "Ansible",
         "source": "extension",
-        "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled && editorTextFocus && !editorHasSelection && !inlineSuggestionVisible && editorLangId == 'ansible'"
+        "when": "config.ansible.lightspeed.suggestions.enabled && editorTextFocus && !editorHasSelection && !inlineSuggestionVisible && editorLangId == 'ansible'"
       }
     ],
     "languages": [

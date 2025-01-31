@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Webview, Uri, workspace } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
-import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
+import { lightSpeedManager } from "../../extension";
 import { IError } from "./utils/errors";
 import {
   RoleGenerationResponseParams,
@@ -101,12 +101,6 @@ async function fileExists(uri: Uri): Promise<boolean> {
 }
 
 export async function showRoleGenerationPage(extensionUri: vscode.Uri) {
-  // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
-  if (!(await isLightspeedEnabled())) {
-    vscode.window.showErrorMessage("Lightspeed is not enabled.");
-    return;
-  }
-
   function addLog(message: string) {
     panel.webview.postMessage({
       command: "addGenerateRoleLogEntry",
