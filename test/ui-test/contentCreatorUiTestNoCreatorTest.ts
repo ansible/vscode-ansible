@@ -252,6 +252,7 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     // Test with no file open in editor
     await workbenchExecuteCommand("Build Ansible execution environment");
+    await sleep(1000);
     let notifications = await workbench.getNotifications();
     const errorNotification = notifications.find(async (notification) => {
       return (await notification.getMessage()).includes(
@@ -263,6 +264,7 @@ describe("Test execution-environment generation webview (without creator)", () =
     // Test with a file open but not the execution-environment.yml file
     await workbenchExecuteCommand("File: New Untitled Text file");
     await workbenchExecuteCommand("Build Ansible execution environment");
+    await sleep(1000);
     notifications = await workbench.getNotifications();
     const fileTypeError = notifications.find(async (notification) => {
       return (await notification.getMessage()).includes(
