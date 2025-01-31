@@ -794,9 +794,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.create-playbook-options",
       async () => {
-        if (
-          await workspace.getConfiguration("ansible").get("lightspeed.enabled")
-        ) {
+        const isAuthenticated =
+          await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+        if (isAuthenticated) {
           vscode.commands.executeCommand(
             "ansible.lightspeed.playbookGeneration",
           );
@@ -949,24 +949,9 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-export async function isLightspeedEnabled(): Promise<boolean> {
-  if (
-    !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
-  ) {
-    await window.showErrorMessage(
-      "Enable lightspeed services from settings to use the feature.",
-    );
-    return false;
-  }
-  return true;
-}
-
 async function lightspeedLogin(
   providerType: AuthProviderType | undefined,
 ): Promise<void> {
-  if (!(await isLightspeedEnabled())) {
-    return;
-  }
   lightSpeedManager.currentModelValue = undefined;
   const authenticatedUser =
     await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserDetails(

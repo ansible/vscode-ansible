@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 
 import { expect, config } from "chai";
 import fs from "fs";
@@ -9,6 +9,7 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  connectLightspeed,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -32,7 +33,7 @@ function cleanUpTmpfile() {
 }
 
 before(function () {
-  if (process.platform === "darwin") {
+  if (process.platform !== "darwin") {
     this.skip();
   }
 });
@@ -40,7 +41,7 @@ before(function () {
 describe("Verify Role generation feature works as expected", function () {
   let workbench: Workbench;
 
-  before(function () {
+  before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -62,6 +63,8 @@ describe("Verify Role generation feature works as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     await dismissNotifications(workbench);
+
+    await connectLightspeed();
   });
 
   after(async function () {

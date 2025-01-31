@@ -368,10 +368,6 @@ export class LightspeedUser {
     createIfNone: boolean,
     useProviderType: AuthProviderType | undefined = undefined,
   ) {
-    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
-    if (!this._settingsManager.settings.lightSpeedService.enabled) {
-      return undefined;
-    }
     if (
       this._userDetails &&
       (!useProviderType || useProviderType === this._userType)
@@ -388,10 +384,6 @@ export class LightspeedUser {
     createIfNone: boolean,
     useProviderType: AuthProviderType | undefined = undefined,
   ) {
-    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
-    if (!this._settingsManager.settings.lightSpeedService.enabled) {
-      return undefined;
-    }
     if (
       this._markdownUserDetails &&
       (!useProviderType || useProviderType === this._userType)
@@ -405,11 +397,6 @@ export class LightspeedUser {
   }
 
   public async getLightspeedUserContent() {
-    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
-    if (!this._settingsManager.settings.lightSpeedService.enabled) {
-      return undefined;
-    }
-
     const markdownUserDetails =
       await this.getMarkdownLightspeedUserDetails(false);
     const userDetails = await this.getLightspeedUserDetails(false);

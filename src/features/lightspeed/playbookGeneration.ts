@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
-import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
+import { lightSpeedManager } from "../../extension";
 import { PlaybookGenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
@@ -96,8 +96,13 @@ async function generatePlaybook(
 }
 
 export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
-  // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
-  if (!(await isLightspeedEnabled())) {
+  const isAuthenticated =
+    await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+  if (!isAuthenticated) {
+    await vscode.window.showErrorMessage(
+      "Log in to Ansible Lightspeed to use this feature.",
+    );
+
     return;
   }
 
