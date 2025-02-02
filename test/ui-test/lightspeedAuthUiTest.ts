@@ -13,6 +13,7 @@ import {
 } from "vscode-extension-tester";
 import {
   getModalDialogAndMessage,
+  getSettingInUI,
   sleep,
   updateSettings,
 } from "./uiTestHelper";
@@ -119,6 +120,30 @@ describe("Login to Lightspeed", () => {
     const text = await div.getText();
     expect(text).contains("Logged in as:");
     await explorerView.switchBack();
+  });
+
+  it("Lightspeed enabled setting should be on", async () => {
+    const settingsEditor = await workbench.openSettings();
+    const settingInUI = await getSettingInUI(
+      settingsEditor,
+      "ansible.lightspeed.enabled",
+    );
+    const lightspeedEnabledValue = settingInUI
+      ? await settingInUI.getValue()
+      : undefined;
+    expect(lightspeedEnabledValue).to.be.true;
+  });
+
+  it("Lightspeed suggestions enabled setting should be on", async () => {
+    const settingsEditor = await workbench.openSettings();
+    const settingInUI = await getSettingInUI(
+      settingsEditor,
+      "ansible.lightspeed.suggestions.enabled",
+    );
+    const lightspeedSuggestionsEnabledValue = settingInUI
+      ? await settingInUI.getValue()
+      : undefined;
+    expect(lightspeedSuggestionsEnabledValue).to.be.true;
   });
 });
 
