@@ -625,6 +625,44 @@ export class CreateExecutionEnv {
     });
   }
 
+  // private async getAnsibleBuilderVersion(): Promise<string> {
+  //   const { execFile } = require("child_process");
+
+  //   return new Promise((resolve, reject) => {
+  //     execFile(
+  //       "ansible-builder",
+  //       ["--version"],
+  //       (error: any, stdout: string) => {
+  //         if (error) {
+  //           reject("Error checking Ansible Builder version.");
+  //           return;
+  //         }
+  //         const versionMatch = stdout.match(/ansible-builder (\d+\.\d+\.\d+)/);
+  //         if (versionMatch) {
+  //           resolve(versionMatch[1]); // Extract version like "3.0.0"
+  //         } else {
+  //           reject("Unable to parse Ansible Builder version.");
+  //         }
+  //       },
+  //     );
+  //   });
+  // }
+
+  // private isVersionGreaterThanOrEqual(
+  //   version1: string,
+  //   version2: string,
+  // ): boolean {
+  //   const v1 = version1.split(".").map(Number);
+  //   const v2 = version2.split(".").map(Number);
+
+  //   for (let i = 0; i < 3; i++) {
+  //     if (v1[i] > v2[i]) return true;
+  //     if (v1[i] < v2[i]) return false;
+  //   }
+
+  //   return true; // Versions are equal
+  // }
+
   public async openFileInWorkspace(fileUrl: string) {
     const fileUri = vscode.Uri.parse(expandPath(fileUrl));
 
