@@ -182,7 +182,7 @@ describe("Test Ansible sample execution environment file scaffolding", () => {
 
   it("Check create-sample-execution-env-file webview elements", async () => {
     await testWebViewElements(
-      "Ansible: Create a sample Ansible Execution Environment file",
+      "Ansible: Create a sample Ansible execution environment file",
       "Create Sample Ansible Execution Environment",
     );
   });
@@ -300,12 +300,20 @@ describe("Test collection plugins scaffolding", () => {
     }
   }
 
-  it("Check add-plugin webview elements", async () => {
+  it("Check add-plugin webview elements for lookup plugin", async () => {
     await testWebViewElements(
       "Ansible: Add a Plugin",
       "Add Plugin",
       "test_plugin_name",
       "lookup",
+    );
+  });
+  it("Check add-plugin webview elements for action plugin", async () => {
+    await testWebViewElements(
+      "Ansible: Add a Plugin",
+      "Add Plugin",
+      "test_plugin_name",
+      "action",
     );
   });
 });

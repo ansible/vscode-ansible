@@ -115,7 +115,7 @@ export class CreateSampleExecutionEnv {
 
         <body>
             <div class="title-div">
-              <h1>Create a sample Ansible Execution Environment file</h1>
+              <h1>Create a sample Ansible execution environment file</h1>
               <p class="subtitle">Streamlining automation</p>
             </div>
 
@@ -175,7 +175,7 @@ export class CreateSampleExecutionEnv {
                   </vscode-button>
                   <vscode-button id="open-file-button" form="init-form" disabled>
                     <span class="codicon codicon-go-to-file"></span>
-                    &nbsp; Open Execution Environment file
+                    &nbsp; Open Execution environment file
                   </vscode-button>
                 </div>
               </section>
