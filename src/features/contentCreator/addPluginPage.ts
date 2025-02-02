@@ -182,7 +182,7 @@ export class AddPlugin {
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
-                  <vscode-button id="open-folder-button" form="init-form" disabled>
+                  <vscode-button id="open-file-button" form="init-form" disabled>
                     <span class="codicon codicon-go-to-file"></span>
                     &nbsp; Open Plugin
                   </vscode-button>
@@ -225,9 +225,9 @@ export class AddPlugin {
             await this.runAddCommand(payload, webview);
             return;
 
-          case "init-open-scaffolded-folder":
+          case "init-open-scaffolded-file":
             payload = message.payload;
-            await this.openFolderInWorkspace(
+            await this.openFileInWorkspace(
               payload.projectUrl,
               payload.pluginName,
               payload.pluginType,
@@ -344,20 +344,17 @@ export class AddPlugin {
         `Open plugin file ↗`,
       );
       if (selection === "Open plugin file ↗") {
-        this.openFolderInWorkspace(destinationPathUrl, pluginName, pluginType);
+        this.openFileInWorkspace(destinationPathUrl, pluginName, pluginType);
       }
     }
   }
 
-  public async openFolderInWorkspace(
+  public async openFileInWorkspace(
     folderUrl: string,
     pluginName: string,
     pluginType: string,
   ) {
     const folderUri = vscode.Uri.parse(expandPath(folderUrl));
-
-    // add folder to a new workspace
-    // vscode.workspace.updateWorkspaceFolders(0, 1, { uri: folderUri });
 
     if (vscode.workspace.workspaceFolders?.length === 0) {
       vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
