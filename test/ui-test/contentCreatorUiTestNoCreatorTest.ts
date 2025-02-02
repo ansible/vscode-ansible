@@ -85,7 +85,7 @@ describe("Test devfile generation webview (without creator)", () => {
     ).getText();
     expect(descriptionText).to.contain("Devfiles are yaml files");
 
-    await checkAndInteractWithField(devfileWebview, "path-url", "~");
+    await checkAndInteractWithField(devfileWebview, "path-url", os.homedir());
     await checkAndInteractWithField(devfileWebview, "devfile-name", "test");
 
     await clickButtonAndCheckEnabled(devfileWebview, "create-button");
