@@ -77,4 +77,12 @@ export type PostMessageEvent =
   | {
       command: "file-uri";
       arguments: { selectedUri: string | undefined };
+    }
+  | {
+      command: "disable-build-button";
+      arguments?: never;
+    }
+  | {
+      command: "enable-build-button";
+      arguments?: never;
     };

@@ -314,7 +314,20 @@ export class CreateExecutionEnv {
           }
           case "init-create":
             payload = message.payload as AnsibleExecutionEnvInterface;
+            // Disable the build button before running the init command
+            await webview.postMessage({
+              command: "disable-build-button",
+              arguments: undefined,
+            });
+
+            // Run the init command
             await this.runInitCommand(payload, webview);
+
+            // Re-enable the build button after the command is finished
+            await webview.postMessage({
+              command: "enable-build-button",
+              arguments: undefined,
+            });
             return;
 
           case "init-open-scaffolded-file":
@@ -361,6 +374,10 @@ export class CreateExecutionEnv {
     payload: AnsibleExecutionEnvInterface,
     webView: vscode.Webview,
   ) {
+    // Disable the build button
+    await webView.postMessage({
+      command: "disable-build-button",
+    });
     const {
       destinationPath,
       verbosity,
@@ -410,7 +427,11 @@ export class CreateExecutionEnv {
           tags: [tag],
         },
       };
-
+      // // Conditionally add 'tags' field based on Ansible Builder version
+      // const builderVersion = await this.getAnsibleBuilderVersion();
+      // if (this.isVersionGreaterThanOrEqual(builderVersion, "3.1.0")) {
+      //   jsonData.options.tags = [tag];
+      // }
       const systemPackagesArray = systemPackages
         .split(",")
         .map((pkg) => pkg.trim())
@@ -503,6 +524,10 @@ export class CreateExecutionEnv {
         status: commandResult,
       },
     } as PostMessageEvent);
+    // Re-enable the build button
+    await webView.postMessage({
+      command: "enable-build-button",
+    });
   }
 
   public generateYAMLFromJSON(jsonData: any, destinationPath: string): boolean {
@@ -542,6 +567,44 @@ export class CreateExecutionEnv {
       });
     });
   }
+
+  // private async getAnsibleBuilderVersion(): Promise<string> {
+  //   const { execFile } = require("child_process");
+
+  //   return new Promise((resolve, reject) => {
+  //     execFile(
+  //       "ansible-builder",
+  //       ["--version"],
+  //       (error: any, stdout: string) => {
+  //         if (error) {
+  //           reject("Error checking Ansible Builder version.");
+  //           return;
+  //         }
+  //         const versionMatch = stdout.match(/ansible-builder (\d+\.\d+\.\d+)/);
+  //         if (versionMatch) {
+  //           resolve(versionMatch[1]); // Extract version like "3.0.0"
+  //         } else {
+  //           reject("Unable to parse Ansible Builder version.");
+  //         }
+  //       },
+  //     );
+  //   });
+  // }
+
+  // private isVersionGreaterThanOrEqual(
+  //   version1: string,
+  //   version2: string,
+  // ): boolean {
+  //   const v1 = version1.split(".").map(Number);
+  //   const v2 = version2.split(".").map(Number);
+
+  //   for (let i = 0; i < 3; i++) {
+  //     if (v1[i] > v2[i]) return true;
+  //     if (v1[i] < v2[i]) return false;
+  //   }
+
+  //   return true; // Versions are equal
+  // }
 
   public async openFileInWorkspace(fileUrl: string) {
     const fileUri = vscode.Uri.parse(expandPath(fileUrl));

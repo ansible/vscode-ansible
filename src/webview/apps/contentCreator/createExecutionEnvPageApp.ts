@@ -288,11 +288,16 @@ function handleInitClearClick() {
 
   initDestinationPathElement.innerHTML =
     destinationPathUrlTextField.placeholder as string;
+  // Ensure displayed path is reset
+  initDestinationPathElement.innerHTML =
+    "No folders are open in the workspace - Enter a destination directory.";
 
+  // Call toggleCreateButton to update the Build button state
+  toggleCreateButton();
   overwriteCheckbox.checked = false;
   verboseDropdown.value = "Off";
 
-  initCreateButton.disabled = false;
+  //initCreateButton.disabled = false;
 
   customBaseImageField.disabled = false;
   baseImageDropdown.disabled = false;
@@ -301,29 +306,36 @@ function handleInitClearClick() {
 }
 
 function toggleCreateButton() {
-  if (!destinationPathUrlTextField.value.trim()) {
-    if (destinationPathUrlTextField.placeholder !== "") {
-      initDestinationPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/execution-environment.yml`;
-    } else {
-      initDestinationPathElement.innerHTML =
-        "No folders are open in the workspace - Enter a destination directory.";
-    }
-  } else {
-    initDestinationPathElement.innerHTML = `${destinationPathUrlTextField.value.trim()}/execution-environment.yml`;
-  }
+  const destinationPath = destinationPathUrlTextField.value.trim();
+  const defaultWorkspacePath =
+    (destinationPathUrlTextField.placeholder as string)?.trim() || "";
 
+  // Consider the placeholder as a valid path only if it's not empty
   const isDestinationPathProvided =
-    destinationPathUrlTextField.value.trim() !== "";
+    destinationPath !== "" || defaultWorkspacePath !== "";
+
+  // Ensure other required fields are filled
   const isTagProvided = tagTextField.value.trim() !== "";
   const isBaseImageProvided =
     baseImageDropdown.value.trim() !== "" ||
     customBaseImageField.value.trim() !== "";
 
+  // Button should only be enabled if ALL required fields are filled
   initCreateButton.disabled = !(
     isDestinationPathProvided &&
     isTagProvided &&
     isBaseImageProvided
   );
+
+  // Update displayed path
+  if (!destinationPath) {
+    initDestinationPathElement.innerHTML =
+      defaultWorkspacePath !== ""
+        ? `${defaultWorkspacePath}/execution-environment.yml`
+        : "No folders are open in the workspace - Enter a destination directory.";
+  } else {
+    initDestinationPathElement.innerHTML = `${destinationPath}/execution-environment.yml`;
+  }
 }
 
 function stripAnsiCodes(text: string): string {
@@ -398,6 +410,22 @@ function handleInitCreateClick() {
           initCreateButton.disabled = false;
 
           return;
+        case "disable-build-button": {
+          // Disable the "Build" button
+          const createButton = document.getElementById("create-button");
+          if (createButton) {
+            (createButton as VscodeButton).disabled = true;
+          }
+          break;
+        }
+        case "enable-build-button": {
+          // Enable the "Build" button
+          const createButtonElement = document.getElementById("create-button");
+          if (createButtonElement) {
+            (createButtonElement as VscodeButton).disabled = false;
+          }
+          break;
+        }
       }
     },
   );
