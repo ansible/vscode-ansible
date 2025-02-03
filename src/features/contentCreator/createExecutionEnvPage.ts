@@ -8,6 +8,8 @@ import { getNonce } from "../utils/getNonce";
 import { AnsibleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
+import { execFile } from "child_process";
+import { promisify } from "util";
 
 export class CreateExecutionEnv {
   public static currentPanel: CreateExecutionEnv | undefined;
@@ -436,7 +438,7 @@ export class CreateExecutionEnv {
       if (this.isVersionGreaterThanOrEqual(builderVersion, "3.1.0")) {
         jsonData.options.tags = [tag]; // Only add 'tags' if version is 3.1.0 or later
       } else {
-        commandOutput += `Warning: ansible-builder version ${builderVersion} does not support 'tags'. Ignoring tag field.\n`;
+        commandOutput += `Information: ansible-builder version ${builderVersion} does not support 'tags'. Ignoring tag field.\n`;
         delete jsonData.options.tags;
       }
       const systemPackagesArray = systemPackages
@@ -538,22 +540,39 @@ export class CreateExecutionEnv {
   }
 
   private async getAnsibleBuilderVersion(): Promise<string> {
-    const { execFile } = require("child_process");
-    return new Promise((resolve) => {
-      execFile(
-        "ansible-builder",
-        ["--version"],
-        (error: any, stdout: string) => {
-          if (error) {
-            console.error("Error retrieving ansible-builder version:", error);
-            resolve("0.0.0");
-            return;
-          }
-          const versionMatch = stdout.match(/\d+\.\d+\.\d+/);
-          resolve(versionMatch ? versionMatch[0] : "0.0.0");
-        },
-      );
-    });
+    const execFileAsync = promisify(execFile);
+    try {
+      const ansibleBuilderPath = await this.findExecutable("ansible-builder");
+
+      if (!ansibleBuilderPath) {
+        throw new Error("ansible-builder not found in system PATH.");
+      }
+
+      const { stdout } = await execFileAsync(ansibleBuilderPath, ["--version"]);
+
+      const versionMatch = stdout.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
+      if (versionMatch) {
+        return versionMatch[0];
+      }
+      throw new Error("Version not found.");
+    } catch (error) {
+      console.error(`Error retrieving ansible-builder version: ${error}`);
+      return "0.0.0";
+    }
+  }
+
+  private async findExecutable(command: string): Promise<string | null> {
+    const execFileAsync = promisify(execFile);
+    try {
+      const isWindows = os.platform() === "win32";
+      const cmd = isWindows ? "where" : "which";
+      const { stdout } = await execFileAsync(cmd, [command]);
+
+      return stdout.trim().split("\n")[0];
+    } catch (error) {
+      console.error(`Error finding executable ${command}:`, error);
+      return null;
+    }
   }
 
   private isVersionGreaterThanOrEqual(
@@ -585,7 +604,6 @@ export class CreateExecutionEnv {
   private async runAnsibleBuilderCommand(
     command: string,
   ): Promise<{ success: boolean; output: string }> {
-    const { execFile } = require("child_process");
     const [program, ...args] = command.split(" ");
     return new Promise((resolve) => {
       execFile(program, args, (error: any, stdout: string, stderr: string) => {
