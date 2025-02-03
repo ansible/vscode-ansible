@@ -35,7 +35,7 @@ describe("Check walkthroughs, elements and associated commands", async () => {
     [
       "Start automating with your first Ansible playbook",
       [
-        "Enable Ansible Lightspeed",
+        "Log in to Ansible Lightspeed",
         "Create an Ansible playbook project",
         "Create an Ansible playbook",
         "Save your playbook to a playbook project",
@@ -81,9 +81,7 @@ describe("Check walkthroughs, elements and associated commands", async () => {
   });
 
   it("Check empty playbook command option", async function () {
-    await workbench.executeCommand(
-      "Ansible: Create an empty playbook or with Lightspeed (if enabled)",
-    );
+    await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
     await sleep(500);
 
     const newFileEditor = await new EditorView().openEditor("Untitled-1");

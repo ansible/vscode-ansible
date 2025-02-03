@@ -82,7 +82,7 @@
         "steps": [
           {
             "id": "enable-lightspeed-playbook",
-            "title": "Enable Ansible Lightspeed",
+            "title": "Log in to Ansible Lightspeed",
             "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
             "media": {
               "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md"
