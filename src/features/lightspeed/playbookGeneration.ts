@@ -93,6 +93,16 @@ async function generatePlaybook(
 }
 
 export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
+  const isAuthenticated =
+    await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+  if (!isAuthenticated) {
+    await vscode.window.showErrorMessage(
+      "Log in to lightspeed services to use the feature.",
+    );
+
+    return;
+  }
+
   // Create a new panel and update the HTML
   const panel = vscode.window.createWebviewPanel(
     "noteDetailView",
