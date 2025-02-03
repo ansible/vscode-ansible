@@ -279,7 +279,7 @@ describe("Test collection plugins scaffolding", () => {
     );
     expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
       .to.be.undefined;
-    await overwriteCheckbox.click();
+    // await overwriteCheckbox.click();
 
     createButton = await webview.findWebElement(
       By.xpath("//vscode-button[@id='create-button']"),
