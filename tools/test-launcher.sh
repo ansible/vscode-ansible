@@ -55,10 +55,8 @@ function stop_server() {
 function refresh_settings() {
     test_file=$1
     cp test/testFixtures/settings.json out/settings.json
-    sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
     sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
-    if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_file}"; then
-        sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' out/settings.json
+    if grep "// BEFORE: ansible.lightspeed.suggestions.enabled: true" "${test_file}"; then
         sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": true,/' out/settings.json
     fi
 

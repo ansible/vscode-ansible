@@ -3,17 +3,15 @@ import {
   By,
   EditorView,
   ModalDialog,
-  SettingsEditor,
   until,
   Workbench,
 } from "vscode-extension-tester";
-import { updateSettings, sleep } from "./uiTestHelper";
+import { sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 let workbench: Workbench;
 let editorView: EditorView;
-let settingsEditor: SettingsEditor;
 
 before(async () => {
   workbench = new Workbench();
@@ -37,7 +35,7 @@ describe("Check walkthroughs, elements and associated commands", async () => {
     [
       "Start automating with your first Ansible playbook",
       [
-        "Enable Ansible Lightspeed",
+        "Log in to Ansible Lightspeed",
         "Create an Ansible playbook project",
         "Create an Ansible playbook",
         "Save your playbook to a playbook project",
@@ -83,11 +81,7 @@ describe("Check walkthroughs, elements and associated commands", async () => {
   });
 
   it("Check empty playbook command option", async function () {
-    settingsEditor = await workbench.openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);
-    await workbench.executeCommand(
-      "Ansible: Create an empty playbook or with Lightspeed (if enabled)",
-    );
+    await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
     await sleep(500);
 
     const newFileEditor = await new EditorView().openEditor("Untitled-1");
