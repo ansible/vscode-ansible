@@ -417,21 +417,28 @@ export class CreateExecutionEnv {
         dependencies: {
           ansible_core: { package_pip: "ansible-core" },
           ansible_runner: { package_pip: "ansible-runner" },
-          galaxy: {
-            collections: collections
-              .split(",")
-              .map((col) => ({ name: col.trim() })),
-          },
         },
-        options: {
-          tags: [tag],
-        },
+        options: {},
       };
-      // // Conditionally add 'tags' field based on Ansible Builder version
-      // const builderVersion = await this.getAnsibleBuilderVersion();
-      // if (this.isVersionGreaterThanOrEqual(builderVersion, "3.1.0")) {
-      //   jsonData.options.tags = [tag];
-      // }
+      // Handle collections input
+      const collectionsArray = collections
+        .split(",")
+        .map((col) => col.trim())
+        .filter((col) => col !== "");
+
+      if (collectionsArray.length > 0) {
+        jsonData.dependencies.galaxy = {
+          collections: collectionsArray.map((col) => ({ name: col })),
+        };
+      }
+      // Get ansible-builder version
+      const builderVersion = await this.getAnsibleBuilderVersion();
+      if (this.isVersionGreaterThanOrEqual(builderVersion, "3.1.0")) {
+        jsonData.options.tags = [tag]; // Only add 'tags' if version is 3.1.0 or later
+      } else {
+        commandOutput += `Warning: ansible-builder version ${builderVersion} does not support 'tags'. Ignoring tag field.\n`;
+        delete jsonData.options.tags;
+      }
       const systemPackagesArray = systemPackages
         .split(",")
         .map((pkg) => pkg.trim())
@@ -530,6 +537,38 @@ export class CreateExecutionEnv {
     });
   }
 
+  private async getAnsibleBuilderVersion(): Promise<string> {
+    const { execFile } = require("child_process");
+    return new Promise((resolve) => {
+      execFile(
+        "ansible-builder",
+        ["--version"],
+        (error: any, stdout: string) => {
+          if (error) {
+            console.error("Error retrieving ansible-builder version:", error);
+            resolve("0.0.0");
+            return;
+          }
+          const versionMatch = stdout.match(/\d+\.\d+\.\d+/);
+          resolve(versionMatch ? versionMatch[0] : "0.0.0");
+        },
+      );
+    });
+  }
+
+  private isVersionGreaterThanOrEqual(
+    version: string,
+    target: string,
+  ): boolean {
+    const [major, minor, patch] = version.split(".").map(Number);
+    const [tMajor, tMinor, tPatch] = target.split(".").map(Number);
+    if (major > tMajor) return true;
+    if (major < tMajor) return false;
+    if (minor > tMinor) return true;
+    if (minor < tMinor) return false;
+    return patch >= tPatch;
+  }
+
   public generateYAMLFromJSON(jsonData: any, destinationPath: string): boolean {
     const fs = require("fs");
     try {
@@ -567,44 +606,6 @@ export class CreateExecutionEnv {
       });
     });
   }
-
-  // private async getAnsibleBuilderVersion(): Promise<string> {
-  //   const { execFile } = require("child_process");
-
-  //   return new Promise((resolve, reject) => {
-  //     execFile(
-  //       "ansible-builder",
-  //       ["--version"],
-  //       (error: any, stdout: string) => {
-  //         if (error) {
-  //           reject("Error checking Ansible Builder version.");
-  //           return;
-  //         }
-  //         const versionMatch = stdout.match(/ansible-builder (\d+\.\d+\.\d+)/);
-  //         if (versionMatch) {
-  //           resolve(versionMatch[1]); // Extract version like "3.0.0"
-  //         } else {
-  //           reject("Unable to parse Ansible Builder version.");
-  //         }
-  //       },
-  //     );
-  //   });
-  // }
-
-  // private isVersionGreaterThanOrEqual(
-  //   version1: string,
-  //   version2: string,
-  // ): boolean {
-  //   const v1 = version1.split(".").map(Number);
-  //   const v2 = version2.split(".").map(Number);
-
-  //   for (let i = 0; i < 3; i++) {
-  //     if (v1[i] > v2[i]) return true;
-  //     if (v1[i] < v2[i]) return false;
-  //   }
-
-  //   return true; // Versions are equal
-  // }
 
   public async openFileInWorkspace(fileUrl: string) {
     const fileUri = vscode.Uri.parse(expandPath(fileUrl));
