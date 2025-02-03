@@ -279,6 +279,14 @@ describe("Test collection plugins scaffolding", () => {
     );
     expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
       .to.be.undefined;
+
+    // Added `scrolling into view` before clicking overwriteCheckbox
+    // to fix ElementClickInterceptedError on Mac OS runner.
+    const driver = webview.getDriver();
+    await driver.executeScript(
+      "arguments[0].scrollIntoView(true);",
+      overwriteCheckbox,
+    );
     await overwriteCheckbox.click();
 
     createButton = await webview.findWebElement(
