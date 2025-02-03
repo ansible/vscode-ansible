@@ -7,7 +7,6 @@ import {
   ThemeColor,
   workspace,
 } from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
 import { TelemetryManager } from "../utils/telemetryUtils";
 import { SettingsManager } from "../settings";
 import { AnsibleCommands } from "../definitions/constants";
@@ -15,19 +14,16 @@ import { execSync } from "child_process";
 
 export class PythonInterpreterManager {
   private context;
-  private client;
   private pythonInterpreterStatusBarItem: StatusBarItem;
   private telemetry: TelemetryManager;
   private extensionSettings: SettingsManager;
 
   constructor(
     context: ExtensionContext,
-    client: LanguageClient,
     telemetry: TelemetryManager,
     extensionSettings: SettingsManager,
   ) {
     this.context = context;
-    this.client = client;
     this.telemetry = telemetry;
     this.extensionSettings = extensionSettings;
 
@@ -62,9 +58,6 @@ export class PythonInterpreterManager {
    * and receives notification from the server with ansible meta data associated with the opened file as param
    */
   public async updatePythonInfo(): Promise<void> {
-    if (!this.client.isRunning()) {
-      return;
-    }
     this.pythonInterpreterStatusBarItem.tooltip = new MarkdownString(
       ` Change environment `,
       true,

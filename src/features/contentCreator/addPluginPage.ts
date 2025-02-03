@@ -139,6 +139,7 @@ export class AddPlugin {
                     <vscode-single-select id="plugin-dropdown">
                       <vscode-option>filter</vscode-option>
                       <vscode-option>lookup</vscode-option>
+                      <vscode-option>action</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>

@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
@@ -25,7 +24,6 @@ import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProv
 
 export class LightSpeedManager {
   private context;
-  public client;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
   public apiInstance: LightSpeedAPI;
@@ -43,12 +41,10 @@ export class LightSpeedManager {
 
   constructor(
     context: vscode.ExtensionContext,
-    client: LanguageClient,
     settingsManager: SettingsManager,
     telemetry: TelemetryManager,
   ) {
     this.context = context;
-    this.client = client;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
@@ -78,7 +74,6 @@ export class LightSpeedManager {
     );
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
-      this.client,
       this.settingsManager,
       this.apiInstance,
       this.lightspeedAuthenticatedUser,
@@ -89,7 +84,6 @@ export class LightSpeedManager {
       this.apiInstance,
       this.lightspeedAuthenticatedUser,
       context,
-      client,
       settingsManager,
     );
 
