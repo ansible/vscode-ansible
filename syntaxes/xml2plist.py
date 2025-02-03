@@ -74,7 +74,7 @@ def convert_to_plist(element: ET.Element, level=0, indent=4, context: str = ""):
                 ), f"Got {key_element.tag}({key_element.text}) without value"
                 item_str = (
                     f"{inner_indentation}{to_safe_string(key_element.text)} ="
-                    f" {convert_to_plist(value_element, level+1, indent, 'mapping')};"
+                    f" {convert_to_plist(value_element, level + 1, indent, 'mapping')};"
                 )
                 dict_items.append(item_str)
             except StopIteration:
