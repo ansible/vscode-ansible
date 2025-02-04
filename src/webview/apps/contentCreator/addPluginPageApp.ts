@@ -21,7 +21,6 @@ let pluginNameTextField: VscodeTextfield;
 let pluginTypeDropdown: VscodeSingleSelect;
 
 let pluginNameInputField: HTMLInputElement;
-let collectionPathUrlInputField: HTMLInputElement;
 
 let collectionPathUrlTextField: VscodeTextfield;
 let folderExplorerIcon: VscodeIcon;
@@ -78,10 +77,6 @@ function main() {
   pluginNameInputField = pluginNameTextField.shadowRoot?.querySelector(
     "#input",
   ) as HTMLInputElement;
-  collectionPathUrlInputField =
-    collectionPathUrlTextField.shadowRoot?.querySelector(
-      "#input",
-    ) as HTMLInputElement;
 
   pluginNameTextField.addEventListener("input", toggleCreateButton);
   collectionPathUrlTextField.addEventListener("input", toggleCreateButton);
@@ -135,7 +130,7 @@ function openExplorer(event: any) {
 
         if (selectedUri) {
           if (source === "folder-explorer") {
-            collectionPathUrlInputField.value = selectedUri;
+            collectionPathUrlTextField.value = selectedUri;
             initCollectionPathElement.innerHTML = selectedUri;
           }
         }
@@ -147,7 +142,7 @@ function openExplorer(event: any) {
 function handleInitClearClick() {
   pluginNameInputField.value = "";
   pluginTypeDropdown.value = "filter";
-  collectionPathUrlInputField.value = "";
+  collectionPathUrlTextField.value = "";
 
   initCollectionPathElement.innerHTML =
     collectionPathUrlTextField.placeholder as string;
