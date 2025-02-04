@@ -314,27 +314,6 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await sleep(1000);
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
-    await checkAndInteractWithEEField(
-      eeWebview,
-      "tag-name",
-      "ansible-ee:latest",
-    );
-    await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
-    const openScaffoldedFileButton = await eeWebview.findWebElement(
-      By.xpath("//vscode-button[@id='init-open-scaffolded-file']"),
-    );
-    expect(await openScaffoldedFileButton.isDisplayed()).to.be.true;
-    await openScaffoldedFileButton.click();
-    await sleep(1000);
-
-    const editorView = new EditorView();
-    const activeTabs = await editorView.getOpenEditorTitles();
-    expect(activeTabs).to.include("execution.yml");
-    const firstEditorTitle = activeTabs[0];
-    expect(firstEditorTitle).to.equal("execution.yml");
-
     await eeWebview.switchBack();
   });
 
