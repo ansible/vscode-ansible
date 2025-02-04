@@ -196,14 +196,14 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     const overwriteCheckbox = await eeWebview.findWebElement(
       By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
     );
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
@@ -236,11 +236,11 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
@@ -261,14 +261,14 @@ describe("Test execution-environment generation webview (without creator)", () =
       By.xpath("//vscode-checkbox[@id='buildImage-checkbox']"),
     );
     await buildImageCheckbox.click();
-    await sleep(1000);
+    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
@@ -309,10 +309,10 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-    await sleep(1000);
+    await sleep(500);
 
     await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
     await checkAndInteractWithEEField(
@@ -339,9 +339,9 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-    await sleep(1000);
+    await sleep(500);
 
     await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
 
@@ -363,9 +363,9 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(1000);
+    await sleep(500);
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-    await sleep(1000);
+    await sleep(500);
 
     await eeWebview.switchBack();
   });
