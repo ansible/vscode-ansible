@@ -314,6 +314,59 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await sleep(1000);
 
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "quay.io/centos/centos:stream9",
+    );
+    const suggestedCollectionsContainer = await eeWebview.findWebElement(
+      By.id("suggestedCollections-checkboxes"),
+    );
+    const checkboxes = await suggestedCollectionsContainer.findElements(
+      By.css("vscode-checkbox"),
+    );
+    const collectionsToSelect = ["ansible.aws", "ansible.posix"];
+    for (const checkbox of checkboxes) {
+      const value = await checkbox.getAttribute("value");
+      if (collectionsToSelect.includes(value)) {
+        await checkbox.click();
+        await sleep(500);
+      }
+    }
+    await checkAndInteractWithEEField(eeWebview, "tag-name", "trial");
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(1000);
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await sleep(1000);
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+
+    const baseImageDropdown = await eeWebview.findWebElement(
+      By.xpath("//vscode-single-select[@id='baseImage-dropdown']"),
+    );
+    await baseImageDropdown.click();
+    await sleep(1000);
+    await eeWebview.getDriver().executeScript(`
+      let dropdown = document.querySelector("vscode-single-select#baseImage-dropdown");
+      if (dropdown) {
+          dropdown.value = dropdown.options[1].value; // Select second option
+          dropdown.dispatchEvent(new Event('change')); // Trigger change event
+      }
+    `);
+    await sleep(1000);
+    await checkAndInteractWithEEField(eeWebview, "tag-name", "ansible-ee:now");
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(1000);
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await sleep(1000);
+
     await eeWebview.switchBack();
   });
 
