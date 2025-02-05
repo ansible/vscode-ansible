@@ -137,9 +137,9 @@ export class AddPlugin {
                       <span class="normal">Plugin type *</span>
                     </vscode-label>
                     <vscode-single-select id="plugin-dropdown">
-                      <vscode-option>filter</vscode-option>
-                      <vscode-option>lookup</vscode-option>
-                      <vscode-option>action</vscode-option>
+                      <vscode-option>Action</vscode-option>
+                      <vscode-option>Filter</vscode-option>
+                      <vscode-option>Lookup</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>
@@ -303,8 +303,10 @@ export class AddPlugin {
     payload: PluginFormInterface,
     webView: vscode.Webview,
   ) {
-    const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
+    var { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
       payload;
+
+    var pluginType = pluginType.toLowerCase();
 
     const destinationPathUrl = collectionPath
       ? collectionPath
