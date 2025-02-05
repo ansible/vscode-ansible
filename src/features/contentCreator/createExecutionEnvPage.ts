@@ -315,13 +315,11 @@ export class CreateExecutionEnv {
           }
           case "init-create":
             payload = message.payload as AnsibleExecutionEnvInterface;
-            // Disable the build button before running the init command
             await webview.postMessage({
               command: "disable-build-button",
               arguments: undefined,
             });
 
-            // Run the init command
             await this.runInitCommand(payload, webview);
 
             await webview.postMessage({
@@ -329,7 +327,6 @@ export class CreateExecutionEnv {
               arguments: undefined,
             });
 
-            // Re-enable the build button after the command is finished
             await webview.postMessage({
               command: "enable-build-button",
               arguments: undefined,
@@ -380,7 +377,6 @@ export class CreateExecutionEnv {
     payload: AnsibleExecutionEnvInterface,
     webView: vscode.Webview,
   ) {
-    // Disable the build button
     await webView.postMessage({
       command: "disable-build-button",
     });
@@ -429,7 +425,6 @@ export class CreateExecutionEnv {
           tags: [tag],
         },
       };
-      // Handle collections input
       const collectionsArray = collections
         .split(",")
         .map((col) => col.trim())
@@ -539,7 +534,6 @@ export class CreateExecutionEnv {
     } else {
       await webView.postMessage({ command: "disable-open-file-button" });
     }
-    // Re-enable the build button
     await webView.postMessage({
       command: "enable-build-button",
     });

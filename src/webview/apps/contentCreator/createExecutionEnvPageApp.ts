@@ -4,7 +4,7 @@ import {
   AnsibleExecutionEnvInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-//import "@vscode-elements/elements";
+import "@vscode-elements/elements";
 import {
   VscodeButton,
   VscodeCheckbox,
@@ -322,6 +322,8 @@ function toggleCreateButton() {
 
 function stripAnsiCodes(text: string): string {
   return text.replace(
+    // This regex is used to strip ANSI escape codes for terminal text formatting
+    // These escape codes are used for colors and styles in terminal output.
     // eslint-disable-next-line no-control-regex
     /[\u001B\u009B][[\]()#;?](?:(?:[a-zA-Z\d](?:;[a-zA-Z\d]))?\u0007|(?:\d{1,4}(?:;\d{0,4})*)?[0-9A-ORZcf-nqry=><])/g,
     "",
@@ -397,7 +399,6 @@ function handleInitCreateClick() {
 
           return;
         case "disable-build-button": {
-          // Disable the "Build" button
           const createButton = document.getElementById("create-button");
           if (createButton) {
             (createButton as VscodeButton).disabled = true;
@@ -405,7 +406,6 @@ function handleInitCreateClick() {
           break;
         }
         case "enable-build-button": {
-          // Enable the "Build" button
           const createButtonElement = document.getElementById("create-button");
           if (createButtonElement) {
             (createButtonElement as VscodeButton).disabled = false;
@@ -413,7 +413,6 @@ function handleInitCreateClick() {
           break;
         }
         case "enable-open-file-button": {
-          // Enable the "Build" button
           const openFileButtonElement =
             document.getElementById("open-file-button");
           if (openFileButtonElement) {
