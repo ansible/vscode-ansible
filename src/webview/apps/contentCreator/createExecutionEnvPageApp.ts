@@ -4,7 +4,7 @@ import {
   AnsibleExecutionEnvInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-import "@vscode-elements/elements";
+//import "@vscode-elements/elements";
 import {
   VscodeButton,
   VscodeCheckbox,
@@ -142,8 +142,8 @@ function main() {
   baseImageDropdown.addEventListener("change", toggleCustomBaseImageField);
   customBaseImageField.addEventListener("input", toggleBaseImageDropdown);
 
-  createContextCheckbox.addEventListener("change", handleCreateContextClick);
-  buildImageCheckbox.addEventListener("change", handleBuildImageClick);
+  createContextCheckbox.addEventListener("change", handleCheckboxState);
+  buildImageCheckbox.addEventListener("change", handleCheckboxState);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
   initClearButton.addEventListener("click", handleInitClearClick);
@@ -170,16 +170,7 @@ function handleSuggestedCollectionsChange() {
     .join(", ");
 }
 
-function handleCreateContextClick() {
-  if (buildImageCheckbox.checked) {
-    createContextCheckbox.checked = true;
-    createContextCheckbox.disabled = true;
-  } else {
-    createContextCheckbox.disabled = false;
-  }
-}
-
-function handleBuildImageClick() {
+function handleCheckboxState() {
   if (buildImageCheckbox.checked) {
     createContextCheckbox.checked = true;
     createContextCheckbox.disabled = true;
@@ -287,16 +278,12 @@ function handleInitClearClick() {
 
   initDestinationPathElement.innerHTML =
     destinationPathUrlTextField.placeholder as string;
-  // Ensure displayed path is reset
   initDestinationPathElement.innerHTML =
     "No folders are open in the workspace - Enter a destination directory.";
 
-  // Call toggleCreateButton to update the Build button state
   toggleCreateButton();
   overwriteCheckbox.checked = false;
   verboseDropdown.value = "Off";
-
-  //initCreateButton.disabled = false;
 
   customBaseImageField.disabled = false;
   baseImageDropdown.disabled = false;
@@ -309,24 +296,20 @@ function toggleCreateButton() {
   const defaultWorkspacePath =
     (destinationPathUrlTextField.placeholder as string)?.trim() || "";
 
-  // Consider the placeholder as a valid path only if it's not empty
   const isDestinationPathProvided =
     destinationPath !== "" || defaultWorkspacePath !== "";
 
-  // Ensure other required fields are filled
   const isTagProvided = tagTextField.value.trim() !== "";
   const isBaseImageProvided =
     baseImageDropdown.value.trim() !== "" ||
     customBaseImageField.value.trim() !== "";
 
-  // Button should only be enabled if ALL required fields are filled
   initCreateButton.disabled = !(
     isDestinationPathProvided &&
     isTagProvided &&
     isBaseImageProvided
   );
 
-  // Update displayed path
   if (!destinationPath) {
     initDestinationPathElement.innerHTML =
       defaultWorkspacePath !== ""
