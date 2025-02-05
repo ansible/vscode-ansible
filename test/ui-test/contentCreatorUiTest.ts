@@ -107,11 +107,11 @@ describe("Test collection plugins scaffolding", () => {
 
     await new EditorView().openEditor(editorTitle);
     const webview = await getWebviewByLocator(
-      By.xpath("//vscode-text-field[@id='path-url']"),
+      By.xpath("//vscode-textfield[@id='path-url']"),
     );
 
     const collectionPathUrlTextField = await webview.findWebElement(
-      By.xpath("//vscode-text-field[@id='path-url']"),
+      By.xpath("//vscode-textfield[@id='path-url']"),
     );
     expect(
       collectionPathUrlTextField,
@@ -120,14 +120,14 @@ describe("Test collection plugins scaffolding", () => {
     await collectionPathUrlTextField.sendKeys("~");
 
     const pluginNameTextField = await webview.findWebElement(
-      By.xpath("//vscode-text-field[@id='plugin-name']"),
+      By.xpath("//vscode-textfield[@id='plugin-name']"),
     );
     expect(pluginNameTextField, "pluginNameTextField should not be undefined")
       .not.to.be.undefined;
     await pluginNameTextField.sendKeys(pluginName);
 
     const pluginTypeDropdown = await webview.findWebElement(
-      By.xpath("//vscode-dropdown[@id='plugin-dropdown']"),
+      By.xpath("//vscode-single-select[@id='plugin-dropdown']"),
     );
     expect(pluginTypeDropdown, "pluginTypeDropdown should not be undefined").not
       .to.be.undefined;
@@ -138,6 +138,14 @@ describe("Test collection plugins scaffolding", () => {
     );
     expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
       .to.be.undefined;
+
+    // Added `scrolling into view` before clicking overwriteCheckbox
+    // to fix ElementClickInterceptedError on Mac OS runner.
+    const driver = webview.getDriver();
+    await driver.executeScript(
+      "arguments[0].scrollIntoView(true);",
+      overwriteCheckbox,
+    );
     await overwriteCheckbox.click();
 
     createButton = await webview.findWebElement(
