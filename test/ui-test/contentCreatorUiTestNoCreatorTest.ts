@@ -1,10 +1,19 @@
-import { By, EditorView, WebView } from "vscode-extension-tester";
+import {
+  By,
+  EditorView,
+  WebView,
+  Workbench,
+  InputBox,
+} from "vscode-extension-tester";
 import {
   getWebviewByLocator,
   sleep,
   workbenchExecuteCommand,
 } from "./uiTestHelper";
 import { config, expect } from "chai";
+import path from "path";
+import os from "os";
+import fs from "fs";
 
 config.truncateThreshold = 0;
 
@@ -25,6 +34,29 @@ async function checkAndInteractWithField(
 ) {
   const textField = await webview.findWebElement(
     By.xpath(`//vscode-text-field[@id='${fieldId}']`),
+  );
+  expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
+  await textField.sendKeys(value);
+}
+
+// Until devfile and devcontainer transitions to vscode-elements
+async function openEEWebview(command: string, webviewId: string) {
+  await workbenchExecuteCommand(command);
+  const editorView = new EditorView();
+  await sleep(5000);
+  await editorView.openEditor(webviewId);
+  return await getWebviewByLocator(
+    By.xpath("//vscode-textfield[@id='path-url']"),
+  );
+}
+
+async function checkAndInteractWithEEField(
+  webview: WebView,
+  fieldId: string,
+  value: string,
+) {
+  const textField = await webview.findWebElement(
+    By.xpath(`//vscode-textfield[@id='${fieldId}']`),
   );
   expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
   await textField.sendKeys(value);
@@ -53,7 +85,7 @@ describe("Test devfile generation webview (without creator)", () => {
     ).getText();
     expect(descriptionText).to.contain("Devfiles are yaml files");
 
-    await checkAndInteractWithField(devfileWebview, "path-url", "~");
+    await checkAndInteractWithField(devfileWebview, "path-url", os.homedir());
     await checkAndInteractWithField(devfileWebview, "devfile-name", "test");
 
     await clickButtonAndCheckEnabled(devfileWebview, "create-button");
@@ -119,5 +151,273 @@ describe("Test devcontainer generation webview (without creator)", () => {
     await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
     await sleep(1000);
     await devcontainerWebview.switchBack();
+  });
+});
+
+describe("Test execution-environment generation webview (without creator)", () => {
+  it("Check execution-environment webview elements", async () => {
+    const eeWebview = await openEEWebview(
+      "Ansible: Create an Execution Environment file",
+      "Create Ansible Execution Environment",
+    );
+
+    const descriptionText = await (
+      await eeWebview.findWebElement(By.xpath("//div[@class='title-div']/h1"))
+    ).getText();
+    expect(descriptionText).to.contain(
+      "Create an Ansible execution environment",
+    );
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", "~");
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "tag-name",
+      "ansible-ee:latest",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "custom-image:latest",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "collections-name",
+      "ansible.posix, ansible.utils",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "systemPackages-name",
+      "openssh, curl",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "pythonPackages-name",
+      "requests, numpy",
+    );
+
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    const overwriteCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+    );
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "quay.io/new/custom",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "collections-name",
+      "ansible.aws, kubernetes.core",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "systemPackages-name",
+      "wget, nano",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "pythonPackages-name",
+      "boto3, flask",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "tag-name",
+      "ansible-ee:new-test",
+    );
+
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "quay.io/new/custom",
+    );
+
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "tag-name",
+      "ansible-ee:new-test",
+    );
+    const buildImageCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='buildImage-checkbox']"),
+    );
+    await buildImageCheckbox.click();
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "quay.io/fedora/fedora:41",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "collections-name",
+      "ansible.posix, ansible.utils",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "systemPackages-name",
+      "openssh",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "pythonPackages-name",
+      "boto3, flask",
+    );
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "tag-name",
+      "ansible-ee:latest",
+    );
+    const createContextCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='createContext-checkbox']"),
+    );
+    await createContextCheckbox.click();
+    await sleep(1000);
+
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await sleep(500);
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithEEField(
+      eeWebview,
+      "customBaseImage-name",
+      "quay.io/centos/centos:stream9",
+    );
+    const suggestedCollectionsContainer = await eeWebview.findWebElement(
+      By.id("suggestedCollections-checkboxes"),
+    );
+    const checkboxes = await suggestedCollectionsContainer.findElements(
+      By.css("vscode-checkbox"),
+    );
+    const collectionsToSelect = ["ansible.aws", "ansible.posix"];
+    for (const checkbox of checkboxes) {
+      const value = await checkbox.getAttribute("value");
+      if (collectionsToSelect.includes(value)) {
+        await checkbox.click();
+        await sleep(500);
+      }
+    }
+    await checkAndInteractWithEEField(eeWebview, "tag-name", "trial");
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await sleep(500);
+
+    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+
+    const baseImageDropdown = await eeWebview.findWebElement(
+      By.xpath("//vscode-single-select[@id='baseImage-dropdown']"),
+    );
+    await baseImageDropdown.click();
+    await sleep(1000);
+    await eeWebview.getDriver().executeScript(`
+      let dropdown = document.querySelector("vscode-single-select#baseImage-dropdown");
+      if (dropdown) {
+          dropdown.value = dropdown.options[1].value; // Select second option
+          dropdown.dispatchEvent(new Event('change')); // Trigger change event
+      }
+    `);
+    await sleep(1000);
+    await checkAndInteractWithEEField(eeWebview, "tag-name", "ansible-ee:now");
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await sleep(500);
+
+    await eeWebview.switchBack();
+  });
+
+  it("Executes the build command from the right-click menu", async function () {
+    const workbench = new Workbench();
+
+    // Test with no file open in editor
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    await sleep(1000);
+    let notifications = await workbench.getNotifications();
+    const errorNotification = notifications.find(async (notification) => {
+      return (await notification.getMessage()).includes(
+        "No file selected and no active file found!",
+      );
+    });
+    if (!errorNotification) throw new Error("Notification not found");
+
+    // Test with a file open but not the execution-environment.yml file
+    await workbenchExecuteCommand("File: New Untitled Text file");
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    await sleep(1000);
+    notifications = await workbench.getNotifications();
+    const fileTypeError = notifications.find(async (notification) => {
+      return (await notification.getMessage()).includes(
+        "Active file is not an execution environment file!",
+      );
+    });
+    if (!fileTypeError) throw new Error("Notification not found");
+
+    // Test with the execution-environment.yml file
+    const eeFilePath = path.join(os.homedir(), "execution-environment.yml");
+    fs.writeFileSync(eeFilePath, "ver: 4", "utf8");
+
+    await workbenchExecuteCommand("Go to File...");
+    const inputBox = await InputBox.create();
+    await inputBox.setText(
+      path.join(os.homedir(), "execution-environment.yml"),
+    );
+    await inputBox.confirm();
+    await workbenchExecuteCommand("Build Ansible execution environment");
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    notifications = await workbench.getNotifications();
+    const buildResultNotification = notifications.find(async (notification) => {
+      const message = await notification.getMessage();
+      return (
+        message.includes("Build successful") || message.includes("Build failed")
+      );
+    });
+    if (!buildResultNotification) throw new Error("Notification not found");
+    expect(await buildResultNotification.getMessage()).to.match(
+      /^Build (successful|failed)/,
+    );
   });
 });

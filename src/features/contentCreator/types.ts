@@ -30,10 +30,18 @@ export type DevfileFormInterface = {
   isOverwritten: boolean;
 };
 
-export type AnsibleSampleExecutionEnvInterface = {
+export type AnsibleExecutionEnvInterface = {
   destinationPath: string;
   verbosity: string;
   isOverwritten: boolean;
+  isCreateContextEnabled: boolean;
+  isBuildImageEnabled: boolean;
+  baseImage: string;
+  customBaseImage: string;
+  collections: string;
+  systemPackages: string;
+  pythonPackages: string;
+  tag: string;
 };
 
 export type DevcontainerFormInterface = {
@@ -69,4 +77,16 @@ export type PostMessageEvent =
   | {
       command: "file-uri";
       arguments: { selectedUri: string | undefined };
+    }
+  | {
+      command: "disable-build-button";
+      arguments?: never;
+    }
+  | {
+      command: "enable-build-button";
+      arguments?: never;
+    }
+  | {
+      command: "enable-open-file-button";
+      arguments?: never;
     };

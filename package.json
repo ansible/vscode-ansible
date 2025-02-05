@@ -352,8 +352,8 @@
         "title": "Ansible: Create a Devfile"
       },
       {
-        "command": "ansible.content-creator.create-sample-execution-env-file",
-        "title": "Ansible: Create a Sample Execution Environment file"
+        "command": "ansible.content-creator.create-execution-env-file",
+        "title": "Ansible: Create an Execution Environment file"
       },
       {
         "command": "ansible.content-creator.create-devcontainer",
