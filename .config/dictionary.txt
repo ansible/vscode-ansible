@@ -167,6 +167,7 @@ mycollection
 mymodule
 mynamespace
 myuser
+nqry
 ncurc
 neovim
 netcommon

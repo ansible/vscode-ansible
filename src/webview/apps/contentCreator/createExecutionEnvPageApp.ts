@@ -4,7 +4,6 @@ import {
   AnsibleExecutionEnvInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-import ansiRegex from "ansi-regex";
 import "@vscode-elements/elements";
 import {
   VscodeButton,
@@ -339,7 +338,11 @@ function toggleCreateButton() {
 }
 
 function stripAnsiCodes(text: string): string {
-  return text.replace(ansiRegex(), "");
+  return text.replace(
+    // eslint-disable-next-line no-control-regex
+    /[\u001B\u009B][[\]()#;?](?:(?:[a-zA-Z\d](?:;[a-zA-Z\d]))?\u0007|(?:\d{1,4}(?:;\d{0,4})*)?[0-9A-ORZcf-nqry=><])/g,
+    "",
+  );
 }
 
 function handleInitCreateClick() {
@@ -423,6 +426,15 @@ function handleInitCreateClick() {
           const createButtonElement = document.getElementById("create-button");
           if (createButtonElement) {
             (createButtonElement as VscodeButton).disabled = false;
+          }
+          break;
+        }
+        case "enable-open-file-button": {
+          // Enable the "Build" button
+          const openFileButtonElement =
+            document.getElementById("open-file-button");
+          if (openFileButtonElement) {
+            (openFileButtonElement as VscodeButton).disabled = false;
           }
           break;
         }

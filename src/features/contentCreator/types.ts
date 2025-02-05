@@ -85,4 +85,8 @@ export type PostMessageEvent =
   | {
       command: "enable-build-button";
       arguments?: never;
+    }
+  | {
+      command: "enable-open-file-button";
+      arguments?: never;
     };

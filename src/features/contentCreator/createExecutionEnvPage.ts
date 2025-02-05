@@ -2,14 +2,13 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
-import * as yaml from "js-yaml";
+import * as yaml from "yaml";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
 import { execFile } from "child_process";
-import { promisify } from "util";
 
 export class CreateExecutionEnv {
   public static currentPanel: CreateExecutionEnv | undefined;
@@ -325,6 +324,11 @@ export class CreateExecutionEnv {
             // Run the init command
             await this.runInitCommand(payload, webview);
 
+            await webview.postMessage({
+              command: "enable-open-file-button",
+              arguments: undefined,
+            });
+
             // Re-enable the build button after the command is finished
             await webview.postMessage({
               command: "enable-build-button",
@@ -403,6 +407,7 @@ export class CreateExecutionEnv {
     const filePath = `${destinationPathUrl}/execution-environment.yml`;
     const fs = require("fs");
     const fileExists = fs.existsSync(expandPath(filePath));
+    let executionFileCreated = false;
 
     if (fileExists && !isOverwritten) {
       message = `Error: Execution environment file already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
@@ -420,7 +425,9 @@ export class CreateExecutionEnv {
           ansible_core: { package_pip: "ansible-core" },
           ansible_runner: { package_pip: "ansible-runner" },
         },
-        options: {},
+        options: {
+          tags: [tag],
+        },
       };
       // Handle collections input
       const collectionsArray = collections
@@ -432,14 +439,6 @@ export class CreateExecutionEnv {
         jsonData.dependencies.galaxy = {
           collections: collectionsArray.map((col) => ({ name: col })),
         };
-      }
-      // Get ansible-builder version
-      const builderVersion = await this.getAnsibleBuilderVersion();
-      if (this.isVersionGreaterThanOrEqual(builderVersion, "3.1.0")) {
-        jsonData.options.tags = [tag]; // Only add 'tags' if version is 3.1.0 or later
-      } else {
-        commandOutput += `Information: ansible-builder version ${builderVersion} does not support 'tags'. Ignoring tag field.\n`;
-        delete jsonData.options.tags;
       }
       const systemPackagesArray = systemPackages
         .split(",")
@@ -472,6 +471,7 @@ export class CreateExecutionEnv {
       if (isSuccess) {
         commandOutput += `Execution environment file created at ${destinationPathUrl}\n`; // Log only once
         commandResult = "passed";
+        executionFileCreated = true;
       } else {
         commandOutput += `ERROR: Could not create execution environment file. Please check that your destination path exists and write permissions are configured for it.\n`;
         commandResult = "failed";
@@ -533,65 +533,22 @@ export class CreateExecutionEnv {
         status: commandResult,
       },
     } as PostMessageEvent);
+
+    if (executionFileCreated) {
+      await webView.postMessage({ command: "enable-open-file-button" });
+    } else {
+      await webView.postMessage({ command: "disable-open-file-button" });
+    }
     // Re-enable the build button
     await webView.postMessage({
       command: "enable-build-button",
     });
   }
 
-  private async getAnsibleBuilderVersion(): Promise<string> {
-    const execFileAsync = promisify(execFile);
-    try {
-      const ansibleBuilderPath = await this.findExecutable("ansible-builder");
-
-      if (!ansibleBuilderPath) {
-        throw new Error("ansible-builder not found in system PATH.");
-      }
-
-      const { stdout } = await execFileAsync(ansibleBuilderPath, ["--version"]);
-
-      const versionMatch = stdout.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
-      if (versionMatch) {
-        return versionMatch[0];
-      }
-      throw new Error("Version not found.");
-    } catch (error) {
-      console.error(`Error retrieving ansible-builder version: ${error}`);
-      return "0.0.0";
-    }
-  }
-
-  private async findExecutable(command: string): Promise<string | null> {
-    const execFileAsync = promisify(execFile);
-    try {
-      const isWindows = os.platform() === "win32";
-      const cmd = isWindows ? "where" : "which";
-      const { stdout } = await execFileAsync(cmd, [command]);
-
-      return stdout.trim().split("\n")[0];
-    } catch (error) {
-      console.error(`Error finding executable ${command}:`, error);
-      return null;
-    }
-  }
-
-  private isVersionGreaterThanOrEqual(
-    version: string,
-    target: string,
-  ): boolean {
-    const [major, minor, patch] = version.split(".").map(Number);
-    const [tMajor, tMinor, tPatch] = target.split(".").map(Number);
-    if (major > tMajor) return true;
-    if (major < tMajor) return false;
-    if (minor > tMinor) return true;
-    if (minor < tMinor) return false;
-    return patch >= tPatch;
-  }
-
   public generateYAMLFromJSON(jsonData: any, destinationPath: string): boolean {
     const fs = require("fs");
     try {
-      const yamlData = `---\n${yaml.dump(jsonData, { indent: 2 })}`;
+      const yamlData = yaml.stringify(jsonData);
       const filePath = `${destinationPath}/execution-environment.yml`;
       fs.writeFileSync(filePath, yamlData, "utf8");
       return true;
@@ -607,19 +564,16 @@ export class CreateExecutionEnv {
     const [program, ...args] = command.split(" ");
     return new Promise((resolve) => {
       execFile(program, args, (error: any, stdout: string, stderr: string) => {
-        if (error) {
-          resolve({
-            success: false,
-            output: stderr || "Error occurred while running the command.",
-          });
-          return;
-        }
-        if (stderr) {
-          console.warn(stderr);
+        let outputMessage = stdout || stderr;
+        const outdatedBuilderError =
+          "ansible_builder.exceptions.DefinitionError: Additional properties are not allowed ('tags' was unexpected)";
+        if (stderr.includes(outdatedBuilderError)) {
+          outputMessage +=
+            "\nWARNING: You are using an outdated version of ansible-builder. Please upgrade to version 3.1.0 or later.";
         }
         resolve({
-          success: true,
-          output: stdout || "Command executed successfully.",
+          success: !error,
+          output: outputMessage,
         });
       });
     });
