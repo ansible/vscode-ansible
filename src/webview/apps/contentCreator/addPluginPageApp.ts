@@ -20,8 +20,6 @@ window.addEventListener("load", main);
 let pluginNameTextField: VscodeTextfield;
 let pluginTypeDropdown: VscodeSingleSelect;
 
-let pluginNameInputField: HTMLInputElement;
-
 let collectionPathUrlTextField: VscodeTextfield;
 let folderExplorerIcon: VscodeIcon;
 
@@ -72,11 +70,6 @@ function main() {
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
   ) as VscodeButton;
-
-  // Workaround for vscode-elements .value limitations for text fields
-  pluginNameInputField = pluginNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
 
   pluginNameTextField.addEventListener("input", toggleCreateButton);
   collectionPathUrlTextField.addEventListener("input", toggleCreateButton);
@@ -140,7 +133,7 @@ function openExplorer(event: any) {
 }
 
 function handleInitClearClick() {
-  pluginNameInputField.value = "";
+  pluginNameTextField.value = "";
   pluginTypeDropdown.value = "filter";
   collectionPathUrlTextField.value = "";
 
