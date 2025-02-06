@@ -170,6 +170,7 @@ function openExplorer(event: any) {
         if (selectedUri) {
           if (source === "folder-explorer") {
             initPathUrlTextField.value = selectedUri;
+            initCollectionPathElement.innerHTML = selectedUri;
           } else {
             logFilePath.value = selectedUri;
           }
@@ -180,14 +181,26 @@ function openExplorer(event: any) {
 }
 
 function toggleCreateButton() {
-  //   update collection name <p> tag
-  if (
-    !initNamespaceNameTextField.value.trim() &&
-    !initCollectionNameTextField.value.trim()
-  ) {
+  //   update collection name and project path <p> tags
+
+  const namespaceName = initNamespaceNameTextField.value.trim();
+  const collectionName = initCollectionNameTextField.value.trim();
+  const pathUrl = initPathUrlTextField.value.trim();
+  const placeholderPath = initPathUrlTextField.placeholder as string;
+
+  const namespaceOrCollectionHasValue = namespaceName || collectionName;
+
+  if (!namespaceOrCollectionHasValue) {
     initCollectionNameElement.innerHTML = "namespace.collection";
+    initCollectionPathElement.innerHTML = pathUrl || placeholderPath;
+  } else if (!pathUrl) {
+    initCollectionNameElement.innerHTML = `${namespaceName}.${collectionName}`;
+    initCollectionPathElement.innerHTML = `${
+      placeholderPath
+    }/${namespaceName}/${collectionName}`;
   } else {
-    initCollectionNameElement.innerHTML = `${initNamespaceNameTextField.value.trim()}.${initCollectionNameTextField.value.trim()}`;
+    initCollectionPathElement.innerHTML = pathUrl;
+    initCollectionNameElement.innerHTML = `${namespaceName}.${collectionName}`;
   }
 
   if (
