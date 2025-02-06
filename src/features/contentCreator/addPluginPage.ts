@@ -303,10 +303,8 @@ export class AddPlugin {
     payload: PluginFormInterface,
     webView: vscode.Webview,
   ) {
-    var { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
+    const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
       payload;
-
-    var pluginType = pluginType.toLowerCase();
 
     const destinationPathUrl = collectionPath
       ? collectionPath
@@ -314,7 +312,7 @@ export class AddPlugin {
 
     let ansibleCreatorAddCommand = await this.getCreatorCommand(
       pluginName,
-      pluginType,
+      pluginType.toLowerCase(),
       destinationPathUrl,
     );
 
@@ -385,9 +383,6 @@ export class AddPlugin {
   ) {
     const folderUri = vscode.Uri.parse(expandPath(folderUrl));
 
-    // add folder to a new workspace
-    // vscode.workspace.updateWorkspaceFolders(0, 1, { uri: folderUri });
-
     if (vscode.workspace.workspaceFolders?.length === 0) {
       vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
     } else {
@@ -397,7 +392,7 @@ export class AddPlugin {
     }
 
     // open the plugin file in the editor
-    const pluginFileUrl = `${folderUrl}/plugins/${pluginType}/${pluginName}.py`;
+    const pluginFileUrl = `${folderUrl}/plugins/${pluginType.toLowerCase()}/${pluginName}.py`;
     console.log(`[ansible-creator] Plugin file url: ${pluginFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${pluginFileUrl}`);
     console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
