@@ -938,7 +938,7 @@
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
     "@shikijs/core": "2.2.0",
     "@types/ini": "^4.1.1",
-    "@vscode-elements/elements": "^1.11.0",
+    "@vscode-elements/elements": "^1.12.0",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "ini": "^5.0.0",
     "marked": "^15.0.6",

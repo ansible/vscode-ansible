@@ -1586,12 +1586,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode-elements/elements@npm:^1.11.0":
-  version: 1.11.0
-  resolution: "@vscode-elements/elements@npm:1.11.0"
+"@vscode-elements/elements@npm:^1.12.0":
+  version: 1.12.0
+  resolution: "@vscode-elements/elements@npm:1.12.0"
   dependencies:
     lit: "npm:^3.2.1"
-  checksum: 10/7d033fa4a779f42d064280cf903a1a0a05c40f60b51f286bb482a880686d14b1c6216361db3367a2e4a3c991ab21331ecd2483596f896c65491ae479a6a386df
+  checksum: 10/44946a286718ad57e6b44fedc255abf5f20df15b7115305a285978bd672fdaabdc5867d7951bb11a978ee28c53c4b37d4e7d63b2e194a12a4e3d527678329e7a
   languageName: node
   linkType: hard
 
@@ -2225,7 +2225,7 @@ __metadata:
     "@types/yargs": "npm:^17.0.33"
     "@typescript-eslint/eslint-plugin": "npm:^8.22.0"
     "@typescript-eslint/parser": "npm:^8.22.0"
-    "@vscode-elements/elements": "npm:^1.11.0"
+    "@vscode-elements/elements": "npm:^1.12.0"
     "@vscode/test-electron": "npm:^2.4.1"
     "@vscode/vsce": "npm:^3.2.2"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"

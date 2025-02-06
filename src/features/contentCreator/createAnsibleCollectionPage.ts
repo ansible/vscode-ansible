@@ -169,7 +169,7 @@ export class CreateAnsibleCollection {
                 </vscode-form-group>
 
                 <div id="full-collection-path" class="full-collection-name">
-                  <p>Default collection path:&nbsp</p>
+                  <p>Project path:&nbsp</p>
                 </div>
 
                 <div class="verbose-div">

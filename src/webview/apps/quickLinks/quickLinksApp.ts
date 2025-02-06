@@ -1,10 +1,3 @@
-import {
-  allComponents,
-  provideVSCodeDesignSystem,
-} from "@vscode/webview-ui-toolkit";
-
-provideVSCodeDesignSystem().register(allComponents);
-
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
