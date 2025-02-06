@@ -370,7 +370,7 @@ export class AddPlugin {
       commandResult = ansibleCreatorExecutionResult.status;
     } else {
       commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
-      commandOutput += `The currently installed ansible-creator version on this system is ${creatorVersion}\n`;
+      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
       commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
       commandResult = "failed";
     }
