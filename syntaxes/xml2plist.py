@@ -65,13 +65,16 @@ def convert_to_plist(element: ET.Element, level=0, indent=4, context: str = ""):
         while True:
             try:
                 key_element = next(dict_iter)
-                assert (
-                    key_element.tag == "key"
-                ), f"Got {key_element.tag}({key_element.text}) instead of key"
+                # Skipping black formatting due to https://github.com/astral-sh/ruff/issues/15927
+                # fmt: off
+                assert key_element.tag == "key", (
+                    f"Got {key_element.tag}({key_element.text}) instead of key"
+                )
                 value_element = next(dict_iter, None)
-                assert (
-                    value_element is not None
-                ), f"Got {key_element.tag}({key_element.text}) without value"
+                assert value_element is not None, (
+                    f"Got {key_element.tag}({key_element.text}) without value"
+                )
+                # fmt: on
                 item_str = (
                     f"{inner_indentation}{to_safe_string(key_element.text)} ="
                     f" {convert_to_plist(value_element, level + 1, indent, 'mapping')};"
