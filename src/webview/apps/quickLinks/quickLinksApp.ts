@@ -33,7 +33,6 @@ function updateAnsibleCreatorAvailabilityStatus() {
       );
 
       if (!systemStatus) {
-        //   systemReadinessDiv.style.backgroundColor = "#610000";
         systemReadinessIcon.innerHTML = `<span class="codicon codicon-warning"></span>`;
         systemReadinessDescription.innerHTML = `
               <p class="system-description">
