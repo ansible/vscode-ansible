@@ -357,7 +357,7 @@ export class CreateExecutionEnv {
 
     let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
-      if (fileUri && fileUri[0]) {
+      if (fileUri?.[0]) {
         selectedUri = fileUri[0].fsPath;
       }
     });

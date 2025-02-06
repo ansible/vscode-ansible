@@ -108,8 +108,7 @@ export async function getWebviewByLocator(locator: Locator): Promise<WebView> {
     await driver.switchTo().frame(activeFrame);
 
     const elements = await driver.findElements(locator);
-    // console.log(`Switched to active-frame of iframe ${iframeName}`);
-    // console.log(elements);
+
     if (elements.length === 0) {
       console.log(`locator=${locator} not found :-(`);
       continue;
@@ -118,7 +117,6 @@ export async function getWebviewByLocator(locator: Locator): Promise<WebView> {
 
     return wv;
   }
-  // debugger;
   throw new Error("Cannot find any matching view");
 }
 

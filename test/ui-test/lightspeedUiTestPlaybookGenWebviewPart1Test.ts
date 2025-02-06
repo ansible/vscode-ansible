@@ -37,9 +37,7 @@ describe("Verify playbook generation features work as expected", function () {
 
     await sleep(5000);
     workbench = new Workbench();
-    // await workbenchExecuteCommand(
-    //   "Ansible Lightspeed: Enable experimental features",
-    // );
+
     await sleep(3000);
 
     await workbenchExecuteCommand("View: Close All Editor Groups");
