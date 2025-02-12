@@ -29,15 +29,18 @@ describe("Verify playbook explanation features when no explanation is returned",
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
+    console.log("before await VSBrowser.instance.openResources(filePath);");
     await VSBrowser.instance.openResources(filePath);
 
     // Open playbook explanation webview.
+    console.log("before await workbenchExecuteCommand");
     await workbenchExecuteCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
     await sleep(5000);
 
     // Locate the playbook explanation webview
+    console.log("before await new EditorView().openEditor");
     await new EditorView().openEditor("Explanation", 1);
     const webView = await getWebviewByLocator(
       By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
@@ -49,13 +52,17 @@ describe("Verify playbook explanation features when no explanation is returned",
     );
     expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
     await sleep(5000);
+    console.log("before await mainDiv.getText()");
     const text = await mainDiv.getText();
     expect(text.includes("No explanation provided")).to.be.true;
 
+    console.log("before await webView.switchBack()");
     await webView.switchBack();
     editorView = new EditorView();
     if (editorView) {
+      console.log("before await editorView.closeAllEditors()");
       await editorView.closeAllEditors();
     }
+    console.log("done running test");
   });
 });
