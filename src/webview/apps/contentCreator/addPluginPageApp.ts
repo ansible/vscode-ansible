@@ -1,70 +1,80 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import {
-  allComponents,
-  Button,
-  Checkbox,
-  TextArea,
-  TextField,
-  provideVSCodeDesignSystem,
-  Dropdown,
-} from "@vscode/webview-ui-toolkit";
-import {
   PluginFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-
-provideVSCodeDesignSystem().register(allComponents);
+import "@vscode-elements/elements";
+import {
+  VscodeButton,
+  VscodeCheckbox,
+  VscodeIcon,
+  VscodeSingleSelect,
+  VscodeTextarea,
+  VscodeTextfield,
+} from "@vscode-elements/elements";
 
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-let pluginNameTextField: TextField;
-let pluginTypeDropdown: Dropdown;
+let pluginNameTextField: VscodeTextfield;
+let pluginTypeDropdown: VscodeSingleSelect;
 
-let collectionPathUrlTextField: TextField;
-let folderExplorerButton: Button;
+let collectionPathUrlTextField: VscodeTextfield;
+let folderExplorerIcon: VscodeIcon;
 
-let initCreateButton: Button;
-let initClearButton: Button;
+let initCreateButton: VscodeButton;
+let initClearButton: VscodeButton;
 
-let overwriteCheckbox: Checkbox;
+let overwriteCheckbox: VscodeCheckbox;
 
-let verboseDropdown: Dropdown;
+let verboseDropdown: VscodeSingleSelect;
 
 let initCollectionPathDiv: HTMLElement | null;
 let initCollectionPathElement: HTMLElement;
 
-let initLogsTextArea: TextArea;
-let initClearLogsButton: Button;
-let initOpenScaffoldedFolderButton: Button;
+let initLogsTextArea: VscodeTextarea;
+let initClearLogsButton: VscodeButton;
+let initOpenScaffoldedFolderButton: VscodeButton;
 
 let projectUrl = "";
 
 function main() {
   // elements for scaffolding ansible plugin interface
-  pluginNameTextField = document.getElementById("plugin-name") as TextField;
-  pluginTypeDropdown = document.getElementById("plugin-dropdown") as Dropdown;
+  pluginNameTextField = document.getElementById(
+    "plugin-name",
+  ) as VscodeTextfield;
+  pluginTypeDropdown = document.getElementById(
+    "plugin-dropdown",
+  ) as VscodeSingleSelect;
 
-  collectionPathUrlTextField = document.getElementById("path-url") as TextField;
-  folderExplorerButton = document.getElementById("folder-explorer") as Button;
+  collectionPathUrlTextField = document.getElementById(
+    "path-url",
+  ) as VscodeTextfield;
+  folderExplorerIcon = document.getElementById("folder-explorer") as VscodeIcon;
 
-  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById(
+    "overwrite-checkbox",
+  ) as VscodeCheckbox;
 
-  verboseDropdown = document.getElementById("verbosity-dropdown") as Dropdown;
-  initCreateButton = document.getElementById("create-button") as Button;
-  initClearButton = document.getElementById("clear-button") as Button;
+  verboseDropdown = document.getElementById(
+    "verbosity-dropdown",
+  ) as VscodeSingleSelect;
+  initCreateButton = document.getElementById("create-button") as VscodeButton;
+  initClearButton = document.getElementById("clear-button") as VscodeButton;
 
-  initLogsTextArea = document.getElementById("log-text-area") as TextArea;
-  initClearLogsButton = document.getElementById("clear-logs-button") as Button;
+  initLogsTextArea = document.getElementById("log-text-area") as VscodeTextarea;
+  initClearLogsButton = document.getElementById(
+    "clear-logs-button",
+  ) as VscodeButton;
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
-  ) as Button;
+  ) as VscodeButton;
 
   pluginNameTextField.addEventListener("input", toggleCreateButton);
   collectionPathUrlTextField.addEventListener("input", toggleCreateButton);
 
-  folderExplorerButton.addEventListener("click", openExplorer);
+  folderExplorerIcon.addEventListener("click", openExplorer);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
   initCreateButton.disabled = true;
@@ -80,12 +90,13 @@ function main() {
   initCollectionPathDiv = document.getElementById("full-collection-path");
 
   initCollectionPathElement = document.createElement("p");
-  initCollectionPathElement.innerHTML = collectionPathUrlTextField.placeholder;
+  initCollectionPathElement.innerHTML =
+    collectionPathUrlTextField.placeholder as string;
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
 }
 
 function openExplorer(event: any) {
-  const source = event.target.parentNode.id;
+  const source = event.target.id;
 
   let selectOption;
 
@@ -123,13 +134,14 @@ function openExplorer(event: any) {
 
 function handleInitClearClick() {
   pluginNameTextField.value = "";
-  pluginTypeDropdown.currentValue = "filter";
+  pluginTypeDropdown.value = "filter";
   collectionPathUrlTextField.value = "";
 
-  initCollectionPathElement.innerHTML = collectionPathUrlTextField.placeholder;
+  initCollectionPathElement.innerHTML =
+    collectionPathUrlTextField.placeholder as string;
 
   overwriteCheckbox.checked = false;
-  verboseDropdown.currentValue = "Off";
+  verboseDropdown.value = "Off";
 
   initCreateButton.disabled = true;
 }
@@ -139,11 +151,11 @@ function toggleCreateButton() {
   if (!collectionPathUrlTextField.value.trim()) {
     initCollectionPathElement.innerHTML = `${
       collectionPathUrlTextField.placeholder
-    }/plugins/${pluginTypeDropdown.currentValue.trim()}/${pluginNameTextField.value.trim()}`;
+    }/plugins/${pluginTypeDropdown.value.trim()}/${pluginNameTextField.value.trim()}`;
 
     if (!pluginNameTextField.value.trim()) {
       initCollectionPathElement.innerHTML =
-        collectionPathUrlTextField.placeholder;
+        collectionPathUrlTextField.placeholder as string;
     }
   } else {
     initCollectionPathElement.innerHTML =
@@ -164,9 +176,9 @@ function handleInitCreateClick() {
     command: "init-create",
     payload: {
       pluginName: pluginNameTextField.value.trim(),
-      pluginType: pluginTypeDropdown.currentValue.trim(),
+      pluginType: pluginTypeDropdown.value.trim(),
       collectionPath: collectionPathUrlTextField.value.trim(),
-      verbosity: verboseDropdown.currentValue.trim(),
+      verbosity: verboseDropdown.value.trim(),
       isOverwritten: overwriteCheckbox.checked,
     } as PluginFormInterface,
   });

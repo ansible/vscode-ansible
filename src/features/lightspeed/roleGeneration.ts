@@ -4,7 +4,6 @@ import { Webview, Uri, workspace } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
-import { IError } from "./utils/errors";
 import {
   RoleGenerationResponseParams,
   RoleGenerationListEntry,
@@ -13,7 +12,7 @@ import {
   WizardGenerationActionType,
   LightSpeedCommands,
 } from "../../definitions/lightspeed";
-import { isError, UNKNOWN_ERROR } from "./utils/errors";
+import { isError, IError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
 import { getCollectionsFromWorkspace } from "./roleGeneration/collectionSelectorElement";
