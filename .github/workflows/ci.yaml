@@ -51,7 +51,7 @@ jobs:
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     # see https://github.com/containers/podman/issues/13609
-    continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
+    # continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
     strategy:
@@ -87,7 +87,7 @@ jobs:
               SKIP_DOCKER: 1
             # only until we fix some broken tests, as we need it to pass
             # in order to enable the caching
-            continue-on-error: true
+            # continue-on-error: true
 
           - name: test (wsl)
             # runner does not support running containers
