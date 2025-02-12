@@ -1,10 +1,3 @@
-import {
-  allComponents,
-  provideVSCodeDesignSystem,
-} from "@vscode/webview-ui-toolkit";
-
-provideVSCodeDesignSystem().register(allComponents);
-
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
@@ -40,7 +33,6 @@ function updateAnsibleCreatorAvailabilityStatus() {
       );
 
       if (!systemStatus) {
-        //   systemReadinessDiv.style.backgroundColor = "#610000";
         systemReadinessIcon.innerHTML = `<span class="codicon codicon-warning"></span>`;
         systemReadinessDescription.innerHTML = `
               <p class="system-description">

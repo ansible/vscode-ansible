@@ -24,14 +24,14 @@ exclude: >
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.17.0
+    rev: v8.17.2
     hooks:
       - id: cspell
         args:
           -  --config=cspell.config.yaml
         # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         pass_filenames: false # we want to use its own config
@@ -48,7 +48,7 @@ repos:
           - -e
           - SC1091
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.9.4
     hooks:
       - id: ruff
         args:
@@ -58,7 +58,7 @@ repos:
       - id: ruff-format # must be after ruff
         types_or: [python, pyi]
   - repo: https://github.com/psf/black # must be after ruff
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
   - repo: local
@@ -189,7 +189,7 @@ repos:
             docs/als/settings.md
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.43.0
+    rev: v0.44.0
     hooks:
       - id: markdownlint
         exclude: >

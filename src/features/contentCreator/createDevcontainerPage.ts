@@ -9,8 +9,10 @@ import { DevcontainerFormInterface, PostMessageEvent } from "./types";
 import * as fs from "fs";
 import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
-import { DevcontainerImages } from "../../definitions/constants";
-import { DevcontainerRecommendedExtensions } from "../../definitions/constants";
+import {
+  DevcontainerImages,
+  DevcontainerRecommendedExtensions,
+} from "../../definitions/constants";
 
 export class CreateDevcontainer {
   public static currentPanel: CreateDevcontainer | undefined;
@@ -177,7 +179,7 @@ export class CreateDevcontainer {
                   </vscode-button>
                   <vscode-button id="open-file-button" form="devcontainer-form" disabled>
                     <span class="codicon codicon-go-to-file"></span>
-                    &nbsp; Explore Devcontainer
+                    &nbsp; Open Devcontainer
                   </vscode-button>
                 </div>
               </section>

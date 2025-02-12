@@ -45,7 +45,7 @@ tasks:
     cmds:
       - npm install -g npm@latest
       # - installs tools from .tool-versions
-      - asdf install
+      # - asdf install
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - npm outdated
       # bumps some developments dependencies
@@ -71,9 +71,9 @@ tasks:
     cmds:
       - task: shared:install
       # switch to last nodejs version listed in .tool-versions
-      - git clean -dxf
-      - bash -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
-      - node --version
+      # - git clean -dxf
+      # - bash -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
+      # - node --version
       - task: .test
       # restore implicit node version
       - defer: git checkout HEAD .tool-versions

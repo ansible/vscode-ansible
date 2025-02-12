@@ -2,12 +2,13 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { PluginFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, runCommand } from "./utils";
+import { expandPath, runCommand, getCreatorVersion } from "./utils";
 
 export class AddPlugin {
   public static currentPanel: AddPlugin | undefined;
@@ -100,11 +101,11 @@ export class AddPlugin {
 
         <head>
           <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};"/>
           <title>AAA</title>
-          <link rel="stylesheet" href="${styleUri}">
-          <link rel="stylesheet" href="${codiconsUri}">
+          <link rel="stylesheet" href="${styleUri}"/>
+          <link rel="stylesheet" href="${codiconsUri}"id="vscode-codicon-stylesheet"/>
         </head>
 
         <body>
@@ -116,27 +117,41 @@ export class AddPlugin {
             <form id="init-form">
               <section class="component-container">
 
-                <vscode-text-field id="path-url" class="required" form="init-form" placeholder="${homeDir}"
-                  size="512">Collection root directory *
-                  <section slot="end" class="explorer-icon">
-                    <vscode-button id="folder-explorer" appearance="icon">
-                      <span class="codicon codicon-folder-opened"></span>
-                    </vscode-button>
-                  </section>
-                </vscode-text-field>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="path-url">
+                    <span class="normal">Collection root directory *</span>
+                  </vscode-label>
+                  <vscode-textfield id="path-url" class="required" form="init-form" placeholder="${homeDir}"
+                    size="512">
+                    <vscode-icon
+                      slot="content-after"
+                      id="folder-explorer"
+                      name="folder-opened"
+                      action-icon
+                    ></vscode-icon>
+                  </vscode-textfield>
+                </vscode-form-group>
 
                 <div class="plugin-type-div">
                   <div class="dropdown-container">
-                    <label for="plugin-dropdown">Plugin type *</label>
-                    <vscode-dropdown id="plugin-dropdown">
+                    <vscode-label for="plugin-dropdown">
+                      <span class="normal">Plugin type *</span>
+                    </vscode-label>
+                    <vscode-single-select id="plugin-dropdown">
                       <vscode-option>filter</vscode-option>
                       <vscode-option>lookup</vscode-option>
-                    </vscode-dropdown>
+                      <vscode-option>action</vscode-option>
+                    </vscode-single-select>
                   </div>
                 </div>
 
                 <div class="plugin-name-div">
-                <vscode-text-field id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512">Plugin name *</vscode-text-field>
+                  <vscode-form-group variant="vertical">
+                    <vscode-label for="plugin-name">
+                      <span class="normal">Plugin name *</span>
+                    </vscode-label>
+                    <vscode-textfield id="plugin-name" form="init-form" placeholder="Enter plugin name" size="512"></vscode-textfield>
+                  </vscode-form-group>
                 </div>
 
                 <div id="full-collection-path" class="full-collection-path">
@@ -145,13 +160,15 @@ export class AddPlugin {
 
                 <div class="verbose-div">
                   <div class="dropdown-container">
-                    <label for="verbosity-dropdown">Output verbosity</label>
-                    <vscode-dropdown id="verbosity-dropdown">
+                    <vscode-label for="verbosity-dropdown">
+                      <span class="normal">Output Verbosity</span>
+                    </vscode-label>
+                    <vscode-single-select id="verbosity-dropdown">
                       <vscode-option>Off</vscode-option>
                       <vscode-option>Low</vscode-option>
                       <vscode-option>Medium</vscode-option>
                       <vscode-option>High</vscode-option>
-                    </vscode-dropdown>
+                    </vscode-single-select>
                   </div>
                 </div>
 
@@ -160,7 +177,7 @@ export class AddPlugin {
                 </div>
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-button" form="init-form" appearance="secondary">
+                  <vscode-button id="clear-button" form="init-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear All
                   </vscode-button>
@@ -170,14 +187,16 @@ export class AddPlugin {
                   </vscode-button>
                 </div>
 
-                <br>
                 <vscode-divider></vscode-divider>
-                <br>
-                <vscode-text-area id="log-text-area" cols="512" rows="10" placeholder="Output of the command execution"
-                  resize="vertical" readonly>Logs</vscode-text-area>
+
+                <vscode-label id="vscode-logs-label" for="log-text-area">
+                  <span class="normal">Logs</span>
+                </vscode-label>
+                <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
+                  resize="vertical" readonly></vscode-textarea>
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-logs-button" form="init-form" appearance="secondary">
+                  <vscode-button id="clear-logs-button" form="init-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
@@ -195,6 +214,16 @@ export class AddPlugin {
             </form>
 
           <!-- Component registration code -->
+          <script type="module" nonce="${getNonce()}">
+            import "@vscode-elements/elements/dist/vscode-button/index.js";
+            import "@vscode-elements/elements/dist/vscode-checkbox/index.js";
+            import "@vscode-elements/elements/dist/vscode-divider/index.js";
+            import "@vscode-elements/elements/dist/vscode-form-group/index.js";
+            import "@vscode-elements/elements/dist/vscode-label/index.js";
+            import "@vscode-elements/elements/dist/vscode-single-select/index.js";
+            import "@vscode-elements/elements/dist/vscode-textarea/index.js";
+            import "@vscode-elements/elements/dist/vscode-textfield/index.js";
+          </script>
           <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
@@ -263,7 +292,7 @@ export class AddPlugin {
 
     let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
-      if (fileUri && fileUri[0]) {
+      if (fileUri?.[0]) {
         selectedUri = fileUri[0].fsPath;
       }
     });
@@ -278,9 +307,9 @@ export class AddPlugin {
     const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
       payload;
 
-    const destinationPathUrl = collectionPath
-      ? collectionPath
-      : `${os.homedir()}/.ansible/collections/ansible_collections`;
+    const destinationPathUrl =
+      collectionPath ||
+      `${os.homedir()}/.ansible/collections/ansible_collections`;
 
     let ansibleCreatorAddCommand = await this.getCreatorCommand(
       pluginName,
@@ -321,23 +350,41 @@ export class AddPlugin {
     );
 
     let commandOutput = "";
+    let commandResult: string;
 
-    // execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `------------------------------------ ansible-creator logs ------------------------------------\n`;
-    commandOutput += ansibleCreatorExecutionResult.output;
-    const commandPassed = ansibleCreatorExecutionResult.status;
+    const creatorVersion = await getCreatorVersion();
+    const minRequiredCreatorVersion: Record<string, string> = {
+      lookup: "24.12.1",
+      filter: "24.12.1",
+      action: "25.0.0",
+    };
+    const requiredCreatorVersion =
+      minRequiredCreatorVersion[pluginType.toLowerCase()];
+
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+      // execute ansible-creator command
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
+    } else {
+      commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
+      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      commandResult = "failed";
+    }
 
     await webView.postMessage({
       command: "execution-log",
       arguments: {
         commandOutput: commandOutput,
         projectUrl: destinationPathUrl,
-        status: commandPassed,
+        status: commandResult,
       },
     } as PostMessageEvent);
 
-    if (commandPassed === "passed") {
+    if (commandResult === "passed") {
       const selection = await vscode.window.showInformationMessage(
         `${pluginType} plugin '${pluginName}' added at: ${destinationPathUrl}/plugins`,
         `Open plugin file ↗`,

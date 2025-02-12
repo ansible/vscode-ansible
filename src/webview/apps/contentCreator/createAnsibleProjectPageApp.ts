@@ -23,11 +23,6 @@ let folderExplorerIcon: VscodeIcon;
 let namespaceNameTextField: VscodeTextfield;
 let collectionNameTextField: VscodeTextfield;
 
-let namespaceInputField: HTMLInputElement;
-let collectionInputField: HTMLInputElement;
-let destPathUrlInputField: HTMLInputElement;
-let logFilePathInputField: HTMLInputElement;
-
 let initCreateButton: VscodeButton;
 let initClearButton: VscodeButton;
 
@@ -108,21 +103,6 @@ function main() {
     "open-folder-button",
   ) as VscodeButton;
 
-  // Workaround for vscode-elements .value limitations for text fields
-  namespaceInputField = namespaceNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  collectionInputField = collectionNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  destPathUrlInputField = destinationPathUrlTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  logFilePathInputField = logFilePath.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-
-  // projectNameTextField?.addEventListener("input", toggleCreateButton);
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
   namespaceNameTextField.addEventListener("input", toggleCreateButton);
   collectionNameTextField.addEventListener("input", toggleCreateButton);
@@ -179,10 +159,10 @@ function openExplorer(event: any) {
 
         if (selectedUri) {
           if (source === "folder-explorer") {
-            destPathUrlInputField.value = selectedUri;
+            destinationPathUrlTextField.value = selectedUri;
             initCollectionPathElement.innerHTML = selectedUri;
           } else {
-            logFilePathInputField.value = selectedUri;
+            logFilePath.value = selectedUri;
           }
         }
       }
@@ -220,10 +200,10 @@ function toggleCreateButton() {
 }
 
 function handleInitClearClick() {
-  namespaceInputField.value = "";
-  collectionInputField.value = "";
-  destPathUrlInputField.value = "";
-  logFilePathInputField.value = "";
+  namespaceNameTextField.value = "";
+  collectionNameTextField.value = "";
+  destinationPathUrlTextField.value = "";
+  logFilePath.value = "";
 
   initCollectionPathElement.innerHTML =
     destinationPathUrlTextField.placeholder as string;

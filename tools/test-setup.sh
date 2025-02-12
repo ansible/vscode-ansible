@@ -75,28 +75,6 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    exit 2
 fi
 
-log notice "Install required build tools"
-if type mise >/dev/null; then
-    log notice "Found mise..."
-    mise install
-    mise ls
-    mise doctor
-elif type asdf >/dev/null; then
-    log notice "Found asdf..."
-    for PLUGIN in yarn nodejs task python direnv; do
-        if ! asdf plugin-list | grep -q $PLUGIN; then
-            asdf plugin add $PLUGIN
-        fi
-    done
-    asdf install
-
-    log notice "Report current build tool versions..."
-    asdf current
-else
-    log fatal "Neither mise nor asdf found."
-    exit 3
-fi
-
 if [[ "${OSTYPE:-}" != darwin* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
@@ -343,11 +321,6 @@ for CMD in ansible ansible-lint; do
     }
 done
 unset CMD
-
-command -v npm  >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
-    asdf install
-}
 
 if [[ -f yarn.lock ]]; then
     command -v yarn >/dev/null 2>&1 || {

@@ -25,62 +25,79 @@ vscode-form-group {
     margin: 0;
 }
 
-.plugin-name-div {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 18px;
-    margin-bottom: 20px;
-    width: 100%;
-}
-
-#plugin-name {
-    width:49%;
-    display:inline-block;
-}
-
-.plugin-type-div {
-    display: flex; /* Use flexbox */
-    flex-direction: row; /* Arrange child elements vertically */
-    margin-top: 12px;
-    margin-bottom: 30px;
-    width: 100%;
-}
-
 .checkbox-div {
-    display: flex; /* Use flexbox */
-    flex-direction: column; /* Arrange child elements vertically */
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Arrange child elements vertically */
     margin-top: 22px;
     margin-bottom: 10px;
     width: 100%;
 }
 
+.overwriteCheckbox-div {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Arrange child elements vertically */
+    margin-top: 22px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.suggestedCollections-div {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: column;
+    /* Arrange child elements vertically */
+    margin-top: 18px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    /* Space between columns */
+    justify-content: flex-start;
+    /* Aligns the columns to the left */
+}
+
+#suggestedCollections-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+
 .verbose-div {
-    display: flex; /* Use flexbox */
-    flex-direction: row; /* Arrange child elements vertically */
+    display: flex;
+    /* Use flexbox */
+    flex-direction: row;
+    /* Arrange child elements vertically */
     margin-top: 12px;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
     width: 100%;
 }
 
 vscode-single-select {
-    width: 200px;
+    width: 500px;
 }
 
-.full-collection-path {
-    display: flex; /* Use flexbox */
-    flex-direction: row; /* Arrange child elements vertically */
-    color: var(--vscode-descriptionForeground);
-}
-
-.required-fields {
-    margin-top: 10px;
+.full-destination-path {
+    display: flex;
+    /* Use flexbox */
+    flex-direction: row;
+    /* Arrange child elements vertically */
     color: var(--vscode-descriptionForeground);
 }
 
 .group-buttons {
-    display: flex; /* Use flexbox */
-    flex-direction: row; /* Arrange child elements vertically */
+    display: flex;
+    /* Use flexbox */
+    flex-direction: row;
+    /* Arrange child elements vertically */
 }
 
 .p-collection-name {
@@ -94,6 +111,7 @@ vscode-button {
 vscode-checkbox i {
     color: var(--vscode-descriptionForeground);
     font-size: small;
+    width: 100%;
 }
 
 vscode-divider {
@@ -103,7 +121,7 @@ vscode-divider {
 #vscode-logs-label {
     padding: 0;
     align-self: flex-start;
-    margin-top: 12px;
+    margin-left: 5px;
 }
 
 #ade-docs-link {

@@ -146,9 +146,24 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Setup asdf
+      - name: Setup node.js
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: asdf-vm/actions/install@v3
+        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Setup task
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.37.2
+
+      - name: Setup direnv
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        uses: HatsuneMiku3939/direnv-action@v1
+        with:
+          direnvVersion: 2.35.0
 
       - name: Setup python
         if: ${{ !contains(matrix.shell, 'wsl') }}
@@ -184,17 +199,16 @@ jobs:
       - name: Activate direnv
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
-          set -x
-          asdf direnv setup --shell bash --version latest
-          asdf current
-          asdf exec direnv allow
-          asdf exec direnv reload
+          # set -x
+          # direnv setup --shell bash --version latest
+          direnv allow
+          direnv reload
 
           # https://github.com/direnv/direnv/wiki/GitHubActions
           # Github prevents export of NODE_OPTIONS to GITHUB_ENV due to security reasons:
           # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
-          asdf exec direnv export gha >> "$GITHUB_ENV"
-          asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
+          direnv export gha >> "$GITHUB_ENV"
+          direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
       - name: Ensure .env file is automatically loaded (direnv)
         if: ${{ !contains(matrix.shell, 'wsl') }}
@@ -209,7 +223,7 @@ jobs:
             exit 98
           }
           # Ensure NODE_OPTIONS config on CI is identical with the one in .env
-          [[ "${NODE_OPTIONS:-}" == "$(asdf exec direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
+          [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Enable caching
         uses: actions/cache@v4
