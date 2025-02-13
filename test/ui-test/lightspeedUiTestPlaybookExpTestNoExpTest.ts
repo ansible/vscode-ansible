@@ -54,7 +54,11 @@ describe("Verify playbook explanation features when no explanation is returned",
     await sleep(5000);
     console.log("before await mainDiv.getText()");
     const text = await mainDiv.getText();
-    expect(text.includes("No explanation provided")).to.be.true;
+    console.log("text: ", text);
+    expect(
+      text.includes("No explanation provided"),
+      "text should be No explanation provided",
+    ).to.be.true;
 
     console.log("before await webView.switchBack()");
     await webView.switchBack();
