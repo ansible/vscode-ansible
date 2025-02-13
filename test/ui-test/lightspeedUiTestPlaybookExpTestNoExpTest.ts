@@ -21,6 +21,8 @@ describe("Verify playbook explanation features when no explanation is returned",
   });
 
   it("Playbook explanation webview works as expected, no explanation", async function () {
+    const startTime = performance.now();
+
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -68,5 +70,9 @@ describe("Verify playbook explanation features when no explanation is returned",
       await editorView.closeAllEditors();
     }
     console.log("done running test");
+
+    const endTime = performance.now();
+
+    console.log(`Test took ${endTime - startTime} milliseconds`);
   });
 });
