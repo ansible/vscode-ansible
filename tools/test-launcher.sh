@@ -115,11 +115,10 @@ ${EXTEST} install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ex
 
 export COVERAGE
 
-if [[ "${TEST_TYPE}" == "ui" ]]; then
-    # shellcheck disable=SC2044
-
-    for test_file in $(find out/client/test/ui-test/ -name "${UI_TARGET}"); do
-        echo "🧐testing ${test_file}"
+for i in {1..10}; do
+    if [[ "${TEST_TYPE}" == "ui" ]]; then
+        test_file="out/client/test/ui-test/lightspeedUiTestPlaybookExpTestNoExpTest.js"
+        echo "🧐testing ${test_file} - Iteration $i"
 
         if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
             start_server
@@ -134,8 +133,8 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
         fi
 
         stop_server
-    done
-fi
+    fi
+done
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
     node ./out/client/test/testRunner
 fi
