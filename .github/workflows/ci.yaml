@@ -94,7 +94,8 @@ jobs:
             task-name: als:test-without-ee
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
+            os: devtools-vscode-win11-x64
+            # devtools-win-x64
             shell: "wsl-bash {0}"
             env:
               SKIP_PODMAN: 1
