@@ -12,6 +12,8 @@ import {
 config.truncateThreshold = 0;
 
 describe("Verify playbook explanation features when no explanation is returned", function () {
+  let editorView: EditorView;
+
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
@@ -51,6 +53,9 @@ describe("Verify playbook explanation features when no explanation is returned",
     expect(text.includes("No explanation provided")).to.be.true;
 
     await webView.switchBack();
-    await workbenchExecuteCommand("View: Close All Editor Groups");
+    editorView = new EditorView();
+    if (editorView) {
+      await editorView.closeAllEditors();
+    }
   });
 });
