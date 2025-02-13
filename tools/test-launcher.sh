@@ -115,7 +115,7 @@ ${EXTEST} install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ex
 
 export COVERAGE
 
-for i in {1..10}; do
+for i in {1..20}; do
     if [[ "${TEST_TYPE}" == "ui" ]]; then
         test_file="out/client/test/ui-test/lightspeedUiTestPlaybookExpTestNoExpTest.js"
         echo "🧐testing ${test_file} - Iteration $i"
