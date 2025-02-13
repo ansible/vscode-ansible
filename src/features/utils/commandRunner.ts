@@ -28,7 +28,7 @@ export function withInterpreter(
 
   const activationScript = settings.activationScript;
   if (activationScript) {
-    command = `bash -c 'source ${activationScript} && ${runExecutable} ${cmdArgs}'`;
+    command = `sh -c 'source ${activationScript} && ${runExecutable} ${cmdArgs}'`;
     return { command: command, env: process.env };
   }
 
