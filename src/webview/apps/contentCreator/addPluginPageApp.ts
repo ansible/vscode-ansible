@@ -221,6 +221,8 @@ function handleInitOpenScaffoldedFolderClick() {
     command: "init-open-scaffolded-folder",
     payload: {
       projectUrl: projectUrl,
+      pluginName: pluginNameTextField.value.trim(),
+      pluginType: pluginTypeDropdown.value.trim(),
     },
   });
 }
