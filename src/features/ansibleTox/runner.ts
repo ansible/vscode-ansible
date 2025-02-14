@@ -28,7 +28,7 @@ export async function getToxEnvs(
   )) as string;
 
   if (activationScript) {
-    command = `bash -c 'source ${activationScript} && ${command}'`;
+    command = `sh -c 'source ${activationScript} && ${command}'`;
   }
   if (interpreterPath && interpreterPath !== "") {
     const virtualEnv = path.resolve(interpreterPath, "../..");

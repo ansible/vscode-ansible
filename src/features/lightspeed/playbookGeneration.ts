@@ -4,13 +4,12 @@ import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
 import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
-import { IError } from "./utils/errors";
 import { PlaybookGenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
   WizardGenerationActionType,
 } from "../../definitions/lightspeed";
-import { isError, UNKNOWN_ERROR } from "./utils/errors";
+import { isError, IError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
 

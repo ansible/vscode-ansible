@@ -2,12 +2,13 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as semver from "semver";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { PluginFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
-import { expandPath, runCommand } from "./utils";
+import { expandPath, runCommand, getCreatorVersion } from "./utils";
 
 export class AddPlugin {
   public static currentPanel: AddPlugin | undefined;
@@ -291,7 +292,7 @@ export class AddPlugin {
 
     let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
-      if (fileUri && fileUri[0]) {
+      if (fileUri?.[0]) {
         selectedUri = fileUri[0].fsPath;
       }
     });
@@ -306,9 +307,9 @@ export class AddPlugin {
     const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
       payload;
 
-    const destinationPathUrl = collectionPath
-      ? collectionPath
-      : `${os.homedir()}/.ansible/collections/ansible_collections`;
+    const destinationPathUrl =
+      collectionPath ||
+      `${os.homedir()}/.ansible/collections/ansible_collections`;
 
     let ansibleCreatorAddCommand = await this.getCreatorCommand(
       pluginName,
@@ -349,23 +350,41 @@ export class AddPlugin {
     );
 
     let commandOutput = "";
+    let commandResult: string;
 
-    // execute ansible-creator command
-    const ansibleCreatorExecutionResult = await runCommand(command, env);
+    const creatorVersion = await getCreatorVersion();
+    const minRequiredCreatorVersion: Record<string, string> = {
+      lookup: "24.12.1",
+      filter: "24.12.1",
+      action: "25.0.0",
+    };
+    const requiredCreatorVersion =
+      minRequiredCreatorVersion[pluginType.toLowerCase()];
+
     commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
-    commandOutput += ansibleCreatorExecutionResult.output;
-    const commandPassed = ansibleCreatorExecutionResult.status;
+
+    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+      // execute ansible-creator command
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
+    } else {
+      commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
+      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      commandResult = "failed";
+    }
 
     await webView.postMessage({
       command: "execution-log",
       arguments: {
         commandOutput: commandOutput,
         projectUrl: destinationPathUrl,
-        status: commandPassed,
+        status: commandResult,
       },
     } as PostMessageEvent);
 
-    if (commandPassed === "passed") {
+    if (commandResult === "passed") {
       const selection = await vscode.window.showInformationMessage(
         `${pluginType} plugin '${pluginName}' added at: ${destinationPathUrl}/plugins`,
         `Open plugin file ↗`,

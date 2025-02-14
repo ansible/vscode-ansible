@@ -9,8 +9,10 @@ import { DevcontainerFormInterface, PostMessageEvent } from "./types";
 import * as fs from "fs";
 import { SettingsManager } from "../../settings";
 import { expandPath } from "./utils";
-import { DevcontainerImages } from "../../definitions/constants";
-import { DevcontainerRecommendedExtensions } from "../../definitions/constants";
+import {
+  DevcontainerImages,
+  DevcontainerRecommendedExtensions,
+} from "../../definitions/constants";
 
 export class CreateDevcontainer {
   public static currentPanel: CreateDevcontainer | undefined;

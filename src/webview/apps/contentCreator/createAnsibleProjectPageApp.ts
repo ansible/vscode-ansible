@@ -23,11 +23,6 @@ let folderExplorerIcon: VscodeIcon;
 let namespaceNameTextField: VscodeTextfield;
 let collectionNameTextField: VscodeTextfield;
 
-let namespaceInputField: HTMLInputElement;
-let collectionInputField: HTMLInputElement;
-let destPathUrlInputField: HTMLInputElement;
-let logFilePathInputField: HTMLInputElement;
-
 let initCreateButton: VscodeButton;
 let initClearButton: VscodeButton;
 
@@ -108,21 +103,6 @@ function main() {
     "open-folder-button",
   ) as VscodeButton;
 
-  // Workaround for vscode-elements .value limitations for text fields
-  namespaceInputField = namespaceNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  collectionInputField = collectionNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  destPathUrlInputField = destinationPathUrlTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  logFilePathInputField = logFilePath.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-
-  // projectNameTextField?.addEventListener("input", toggleCreateButton);
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
   namespaceNameTextField.addEventListener("input", toggleCreateButton);
   collectionNameTextField.addEventListener("input", toggleCreateButton);
@@ -151,44 +131,29 @@ function main() {
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
 }
 
+let Source = "";
 function openExplorer(event: any) {
-  const source = event.target.id;
-
-  let selectOption;
-
-  if (source === "folder-explorer") {
-    selectOption = "folder";
-  } else {
-    selectOption = "file";
-  }
-
+  Source = event.target.id;
+  const selectOption = Source === "folder-explorer" ? "folder" : "file";
   vscode.postMessage({
     command: "open-explorer",
-    payload: {
-      selectOption: selectOption,
-    },
+    payload: { selectOption },
   });
-
-  window.addEventListener(
-    "message",
-    (event: MessageEvent<PostMessageEvent>) => {
-      const message = event.data;
-
-      if (message.command === "file-uri") {
-        const selectedUri = message.arguments.selectedUri;
-
-        if (selectedUri) {
-          if (source === "folder-explorer") {
-            destPathUrlInputField.value = selectedUri;
-            initCollectionPathElement.innerHTML = selectedUri;
-          } else {
-            logFilePathInputField.value = selectedUri;
-          }
-        }
-      }
-    },
-  );
 }
+window.addEventListener("message", (event: MessageEvent<PostMessageEvent>) => {
+  const message = event.data;
+  if (message.command === "file-uri") {
+    const selectedUri = message.arguments.selectedUri;
+    if (selectedUri) {
+      if (Source === "folder-explorer") {
+        destinationPathUrlTextField.value = selectedUri;
+        initCollectionPathElement.innerHTML = selectedUri;
+      } else if (Source === "file-explorer") {
+        logFilePath.value = selectedUri;
+      }
+    }
+  }
+});
 
 function toggleCreateButton() {
   //   update collection path <p> tag
@@ -220,10 +185,10 @@ function toggleCreateButton() {
 }
 
 function handleInitClearClick() {
-  namespaceInputField.value = "";
-  collectionInputField.value = "";
-  destPathUrlInputField.value = "";
-  logFilePathInputField.value = "";
+  namespaceNameTextField.value = "";
+  collectionNameTextField.value = "";
+  destinationPathUrlTextField.value = "";
+  logFilePath.value = "";
 
   initCollectionPathElement.innerHTML =
     destinationPathUrlTextField.placeholder as string;

@@ -20,11 +20,6 @@ window.addEventListener("load", main);
 let initNamespaceNameTextField: VscodeTextfield;
 let initCollectionNameTextField: VscodeTextfield;
 
-let namespaceInputField: HTMLInputElement;
-let collectionInputField: HTMLInputElement;
-let logFilePathInputField: HTMLInputElement;
-let initPathUrlInputField: HTMLInputElement;
-
 let initPathUrlTextField: VscodeTextfield;
 let folderExplorerIcon: VscodeIcon;
 
@@ -111,20 +106,6 @@ function main() {
     "open-folder-button",
   ) as VscodeButton;
 
-  // Workaround for vscode-elements .value limitations for text fields
-  namespaceInputField = initNamespaceNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  collectionInputField = initCollectionNameTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  logFilePathInputField = logFilePath.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-  initPathUrlInputField = initPathUrlTextField.shadowRoot?.querySelector(
-    "#input",
-  ) as HTMLInputElement;
-
   initNamespaceNameTextField.addEventListener("input", toggleCreateButton);
   initCollectionNameTextField.addEventListener("input", toggleCreateButton);
   initPathUrlTextField.addEventListener("input", toggleCreateButton);
@@ -162,51 +143,53 @@ function main() {
 
 function openExplorer(event: any) {
   const source = event.target.id;
-
-  let selectOption;
-
-  if (source === "folder-explorer") {
-    selectOption = "folder";
-  } else {
-    selectOption = "file";
-  }
+  const selectOption = source === "folder-explorer" ? "folder" : "file";
 
   vscode.postMessage({
     command: "open-explorer",
-    payload: {
-      selectOption: selectOption,
-    },
+    payload: { selectOption },
   });
 
-  window.addEventListener(
-    "message",
-    (event: MessageEvent<PostMessageEvent>) => {
-      const message = event.data;
-
-      if (message.command === "file-uri") {
-        const selectedUri = message.arguments.selectedUri;
-
-        if (selectedUri) {
-          if (source === "folder-explorer") {
-            initPathUrlInputField.value = selectedUri;
-          } else {
-            logFilePathInputField.value = selectedUri;
-          }
+  const handleMessage = (event: MessageEvent) => {
+    const message = event.data;
+    if (message.command === "file-uri") {
+      const selectedUri = message.arguments.selectedUri;
+      if (selectedUri) {
+        if (source === "folder-explorer") {
+          initPathUrlTextField.value = selectedUri;
+          initCollectionPathElement.innerHTML = selectedUri;
+        } else if (source === "file-explorer") {
+          logFilePath.value = selectedUri;
         }
       }
-    },
-  );
+      window.removeEventListener("message", handleMessage);
+    }
+  };
+
+  window.addEventListener("message", handleMessage);
 }
 
 function toggleCreateButton() {
-  //   update collection name <p> tag
-  if (
-    !initNamespaceNameTextField.value.trim() &&
-    !initCollectionNameTextField.value.trim()
-  ) {
+  //   update collection name and project path <p> tags
+
+  const namespaceName = initNamespaceNameTextField.value.trim();
+  const collectionName = initCollectionNameTextField.value.trim();
+  const pathUrl = initPathUrlTextField.value.trim();
+  const placeholderPath = initPathUrlTextField.placeholder as string;
+
+  const namespaceOrCollectionHasValue = namespaceName || collectionName;
+
+  if (!namespaceOrCollectionHasValue) {
     initCollectionNameElement.innerHTML = "namespace.collection";
+    initCollectionPathElement.innerHTML = pathUrl || placeholderPath;
+  } else if (!pathUrl) {
+    initCollectionNameElement.innerHTML = `${namespaceName}.${collectionName}`;
+    initCollectionPathElement.innerHTML = `${
+      placeholderPath
+    }/${namespaceName}/${collectionName}`;
   } else {
-    initCollectionNameElement.innerHTML = `${initNamespaceNameTextField.value.trim()}.${initCollectionNameTextField.value.trim()}`;
+    initCollectionPathElement.innerHTML = pathUrl;
+    initCollectionNameElement.innerHTML = `${namespaceName}.${collectionName}`;
   }
 
   if (
@@ -241,11 +224,10 @@ function toggleEditableModeInstallCheckBox() {
 }
 
 function handleInitClearClick() {
-  namespaceInputField.value = "";
-  collectionInputField.value = "";
-
-  initPathUrlInputField.value = "";
-  logFilePathInputField.value = "";
+  initNamespaceNameTextField.value = "";
+  initCollectionNameTextField.value = "";
+  logFilePath.value = "";
+  initPathUrlTextField.value = "";
 
   initCollectionNameElement.innerHTML = "namespace.collection";
 

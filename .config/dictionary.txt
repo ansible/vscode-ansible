@@ -155,6 +155,7 @@ lssh
 lxml
 markdownlint
 maxlength
+microdnf
 mkdocs
 mocharc
 mochawesome
@@ -166,6 +167,7 @@ mycollection
 mymodule
 mynamespace
 myuser
+nqry
 ncurc
 neovim
 netcommon
@@ -188,6 +190,7 @@ pgrep
 piptools
 pipx
 pkgcache
+PKGMGR
 pkill
 podman
 precheck
