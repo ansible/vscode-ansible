@@ -35,7 +35,7 @@ env_file = '.env'
 experimental = true
 
 [tools]
-# do not add tools unsupported on windows such: gh, yarn 
+# do not add tools unsupported on windows such: gh, yarn
 direnv = "latest"
 node = ["20.18.0", "latest"]
 # 3.12 is needed by one pre-commit hook
