@@ -9,10 +9,14 @@ import logging
 import sys
 from datetime import datetime
 
+from pathlib import Path
+
 
 def run(cmd: str) -> subprocess.CompletedProcess[bytes]:
     """Helper to easy calling subprocess."""
-    return subprocess.run(cmd, shell=True, check=True)
+    return subprocess.run(
+        cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    )
 
 
 def get_tags(cmd: str) -> subprocess.CompletedProcess[str]:
@@ -136,7 +140,7 @@ def cli() -> None:
         run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
-        run("rm -f ./*.vsix")
+        run("yarn rimraf --glob './*.vsix'")
         run("yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run(
@@ -144,9 +148,9 @@ def cli() -> None:
             f" --readme-path docs/README.md {pre_release_arg} {version}"
         )
         # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
-        run("mkdir -p out/log")
+        Path("out/log").mkdir(parents=True, exist_ok=True)
         run("zipinfo -1 ./*.vsix > out/log/package.log")
-        run("tools/dirty.sh")
+        run("bash tools/dirty.sh")
         print(f"Generated ansible-{version}")
 
 

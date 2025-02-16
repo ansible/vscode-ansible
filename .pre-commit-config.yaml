@@ -91,12 +91,6 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      # - id: yarn-audit-fix
-      #   name: yarn-audit-fix
-      #   language: system
-      #   pass_filenames: false
-      #   files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
-      #   entry: npx yarn run yarn-audit-fix
       - id: codecov
         name: Check codecov.yml
         # https://superuser.com/a/1587813/3004

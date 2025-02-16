@@ -6,7 +6,7 @@
 # (cspell: disable-next-line)
 set -euo pipefail
 
-IMAGE_VERSION=$(./tools/get-image-version)
+IMAGE_VERSION=$(python ./tools/get-image-version)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 ERR=0
@@ -17,16 +17,6 @@ NC='\033[0m' # No Color
 mkdir -p out/log
 # we do not want pip logs from previous runs
 :> "${PIP_LOG_FILE}"
-
-timed() {
-  local start
-  start=$(date +%s)
-  local exit_code
-  exit_code=0
-  "$@" || exit_code=$?
-  echo >&2 "took ~$(($(date +%s)-start)) seconds. exited with ${exit_code}"
-  return $exit_code
-}
 
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
@@ -70,34 +60,34 @@ log () {
     echo >&2 -e "${prefix}${2}${NC}"
 }
 
-if [[ -z "${HOSTNAME:-}" ]]; then
-   log error "A valid HOSTNAME environment variable is required but is missing or empty."
-   exit 2
+timed() {
+  printf "Running: %s\r" "$@"
+  local start
+  start=$(date +%s)
+  local exit_code
+  exit_code=0
+  "$@" || exit_code=$?
+  if [ $exit_code -ne 0 ]; then
+      log error "Exit code ${exit_code} (~$(($(date +%s)-start))s) running: $*"
+  else
+      log notice "~$(($(date +%s)-start))s running: $*" >&2
+  fi
+  return $exit_code
+}
+
+log notice "Install required build tools..."
+
+if ! type mise >/dev/null; then
+    curl https://mise.run | sh
 fi
+mise install
 
-log notice "Install required build tools"
-if type mise >/dev/null; then
-    log notice "Found mise..."
-    mise install
-    mise ls
-    mise doctor
-elif type asdf >/dev/null; then
-    log notice "Found asdf..."
-    for PLUGIN in yarn nodejs task python direnv; do
-        if ! asdf plugin-list | grep -q $PLUGIN; then
-            asdf plugin add $PLUGIN
-        fi
-    done
-    asdf install
+command -v npm  >/dev/null 2>&1 || {
+    log error "Failed to find npm."
+    exit 56
+}
 
-    log notice "Report current build tool versions..."
-    asdf current
-else
-    log fatal "Neither mise nor asdf found."
-    exit 3
-fi
-
-if [[ "${OSTYPE:-}" != darwin* ]]; then
+if [[ "${OSTYPE:-}" == linux* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         exit 55
@@ -169,27 +159,24 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             sudo apt-get remove -y "$DEB"
     done
 fi
-log notice "Using $(python3 --version)"
+log notice "Using $(python --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
 git config user.name  >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
 if [[ "${GIT_NOT_CONFIGURED:-}" == "1" ]]; then
-    echo CI="${CI:-}"
-    if [ -z "${CI:-}" ]; then
-        log error "git config user.email or user.name are not configured."
-        exit 40
-    else
-        git config user.email ansible-devtools@redhat.com
-        git config user.name "Ansible DevTools"
-    fi
+    log error "As git was not already configured, we will put some generic values for user and email."
+    # needed on Windows as the other commands might fail otherwise
+    git config --global --add safe.directory .
+    git config user.email ansible-devtools@redhat.com
+    git config user.name "Ansible DevTools"
 fi
 
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman gh libssh
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman libssh
         podman machine ls --noheading | grep '\*' || time podman machine init
         podman machine ls --noheading | grep "Currently running" || {
             # do not use full path as it varies based on architecture
@@ -197,8 +184,8 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
             "qemu-system-${MACHTYPE}" -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
             time podman machine start
             }
-        podman info
-        podman run --rm hello-world
+        timed podman info
+        timed podman run --rm hello-world
     }
 fi
 
@@ -218,28 +205,28 @@ if grep -qi microsoft /proc/version >/dev/null 2>&1; then
 fi
 
 # User specific environment
-if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
-    # shellcheck disable=SC2088
-    log warning "~/.local/bin was not found in PATH, attempting to add it."
-    PATH="${HOME}/.local/bin:${PATH}"
-    export PATH
+# if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+#     # shellcheck disable=SC2088
+#     log warning "~/.local/bin was not found in PATH, attempting to add it."
+#     PATH="${HOME}/.local/bin:${PATH}"
+#     export PATH
 
-    # shellcheck disable=SC2088
-    if [[ -n "${GITHUB_ENV:-}" ]]; then
-        log notice "Altered GITHUB_ENV to extend PATH."
-        echo "{PATH}={$PATH}" >> "$GITHUB_ENV"
-    else
-        log error "Reconfigure your shell (${SHELL}) to include ~/.local/bin in your PATH, we need it."
-        exit 102
-    fi
-fi
+#     # shellcheck disable=SC2088
+#     if [[ -n "${GITHUB_ENV:-}" ]]; then
+#         log notice "Altered GITHUB_ENV to extend PATH."
+#         echo "{PATH}={$PATH}" >> "$GITHUB_ENV"
+#     else
+#         log error "Reconfigure your shell (${SHELL}) to include ~/.local/bin in your PATH, we need it."
+#         exit 102
+#     fi
+# fi
 
 # fail-fast if we detect incompatible filesystem (o-w)
 # https://github.com/ansible/ansible/pull/42070
-python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
-    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://github.com/ansible/devtools/wiki/permissions#ansible-filesystem-requirements"
-    exit 100
-}
+# python -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
+#     log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://docs.ansible.com/ansible/latest/reference_appendices/config.html#avoiding-security-risks-with-ansible-cfg-in-the-current-directory for more information. If using WSL you probably need to modify the mounting options inside /etc/wsl.conf to prevent having the source code folders as world-writable."
+#     exit 100
+# }
 
 # install gh if missing
 command -v gh >/dev/null 2>&1 || {
@@ -258,99 +245,94 @@ command -v gh >/dev/null 2>&1 || {
     gh --version || log warning "gh cli not found and it might be needed for some commands."
 }
 
-# on WSL we want to avoid using Windows's npm (broken)
-if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
-    log notice "Installing npm ... ($WSL)"
-    curl -sL https://deb.nodesource.com/setup_16.x | sudo bash
-    sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
-        nodejs gcc g++ make python3-dev
-fi
+# # on WSL we want to avoid using Windows's npm (broken)
+# if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
+#     log notice "Installing npm ... ($WSL)"
+#     curl -sL https://deb.nodesource.com/setup_16.x | sudo bash
+#     sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
+#         nodejs gcc g++ make python3-dev
+# fi
 
 # if a virtualenv is already active, ensure is the expected one
-EXPECTED_VENV="${HOME}/.local/share/virtualenvs/vsa"
-if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
-     log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
-fi
-VIRTUAL_ENV=${EXPECTED_VENV}
-if [[ ! -d "${VIRTUAL_ENV}" ]]; then
-    log notice "Creating virtualenv ..."
-    python3 -m venv "${VIRTUAL_ENV}"
-fi
-# shellcheck disable=SC1091
-. "${VIRTUAL_ENV}/bin/activate"
+# EXPECTED_VENV="${HOME}/.local/share/virtualenvs/vsa"
+# if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
+#      log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
+# fi
+# VIRTUAL_ENV=${EXPECTED_VENV}
+# if [[ ! -d "${VIRTUAL_ENV}" ]]; then
+#     log notice "Creating virtualenv ..."
+#     python -m venv "${VIRTUAL_ENV}"
+# fi
+# # shellcheck disable=SC1091
+# . "${VIRTUAL_ENV}/bin/activate"
 
-if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
-    log warning "Virtualenv broken, trying to recreate it ..."
-    python3 -m venv --clear "${VIRTUAL_ENV}"
-    . "${VIRTUAL_ENV}/bin/activate"
-    if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
-        log error "Virtualenv still broken."
-        exit 99
-    fi
-fi
-log notice "Upgrading pip and uv ..."
+# if [[ "$(which python)" != ${VIRTUAL_ENV}/bin/python ]]; then
+#     log warning "Virtualenv broken, trying to recreate it ..."
+#     python -m venv --clear "${VIRTUAL_ENV}"
+#     . "${VIRTUAL_ENV}/bin/activate"
+#     if [[ "$(which python)" != ${VIRTUAL_ENV}/bin/python ]]; then
+#         log error "Virtualenv still broken."
+#         exit 99
+#     fi
+# fi
+# log notice "Upgrading pip and uv ..."
 
-python3 -m pip install -q -U pip uv
-# Fail fast if user has broken dependencies
-python3 -m pip check || {
-        log error "pip check failed with exit code $?"
-        if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
-            exit 98
-        else
-            log error "Ignored pip check failure on this platform due to https://sourceforge.net/p/ruamel-yaml/tickets/521/"
-        fi
-}
+# python -m pip install -q -U pip uv
+# # Fail fast if user has broken dependencies
+# python -m pip check || {
+#         log error "pip check failed with exit code $?"
+#         if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
+#             exit 98
+#         else
+#             log error "Ignored pip check failure on this platform due to https://sourceforge.net/p/ruamel-yaml/tickets/521/"
+#         fi
+# }
 
-if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
-    # We used the already tested constraints file from community-ansible-dev-tools EE in order
-    # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
-    # versions.
-    python3 -m uv pip install -q \
-        -r .config/requirements.in
-fi
+# if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
+#     # We used the already tested constraints file from community-ansible-dev-tools EE in order
+#     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
+#     # versions.
+#     python -m uv pip install -q \
+#         -r .config/requirements.in
+# fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
 # other than our own virtualenv. (test isolation)
-if [[ -n "${CI:-}" ]]; then
-    command -v ansible >/dev/null 2>&1 || {
-        log warning "Attempting to remove pre-installed ansible on CI ..."
-        pipx uninstall --verbose ansible || true
-        if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
-            log error "Please ensure there is no preinstalled copy of ansible on CI.\n$(which -a ansible)"
-            exit 66
-        fi
-    }
-    command -v ansible-lint >/dev/null 2>&1 || {
-        log warning "Attempting to remove pre-installed ansible-lint on CI ..."
-        pipx uninstall --verbose ansible-lint || true
-        if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
-            log error "Please ensure there is no preinstalled copy of ansible-lint on CI.\n$(which -a ansible-lint)"
-            exit 67
-        fi
-    }
-    if [[ -d "${HOME}/.ansible" ]]; then
-        log warning "Removing unexpected ~/.ansible folder found on CI to avoid test contamination."
-        rm -rf "${HOME}/.ansible"
-    fi
-fi
+# if [[ -n "${CI:-}" ]]; then
+#     command -v ansible >/dev/null 2>&1 || {
+#         log warning "Attempting to remove pre-installed ansible on CI ..."
+#         pipx uninstall --verbose ansible || true
+#         if [[ "$(which -a ansible | wc -l | tr -d ' ')" != "1" ]]; then
+#             log error "Please ensure there is no preinstalled copy of ansible on CI.\n$(which -a ansible)"
+#             exit 66
+#         fi
+#     }
+#     command -v ansible-lint >/dev/null 2>&1 || {
+#         log warning "Attempting to remove pre-installed ansible-lint on CI ..."
+#         pipx uninstall --verbose ansible-lint || true
+#         if [[ "$(which -a ansible-lint | wc -l | tr -d ' ')" != "1" ]]; then
+#             log error "Please ensure there is no preinstalled copy of ansible-lint on CI.\n$(which -a ansible-lint)"
+#             exit 67
+#         fi
+#     }
+#     if [[ -d "${HOME}/.ansible" ]]; then
+#         log warning "Removing unexpected ~/.ansible folder found on CI to avoid test contamination."
+#         rm -rf "${HOME}/.ansible"
+#     fi
+# fi
 
-# Fail if detected tool paths are not from inside out out/ folder
-for CMD in ansible ansible-lint; do
-    CMD=$(command -v $CMD 2>/dev/null)
-    [[ "${CMD}" == "$VIRTUAL_ENV"* ]] || {
-        log error "${CMD} executable is not from our own virtualenv ($VIRTUAL_ENV)"
-        exit 68
-    }
-done
-unset CMD
-
-command -v npm  >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
-    asdf install
-}
+# # Fail if detected tool paths are not from inside out out/ folder
+# for CMD in ansible ansible-lint; do
+#     CMD=$(command -v $CMD 2>/dev/null)
+#     [[ "${CMD}" == "$VIRTUAL_ENV"* ]] || {
+#         log error "${CMD} executable is not from our own virtualenv ($VIRTUAL_ENV)"
+#         exit 68
+#     }
+# done
+# unset CMD
 
 if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || {
+    npm exec yarn --version >/dev/null 2>&1 || {
         # Check if npm has permissions to install packages (system installed does not)
         # Share https://stackoverflow.com/a/59227497/99834
         test -w "$(npm config get prefix)" || {
@@ -359,7 +341,7 @@ if [[ -f yarn.lock ]]; then
         }
         log warning "Installing missing yarn"
         node corepack enable
-        yarn --version
+        npm exec yarn --version
     }
 fi
 
@@ -467,20 +449,35 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
-log notice "Install node deps using either yarn or npm"
-if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn --version
-    yarn install --immutable
-    # --immutable-cache --check-cache
-else
-    npm ci --no-audit
-fi
+log notice "Running yarn install"
+npm exec yarn install --immutable
+
+log notice "Safety checks regarding build and test environment..."
+# test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
+#     log error "VIRTUAL_ENV mismatch"
+#     exit 99
+# }
+
+# test "$(which python)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python" || {
+#     log error "python mismatch"
+#     exit 98
+# }
+# test "$(which python3)" = "$(which python)3" || {
+#     log error "python3 and python3 executables to not point to the same location"
+#     exit 97
+# }
+# Ensure NODE_OPTIONS config on CI is identical with the one in .env
+[[ "${NODE_OPTIONS:-}" == "$(mise exec -- printenv NODE_OPTIONS)" ]] || {
+    log error "NODE_OPTIONS mismatch between .env and ci.yaml"
+    exit 96
+}
+
+
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
 #
-tee "out/log/manifest-${HOSTNAME}.yml" <<EOF
+tee "out/log/manifest-${HOSTNAME:-unknown}.yml" <<EOF
 system:
   uname: $(uname)
 env:
@@ -493,6 +490,7 @@ tools:
   bash: $(get_version bash)
   gh: $(get_version gh || echo null)
   git: $(get_version git)
+  mise: $(get_version mise)
   node: $(get_version node)
   npm: $(get_version npm)
   pre-commit: $(get_version pre-commit)
@@ -508,5 +506,5 @@ community-ansible-dev-tools:
 EOF
 
 [[ $ERR -eq 0 ]] && level=notice || level=error
-log "${level}" "${0##*/} -> out/log/manifest-$HOSTNAME.yml and returned ${ERR}"
+log "${level}" "${0##*/} -> out/log/manifest-${HOSTNAME:-unknown}.yml and returned ${ERR}"
 exit "${ERR}"
