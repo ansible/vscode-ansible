@@ -130,20 +130,20 @@ def cli() -> None:
             logging.error(msg)
             sys.exit(2)
         run(
-            f"yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath"
+            f"npm exec -- yarn run vsce publish {pre_release_arg} --skip-duplicate --packagePath"
             f" {vsix_files[0]} --readme-path docs/README.md"
         )
-        run(f"yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
+        run(f"npm exec -- yarn run ovsx publish {pre_release_arg} --skip-duplicate {vsix_files[0]}")
         sys.exit()
     if opt.package:
         run("rm -f ./*.vsix")
-        run("yarn run webpack")
+        run("npm exec -- yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run(
-            "yarn run vsce package --no-dependencies --no-git-tag-version --no-update-package-json"
-            f" --readme-path docs/README.md {pre_release_arg} {version}"
+            "npm exec -- yarn run vsce package --no-dependencies --no-git-tag-version"
+            f" --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
         )
-        # Using zipinfo instead of `npx vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
+        # Using zipinfo instead of `npm exec -- vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
         run("mkdir -p out/log")
         run("zipinfo -1 ./*.vsix > out/log/package.log")
         run("tools/dirty.sh")

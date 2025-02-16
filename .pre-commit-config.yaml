@@ -8,9 +8,6 @@ ci:
 
     for more information, see https://pre-commit.ci
   skip:
-    #- yarn-audit
-    #- yarn-audit-fix
-    - yarn-dedupe
     - codecov
     - depcheck
     - eslint
@@ -71,9 +68,12 @@ repos:
         always_run: true
       - id: eslint
         name: eslint
-        entry: npx eslint
+        entry: npm
         language: system
         args:
+          - exec
+          - --
+          - eslint
           - --no-warn-ignored
           - --color
           - --format=gha
@@ -91,12 +91,6 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      # - id: yarn-audit-fix
-      #   name: yarn-audit-fix
-      #   language: system
-      #   pass_filenames: false
-      #   files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
-      #   entry: npx yarn run yarn-audit-fix
       - id: codecov
         name: Check codecov.yml
         # https://superuser.com/a/1587813/3004
@@ -118,14 +112,6 @@ repos:
         name: Compare extension devcontainer with ansible-creator
         entry: tools/compare_devcontainer.sh
         language: script
-
-  - repo: https://github.com/ScribeMD/pre-commit-hooks
-    rev: 0.16.3
-    hooks:
-      - id: yarn-dedupe
-        entry: npx yarn dedupe
-      # - id: yarn-audit
-      #   entry: npx yarn npm audit
 
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v5.0.0

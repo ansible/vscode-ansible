@@ -31,7 +31,7 @@ tasks:
     desc: Build the project
     cmds:
       - task: shared:install
-      - yarn run compile
+      - npm exec -- yarn run compile
     sources:
       - package-lock.json
       - package.json
@@ -49,7 +49,7 @@ tasks:
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - npm outdated
       # bumps some developments dependencies
-      - npx ncu -u --dep dev
+      - npm exec -- ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file
       - npm install
   .test:
@@ -109,7 +109,7 @@ tasks:
     cmds:
       - task: build
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   release:
     desc: Create a new release (used by CI)

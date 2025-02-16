@@ -57,10 +57,10 @@ tasks:
       - task: install
       # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
       # - cd node_modules/vscode-extension-tester && npm update vsce
-      - yarn run clean
-      - yarn run als-compile
-      - yarn run compile
-      - npx tsc -p ./
+      - npm exec -- yarn run clean
+      - npm exec -- yarn run als-compile
+      - npm exec -- yarn run compile
+      - npm exec -- tsc -p ./
     sources:
       - Taskfile.yml
       - node_modules/**/*
@@ -109,7 +109,7 @@ tasks:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
-      - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
+      - npm exec -- ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
       - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
       - tools/dirty.sh
   lint:
