@@ -30,7 +30,7 @@ tasks:
   install:
     cmds:
       - task: setup
-      - yarn install
+      - npm exec -- yarn install --immutable
     sources:
       - "package.json"
       - "packages/*/package.json"
