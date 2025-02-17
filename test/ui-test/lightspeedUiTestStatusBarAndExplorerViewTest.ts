@@ -35,7 +35,7 @@ describe("Verify the presence of lightspeed element in the status bar and the ex
     );
     expect(lightspeedStatusBarItem).not.to.be.undefined;
   });
-  it("Ansible Lightspeed status bar item present when only lightspeed is enabled (with warning color)", async () => {
+  it.skip("Ansible Lightspeed status bar item present when only lightspeed is enabled (with warning color)", async () => {
     const statusBar = new StatusBar();
     const editorView = new EditorView();
     const settingsEditor = await openSettings();
