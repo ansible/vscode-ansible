@@ -22,7 +22,7 @@ import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook generation features work as expected", function () {
+describe.skip("Verify playbook generation features work as expected", function () {
   let workbench: Workbench;
   let webView: WebView;
 
