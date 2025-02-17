@@ -62,32 +62,32 @@ jobs:
         # Order is important, keep it alphabetical: docs, lint, test*
         continue-on-error:
           - false
-        os:
-          - ubuntu-22.04
-        task-name:
-          - docs
-        name:
-          - docs
+        # os:
+        #   - ubuntu-22.04
+        # task-name:
+        #   - docs
+        # name:
+        #   - docs
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-22.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-22.04
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
-          - name: test (linux)
-            task-name: test
+          # - name: test (linux)
+          #   task-name: test
 
-          - name: test (macos)
-            task-name: test
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   task-name: test
+          #   os: macos-13-large
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
           - name: test (wsl)
             # runner does not support running containers
@@ -95,12 +95,14 @@ jobs:
             log-name: als-test-without-ee
             # https://github.com/actions/virtual-environments/issues/5151
             os: devtools-win-x64
+            distro: Ubuntu-24.04 # wsl -l -v
             shell: "wsl-bash {0}"
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
       - uses: actions/checkout@v4
+        if: "${{ !contains(matrix.shell, 'wsl') }}"
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -110,8 +112,9 @@ jobs:
         if: contains(matrix.shell, 'wsl')
         uses: Vampire/setup-wsl@v4.1.0
         with:
-          distribution: Ubuntu-22.04
+          distribution: ${{ matrix.distro }}
           set-as-default: "true"
+          # update: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
           wsl-shell-command: "bash -i -eo pipefail"
@@ -122,7 +125,7 @@ jobs:
             root = /
             options = "metadata,umask=077"
             [boot]
-            command=/etc/init.d/dbus start
+            systemd=true
             [interop]
             enabled = false
             appendWindowsPath = false
@@ -145,6 +148,21 @@ jobs:
             unzip
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
+      # for KEY in $(apt-key --keyring /etc/apt/trusted.gpg list | grep -E "(([ ]{1,2}(([0-9A-F]{4}))){10})" | tr -d " " | grep -E "([0-9A-F]){8}\b" ); do K=${KEY:(-8)}; apt-key export $K | sudo gpg --dearmour -o /etc/apt/trusted.gpg.d/imported-from-trusted-gpg-$K.gpg; done
+
+      - name: Checkout your repo into WSL
+        if: "${{ contains(matrix.shell, 'wsl') }}"
+        uses: Ubuntu/WSL/.github/actions/wsl-checkout@main
+        with:
+          distro: ${{ matrix.distro }}
+          working-dir: "~/myrepo"
+
+      - name: Debug wsl working directory
+        run: |
+          set
+          pwd
+          ls -la ~/myrepo
+        # working-directory: ~/myrepo
 
       - name: Setup asdf
         if: ${{ !contains(matrix.shell, 'wsl') }}

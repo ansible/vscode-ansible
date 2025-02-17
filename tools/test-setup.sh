@@ -250,7 +250,7 @@ command -v gh >/dev/null 2>&1 || {
           sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
       sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
       echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-      sudo apt-get update
+      sudo apt-get update -qq -o=Dpkg::Use-Pty=0
       sudo apt-get install gh
     else
         command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
