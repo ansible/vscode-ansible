@@ -79,11 +79,11 @@ log notice "Install required build tools"
 if type mise >/dev/null; then
     log notice "Found mise..."
     mise install
-    mise ls
+    mise ls --current
     mise doctor
 elif type asdf >/dev/null; then
     log notice "Found asdf..."
-    for PLUGIN in yarn nodejs task python direnv; do
+    for PLUGIN in nodejs task python direnv; do
         if ! asdf plugin-list | grep -q $PLUGIN; then
             asdf plugin add $PLUGIN
         fi
@@ -350,17 +350,16 @@ command -v npm  >/dev/null 2>&1 || {
 }
 
 if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || {
-        # Check if npm has permissions to install packages (system installed does not)
-        # Share https://stackoverflow.com/a/59227497/99834
-        test -w "$(npm config get prefix)" || {
-            log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
-            npm config set prefix "${HOME}/.local/"
-        }
-        log warning "Installing missing yarn"
-        node corepack enable
-        yarn --version
+    # Check if npm has permissions to install packages (system installed does not)
+    # Share https://stackoverflow.com/a/59227497/99834
+    test -w "$(npm config get prefix)" || {
+        log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
+        npm config set prefix "${HOME}/.local/"
     }
+    npm exec corepack enable
+    npm exec corepack install
+    npm exec -- yarn --version > /dev/null
+    npm config set fund false
 fi
 
 log notice "Docker checks..."
@@ -467,15 +466,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
-log notice "Install node deps using either yarn or npm"
-if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn --version
-    yarn install --immutable
-    # --immutable-cache --check-cache
-else
-    npm ci --no-audit
-fi
+log notice "Install node deps using yarn"
+npm exec -- yarn install --immutable
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
@@ -498,7 +490,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python3)
   task: $(get_version task)
-  yarn: $(get_version yarn || echo null)
+  yarn: $(npm exec -- yarn --version || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: ${DOCKER_VERSION}
