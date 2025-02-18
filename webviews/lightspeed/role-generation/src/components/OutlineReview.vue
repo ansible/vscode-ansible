@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { provideVSCodeDesignSystem, vsCodeTextArea } from "@vscode/webview-ui-toolkit";
+
+provideVSCodeDesignSystem().register(vsCodeTextArea());
+
 defineProps<{ outline: string }>();
 
 const emit = defineEmits<{ outlineUpdate: [outline: string] }>();
@@ -19,8 +23,8 @@ function outlineWithLineNumber() {
 <template>
   <div>
     <h4>Review the suggested steps for your role and modify as needed.</h4>
-    <textarea id="outline-field" :rows="outline.split('\n').length + 2" :cols="outline.split('\n')[0].length + 5"
-      :value="outline.toString()" @input="outlineWithLineNumber" />
+    <vscode-text-area id="outline-field" :rows="outline.split('\n').length + 2"
+      :cols="outline.split('\n')[0].length + 5" :value="outline.toString()" @input="outlineWithLineNumber" />
   </div>
 </template>
 

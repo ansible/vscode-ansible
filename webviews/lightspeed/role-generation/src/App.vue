@@ -12,6 +12,11 @@ import CollectionSelectorAsync from "./components/CollectionSelectorAsync.vue";
 import ErrorBox from './components/ErrorBox.vue';
 import PromptExampleBox from './components/PromptExampleBox.vue';
 
+
+import { provideVSCodeDesignSystem, vsCodeButton } from "@vscode/webview-ui-toolkit";
+
+provideVSCodeDesignSystem().register(vsCodeButton());
+
 const page = ref(1);
 const prompt = ref('');
 const collectionName = ref('');
