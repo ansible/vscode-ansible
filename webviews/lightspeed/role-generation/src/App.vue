@@ -117,7 +117,7 @@ watch(outline, (newOutline) => {
   <div v-else-if="page === 2">
     <StatusBox :prompt="prompt" :collectionName="collectionName" @restart-wizard="page = 1" />
     <div>
-      Role name: <vscode-text-field v-model="roleName" />
+      Role name: <vscode-textfield v-model="roleName" />
     </div>
 
     <OutlineReview :outline
@@ -127,7 +127,7 @@ watch(outline, (newOutline) => {
       <vscode-button @click.once="nextPage">
         Continue
       </vscode-button>
-      <vscode-button appearance="secondary" @click="page--">
+      <vscode-button secondary @click="page--">
         Back
       </vscode-button>
     </div>
@@ -146,11 +146,15 @@ watch(outline, (newOutline) => {
       <vscode-button @click="filesWereSaved = true">
         Save files
       </vscode-button>
-      <vscode-button appearance="secondary" @click="page--">
+      <vscode-button secondary @click="page--">
         Back
       </vscode-button>
     </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+#role-prompt {
+  width: 100ch;
+}
+</style>
