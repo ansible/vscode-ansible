@@ -25,18 +25,14 @@ const loadingNewResponse = ref(false);
 const filesWereSaved = ref(false);
 
 
+
+
 async function nextPage() {
-  console.log("App.vue: generateRole");
   if (response.value !== undefined) {
-    console.log("Nothing to do");
     page.value++;
     return;
   }
-  console.log("generateRole");
   loadingNewResponse.value = true;
-
-
-
   await vscodeApi.post('generateRole', { text: prompt.value, outline: outline.value });
 
 }
@@ -63,28 +59,21 @@ watch(page, () => {
 
 watch(prompt, (newPrompt) => {
   if (response.value !== undefined) {
-    console.log(`New prompt is ${newPrompt}`)
     response.value = undefined;
   }
 })
 
 watch(roleName, (newRoleName) => {
-  console.log(response);
-  console.log(response.value);
-  console.log(response["role"]);
   if (response.value !== undefined && response.value["role"] !== newRoleName) {
-    console.log(`New roleName is ${newRoleName}`)
     response.value = undefined;
   }
 })
 
 watch(outline, (newOutline) => {
   if (response.value !== undefined && response.value["outline"] !== newOutline) {
-    console.log(`New outline is ${newOutline}`)
     response.value = undefined;
   }
 })
-
 
 
 </script>
