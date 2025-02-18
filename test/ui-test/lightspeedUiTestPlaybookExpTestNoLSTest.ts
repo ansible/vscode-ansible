@@ -40,7 +40,7 @@ describe("Verify playbook generation page is not opened when Lightspeed is not e
     const notification = notifications[0];
     console.log(notification);
     expect(await notification.getMessage()).equals(
-      "Enable lightspeed services from settings to use the feature.",
+      "Log in to Ansible Lightspeed to use this feature.",
     );
   });
 });

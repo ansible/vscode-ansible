@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 
 import { expect, config } from "chai";
 import {
@@ -16,9 +16,16 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  connectLightspeed,
 } from "./uiTestHelper";
 import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
+
+before(function () {
+  if (process.platform !== "darwin") {
+    this.skip();
+  }
+});
 
 config.truncateThreshold = 0;
 
@@ -42,6 +49,8 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     await dismissNotifications(workbench);
+
+    await connectLightspeed();
   });
 
   it("Playbook generation webview works as expected (full path) - part 2", async function () {
