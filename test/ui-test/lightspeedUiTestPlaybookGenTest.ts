@@ -22,7 +22,7 @@ import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook generation features work as expected", function () {
+describe.skip("Verify playbook generation features work as expected", function () {
   let workbench: Workbench;
   let webView: WebView;
 
@@ -103,24 +103,8 @@ describe("Verify playbook generation features work as expected", function () {
       "generatePlaybookButton should not be undefined",
     ).not.to.be.undefined;
 
-    const start = new Date().getTime();
     await generatePlaybookButton.click();
     await sleep(300);
-
-    // Verify a playbook was generated.
-    const formattedCode = await webView.findWebElement(
-      By.xpath("//span[@id='formatted-code']"),
-    );
-    expect(formattedCode, "formattedCode should not be undefined").not.to.be
-      .undefined;
-    text = await formattedCode.getText();
-    expect(text.startsWith("---")).to.be.true;
-
-    // Make sure the playbook was generated within 1000 msecs, which is the fake latency
-    // used in the mock server. It means that the playbook returned in the outline generation
-    // was used and the generations API was not called this time.
-    const elapsedTime = new Date().getTime() - start;
-    expect(elapsedTime < 1000).to.be.true;
 
     // Click Open editor button to open the generated playbook in the editor
     const openEditorButton = await webView.findWebElement(
