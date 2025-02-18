@@ -9,7 +9,6 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
-  connectLightspeed,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -33,7 +32,7 @@ function cleanUpTmpfile() {
 }
 
 before(function () {
-  if (process.platform !== "darwin") {
+  if (process.platform === "darwin") {
     this.skip();
   }
 });
@@ -63,8 +62,6 @@ describe("Verify Role generation feature works as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     await dismissNotifications(workbench);
-
-    await connectLightspeed();
   });
 
   after(async function () {
@@ -88,10 +85,12 @@ describe("Verify Role generation feature works as expected", function () {
     let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
     );
-    const textArea = await webView.findWebElement(
-      By.xpath("//vscode-text-field"),
+
+    const promptTextField = await webView.findWebElement(
+      By.xpath('//*[@id="PromptTextField"]/input'),
     );
-    await textArea.sendKeys("Install and configure Nginx");
+    await promptTextField.sendKeys("Install and configure Nginx");
+    await promptTextField.click();
 
     (
       await webView.findWebElement(
@@ -99,15 +98,11 @@ describe("Verify Role generation feature works as expected", function () {
       )
     ).click();
 
-    const dropdown = await webView.findWebElement(
-      By.xpath("//vscode-dropdown"),
+    const collectionNameTextField = await webView.findWebElement(
+      By.xpath('//*[@id="collectionNameTextField"]/input'),
     );
-    await dropdown.click();
-
-    const option = await webView.findWebElement(
-      By.xpath("//vscode-option[contains(text(), 'community.dummy')]"),
-    );
-    await option.click();
+    await collectionNameTextField.sendKeys("community.dummy");
+    await collectionNameTextField.click();
 
     const button = await webView.findWebElement(
       By.xpath("//vscode-button[contains(text(), 'Analyze')]"),

@@ -2,15 +2,20 @@
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
+import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
 import { RoleGenerationResponseParams } from "../../../../src/interfaces/lightspeed";
+
 import SavedFiles from "./components/SavedFiles.vue";
 import StatusBox from './components/StatusBox.vue';
 import OutlineReview from './components/OutlineReview.vue';
 import GeneratedFileEntry from './components/GeneratedFileEntry.vue';
-import CollectionSelectorAsync from "./components/CollectionSelectorAsync.vue";
+import CollectionSelector from "./components/CollectionSelector.vue";
 import ErrorBox from './components/ErrorBox.vue';
 import PromptExampleBox from './components/PromptExampleBox.vue';
+import PromptField from './components/PromptField.vue';
+
+provideVSCodeDesignSystem().register(allComponents);
 
 const page = ref(1);
 const prompt = ref('');
@@ -98,16 +103,8 @@ watch(outline, (newOutline) => {
   <ProgressSpinner v-if="loadingNewResponse" />
 
   <div v-else-if="page === 1">
-    <Suspense>
-      <KeepAlive>
-        <CollectionSelectorAsync v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
-      </KeepAlive>
-      <template #fallback>
-        <ProgressSpinner />
-      </template>
-    </Suspense>
-
-    <vscode-text-field size="100" resize="both" placeholder="I want to write a role that will..." v-model="prompt" />
+    <CollectionSelector v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
+    <PromptField v-model:prompt="prompt" />
 
     <div>
       <vscode-button @click.once="nextPage" :disabled="prompt === '' || collectionName === ''">

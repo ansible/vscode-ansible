@@ -90,6 +90,7 @@ export class WebviewHelper {
   public static async setupWebviewHooks(
     webview: Webview,
     disposables: Disposable[],
+    context: ExtensionContext,
   ) {
     function sendErrorMessage(message: string) {
       webview.postMessage({
@@ -115,6 +116,25 @@ export class WebviewHelper {
             webview.postMessage({
               type: type,
               data: response,
+            });
+            const recent_prompts: string[] = context.workspaceState
+              .get("ansible.lightspeed.recent_prompts", [])
+              .filter((prompt) => prompt !== data.text);
+            recent_prompts.push(data.text);
+            context.workspaceState.update(
+              "ansible.lightspeed.recent_prompts",
+              recent_prompts.slice(-500),
+            );
+            return;
+          }
+          case "getRecentPrompts": {
+            const recent_prompts: string[] = context.workspaceState.get(
+              "ansible.lightspeed.recent_prompts",
+              [],
+            );
+            webview.postMessage({
+              type: type,
+              data: recent_prompts,
             });
             return;
           }
