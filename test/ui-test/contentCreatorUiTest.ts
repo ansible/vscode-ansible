@@ -172,7 +172,7 @@ describe("Test collection plugins scaffolding", () => {
       "Ansible: Add a Plugin",
       "Add Plugin",
       "test_plugin_name",
-      "lookup",
+      "Lookup",
     );
   });
   it("Check add-plugin webview elements for action plugin", async () => {
@@ -180,7 +180,7 @@ describe("Test collection plugins scaffolding", () => {
       "Ansible: Add a Plugin",
       "Add Plugin",
       "test_plugin_name",
-      "action",
+      "Action",
     );
   });
 });
