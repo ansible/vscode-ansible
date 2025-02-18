@@ -55,10 +55,16 @@ vscodeApi.on('generateRole', (data: any) => {
   page.value++;
 });
 
+
+
 // Reset some stats before the page transition
-watch(page, () => {
+watch(page, (newPage) => {
   errorMessages.value = [];
   filesWereSaved.value = false;
+  if (newPage === 1) {
+    roleName.value = "";
+    outline.value = "";
+  }
 })
 
 watch(prompt, (newPrompt) => {
