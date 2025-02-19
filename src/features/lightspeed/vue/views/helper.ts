@@ -105,8 +105,6 @@ export class WebviewHelper {
         const data = message.data;
         switch (type) {
           case "generateRole": {
-            const p = new Promise((resolve) => setTimeout(resolve, 5000));
-            await p;
             const generationId = uuidv4();
             const response = await generateRole(
               lightSpeedManager.apiInstance,
