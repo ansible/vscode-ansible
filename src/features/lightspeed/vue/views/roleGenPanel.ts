@@ -16,7 +16,11 @@ export class MainPanel {
       context,
     );
 
-    WebviewHelper.setupWebviewHooks(this._panel.webview, this._disposables);
+    WebviewHelper.setupWebviewHooks(
+      this._panel.webview,
+      this._disposables,
+      context,
+    );
   }
 
   public static render(context: ExtensionContext) {
