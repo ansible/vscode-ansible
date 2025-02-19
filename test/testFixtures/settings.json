@@ -18,7 +18,6 @@
   "ansible.python.activationScript": "",
   "ansible.python.interpreterPath": "python3",
   "ansibleServer.trace.server": "verbose",
-  "ansible.lightspeed.enabled": false,
   "ansible.lightspeed.suggestions.enabled": false,
   "ansible.lightspeed.URL": "https://c.ai.ansible.redhat.com",
 

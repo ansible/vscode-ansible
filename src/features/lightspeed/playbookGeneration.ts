@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { Webview, Uri } from "vscode";
 import { getNonce } from "../utils/getNonce";
 import { getUri } from "../utils/getUri";
-import { isLightspeedEnabled, lightSpeedManager } from "../../extension";
+import { lightSpeedManager } from "../../extension";
 import { PlaybookGenerationResponseParams } from "../../interfaces/lightspeed";
 import {
   LightSpeedCommands,
@@ -12,6 +12,10 @@ import {
 import { isError, IError, UNKNOWN_ERROR } from "./utils/errors";
 import { getOneClickTrialProvider } from "./utils/oneClickTrial";
 import { LightSpeedAPI } from "./api";
+import hljs from "highlight.js";
+import yaml from "highlight.js/lib/languages/yaml";
+
+hljs.registerLanguage("yaml", yaml);
 
 let wizardId: string | undefined;
 let currentPage: number | undefined;
@@ -92,8 +96,13 @@ async function generatePlaybook(
 }
 
 export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
-  // Check if Lightspeed is enabled or not.  If it is not, return without opening the panel.
-  if (!(await isLightspeedEnabled())) {
+  const isAuthenticated =
+    await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+  if (!isAuthenticated) {
+    await vscode.window.showErrorMessage(
+      "Log in to Ansible Lightspeed to use this feature.",
+    );
+
     return;
   }
 
@@ -169,7 +178,6 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
       case "generateCode": {
         let { playbook, generationId } = message;
         const outline = message.outline;
-        const darkMode = message.darkMode;
         if (!playbook) {
           try {
             const response = await generatePlaybook(
@@ -194,20 +202,7 @@ export async function showPlaybookGenerationPage(extensionUri: vscode.Uri) {
           }
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let syntaxHighlighter: any;
-        try {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../syntaxHighlighter/src/syntaxHighlighter");
-        } catch {
-          syntaxHighlighter =
-            await require(/* webpackIgnore: true */ "../../../../syntaxHighlighter/src/syntaxHighlighter");
-        }
-        const html = await syntaxHighlighter.codeToHtml(
-          playbook,
-          darkMode ? "dark-plus" : "light-plus",
-          "yaml",
-        );
+        const html = undefined;
 
         panel.webview.postMessage({
           command: "playbook",
@@ -339,7 +334,7 @@ export function getWebviewContent(webview: Webview, extensionUri: Uri) {
             </div>
           </div>
           <div class="formattedPlaybook">
-            <span id="formatted-code"></span>
+            <pre><code id="formatted-code" /></pre>
           </div>
           <div class="bigIconButtonContainer">
             <vscode-button class="biggerButton" id="submit-button" disabled>

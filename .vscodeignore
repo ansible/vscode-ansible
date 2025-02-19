@@ -35,14 +35,10 @@
 !media/welcomePage/style.css
 !media/playbookGeneration/playbookGeneration.css
 !media/playbookGeneration/style.css
-!media/roleGeneration/style.css
-!out/client/src/extension.js
-!out/syntaxHighlighter/src/syntaxHighlighter.js
 !out/client/webview/apps/lightspeed/main.js
 !out/client/webview/apps/lightspeed/explorer/main.js
 !out/client/webview/apps/lightspeed/playbookExplanation/main.js
 !out/client/webview/apps/lightspeed/playbookGeneration/main.js
-!out/client/webview/apps/lightspeed/roleGeneration/main.js
 !out/client/webview/apps/contentCreator/welcomePageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js
 !out/client/webview/apps/contentCreator/createAnsibleProjectPageApp.js
@@ -53,12 +49,13 @@
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/client/webview/apps/welcomePage/welcomePageApp.js
 !out/server/src/server.js
+!out/vitebuild/**/*
 !package.json
 !package.nls.json
 !syntaxes/**/*
 # walkthrough media files
 !media/walkthroughs/createAnsibleEnv/adt-components.md
-!media/walkthroughs/createAnsibleEnv/adt-components.png
+!media/walkthroughs/createAnsibleEnv/all-adt-components.png
 !media/walkthroughs/createAnsibleEnv/language-selector.png
 !media/walkthroughs/createAnsibleEnv/language-statusbar.png
 !media/walkthroughs/createAnsibleEnv/open-folder.png

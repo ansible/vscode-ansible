@@ -3,17 +3,15 @@ import {
   By,
   EditorView,
   ModalDialog,
-  SettingsEditor,
   until,
   Workbench,
 } from "vscode-extension-tester";
-import { updateSettings, sleep } from "./uiTestHelper";
+import { sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 let workbench: Workbench;
 let editorView: EditorView;
-let settingsEditor: SettingsEditor;
 
 before(async () => {
   workbench = new Workbench();
@@ -37,7 +35,7 @@ describe("Check walkthroughs, elements and associated commands", async () => {
     [
       "Start automating with your first Ansible playbook",
       [
-        "Enable Ansible Lightspeed",
+        "Log in to Ansible Lightspeed",
         "Create an Ansible playbook project",
         "Create an Ansible playbook",
         "Save your playbook to a playbook project",
@@ -83,10 +81,24 @@ describe("Check walkthroughs, elements and associated commands", async () => {
   });
 
   it("Check empty playbook command option", async function () {
-    settingsEditor = await workbench.openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", false);
+    await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
+    await sleep(500);
+
+    const newFileEditor = await new EditorView().openEditor("Untitled-1");
+    const startingText = await newFileEditor.getText();
+    expect(
+      startingText.startsWith("---"),
+      "The playbook file should start with ---",
+    ).to.be.true;
+    await workbench.executeCommand("View: Close All Editor Groups");
+    const dialogBox = new ModalDialog();
+    await dialogBox.pushButton(`Don't Save`);
+    await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
+  });
+
+  it("Check unauthenticated playbook command option", async function () {
     await workbench.executeCommand(
-      "Ansible: Create an empty playbook or with Lightspeed (if enabled)",
+      "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
     await sleep(500);
 

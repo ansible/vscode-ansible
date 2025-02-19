@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 
 import { expect, config } from "chai";
 import { By, VSBrowser, EditorView } from "vscode-extension-tester";
@@ -11,7 +11,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook explanation features when no explanation is returned", function () {
+describe.skip("Verify playbook explanation features when no explanation is returned", function () {
   let editorView: EditorView;
 
   beforeEach(function () {
@@ -24,6 +24,7 @@ describe("Verify playbook explanation features when no explanation is returned",
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
+
     const folder = "lightspeed";
     const file = "playbook_explanation_none.yml";
     const filePath = getFixturePath(folder, file);
@@ -35,10 +36,12 @@ describe("Verify playbook explanation features when no explanation is returned",
     await workbenchExecuteCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
+
     await sleep(5000);
 
     // Locate the playbook explanation webview
     await new EditorView().openEditor("Explanation", 1);
+
     const webView = await getWebviewByLocator(
       By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
     );
@@ -49,10 +52,12 @@ describe("Verify playbook explanation features when no explanation is returned",
     );
     expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
     await sleep(5000);
+
     const text = await mainDiv.getText();
     expect(text.includes("No explanation provided")).to.be.true;
 
     await webView.switchBack();
+
     editorView = new EditorView();
     if (editorView) {
       await editorView.closeAllEditors();

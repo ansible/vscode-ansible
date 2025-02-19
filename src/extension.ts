@@ -62,7 +62,6 @@ import { CreateAnsibleCollection } from "./features/contentCreator/createAnsible
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
-import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
 import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
@@ -76,6 +75,7 @@ import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
+import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -609,7 +609,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_ROLE_GENERATION,
       async () => {
-        await showRoleGenerationPage(context.extensionUri);
+        RoleGenerationPanel.render(context);
       },
     ),
   );
@@ -794,9 +794,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.create-playbook-options",
       async () => {
-        if (
-          await workspace.getConfiguration("ansible").get("lightspeed.enabled")
-        ) {
+        const isAuthenticated =
+          await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+        if (isAuthenticated) {
           vscode.commands.executeCommand(
             "ansible.lightspeed.playbookGeneration",
           );
@@ -949,24 +949,9 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-export async function isLightspeedEnabled(): Promise<boolean> {
-  if (
-    !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
-  ) {
-    await window.showErrorMessage(
-      "Enable lightspeed services from settings to use the feature.",
-    );
-    return false;
-  }
-  return true;
-}
-
 async function lightspeedLogin(
   providerType: AuthProviderType | undefined,
 ): Promise<void> {
-  if (!(await isLightspeedEnabled())) {
-    return;
-  }
   lightSpeedManager.currentModelValue = undefined;
   const authenticatedUser =
     await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserDetails(
