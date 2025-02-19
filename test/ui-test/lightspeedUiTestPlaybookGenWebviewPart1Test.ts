@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 
 import { expect, config } from "chai";
 import {
@@ -6,23 +6,31 @@ import {
   By,
   ModalDialog,
   ViewControl,
-  Workbench,
   ViewSection,
   WebviewView,
+  EditorView,
+  Workbench,
 } from "vscode-extension-tester";
 import {
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  connectLightspeed,
 } from "./uiTestHelper";
+
+before(function () {
+  if (process.platform !== "darwin") {
+    this.skip();
+  }
+});
 
 config.truncateThreshold = 0;
 
 describe("Verify playbook generation features work as expected", function () {
   let workbench: Workbench;
+  let explorerView: WebviewView;
   let adtView: ViewSection;
-  let webviewView: InstanceType<typeof WebviewView>;
 
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
@@ -30,7 +38,7 @@ describe("Verify playbook generation features work as expected", function () {
     }
   });
 
-  before(async function () {
+  before(async () => {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
@@ -43,6 +51,11 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     await dismissNotifications(workbench);
+
+    // Close settings and other open editors (if any)
+    await new EditorView().closeAllEditors();
+
+    await connectLightspeed();
   });
 
   it("Ensures we can go from DevTools to Playbook generation", async function () {
@@ -58,12 +71,12 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(3000);
     console.log("Expanded ADT view");
 
-    webviewView = new WebviewView();
-    expect(webviewView).not.undefined;
-    await webviewView.switchToFrame(1000);
+    explorerView = new WebviewView();
+    expect(explorerView).not.undefined;
+    await explorerView.switchToFrame(1000);
     console.log("Switched to sidebar webview");
 
-    const welcomePageLink = await webviewView.findWebElement(
+    const welcomePageLink = await explorerView.findWebElement(
       By.xpath(
         "//a[contains(@title, 'Ansible Development Tools welcome page')]",
       ),

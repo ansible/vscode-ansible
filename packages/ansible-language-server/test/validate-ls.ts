@@ -1,7 +1,12 @@
 import * as cp from "child_process";
 import * as rpc from "vscode-jsonrpc/node";
 
-const lspProcess = cp.spawn("npx", ["ansible-language-server", "--stdio"]);
+const lspProcess = cp.spawn("npm", [
+  "exec",
+  "--",
+  "ansible-language-server",
+  "--stdio",
+]);
 
 export type LanguageServer = rpc.MessageConnection;
 

@@ -192,7 +192,6 @@ jobs:
           asdf install
           direnv --version
           task --version
-          yarn --version
           node --version
           python3 --version
 
@@ -464,7 +463,7 @@ jobs:
           name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
 
       - run: |
-          yarn install --immutable
+          npm exec -- yarn install --immutable
           ls -la *.vsix
 
       - name: Setup python

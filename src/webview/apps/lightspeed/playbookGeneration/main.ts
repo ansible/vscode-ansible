@@ -94,9 +94,8 @@ window.addEventListener("message", async (event) => {
       outline.save();
 
       const element = document.getElementById("formatted-code") as Element;
-      element.innerHTML = message.playbook.html;
-      const pre = document.getElementsByTagName("pre")[0];
-      pre.style.backgroundColor = "";
+
+      element.innerHTML = message.playbook.playbook;
       break;
     }
     case "startSpinner": {

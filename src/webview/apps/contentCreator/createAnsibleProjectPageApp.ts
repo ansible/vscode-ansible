@@ -131,44 +131,29 @@ function main() {
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
 }
 
+let Source = "";
 function openExplorer(event: any) {
-  const source = event.target.id;
-
-  let selectOption;
-
-  if (source === "folder-explorer") {
-    selectOption = "folder";
-  } else {
-    selectOption = "file";
-  }
-
+  Source = event.target.id;
+  const selectOption = Source === "folder-explorer" ? "folder" : "file";
   vscode.postMessage({
     command: "open-explorer",
-    payload: {
-      selectOption: selectOption,
-    },
+    payload: { selectOption },
   });
-
-  window.addEventListener(
-    "message",
-    (event: MessageEvent<PostMessageEvent>) => {
-      const message = event.data;
-
-      if (message.command === "file-uri") {
-        const selectedUri = message.arguments.selectedUri;
-
-        if (selectedUri) {
-          if (source === "folder-explorer") {
-            destinationPathUrlTextField.value = selectedUri;
-            initCollectionPathElement.innerHTML = selectedUri;
-          } else {
-            logFilePath.value = selectedUri;
-          }
-        }
-      }
-    },
-  );
 }
+window.addEventListener("message", (event: MessageEvent<PostMessageEvent>) => {
+  const message = event.data;
+  if (message.command === "file-uri") {
+    const selectedUri = message.arguments.selectedUri;
+    if (selectedUri) {
+      if (Source === "folder-explorer") {
+        destinationPathUrlTextField.value = selectedUri;
+        initCollectionPathElement.innerHTML = selectedUri;
+      } else if (Source === "file-explorer") {
+        logFilePath.value = selectedUri;
+      }
+    }
+  }
+});
 
 function toggleCreateButton() {
   //   update collection path <p> tag

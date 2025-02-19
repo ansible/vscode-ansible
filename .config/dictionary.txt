@@ -126,6 +126,7 @@ gnalawad
 groovylint
 haaaad
 hbenl
+highlightjs
 hostsvars
 hostvars
 hotfixes
@@ -200,8 +201,11 @@ preid
 preinstall
 prettierrc
 preversion
+primeicons
+primevue
 printenv
 priyamsahoo
+progressspinner
 projectuser
 prsahoo
 pylintrc
@@ -265,6 +269,8 @@ userns
 varInfiles
 venvs
 virt
+vite
+vitebuild
 vnet
 vscodeignore
 vscoss
