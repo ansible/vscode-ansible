@@ -7,7 +7,7 @@ import {
 import { config, expect } from "chai";
 import path from "path";
 import fs from "fs";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import os from "os";
 
 config.truncateThreshold = 0;
@@ -186,22 +186,56 @@ describe("Test collection plugins scaffolding", () => {
   let createButton: WebElement;
   let editorView: EditorView;
 
+  before(async () => {
+    await workbenchExecuteCommand("Install Ansible Content Creator");
+    await sleep(2000);
+  });
+  function findExecutable(command: string): string | null {
+    const systemPaths = (process.env.PATH || "").split(path.delimiter);
+    for (const systemPath of systemPaths) {
+      const executablePath = path.join(systemPath, command);
+      if (
+        fs.existsSync(executablePath) &&
+        fs.statSync(executablePath).isFile()
+      ) {
+        return executablePath;
+      }
+    }
+    return null;
+  }
+
   function scaffoldCollection(collectionPath: string) {
     const safePath = path.resolve(collectionPath);
-    const command = `ansible-creator init collection test_namespace.test_collection ${safePath} --no-ansi`;
 
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(
-          "Failed to scaffold collection:",
-          stderr || error.message,
-        );
-        return;
-      }
-      console.log("Collection scaffolded at:", safePath);
-      console.log(stdout);
-    });
+    const ansibleCreatorPath = findExecutable("ansible-creator");
+    if (!ansibleCreatorPath) {
+      console.error("ansible-creator not found in PATH");
+      return;
+    }
+
+    execFile(
+      ansibleCreatorPath,
+      [
+        "init",
+        "collection",
+        "test_namespace.test_collection",
+        safePath,
+        "--no-ansi",
+      ],
+      (error, stdout, stderr) => {
+        if (error) {
+          console.error(
+            "Failed to scaffold collection:",
+            stderr || error.message,
+          );
+          return;
+        }
+        console.log("Collection scaffolded at:", safePath);
+        console.log(stdout);
+      },
+    );
   }
+
   async function testWebViewElements(
     command: string,
     collectionPath: string,
