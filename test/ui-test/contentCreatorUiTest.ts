@@ -286,9 +286,10 @@ describe("Test collection plugins scaffolding", () => {
       const pluginPath = path.join(
         os.homedir(),
         "plugins",
-        "filter",
+        "action",
         "plugin_name.py",
       );
+      console.log("Checking if plugin file exists at:", pluginPath);
       expect(fs.existsSync(pluginPath)).to.be.true;
     }
     await webview.switchBack();
@@ -304,7 +305,7 @@ describe("Test collection plugins scaffolding", () => {
       "~",
       "Add Plugin",
       "test_plugin_name",
-      "lookup",
+      "action",
     );
   });
   it("Check add-plugin webview elements for action plugin", async () => {
@@ -313,7 +314,7 @@ describe("Test collection plugins scaffolding", () => {
       "~",
       "Add Plugin",
       "test_plugin_name",
-      "action",
+      "lookup",
     );
   });
   it("Verify Open Plugin button is enabled and plugin file exists", async () => {
