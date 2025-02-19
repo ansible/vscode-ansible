@@ -55,7 +55,7 @@
 !syntaxes/**/*
 # walkthrough media files
 !media/walkthroughs/createAnsibleEnv/adt-components.md
-!media/walkthroughs/createAnsibleEnv/adt-components.png
+!media/walkthroughs/createAnsibleEnv/all-adt-components.png
 !media/walkthroughs/createAnsibleEnv/language-selector.png
 !media/walkthroughs/createAnsibleEnv/language-statusbar.png
 !media/walkthroughs/createAnsibleEnv/open-folder.png

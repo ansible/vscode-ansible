@@ -37,7 +37,10 @@ const accessLogStream = fs.createWriteStream(
 export const morganLogger = morgan("common", { stream: accessLogStream });
 
 const API_VERSION = "v0";
+const API_VERSION_V1 = "v1";
 const API_ROOT = `/api/${API_VERSION}`;
+const API_ROOT_V1 = `/api/${API_VERSION_V1}`;
+
 export const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -89,7 +92,7 @@ export default class Server {
       return playbookGeneration(req, res);
     });
 
-    app.post(`${API_ROOT}/ai/generations/role`, async (req, res) => {
+    app.post(`${API_ROOT_V1}/ai/generations/role/`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
       return roleGeneration(req, res);
     });
