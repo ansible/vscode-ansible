@@ -190,6 +190,8 @@ describe("Test collection plugins scaffolding", () => {
     await workbenchExecuteCommand("Install Ansible Content Creator");
     await sleep(2000);
   });
+
+  // Safely finds the absolute path of the executable from system PATH without using shell commands.
   function findExecutable(command: string): string | null {
     const systemPaths = (process.env.PATH || "").split(path.delimiter);
     for (const systemPath of systemPaths) {
@@ -204,6 +206,7 @@ describe("Test collection plugins scaffolding", () => {
     return null;
   }
 
+  // Using execFile for safer execution without shell, ensuring SonarCloud compliance.
   function scaffoldCollection(collectionPath: string) {
     const safePath = path.resolve(collectionPath);
 
