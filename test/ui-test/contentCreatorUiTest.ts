@@ -189,9 +189,9 @@ describe("Test collection plugins scaffolding", () => {
   function scaffoldCollection(collectionPath: string) {
     try {
       const safePath = path.resolve(collectionPath);
-
+      const ansibleCreatorPath = "/usr/local/bin/ansible-creator"; // Update this with the correct path
       execFileSync(
-        "ansible-creator",
+        ansibleCreatorPath,
         [
           "init",
           "collection",
@@ -305,7 +305,7 @@ describe("Test collection plugins scaffolding", () => {
       "~",
       "Add Plugin",
       "test_plugin_name",
-      "action",
+      "Lookup",
     );
   });
   it("Check add-plugin webview elements for action plugin", async () => {
@@ -314,7 +314,7 @@ describe("Test collection plugins scaffolding", () => {
       "~",
       "Add Plugin",
       "test_plugin_name",
-      "lookup",
+      "Action",
     );
   });
   it("Verify Open Plugin button is enabled and plugin file exists", async () => {
@@ -323,7 +323,7 @@ describe("Test collection plugins scaffolding", () => {
       os.homedir(),
       "Add Plugin",
       "plugin_name",
-      "filter",
+      "Filter",
       true,
     );
   });
