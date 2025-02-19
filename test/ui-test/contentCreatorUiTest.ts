@@ -355,7 +355,7 @@ describe("Test collection plugins scaffolding", () => {
       os.homedir(),
       "Add Plugin",
       "plugin_name",
-      "Filter",
+      "Action",
       true,
     );
   });
