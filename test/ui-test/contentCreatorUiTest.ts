@@ -188,12 +188,14 @@ describe("Test collection plugins scaffolding", () => {
 
   function scaffoldCollection(collectionPath: string) {
     try {
+      const safePath = path.resolve(collectionPath);
       execSync(
-        `ansible-creator init collection test_namespace.test_collection ${collectionPath} --no-ansi`,
+        `ansible-creator init collection test_namespace.test_collection ${safePath} --no-ansi`,
+        { stdio: "inherit" },
       );
-      console.log("Collection scaffolded at:", collectionPath);
-    } catch {
-      console.error("Failed to scaffold collection");
+      console.log("Collection scaffolded at:", safePath);
+    } catch (error) {
+      console.error("Failed to scaffold collection", error);
     }
   }
 
