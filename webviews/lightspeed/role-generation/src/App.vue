@@ -42,7 +42,7 @@ async function nextPage() {
 vscodeApi.on('generateRole', (data: any) => {
   response.value = undefined; // To disable the watchers
   roleName.value = data["role"];
-  outline.value = data["outline"];
+  outline.value = data["outline"] || outline.value;
   if (Array.isArray(data["warnings"])) {
     errorMessages.value.push(...data["warnings"]);
   }
@@ -51,15 +51,21 @@ vscodeApi.on('generateRole', (data: any) => {
   page.value++;
 });
 
+
+
 // Reset some stats before the page transition
-watch(page, () => {
+watch(page, (newPage) => {
   errorMessages.value = [];
   filesWereSaved.value = false;
+  if (newPage === 1) {
+    roleName.value = "";
+  }
 })
 
 watch(prompt, (newPrompt) => {
   if (response.value !== undefined) {
     response.value = undefined;
+    outline.value = "";
   }
 })
 
@@ -117,7 +123,8 @@ watch(outline, (newOutline) => {
       Role name: <vscode-text-field v-model="roleName" />
     </div>
 
-    <OutlineReview :outline @outline-update="(newOutline) => outline = newOutline" />
+    <OutlineReview :outline
+      @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
 
     <div>
       <vscode-button @click.once="nextPage">
