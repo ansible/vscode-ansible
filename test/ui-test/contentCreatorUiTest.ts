@@ -7,7 +7,7 @@ import {
 import { config, expect } from "chai";
 import path from "path";
 import fs from "fs";
-import { execFileSync } from "child_process";
+import { exec } from "child_process";
 import os from "os";
 
 config.truncateThreshold = 0;
@@ -187,26 +187,21 @@ describe("Test collection plugins scaffolding", () => {
   let editorView: EditorView;
 
   function scaffoldCollection(collectionPath: string) {
-    try {
-      const safePath = path.resolve(collectionPath);
-      const ansibleCreatorPath = "/usr/local/bin/ansible-creator"; // Update this with the correct path
-      execFileSync(
-        ansibleCreatorPath,
-        [
-          "init",
-          "collection",
-          "test_namespace.test_collection",
-          safePath,
-          "--no-ansi",
-        ],
-        { stdio: "inherit" },
-      );
-      console.log("Collection scaffolded at:", collectionPath);
-    } catch {
-      console.error("Failed to scaffold collection");
-    }
-  }
+    const safePath = path.resolve(collectionPath);
+    const command = `ansible-creator init collection test_namespace.test_collection ${safePath} --no-ansi`;
 
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(
+          "Failed to scaffold collection:",
+          stderr || error.message,
+        );
+        return;
+      }
+      console.log("Collection scaffolded at:", safePath);
+      console.log(stdout);
+    });
+  }
   async function testWebViewElements(
     command: string,
     collectionPath: string,
