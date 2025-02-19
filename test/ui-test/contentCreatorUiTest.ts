@@ -7,7 +7,7 @@ import {
 import { config, expect } from "chai";
 import path from "path";
 import fs from "fs";
-import { execSync } from "child_process";
+import { execFileSync } from "child_process";
 import os from "os";
 
 config.truncateThreshold = 0;
@@ -189,18 +189,27 @@ describe("Test collection plugins scaffolding", () => {
   function scaffoldCollection(collectionPath: string) {
     try {
       const safePath = path.resolve(collectionPath);
-      execSync(
-        `ansible-creator init collection test_namespace.test_collection ${safePath} --no-ansi`,
+
+      execFileSync(
+        "ansible-creator",
+        [
+          "init",
+          "collection",
+          "test_namespace.test_collection",
+          safePath,
+          "--no-ansi",
+        ],
         { stdio: "inherit" },
       );
-      console.log("Collection scaffolded at:", safePath);
-    } catch (error) {
-      console.error("Failed to scaffold collection", error);
+      console.log("Collection scaffolded at:", collectionPath);
+    } catch {
+      console.error("Failed to scaffold collection");
     }
   }
 
   async function testWebViewElements(
     command: string,
+    collectionPath: string,
     editorTitle: string,
     pluginName: string,
     pluginType: string,
@@ -221,7 +230,7 @@ describe("Test collection plugins scaffolding", () => {
       collectionPathUrlTextField,
       "collectionPathUrlTextField should not be undefined",
     ).not.to.be.undefined;
-    await collectionPathUrlTextField.sendKeys("~");
+    await collectionPathUrlTextField.sendKeys(collectionPath);
     const pluginNameTextField = await webview.findWebElement(
       By.xpath("//vscode-textfield[@id='plugin-name']"),
     );
@@ -262,7 +271,7 @@ describe("Test collection plugins scaffolding", () => {
     await createButton.click();
     await sleep(3000);
     if (verifyPath) {
-      scaffoldCollection("~");
+      scaffoldCollection(collectionPath);
       await createButton.click();
       await sleep(5000);
 
@@ -292,22 +301,25 @@ describe("Test collection plugins scaffolding", () => {
   it("Check add-plugin webview elements for lookup plugin", async () => {
     await testWebViewElements(
       "Ansible: Add a Plugin",
+      "~",
       "Add Plugin",
       "test_plugin_name",
-      "Lookup",
+      "lookup",
     );
   });
   it("Check add-plugin webview elements for action plugin", async () => {
     await testWebViewElements(
       "Ansible: Add a Plugin",
+      "~",
       "Add Plugin",
       "test_plugin_name",
-      "Action",
+      "action",
     );
   });
   it("Verify Open Plugin button is enabled and plugin file exists", async () => {
     await testWebViewElements(
       "Ansible: Add a Plugin",
+      os.homedir(),
       "Add Plugin",
       "plugin_name",
       "filter",
