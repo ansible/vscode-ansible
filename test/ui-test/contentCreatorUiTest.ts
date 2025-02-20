@@ -247,6 +247,12 @@ describe("Test collection plugins scaffolding", () => {
     pluginType: string,
     verifyPath: boolean = false,
   ) {
+    const dropdownTagMap = {
+      Action: 0,
+      Filter: 1,
+      Lookup: 2,
+    } as { [key: string]: number };
+
     await workbenchExecuteCommand(command);
     await sleep(10000);
 
@@ -274,6 +280,20 @@ describe("Test collection plugins scaffolding", () => {
     );
     expect(pluginTypeDropdown, "pluginTypeDropdown should not be undefined").not
       .to.be.undefined;
+    await pluginTypeDropdown.click();
+    await sleep(1000);
+    const index = dropdownTagMap[pluginType];
+    await webview.getDriver().executeScript(
+      (dropdown: HTMLSelectElement, index: number) => {
+        if (dropdown) {
+          dropdown.selectedIndex = index;
+          dropdown.dispatchEvent(new Event("change"));
+        }
+      },
+      pluginTypeDropdown,
+      index,
+    );
+    await sleep(1000);
     await pluginTypeDropdown.sendKeys(pluginType);
     const overwriteCheckbox = await webview.findWebElement(
       By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
@@ -318,7 +338,7 @@ describe("Test collection plugins scaffolding", () => {
       const pluginPath = path.join(
         os.homedir(),
         "plugins",
-        "action",
+        "filter",
         "plugin_name.py",
       );
       console.log("Checking if plugin file exists at:", pluginPath);
@@ -355,7 +375,7 @@ describe("Test collection plugins scaffolding", () => {
       os.homedir(),
       "Add Plugin",
       "plugin_name",
-      "Action",
+      "Filter",
       true,
     );
   });
