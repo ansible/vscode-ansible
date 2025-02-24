@@ -4,7 +4,7 @@ import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
 
 import { Uri, workspace, FileSystemError } from "vscode";
 import { LightSpeedAPI } from "../../api";
-import { IError } from "../../utils/errors";
+import { IError, isError } from "../../utils/errors";
 import {
   RoleGenerationResponseParams,
   RoleGenerationListEntry,
@@ -113,6 +113,12 @@ export class WebviewHelper {
               data.outline,
               generationId,
             );
+            if (isError(response)) {
+              sendErrorMessage(
+                `Failed to get an answer from the server: ${response.message}`,
+              );
+              return;
+            }
             webview.postMessage({
               type: type,
               data: response,
