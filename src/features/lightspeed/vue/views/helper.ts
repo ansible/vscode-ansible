@@ -79,12 +79,16 @@ async function fileExists(uri: Uri): Promise<boolean> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class WebviewHelper {
-  public static setupHtml(webview: Webview, context: ExtensionContext) {
+  public static setupHtml(
+    webview: Webview,
+    context: ExtensionContext,
+    name: string,
+  ) {
     return process.env.VITE_DEV_SERVER_URL
       ? __getWebviewHtml__(
-          `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/role-generation/index.html`,
+          `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
         )
-      : __getWebviewHtml__(webview, context, "roleGen");
+      : __getWebviewHtml__(webview, context, name);
   }
 
   public static async setupWebviewHooks(

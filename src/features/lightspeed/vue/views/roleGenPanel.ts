@@ -14,6 +14,7 @@ export class MainPanel {
     this._panel.webview.html = WebviewHelper.setupHtml(
       this._panel.webview,
       context,
+      "role-generation",
     );
 
     WebviewHelper.setupWebviewHooks(
