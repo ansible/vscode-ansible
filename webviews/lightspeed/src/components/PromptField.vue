@@ -33,7 +33,7 @@ vscodeApi.post('getRecentPrompts', {});
 
 <template>
     <div class="promptContainer">
-        <label><strong>Describe the role's purpose in natural language</strong></label>
+        <label><strong>Describe what you want to achieve in natural language</strong></label>
         <div class="fieldBox">
             <AutoComplete id="PromptTextField" fluid v-model="prompt" size="small" :suggestions="recentPromptsFiltered"
                 placeholder="I want to write a role that will..." @complete="search" />

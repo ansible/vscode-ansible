@@ -2,15 +2,26 @@ import type { Disposable, ExtensionContext, Webview } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
 
-import { Uri, workspace, FileSystemError } from "vscode";
+import { Uri, workspace, FileSystemError, ViewColumn, window } from "vscode";
 import { LightSpeedAPI } from "../../api";
 import { IError, isError } from "../../utils/errors";
 import {
+  PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
   RoleGenerationListEntry,
 } from "../../../../interfaces/lightspeed";
 
 import { lightSpeedManager } from "../../../../extension";
+
+async function openNewPlaybookEditor(content: string) {
+  const options = {
+    language: "ansible",
+    content: content,
+  };
+
+  const doc = await workspace.openTextDocument(options);
+  await window.showTextDocument(doc, ViewColumn.Active);
+}
 
 export async function getCollectionsFromWorkspace(): Promise<
   AnsibleCollection[]
@@ -63,6 +74,28 @@ async function generateRole(
       generationId,
       //wizardId,
     });
+  return response;
+}
+
+async function generatePlaybook(
+  apiInstance: LightSpeedAPI,
+  text: string,
+  outline: string,
+  generationId: string,
+): Promise<PlaybookGenerationResponseParams | IError> {
+  const createOutline = outline.length === 0;
+
+  console.log("generatePlaybook");
+
+  const response: PlaybookGenerationResponseParams | IError =
+    await apiInstance.playbookGenerationRequest({
+      text,
+      outline: outline.length > 0 ? outline : undefined,
+      createOutline,
+      generationId,
+      //wizardId,
+    });
+  console.log(response);
   return response;
 }
 
@@ -137,6 +170,34 @@ export class WebviewHelper {
             );
             return;
           }
+          case "generatePlaybook": {
+            const generationId = uuidv4();
+            const response = await generatePlaybook(
+              lightSpeedManager.apiInstance,
+              data.text,
+              data.outline,
+              generationId,
+            );
+            if (isError(response)) {
+              sendErrorMessage(
+                `Failed to get an answer from the server: ${response.message}`,
+              );
+              return;
+            }
+            webview.postMessage({
+              type: type,
+              data: response,
+            });
+            const recent_prompts: string[] = context.workspaceState
+              .get("ansible.lightspeed.recent_prompts", [])
+              .filter((prompt) => prompt !== data.text);
+            recent_prompts.push(data.text);
+            context.workspaceState.update(
+              "ansible.lightspeed.recent_prompts",
+              recent_prompts.slice(-500),
+            );
+            return;
+          }
           case "getRecentPrompts": {
             const recent_prompts: string[] = context.workspaceState.get(
               "ansible.lightspeed.recent_prompts",
@@ -157,6 +218,19 @@ export class WebviewHelper {
               data: await getCollectionsFromWorkspace(),
             });
             return;
+          }
+          case "openEditor": {
+            console.log(data);
+            const content: string = data.content;
+            await openNewPlaybookEditor(content);
+            // await sendActionEvent(
+            //   WizardGenerationActionType.CLOSE_ACCEPT,
+            //   undefined,
+            // );
+            // Clear wizardId to suppress another CLOSE event at dispose()
+            // wizardId = undefined;
+            // panel.dispose();
+            break;
           }
           case "writeRoleInWorkspace": {
             const roleName: string = data.roleName;
