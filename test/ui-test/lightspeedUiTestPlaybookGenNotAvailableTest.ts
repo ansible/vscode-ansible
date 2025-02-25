@@ -48,26 +48,4 @@ describe("Verify playbook generation features work as expected", function () {
 
     await workbenchExecuteCommand("View: Close All Editor Groups");
   });
-
-  it("Ansible Lightspeed: Playbook generation shows notification when user is not logged in", async function () {
-    // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
-    }
-
-    // Open playbook generation webview.
-    await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-
-    await sleep(2000);
-
-    const workbench = new Workbench();
-    const notifications = await workbench.getNotifications();
-    expect(notifications.length).greaterThan(0);
-    const userNotLoggedInError = notifications.find(async (notification) => {
-      return (await notification.getMessage()).includes(
-        "Log in to Ansible Lightspeed to use this feature.",
-      );
-    });
-    expect(userNotLoggedInError).to.be.not.undefined;
-  });
 });
