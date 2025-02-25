@@ -24,13 +24,8 @@ const roleName = ref('');
 const response: Ref<RoleGenerationResponseParams | undefined> = ref();
 const outline = ref('');
 const errorMessages: Ref<string[]> = ref([])
-
-
 const loadingNewResponse = ref(false);
 const filesWereSaved = ref(false);
-
-
-
 
 async function nextPage() {
   if (response.value !== undefined) {
@@ -41,8 +36,6 @@ async function nextPage() {
   await vscodeApi.post('generateRole', { text: prompt.value, outline: outline.value });
 
 }
-
-
 
 vscodeApi.on('generateRole', (data: any) => {
   response.value = undefined; // To disable the watchers

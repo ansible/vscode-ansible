@@ -26,9 +26,9 @@ export default defineConfig({
     rollupOptions: {
       // https://cn.vitejs.dev/guide/build.html#multi-page-app
       input: {
-        roleGen: path.resolve(
+        "role-generation": path.resolve(
           __dirname,
-          "webviews/lightspeed/role-generation/index.html",
+          "webviews/lightspeed/role-generation.html",
         ),
       },
     },
