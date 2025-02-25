@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import App from "./RoleGenApp.vue";
+import App from "./PlaybookGenApp.vue";
 
 import hljs from "highlight.js/lib/core";
 import yaml from "highlight.js/lib/languages/yaml";
