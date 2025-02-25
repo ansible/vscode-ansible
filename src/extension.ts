@@ -61,7 +61,6 @@ import { AnsibleWelcomePage } from "./features/welcomePage";
 import { CreateAnsibleCollection } from "./features/contentCreator/createAnsibleCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
-import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
 import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
@@ -76,6 +75,7 @@ import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnv
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
+import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -600,7 +600,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
       async () => {
-        await showPlaybookGenerationPage(context.extensionUri);
+        PlaybookGenerationPanel.render(context);
       },
     ),
   );
