@@ -3,7 +3,13 @@
 import { expect, config } from "chai";
 import fs from "fs";
 
-import { By, EditorView, VSBrowser, Workbench } from "vscode-extension-tester";
+import {
+  By,
+  EditorView,
+  VSBrowser,
+  Workbench,
+  Key,
+} from "vscode-extension-tester";
 import {
   sleep,
   getWebviewByLocator,
@@ -90,6 +96,7 @@ describe("Verify Role generation feature works as expected", function () {
       By.xpath('//*[@id="PromptTextField"]/input'),
     );
     await promptTextField.sendKeys("Install and configure Nginx");
+    await promptTextField.sendKeys(Key.ESCAPE);
     await promptTextField.click();
 
     (
