@@ -2,15 +2,20 @@
 import { ref, watch } from 'vue';
 import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
+import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
 import { RoleGenerationResponseParams } from "../../../../src/interfaces/lightspeed";
+
 import SavedFiles from "./components/SavedFiles.vue";
 import StatusBox from './components/StatusBox.vue';
 import OutlineReview from './components/OutlineReview.vue';
 import GeneratedFileEntry from './components/GeneratedFileEntry.vue';
-import CollectionSelectorAsync from "./components/CollectionSelectorAsync.vue";
+import CollectionSelector from "./components/CollectionSelector.vue";
 import ErrorBox from './components/ErrorBox.vue';
 import PromptExampleBox from './components/PromptExampleBox.vue';
+import PromptField from './components/PromptField.vue';
+
+provideVSCodeDesignSystem().register(allComponents);
 
 const page = ref(1);
 const prompt = ref('');
@@ -19,34 +24,23 @@ const roleName = ref('');
 const response: Ref<RoleGenerationResponseParams | undefined> = ref();
 const outline = ref('');
 const errorMessages: Ref<string[]> = ref([])
-
-
 const loadingNewResponse = ref(false);
 const filesWereSaved = ref(false);
 
-
 async function nextPage() {
-  console.log("App.vue: generateRole");
   if (response.value !== undefined) {
-    console.log("Nothing to do");
     page.value++;
     return;
   }
-  console.log("generateRole");
   loadingNewResponse.value = true;
-
-
-
   await vscodeApi.post('generateRole', { text: prompt.value, outline: outline.value });
 
 }
 
-
-
 vscodeApi.on('generateRole', (data: any) => {
   response.value = undefined; // To disable the watchers
   roleName.value = data["role"];
-  outline.value = data["outline"];
+  outline.value = data["outline"] || outline.value;
   if (Array.isArray(data["warnings"])) {
     errorMessages.value.push(...data["warnings"]);
   }
@@ -55,36 +49,35 @@ vscodeApi.on('generateRole', (data: any) => {
   page.value++;
 });
 
+
+
 // Reset some stats before the page transition
-watch(page, () => {
+watch(page, (newPage) => {
   errorMessages.value = [];
   filesWereSaved.value = false;
+  if (newPage === 1) {
+    roleName.value = "";
+  }
 })
 
 watch(prompt, (newPrompt) => {
   if (response.value !== undefined) {
-    console.log(`New prompt is ${newPrompt}`)
     response.value = undefined;
+    outline.value = "";
   }
 })
 
 watch(roleName, (newRoleName) => {
-  console.log(response);
-  console.log(response.value);
-  console.log(response["role"]);
   if (response.value !== undefined && response.value["role"] !== newRoleName) {
-    console.log(`New roleName is ${newRoleName}`)
     response.value = undefined;
   }
 })
 
 watch(outline, (newOutline) => {
   if (response.value !== undefined && response.value["outline"] !== newOutline) {
-    console.log(`New outline is ${newOutline}`)
     response.value = undefined;
   }
 })
-
 
 
 </script>
@@ -103,16 +96,8 @@ watch(outline, (newOutline) => {
   <ProgressSpinner v-if="loadingNewResponse" />
 
   <div v-else-if="page === 1">
-    <Suspense>
-      <KeepAlive>
-        <CollectionSelectorAsync v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
-      </KeepAlive>
-      <template #fallback>
-        <ProgressSpinner />
-      </template>
-    </Suspense>
-
-    <vscode-text-field size="100" resize="both" placeholder="I want to write a role that will..." v-model="prompt" />
+    <CollectionSelector v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
+    <PromptField v-model:prompt="prompt" />
 
     <div>
       <vscode-button @click.once="nextPage" :disabled="prompt === '' || collectionName === ''">
@@ -125,16 +110,17 @@ watch(outline, (newOutline) => {
   <div v-else-if="page === 2">
     <StatusBox :prompt="prompt" :collectionName="collectionName" @restart-wizard="page = 1" />
     <div>
-      Role name: <vscode-text-field v-model="roleName" />
+      Role name: <vscode-textfield v-model="roleName" />
     </div>
 
-    <OutlineReview :outline @outline-update="(newOutline) => outline = newOutline" />
+    <OutlineReview :outline
+      @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
 
     <div>
       <vscode-button @click.once="nextPage">
         Continue
       </vscode-button>
-      <vscode-button appearance="secondary" @click="page--">
+      <vscode-button secondary @click="page--">
         Back
       </vscode-button>
     </div>
@@ -153,11 +139,15 @@ watch(outline, (newOutline) => {
       <vscode-button @click="filesWereSaved = true">
         Save files
       </vscode-button>
-      <vscode-button appearance="secondary" @click="page--">
+      <vscode-button secondary @click="page--">
         Back
       </vscode-button>
     </div>
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+#role-prompt {
+  width: 100ch;
+}
+</style>
