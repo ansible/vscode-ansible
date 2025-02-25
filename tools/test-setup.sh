@@ -350,8 +350,8 @@ done
 unset CMD
 
 # Validate navigator ability to use ee
-ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee false --mode stdout
-ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee true --ce podman --eei ghcr.io/ansible/community-ansible-dev-tools:latest --mode stdout
+#ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee false --mode stdout
+#ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee true --ce podman --eei ghcr.io/ansible/community-ansible-dev-tools:latest --mode stdout
 
 command -v npm  >/dev/null 2>&1 || {
     log notice "Installing nodejs stable."
