@@ -4,28 +4,38 @@ import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
 import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
-import { RoleGenerationResponseParams } from "../../../../src/interfaces/lightspeed";
+import { PlaybookGenerationResponseParams, GenerationFileType, FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
+import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
 
-import SavedFiles from "./components/SavedFiles.vue";
-import StatusBox from './components/StatusBox.vue';
 import OutlineReview from './components/OutlineReview.vue';
-import GeneratedFileEntry from './components/GeneratedFileEntry.vue';
-import CollectionSelector from "./components/CollectionSelector.vue";
+import GeneratedFileEntry from "./components/GeneratedFileEntry.vue";
 import ErrorBox from './components/ErrorBox.vue';
 import PromptExampleBox from './components/PromptExampleBox.vue';
 import PromptField from './components/PromptField.vue';
+import StatusBoxPrompt from './components/StatusBoxPrompt.vue';
 
 provideVSCodeDesignSystem().register(allComponents);
 
 const page = ref(1);
 const prompt = ref('');
-const collectionName = ref('');
-const roleName = ref('');
-const response: Ref<RoleGenerationResponseParams | undefined> = ref();
+const response: Ref<PlaybookGenerationResponseParams | undefined> = ref();
 const outline = ref('');
 const errorMessages: Ref<string[]> = ref([])
 const loadingNewResponse = ref(false);
 const filesWereSaved = ref(false);
+let wizardId = crypto.randomUUID();
+
+async function sendActionEvent(action: WizardGenerationActionType, fromPage: undefined | number = undefined, toPage: undefined | number = undefined) {
+  const request: FeedbackRequestParams = {
+    playbookGenerationAction: {
+      wizardId,
+      action,
+      fromPage: fromPage,
+      toPage: toPage,
+    },
+  }
+  vscodeApi.post('feedback', { request });
+}
 
 async function nextPage() {
   if (response.value !== undefined) {
@@ -33,31 +43,33 @@ async function nextPage() {
     return;
   }
   loadingNewResponse.value = true;
-  await vscodeApi.post('generateRole', { text: prompt.value, outline: outline.value });
+  await vscodeApi.post('generatePlaybook', { text: prompt.value, outline: outline.value });
 
 }
 
-vscodeApi.on('generateRole', (data: any) => {
+async function openEditor() {
+  if (response && response.value && response.value.playbook) {
+    await vscodeApi.post('openEditor', { content: response.value.playbook });
+    sendActionEvent(WizardGenerationActionType.CLOSE_ACCEPT, page.value, undefined);
+  }
+}
+
+vscodeApi.on('generatePlaybook', (data: any) => {
   response.value = undefined; // To disable the watchers
-  roleName.value = data["role"];
   outline.value = data["outline"] || outline.value;
   if (Array.isArray(data["warnings"])) {
     errorMessages.value.push(...data["warnings"]);
   }
-  response.value = data as RoleGenerationResponseParams;
+  response.value = data as PlaybookGenerationResponseParams;
   loadingNewResponse.value = false;
   page.value++;
 });
 
-
-
 // Reset some stats before the page transition
-watch(page, (newPage) => {
+watch(page, (toPage, fromPage) => {
   errorMessages.value = [];
   filesWereSaved.value = false;
-  if (newPage === 1) {
-    roleName.value = "";
-  }
+  sendActionEvent(WizardGenerationActionType.TRANSITION, fromPage, toPage)
 })
 
 watch(prompt, (newPrompt) => {
@@ -65,12 +77,7 @@ watch(prompt, (newPrompt) => {
     response.value = undefined;
     outline.value = "";
   }
-})
-
-watch(roleName, (newRoleName) => {
-  if (response.value !== undefined && response.value["role"] !== newRoleName) {
-    response.value = undefined;
-  }
+  wizardId = crypto.randomUUID();
 })
 
 watch(outline, (newOutline) => {
@@ -79,28 +86,22 @@ watch(outline, (newOutline) => {
   }
 })
 
-
+sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
 </script>
 
 <template>
-  <h2 id="main-header">Create a role with Ansible Lightspeed</h2>
+  <h2 id="main-header">Create a playbook with Ansible Lightspeed</h2>
   <div class="pageNumber" id="page-number">{{ page }} of 3</div>
 
   <ErrorBox v-model:error-messages="errorMessages" />
 
-  <div id="roleInfo">
-    <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Learn more about
-      roles🔗</a>
-  </div>
-
   <ProgressSpinner v-if="loadingNewResponse" />
 
   <div v-else-if="page === 1">
-    <CollectionSelector v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
-    <PromptField v-model:prompt="prompt" />
+    <PromptField v-model:prompt="prompt" placeholder="I want to write a playbook that will..." />
 
     <div>
-      <vscode-button @click.once="nextPage" :disabled="prompt === '' || collectionName === ''">
+      <vscode-button @click.once="nextPage" :disabled="prompt === ''">
         Analyze
       </vscode-button>
     </div>
@@ -108,10 +109,7 @@ watch(outline, (newOutline) => {
   </div>
 
   <div v-else-if="page === 2">
-    <StatusBox :prompt="prompt" :collectionName="collectionName" @restart-wizard="page = 1" />
-    <div>
-      Role name: <vscode-textfield v-model="roleName" />
-    </div>
+    <StatusBoxPrompt :prompt="prompt" @restart-wizard="page = 1" />
 
     <OutlineReview :outline
       @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
@@ -127,17 +125,11 @@ watch(outline, (newOutline) => {
   </div>
 
   <div v-else-if="page === 3">
-    <GeneratedFileEntry v-for="file in response?.files" :file />
-    <Suspense>
-      <SavedFiles v-if="filesWereSaved && response" :files="response.files" :role-name="roleName"
-        :collection-name="collectionName" />
-      <template #fallback>
-        <ProgressSpinner />
-      </template>
-    </Suspense>
+    <GeneratedFileEntry
+      :file="{ 'content': response ? response.playbook : '', 'path': 'new_playbook.yaml', 'file_type': GenerationFileType.Playbook }" />
     <div>
-      <vscode-button @click="filesWereSaved = true">
-        Save files
+      <vscode-button @click="openEditor">
+        Open editor
       </vscode-button>
       <vscode-button secondary @click="page--">
         Back
@@ -146,8 +138,4 @@ watch(outline, (newOutline) => {
   </div>
 </template>
 
-<style scoped>
-#role-prompt {
-  width: 100ch;
-}
-</style>
+<style scoped></style>

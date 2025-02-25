@@ -117,6 +117,7 @@ export default class Server {
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
       logger.info(req.query);
       const redirectUri = decodeURIComponent(req.query.redirect_uri);
+      setTimeout(() => console.log("Howdy!"), 3000);
       openUrl(`${redirectUri}&code=CODE`);
       res.send({});
     });

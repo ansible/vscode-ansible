@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { vscodeApi } from '../utils';
-import { RoleGenerationListEntry } from "../../../../../src/interfaces/lightspeed";
+import { GenerationListEntry } from '../../../../src/interfaces/lightspeed';
 
 import SavedFilesEntry from './SavedFilesEntry.vue';
 
@@ -11,7 +11,7 @@ interface IWriteRoleInWorkspaceOutputEntry {
 
 
 const props = defineProps<{
-    files: RoleGenerationListEntry[],
+    files: GenerationListEntry[],
     roleName: string,
     collectionName: string
 }>();
@@ -23,8 +23,6 @@ async function writeRoleInWorkspace() {
         collectionName: props.collectionName,
         roleName: props.roleName
     }).then((data: any) => {
-        console.log('writeRoleInWorkspace');
-        console.log(data);
         return data as IWriteRoleInWorkspaceOutputEntry[];
     });
 }
