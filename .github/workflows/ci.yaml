@@ -247,11 +247,11 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
-    #   - name: test podman
-    #     if: ${{ matrix.name == 'test (linux)' }}
-    #     run: |
-
-
+      # Temporary step for debugging https://github.com/ansible/vscode-ansible/pull/1480
+      - name: test podman issue
+        if: ${{ matrix.name == 'test (linux)' }}
+        run: |
+          ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee true --ce podman --eei ghcr.io/ansible/community-ansible-dev-tools:latest --mode stdout --pae false
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
