@@ -102,14 +102,14 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
     );
     await VSBrowser.instance.openResources(playbookFile);
     await workbench.executeCommand("Run playbook via `ansible-navigator run``");
-    await sleep(3000);
+    await sleep(3500);
 
     const terminalView = await new BottomBarPanel().openTerminalView();
     const text = await terminalView.getText();
-    await terminalView.killTerminal();
 
     // assert with just "Play " rather than "Play name" due to CI output formatting issues
     expect(text).contains("Play ");
+    await terminalView.killTerminal();
   });
   after(async function () {
     const folder = "terminal";
