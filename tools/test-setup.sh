@@ -467,7 +467,7 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
         podman run --rm "${IMAGE}" ansible-lint --nocolor --version)
     log notice "ansible: ${EE_ANSIBLE_VERSION}, ansible-lint: ${EE_ANSIBLE_LINT_VERSION}"
     log notice "Test podman ability to mount current folder with write access, default mount options"
-    podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
+    podman run -v "$PWD:$PWD" --security-opt=apparmor=podman ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
