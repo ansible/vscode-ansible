@@ -7,6 +7,7 @@ import ts from "@typescript-eslint/eslint-plugin";
 import tsdocPlugin from "eslint-plugin-tsdoc";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import pluginChaiFriendly from "eslint-plugin-chai-friendly";
+import vitest from "@vitest/eslint-plugin";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -107,6 +108,16 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-require-imports": "off",
       "chai-friendly/no-unused-expressions": "error",
+    },
+  },
+  {
+    files: ["test/units/lightspeed-vitest/**/*.{js,ts,tsx}"],
+    plugins: {
+      vitest,
+    },
+    rules: {
+      ...vitest.configs.recommended.rules,
+      "@typescript-eslint/unbound-method": "off",
     },
   },
 );
