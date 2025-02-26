@@ -134,7 +134,7 @@ function openExplorer(event: any) {
 
 function handleInitClearClick() {
   pluginNameTextField.value = "";
-  pluginTypeDropdown.value = "filter";
+  pluginTypeDropdown.value = "action";
   collectionPathUrlTextField.value = "";
 
   initCollectionPathElement.innerHTML =
