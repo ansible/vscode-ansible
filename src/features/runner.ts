@@ -60,6 +60,7 @@ export class AnsiblePlaybookRunProvider {
     }
     commandLineArgs.push("--ee true");
     commandLineArgs.push("--mode stdout");
+    commandLineArgs.push("--pae false");
     commandLineArgs.push(
       `--ce ${getContainerEngine(eeSettings.containerEngine)}`,
     );

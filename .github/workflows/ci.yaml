@@ -247,6 +247,12 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
+    #   - name: test podman
+    #     if: ${{ matrix.name == 'test (linux)' }}
+    #     run: |
+
+
+
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
