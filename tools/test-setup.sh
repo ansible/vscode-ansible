@@ -151,7 +151,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
 
     if [[ "$WSL" == "0" ]] && [[ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" != "0" ]]; then
         log warning "AppArmor restricts unprivileged user namespaces, disabling it for testing. See https://github.com/redhat-developer/vscode-extension-tester/issues/1496"
-        #sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
         #sudo sysctl stop apparmor
         #sudo sysctl disable apparmor
         #sudo sysctl mask apparmor
