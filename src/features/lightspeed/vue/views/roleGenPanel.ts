@@ -14,9 +14,14 @@ export class MainPanel {
     this._panel.webview.html = WebviewHelper.setupHtml(
       this._panel.webview,
       context,
+      "role-generation",
     );
 
-    WebviewHelper.setupWebviewHooks(this._panel.webview, this._disposables);
+    WebviewHelper.setupWebviewHooks(
+      this._panel.webview,
+      this._disposables,
+      context,
+    );
   }
 
   public static render(context: ExtensionContext) {

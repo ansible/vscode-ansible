@@ -4,7 +4,7 @@ import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
 
 import { Uri, workspace, FileSystemError } from "vscode";
 import { LightSpeedAPI } from "../../api";
-import { IError } from "../../utils/errors";
+import { IError, isError } from "../../utils/errors";
 import {
   RoleGenerationResponseParams,
   RoleGenerationListEntry,
@@ -79,17 +79,22 @@ async function fileExists(uri: Uri): Promise<boolean> {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class WebviewHelper {
-  public static setupHtml(webview: Webview, context: ExtensionContext) {
+  public static setupHtml(
+    webview: Webview,
+    context: ExtensionContext,
+    name: string,
+  ) {
     return process.env.VITE_DEV_SERVER_URL
       ? __getWebviewHtml__(
-          `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/role-generation/index.html`,
+          `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
         )
-      : __getWebviewHtml__(webview, context, "roleGen");
+      : __getWebviewHtml__(webview, context, name);
   }
 
   public static async setupWebviewHooks(
     webview: Webview,
     disposables: Disposable[],
+    context: ExtensionContext,
   ) {
     function sendErrorMessage(message: string) {
       webview.postMessage({
@@ -105,8 +110,6 @@ export class WebviewHelper {
         const data = message.data;
         switch (type) {
           case "generateRole": {
-            const p = new Promise((resolve) => setTimeout(resolve, 5000));
-            await p;
             const generationId = uuidv4();
             const response = await generateRole(
               lightSpeedManager.apiInstance,
@@ -114,9 +117,34 @@ export class WebviewHelper {
               data.outline,
               generationId,
             );
+            if (isError(response)) {
+              sendErrorMessage(
+                `Failed to get an answer from the server: ${response.message}`,
+              );
+              return;
+            }
             webview.postMessage({
               type: type,
               data: response,
+            });
+            const recent_prompts: string[] = context.workspaceState
+              .get("ansible.lightspeed.recent_prompts", [])
+              .filter((prompt) => prompt !== data.text);
+            recent_prompts.push(data.text);
+            context.workspaceState.update(
+              "ansible.lightspeed.recent_prompts",
+              recent_prompts.slice(-500),
+            );
+            return;
+          }
+          case "getRecentPrompts": {
+            const recent_prompts: string[] = context.workspaceState.get(
+              "ansible.lightspeed.recent_prompts",
+              [],
+            );
+            webview.postMessage({
+              type: type,
+              data: recent_prompts,
             });
             return;
           }
