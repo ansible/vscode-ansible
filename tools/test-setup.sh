@@ -329,10 +329,10 @@ if [[ -f yarn.lock ]]; then
         log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
         npm config set prefix "${HOME}/.local/"
     }
-    npm exec corepack enable
-    npm exec corepack install
-    npm exec -- yarn --version > /dev/null
-    npm config set fund false
+    # npm exec corepack enable
+    # npm exec corepack install
+    # npm exec -- yarn --version > /dev/null
+    # npm config set fund false
 fi
 
 log notice "Docker checks..."
@@ -439,8 +439,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
-log notice "Install node deps using yarn"
-npm exec -- yarn install --immutable
+# log notice "Install node deps using yarn"
+# npm exec -- yarn install --immutable
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.

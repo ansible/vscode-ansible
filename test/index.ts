@@ -36,6 +36,8 @@ export async function run(): Promise<void> {
   const mochaOptions: MochaOptions = {
     color: true,
     ui: "bdd",
+    parallel: true,
+    jobs: 4,
     timeout: 50000,
     reporter: "mochawesome",
     reporterOptions: {

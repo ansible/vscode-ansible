@@ -247,6 +247,11 @@ jobs:
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
+      - name: Install dependencies
+        uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
+        with:
+          cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
+
       - name: task setup
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
