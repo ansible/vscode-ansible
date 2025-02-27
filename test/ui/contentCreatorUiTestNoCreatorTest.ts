@@ -1,13 +1,8 @@
+import { By, WebView, Workbench, InputBox } from "vscode-extension-tester";
 import {
-  By,
-  EditorView,
-  WebView,
-  Workbench,
-  InputBox,
-} from "vscode-extension-tester";
-import {
+  dismissNotifications,
   getWebviewByLocator,
-  sleep,
+  waitForCondition,
   workbenchExecuteCommand,
 } from "./uiTestHelper";
 import { config, expect } from "chai";
@@ -17,11 +12,8 @@ import fs from "fs";
 
 config.truncateThreshold = 0;
 
-async function openCreateWebview(command: string, webviewId: string) {
+async function openCreateWebview(command: string) {
   await workbenchExecuteCommand(command);
-  const editorView = new EditorView();
-  await sleep(5000);
-  await editorView.openEditor(webviewId);
   return await getWebviewByLocator(
     By.xpath("//vscode-textfield[@id='path-url']"),
   );
@@ -32,28 +24,40 @@ async function checkAndInteractWithField(
   fieldId: string,
   value: string,
 ) {
-  const textField = await webview.findWebElement(
-    By.xpath(`//vscode-textfield[@id='${fieldId}']`),
-  );
+  const textField = await waitForCondition({
+    condition: async () => {
+      return await webview.findWebElement(
+        By.xpath(`//vscode-textfield[@id='${fieldId}']`),
+      );
+    },
+    message: `Timed out waiting for text field with id ${fieldId}`,
+  });
   expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
   await textField.sendKeys(value);
 }
 
 async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
-  const button = await webview.findWebElement(
-    By.xpath(`//vscode-button[@id='${buttonId}']`),
-  );
+  const button = await waitForCondition({
+    condition: async () => {
+      return await webview.findWebElement(
+        By.xpath(`//vscode-button[@id='${buttonId}']`),
+      );
+    },
+    message: `Timed out waiting for ${buttonId} button`,
+  });
   expect(button, `${buttonId} should not be undefined`).not.to.be.undefined;
   expect(await button.isEnabled(), `${buttonId} should be enabled`).to.be.true;
   await button.click();
 }
 
+afterEach(async () => {
+  const workbench = new Workbench();
+  await dismissNotifications(workbench);
+});
+
 describe("Test devfile generation webview (without creator)", () => {
   it("Check create-devfile webview elements", async () => {
-    const devfileWebview = await openCreateWebview(
-      "Ansible: Create a Devfile",
-      "Create Devfile",
-    );
+    const devfileWebview = await openCreateWebview("Ansible: Create a Devfile");
 
     const descriptionText = await (
       await devfileWebview.findWebElement(
@@ -73,7 +77,6 @@ describe("Test devfile generation webview (without creator)", () => {
     await overwriteDevfileCheckbox.click();
 
     await clickButtonAndCheckEnabled(devfileWebview, "create-button");
-    await sleep(1000);
     await clickButtonAndCheckEnabled(devfileWebview, "clear-logs-button");
     await clickButtonAndCheckEnabled(devfileWebview, "reset-button");
 
@@ -84,7 +87,6 @@ describe("Test devfile generation webview (without creator)", () => {
     await clickButtonAndCheckEnabled(devfileWebview, "create-button");
 
     await clickButtonAndCheckEnabled(devfileWebview, "reset-button");
-    await sleep(1000);
     await devfileWebview.switchBack();
   });
 });
@@ -93,7 +95,6 @@ describe("Test devcontainer generation webview (without creator)", () => {
   it("Check create-devcontainer webview elements", async () => {
     const devcontainerWebview = await openCreateWebview(
       "Ansible: Create a Devcontainer",
-      "Create Devcontainer",
     );
 
     const descriptionText = await (
@@ -114,7 +115,6 @@ describe("Test devcontainer generation webview (without creator)", () => {
     await overwriteDevcontainerCheckbox.click();
 
     await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
-    await sleep(1000);
     await clickButtonAndCheckEnabled(devcontainerWebview, "clear-logs-button");
     await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
 
@@ -126,7 +126,6 @@ describe("Test devcontainer generation webview (without creator)", () => {
     await clickButtonAndCheckEnabled(devcontainerWebview, "create-button");
 
     await clickButtonAndCheckEnabled(devcontainerWebview, "reset-button");
-    await sleep(1000);
     await devcontainerWebview.switchBack();
   });
 });
@@ -135,7 +134,6 @@ describe("Test execution-environment generation webview (without creator)", () =
   it("Check execution-environment webview elements", async () => {
     const eeWebview = await openCreateWebview(
       "Ansible: Create an Execution Environment file",
-      "Create Ansible Execution Environment",
     );
 
     const descriptionText = await (
@@ -169,14 +167,18 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
-    const overwriteCheckbox = await eeWebview.findWebElement(
-      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
-    );
+    const overwriteCheckbox = await waitForCondition({
+      condition: async () => {
+        return await eeWebview.findWebElement(
+          By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+        );
+      },
+      message: `Timed out waiting for overwrite checkbox`,
+    });
+
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
@@ -209,11 +211,9 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
@@ -234,14 +234,11 @@ describe("Test execution-environment generation webview (without creator)", () =
       By.xpath("//vscode-checkbox[@id='buildImage-checkbox']"),
     );
     await buildImageCheckbox.click();
-    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
@@ -272,16 +269,13 @@ describe("Test execution-environment generation webview (without creator)", () =
       By.xpath("//vscode-checkbox[@id='createContext-checkbox']"),
     );
     await createContextCheckbox.click();
-    await sleep(1000);
 
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
 
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-    await sleep(500);
 
     await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
     await checkAndInteractWithField(
@@ -300,7 +294,6 @@ describe("Test execution-environment generation webview (without creator)", () =
       const value = await checkbox.getAttribute("value");
       if (collectionsToSelect.includes(value)) {
         await checkbox.click();
-        await sleep(500);
       }
     }
     await checkAndInteractWithField(eeWebview, "tag-name", "trial");
@@ -308,9 +301,7 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-    await sleep(500);
 
     await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
 
@@ -318,7 +309,6 @@ describe("Test execution-environment generation webview (without creator)", () =
       By.xpath("//vscode-single-select[@id='baseImage-dropdown']"),
     );
     await baseImageDropdown.click();
-    await sleep(1000);
     await eeWebview.getDriver().executeScript(`
       let dropdown = document.querySelector("vscode-single-select#baseImage-dropdown");
       if (dropdown) {
@@ -326,15 +316,12 @@ describe("Test execution-environment generation webview (without creator)", () =
           dropdown.dispatchEvent(new Event('change')); // Trigger change event
       }
     `);
-    await sleep(1000);
     await checkAndInteractWithField(eeWebview, "tag-name", "ansible-ee:now");
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
 
     await overwriteCheckbox.click();
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
-    await sleep(500);
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-    await sleep(500);
 
     await eeWebview.switchBack();
   });
@@ -344,26 +331,38 @@ describe("Test execution-environment generation webview (without creator)", () =
 
     // Test with no file open in editor
     await workbenchExecuteCommand("Build Ansible execution environment");
-    await sleep(1000);
-    let notifications = await workbench.getNotifications();
-    const errorNotification = notifications.find(async (notification) => {
-      return (await notification.getMessage()).includes(
-        "No file selected and no active file found!",
-      );
+
+    await waitForCondition({
+      condition: async () => {
+        const notifications = await workbench.getNotifications();
+        for (const notification of notifications) {
+          const message = await notification.getMessage();
+          if (message === "No file selected and no active file found!") {
+            return notification;
+          }
+        }
+        return false;
+      },
+      message: `Timed out waiting for notification with message: "No file selected and no active file found!"`,
     });
-    if (!errorNotification) throw new Error("Notification not found");
 
     // Test with a file open but not the execution-environment.yml file
     await workbenchExecuteCommand("File: New Untitled Text file");
     await workbenchExecuteCommand("Build Ansible execution environment");
-    await sleep(1000);
-    notifications = await workbench.getNotifications();
-    const fileTypeError = notifications.find(async (notification) => {
-      return (await notification.getMessage()).includes(
-        "Active file is not an execution environment file!",
-      );
+
+    await waitForCondition({
+      condition: async () => {
+        const notifications = await workbench.getNotifications();
+        for (const notification of notifications) {
+          const message = await notification.getMessage();
+          if (message === "Active file is not an execution environment file!") {
+            return notification;
+          }
+        }
+        return false;
+      },
+      message: `Timed out waiting for notification with message: "Active file is not an execution environment file!"`,
     });
-    if (!fileTypeError) throw new Error("Notification not found");
 
     // Test with the execution-environment.yml file
     const eeFilePath = path.join(os.homedir(), "execution-environment.yml");
@@ -376,17 +375,19 @@ describe("Test execution-environment generation webview (without creator)", () =
     );
     await inputBox.confirm();
     await workbenchExecuteCommand("Build Ansible execution environment");
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-    notifications = await workbench.getNotifications();
-    const buildResultNotification = notifications.find(async (notification) => {
-      const message = await notification.getMessage();
-      return (
-        message.includes("Build successful") || message.includes("Build failed")
-      );
+
+    await waitForCondition({
+      condition: async () => {
+        const notifications = await workbench.getNotifications();
+        for (const notification of notifications) {
+          const message = await notification.getMessage();
+          if (message.match(/^Build (successful|failed)/)) {
+            return notification;
+          }
+        }
+        return false;
+      },
+      message: `Timed out waiting for notification with message: "Build successful" or "Build failed"`,
     });
-    if (!buildResultNotification) throw new Error("Notification not found");
-    expect(await buildResultNotification.getMessage()).to.match(
-      /^Build (successful|failed)/,
-    );
   });
 });

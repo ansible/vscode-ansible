@@ -15,26 +15,25 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
-function cleanUpTmpfile() {
-  fs.rm(
-    "test/unit/lightspeed/utils/samples/collections/ansible_collections/community/dummy/roles/install_nginx",
-    {
-      recursive: true,
-      force: true,
-    },
-    (err) => {
-      if (err) {
-        // File deletion failed
-        console.error(err.message);
-        return;
-      }
-      console.log("File deleted successfully");
-    },
-  );
+async function cleanUpTmpfile(): Promise<void> {
+  try {
+    await fs.promises.rm(
+      "test/units/lightspeed/utils/samples/collections/ansible_collections/community/dummy/roles/install_nginx",
+      {
+        recursive: true,
+        force: true,
+      },
+    );
+  } catch {
+    console.log(
+      "Error deleting file in test/units/lightspeed/utils/samples/collections/ansible_collections/community/dummy/roles/install_nginx",
+    );
+  }
 }
 
 before(function () {
@@ -51,8 +50,8 @@ describe("Verify Role generation feature works as expected", function () {
       this.skip();
     }
   });
-  beforeEach(function () {
-    cleanUpTmpfile();
+  beforeEach(async function () {
+    await cleanUpTmpfile();
   });
   before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
@@ -71,7 +70,7 @@ describe("Verify Role generation feature works as expected", function () {
   });
 
   after(async function () {
-    cleanUpTmpfile();
+    await cleanUpTmpfile();
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     // Reset the feedback event queue
@@ -87,7 +86,6 @@ describe("Verify Role generation feature works as expected", function () {
 
   it("Role generation webview works as expected", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
-    await sleep(500);
     let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
     );
@@ -105,13 +103,16 @@ describe("Verify Role generation feature works as expected", function () {
       )
     ).click();
 
-    cleanUpTmpfile();
+    await cleanUpTmpfile();
 
-    await sleep(10000);
-
-    const continueButton = await webView.findWebElement(
-      By.xpath("//vscode-button[contains(text(), 'Continue')]"),
-    );
+    const continueButton = await waitForCondition({
+      condition: async () => {
+        return await webView.findWebElement(
+          By.xpath("//vscode-button[contains(text(), 'Continue')]"),
+        );
+      },
+      message: "Timed out waiting for Continue button",
+    });
     await continueButton.click();
 
     await sleep(500);

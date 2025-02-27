@@ -5,10 +5,10 @@ import { By, VSBrowser, EditorView, Workbench } from "vscode-extension-tester";
 import * as path from "path";
 import {
   getFixturePath,
-  sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -22,7 +22,6 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
 
   // Open role explanation webview.
   await workbenchExecuteCommand("Explain the role with Ansible Lightspeed");
-  await sleep(2000);
 
   await new EditorView().openEditor("Explanation", 1);
   // Locate the role explanation webview
@@ -64,17 +63,14 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     buttonToClick === "thumbsup" ? thumbsUpButton : thumbsDownButton;
   await button.click();
 
-  await sleep(2000);
-
-  expect(
-    await thumbsUpButton.getAttribute("disabled"),
-    "Thumbs up button should be disabled now",
-  ).equals("true");
-
-  expect(
-    await thumbsDownButton.getAttribute("disabled"),
-    "Thumbs down button should be disabled now",
-  ).equals("true");
+  waitForCondition({
+    condition: async () => {
+      const thumbsUpDisabled = await thumbsUpButton.getAttribute("disabled");
+      const thumbsDownDisabled =
+        await thumbsDownButton.getAttribute("disabled");
+      return thumbsUpDisabled === "true" && thumbsDownDisabled === "true";
+    },
+  });
 
   await webView.switchBack();
   await workbenchExecuteCommand("View: Close All Editor Groups");

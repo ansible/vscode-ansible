@@ -85,6 +85,7 @@ describe("Test Lightspeed Explorer features", () => {
     await alfView.collapse();
 
     explorerView = new WebviewView(new SideBarView());
+
     expect(explorerView, "contentCreatorWebView should not be undefined").not.to
       .be.undefined;
   });
