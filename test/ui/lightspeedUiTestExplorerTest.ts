@@ -85,6 +85,7 @@ describe("Test Lightspeed Explorer features", () => {
     await alfView.collapse();
 
     explorerView = new WebviewView(new SideBarView());
+
     expect(explorerView, "contentCreatorWebView should not be undefined").not.to
       .be.undefined;
   });
@@ -153,7 +154,6 @@ describe("Test Lightspeed Explorer features", () => {
 
     // Open playbook generation webview.
     await generatePlaybookButton.click();
-    await sleep(2000);
 
     // Locate the playbook explanation webview
     await explorerView.switchBack();
@@ -217,7 +217,6 @@ describe("Test Lightspeed Explorer features", () => {
 
     // Open playbook explanation webview.
     await explainPlaybookButton.click();
-    await sleep(2000);
 
     // Locate the playbook explanation webview
     await explorerView.switchBack();
