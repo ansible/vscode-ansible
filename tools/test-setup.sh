@@ -75,28 +75,6 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    exit 2
 fi
 
-log notice "Install required build tools"
-if type mise >/dev/null; then
-    log notice "Found mise..."
-    mise install
-    mise ls --current
-    mise doctor
-elif type asdf >/dev/null; then
-    log notice "Found asdf..."
-    for PLUGIN in nodejs task python direnv; do
-        if ! asdf plugin-list | grep -q $PLUGIN; then
-            asdf plugin add $PLUGIN
-        fi
-    done
-    asdf install
-
-    log notice "Report current build tool versions..."
-    asdf current
-else
-    log fatal "Neither mise nor asdf found."
-    exit 3
-fi
-
 if [[ "${OSTYPE:-}" != darwin* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
@@ -353,15 +331,6 @@ for CMD in ansible ansible-lint ansible-navigator; do
 done
 unset CMD
 
-# Validate navigator ability to use ee
-#ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee false --mode stdout
-#ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee true --ce podman --eei ghcr.io/ansible/community-ansible-dev-tools:latest --mode stdout
-
-command -v npm  >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
-    asdf install
-}
-
 if [[ -f yarn.lock ]]; then
     # Check if npm has permissions to install packages (system installed does not)
     # Share https://stackoverflow.com/a/59227497/99834
@@ -369,10 +338,10 @@ if [[ -f yarn.lock ]]; then
         log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
         npm config set prefix "${HOME}/.local/"
     }
-    npm exec corepack enable
-    npm exec corepack install
-    npm exec -- yarn --version > /dev/null
-    npm config set fund false
+    # npm exec corepack enable
+    # npm exec corepack install
+    # npm exec -- yarn --version > /dev/null
+    # npm config set fund false
 fi
 
 log notice "Docker checks..."
@@ -479,8 +448,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
-log notice "Install node deps using yarn"
-npm exec -- yarn install --immutable
+# log notice "Install node deps using yarn"
+# npm exec -- yarn install --immutable
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.

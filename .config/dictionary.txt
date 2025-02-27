@@ -14,12 +14,14 @@ FQCN
 FQCNs
 Florian
 Ganesh
+Hatsune
 HORIZONTALLINE
 IAM
 Jenkinsfile
 KUBEDOCK
 Launay
 Maciążek
+Miku
 Nalawade
 OPTSTRING
 OSTYPE

@@ -1076,6 +1076,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "resolutions": {
+    "rollup": "npm:@rollup/wasm-node@*"
+  },
   "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
   "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm"
 }
