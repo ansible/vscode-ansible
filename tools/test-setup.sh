@@ -149,13 +149,14 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
 
-    if [[ "$WSL" == "0" ]] && [[ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" != "0" ]]; then
-        log warning "AppArmor restricts unprivileged user namespaces, disabling it for testing. See https://github.com/redhat-developer/vscode-extension-tester/issues/1496"
-        sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-        #sudo sysctl stop apparmor
-        #sudo sysctl disable apparmor
-        #sudo sysctl mask apparmor
-    fi
+    # if [[ "$WSL" == "0" ]] && [[ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" != "0" ]]; then
+    #     log warning "AppArmor restricts unprivileged user namespaces, disabling it for testing. See https://github.com/redhat-developer/vscode-extension-tester/issues/1496"
+    #     sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+    #     #sudo sysctl stop apparmor
+    #     #sudo sysctl disable apparmor
+    #     #sudo sysctl mask apparmor
+    # fi
 
     DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
