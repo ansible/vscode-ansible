@@ -89,7 +89,7 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
       const text = await terminalView.getText();
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
-      expect(text).contains("Play ");
+      expect(text.replace(/\s+/g, " ")).contains("PLAY [");
       await terminalView.killTerminal();
     }
   });
@@ -105,6 +105,7 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
     await sleep(3000);
 
     const terminalView = await new BottomBarPanel().openTerminalView();
+    await sleep(3000);
     const text = await terminalView.getText();
     await terminalView.killTerminal();
 

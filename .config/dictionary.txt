@@ -67,6 +67,7 @@ bitness
 bthornto
 cacheable
 cfgs
+cgroupfs
 charliermarsh
 checode
 chromedriver
