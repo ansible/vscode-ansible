@@ -105,7 +105,6 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
     await sleep(3000);
 
     const terminalView = await new BottomBarPanel().openTerminalView();
-    await sleep(3000);
     const text = await terminalView.getText();
     await terminalView.killTerminal();
 
