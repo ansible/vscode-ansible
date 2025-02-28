@@ -4,10 +4,11 @@ import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
 import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
-import { RoleGenerationResponseParams } from "../../../../src/interfaces/lightspeed";
+import { RoleGenerationResponseParams } from "../../../src/interfaces/lightspeed";
 
 import SavedFiles from "./components/SavedFiles.vue";
-import StatusBox from './components/StatusBox.vue';
+import StatusBoxPrompt from './components/StatusBoxPrompt.vue';
+import StatusBoxCollectionName from './components/StatusBoxCollectionName.vue';
 import OutlineReview from './components/OutlineReview.vue';
 import GeneratedFileEntry from './components/GeneratedFileEntry.vue';
 import CollectionSelector from "./components/CollectionSelector.vue";
@@ -88,7 +89,7 @@ watch(outline, (newOutline) => {
 
   <ErrorBox v-model:error-messages="errorMessages" />
 
-  <div id="roleInfo">
+  <div>
     <a href="https://docs.ansible.com/ansible/latest/playbook_guide/playbooks_reuse_roles.html">Learn more about
       roles🔗</a>
   </div>
@@ -97,7 +98,7 @@ watch(outline, (newOutline) => {
 
   <div v-else-if="page === 1">
     <CollectionSelector v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
-    <PromptField v-model:prompt="prompt" />
+    <PromptField v-model:prompt="prompt" placeholder="I want to write a role that will..." />
 
     <div>
       <vscode-button @click.once="nextPage" :disabled="prompt === '' || collectionName === ''">
@@ -108,7 +109,8 @@ watch(outline, (newOutline) => {
   </div>
 
   <div v-else-if="page === 2">
-    <StatusBox :prompt="prompt" :collectionName="collectionName" @restart-wizard="page = 1" />
+    <StatusBoxPrompt :prompt="prompt" @restart-wizard="page = 1" />
+    <StatusBoxCollectionName :collectionName="collectionName" @restart-wizard="page = 1" />
     <div>
       Role name: <vscode-textfield v-model="roleName" />
     </div>

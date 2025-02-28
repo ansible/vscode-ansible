@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import "highlight.js/styles/atom-one-dark.css";
 
-import { RoleGenerationListEntry } from "../../../../../src/interfaces/lightspeed";
-defineProps<{ file: RoleGenerationListEntry }>();
+import { GenerationListEntry } from "../../../../src/interfaces/lightspeed";
+defineProps<{ file: GenerationListEntry }>();
 </script>
 
 <template>
