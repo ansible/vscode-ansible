@@ -1733,14 +1733,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*":
-  version: 4.17.15
-  resolution: "@types/lodash@npm:4.17.15"
-  checksum: 10/27b348b5971b9c670215331b52448a13d7d65bf1fbd320a7049c9c153c1186ff5d116ba75f05f07d32d7ece8a992b26a30c7bdc9be22a3d1e4e3e6068aa04603
-  languageName: node
-  linkType: hard
-
-"@types/lodash@npm:^4.17.16":
+"@types/lodash@npm:*, @types/lodash@npm:^4.17.16":
   version: 4.17.16
   resolution: "@types/lodash@npm:4.17.16"
   checksum: 10/9a8bb7471a7521bd65d528e1bd14f79819a3eeb6f8a35a8a44649a7d773775c0813e93fd93bd32ccf350bb076c0bf02c6d47877c4625f526f6dd4d283c746aec
@@ -1784,16 +1777,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 22.13.4
-  resolution: "@types/node@npm:22.13.4"
-  dependencies:
-    undici-types: "npm:~6.20.0"
-  checksum: 10/716e05b1b84d9da3b2cbba9f642d7294549a89c85d27148b48815f321e0081d0546366e97d11c7710a3280160828512eb945f4e9361dda980f708473758ac0a7
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^22.13.8":
+"@types/node@npm:*, @types/node@npm:^22.13.8":
   version: 22.13.8
   resolution: "@types/node@npm:22.13.8"
   dependencies:
@@ -8214,18 +8198,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.48":
-  version: 8.5.2
-  resolution: "postcss@npm:8.5.2"
-  dependencies:
-    nanoid: "npm:^3.3.8"
-    picocolors: "npm:^1.1.1"
-    source-map-js: "npm:^1.2.1"
-  checksum: 10/e08c2be3cf461cc63cf4c8e97bb3d5185e196ee0a9b75879cf130590f32bc38c7829c6c4e260158e214fb68a828a95bdac84c8f17fefba993d3ced686643c3e2
-  languageName: node
-  linkType: hard
-
-"postcss@npm:^8.5.3":
+"postcss@npm:^8.4.48, postcss@npm:^8.5.3":
   version: 8.5.3
   resolution: "postcss@npm:8.5.3"
   dependencies:
@@ -8877,19 +8850,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.27.0":
-  version: 4.28.1
-  resolution: "selenium-webdriver@npm:4.28.1"
-  dependencies:
-    "@bazel/runfiles": "npm:^6.3.1"
-    jszip: "npm:^3.10.1"
-    tmp: "npm:^0.2.3"
-    ws: "npm:^8.18.0"
-  checksum: 10/a8917b532d16904d6a76a69be1f3a5db23e1dc520821b3bc276845eb835856691594c2c142eff91519d72bafacd285cf50e9b0db51025ab493b1263bab9caa19
-  languageName: node
-  linkType: hard
-
-"selenium-webdriver@npm:^4.29.0":
+"selenium-webdriver@npm:^4.27.0, selenium-webdriver@npm:^4.29.0":
   version: 4.29.0
   resolution: "selenium-webdriver@npm:4.29.0"
   dependencies:
@@ -10172,16 +10133,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.0.3":
-  version: 11.0.5
-  resolution: "uuid@npm:11.0.5"
-  bin:
-    uuid: dist/esm/bin/uuid
-  checksum: 10/0594ecdff3051e15d4a2c614b4c72e73af373bde0a5d156512353c01156975295d024ae8d7151846d7bd4d22ccd251b16ed51b4318fa71505fb20ad984102dc1
-  languageName: node
-  linkType: hard
-
-"uuid@npm:^11.1.0":
+"uuid@npm:^11.0.3, uuid@npm:^11.1.0":
   version: 11.1.0
   resolution: "uuid@npm:11.1.0"
   bin:
