@@ -23,34 +23,11 @@ async function openCreateWebview(command: string, webviewId: string) {
   await sleep(5000);
   await editorView.openEditor(webviewId);
   return await getWebviewByLocator(
-    By.xpath("//vscode-text-field[@id='path-url']"),
-  );
-}
-
-async function checkAndInteractWithField(
-  webview: WebView,
-  fieldId: string,
-  value: string,
-) {
-  const textField = await webview.findWebElement(
-    By.xpath(`//vscode-text-field[@id='${fieldId}']`),
-  );
-  expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
-  await textField.sendKeys(value);
-}
-
-// Until devfile and devcontainer transitions to vscode-elements
-async function openEEWebview(command: string, webviewId: string) {
-  await workbenchExecuteCommand(command);
-  const editorView = new EditorView();
-  await sleep(5000);
-  await editorView.openEditor(webviewId);
-  return await getWebviewByLocator(
     By.xpath("//vscode-textfield[@id='path-url']"),
   );
 }
 
-async function checkAndInteractWithEEField(
+async function checkAndInteractWithField(
   webview: WebView,
   fieldId: string,
   value: string,
@@ -156,7 +133,7 @@ describe("Test devcontainer generation webview (without creator)", () => {
 
 describe("Test execution-environment generation webview (without creator)", () => {
   it("Check execution-environment webview elements", async () => {
-    const eeWebview = await openEEWebview(
+    const eeWebview = await openCreateWebview(
       "Ansible: Create an Execution Environment file",
       "Create Ansible Execution Environment",
     );
@@ -168,28 +145,24 @@ describe("Test execution-environment generation webview (without creator)", () =
       "Create an Ansible execution environment",
     );
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", "~");
-    await checkAndInteractWithEEField(
-      eeWebview,
-      "tag-name",
-      "ansible-ee:latest",
-    );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(eeWebview, "path-url", "~");
+    await checkAndInteractWithField(eeWebview, "tag-name", "ansible-ee:latest");
+    await checkAndInteractWithField(
       eeWebview,
       "customBaseImage-name",
       "custom-image:latest",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "collections-name",
       "ansible.posix, ansible.utils",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "systemPackages-name",
       "openssh, curl",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "pythonPackages-name",
       "requests, numpy",
@@ -208,28 +181,28 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithField(
       eeWebview,
       "customBaseImage-name",
       "quay.io/new/custom",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "collections-name",
       "ansible.aws, kubernetes.core",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "systemPackages-name",
       "wget, nano",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "pythonPackages-name",
       "boto3, flask",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "tag-name",
       "ansible-ee:new-test",
@@ -245,14 +218,14 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithField(
       eeWebview,
       "customBaseImage-name",
       "quay.io/new/custom",
     );
 
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "tag-name",
       "ansible-ee:new-test",
@@ -273,32 +246,28 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithField(
       eeWebview,
       "customBaseImage-name",
       "quay.io/fedora/fedora:41",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "collections-name",
       "ansible.posix, ansible.utils",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "systemPackages-name",
       "openssh",
     );
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(
       eeWebview,
       "pythonPackages-name",
       "boto3, flask",
     );
-    await checkAndInteractWithEEField(
-      eeWebview,
-      "tag-name",
-      "ansible-ee:latest",
-    );
+    await checkAndInteractWithField(eeWebview, "tag-name", "ansible-ee:latest");
     const createContextCheckbox = await eeWebview.findWebElement(
       By.xpath("//vscode-checkbox[@id='createContext-checkbox']"),
     );
@@ -314,8 +283,8 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await sleep(500);
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
-    await checkAndInteractWithEEField(
+    await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithField(
       eeWebview,
       "customBaseImage-name",
       "quay.io/centos/centos:stream9",
@@ -334,7 +303,7 @@ describe("Test execution-environment generation webview (without creator)", () =
         await sleep(500);
       }
     }
-    await checkAndInteractWithEEField(eeWebview, "tag-name", "trial");
+    await checkAndInteractWithField(eeWebview, "tag-name", "trial");
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
 
     await overwriteCheckbox.click();
@@ -343,7 +312,7 @@ describe("Test execution-environment generation webview (without creator)", () =
     await clickButtonAndCheckEnabled(eeWebview, "clear-button");
     await sleep(500);
 
-    await checkAndInteractWithEEField(eeWebview, "path-url", os.homedir());
+    await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
 
     const baseImageDropdown = await eeWebview.findWebElement(
       By.xpath("//vscode-single-select[@id='baseImage-dropdown']"),
@@ -358,7 +327,7 @@ describe("Test execution-environment generation webview (without creator)", () =
       }
     `);
     await sleep(1000);
-    await checkAndInteractWithEEField(eeWebview, "tag-name", "ansible-ee:now");
+    await checkAndInteractWithField(eeWebview, "tag-name", "ansible-ee:now");
     await clickButtonAndCheckEnabled(eeWebview, "create-button");
 
     await overwriteCheckbox.click();

@@ -109,11 +109,11 @@ export class CreateDevcontainer {
 
         <head>
           <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};"/>
           <title>AAA</title>
-          <link rel="stylesheet" href="${styleUri}">
-          <link rel="stylesheet" href="${codiconsUri}">
+          <link rel="stylesheet" href="${styleUri}"/>
+          <link rel="stylesheet" href="${codiconsUri}"id="vscode-codicon-stylesheet"/>
         </head>
 
         <body>
@@ -128,14 +128,20 @@ export class CreateDevcontainer {
             <form id="devcontainer-form">
               <section class="component-container">
 
-                <vscode-text-field id="path-url" class="required" form="devcontainer-form" placeholder="${workspaceDir}"
-                  size="512">Destination directory *
-                  <section slot="end" class="explorer-icon">
-                    <vscode-button id="folder-explorer" appearance="icon">
-                      <span class="codicon codicon-folder-opened"></span>
-                    </vscode-button>
-                  </section>
-                </vscode-text-field>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="path-url">
+                    <span class="normal">Destination directory *</span>
+                  </vscode-label>
+                  <vscode-textfield id="path-url" class="required" form="devcontainer-form" placeholder="${workspaceDir}"
+                    size="512">
+                    <vscode-icon
+                      slot="content-after"
+                      id="folder-explorer"
+                      name="folder-opened"
+                      action-icon
+                    ></vscode-icon>
+                  </vscode-textfield>
+                </vscode-form-group>
 
                 <div id="full-devcontainer-path" class="full-devcontainer-path">
                   <p>Devcontainer path:&nbsp</p>
@@ -143,11 +149,13 @@ export class CreateDevcontainer {
 
                 <div class="image-div">
                   <div class="dropdown-container">
-                    <label for="image-dropdown">Container image</label>
-                    <vscode-dropdown id="image-dropdown">
+                    <vscode-label for="image-dropdown">
+                      <span class="normal">Container image</span>
+                    </vscode-label>
+                    <vscode-single-select id="image-dropdown" position="below">
                       <vscode-option>Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)</vscode-option>
                       <vscode-option>Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)</vscode-option>
-                    </vscode-dropdown>
+                    </vscode-single-select>
                   </div>
                 </div>
 
@@ -156,7 +164,7 @@ export class CreateDevcontainer {
                 </div>
 
                 <div class="group-buttons">
-                  <vscode-button id="reset-button" form="devcontainer-form" appearance="secondary">
+                  <vscode-button id="reset-button" form="devcontainer-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Reset All
                   </vscode-button>
@@ -166,18 +174,20 @@ export class CreateDevcontainer {
                   </vscode-button>
                 </div>
 
-                <br>
                 <vscode-divider></vscode-divider>
-                <br>
-                <vscode-text-area id="log-text-area" cols="512" rows="10" placeholder="Output of the command execution"
-                  resize="vertical" readonly>Logs</vscode-text-area>
+
+                <vscode-label id="vscode-logs-label" for="log-text-area">
+                  <span class="normal">Logs</span>
+                </vscode-label>
+                <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
+                  resize="vertical" readonly></vscode-textarea>
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-logs-button" form="devcontainer-form" appearance="secondary">
+                  <vscode-button id="clear-logs-button" form="devcontainer-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
-                  <vscode-button id="open-file-button" form="devcontainer-form" disabled>
+                  <vscode-button id="open-file-button" form="devcontainer-form" secondary disabled>
                     <span class="codicon codicon-go-to-file"></span>
                     &nbsp; Open Devcontainer
                   </vscode-button>
@@ -186,6 +196,16 @@ export class CreateDevcontainer {
             </form>
 
           <!-- Component registration code -->
+          <script type="module" nonce="${getNonce()}">
+            import "@vscode-elements/elements/dist/vscode-button/index.js";
+            import "@vscode-elements/elements/dist/vscode-checkbox/index.js";
+            import "@vscode-elements/elements/dist/vscode-divider/index.js";
+            import "@vscode-elements/elements/dist/vscode-form-group/index.js";
+            import "@vscode-elements/elements/dist/vscode-label/index.js";
+            import "@vscode-elements/elements/dist/vscode-single-select/index.js";
+            import "@vscode-elements/elements/dist/vscode-textarea/index.js";
+            import "@vscode-elements/elements/dist/vscode-textfield/index.js";
+          </script>
           <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
@@ -280,7 +300,7 @@ export class CreateDevcontainer {
     let message: string;
     let commandOutput = "";
 
-    commandOutput += `------------------------------------ devcontainer generation logs ------------------------------------\n`;
+    commandOutput += `------------------------------------ devcontainer generation logs ----------------------------------------\n`;
 
     const destinationPathUrl = destinationPath;
 
