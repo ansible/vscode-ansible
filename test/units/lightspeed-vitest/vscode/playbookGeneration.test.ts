@@ -1,10 +1,12 @@
+// @vitest-environment node
+
 import * as vscode from "vscode";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { URI } from "vscode-uri";
-import { showPlaybookGenerationPage } from "../../../src/features/lightspeed/playbookGeneration";
-import { lightSpeedManager } from "../../../src/extension";
+import { showPlaybookGenerationPage } from "../../../../src/features/lightspeed/playbookGeneration";
+import { lightSpeedManager } from "../../../../src/extension";
 
-vi.mock("../../../src/extension", () => {
+vi.mock("../../../../src/extension", () => {
   return {
     lightSpeedManager: {
       lightspeedAuthenticatedUser: {
