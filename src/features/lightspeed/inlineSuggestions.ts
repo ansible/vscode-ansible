@@ -33,6 +33,8 @@ import { IAnsibleFileType } from "../../interfaces/lightspeed";
 import { getAnsibleFileType } from "../utils/ansible";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { SuggestionDisplayed } from "./inlineSuggestion/suggestionDisplayed";
+import { getAdditionalContext } from "./inlineSuggestion/additionalContext";
+import { WorkspaceFeature } from "vscode-languageclient";
 
 let inlineSuggestionData: InlineSuggestionEvent = {};
 let inlineSuggestionDisplayTime: Date;
@@ -735,6 +737,14 @@ async function requestInlineSuggest(
   suggestionId: string,
 ): Promise<CompletionResponseParams> {
   const hash = crypto.createHash("sha256").update(documentUri).digest("hex");
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const additionalContext = getAdditionalContext(
+    parsedAnsibleDocument,
+    documentDirPath,
+    documentFilePath,
+    ansibleFileType,
+    workspaceFolders,
+  );
   const completionData: CompletionRequestParams = {
     prompt: content,
     suggestionId: suggestionId,
@@ -742,6 +752,7 @@ async function requestInlineSuggest(
       documentUri: `document-${hash}`,
       ansibleFileType: ansibleFileType,
       activityId: activityId,
+      additionalContext: additionalContext,
     },
   };
 
