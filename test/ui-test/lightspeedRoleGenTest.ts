@@ -155,5 +155,39 @@ describe("Verify Role generation feature works as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     driver.switchTo().defaultContent();
+
+    const response: Response = await fetch(
+      `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+      {
+        method: "GET",
+      },
+    );
+    const data = await response.json();
+    const expected = [
+      {
+        action: 0,
+        toPage: 1,
+      },
+      {
+        action: 2,
+        fromPage: 1,
+        toPage: 2,
+      },
+      {
+        action: 2,
+        fromPage: 2,
+        toPage: 3,
+      },
+      {
+        action: 3,
+        fromPage: 3,
+      },
+    ];
+
+    for (let i = 0; i < expected.length; i++) {
+      expect(data["feedbacks"][i]["roleGenerationAction"]).to.deep.include(
+        expected[i],
+      );
+    }
   });
 });
