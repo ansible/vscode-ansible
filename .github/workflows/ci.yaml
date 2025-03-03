@@ -49,7 +49,7 @@ jobs:
       run:
         shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
     # see https://github.com/containers/podman/issues/13609
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
@@ -63,7 +63,7 @@ jobs:
         continue-on-error:
           - false
         os:
-          - ubuntu-22.04
+          - ubuntu-24.04
         task-name:
           - docs
         name:
@@ -71,7 +71,7 @@ jobs:
         include:
           - name: lint
             task-name: lint
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -108,9 +108,9 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v4.1.0
+        uses: Vampire/setup-wsl@v5.0.0
         with:
-          distribution: Ubuntu-22.04
+          distribution: Ubuntu-24.04
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
@@ -132,6 +132,7 @@ jobs:
             dbus
             dirmngr
             gawk
+            gcc
             git
             gpg
             gpg-agent
@@ -246,6 +247,17 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
+      - name: configure podman
+        if: ${{ matrix.name == 'test (linux)' }}
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          mkdir -p ~/.config/containers
+          cat <<EOT >> ~/.config/containers/containers.conf
+          [engine]
+          cgroup_manager="cgroupfs"
+          EOT
+          podman info
+
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
@@ -344,7 +356,7 @@ jobs:
       id-token: write
       checks: read
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Merge logs into a single archive
@@ -369,7 +381,7 @@ jobs:
           find . -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.3.1
+        uses: codecov/codecov-action@v5.4.0
         with:
           name: als
           files: ./*/coverage/als/lcov.info
@@ -379,7 +391,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.3.1
+        uses: codecov/codecov-action@v5.4.0
         with:
           name: unit
           files: ./*/coverage/unit/lcov.info
@@ -395,7 +407,7 @@ jobs:
           echo "COVERAGE_FILES=$COVERAGE_FILES" >> $GITHUB_ENV
 
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.3.1
+        uses: codecov/codecov-action@v5.4.0
         with:
           name: ui
           files: ${{ env.COVERAGE_FILES }}
@@ -405,7 +417,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.3.1
+        uses: codecov/codecov-action@v5.4.0
         with:
           name: e2e
           files: ./*/coverage/e2e/lcov.info

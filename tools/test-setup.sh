@@ -1,5 +1,5 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
@@ -129,11 +129,25 @@ if [[ -f "/etc/redhat-release" ]]; then
     fi
 fi
 
+# Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
+# that we do not support it at all. WSL use is ok, but not on mounts.
+WSL=0
+if [[ "${OS:-}" == "windows" ]]; then
+    log error "You cannot use Windows build tools for development, try WSL."
+    exit 1
+fi
+if grep -qi microsoft /proc/version >/dev/null 2>&1; then
+    # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
+    if [[ "$(pwd -P || true)" == /mnt/* ]]; then
+        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
+    fi
+    WSL=1
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-
     DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
@@ -200,21 +214,6 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
         podman info
         podman run --rm hello-world
     }
-fi
-
-# Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
-# that we do not support it at all. WSL use is ok, but not on mounts.
-WSL=0
-if [[ "${OS:-}" == "windows" ]]; then
-    log error "You cannot use Windows build tools for development, try WSL."
-    exit 1
-fi
-if grep -qi microsoft /proc/version >/dev/null 2>&1; then
-    # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
-    if [[ "$(pwd -P || true)" == /mnt/* ]]; then
-        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
-    fi
-    WSL=1
 fi
 
 # User specific environment
@@ -335,7 +334,7 @@ if [[ -n "${CI:-}" ]]; then
 fi
 
 # Fail if detected tool paths are not from inside out out/ folder
-for CMD in ansible ansible-lint; do
+for CMD in ansible ansible-lint ansible-navigator; do
     CMD=$(command -v $CMD 2>/dev/null)
     [[ "${CMD}" == "$VIRTUAL_ENV"* ]] || {
         log error "${CMD} executable is not from our own virtualenv ($VIRTUAL_ENV)"
@@ -460,10 +459,6 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     log notice "Test podman ability to mount current folder with write access, default mount options"
     podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
-fi
-
-if [[ -f "/usr/bin/apt-get" ]]; then
-    echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
 log notice "Install node deps using yarn"
