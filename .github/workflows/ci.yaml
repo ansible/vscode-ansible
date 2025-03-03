@@ -247,7 +247,7 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: configure podman 
+      - name: configure podman
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
