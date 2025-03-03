@@ -248,7 +248,7 @@ jobs:
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
       # Temporary step for debugging https://github.com/ansible/vscode-ansible/pull/1480
-      - name: test podman issue
+      - name: configure podman issue
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
@@ -258,8 +258,6 @@ jobs:
           cgroup_manager="cgroupfs"
           EOT
           podman info
-          ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee true --ce podman --eei ghcr.io/ansible/community-ansible-dev-tools:latest --mode stdout --pae false
-
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
