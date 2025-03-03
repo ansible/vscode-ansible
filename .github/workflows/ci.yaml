@@ -247,8 +247,7 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
-      # Temporary step for debugging https://github.com/ansible/vscode-ansible/pull/1480
-      - name: configure podman issue
+      - name: configure podman 
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
