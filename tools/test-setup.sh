@@ -148,16 +148,6 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-
-    # if [[ "$WSL" == "0" ]] && [[ "$(sysctl -n kernel.apparmor_restrict_unprivileged_userns)" != "0" ]]; then
-    #     log warning "AppArmor restricts unprivileged user namespaces, disabling it for testing. See https://github.com/redhat-developer/vscode-extension-tester/issues/1496"
-    #     sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-
-    #     #sudo sysctl stop apparmor
-    #     #sudo sysctl disable apparmor
-    #     #sudo sysctl mask apparmor
-    # fi
-
     DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
@@ -353,10 +343,6 @@ for CMD in ansible ansible-lint ansible-navigator; do
 done
 unset CMD
 
-# Validate navigator ability to use ee
-#ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee false --mode stdout
-#ansible-navigator run ./test/testFixtures/terminal/playbook.yml --ee true --ce podman --eei ghcr.io/ansible/community-ansible-dev-tools:latest --mode stdout
-
 command -v npm  >/dev/null 2>&1 || {
     log notice "Installing nodejs stable."
     asdf install
@@ -473,10 +459,6 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     log notice "Test podman ability to mount current folder with write access, default mount options"
     podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
-fi
-
-if [[ -f "/usr/bin/apt-get" ]]; then
-    echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
 fi
 
 log notice "Install node deps using yarn"
