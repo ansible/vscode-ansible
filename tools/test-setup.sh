@@ -321,11 +321,6 @@ for CMD in ansible ansible-lint ansible-navigator; do
 done
 unset CMD
 
-command -v npm >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
-    asdf install
-}
-
 if [[ -f yarn.lock ]]; then
     # Check if npm has permissions to install packages (system installed does not)
     # Share https://stackoverflow.com/a/59227497/99834
@@ -434,13 +429,6 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
-
-if [[ -f "/usr/bin/apt-get" ]]; then
-    echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
-fi
-
-log notice "Install node deps using yarn"
-npm exec -- yarn install --immutable
 
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
