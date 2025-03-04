@@ -166,6 +166,19 @@ const playbookExplanationWebviewConfig = {
   },
 };
 
+const roleExplanationWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/lightspeed/roleExplanation/main.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/lightspeed/roleExplanation/main.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 const createAnsibleCollectionWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -261,6 +274,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     createAnsibleCollectionWebviewConfig,
     playbookExplorerWebviewConfig,
     playbookExplanationWebviewConfig,
+    roleExplanationWebviewConfig,
     createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,

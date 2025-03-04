@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import { vscodeApi } from './utils';
 import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 
-import { PlaybookGenerationResponseParams, GenerationFileType, FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
+import { PlaybookGenerationResponseParams, RoleFileType, FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
 
 import OutlineReview from './components/OutlineReview.vue';
@@ -126,7 +126,7 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
 
   <div v-else-if="page === 3">
     <GeneratedFileEntry
-      :file="{ 'content': response ? response.playbook : '', 'path': 'new_playbook.yaml', 'file_type': GenerationFileType.Playbook }" />
+      :file="{ 'content': response ? response.playbook : '', 'path': 'new_playbook.yaml', 'file_type': RoleFileType.Playbook }" />
     <div>
       <vscode-button @click="openEditor">
         Open editor

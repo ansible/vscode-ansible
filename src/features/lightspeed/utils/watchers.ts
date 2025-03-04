@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { globalFileSystemWatcher } from "../../../extension";
 import { LightSpeedManager } from "../base";
 import { IAnsibleType } from "../../../interfaces/watchers";
-import { getRolePathFromPathWithinRole } from "./data";
+import { getRoleNamePathFromFilePath } from "./getRoleNamePathFromFilePath";
 import { readVarFiles } from "./readVarFiles";
 import { updateRoleContext, updateRolesContext } from "./updateRolesContext";
 
@@ -98,7 +98,7 @@ export function watchRolesDirectory(
     const currentWorkspaceRoot = vscode.workspace.workspaceFolders;
     if (currentWorkspaceRoot) {
       const workspaceRoot = currentWorkspaceRoot[0].uri.fsPath;
-      const rolePath = getRolePathFromPathWithinRole(uri.fsPath);
+      const rolePath = getRoleNamePathFromFilePath(uri.fsPath);
       updateRoleContext(
         lightSpeedManager.ansibleRolesCache,
         rolePath,
@@ -132,7 +132,7 @@ export function watchRolesDirectory(
     const currentWorkspaceRoot = vscode.workspace.workspaceFolders;
     if (currentWorkspaceRoot) {
       const workspaceRoot = currentWorkspaceRoot[0].uri.fsPath;
-      const rolePath = getRolePathFromPathWithinRole(uri.fsPath);
+      const rolePath = getRoleNamePathFromFilePath(uri.fsPath);
       updateRoleContext(
         lightSpeedManager.ansibleRolesCache,
         rolePath,

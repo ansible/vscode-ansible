@@ -6,6 +6,7 @@ import { explanations } from "./explanations";
 import { feedback, getFeedbacks } from "./feedback";
 import { playbookGeneration } from "./playbookGeneration";
 import { roleGeneration } from "./roleGeneration";
+import { roleExplanations } from "./roleExplanations";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
@@ -100,6 +101,11 @@ export default class Server {
     app.post(`${API_ROOT}/ai/explanations`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
       return explanations(req, res);
+    });
+
+    app.post(`${API_ROOT_V1}/ai/explanations/role`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      return roleExplanations(req, res);
     });
 
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {

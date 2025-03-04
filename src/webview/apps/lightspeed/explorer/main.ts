@@ -27,6 +27,10 @@ function main() {
     "lightspeed-explorer-playbook-explanation-submit",
     lightspeedExplorerPlaybookExplanation,
   );
+  setListener(
+    "lightspeed-explorer-role-explanation-submit",
+    lightspeedExplorerRoleExplanation,
+  );
 }
 
 function lightspeedConnect() {
@@ -39,4 +43,8 @@ function lightspeedExplorerPlaybookGeneration() {
 
 function lightspeedExplorerPlaybookExplanation() {
   vscode.postMessage({ command: "explain" });
+}
+
+function lightspeedExplorerRoleExplanation() {
+  vscode.postMessage({ command: "explainRole" });
 }
