@@ -130,7 +130,8 @@ export class CreateDevcontainer {
 
                 <vscode-form-group variant="vertical">
                   <vscode-label for="path-url">
-                    <span class="normal">Destination directory *</span>
+                    <span class="normal">Destination directory </span>
+                    <sup>*</sup>
                   </vscode-label>
                   <vscode-textfield id="path-url" class="required" form="devcontainer-form" placeholder="${workspaceDir}"
                     size="512">

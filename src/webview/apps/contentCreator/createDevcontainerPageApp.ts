@@ -133,7 +133,7 @@ function openFolderExplorer(event: any) {
         if (selectedUri) {
           if (source === "folder-explorer") {
             destinationPathUrlTextField.value = selectedUri;
-            devcontainerPathElement.innerHTML = selectedUri;
+            devcontainerPathElement.innerHTML = `${selectedUri}/.devcontainer`;
           }
         }
       }
