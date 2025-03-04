@@ -929,7 +929,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@highlightjs/vue-plugin": "2.1.0",
-    "@primevue/themes": "^4.3.1",
+    "@primevue/themes": "^4.2.5",
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
     "@tomjs/vite-plugin-vscode": "^3.2.1",
     "@tomjs/vscode-webview": "^2.0.2",
@@ -941,7 +941,7 @@
     "ini": "^5.0.0",
     "marked": "^15.0.7",
     "minimatch": "^10.0.1",
-    "primevue": "^4.3.1",
+    "primevue": "4.2.5",
     "semver": "^7.7.1",
     "uuid": "^11.1.0",
     "vite": "^6.2.0",
