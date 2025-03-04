@@ -106,7 +106,6 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
 
     const terminalView = await new BottomBarPanel().openTerminalView();
     const text = await terminalView.getText();
-    console.log("text: ", text);
     await terminalView.killTerminal();
 
     // assert with just "Play " rather than "Play name" due to CI output formatting issues

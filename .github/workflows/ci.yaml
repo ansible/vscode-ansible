@@ -199,8 +199,6 @@ jobs:
       - name: Activate direnv
         if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
-          # set -x
-          # direnv setup --shell bash --version latest
           direnv allow
           direnv reload
 

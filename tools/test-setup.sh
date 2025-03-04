@@ -333,10 +333,6 @@ if [[ -f yarn.lock ]]; then
         log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
         npm config set prefix "${HOME}/.local/"
     }
-    # npm exec corepack enable
-    # npm exec corepack install
-    # npm exec -- yarn --version > /dev/null
-    # npm config set fund false
 fi
 
 log notice "Docker checks..."
