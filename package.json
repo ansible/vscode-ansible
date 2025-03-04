@@ -1068,7 +1068,7 @@
     "vite-preview": "vite preview"
   },
   "version": "0.0.0",
-  "packageManager": "yarn@4.5.1",
+  "packageManager": "yarn@4.7.0",
   "vsce": {
     "dependencies": false,
     "yarn": false
@@ -1076,6 +1076,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "resolutions": {
+    "rollup": "npm:@rollup/wasm-node@*"
+  },
   "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
   "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm"
 }
