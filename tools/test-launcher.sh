@@ -6,6 +6,7 @@ set -o pipefail
 cleanup()
 {
     echo "Final clean up"
+    stop_server
 #    if [ -s out/log/express.log ]; then
 #        # cat out/log/express.log
 #        # cat out/log/mock-server.log
@@ -46,7 +47,7 @@ function start_server() {
 
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-        curl "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
+        curl --silent "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
         echo "" > out/log/express.log
         echo "" > out/log/mock-server.log
     fi
@@ -130,8 +131,6 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
         if [[ -f ./out/coverage/ui/lcov.info ]]; then
             mv ./out/coverage/ui/lcov.info "$TEST_COVERAGE_FILE"
         fi
-
-        stop_server
     done
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
