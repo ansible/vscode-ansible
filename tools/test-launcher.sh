@@ -63,6 +63,9 @@ function refresh_settings() {
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
+    rm -rf out/test-resources/settings/
+
+    jq < out/settings.json
 }
 
 
