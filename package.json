@@ -409,7 +409,6 @@
       },
       {
         "command": "ansible.lightspeed.roleGeneration",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
         "title": "Ansible Lightspeed: Role generation"
       },
       {
@@ -426,7 +425,6 @@
       },
       {
         "command": "ansible.lightspeed.roleExplanation",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
         "title": "Explain the role with Ansible Lightspeed"
       },
       {
@@ -805,8 +803,7 @@
         },
         {
           "group": "2_main@1",
-          "command": "ansible.lightspeed.roleExplanation",
-          "when": "redhat.ansible.lightspeedExperimentalEnabled"
+          "command": "ansible.lightspeed.roleExplanation"
         },
         {
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
