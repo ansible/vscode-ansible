@@ -45,6 +45,7 @@ import {
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
+import { roleExplanation } from "./features/lightspeed/roleExplanation";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import {
   setPythonInterpreter,
@@ -69,7 +70,10 @@ import {
   LightspeedUser,
   AuthProviderType,
 } from "./features/lightspeed/lightspeedUser";
-import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
+import {
+  PlaybookFeedbackEvent,
+  RoleFeedbackEvent,
+} from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
@@ -615,6 +619,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      LightSpeedCommands.LIGHTSPEED_ROLE_EXPLANATION,
+      async () => {
+        await roleExplanation(context.extensionUri);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand(
       "ansible.lightspeed.thumbsUpDown",
       async (param: PlaybookFeedbackEvent) => {
@@ -631,6 +644,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
             true,
           );
         }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.roleThumbsUpDown",
+      async (param: RoleFeedbackEvent) => {
+        lightSpeedManager.apiInstance.feedbackRequest(
+          { roleExplanationFeedback: param },
+          true,
+          true,
+        );
       },
     ),
   );

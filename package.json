@@ -414,11 +414,20 @@
       },
       {
         "command": "ansible.lightspeed.thumbsUpDown",
-        "title": "Send Lightspeed Thumbs Up/Down Feedback"
+        "title": "Send Lightspeed Thumbs Up/Down Feedback on playbook explanation"
+      },
+      {
+        "command": "ansible.lightspeed.roleThumbsUpDown",
+        "title": "Send Lightspeed Thumbs Up/Down Feedback on role explanation"
       },
       {
         "command": "ansible.lightspeed.playbookExplanation",
         "title": "Explain the playbook with Ansible Lightspeed"
+      },
+      {
+        "command": "ansible.lightspeed.roleExplanation",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
+        "title": "Explain the role with Ansible Lightspeed"
       },
       {
         "command": "ansible.lightspeed.openTrialPage",
@@ -793,6 +802,11 @@
           "group": "2_main@1",
           "command": "ansible.lightspeed.playbookExplanation",
           "when": "redhat.ansible.lightspeedSuggestionsEnabled && editorLangId == ansible"
+        },
+        {
+          "group": "2_main@1",
+          "command": "ansible.lightspeed.roleExplanation",
+          "when": "redhat.ansible.lightspeedExperimentalEnabled"
         },
         {
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",

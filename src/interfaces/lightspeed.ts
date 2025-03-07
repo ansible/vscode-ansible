@@ -96,6 +96,16 @@ export interface RoleGenerationActionEvent {
   toPage?: number;
 }
 
+export interface RoleExplanationEvent {
+  explanationId?: string;
+}
+
+export interface RoleFeedbackEvent {
+  action: ThumbsUpDownAction;
+  explanationId?: string;
+  generationId?: string;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   sentimentFeedback?: SentimentFeedbackEvent;
@@ -105,6 +115,8 @@ export interface FeedbackRequestParams {
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationAction?: PlaybookGenerationActionEvent;
   roleGenerationAction?: RoleGenerationActionEvent;
+  roleExplanation?: RoleExplanationEvent;
+  roleExplanationFeedback?: RoleFeedbackEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
   model?: string;
 }
@@ -161,7 +173,7 @@ export interface PlaybookGenerationResponseParams {
   generationId: string;
 }
 
-export enum GenerationFileType {
+export enum RoleFileType {
   Default = "default",
   Task = "task",
   Playbook = "playbook",
@@ -169,7 +181,7 @@ export enum GenerationFileType {
 
 export interface GenerationListEntry {
   path: string;
-  file_type: GenerationFileType;
+  file_type: RoleFileType;
   content: string;
 }
 
@@ -178,6 +190,12 @@ export interface RoleGenerationResponseParams {
   outline?: string;
   generationId: string;
   role: string;
+}
+
+export interface RoleExplanationRequestParams {
+  files: GenerationListEntry[];
+  explanationId: string;
+  roleName: string;
 }
 
 export interface ExplanationRequestParams {
