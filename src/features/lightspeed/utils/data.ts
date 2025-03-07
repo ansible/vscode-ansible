@@ -495,6 +495,7 @@ function shouldTriggerMultiTaskSuggestionForPlaybook(
       firstMatchKeywordIndent === -1 ||
       spacesBeforePromptStart <= firstMatchKeywordIndent
     ) {
+      console.log("false");
       return false;
     }
   }
