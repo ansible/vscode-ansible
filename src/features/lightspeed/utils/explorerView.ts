@@ -72,19 +72,25 @@ export function getWebviewContentWithActiveSession(
     "style.css",
   ]);
   const nonce = getNonce();
-  const generateForm = `<div class="button-container">
+  const generatePlaybookForm = `<div class="button-container">
   <form id="playbook-generation-form">
     <vscode-button id="lightspeed-explorer-playbook-generation-submit" class="lightspeedExplorerButton">Generate a playbook</vscode-button>
   <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
   </form>
   </div>`;
-  const explainForm = `<div class="button-container">
+  const explainPlaybookForm = `<div class="button-container">
   <form id="playbook-explanation-form">
     <vscode-button id="lightspeed-explorer-playbook-explanation-submit" class="lightspeedExplorerButton" ${
       has_playbook_opened
         ? ""
         : "disabled title='The file in the active editor view is not an Ansible playbook' "
     }>Explain the current playbook</vscode-button>
+  <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
+  </form>
+  </div>`;
+  const generateRoleForm = `<div class="button-container">
+  <form id="playbook-generation-form">
+    <vscode-button id="lightspeed-explorer-role-generation-submit" class="lightspeedExplorerButton">Generate a role</vscode-button>
   <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
   </form>
   </div>`;
@@ -115,8 +121,9 @@ export function getWebviewContentWithActiveSession(
     <body>
     <div id="lightspeedExplorerView">
       ${content}
-      ${generateForm}
-      ${explainForm}
+      ${generatePlaybookForm}
+      ${explainPlaybookForm}
+      ${lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled ? generateRoleForm : ""}
       ${lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled ? explainRoleForm : ""}
     </div>
     </body>
@@ -145,6 +152,9 @@ export function setWebviewMessageListener(
           return;
         case "explain":
           commands.executeCommand("ansible.lightspeed.playbookExplanation");
+          return;
+        case "generateRole":
+          commands.executeCommand("ansible.lightspeed.roleGeneration");
           return;
         case "explainRole":
           commands.executeCommand("ansible.lightspeed.roleExplanation");
