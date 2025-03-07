@@ -158,9 +158,8 @@ window.addEventListener("message", (event: MessageEvent<PostMessageEvent>) => {
 function toggleCreateButton() {
   //   update collection path <p> tag
   if (!destinationPathUrlTextField.value.trim()) {
-    initCollectionPathElement.innerHTML = `${
-      destinationPathUrlTextField.placeholder
-    }/${namespaceNameTextField.value.trim()}-${collectionNameTextField.value.trim()}`;
+    initCollectionPathElement.innerHTML =
+      destinationPathUrlTextField.placeholder as string;
 
     if (
       !namespaceNameTextField.value.trim() ||

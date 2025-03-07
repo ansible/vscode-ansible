@@ -169,7 +169,7 @@ export class CreateExecutionEnv {
                       <span class="normal">Suggested collections</span>
                     </vscode-label>
                     <div id="suggestedCollections-checkboxes">
-                      <vscode-checkbox value="ansible.aws">ansible.aws</vscode-checkbox>
+                      <vscode-checkbox value="amazon.aws">amazon.aws</vscode-checkbox>
                       <vscode-checkbox value="ansible.network">ansible.network</vscode-checkbox>
                       <vscode-checkbox value="ansible.posix">ansible.posix</vscode-checkbox>
                       <vscode-checkbox value="ansible.utils">ansible.utils</vscode-checkbox>
@@ -487,6 +487,18 @@ export class CreateExecutionEnv {
     }
 
     if (isBuildImageEnabled) {
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            commandOutput +
+            "Building execution environment, this may take a few minutes....\n",
+          projectUrl: destinationPathUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+      await webView.postMessage({ command: "disable-build-button" });
+      await webView.postMessage({ command: "enable-open-file-button" });
       let buildImageCommand = `ansible-builder build --file ${filePath} --context ${destinationPathUrl}/context`;
 
       switch (verbosity) {
