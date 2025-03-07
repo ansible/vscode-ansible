@@ -153,19 +153,6 @@ const playbookExplorerWebviewConfig = {
   },
 };
 
-const playbookGenerationWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/playbookGeneration/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/playbookGeneration/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const playbookExplanationWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -273,7 +260,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
     contentCreatorMenuWebviewConfig,
     createAnsibleCollectionWebviewConfig,
     playbookExplorerWebviewConfig,
-    playbookGenerationWebviewConfig,
     playbookExplanationWebviewConfig,
     createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,

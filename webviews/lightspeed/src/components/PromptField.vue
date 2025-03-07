@@ -8,6 +8,7 @@ import type { Ref } from 'vue'
 
 
 const prompt = defineModel<string>("prompt", { required: true });
+const placeholder = defineModel<string>("placeholder", { default: "" });
 
 const recentPrompts: Ref<string[]> = ref([]);
 const recentPromptsFiltered: Ref<string[]> = ref([]);
@@ -33,10 +34,10 @@ vscodeApi.post('getRecentPrompts', {});
 
 <template>
     <div class="promptContainer">
-        <label><strong>Describe the role's purpose in natural language</strong></label>
+        <label><strong>Describe what you want to achieve in natural language</strong></label>
         <div class="fieldBox">
             <AutoComplete id="PromptTextField" fluid v-model="prompt" size="small" :suggestions="recentPromptsFiltered"
-                placeholder="I want to write a role that will..." @complete="search" />
+                :placeholder @complete="search" />
         </div>
     </div>
 </template>

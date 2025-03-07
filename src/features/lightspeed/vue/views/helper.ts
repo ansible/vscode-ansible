@@ -2,15 +2,27 @@ import type { Disposable, ExtensionContext, Webview } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
 
-import { Uri, workspace, FileSystemError } from "vscode";
+import { Uri, workspace, FileSystemError, ViewColumn, window } from "vscode";
 import { LightSpeedAPI } from "../../api";
 import { IError, isError } from "../../utils/errors";
 import {
+  PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
-  RoleGenerationListEntry,
+  GenerationListEntry,
+  FeedbackRequestParams,
 } from "../../../../interfaces/lightspeed";
 
 import { lightSpeedManager } from "../../../../extension";
+
+async function openNewPlaybookEditor(content: string) {
+  const options = {
+    language: "ansible",
+    content: content,
+  };
+
+  const doc = await workspace.openTextDocument(options);
+  await window.showTextDocument(doc, ViewColumn.Active);
+}
 
 export async function getCollectionsFromWorkspace(): Promise<
   AnsibleCollection[]
@@ -61,7 +73,24 @@ async function generateRole(
       outline: outline.length > 0 ? outline : undefined,
       createOutline,
       generationId,
-      //wizardId,
+    });
+  return response;
+}
+
+async function generatePlaybook(
+  apiInstance: LightSpeedAPI,
+  text: string,
+  outline: string,
+  generationId: string,
+): Promise<PlaybookGenerationResponseParams | IError> {
+  const createOutline = outline.length === 0;
+
+  const response: PlaybookGenerationResponseParams | IError =
+    await apiInstance.playbookGenerationRequest({
+      text,
+      outline: outline.length > 0 ? outline : undefined,
+      createOutline,
+      generationId,
     });
   return response;
 }
@@ -137,6 +166,34 @@ export class WebviewHelper {
             );
             return;
           }
+          case "generatePlaybook": {
+            const generationId = uuidv4();
+            const response = await generatePlaybook(
+              lightSpeedManager.apiInstance,
+              data.text,
+              data.outline,
+              generationId,
+            );
+            if (isError(response)) {
+              sendErrorMessage(
+                `Failed to get an answer from the server: ${response.message}`,
+              );
+              return;
+            }
+            webview.postMessage({
+              type: type,
+              data: response,
+            });
+            const recent_prompts: string[] = context.workspaceState
+              .get("ansible.lightspeed.recent_prompts", [])
+              .filter((prompt) => prompt !== data.text);
+            recent_prompts.push(data.text);
+            context.workspaceState.update(
+              "ansible.lightspeed.recent_prompts",
+              recent_prompts.slice(-500),
+            );
+            return;
+          }
           case "getRecentPrompts": {
             const recent_prompts: string[] = context.workspaceState.get(
               "ansible.lightspeed.recent_prompts",
@@ -158,6 +215,19 @@ export class WebviewHelper {
             });
             return;
           }
+          case "openEditor": {
+            const content: string = data.content;
+            await openNewPlaybookEditor(content);
+            break;
+          }
+          case "feedback": {
+            const request = data.request as FeedbackRequestParams;
+            lightSpeedManager.apiInstance.feedbackRequest(
+              request,
+              process.env.TEST_LIGHTSPEED_ACCESS_TOKEN !== undefined,
+            );
+            break;
+          }
           case "writeRoleInWorkspace": {
             const roleName: string = data.roleName;
             const collectionName: string = data.collectionName;
@@ -167,7 +237,7 @@ export class WebviewHelper {
                 content: i[1],
                 file_type: i[2],
               };
-            }) as RoleGenerationListEntry[];
+            }) as GenerationListEntry[];
 
             const roleBaseDirUri = await getRoleBaseDir(
               collectionName,

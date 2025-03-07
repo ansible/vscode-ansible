@@ -161,19 +161,20 @@ export interface PlaybookGenerationResponseParams {
   generationId: string;
 }
 
-export enum RoleGenerationFileType {
+export enum GenerationFileType {
   Default = "default",
   Task = "task",
+  Playbook = "playbook",
 }
 
-export interface RoleGenerationListEntry {
+export interface GenerationListEntry {
   path: string;
-  file_type: RoleGenerationFileType;
+  file_type: GenerationFileType;
   content: string;
 }
 
 export interface RoleGenerationResponseParams {
-  files: RoleGenerationListEntry[];
+  files: GenerationListEntry[];
   outline?: string;
   generationId: string;
   role: string;

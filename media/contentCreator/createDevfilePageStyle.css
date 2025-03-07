@@ -3,6 +3,7 @@
 .container {
     display: flex;
     flex-direction: column;
+    font-size: 1em;
 }
 
 .element {
@@ -29,14 +30,25 @@ h3 {
     margin: 0px 0px 40px;
 }
 
-vscode-text-field {
+vscode-textfield {
     margin-top: 6px;
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+vscode-textarea {
     margin-bottom: 6px;
 }
 
-vscode-text-area {
-    margin-top: 6px;
-    margin-bottom: 6px;
+vscode-form-group {
+    width: 100%;
+    margin: 0;
+}
+
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-left: 5px;
 }
 
 .devfile-name-div {
@@ -54,7 +66,7 @@ vscode-text-area {
 .checkbox-div {
     display: flex; /* Use flexbox */
     flex-direction: column; /* Arrange child elements vertically */
-    margin-top: 22px;
+    margin-top: 10px;
     margin-bottom: 10px;
     width: 100%;
 }
@@ -67,7 +79,7 @@ vscode-text-area {
     width: 100%;
 }
 
-vscode-dropdown {
+vscode-single-select {
     width: 500px;
 }
 
@@ -95,11 +107,6 @@ vscode-checkbox i {
     font-size: small;
 }
 
-#ade-docs-link {
-    margin-left: 30px;
-    font-style: italic;
-}
-
 .dropdown-container {
     box-sizing: border-box;
     display: flex;
@@ -117,15 +124,8 @@ vscode-checkbox i {
     margin-bottom: 2px;
 }
 
-#log-to-file-options-div {
-    display: none;
-    flex-direction: column;
-    border-style: dotted;
-    border-color: var(--focus-border);
-    border-width: 0.5px;
-    padding: 8px;
-}
-
-.log-level-div {
-    margin: 4px 0px;
+vscode-divider {
+    margin-top: 12px;
+    margin-bottom: 22px;
+    width: 100%;
 }

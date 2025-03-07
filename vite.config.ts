@@ -30,6 +30,10 @@ export default defineConfig({
           __dirname,
           "webviews/lightspeed/role-generation.html",
         ),
+        "playbook-generation": path.resolve(
+          __dirname,
+          "webviews/lightspeed/playbook-generation.html",
+        ),
       },
     },
   },
