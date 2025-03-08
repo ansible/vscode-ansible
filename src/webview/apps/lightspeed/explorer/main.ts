@@ -28,6 +28,10 @@ function main() {
     lightspeedExplorerPlaybookExplanation,
   );
   setListener(
+    "lightspeed-explorer-role-generation-submit",
+    lightspeedExplorerRoleGeneration,
+  );
+  setListener(
     "lightspeed-explorer-role-explanation-submit",
     lightspeedExplorerRoleExplanation,
   );
@@ -43,6 +47,10 @@ function lightspeedExplorerPlaybookGeneration() {
 
 function lightspeedExplorerPlaybookExplanation() {
   vscode.postMessage({ command: "explain" });
+}
+
+function lightspeedExplorerRoleGeneration() {
+  vscode.postMessage({ command: "generateRole" });
 }
 
 function lightspeedExplorerRoleExplanation() {
