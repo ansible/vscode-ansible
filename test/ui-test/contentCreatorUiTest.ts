@@ -369,6 +369,15 @@ describe("Test collection plugins scaffolding", () => {
       "Action",
     );
   });
+  it("Check add-plugin webview elements for generic module plugin", async () => {
+    await testWebViewElements(
+      "Ansible: Add a Plugin",
+      "~",
+      "Add Plugin",
+      "test_plugin_name",
+      "Module",
+    );
+  });
   it("Verify Open Plugin button is enabled and plugin file exists", async () => {
     await testWebViewElements(
       "Ansible: Add a Plugin",
