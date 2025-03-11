@@ -151,7 +151,7 @@ function toggleCreateButton() {
   if (!collectionPathUrlTextField.value.trim()) {
     initCollectionPathElement.innerHTML = `${
       collectionPathUrlTextField.placeholder
-    }/plugins/${pluginTypeDropdown.value.trim()}/${pluginNameTextField.value.trim()}`;
+    }/plugins/${pluginTypeDropdown.value.trim() !== "module" ? pluginTypeDropdown.value.trim() : "sample_module"}/${pluginNameTextField.value.trim()}`;
 
     if (!pluginNameTextField.value.trim()) {
       initCollectionPathElement.innerHTML =
@@ -222,7 +222,10 @@ function handleInitOpenScaffoldedFolderClick() {
     payload: {
       projectUrl: projectUrl,
       pluginName: pluginNameTextField.value.trim(),
-      pluginType: pluginTypeDropdown.value.trim(),
+      pluginType:
+        pluginTypeDropdown.value.trim() !== "module"
+          ? pluginTypeDropdown.value.trim()
+          : "sample_module",
     },
   });
 }

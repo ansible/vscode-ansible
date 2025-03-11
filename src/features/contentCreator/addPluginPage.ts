@@ -413,7 +413,7 @@ export class AddPlugin {
     }
 
     // open the plugin file in the editor
-    const pluginFileUrl = `${folderUrl}/plugins/${pluginType.toLowerCase()}/${pluginName}.py`;
+    const pluginFileUrl = `${folderUrl}/plugins/${pluginType.toLowerCase() !== "module" ? pluginType.toLowerCase() : "sample_module"}/${pluginName}.py`;
     console.log(`[ansible-creator] Plugin file url: ${pluginFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${pluginFileUrl}`);
     console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
