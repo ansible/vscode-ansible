@@ -20,6 +20,7 @@ ignorePaths:
   - .yarn/
   - "**/requirements.in"
   - syntaxes
+  - "/webviews/lightspeed/src/components/autocomplete"
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"

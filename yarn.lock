@@ -2700,7 +2700,7 @@ __metadata:
     nyc: "npm:^17.1.0"
     ovsx: "npm:^0.10.1"
     prettier: "npm:^3.5.3"
-    primevue: "patch:primevue@npm%3A4.3.1#~/.yarn/patches/primevue-npm-4.3.1-8b2b4a2f18.patch"
+    primevue: "npm:4.3.1"
     react: "npm:^19.0.0"
     rimraf: "npm:^6.0.1"
     selenium-webdriver: "npm:^4.29.0"
@@ -8131,19 +8131,6 @@ __metadata:
     "@primevue/core": "npm:4.3.1"
     "@primevue/icons": "npm:4.3.1"
   checksum: 10/0ad7e2a47105b2e19ab535a8b9120b1b882475042f0f7a4867bac23a7269fd985592d12643b4c4be868a2f44bb51fb975a2dc27f70755fb3e58dd26b0b92f076
-  languageName: node
-  linkType: hard
-
-"primevue@patch:primevue@npm%3A4.3.1#~/.yarn/patches/primevue-npm-4.3.1-8b2b4a2f18.patch":
-  version: 4.3.1
-  resolution: "primevue@patch:primevue@npm%3A4.3.1#~/.yarn/patches/primevue-npm-4.3.1-8b2b4a2f18.patch::version=4.3.1&hash=2dbff3"
-  dependencies:
-    "@primeuix/styled": "npm:^0.5.0"
-    "@primeuix/styles": "npm:^1.0.0"
-    "@primeuix/utils": "npm:^0.5.1"
-    "@primevue/core": "npm:4.3.1"
-    "@primevue/icons": "npm:4.3.1"
-  checksum: 10/5e17947b45c29f80772a9a10eb4a4f58ee6078639340ed5804c1046f3d94664dde3059786d9a404c881c061bdeca5365fd3a4b1e55b479ddb342a9670121b6ac
   languageName: node
   linkType: hard
 

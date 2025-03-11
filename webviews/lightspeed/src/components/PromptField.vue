@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AutoComplete from 'primevue/autocomplete';
+import AutoComplete from './autocomplete/AutoComplete.vue';
 
 import { vscodeApi } from '../utils';
 import { ref } from 'vue';
