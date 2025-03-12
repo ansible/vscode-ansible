@@ -9,7 +9,6 @@ import { PluginFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, runCommand, getCreatorVersion } from "./utils";
-import plugin from "@highlightjs/vue-plugin";
 
 export class AddPlugin {
   public static currentPanel: AddPlugin | undefined;
