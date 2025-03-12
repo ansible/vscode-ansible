@@ -7,6 +7,8 @@ import {
   IVarsFileContext,
   IIncludeVarsContext,
   IAnsibleFileType,
+  GenerationListEntry,
+  RoleFileType,
 } from "../../../interfaces/lightspeed";
 import { watchAnsibleFile } from "./watchers";
 import { LightSpeedManager } from "../base";
@@ -261,18 +263,6 @@ export function getRelativePath(
   return relativePath;
 }
 
-export function getRolePathFromPathWithinRole(roleFilePath: string): string {
-  const pathSep = path.sep;
-  const rolesIndex =
-    roleFilePath.indexOf(`${pathSep}roles${pathSep}`) +
-    `${path.sep}roles${path.sep}`.length;
-  const roleNamePath = roleFilePath.substring(
-    0,
-    roleFilePath.indexOf(path.sep, rolesIndex),
-  );
-  return roleNamePath;
-}
-
 export function shouldTriggerMultiTaskSuggestion(
   documentContent: string,
   spacesBeforePromptStart: number,
@@ -503,3 +493,30 @@ function shouldTriggerMultiTaskSuggestionForPlaybook(
 
 export const matchKeyword = (keywordsRegex: RegExp[], line: string) =>
   keywordsRegex.some((keywordRegex) => keywordRegex.test(line));
+
+export async function getRoleYamlFiles(
+  rolePath: string,
+): Promise<GenerationListEntry[]> {
+  const files = [] as GenerationListEntry[];
+  const directories = ["defaults", "tasks"];
+  directories.forEach(async (dir) => {
+    const dirPath = `${rolePath}/${dir}`;
+    if (fs.existsSync(dirPath)) {
+      const yamlFiles = await fs
+        .readdirSync(dirPath)
+        .filter((file) => /\.(yml|yaml)$/.test(file));
+      yamlFiles.forEach((file) => {
+        const fileContents = readVarFiles(`${dirPath}/${file}`);
+        if (fileContents) {
+          files.push({
+            path: `${dir}/${file}`,
+            file_type: dir.slice(0, -1) as RoleFileType,
+            content: fileContents,
+          } as GenerationListEntry);
+        }
+      });
+    }
+  });
+
+  return files;
+}

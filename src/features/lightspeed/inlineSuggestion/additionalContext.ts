@@ -11,9 +11,9 @@ import {
 import {
   getVarsFilesContext,
   getRelativePath,
-  getRolePathFromPathWithinRole,
   getIncludeVarsContext,
 } from "../utils/data";
+import { getRoleNamePathFromFilePath } from "../utils/getRoleNamePathFromFilePath";
 import { lightSpeedManager } from "../../../extension";
 import { getCustomRolePaths } from "../../utils/ansible";
 import { watchRolesDirectory } from "../utils/watchers";
@@ -71,7 +71,7 @@ export function getAdditionalContext(
     playbookContext["roles"] = rolesCache;
   } else if (ansibleFileType === "tasks_in_role") {
     const roleCache = lightSpeedManager.ansibleRolesCache;
-    const absRolePath = getRolePathFromPathWithinRole(documentFilePath);
+    const absRolePath = getRoleNamePathFromFilePath(documentFilePath);
     if (
       workSpaceRoot &&
       workSpaceRoot in roleCache &&

@@ -414,11 +414,20 @@
       },
       {
         "command": "ansible.lightspeed.thumbsUpDown",
-        "title": "Send Lightspeed Thumbs Up/Down Feedback"
+        "title": "Send Lightspeed Thumbs Up/Down Feedback on playbook explanation"
+      },
+      {
+        "command": "ansible.lightspeed.roleThumbsUpDown",
+        "title": "Send Lightspeed Thumbs Up/Down Feedback on role explanation"
       },
       {
         "command": "ansible.lightspeed.playbookExplanation",
         "title": "Explain the playbook with Ansible Lightspeed"
+      },
+      {
+        "command": "ansible.lightspeed.roleExplanation",
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
+        "title": "Explain the role with Ansible Lightspeed"
       },
       {
         "command": "ansible.lightspeed.openTrialPage",
@@ -795,6 +804,11 @@
           "when": "redhat.ansible.lightspeedSuggestionsEnabled && editorLangId == ansible"
         },
         {
+          "group": "2_main@1",
+          "command": "ansible.lightspeed.roleExplanation",
+          "when": "redhat.ansible.lightspeedExperimentalEnabled"
+        },
+        {
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
           "command": "extension.buildExecutionEnvironment",
           "group": "navigation"
@@ -929,7 +943,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@highlightjs/vue-plugin": "2.1.0",
-    "@primevue/themes": "^4.2.5",
+    "@primeuix/themes": "^1.0.0",
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
     "@tomjs/vite-plugin-vscode": "^3.2.1",
     "@tomjs/vscode-webview": "^2.0.2",
@@ -941,10 +955,10 @@
     "ini": "^5.0.0",
     "marked": "^15.0.7",
     "minimatch": "^10.0.1",
-    "primevue": "4.2.5",
+    "primevue": "patch:primevue@npm%3A4.3.1#~/.yarn/patches/primevue-npm-4.3.1-8b2b4a2f18.patch",
     "semver": "^7.7.1",
     "uuid": "^11.1.0",
-    "vite": "^6.2.0",
+    "vite": "^6.2.1",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vue": "^3.5.13",
@@ -1063,7 +1077,7 @@
     "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
     "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
     "als-compile": "yarn workspace @ansible/ansible-language-server compile",
-    "vite-dev": "vue-tsc --noEmit && vite",
+    "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-build": "vue-tsc --noEmit && vite build",
     "vite-preview": "vite preview"
   },
