@@ -141,6 +141,7 @@ export class AddPlugin {
                       <vscode-option>Action</vscode-option>
                       <vscode-option>Filter</vscode-option>
                       <vscode-option>Lookup</vscode-option>
+                      <vscode-option>Module</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>
@@ -357,6 +358,7 @@ export class AddPlugin {
       lookup: "24.12.1",
       filter: "24.12.1",
       action: "25.0.0",
+      module: "25.3.0",
     };
     const requiredCreatorVersion =
       minRequiredCreatorVersion[pluginType.toLowerCase()];
@@ -383,16 +385,6 @@ export class AddPlugin {
         status: commandResult,
       },
     } as PostMessageEvent);
-
-    if (commandResult === "passed") {
-      const selection = await vscode.window.showInformationMessage(
-        `${pluginType} plugin '${pluginName}' added at: ${destinationPathUrl}/plugins`,
-        `Open plugin file ↗`,
-      );
-      if (selection === "Open plugin file ↗") {
-        this.openFolderInWorkspace(destinationPathUrl, pluginName, pluginType);
-      }
-    }
   }
 
   public async openFolderInWorkspace(
@@ -411,7 +403,11 @@ export class AddPlugin {
     }
 
     // open the plugin file in the editor
-    const pluginFileUrl = `${folderUrl}/plugins/${pluginType.toLowerCase()}/${pluginName}.py`;
+    const pluginTypeDir =
+      pluginType.toLowerCase() === "module"
+        ? "sample_module"
+        : pluginType.toLowerCase();
+    const pluginFileUrl = `${folderUrl}/plugins/${pluginTypeDir}/${pluginName}.py`;
     console.log(`[ansible-creator] Plugin file url: ${pluginFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${pluginFileUrl}`);
     console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
