@@ -9,6 +9,7 @@ import { PluginFormInterface, PostMessageEvent } from "./types";
 import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import { expandPath, runCommand, getCreatorVersion } from "./utils";
+import plugin from "@highlightjs/vue-plugin";
 
 export class AddPlugin {
   public static currentPanel: AddPlugin | undefined;
@@ -385,16 +386,6 @@ export class AddPlugin {
         status: commandResult,
       },
     } as PostMessageEvent);
-
-    if (commandResult === "passed") {
-      const selection = await vscode.window.showInformationMessage(
-        `${pluginType} plugin '${pluginName}' added at: ${destinationPathUrl}/plugins`,
-        `Open plugin file ↗`,
-      );
-      if (selection === "Open plugin file ↗") {
-        this.openFolderInWorkspace(destinationPathUrl, pluginName, pluginType);
-      }
-    }
   }
 
   public async openFolderInWorkspace(
@@ -413,7 +404,11 @@ export class AddPlugin {
     }
 
     // open the plugin file in the editor
-    const pluginFileUrl = `${folderUrl}/plugins/${pluginType.toLowerCase() !== "module" ? pluginType.toLowerCase() : "sample_module"}/${pluginName}.py`;
+    const pluginTypeDir =
+      pluginType.toLowerCase() === "module"
+        ? "sample_module"
+        : pluginType.toLowerCase();
+    const pluginFileUrl = `${folderUrl}/plugins/${pluginTypeDir}/${pluginName}.py`;
     console.log(`[ansible-creator] Plugin file url: ${pluginFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${pluginFileUrl}`);
     console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
