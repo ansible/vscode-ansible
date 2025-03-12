@@ -37,7 +37,7 @@ vscodeApi.post('getRecentPrompts', {});
         <label><strong>Describe what you want to achieve in natural language</strong></label>
         <div class="fieldBox">
             <AutoComplete id="PromptTextField" fluid v-model="prompt" size="small" :suggestions="recentPromptsFiltered"
-                :placeholder @complete="search" />
+                :placeholder @complete="search" :showEmptyMessage="false" />
         </div>
     </div>
 </template>
