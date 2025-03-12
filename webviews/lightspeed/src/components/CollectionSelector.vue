@@ -6,7 +6,6 @@ import { AnsibleCollection } from "../../../../../src/features/lightspeed/utils/
 import { vscodeApi } from '../utils';
 
 const collectionName = defineModel<string>("collectionName", { type: String });
-const errorMessages = defineModel<string[]>("errorMessages", { required: true });
 
 const collectionListCache: Ref<AnsibleCollection[]> = ref([]);
 const collectionListFiltered: Ref<string[]> = ref([]);
@@ -22,10 +21,6 @@ function search(event) {
 }
 
 vscodeApi.on('getCollectionList', (collectionList: AnsibleCollection[]) => {
-    if (collectionList.length === 0) {
-        errorMessages.value.push("Please create an Ansible collection in your workspace.")
-    }
-
     collectionListCache.value = collectionList;
 });
 
@@ -37,14 +32,24 @@ vscodeApi.post('getCollectionList', {});
 
 <template>
 
+    <div v-if="collectionListCache.length == 0">
+        <strong>We need a collection to store your new role, however none were found in your Workspace. You can create a
+            one
+            with the <a href="command:ansible.content-creator.create-ansible-collection"
+                title="Create a collection project">
+                <span class="codicon codicon-new-file"></span> Create new Ansible collection
+            </a> action.
+        </strong>
+    </div>
 
-    <div class="dropdown-container" id="collectionSelectorContainer">
+    <div class="dropdown-container" id="collectionSelectorContainer" v-if="collectionListCache.length > 0">
         <label for="selectedCollectionName"><strong>Select the collection to create role in:</strong></label>
 
         <br />
         <div id="fieldBox">
             <AutoComplete id="collectionNameTextField" v-model="collectionName" dropdown size="small"
-                name="selectedCollectionName" :suggestions="collectionListFiltered" @complete="search" />
+                name="selectedCollectionName" :suggestions="collectionListFiltered" @complete="search"
+                :emptySearchMessage='"No collection found in the Workspace"' />
         </div>
 
 
