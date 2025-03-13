@@ -372,9 +372,7 @@ export class CreateAnsibleProject {
       isOverwritten,
     } = payload;
 
-    const destinationPathUrl = destinationPath
-      ? destinationPath
-      : `${os.homedir()}/${namespaceName}-${collectionName}`;
+    const destinationPathUrl = destinationPath ? destinationPath : os.homedir();
 
     let ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
       namespaceName,
