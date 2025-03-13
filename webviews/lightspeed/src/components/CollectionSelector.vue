@@ -2,7 +2,8 @@
 import AutoComplete from 'primevue/autocomplete';
 
 import { ref, Ref } from 'vue';
-import { AnsibleCollection } from "../../../../../src/features/lightspeed/utils/scanner";
+import { AnsibleCollection } from "../../../../src/features/lightspeed/utils/scanner";
+
 import { vscodeApi } from '../utils';
 
 const collectionName = defineModel<string>("collectionName", { type: String });

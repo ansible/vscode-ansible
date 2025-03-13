@@ -139,7 +139,7 @@ describe("Verify Role generation feature works as expected", function () {
     await sleep(1000);
     const link = await webView.findWebElement(
       By.xpath(
-        "//a[contains(text(), 'collections/community/dummy/roles/install_nginx/tasks/main.yml')]",
+        "//a[contains(text(), 'community/dummy/roles/install_nginx/tasks/main.yml')]",
       ),
     );
     await link.click();
