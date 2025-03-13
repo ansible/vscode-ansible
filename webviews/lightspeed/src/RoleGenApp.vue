@@ -9,7 +9,6 @@ import { WizardGenerationActionType } from '../../../src/definitions/lightspeed'
 
 import SavedFiles from "./components/SavedFiles.vue";
 import StatusBoxPrompt from './components/StatusBoxPrompt.vue';
-import StatusBoxCollectionName from './components/StatusBoxCollectionName.vue';
 import OutlineReview from './components/OutlineReview.vue';
 import GeneratedFileEntry from './components/GeneratedFileEntry.vue';
 import CollectionSelector from "./components/CollectionSelector.vue";
@@ -68,9 +67,6 @@ vscodeApi.on('generateRole', (data: any) => {
 watch(page, (toPage, fromPage) => {
   errorMessages.value = [];
   filesWereSaved.value = false;
-  if (toPage === 1) {
-    roleName.value = "";
-  }
   sendActionEvent(WizardGenerationActionType.TRANSITION, fromPage, toPage)
 })
 
@@ -78,6 +74,7 @@ watch(prompt, (newPrompt) => {
   if (response.value !== undefined) {
     response.value = undefined;
     outline.value = "";
+    roleName.value = ""
   }
 })
 
@@ -115,11 +112,10 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
   <ProgressSpinner v-if="loadingNewResponse" />
 
   <div v-else-if="page === 1">
-    <CollectionSelector v-model:collection-name="collectionName" v-model:error-messages="errorMessages" />
     <PromptField v-model:prompt="prompt" placeholder="I want to write a role that will..." />
 
     <div>
-      <vscode-button @click.once="nextPage" :disabled="prompt === '' || collectionName === ''">
+      <vscode-button @click.once="nextPage" :disabled="prompt === ''">
         Analyze
       </vscode-button>
     </div>
@@ -128,7 +124,6 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
 
   <div v-else-if="page === 2">
     <StatusBoxPrompt :prompt="prompt" @restart-wizard="page = 1" />
-    <StatusBoxCollectionName :collectionName="collectionName" @restart-wizard="page = 1" />
     <div>
       Role name: <vscode-textfield v-model="roleName" />
     </div>
@@ -156,7 +151,9 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
       </template>
     </Suspense>
     <div>
-      <vscode-button @click="filesWereSaved = true">
+      <CollectionSelector v-if="!filesWereSaved" v-model:collection-name="collectionName"
+        v-model:error-messages="errorMessages" />
+      <vscode-button @click="filesWereSaved = true" :disabled="collectionName === '' || filesWereSaved">
         Save files
       </vscode-button>
       <vscode-button secondary @click="page--">

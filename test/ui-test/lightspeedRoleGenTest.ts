@@ -105,17 +105,6 @@ describe("Verify Role generation feature works as expected", function () {
       )
     ).click();
 
-    const collectionNameTextField = await webView.findWebElement(
-      By.xpath('//*[@id="collectionNameTextField"]/input'),
-    );
-    await collectionNameTextField.sendKeys("community.dummy");
-    await collectionNameTextField.click();
-
-    const button = await webView.findWebElement(
-      By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
-    );
-    await button.click();
-
     cleanUpTmpfile();
 
     await sleep(10000);
@@ -129,6 +118,17 @@ describe("Verify Role generation feature works as expected", function () {
     webView = await getWebviewByLocator(
       By.xpath("//li[contains(text(), 'tasks/main.yml')]"),
     );
+
+    const collectionNameTextField = await webView.findWebElement(
+      By.xpath('//*[@id="collectionNameTextField"]/input'),
+    );
+    await collectionNameTextField.sendKeys("community.dummy");
+    await collectionNameTextField.click();
+
+    // const button = await webView.findWebElement(
+    //   By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
+    // );
+    // await button.click();
 
     await (
       await webView.findWebElement(
