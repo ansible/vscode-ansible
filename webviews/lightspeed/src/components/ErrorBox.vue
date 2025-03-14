@@ -19,13 +19,13 @@ vscodeApi.on('errorMessage', (data: any) => {
 <style scoped>
 .codicon.codicon-warning {
     margin: 10px;
-    color: red;
+    color: var(--vscode-inputValidation-errorBorder);
 }
 
 #errorContainer {
     padding-top: 10px;
-    background: #e9d4d7;
-    border-top: 2px solid red;
+    background: var(--vscode-inputValidation-errorBackground);
+    border-top: 2px solid var(--vscode-errorForeground);
 }
 
 ul {

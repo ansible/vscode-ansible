@@ -3,12 +3,12 @@ defineProps<{ message: string }>();
 </script>
 
 <template>
-    <li><span class="codicon codicon-warning errorMessage"></span><strong>{{ message }}</strong></li>
+    <li><span class="codicon codicon-warning"></span>{{ message }}</li>
 </template>
 
 <style scoped>
-.errorMessage {
-    color: red;
+li {
+    color: var(--vscode-errorForeground);
     font-weight: bold;
 }
 </style>
