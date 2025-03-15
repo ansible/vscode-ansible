@@ -295,6 +295,8 @@ const encryptFile = (
   rootPath: string | undefined,
   vaultId: string | undefined,
 ) => {
+  console.log(`Encrypt file: ${f}`);
+
   const args =
     "encrypt " + (vaultId ? `--encrypt-vault-id="${vaultId}" ` : "") + `"${f}"`;
   const { command: cmd, env } = ansibleVaultCmd(args);
