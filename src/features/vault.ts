@@ -7,6 +7,8 @@ import * as vscode from "vscode";
 
 /* local */
 import * as utilAnsibleCfg from "./utils/ansibleCfg";
+import { extSettings } from "../extension";
+import { withInterpreter } from "./utils/commandRunner";
 
 const execAsync = util.promisify(cp.exec);
 
@@ -44,12 +46,11 @@ function displayInvalidConfigError(): void {
   );
 }
 
-function ansibleVaultPath(config: vscode.WorkspaceConfiguration): string {
-  const path = config.get("ansible.path");
-  if (typeof path === "string") {
-    return `${path || "ansible"}-vault`;
-  }
-  return "ansible-vault";
+function ansibleVaultCmd(args: string): {
+  command: string;
+  env: NodeJS.ProcessEnv;
+} {
+  return withInterpreter(extSettings.settings, "ansible-vault", args);
 }
 
 export const toggleEncrypt = async (): Promise<void> => {
@@ -63,7 +64,6 @@ export const toggleEncrypt = async (): Promise<void> => {
     return;
   }
 
-  const config = vscode.workspace.getConfiguration("ansible");
   const doc = editor.document;
 
   // Read `ansible.cfg` or environment variable
@@ -112,7 +112,6 @@ export const toggleEncrypt = async (): Promise<void> => {
           vaultId,
           indentationLevel,
           tabSize,
-          config,
         );
       } catch (e) {
         vscode.window.showErrorMessage(`Inline encryption failed: ${e}`);
@@ -134,7 +133,6 @@ export const toggleEncrypt = async (): Promise<void> => {
           rootPath,
           indentationLevel,
           tabSize, // tabSize is always defined
-          config,
         );
       } catch (e) {
         vscode.window.showErrorMessage(`Inline decryption failed: ${e}`);
@@ -159,7 +157,7 @@ export const toggleEncrypt = async (): Promise<void> => {
       }
       vscode.window.activeTextEditor?.document.save();
       try {
-        await encryptFile(doc.fileName, rootPath, vaultId, config);
+        await encryptFile(doc.fileName, rootPath, vaultId);
         vscode.window.showInformationMessage(
           `File encrypted: '${doc.fileName}'`,
         );
@@ -172,7 +170,7 @@ export const toggleEncrypt = async (): Promise<void> => {
       console.log("Decrypt entire file");
       vscode.window.activeTextEditor?.document.save();
       try {
-        await decryptFile(doc.fileName, rootPath, config);
+        await decryptFile(doc.fileName, rootPath);
         vscode.window.showInformationMessage(
           `File decrypted: '${doc.fileName}'`,
         );
@@ -206,13 +204,11 @@ const encryptInline = async (
   vaultId: string | undefined,
   indentationLevel: number,
   tabSize = 0,
-  config: vscode.WorkspaceConfiguration,
 ) => {
   const encryptedText = await encryptText(
     handleMultiline(text, indentationLevel, tabSize),
     rootPath,
     vaultId,
-    config,
   );
   console.debug(`encryptedText == '${encryptedText}'`);
 
@@ -224,7 +220,6 @@ const decryptInline = async (
   rootPath: string | undefined,
   indentationLevel: number,
   tabSize = 0,
-  config: vscode.WorkspaceConfiguration,
 ) => {
   // Delete inline vault prefix, then trim spaces and newline from the entire string and, at last, trim the spaces in the multiline string.
   text = text
@@ -233,7 +228,7 @@ const decryptInline = async (
     .replace(/[^\S\r\n]+/gm, "");
 
   const decryptedText = reindentText(
-    await decryptText(text, rootPath, config),
+    await decryptText(text, rootPath),
     indentationLevel,
     tabSize,
   );
@@ -244,9 +239,12 @@ const pipeTextThroughCmd = (
   text: string,
   rootPath: string | undefined,
   cmd: string,
+  env?: NodeJS.ProcessEnv,
 ): Promise<string> => {
   return new Promise<string>((resolve, reject) => {
-    const child = rootPath ? cp.exec(cmd, { cwd: rootPath }) : cp.exec(cmd);
+    const child = rootPath
+      ? cp.exec(cmd, { cwd: rootPath, env })
+      : cp.exec(cmd, { env });
     child.stdout?.setEncoding("utf8");
     let outputText = "";
     let errorText = "";
@@ -274,51 +272,42 @@ const encryptText = (
   text: string,
   rootPath: string | undefined,
   vaultId: string | undefined,
-  config: vscode.WorkspaceConfiguration,
 ): Promise<string> => {
-  let cmd = `${ansibleVaultPath(config)} encrypt_string`;
+  let args = "encrypt_string";
   if (vaultId) {
-    cmd += ` --encrypt-vault-id ${vaultId}`;
+    args += ` --encrypt-vault-id ${vaultId}`;
   }
-  return pipeTextThroughCmd(text, rootPath, cmd);
+  const { command: cmd, env } = ansibleVaultCmd(args);
+  return pipeTextThroughCmd(text, rootPath, cmd, env);
 };
 
 const decryptText = (
   text: string,
   rootPath: string | undefined,
-  config: vscode.WorkspaceConfiguration,
 ): Promise<string> => {
-  const cmd = `${ansibleVaultPath(config)} decrypt`;
-  return pipeTextThroughCmd(text, rootPath, cmd);
+  const args = "decrypt";
+  const { command: cmd, env } = ansibleVaultCmd(args);
+  return pipeTextThroughCmd(text, rootPath, cmd, env);
 };
 
 const encryptFile = (
   f: string,
   rootPath: string | undefined,
   vaultId: string | undefined,
-  config: vscode.WorkspaceConfiguration,
 ) => {
-  console.log(`Encrypt file: ${f}`);
+  const args =
+    "encrypt " + (vaultId ? `--encrypt-vault-id="${vaultId}" ` : "") + `"${f}"`;
+  const { command: cmd, env } = ansibleVaultCmd(args);
 
-  const cmd = vaultId
-    ? `${ansibleVaultPath(
-        config,
-      )} encrypt --encrypt-vault-id="${vaultId}" "${f}"`
-    : `${ansibleVaultPath(config)} encrypt "${f}"`;
-
-  return execCwd(cmd, rootPath);
+  return execCwd(cmd, rootPath, env);
 };
 
-const decryptFile = (
-  f: string,
-  rootPath: string | undefined,
-  config: vscode.WorkspaceConfiguration,
-) => {
+const decryptFile = (f: string, rootPath: string | undefined) => {
   console.log(`Decrypt file: ${f}`);
+  const args = `decrypt "${f}"`;
+  const { command: cmd, env } = ansibleVaultCmd(args);
 
-  const cmd = `${ansibleVaultPath(config)} decrypt "${f}"`;
-
-  return execCwd(cmd, rootPath);
+  return execCwd(cmd, rootPath, env);
 };
 
 const exec = (cmd: string, opt = {}) => {
@@ -326,11 +315,15 @@ const exec = (cmd: string, opt = {}) => {
   return execAsync(cmd, opt);
 };
 
-const execCwd = (cmd: string, cwd: string | undefined) => {
+const execCwd = (
+  cmd: string,
+  cwd: string | undefined,
+  env?: NodeJS.ProcessEnv,
+) => {
   if (!cwd) {
-    return exec(cmd);
+    return exec(cmd, { env });
   }
-  return exec(cmd, { cwd: cwd });
+  return exec(cmd, { cwd: cwd, env });
 };
 
 const getIndentationLevel = (

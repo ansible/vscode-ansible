@@ -88,6 +88,9 @@ export const globalFileSystemWatcher: IFileSystemWatchers = {};
 const lsName = "Ansible Support";
 let lsOutputChannel: vscode.OutputChannel;
 
+// Expose settings
+export const extSettings = new SettingsManager();
+
 export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
@@ -139,7 +142,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   notifyAboutConflicts();
 
   // Initialize settings
-  const extSettings = new SettingsManager();
   await extSettings.initialize();
 
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
