@@ -124,7 +124,7 @@ describe("Test Ansible playbook and collection project scaffolding at provided p
     }
 
     await checkAndInteractWithField("namespace-name", "test_namespaces");
-    await checkAndInteractWithField("collection-name", "test-collection_name");
+    await checkAndInteractWithField("collection-name", "test_collection_name");
     await checkAndInteractWithField("path-url", path.join(os.homedir()));
     const logToFileCheckbox = await webview.findWebElement(
       By.xpath("//vscode-checkbox[@id='log-to-file-checkbox']"),
@@ -337,6 +337,7 @@ describe("Test collection plugins scaffolding", () => {
       // Verify if plugin file exists
       const pluginPath = path.join(
         os.homedir(),
+        "test",
         "plugins",
         "filter",
         "plugin_name.py",
@@ -369,10 +370,19 @@ describe("Test collection plugins scaffolding", () => {
       "Action",
     );
   });
+  it("Check add-plugin webview elements for generic module plugin", async () => {
+    await testWebViewElements(
+      "Ansible: Add a Plugin",
+      "~",
+      "Add Plugin",
+      "test_plugin_name",
+      "Module",
+    );
+  });
   it("Verify Open Plugin button is enabled and plugin file exists", async () => {
     await testWebViewElements(
       "Ansible: Add a Plugin",
-      os.homedir(),
+      os.homedir + "/test",
       "Add Plugin",
       "plugin_name",
       "Filter",

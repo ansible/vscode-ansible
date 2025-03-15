@@ -409,7 +409,6 @@
       },
       {
         "command": "ansible.lightspeed.roleGeneration",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
         "title": "Ansible Lightspeed: Role generation"
       },
       {
@@ -426,7 +425,6 @@
       },
       {
         "command": "ansible.lightspeed.roleExplanation",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
         "title": "Explain the role with Ansible Lightspeed"
       },
       {
@@ -805,8 +803,7 @@
         },
         {
           "group": "2_main@1",
-          "command": "ansible.lightspeed.roleExplanation",
-          "when": "redhat.ansible.lightspeedExperimentalEnabled"
+          "command": "ansible.lightspeed.roleExplanation"
         },
         {
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
@@ -967,7 +964,7 @@
   },
   "description": "Ansible language support",
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
+    "@eslint/js": "^9.22.0",
     "@types/chai": "^4.3.20",
     "@types/express": "^5.0.0",
     "@types/glob": "^8.1.0",
@@ -976,7 +973,7 @@
     "@types/minimatch": "^5.1.2",
     "@types/mocha": "^10.0.10",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.13.8",
+    "@types/node": "^22.13.10",
     "@types/selenium-webdriver": "^4.1.28",
     "@types/sinon": "^17.0.4",
     "@types/tmp": "^0.2.6",
@@ -984,14 +981,14 @@
     "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.5",
     "@types/yargs": "^17.0.33",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
-    "@typescript-eslint/parser": "^8.25.0",
+    "@typescript-eslint/eslint-plugin": "^8.26.1",
+    "@typescript-eslint/parser": "^8.26.1",
     "@vscode/test-electron": "^2.4.1",
     "@vscode/vsce": "^3.2.2",
     "chai": "^4.5.0",
     "depcheck": "^1.4.7",
-    "eslint": "^9.21.0",
-    "eslint-config-prettier": "^10.0.2",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
     "eslint-formatter-gha": "^1.5.2",
     "eslint-formatter-unix": "^8.40.0",
     "eslint-plugin-chai-friendly": "^1.0.1",
@@ -1017,7 +1014,7 @@
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.25.0",
+    "typescript-eslint": "^8.26.1",
     "vscode-extension-tester": "^8.10.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.98.0",

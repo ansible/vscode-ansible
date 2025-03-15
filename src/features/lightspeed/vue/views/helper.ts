@@ -273,7 +273,7 @@ export class WebviewHelper {
               };
 
               savedFilesEntries.push({
-                longPath: `collections/${collectionName.replace(".", "/")}/roles/${roleName}/${f.file_type}s/main.yml`,
+                longPath: `${collectionName.replace(".", "/")}/roles/${roleName}/${f.file_type}s/main.yml`,
                 command: `command:vscode.open?${encodeURIComponent(JSON.stringify(linkUri))}`,
               });
             }
