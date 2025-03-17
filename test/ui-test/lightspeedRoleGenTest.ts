@@ -125,11 +125,6 @@ describe("Verify Role generation feature works as expected", function () {
     await collectionNameTextField.sendKeys("community.dummy");
     await collectionNameTextField.click();
 
-    // const button = await webView.findWebElement(
-    //   By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
-    // );
-    // await button.click();
-
     await (
       await webView.findWebElement(
         By.xpath("//vscode-button[contains(text(), 'Save files')]"),
