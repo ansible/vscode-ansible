@@ -10,6 +10,7 @@ import {
   RoleGenerationResponseParams,
   GenerationListEntry,
   FeedbackRequestParams,
+  RoleGenerationRequestParams,
 } from "../../../../interfaces/lightspeed";
 
 import { lightSpeedManager } from "../../../../extension";
@@ -61,19 +62,23 @@ async function getRoleBaseDir(
 
 async function generateRole(
   apiInstance: LightSpeedAPI,
+  name: string | undefined,
   text: string,
   outline: string,
   generationId: string,
 ): Promise<RoleGenerationResponseParams | IError> {
   const createOutline = outline.length === 0;
 
+  const params: RoleGenerationRequestParams = {
+    text,
+    outline: outline.length > 0 ? outline : undefined,
+    createOutline,
+    generationId,
+    name: name,
+  };
+
   const response: RoleGenerationResponseParams | IError =
-    await apiInstance.roleGenerationRequest({
-      text,
-      outline: outline.length > 0 ? outline : undefined,
-      createOutline,
-      generationId,
-    });
+    await apiInstance.roleGenerationRequest(params);
   return response;
 }
 
@@ -142,6 +147,7 @@ export class WebviewHelper {
             const generationId = uuidv4();
             const response = await generateRole(
               lightSpeedManager.apiInstance,
+              data.name,
               data.text,
               data.outline,
               generationId,
