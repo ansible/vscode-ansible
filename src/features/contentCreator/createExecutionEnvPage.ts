@@ -548,7 +548,6 @@ export class CreateExecutionEnv {
       );
 
       let commandOutput = "";
-      let commandResult: string;
 
       const creatorVersion = await getCreatorVersion();
 
@@ -556,7 +555,7 @@ export class CreateExecutionEnv {
 
       const ansibleCreatorExecutionResult = await runCommand(command, env);
       commandOutput += ansibleCreatorExecutionResult.output;
-      commandResult = ansibleCreatorExecutionResult.status;
+      const commandResult = ansibleCreatorExecutionResult.status;
     }
 
     console.debug(commandOutput);
