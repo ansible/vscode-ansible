@@ -32,6 +32,7 @@ let customBaseImageField: VscodeTextfield;
 
 let createContextCheckbox: VscodeCheckbox;
 let buildImageCheckbox: VscodeCheckbox;
+let initEEProjectCheckbox: VscodeCheckbox;
 
 let suggestedCollectionsCheckboxes: NodeListOf<VscodeCheckbox>;
 let collectionsTextField: VscodeTextfield;
@@ -72,6 +73,9 @@ function main() {
   ) as VscodeCheckbox;
   buildImageCheckbox = document.getElementById(
     "buildImage-checkbox",
+  ) as VscodeCheckbox;
+  initEEProjectCheckbox = document.getElementById(
+    "initEE-checkbox",
   ) as VscodeCheckbox;
 
   suggestedCollectionsCheckboxes = document.querySelectorAll(
@@ -116,6 +120,7 @@ function main() {
 
   createContextCheckbox.addEventListener("change", handleCheckboxState);
   buildImageCheckbox.addEventListener("change", handleCheckboxState);
+  initEEProjectCheckbox.addEventListener("change", handleCheckboxState);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
   initClearButton.addEventListener("click", handleInitClearClick);
@@ -234,6 +239,7 @@ function handleInitClearClick() {
   createContextCheckbox.disabled = false;
 
   buildImageCheckbox.checked = false;
+  initEEProjectCheckbox.checked = false;
 
   suggestedCollectionsCheckboxes.forEach((checkbox) => {
     checkbox.checked = false;
@@ -267,11 +273,7 @@ function toggleCreateButton() {
     baseImageDropdown.value.trim() !== "" ||
     customBaseImageField.value.trim() !== "";
 
-  initCreateButton.disabled = !(
-    isDestinationPathProvided &&
-    isTagProvided &&
-    isBaseImageProvided
-  );
+  initCreateButton.disabled = !isDestinationPathProvided;
 
   if (!destinationPath) {
     initDestinationPathElement.innerHTML =
@@ -325,6 +327,7 @@ function handleInitCreateClick() {
       isOverwritten: overwriteCheckbox.checked,
       isCreateContextEnabled: createContextCheckbox.checked,
       isBuildImageEnabled: buildImageCheckbox.checked,
+      isInitEEProjectEnabled: initEEProjectCheckbox.checked,
       baseImage: baseImageDropdown.value.trim(),
       customBaseImage: customBaseImageField.value.trim(),
       collections: final_collections.trim(),
