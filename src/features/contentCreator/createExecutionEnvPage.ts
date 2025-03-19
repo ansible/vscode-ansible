@@ -7,7 +7,7 @@ import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { SettingsManager } from "../../settings";
-import { expandPath, getCreatorVersion, runCommand } from "./utils";
+import { expandPath, runCommand } from "./utils";
 import { execFile } from "child_process";
 import { withInterpreter } from "../utils/commandRunner";
 
@@ -560,9 +560,8 @@ export class CreateExecutionEnv {
       );
 
       commandOutput = "";
-      let commandResult;
 
-      const creatorVersion = await getCreatorVersion();
+      // const creatorVersion = await getCreatorVersion();
 
       commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
 
