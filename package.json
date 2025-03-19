@@ -1066,7 +1066,7 @@
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
-    "webpack": "yarn run clean && yarn run compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
+    "webpack": "yarn run clean && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
     "webpack-dev": "yarn run clean && yarn test-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
