@@ -535,6 +535,18 @@ export class CreateExecutionEnv {
     }
 
     if (isInitEEProjectEnabled) {
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            commandOutput + "Building execution environment project....\n",
+          projectUrl: destinationPathUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+      await webView.postMessage({ command: "disable-build-button" });
+      await webView.postMessage({ command: "enable-open-file-button" });
+
       const initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
       console.debug("[ansible-creator] command: ", initEEProjectCommand);
 
@@ -547,7 +559,8 @@ export class CreateExecutionEnv {
         "",
       );
 
-      let commandOutput = "";
+      commandOutput = "";
+      let commandResult;
 
       const creatorVersion = await getCreatorVersion();
 
@@ -555,7 +568,7 @@ export class CreateExecutionEnv {
 
       const ansibleCreatorExecutionResult = await runCommand(command, env);
       commandOutput += ansibleCreatorExecutionResult.output;
-      const commandResult = ansibleCreatorExecutionResult.status;
+      commandResult = ansibleCreatorExecutionResult.status;
     }
 
     console.debug(commandOutput);

@@ -120,7 +120,7 @@ function main() {
 
   createContextCheckbox.addEventListener("change", handleCheckboxState);
   buildImageCheckbox.addEventListener("change", handleCheckboxState);
-  initEEProjectCheckbox.addEventListener("change", handleCheckboxState);
+  initEEProjectCheckbox.addEventListener("change", handleEEInitCheckbox);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
   initClearButton.addEventListener("click", handleInitClearClick);
@@ -214,6 +214,11 @@ function toggleBaseImageDropdown() {
   toggleCreateButton();
 }
 
+function handleEEInitCheckbox() {
+  const isInitEEProjectEnabled = initEEProjectCheckbox.checked;
+  toggleCreateButton();
+}
+
 function validateBaseImage() {
   const selectedBaseImage = baseImageDropdown.value.trim();
   const customBaseImage = customBaseImageField.value.trim();
@@ -273,7 +278,12 @@ function toggleCreateButton() {
     baseImageDropdown.value.trim() !== "" ||
     customBaseImageField.value.trim() !== "";
 
-  initCreateButton.disabled = !isDestinationPathProvided;
+  const isInitEEProjectEnabled = initEEProjectCheckbox.checked;
+
+  initCreateButton.disabled = !(
+    isInitEEProjectEnabled ||
+    (isDestinationPathProvided && isTagProvided && isBaseImageProvided)
+  );
 
   if (!destinationPath) {
     initDestinationPathElement.innerHTML =
