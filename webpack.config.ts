@@ -80,11 +80,11 @@ const config = {
   ],
   output: {
     filename: (pathData: { chunk: { name: string } }) => {
-        console.log(pathData);
-        console.log(pathData.chunk.name);
-        return pathData.chunk.name === "client"
-            ? "[name]/src/extension.js"
-            : "[name]/src/[name].js";
+      console.log(pathData);
+      console.log(pathData.chunk.name);
+      return pathData.chunk.name === "client"
+        ? "[name]/src/extension.js"
+        : "[name]/src/[name].js";
     },
     path: path.resolve(__dirname, "out"),
     libraryTarget: "commonjs2",
