@@ -497,15 +497,21 @@ export class LightspeedUser {
       const selection = await vscode.window.showWarningMessage(
         "You must be logged in to use Ansible Lightspeed.\n",
         "Login",
+        "Disable Lightspeed",
       );
       if (selection === "Login") {
         vscode.commands.executeCommand(
           LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
         );
       }
+      if (selection === "Disable Lightspeed") {
+        vscode.commands.executeCommand(
+          "workbench.action.openSettings",
+          "ansible.lightspeed.enabled",
+        );
+      }
       return;
     }
-
     this._logger.info(
       `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes}"`,
     );
