@@ -94,7 +94,12 @@ export class LightspeedStatusBar {
   }
 
   public async updateLightSpeedStatusbar(): Promise<void> {
-    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    const userDetails =
+      await this.lightspeedAuthenticatedUser.getLightspeedUserDetails(false);
+    if (
+      vscode.window.activeTextEditor?.document.languageId !== "ansible" ||
+      !userDetails
+    ) {
       this.statusBar.hide();
       return;
     }
