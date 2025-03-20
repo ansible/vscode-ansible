@@ -82,7 +82,7 @@
         "steps": [
           {
             "id": "enable-lightspeed-playbook",
-            "title": "Log in to Ansible Lightspeed",
+            "title": "Enable Ansible Lightspeed",
             "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
             "media": {
               "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md"
@@ -663,32 +663,39 @@
       {
         "title": "Ansible Lightspeed",
         "properties": {
+          "ansible.lightspeed.enabled": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Enable Ansible Lightspeed.",
+            "order": 0
+          },
           "ansible.lightspeed.URL": {
             "scope": "resource",
             "type": "string",
             "default": "https://c.ai.ansible.redhat.com",
             "markdownDescription": "URL for Ansible Lightspeed.",
-            "order": 0
+            "order": 1
           },
           "ansible.lightspeed.suggestions.enabled": {
             "scope": "resource",
             "type": "boolean",
             "default": true,
             "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
-            "order": 1
+            "order": 2
           },
           "ansible.lightspeed.suggestions.waitWindow": {
             "scope": "resource",
             "type": "number",
             "default": 0,
             "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request to Ansible Lightspeed with watsonx Code Assistant.",
-            "order": 2
+            "order": 3
           },
           "ansible.lightspeed.modelIdOverride": {
             "scope": "resource",
             "type": "string",
             "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
-            "order": 3
+            "order": 4
           }
         }
       },
@@ -742,7 +749,7 @@
         "command": "ansible.lightspeed.inlineSuggest.trigger",
         "extensionName": "Ansible",
         "source": "extension",
-        "when": "config.ansible.lightspeed.suggestions.enabled && editorTextFocus && !editorHasSelection && !inlineSuggestionVisible && editorLangId == 'ansible'"
+        "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled && editorTextFocus && !editorHasSelection && !inlineSuggestionVisible && editorLangId == 'ansible'"
       }
     ],
     "languages": [

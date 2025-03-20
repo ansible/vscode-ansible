@@ -40,6 +40,7 @@ export class SettingsManager {
         volumeMounts: eeSettings.get("volumeMounts", []),
       },
       lightSpeedService: {
+        enabled: lightSpeedSettings.get("enabled", false),
         URL: lightSpeedSettings.get("URL", "https://c.ai.ansible.redhat.com"),
         suggestions: {
           enabled: lightSpeedSettings.get("suggestions.enabled", true),
