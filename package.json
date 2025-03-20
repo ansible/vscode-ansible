@@ -190,12 +190,14 @@
         {
           "id": "lightspeed-explorer-webview",
           "name": "Ansible Lightspeed",
-          "type": "webview"
+          "type": "webview",
+          "when": "config.ansible.lightspeed.enabled"
         },
         {
           "id": "lightspeed-feedback-webview",
           "name": "Ansible Lightspeed Feedback",
-          "type": "webview"
+          "type": "webview",
+          "when": "config.ansible.lightspeed.enabled"
         }
       ],
       "lightspeed-training-match-panel": [
@@ -666,7 +668,7 @@
           "ansible.lightspeed.enabled": {
             "scope": "resource",
             "type": "boolean",
-            "default": false,
+            "default": true,
             "markdownDescription": "Enable Ansible Lightspeed.",
             "order": 0
           },
