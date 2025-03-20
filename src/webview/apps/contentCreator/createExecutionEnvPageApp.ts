@@ -309,8 +309,10 @@ function stripAnsiCodes(text: string): string {
 function handleInitCreateClick() {
   initCreateButton.disabled = false;
   const isBaseImageValid = validateBaseImage();
-  if (!isBaseImageValid) {
-    return;
+  if (createContextCheckbox.checked || buildImageCheckbox.checked) {
+    if (!isBaseImageValid) {
+      return;
+    }
   }
 
   const collectionsText = collectionsTextField.value.trim();
