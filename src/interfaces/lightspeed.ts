@@ -159,7 +159,16 @@ export interface ISuggestionDetails {
   isPlaybook: boolean;
 }
 
-export interface GenerationRequestParams {
+export interface PlaybookGenerationRequestParams {
+  text: string;
+  outline?: string;
+  generationId: string;
+  createOutline: boolean;
+  wizardId?: string;
+}
+
+export interface RoleGenerationRequestParams {
+  name?: string;
   text: string;
   outline?: string;
   generationId: string;
@@ -189,7 +198,8 @@ export interface RoleGenerationResponseParams {
   files: GenerationListEntry[];
   outline?: string;
   generationId: string;
-  role: string;
+  name: string;
+  role?: string; // deprecated
 }
 
 export interface RoleExplanationRequestParams {
