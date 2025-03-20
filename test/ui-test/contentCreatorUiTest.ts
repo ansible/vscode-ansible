@@ -1,4 +1,4 @@
-import { By, EditorView, WebElement } from "vscode-extension-tester";
+import { By, EditorView, WebView, WebElement } from "vscode-extension-tester";
 import {
   getWebviewByLocator,
   sleep,
@@ -11,6 +11,37 @@ import { execFile } from "child_process";
 import os from "os";
 
 config.truncateThreshold = 0;
+
+async function openCreateWebview(command: string, webviewId: string) {
+  await workbenchExecuteCommand(command);
+  const editorView = new EditorView();
+  await sleep(5000);
+  await editorView.openEditor(webviewId);
+  return await getWebviewByLocator(
+    By.xpath("//vscode-textfield[@id='path-url']"),
+  );
+}
+
+async function checkAndInteractWithField(
+  webview: WebView,
+  fieldId: string,
+  value: string,
+) {
+  const textField = await webview.findWebElement(
+    By.xpath(`//vscode-textfield[@id='${fieldId}']`),
+  );
+  expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
+  await textField.sendKeys(value);
+}
+
+async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
+  const button = await webview.findWebElement(
+    By.xpath(`//vscode-button[@id='${buttonId}']`),
+  );
+  expect(button, `${buttonId} should not be undefined`).not.to.be.undefined;
+  expect(await button.isEnabled(), `${buttonId} should be enabled`).to.be.true;
+  await button.click();
+}
 
 describe("Test Ansible playbook and collection project scaffolding at default path", () => {
   let createButton: WebElement;
@@ -93,6 +124,54 @@ describe("Test Ansible playbook and collection project scaffolding at default pa
       "test_namespace",
       "test_collection",
     );
+  });
+});
+
+describe("Test execution-environment project scaffolding at default path", () => {
+  it("Check execution-environment webview elements", async () => {
+    const eeWebview = await openCreateWebview(
+      "Ansible: Create an Execution Environment file",
+      "Create Ansible Execution Environment",
+    );
+
+    const descriptionText = await (
+      await eeWebview.findWebElement(By.xpath("//div[@class='title-div']/h1"))
+    ).getText();
+    expect(descriptionText).to.contain(
+      "Create an Ansible execution environment",
+    );
+
+    await checkAndInteractWithField(eeWebview, "path-url", "~");
+    await sleep(500);
+
+    const initEEProjectCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='initEE-checkbox']"),
+    );
+    await initEEProjectCheckbox.click();
+
+    const overwriteCheckbox = await eeWebview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+    );
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+
+    await checkAndInteractWithField(eeWebview, "path-url", os.homedir());
+    await sleep(500);
+
+    await initEEProjectCheckbox.click();
+    await overwriteCheckbox.click();
+    await clickButtonAndCheckEnabled(eeWebview, "create-button");
+    await sleep(500);
+
+    await clickButtonAndCheckEnabled(eeWebview, "clear-button");
+    await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
+    await sleep(500);
+
+    await eeWebview.switchBack();
   });
 });
 

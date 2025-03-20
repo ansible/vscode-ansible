@@ -36,6 +36,7 @@ export type AnsibleExecutionEnvInterface = {
   isOverwritten: boolean;
   isCreateContextEnabled: boolean;
   isBuildImageEnabled: boolean;
+  isInitEEProjectEnabled: boolean;
   baseImage: string;
   customBaseImage: string;
   collections: string;

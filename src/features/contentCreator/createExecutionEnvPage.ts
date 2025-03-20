@@ -7,8 +7,9 @@ import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { SettingsManager } from "../../settings";
-import { expandPath } from "./utils";
+import { expandPath, runCommand } from "./utils";
 import { execFile } from "child_process";
+import { withInterpreter } from "../utils/commandRunner";
 
 export class CreateExecutionEnv {
   public static currentPanel: CreateExecutionEnv | undefined;
@@ -240,8 +241,13 @@ export class CreateExecutionEnv {
                 <div class="checkbox-div">
                   <vscode-checkbox id="createContext-checkbox" form="init-form">Create context <br><i>Create context for the execution-environment.</i></vscode-checkbox>
                 </div>
+
                 <div class="checkbox-div">
                   <vscode-checkbox id="buildImage-checkbox" form="init-form">Build image <br><i>Build the image of the execution-environment.</i></vscode-checkbox>
+                </div>
+
+                <div class="checkbox-div">
+                  <vscode-checkbox id="initEE-checkbox" form="init-form">Include full project files <br><i>Initialize entire structure of execution-environment project.</i></vscode-checkbox>
                 </div>
 
                 <div class="overwriteCheckbox-div">
@@ -386,6 +392,7 @@ export class CreateExecutionEnv {
       isOverwritten,
       isCreateContextEnabled,
       isBuildImageEnabled,
+      isInitEEProjectEnabled,
       baseImage,
       customBaseImage,
       collections,
@@ -525,6 +532,47 @@ export class CreateExecutionEnv {
         commandOutput += `${buildImageResult.output}\n`;
         commandResult = "failed";
       }
+    }
+
+    if (isInitEEProjectEnabled) {
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            commandOutput + "Building execution environment project....\n",
+          projectUrl: destinationPathUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+      await webView.postMessage({ command: "disable-build-button" });
+      await webView.postMessage({ command: "enable-open-file-button" });
+
+      let initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
+
+      if (isOverwritten) {
+        initEEProjectCommand += " --overwrite";
+      } else if (!isOverwritten) {
+        initEEProjectCommand += " --no-overwrite";
+      }
+
+      console.debug("[ansible-creator] command: ", initEEProjectCommand);
+
+      const extSettings = new SettingsManager();
+      await extSettings.initialize();
+
+      const { command, env } = withInterpreter(
+        extSettings.settings,
+        initEEProjectCommand,
+        "",
+      );
+
+      commandOutput = "";
+
+      commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
     }
 
     console.debug(commandOutput);
