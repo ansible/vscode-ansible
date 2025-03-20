@@ -547,7 +547,14 @@ export class CreateExecutionEnv {
       await webView.postMessage({ command: "disable-build-button" });
       await webView.postMessage({ command: "enable-open-file-button" });
 
-      const initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
+      let initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
+
+      if (isOverwritten) {
+        initEEProjectCommand += " --overwrite";
+      } else if (!isOverwritten) {
+        initEEProjectCommand += " --no-overwrite";
+      }
+
       console.debug("[ansible-creator] command: ", initEEProjectCommand);
 
       const extSettings = new SettingsManager();
@@ -560,8 +567,6 @@ export class CreateExecutionEnv {
       );
 
       commandOutput = "";
-
-      // const creatorVersion = await getCreatorVersion();
 
       commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
 

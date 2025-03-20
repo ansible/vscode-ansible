@@ -216,6 +216,7 @@ function toggleBaseImageDropdown() {
 
 function handleEEInitCheckbox() {
   const isInitEEProjectEnabled = initEEProjectCheckbox.checked;
+  console.log(isInitEEProjectEnabled);
   toggleCreateButton();
 }
 
