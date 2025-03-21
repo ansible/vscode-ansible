@@ -77,7 +77,7 @@ def generate_xml(parent: ET.Element, data: pp.ParseResults, level=0, indent=4):
         lines = string.split("\n")
         reindented_lines = [lines[0]]
         for line in lines[1:]:
-            m: Match = re.match(f"^[ ]{{{(level-1)*indent}}}", line)
+            m: Match = re.match(f"^[ ]{{{(level - 1) * indent}}}", line)
             if m:
                 # remove plist indent
                 line = line[len(m.group(0)) :]

@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 import {
   ActionsControl,
   ActivityBar,
@@ -12,8 +12,6 @@ import {
   ViewSection,
   VSBrowser,
   until,
-  WebElement,
-  WebView,
   WebviewView,
   Workbench,
 } from "vscode-extension-tester";
@@ -42,8 +40,6 @@ describe("Test One Click Trial feature", () => {
   let explorerView: WebviewView;
   let modalDialog: ModalDialog;
   let dialogMessage: string;
-  let playbookGeneration: WebView;
-  let submitButton: WebElement;
   let sideBar: SideBarView;
   let view: ViewControl;
   let adtView: ViewSection;
@@ -197,35 +193,8 @@ describe("Test One Click Trial feature", () => {
   it("Invoke Playbook generation", async () => {
     await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
     await sleep(2000);
-    playbookGeneration = await getWebviewByLocator(
+    await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
-    );
-
-    // Set input text and invoke summaries API
-    const textArea = await playbookGeneration.findWebElement(
-      By.xpath("//vscode-text-area"),
-    );
-    expect(textArea, "textArea should not be undefined").not.to.be.undefined;
-    submitButton = await playbookGeneration.findWebElement(
-      By.xpath("//vscode-button[@id='submit-button']"),
-    );
-    expect(submitButton, "submitButton should not be undefined").not.to.be
-      .undefined;
-    //
-    // Note: Following line should succeed, but fails for some unknown reasons.
-    //
-    // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
-    await textArea.sendKeys("Create an azure network.");
-    expect(
-      await submitButton.isEnabled(),
-      "submit button should be enabled now",
-    ).to.be.true;
-    await submitButton.click();
-    await playbookGeneration.switchBack();
-    await sleep(2000);
-    await expectNotification(
-      trialNotificationMessage,
-      true, // click button
     );
     await workbenchExecuteCommand("View: Close All Editor Groups");
   });

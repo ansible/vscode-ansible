@@ -134,7 +134,6 @@ export async function disableExecutionEnvironmentSettings(): Promise<void> {
 }
 
 export async function enableLightspeedSettings(): Promise<void> {
-  await updateSettings("lightspeed.enabled", true);
   await updateSettings("lightspeed.suggestions.enabled", true);
   await updateSettings("lightspeed.URL", process.env.TEST_LIGHTSPEED_URL);
 
@@ -152,7 +151,6 @@ export async function enableLightspeedSettings(): Promise<void> {
 }
 
 export async function disableLightspeedSettings(): Promise<void> {
-  await updateSettings("lightspeed.enabled", false);
   await updateSettings("lightspeed.suggestions.enabled", false);
   await updateSettings("lightspeed.URL", "");
 }

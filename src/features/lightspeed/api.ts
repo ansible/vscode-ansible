@@ -9,14 +9,17 @@ import {
   ExplanationResponseParams,
   FeedbackRequestParams,
   FeedbackResponseParams,
-  GenerationRequestParams,
+  PlaybookGenerationRequestParams,
+  RoleGenerationRequestParams,
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
+  RoleExplanationRequestParams,
 } from "../../interfaces/lightspeed";
 import {
   LIGHTSPEED_PLAYBOOK_EXPLANATION_URL,
   LIGHTSPEED_PLAYBOOK_GENERATION_URL,
   LIGHTSPEED_ROLE_GENERATION_URL,
+  LIGHTSPEED_ROLE_EXPLANATION_URL,
   LIGHTSPEED_SUGGESTION_COMPLETION_URL,
   LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL,
   LIGHTSPEED_SUGGESTION_FEEDBACK_URL,
@@ -317,7 +320,7 @@ export class LightSpeedAPI {
   }
 
   public async playbookGenerationRequest(
-    inputData: GenerationRequestParams,
+    inputData: PlaybookGenerationRequestParams,
   ): Promise<PlaybookGenerationResponseParams | IError> {
     try {
       const requestData = {
@@ -350,7 +353,7 @@ export class LightSpeedAPI {
   }
 
   public async roleGenerationRequest(
-    inputData: GenerationRequestParams,
+    inputData: RoleGenerationRequestParams,
   ): Promise<RoleGenerationResponseParams | IError> {
     try {
       const requestData = {
@@ -364,6 +367,44 @@ export class LightSpeedAPI {
       );
       const response = await this.lightspeedPost(
         LIGHTSPEED_ROLE_GENERATION_URL,
+        JSON.stringify(requestData),
+      );
+
+      const data = await response.json();
+
+      // to remove after roleGen GA
+      if (data.role && !data.name) {
+        data.name = data.role;
+      }
+
+      if (!response.ok) {
+        throw new HTTPError(response, response.status, data);
+      }
+
+      return data;
+    } catch (error) {
+      const mappedError: IError = mapError(error as Error);
+      return mappedError;
+    }
+  }
+
+  public async roleExplanationRequest(
+    inputData: RoleExplanationRequestParams,
+  ): Promise<ExplanationResponseParams | IError> {
+    try {
+      const requestData = {
+        ...inputData,
+        metadata: { ansibleExtensionVersion: this._extensionVersion },
+      };
+
+      console.log(
+        `[ansible-lightspeed] Role explanation request sent to lightspeed: ${JSON.stringify(
+          requestData,
+        )}`,
+      );
+
+      const response = await this.lightspeedPost(
+        LIGHTSPEED_ROLE_EXPLANATION_URL,
         JSON.stringify(requestData),
       );
 

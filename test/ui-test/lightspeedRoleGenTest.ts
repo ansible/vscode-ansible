@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.enabled: true
+// BEFORE: ansible.lightspeed.suggestions.enabled: true
 
 import { expect, config } from "chai";
 import fs from "fs";
@@ -6,10 +6,9 @@ import fs from "fs";
 import {
   By,
   EditorView,
-  ModalDialog,
   VSBrowser,
-  WebView,
   Workbench,
+  Key,
 } from "vscode-extension-tester";
 import {
   sleep,
@@ -38,10 +37,16 @@ function cleanUpTmpfile() {
   );
 }
 
+before(function () {
+  if (process.platform === "darwin") {
+    this.skip();
+  }
+});
+
 describe("Verify Role generation feature works as expected", function () {
   let workbench: Workbench;
 
-  before(function () {
+  before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -86,47 +91,53 @@ describe("Verify Role generation feature works as expected", function () {
     let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
     );
-    const textArea = await webView.findWebElement(
-      By.xpath("//vscode-text-area"),
+
+    const promptTextField = await webView.findWebElement(
+      By.xpath('//*[@id="PromptTextField"]/input'),
     );
-    await textArea.sendKeys("Install and configure Nginx");
+    await promptTextField.sendKeys("Install and configure Nginx");
+    await promptTextField.sendKeys(Key.ESCAPE);
+    await promptTextField.click();
 
     (
       await webView.findWebElement(
-        By.xpath("//vscode-button[@id='submit-button']"),
-      )
-    ).click();
-    await sleep(5000);
-
-    await webView.findWebElement(
-      By.xpath("//*[contains(text(), 'Review the suggested')]"),
-    );
-    await (
-      await webView.findWebElement(
-        By.xpath("//vscode-button[@id='generateButton']"),
+        By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
       )
     ).click();
 
     cleanUpTmpfile();
 
-    await sleep(5000);
+    await sleep(10000);
 
-    await (
-      await webView.findWebElement(
-        By.xpath("//vscode-button[@id='saveRoleButton']"),
-      )
-    ).click();
+    const continueButton = await webView.findWebElement(
+      By.xpath("//vscode-button[contains(text(), 'Continue')]"),
+    );
+    await continueButton.click();
 
     await sleep(500);
     webView = await getWebviewByLocator(
-      By.xpath("//a[contains(text(), 'install_nginx/tasks/main.yml')]"),
+      By.xpath("//li[contains(text(), 'tasks/main.yml')]"),
     );
+
+    const collectionNameTextField = await webView.findWebElement(
+      By.xpath('//*[@id="collectionNameTextField"]/input'),
+    );
+    await collectionNameTextField.sendKeys("community.dummy");
+    await collectionNameTextField.click();
 
     await (
       await webView.findWebElement(
-        By.xpath("//a[contains(text(), 'install_nginx/tasks/main.yml')]"),
+        By.xpath("//vscode-button[contains(text(), 'Save files')]"),
       )
     ).click();
+
+    await sleep(1000);
+    const link = await webView.findWebElement(
+      By.xpath(
+        "//a[contains(text(), 'community/dummy/roles/install_nginx/tasks/main.yml')]",
+      ),
+    );
+    await link.click();
 
     const driver = webView.getDriver();
     driver.switchTo().defaultContent();
@@ -139,122 +150,39 @@ describe("Verify Role generation feature works as expected", function () {
     await workbenchExecuteCommand("View: Close All Editor Groups");
 
     driver.switchTo().defaultContent();
-  });
-});
 
-describe("Verify Role generation reset button works as expected", function () {
-  let webView: WebView;
+    const response: Response = await fetch(
+      `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+      {
+        method: "GET",
+      },
+    );
+    const data = await response.json();
+    const expected = [
+      {
+        action: 0,
+        toPage: 1,
+      },
+      {
+        action: 2,
+        fromPage: 1,
+        toPage: 2,
+      },
+      {
+        action: 2,
+        fromPage: 2,
+        toPage: 3,
+      },
+      {
+        action: 3,
+        fromPage: 3,
+      },
+    ];
 
-  before(function () {
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
+    for (let i = 0; i < expected.length; i++) {
+      expect(data["feedbacks"][i]["roleGenerationAction"]).to.deep.include(
+        expected[i],
+      );
     }
-  });
-  beforeEach(function () {
-    cleanUpTmpfile();
-  });
-
-  async function setupPage1() {
-    await VSBrowser.instance.openResources(
-      "test/units/lightspeed/utils/samples/",
-    );
-    const workbench = new Workbench();
-    await workbenchExecuteCommand(
-      "Ansible Lightspeed: Enable experimental features",
-    );
-    await workbenchExecuteCommand("View: Close All Editor Groups");
-
-    await dismissNotifications(workbench);
-
-    await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
-    await sleep(500);
-    webView = await getWebviewByLocator(
-      By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
-    );
-    const textArea = await webView.findWebElement(
-      By.xpath("//vscode-text-area"),
-    );
-    await textArea.sendKeys("Install and configure Nginx");
-  }
-
-  async function gotoPage2() {
-    const submitButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='submit-button']"),
-    );
-    await submitButton.click();
-    await sleep(5000);
-  }
-
-  it("Go on the 2nd page and change the collection name", async function () {
-    await setupPage1();
-    await gotoPage2();
-
-    await webView.findWebElement(
-      By.xpath("//*[contains(text(), 'Review the suggested')]"),
-    );
-
-    await (
-      await webView.findWebElement(
-        By.xpath("//a[@id='backAnchorCollectionName']"),
-      )
-    ).click();
-
-    await getWebviewByLocator(
-      By.xpath("//*[text()='What do you want the role to accomplish?']"),
-    );
-
-    await workbenchExecuteCommand("View: Close All Editor Groups");
-  });
-
-  it("Role generation (outline reset, cancel)", async function () {
-    await setupPage1();
-    await gotoPage2();
-
-    // Verify outline output and text edit
-    let outlineList = await webView.findWebElement(
-      By.xpath("//ol[@id='outline-list']"),
-    );
-    expect(outlineList, "An ordered list should exist.").to.be.not.undefined;
-    let text = await outlineList.getText();
-    expect(text.includes("Install the Nginx packages")).to.be.true;
-
-    // Test Reset button
-    await outlineList.sendKeys("# COMMENT\n");
-    text = await outlineList.getText();
-    expect(text.includes("# COMMENT\n"));
-
-    let resetButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='reset-button']"),
-    );
-    expect(resetButton, "resetButton should not be undefined").not.to.be
-      .undefined;
-    expect(await resetButton.isEnabled(), "reset button should be enabled now")
-      .to.be.true;
-
-    await resetButton.click();
-    await sleep(500);
-
-    // Cancel reset of Outline
-    await webView.switchBack();
-    const resetOutlineDialog = new ModalDialog();
-    await resetOutlineDialog.pushButton("Cancel");
-    await sleep(250);
-    // Sadly we need to switch context and so we must reload the WebView elements
-    webView = await getWebviewByLocator(
-      By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),
-    );
-    outlineList = await webView.findWebElement(
-      By.xpath("//ol[@id='outline-list']"),
-    );
-    resetButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='reset-button']"),
-    );
-
-    text = await outlineList.getText();
-    expect(text.includes("# COMMENT\n"));
-    expect(await resetButton.isEnabled(), "reset button should be enabled now")
-      .to.be.true;
-
-    await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 });

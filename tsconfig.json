@@ -4,6 +4,14 @@
     "lib": ["ES2022", "DOM"],
     "outDir": "out/client"
   },
-  "include": ["src", "test", "*.js", "*.ts"],
-  "exclude": ["node_modules", "test-resources"]
+  "include": ["vite.config.ts", "src/**/*.ts", "test", "*.js", "*.ts"],
+  "exclude": [
+    "node_modules",
+    "test-resources",
+    "src/features/lightspeed/vue/src",
+    "webviews/**"
+  ],
+  "ts-node": {
+    "files": true
+  }
 }

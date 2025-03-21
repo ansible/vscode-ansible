@@ -109,11 +109,11 @@ export class CreateDevfile {
 
         <head>
           <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-${nonce}'; style-src ${webview.cspSource}; font-src ${webview.cspSource};"/>
           <title>AAA</title>
-          <link rel="stylesheet" href="${styleUri}">
-          <link rel="stylesheet" href="${codiconsUri}">
+          <link rel="stylesheet" href="${styleUri}"/>
+          <link rel="stylesheet" href="${codiconsUri}"id="vscode-codicon-stylesheet"/>
         </head>
 
         <body>
@@ -128,18 +128,29 @@ export class CreateDevfile {
             <form id="devfile-form">
               <section class="component-container">
 
-                <vscode-text-field id="path-url" class="required" form="devfile-form" placeholder="${workspaceDir}"
-                  size="512">Destination directory *
-                  <section slot="end" class="explorer-icon">
-                    <vscode-button id="folder-explorer" appearance="icon">
-                      <span class="codicon codicon-folder-opened"></span>
-                    </vscode-button>
-                  </section>
-                </vscode-text-field>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="path-url">
+                    <span class="normal">Destination directory</span>
+                    <sup>*</sup>
+                  </vscode-label>
+                  <vscode-textfield id="path-url" class="required" form="devfile-form" placeholder="${workspaceDir}"
+                    size="512">
+                    <vscode-icon
+                      slot="content-after"
+                      id="folder-explorer"
+                      name="folder-opened"
+                      action-icon
+                    ></vscode-icon>
+                  </vscode-textfield>
+                </vscode-form-group>
 
-                <div class="devfile-name-div">
-                <vscode-text-field id="devfile-name" form="devfile-form" placeholder="${projectName}" size="512">Ansible project name *</vscode-text-field>
-                </div>
+                <vscode-form-group variant="vertical">
+                  <vscode-label for="devfile-name">
+                    <span class="normal">Ansible project name</span>
+                    <sup>*</sup>
+                  </vscode-label>
+                  <vscode-textfield id="devfile-name" form="devfile-form" placeholder="${projectName}" size="512"></vscode-textfield>
+                </vscode-form-group>
 
                 <div id="full-devfile-path" class="full-devfile-path">
                   <p>Devfile path:&nbsp</p>
@@ -147,10 +158,12 @@ export class CreateDevfile {
 
                 <div class="image-div">
                   <div class="dropdown-container">
-                    <label for="image-dropdown">Container image</label>
-                    <vscode-dropdown id="image-dropdown">
+                    <vscode-label for="image-dropdown">
+                      <span class="normal">Container image</span>
+                    </vscode-label>
+                    <vscode-single-select id="image-dropdown" position="below">
                       <vscode-option>Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)</vscode-option>
-                    </vscode-dropdown>
+                    </vscode-single-select>
                   </div>
                 </div>
 
@@ -159,7 +172,7 @@ export class CreateDevfile {
                 </div>
 
                 <div class="group-buttons">
-                  <vscode-button id="reset-button" form="devfile-form" appearance="secondary">
+                  <vscode-button id="reset-button" form="devfile-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Reset All
                   </vscode-button>
@@ -169,18 +182,21 @@ export class CreateDevfile {
                   </vscode-button>
                 </div>
 
-                <br>
+
                 <vscode-divider></vscode-divider>
-                <br>
-                <vscode-text-area id="log-text-area" cols="512" rows="10" placeholder="Output of the command execution"
-                  resize="vertical" readonly>Logs</vscode-text-area>
+
+                <vscode-label id="vscode-logs-label" for="log-text-area">
+                  <span class="normal">Logs</span>
+                </vscode-label>
+                <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
+                  resize="vertical" readonly></vscode-textarea>
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-logs-button" form="devfile-form" appearance="secondary">
+                  <vscode-button id="clear-logs-button" form="devfile-form" secondary>
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
-                  <vscode-button id="open-file-button" form="devfile-form" disabled>
+                  <vscode-button id="open-file-button" form="devfile-form" secondary disabled>
                     <span class="codicon codicon-go-to-file"></span>
                     &nbsp; Open Devfile
                   </vscode-button>
@@ -189,6 +205,16 @@ export class CreateDevfile {
             </form>
 
           <!-- Component registration code -->
+          <script type="module" nonce="${getNonce()}">
+            import "@vscode-elements/elements/dist/vscode-button/index.js";
+            import "@vscode-elements/elements/dist/vscode-checkbox/index.js";
+            import "@vscode-elements/elements/dist/vscode-divider/index.js";
+            import "@vscode-elements/elements/dist/vscode-form-group/index.js";
+            import "@vscode-elements/elements/dist/vscode-label/index.js";
+            import "@vscode-elements/elements/dist/vscode-single-select/index.js";
+            import "@vscode-elements/elements/dist/vscode-textarea/index.js";
+            import "@vscode-elements/elements/dist/vscode-textfield/index.js";
+          </script>
           <script type="module" nonce="${nonce}" src="${webviewUri}"></script>
         </body>
       </html>
@@ -275,7 +301,7 @@ export class CreateDevfile {
     let message: string;
     let commandOutput = "";
 
-    commandOutput += `------------------------------------ devfile generation logs ------------------------------------\n`;
+    commandOutput += `---------------------------------------- devfile generation logs ------------------------------------------\n`;
 
     const destinationPathUrl = `${destinationPath}/devfile.yaml`;
 
@@ -314,16 +340,6 @@ export class CreateDevfile {
         status: commandResult,
       },
     } as PostMessageEvent);
-
-    // if (commandResult === "passed") {
-    //   const selection = await vscode.window.showInformationMessage(
-    //     `Devfile created at: ${destinationPathUrl}`,
-    //     `Open devfile ↗`,
-    //   );
-    //   if (selection === "Open devfile ↗") {
-    //     this.openDevfile(destinationPathUrl);
-    //   }
-    // }
   }
 
   public createDevfile(

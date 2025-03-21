@@ -37,7 +37,6 @@ describe("Login to Lightspeed", () => {
     // Enable Lightspeed and open Ansible Light view on sidebar
     workbench = new Workbench();
     const settingsEditor = await workbench.openSettings();
-    await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
     await updateSettings(
       settingsEditor,
       "ansible.lightspeed.URL",

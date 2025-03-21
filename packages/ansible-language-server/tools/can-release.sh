@@ -16,7 +16,7 @@ git checkout HEAD -- package.json
 npm add ../../@ansible-ansible-language-server-*.tgz
 npm install
 git checkout HEAD -- package.json
-npx ts-node ../../test/validate-ls.ts
+npm exec -- ts-node ../../test/validate-ls.ts
 popd
 
 

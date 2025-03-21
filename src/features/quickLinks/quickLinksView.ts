@@ -91,6 +91,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
+              <a href="command:ansible.content-creator.create-execution-env-file" title="Create an execution environment project">
+                <span class="codicon codicon-new-file"></span> EE project
+                <span class="new-badge">NEW</ span>
+              </a>
+            </h3>
+          </div>
+          <div class="catalogue">
+            <h3>
               <a href="command:ansible.content-creator.create-ansible-project" title="Create a playbook project">
                 <span class="codicon codicon-new-file"></span> Playbook project
               </a>
@@ -124,8 +132,8 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
-              <a href="command:ansible.content-creator.create-sample-execution-env-file" title="Create a sample Execution Environment file.">
-                <span class="codicon codicon-new-file"></span> Execution environment
+              <a href="command:ansible.content-creator.create-execution-env-file" title="Create an Execution Environment file">
+                <span class="codicon codicon-new-file"></span> Execution environment template
                 <span class="new-badge">NEW</span>
               </a>
             </h3>

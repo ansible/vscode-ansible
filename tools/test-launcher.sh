@@ -6,6 +6,7 @@ set -o pipefail
 cleanup()
 {
     echo "Final clean up"
+    stop_server
 #    if [ -s out/log/express.log ]; then
 #        # cat out/log/express.log
 #        # cat out/log/mock-server.log
@@ -46,25 +47,27 @@ function start_server() {
 
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-        curl "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
+        curl --silent "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
         echo "" > out/log/express.log
         echo "" > out/log/mock-server.log
+        TEST_LIGHTSPEED_URL=0
     fi
 }
 
 function refresh_settings() {
     test_file=$1
     cp test/testFixtures/settings.json out/settings.json
-    sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
     sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
-    if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_file}"; then
-        sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' out/settings.json
+    if grep "// BEFORE: ansible.lightspeed.suggestions.enabled: true" "${test_file}"; then
         sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": true,/' out/settings.json
     fi
 
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
+    rm -rf out/test-resources/settings/
+
+    jq < out/settings.json
 }
 
 
@@ -120,8 +123,11 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
 
     for test_file in $(find out/client/test/ui-test/ -name "${UI_TARGET}"); do
         echo "🧐testing ${test_file}"
+        echo "  cleaning existing User settings..."
+        rm -rfv ./out/test-resources/settings/User/
 
         if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
+            stop_server
             start_server
         fi
         refresh_settings "${test_file}"
@@ -132,8 +138,6 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
         if [[ -f ./out/coverage/ui/lcov.info ]]; then
             mv ./out/coverage/ui/lcov.info "$TEST_COVERAGE_FILE"
         fi
-
-        stop_server
     done
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then

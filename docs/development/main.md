@@ -19,3 +19,5 @@ Extension development.
 6. [Chapter 6: Developing webview in extension](./webview_guide.md)
 
 7. [Chapter 7: Additional resources for VS Code Extension development](./additional_resources.md)
+
+8. [Chapter 8: Vite Webview development](./vite.md)

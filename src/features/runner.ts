@@ -59,6 +59,7 @@ export class AnsiblePlaybookRunProvider {
       return;
     }
     commandLineArgs.push("--ee true");
+    commandLineArgs.push("--pae false");
     commandLineArgs.push(
       `--ce ${getContainerEngine(eeSettings.containerEngine)}`,
     );

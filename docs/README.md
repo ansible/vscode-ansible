@@ -150,7 +150,7 @@ holding `ctrl`/`cmd`.
 
 AI based Ansible code recommendations
 
-- [Getting started](https://access.redhat.com/documentation/en-us/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/configuring-with-code-assistant_lightspeed-user-guide#doc-wrapper)
+- [Getting started](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/set-up-lightspeed_lightspeed-user-guide#set-up-lightspeed_lightspeed-user-guide)
 
 - [Contact](https://matrix.to/#/%23ansible-lightspeed:ansible.im)
 
@@ -221,7 +221,6 @@ any level (User, Remote, Workspace and/or Folder).
   completing module options.
 - `ansibleServer.trace.server`: Traces the communication between VS Code and the
   ansible language server.
-- `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
   watsonx Code Assistant inline suggestions.

@@ -348,7 +348,7 @@ export class CreateAnsibleProject {
 
     let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
-      if (fileUri && fileUri[0]) {
+      if (fileUri?.[0]) {
         selectedUri = fileUri[0].fsPath;
       }
     });
@@ -372,9 +372,7 @@ export class CreateAnsibleProject {
       isOverwritten,
     } = payload;
 
-    const destinationPathUrl = destinationPath
-      ? destinationPath
-      : `${os.homedir()}/${namespaceName}-${collectionName}`;
+    const destinationPathUrl = destinationPath ? destinationPath : os.homedir();
 
     let ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
       namespaceName,

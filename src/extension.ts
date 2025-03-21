@@ -45,6 +45,7 @@ import {
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
 import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
+import { roleExplanation } from "./features/lightspeed/roleExplanation";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import {
   setPythonInterpreter,
@@ -61,8 +62,6 @@ import { AnsibleWelcomePage } from "./features/welcomePage";
 import { CreateAnsibleCollection } from "./features/contentCreator/createAnsibleCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
-import { showPlaybookGenerationPage } from "./features/lightspeed/playbookGeneration";
-import { showRoleGenerationPage } from "./features/lightspeed/roleGeneration";
 import { ExecException, execSync } from "child_process";
 import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
@@ -71,11 +70,16 @@ import {
   LightspeedUser,
   AuthProviderType,
 } from "./features/lightspeed/lightspeedUser";
-import { PlaybookFeedbackEvent } from "./interfaces/lightspeed";
+import {
+  PlaybookFeedbackEvent,
+  RoleFeedbackEvent,
+} from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
-import { CreateSampleExecutionEnv } from "./features/contentCreator/createSampleExecutionEnvPage";
+import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
+import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
+import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -552,12 +556,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
-  // open web-view for creating sample Execution Environment file
+  // open web-view for creating Execution Environment file
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ansible.content-creator.create-sample-execution-env-file",
+      "ansible.content-creator.create-execution-env-file",
       () => {
-        CreateSampleExecutionEnv.render(context.extensionUri);
+        CreateExecutionEnv.render(context.extensionUri);
       },
     ),
   );
@@ -600,7 +604,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
       async () => {
-        await showPlaybookGenerationPage(context.extensionUri);
+        PlaybookGenerationPanel.render(context);
       },
     ),
   );
@@ -609,7 +613,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_ROLE_GENERATION,
       async () => {
-        await showRoleGenerationPage(context.extensionUri);
+        RoleGenerationPanel.render(context);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerTextEditorCommand(
+      LightSpeedCommands.LIGHTSPEED_ROLE_EXPLANATION,
+      async () => {
+        await roleExplanation(context.extensionUri);
       },
     ),
   );
@@ -631,6 +644,19 @@ export async function activate(context: ExtensionContext): Promise<void> {
             true,
           );
         }
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.roleThumbsUpDown",
+      async (param: RoleFeedbackEvent) => {
+        lightSpeedManager.apiInstance.feedbackRequest(
+          { roleExplanationFeedback: param },
+          true,
+          true,
+        );
       },
     ),
   );
@@ -794,9 +820,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.create-playbook-options",
       async () => {
-        if (
-          await workspace.getConfiguration("ansible").get("lightspeed.enabled")
-        ) {
+        const isAuthenticated =
+          await lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated();
+        if (isAuthenticated) {
           vscode.commands.executeCommand(
             "ansible.lightspeed.playbookGeneration",
           );
@@ -949,24 +975,9 @@ async function resyncAnsibleInventory(): Promise<void> {
   }
 }
 
-export async function isLightspeedEnabled(): Promise<boolean> {
-  if (
-    !(await workspace.getConfiguration("ansible").get("lightspeed.enabled"))
-  ) {
-    await window.showErrorMessage(
-      "Enable lightspeed services from settings to use the feature.",
-    );
-    return false;
-  }
-  return true;
-}
-
 async function lightspeedLogin(
   providerType: AuthProviderType | undefined,
 ): Promise<void> {
-  if (!(await isLightspeedEnabled())) {
-    return;
-  }
   lightSpeedManager.currentModelValue = undefined;
   const authenticatedUser =
     await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserDetails(

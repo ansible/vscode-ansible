@@ -1,5 +1,5 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
@@ -75,28 +75,6 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    exit 2
 fi
 
-log notice "Install required build tools"
-if type mise >/dev/null; then
-    log notice "Found mise..."
-    mise install
-    mise ls
-    mise doctor
-elif type asdf >/dev/null; then
-    log notice "Found asdf..."
-    for PLUGIN in yarn nodejs task python direnv; do
-        if ! asdf plugin-list | grep -q $PLUGIN; then
-            asdf plugin add $PLUGIN
-        fi
-    done
-    asdf install
-
-    log notice "Report current build tool versions..."
-    asdf current
-else
-    log fatal "Neither mise nor asdf found."
-    exit 3
-fi
-
 if [[ "${OSTYPE:-}" != darwin* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
@@ -129,11 +107,25 @@ if [[ -f "/etc/redhat-release" ]]; then
     fi
 fi
 
+# Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
+# that we do not support it at all. WSL use is ok, but not on mounts.
+WSL=0
+if [[ "${OS:-}" == "windows" ]]; then
+    log error "You cannot use Windows build tools for development, try WSL."
+    exit 1
+fi
+if grep -qi microsoft /proc/version >/dev/null 2>&1; then
+    # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
+    if [[ "$(pwd -P || true)" == /mnt/* ]]; then
+        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
+    fi
+    WSL=1
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-
     DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
@@ -200,21 +192,6 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
         podman info
         podman run --rm hello-world
     }
-fi
-
-# Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
-# that we do not support it at all. WSL use is ok, but not on mounts.
-WSL=0
-if [[ "${OS:-}" == "windows" ]]; then
-    log error "You cannot use Windows build tools for development, try WSL."
-    exit 1
-fi
-if grep -qi microsoft /proc/version >/dev/null 2>&1; then
-    # resolve pwd symlinks and ensure than we do not run under /mnt (mount)
-    if [[ "$(pwd -P || true)" == /mnt/* ]]; then
-        log warning "Under WSL, you must avoid running from mounts (/mnt/*) due to critical performance issues."
-    fi
-    WSL=1
 fi
 
 # User specific environment
@@ -335,7 +312,7 @@ if [[ -n "${CI:-}" ]]; then
 fi
 
 # Fail if detected tool paths are not from inside out out/ folder
-for CMD in ansible ansible-lint; do
+for CMD in ansible ansible-lint ansible-navigator; do
     CMD=$(command -v $CMD 2>/dev/null)
     [[ "${CMD}" == "$VIRTUAL_ENV"* ]] || {
         log error "${CMD} executable is not from our own virtualenv ($VIRTUAL_ENV)"
@@ -344,22 +321,12 @@ for CMD in ansible ansible-lint; do
 done
 unset CMD
 
-command -v npm  >/dev/null 2>&1 || {
-    log notice "Installing nodejs stable."
-    asdf install
-}
-
 if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || {
-        # Check if npm has permissions to install packages (system installed does not)
-        # Share https://stackoverflow.com/a/59227497/99834
-        test -w "$(npm config get prefix)" || {
-            log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
-            npm config set prefix "${HOME}/.local/"
-        }
-        log warning "Installing missing yarn"
-        node corepack enable
-        yarn --version
+    # Check if npm has permissions to install packages (system installed does not)
+    # Share https://stackoverflow.com/a/59227497/99834
+    test -w "$(npm config get prefix)" || {
+        log warning "Your npm is not allowed to write to $(npm config get prefix), we will reconfigure its prefix"
+        npm config set prefix "${HOME}/.local/"
     }
 fi
 
@@ -463,20 +430,6 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
-if [[ -f "/usr/bin/apt-get" ]]; then
-    echo apparmor_status | sudo tee out/log/apparmor.log >/dev/null 2>&1 || true
-fi
-
-log notice "Install node deps using either yarn or npm"
-if [[ -f yarn.lock ]]; then
-    command -v yarn >/dev/null 2>&1 || npm install -g yarn
-    yarn --version
-    yarn install --immutable
-    # --immutable-cache --check-cache
-else
-    npm ci --no-audit
-fi
-
 # Create a build manifest so we can compare between builds and machines, this
 # also has the role of ensuring that the required executables are present.
 #
@@ -498,7 +451,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python3)
   task: $(get_version task)
-  yarn: $(get_version yarn || echo null)
+  yarn: $(npm exec -- yarn --version || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: ${DOCKER_VERSION}

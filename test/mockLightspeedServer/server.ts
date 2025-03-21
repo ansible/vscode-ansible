@@ -6,6 +6,7 @@ import { explanations } from "./explanations";
 import { feedback, getFeedbacks } from "./feedback";
 import { playbookGeneration } from "./playbookGeneration";
 import { roleGeneration } from "./roleGeneration";
+import { roleExplanations } from "./roleExplanations";
 import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
@@ -37,7 +38,10 @@ const accessLogStream = fs.createWriteStream(
 export const morganLogger = morgan("common", { stream: accessLogStream });
 
 const API_VERSION = "v0";
+const API_VERSION_V1 = "v1";
 const API_ROOT = `/api/${API_VERSION}`;
+const API_ROOT_V1 = `/api/${API_VERSION_V1}`;
+
 export const logger = winston.createLogger({
   level: "info",
   format: winston.format.json(),
@@ -89,7 +93,7 @@ export default class Server {
       return playbookGeneration(req, res);
     });
 
-    app.post(`${API_ROOT}/ai/generations/role`, async (req, res) => {
+    app.post(`${API_ROOT_V1}/ai/generations/role/`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 1000)); // fake 1s latency
       return roleGeneration(req, res);
     });
@@ -97,6 +101,11 @@ export default class Server {
     app.post(`${API_ROOT}/ai/explanations`, async (req, res) => {
       await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
       return explanations(req, res);
+    });
+
+    app.post(`${API_ROOT_V1}/ai/explanations/role`, async (req, res) => {
+      await new Promise((r) => setTimeout(r, 500)); // fake 500ms latency
+      return roleExplanations(req, res);
     });
 
     app.post(`${API_ROOT}/ai/feedback`, (req, res) => {
@@ -114,6 +123,7 @@ export default class Server {
     app.get("/o/authorize", (req: { query: { redirect_uri: string } }, res) => {
       logger.info(req.query);
       const redirectUri = decodeURIComponent(req.query.redirect_uri);
+      setTimeout(() => console.log("Howdy!"), 3000);
       openUrl(`${redirectUri}&code=CODE`);
       res.send({});
     });

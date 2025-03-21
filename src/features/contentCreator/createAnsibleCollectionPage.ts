@@ -169,7 +169,7 @@ export class CreateAnsibleCollection {
                 </vscode-form-group>
 
                 <div id="full-collection-path" class="full-collection-name">
-                  <p>Default collection path:&nbsp</p>
+                  <p>Project path:&nbsp</p>
                 </div>
 
                 <div class="verbose-div">
@@ -359,7 +359,7 @@ export class CreateAnsibleCollection {
 
     let selectedUri: string | undefined;
     await vscode.window.showOpenDialog(options).then((fileUri) => {
-      if (fileUri && fileUri[0]) {
+      if (fileUri?.[0]) {
         selectedUri = fileUri[0].fsPath;
       }
     });
@@ -427,9 +427,8 @@ export class CreateAnsibleCollection {
       isEditableModeInstall,
     } = payload;
 
-    const initPathUrl = initPath
-      ? initPath
-      : `${os.homedir()}/.ansible/collections/ansible_collections`;
+    const initPathUrl =
+      initPath || `${os.homedir()}/.ansible/collections/ansible_collections`;
 
     let ansibleCreatorInitCommand = await this.getCollectionCreatorCommand(
       namespaceName,

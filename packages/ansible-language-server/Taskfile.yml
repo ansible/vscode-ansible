@@ -31,7 +31,7 @@ tasks:
     desc: Build the project
     cmds:
       - task: shared:install
-      - yarn run compile
+      - npm exec -- yarn run compile
     sources:
       - package-lock.json
       - package.json
@@ -44,12 +44,10 @@ tasks:
     desc: Update dependencies
     cmds:
       - npm install -g npm@latest
-      # - installs tools from .tool-versions
-      - asdf install
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - npm outdated
       # bumps some developments dependencies
-      - npx ncu -u --dep dev
+      - npm exec -- ncu -u --dep dev
       # running install after ncu is needed in order to update the lock file
       - npm install
   .test:
@@ -58,7 +56,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - bash -c "source {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
+      - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
     interactive: true
   test:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
@@ -70,10 +68,6 @@ tasks:
     desc: Run all tests using node-lts (future)
     cmds:
       - task: shared:install
-      # switch to last nodejs version listed in .tool-versions
-      - git clean -dxf
-      - bash -c "cd ../.. && asdf local nodejs $(cat ../../.tool-versions|grep nodejs|awk '{print $NF}')"
-      - node --version
       - task: .test
       # restore implicit node version
       - defer: git checkout HEAD .tool-versions
@@ -84,7 +78,7 @@ tasks:
     cmds:
       - task: build
       - >
-        source {{.VIRTUAL_ENV}}/bin/activate &&
+        . {{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-with-ee'
     interactive: true
   test-without-ee:
@@ -93,7 +87,7 @@ tasks:
     cmds:
       - task: build
       - >
-        source {{.VIRTUAL_ENV}}/bin/activate &&
+        .{{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-without-ee'
     interactive: true
   package:
@@ -109,7 +103,7 @@ tasks:
     cmds:
       - task: build
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
-      - yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
+      - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   release:
     desc: Create a new release (used by CI)

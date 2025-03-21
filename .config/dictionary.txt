@@ -14,12 +14,14 @@ FQCN
 FQCNs
 Florian
 Ganesh
+Hatsune
 HORIZONTALLINE
 IAM
 Jenkinsfile
 KUBEDOCK
 Launay
 Maciążek
+Miku
 Nalawade
 OPTSTRING
 OSTYPE
@@ -65,6 +67,7 @@ bitness
 bthornto
 cacheable
 cfgs
+cgroupfs
 charliermarsh
 checode
 chromedriver
@@ -124,6 +127,7 @@ gnalawad
 groovylint
 haaaad
 hbenl
+highlightjs
 hostsvars
 hostvars
 hotfixes
@@ -155,6 +159,7 @@ lssh
 lxml
 markdownlint
 maxlength
+microdnf
 mkdocs
 mocharc
 mochawesome
@@ -166,6 +171,7 @@ mycollection
 mymodule
 mynamespace
 myuser
+nqry
 ncurc
 neovim
 netcommon
@@ -188,6 +194,7 @@ pgrep
 piptools
 pipx
 pkgcache
+PKGMGR
 pkill
 podman
 precheck
@@ -195,8 +202,11 @@ preid
 preinstall
 prettierrc
 preversion
+primeicons
+primevue
 printenv
 priyamsahoo
+progressspinner
 projectuser
 prsahoo
 pylintrc
@@ -260,6 +270,8 @@ userns
 varInfiles
 venvs
 virt
+vite
+vitebuild
 vnet
 vscodeignore
 vscoss

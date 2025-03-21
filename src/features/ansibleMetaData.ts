@@ -19,7 +19,6 @@ interface ansibleMetadataEvent {
   pythonVersion?: string;
   ansibleLintVersion?: string;
   eeEnabled: boolean;
-  lightSpeedEnabled: boolean;
   lightSpeedCodeAssistEnabled: boolean;
 }
 
@@ -156,8 +155,6 @@ export class MetadataManager {
       ansibleVersion,
       pythonVersion,
       eeEnabled: this.extensionSettings.settings.executionEnvironment.enabled,
-      lightSpeedEnabled:
-        this.extensionSettings.settings.lightSpeedService.enabled,
       lightSpeedCodeAssistEnabled:
         this.extensionSettings.settings.lightSpeedService.suggestions.enabled,
     };

@@ -274,7 +274,6 @@ ul#walkthrough-list {
 }
 
 ul#walkthrough-list button {
-	/* border: 1px solid var(--vscode-contrastBorder); */
 	background: var(--vscode-welcomePage-tileBackground);
 	border: none;
     color: inherit;

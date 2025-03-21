@@ -54,6 +54,8 @@ export namespace LightSpeedCommands {
   export const LIGHTSPEED_PLAYBOOK_GENERATION =
     "ansible.lightspeed.playbookGeneration";
   export const LIGHTSPEED_ROLE_GENERATION = "ansible.lightspeed.roleGeneration";
+  export const LIGHTSPEED_ROLE_EXPLANATION =
+    "ansible.lightspeed.roleExplanation";
   export const LIGHTSPEED_SIGN_IN_WITH_REDHAT =
     "ansible.lightspeed.signInWithRedHat";
   export const LIGHTSPEED_SIGN_IN_WITH_LIGHTSPEED =
@@ -64,9 +66,11 @@ export namespace LightSpeedCommands {
 }
 
 export const LIGHTSPEED_API_VERSION = "v0";
+export const LIGHTSPEED_API_VERSION_V1 = "v1";
 export const LIGHTSPEED_PLAYBOOK_EXPLANATION_URL = `${LIGHTSPEED_API_VERSION}/ai/explanations/`;
 export const LIGHTSPEED_PLAYBOOK_GENERATION_URL = `${LIGHTSPEED_API_VERSION}/ai/generations/`;
-export const LIGHTSPEED_ROLE_GENERATION_URL = `${LIGHTSPEED_API_VERSION}/ai/generations/role`;
+export const LIGHTSPEED_ROLE_GENERATION_URL = `${LIGHTSPEED_API_VERSION_V1}/ai/generations/role/`;
+export const LIGHTSPEED_ROLE_EXPLANATION_URL = `${LIGHTSPEED_API_VERSION_V1}/ai/explanations/role/`;
 export const LIGHTSPEED_SUGGESTION_COMPLETION_URL = `${LIGHTSPEED_API_VERSION}/ai/completions/`;
 export const LIGHTSPEED_SUGGESTION_FEEDBACK_URL = `${LIGHTSPEED_API_VERSION}/ai/feedback/`;
 export const LIGHTSPEED_SUGGESTION_CONTENT_MATCHES_URL = `${LIGHTSPEED_API_VERSION}/ai/contentmatches/`;
