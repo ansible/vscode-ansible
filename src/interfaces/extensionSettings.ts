@@ -40,6 +40,7 @@ export interface UserResponse {
 
 // Settings appear on VS Code Settings UI
 export interface LightSpeedServiceSettings {
+  enabled: boolean;
   URL: string;
   suggestions: { enabled: boolean; waitWindow: number };
   model: string | undefined;

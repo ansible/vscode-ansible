@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.suggestions.enabled: true
+// BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
 import { By, StatusBar, VSBrowser, EditorView } from "vscode-extension-tester";

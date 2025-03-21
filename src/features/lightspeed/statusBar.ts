@@ -80,7 +80,10 @@ export class LightspeedStatusBar {
       );
     }
 
-    if (this.settingsManager.settings.lightSpeedService.suggestions.enabled) {
+    if (
+      this.settingsManager.settings.lightSpeedService.enabled &&
+      this.settingsManager.settings.lightSpeedService.suggestions.enabled
+    ) {
       this.statusBar.backgroundColor = new vscode.ThemeColor(
         "statusBarItem.prominentForeground",
       );
@@ -94,7 +97,10 @@ export class LightspeedStatusBar {
   }
 
   public async updateLightSpeedStatusbar(): Promise<void> {
-    if (vscode.window.activeTextEditor?.document.languageId !== "ansible") {
+    if (
+      vscode.window.activeTextEditor?.document.languageId !== "ansible" ||
+      !this.settingsManager.settings.lightSpeedService.enabled
+    ) {
       this.statusBar.hide();
       return;
     }
