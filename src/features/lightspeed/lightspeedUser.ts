@@ -199,9 +199,11 @@ export class LightspeedUser {
     if (!vscode.extensions.getExtension("redhat.vscode-redhat-account")) {
       return [AuthProviderType.lightspeed];
     }
-    const preferRHSSO = process.env.LIGHTSPEED_PREFER_RHSSO_AUTH
-      ? process.env.LIGHTSPEED_PREFER_RHSSO_AUTH.toLowerCase() === "true"
-      : false;
+    const preferRHSSO =
+      process.env.CHE_DASHBOARD_URL ||
+      (
+        process.env.LIGHTSPEED_PREFER_RHSSO_AUTH || "false"
+      ).toLocaleLowerCase() === "true";
     if (preferRHSSO) {
       this._logger.info(
         "[ansible-lightspeed-user] Try Red Hat authentication first per LIGHTSPEED_PREFER_RHSSO_AUTH.",
