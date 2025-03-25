@@ -18,7 +18,6 @@ const config = {
     vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed
     shiki: "shiki",
   },
-  mode: "none",
   module: {
     rules: [
       {
@@ -80,7 +79,11 @@ const config = {
     },
   ],
   output: {
-    //filename: (pathData: { chunk: { name: string } }) => "[name]/src/[name].js",
+    filename: (pathData: { chunk: { name: string } }) => {
+      return pathData.chunk.name === "client"
+        ? "[name]/src/extension.js"
+        : "[name]/src/[name].js";
+    },
     path: path.resolve(__dirname, "out"),
     libraryTarget: "commonjs2",
     devtoolModuleFilenameTemplate: (info: { id: string }) => {

@@ -1,4 +1,4 @@
-// BEFORE: ansible.lightspeed.suggestions.enabled: true
+// BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
 import fs from "fs";
@@ -124,11 +124,6 @@ describe("Verify Role generation feature works as expected", function () {
     );
     await collectionNameTextField.sendKeys("community.dummy");
     await collectionNameTextField.click();
-
-    // const button = await webView.findWebElement(
-    //   By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
-    // );
-    // await button.click();
 
     await (
       await webView.findWebElement(

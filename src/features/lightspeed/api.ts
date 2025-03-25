@@ -9,7 +9,8 @@ import {
   ExplanationResponseParams,
   FeedbackRequestParams,
   FeedbackResponseParams,
-  GenerationRequestParams,
+  PlaybookGenerationRequestParams,
+  RoleGenerationRequestParams,
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
   RoleExplanationRequestParams,
@@ -319,7 +320,7 @@ export class LightSpeedAPI {
   }
 
   public async playbookGenerationRequest(
-    inputData: GenerationRequestParams,
+    inputData: PlaybookGenerationRequestParams,
   ): Promise<PlaybookGenerationResponseParams | IError> {
     try {
       const requestData = {
@@ -352,7 +353,7 @@ export class LightSpeedAPI {
   }
 
   public async roleGenerationRequest(
-    inputData: GenerationRequestParams,
+    inputData: RoleGenerationRequestParams,
   ): Promise<RoleGenerationResponseParams | IError> {
     try {
       const requestData = {
@@ -370,6 +371,11 @@ export class LightSpeedAPI {
       );
 
       const data = await response.json();
+
+      // to remove after roleGen GA
+      if (data.role && !data.name) {
+        data.name = data.role;
+      }
 
       if (!response.ok) {
         throw new HTTPError(response, response.status, data);

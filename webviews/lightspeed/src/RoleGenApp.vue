@@ -47,18 +47,18 @@ async function nextPage() {
     return;
   }
   loadingNewResponse.value = true;
-  await vscodeApi.post('generateRole', { text: prompt.value, outline: outline.value });
+  await vscodeApi.post('generateRole', { name: roleName.value, text: prompt.value, outline: outline.value });
 
 }
 
 vscodeApi.on('generateRole', (data: any) => {
   response.value = undefined; // To disable the watchers
-  roleName.value = data["role"];
   outline.value = data["outline"] || outline.value;
   if (Array.isArray(data["warnings"])) {
     errorMessages.value.push(...data["warnings"]);
   }
   response.value = data as RoleGenerationResponseParams;
+  roleName.value = data["name"];
   loadingNewResponse.value = false;
   page.value++;
 });
@@ -79,7 +79,7 @@ watch(prompt, (newPrompt) => {
 })
 
 watch(roleName, (newRoleName) => {
-  if (response.value !== undefined && response.value["role"] !== newRoleName) {
+  if (response.value !== undefined && response.value["name"] !== newRoleName) {
     response.value = undefined;
   }
 })

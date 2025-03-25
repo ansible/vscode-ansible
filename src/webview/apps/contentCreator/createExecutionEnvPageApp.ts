@@ -32,6 +32,7 @@ let customBaseImageField: VscodeTextfield;
 
 let createContextCheckbox: VscodeCheckbox;
 let buildImageCheckbox: VscodeCheckbox;
+let initEEProjectCheckbox: VscodeCheckbox;
 
 let suggestedCollectionsCheckboxes: NodeListOf<VscodeCheckbox>;
 let collectionsTextField: VscodeTextfield;
@@ -72,6 +73,9 @@ function main() {
   ) as VscodeCheckbox;
   buildImageCheckbox = document.getElementById(
     "buildImage-checkbox",
+  ) as VscodeCheckbox;
+  initEEProjectCheckbox = document.getElementById(
+    "initEE-checkbox",
   ) as VscodeCheckbox;
 
   suggestedCollectionsCheckboxes = document.querySelectorAll(
@@ -116,6 +120,7 @@ function main() {
 
   createContextCheckbox.addEventListener("change", handleCheckboxState);
   buildImageCheckbox.addEventListener("change", handleCheckboxState);
+  initEEProjectCheckbox.addEventListener("change", handleEEInitCheckbox);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
   initClearButton.addEventListener("click", handleInitClearClick);
@@ -209,6 +214,12 @@ function toggleBaseImageDropdown() {
   toggleCreateButton();
 }
 
+function handleEEInitCheckbox() {
+  const isInitEEProjectEnabled = initEEProjectCheckbox.checked;
+  console.log(isInitEEProjectEnabled);
+  toggleCreateButton();
+}
+
 function validateBaseImage() {
   const selectedBaseImage = baseImageDropdown.value.trim();
   const customBaseImage = customBaseImageField.value.trim();
@@ -234,6 +245,7 @@ function handleInitClearClick() {
   createContextCheckbox.disabled = false;
 
   buildImageCheckbox.checked = false;
+  initEEProjectCheckbox.checked = false;
 
   suggestedCollectionsCheckboxes.forEach((checkbox) => {
     checkbox.checked = false;
@@ -267,10 +279,11 @@ function toggleCreateButton() {
     baseImageDropdown.value.trim() !== "" ||
     customBaseImageField.value.trim() !== "";
 
+  const isInitEEProjectEnabled = initEEProjectCheckbox.checked;
+
   initCreateButton.disabled = !(
-    isDestinationPathProvided &&
-    isTagProvided &&
-    isBaseImageProvided
+    isInitEEProjectEnabled ||
+    (isDestinationPathProvided && isTagProvided && isBaseImageProvided)
   );
 
   if (!destinationPath) {
@@ -296,8 +309,10 @@ function stripAnsiCodes(text: string): string {
 function handleInitCreateClick() {
   initCreateButton.disabled = false;
   const isBaseImageValid = validateBaseImage();
-  if (!isBaseImageValid) {
-    return;
+  if (createContextCheckbox.checked || buildImageCheckbox.checked) {
+    if (!isBaseImageValid) {
+      return;
+    }
   }
 
   const collectionsText = collectionsTextField.value.trim();
@@ -325,6 +340,7 @@ function handleInitCreateClick() {
       isOverwritten: overwriteCheckbox.checked,
       isCreateContextEnabled: createContextCheckbox.checked,
       isBuildImageEnabled: buildImageCheckbox.checked,
+      isInitEEProjectEnabled: initEEProjectCheckbox.checked,
       baseImage: baseImageDropdown.value.trim(),
       customBaseImage: customBaseImageField.value.trim(),
       collections: final_collections.trim(),
