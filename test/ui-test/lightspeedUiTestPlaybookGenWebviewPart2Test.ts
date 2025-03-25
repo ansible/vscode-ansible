@@ -117,6 +117,8 @@ describe("Verify playbook generation features work as expected", function () {
   });
 
   it("Playbook explanation webview works as expected", async function () {
+    this.timeout(60000); // Set timeout to 60 seconds for this test
+
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -132,7 +134,7 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
-    await sleep(2000);
+    await sleep(3000);
 
     // Locate the playbook explanation webview
     let webView = (await new EditorView().openEditor(
