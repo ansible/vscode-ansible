@@ -234,6 +234,13 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.playbook.arguments`: Specify additional arguments to append to
   ansible-playbook invocation. e.g. `--syntax-check`
 
+## Environment variable
+
+- `LIGHTSPEED_PREFER_RHSSO_AUTH`: When set to `true`, Lightspeed with use the
+  OAuth2 Device Flow by default instead of the default OAuth2 authentication.
+  You can trigger it manually with the `Ansible Lightspeed: Sign in with Red Hat`
+  action.
+
 ## Data and Telemetry
 
 The `vscode-ansible` extension collects anonymous [usage data](usage-data.md)
