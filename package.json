@@ -955,7 +955,7 @@
     "primevue": "4.3.2",
     "semver": "^7.7.1",
     "uuid": "^11.1.0",
-    "vite": "^6.2.1",
+    "vite": "^6.2.3",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vue": "^3.5.13",
