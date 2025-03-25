@@ -142,6 +142,7 @@ export class AddPlugin {
                       <vscode-option>Filter</vscode-option>
                       <vscode-option>Lookup</vscode-option>
                       <vscode-option>Module</vscode-option>
+                      <vscode-option>Test</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>
@@ -359,6 +360,7 @@ export class AddPlugin {
       filter: "24.12.1",
       action: "25.0.0",
       module: "25.3.0",
+      test: "25.3.0",
     };
     const requiredCreatorVersion =
       minRequiredCreatorVersion[pluginType.toLowerCase()];
