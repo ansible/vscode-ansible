@@ -237,8 +237,8 @@ any level (User, Remote, Workspace and/or Folder).
 
 - `LIGHTSPEED_PREFER_RHSSO_AUTH`: When set to `true`, Lightspeed with use the
   OAuth2 Device Flow by default instead of the default OAuth2 authentication.
-  You can trigger it manually with the `Ansible Lightspeed: Sign in with Red Hat`
-  action.
+  You can trigger it manually with the
+  `Ansible Lightspeed: Sign in with Red Hat` action.
 
 ## Data and Telemetry
 
