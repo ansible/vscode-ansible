@@ -58,7 +58,9 @@ export class LightSpeedManager {
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME,
       );
-    this.lightSpeedAuthenticationProvider.initialize();
+    if (this.settingsManager.settings.lightSpeedService.enabled) {
+      this.lightSpeedAuthenticationProvider.initialize();
+    }
 
     this.lightspeedAuthenticatedUser = new LightspeedUser(
       this.context,
@@ -108,21 +110,29 @@ export class LightSpeedManager {
     const lightspeedSettings = <LightSpeedServiceSettings>(
       vscode.workspace.getConfiguration("ansible").get("lightspeed")
     );
+    const lightspeedEnabled = lightspeedSettings.enabled;
 
-    this.lightSpeedAuthenticationProvider.initialize();
-    this.statusBarProvider.setLightSpeedStatusBarTooltip();
-    this.setContext();
-    if (lightspeedSettings.suggestions.enabled) {
-      const githubConfig = (<unknown>(
-        vscode.workspace.getConfiguration("github")
-      )) as {
-        copilot: { enable?: { ansible?: boolean } };
-      };
-      const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
-      if (copilotEnableForAnsible) {
-        vscode.window.showInformationMessage(
-          "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed.",
-        );
+    if (!lightspeedEnabled) {
+      this.resetContext();
+      await this.lightSpeedAuthenticationProvider.dispose();
+      this.statusBarProvider.statusBar.hide();
+      return;
+    } else {
+      this.lightSpeedAuthenticationProvider.initialize();
+      this.statusBarProvider.setLightSpeedStatusBarTooltip();
+      this.setContext();
+      if (lightspeedSettings.suggestions.enabled) {
+        const githubConfig = (<unknown>(
+          vscode.workspace.getConfiguration("github")
+        )) as {
+          copilot: { enable?: { ansible?: boolean } };
+        };
+        const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
+        if (copilotEnableForAnsible) {
+          vscode.window.showInformationMessage(
+            "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed.",
+          );
+        }
       }
     }
 
@@ -156,9 +166,10 @@ export class LightSpeedManager {
     const lightspeedSettings = <LightSpeedServiceSettings>(
       vscode.workspace.getConfiguration("ansible").get("lightspeed")
     );
+    const lightspeedEnabled = lightspeedSettings?.enabled;
     const lightspeedSuggestionsEnabled =
       lightspeedSettings?.suggestions.enabled;
-    return lightspeedSuggestionsEnabled;
+    return lightspeedEnabled && lightspeedSuggestionsEnabled;
   }
 
   private setCustomWhenClauseContext(): void {
