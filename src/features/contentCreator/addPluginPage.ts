@@ -358,7 +358,7 @@ export class AddPlugin {
       lookup: "24.12.1",
       filter: "24.12.1",
       action: "25.0.0",
-      module: "25.3.1",
+      module: "25.3.0",
     };
     const requiredCreatorVersion =
       minRequiredCreatorVersion[pluginType.toLowerCase()];
