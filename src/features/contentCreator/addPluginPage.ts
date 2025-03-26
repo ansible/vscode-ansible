@@ -142,7 +142,6 @@ export class AddPlugin {
                       <vscode-option>Filter</vscode-option>
                       <vscode-option>Lookup</vscode-option>
                       <vscode-option>Module</vscode-option>
-                      <vscode-option>Test</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>
