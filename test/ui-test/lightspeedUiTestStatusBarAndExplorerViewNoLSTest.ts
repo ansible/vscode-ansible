@@ -1,19 +1,26 @@
 // BEFORE: ansible.lightspeed.enabled: false
 
 import { expect, config } from "chai";
-import { By, StatusBar, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
-  getFixturePath,
-  sleep,
-  workbenchExecuteCommand,
-  getWebviewByLocator,
-} from "./uiTestHelper";
+  By,
+  StatusBar,
+  VSBrowser,
+  EditorView,
+  ViewControl,
+  ActivityBar,
+  SideBarView,
+  ViewSection,
+} from "vscode-extension-tester";
+import { getFixturePath } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 describe("Verify the presence of lightspeed element in the status bar and the explorer view", () => {
   let statusBar: StatusBar;
   let editorView: EditorView;
+  let viewControl: ViewControl;
+  let sideBar: SideBarView;
+  let adtView: ViewSection;
   const folder = "lightspeed";
   const file = "playbook_1.yml";
   const filePath = getFixturePath(folder, file);
@@ -39,12 +46,20 @@ describe("Verify the presence of lightspeed element in the status bar and the ex
     expect(items.length).equals(0);
   });
 
-  it("Connect button exists in Lightspeed explorer view when settings not enabled", async function () {
-    await workbenchExecuteCommand("Ansible: Focus on Ansible Lightspeed View");
-    await sleep(5000);
-    const explorerView = await getWebviewByLocator(
-      By.id("lightspeed-explorer-connect"),
-    );
-    await explorerView.switchBack();
+  it("Lightspeed webviews not present when settings not enabled", async function () {
+    viewControl = (await new ActivityBar().getViewControl(
+      "Ansible",
+    )) as ViewControl;
+    sideBar = await viewControl.openView();
+
+    adtView = await sideBar
+      .getContent()
+      .getSection("Ansible Development Tools");
+
+    expect(adtView).not.to.be.undefined;
+
+    const sections = await sideBar.getContent().getSections();
+
+    expect(sections.length).equals(1);
   });
 });
