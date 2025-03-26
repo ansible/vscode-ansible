@@ -407,7 +407,7 @@ export class AddPlugin {
     // open the plugin file in the editor
     const pluginTypeDir =
       pluginType.toLowerCase() === "module"
-        ? "sample_module"
+        ? "modules"
         : pluginType.toLowerCase();
     const pluginFileUrl = `${folderUrl}/plugins/${pluginTypeDir}/${pluginName}.py`;
     console.log(`[ansible-creator] Plugin file url: ${pluginFileUrl}`);
