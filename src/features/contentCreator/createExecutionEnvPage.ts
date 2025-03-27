@@ -216,7 +216,6 @@ export class CreateExecutionEnv {
                 <vscode-form-group variant="vertical">
                   <vscode-label for="tag-name">
                     <span class="normal">Tag</span>
-                    <sup>*</sup>
                   </vscode-label>
                   <vscode-textfield
                     id="tag-name"
@@ -248,7 +247,7 @@ export class CreateExecutionEnv {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="initEE-checkbox" form="init-form">Include full project files <br><i>Initialize entire structure of execution-environment project.</i></vscode-checkbox>
+                  <vscode-checkbox id="initEE-checkbox" form="init-form">Include full project files <br><i>Initialize entire structure of execution-environment project (uncheck to disable EE-project creation).</i></vscode-checkbox>
                 </div>
 
                 <div class="overwriteCheckbox-div">
