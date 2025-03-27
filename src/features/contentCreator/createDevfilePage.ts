@@ -162,7 +162,7 @@ export class CreateDevfile {
                       <span class="normal">Container image</span>
                     </vscode-label>
                     <vscode-single-select id="image-dropdown" position="below">
-                      <vscode-option>Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)</vscode-option>
+                      <vscode-option>Upstream (ghcr.io/ansible/ansible-devspaces:latest)</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>

@@ -2,7 +2,14 @@ import type { Disposable, ExtensionContext, Webview } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
 
-import { Uri, workspace, FileSystemError, ViewColumn, window } from "vscode";
+import {
+  Uri,
+  workspace,
+  FileSystemError,
+  ViewColumn,
+  window,
+  commands,
+} from "vscode";
 import { LightSpeedAPI } from "../../api";
 import { IError, isError } from "../../utils/errors";
 import {
@@ -12,7 +19,7 @@ import {
   FeedbackRequestParams,
   RoleGenerationRequestParams,
 } from "../../../../interfaces/lightspeed";
-
+import { LightSpeedCommands } from "../../../../definitions/lightspeed";
 import { lightSpeedManager } from "../../../../extension";
 
 async function openNewPlaybookEditor(content: string) {
@@ -111,6 +118,32 @@ async function fileExists(uri: Uri): Promise<boolean> {
   return true;
 }
 
+function contentMatch(generationId: string, playbook: string) {
+  console.log(playbook);
+  lightSpeedManager.contentMatchesProvider.suggestionDetails = [
+    {
+      suggestionId: generationId,
+      suggestion: playbook,
+      isPlaybook: true,
+    },
+  ];
+
+  // Show training matches for the accepted suggestion.
+
+  commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES);
+}
+
+function updatePromptHistory(context: ExtensionContext, new_prompt: string) {
+  const recent_prompts: string[] = context.workspaceState
+    .get("ansible.lightspeed.recent_prompts", [])
+    .filter((prompt: string) => prompt !== new_prompt);
+  recent_prompts.push(new_prompt);
+  context.workspaceState.update(
+    "ansible.lightspeed.recent_prompts",
+    recent_prompts.slice(-500),
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class WebviewHelper {
   public static setupHtml(
@@ -162,14 +195,14 @@ export class WebviewHelper {
               type: type,
               data: response,
             });
-            const recent_prompts: string[] = context.workspaceState
-              .get("ansible.lightspeed.recent_prompts", [])
-              .filter((prompt) => prompt !== data.text);
-            recent_prompts.push(data.text);
-            context.workspaceState.update(
-              "ansible.lightspeed.recent_prompts",
-              recent_prompts.slice(-500),
+            const task_files = response.files.filter(
+              (file) => file.file_type === "task",
             );
+            console.log(task_files);
+            if (task_files.length > 0) {
+              contentMatch(generationId, task_files[0].content);
+            }
+            updatePromptHistory(context, data.text);
             return;
           }
           case "generatePlaybook": {
@@ -190,14 +223,8 @@ export class WebviewHelper {
               type: type,
               data: response,
             });
-            const recent_prompts: string[] = context.workspaceState
-              .get("ansible.lightspeed.recent_prompts", [])
-              .filter((prompt) => prompt !== data.text);
-            recent_prompts.push(data.text);
-            context.workspaceState.update(
-              "ansible.lightspeed.recent_prompts",
-              recent_prompts.slice(-500),
-            );
+            contentMatch(generationId, response.playbook);
+            updatePromptHistory(context, data.text);
             return;
           }
           case "getRecentPrompts": {

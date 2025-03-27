@@ -92,7 +92,7 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           <div class="catalogue">
             <h3>
               <a href="command:ansible.content-creator.create-execution-env-file" title="Create an execution environment project">
-                <span class="codicon codicon-new-file"></span> EE project
+                <span class="codicon codicon-new-file"></span> Execution environment project
                 <span class="new-badge">NEW</ span>
               </a>
             </h3>

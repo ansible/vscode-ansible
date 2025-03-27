@@ -221,6 +221,7 @@ any level (User, Remote, Workspace and/or Folder).
   completing module options.
 - `ansibleServer.trace.server`: Traces the communication between VS Code and the
   ansible language server.
+- `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
   watsonx Code Assistant inline suggestions.
@@ -232,6 +233,13 @@ any level (User, Remote, Workspace and/or Folder).
   Ansible Lightspeed seat assignment.
 - `ansible.playbook.arguments`: Specify additional arguments to append to
   ansible-playbook invocation. e.g. `--syntax-check`
+
+## Environment variable
+
+- `LIGHTSPEED_PREFER_RHSSO_AUTH`: When set to `true`, Lightspeed with use the
+  OAuth2 Device Flow by default instead of the default OAuth2 authentication.
+  You can trigger it manually with the
+  `Ansible Lightspeed: Sign in with Red Hat` action.
 
 ## Data and Telemetry
 

@@ -9,9 +9,8 @@ export async function updateConfigurationChanges(
   extSettings: SettingsManager,
   lightSpeedManager: LightSpeedManager,
 ): Promise<void> {
+  await extSettings.reinitialize();
   await metaData.updateAnsibleInfoInStatusbar();
   await lightSpeedManager.reInitialize();
   await pythonInterpreter.updatePythonInfoInStatusbar();
-
-  await extSettings.reinitialize();
 }

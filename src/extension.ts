@@ -289,6 +289,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
         if (!editor) {
           await ignorePendingSuggestion();
         }
+        if (!extSettings.settings.lightSpeedService.enabled) {
+          return;
+        }
         lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
@@ -300,7 +303,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
         lightSpeedManager,
         pythonInterpreterManager,
       );
-      lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
+      if (!extSettings.settings.lightSpeedService.enabled) {
+        return;
+      }
       metaData.sendAnsibleMetadataTelemetry();
     }),
   );
@@ -368,6 +373,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
       await lightSpeedManager.lightspeedAuthenticatedUser.refreshLightspeedUser();
       if (!lightSpeedManager.lightspeedAuthenticatedUser.isAuthenticated()) {
         lightSpeedManager.currentModelValue = undefined;
+      }
+      if (!extSettings.settings.lightSpeedService.enabled) {
+        return;
       }
       if (lightSpeedManager.lightspeedExplorerProvider.webviewView) {
         lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
@@ -672,6 +680,9 @@ export async function activate(context: ExtensionContext): Promise<void> {
         );
         lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled =
           true;
+        if (!extSettings.settings.lightSpeedService.enabled) {
+          return;
+        }
         lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       },
     ),
