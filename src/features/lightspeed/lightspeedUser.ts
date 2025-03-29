@@ -4,7 +4,6 @@ import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   getBaseUri,
   getUserTypeLabel,
-  getLoggedInUserDetails,
 } from "./utils/webUtils";
 import {
   LIGHTSPEED_MARKDOWN_ME_AUTH_URL,
@@ -50,6 +49,13 @@ export interface LoggedInUserInfo {
   org_telemetry_opt_out: boolean;
 }
 
+interface IGetUserInfoCache {
+  time: number;
+  token: string;
+  userInfo?: LoggedInUserInfo;
+  locked: boolean;
+}
+
 export class LightspeedUser {
   public _settingsManager: SettingsManager;
   private _lightspeedAuthenticationProvider: LightSpeedAuthenticationProvider;
@@ -59,6 +65,7 @@ export class LightspeedUser {
   private _logger: Log;
   private _extensionHost: ExtensionHostType;
   private _markdownUserDetails: string | undefined;
+  private _getUserInfoCache: IGetUserInfoCache;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -76,6 +83,7 @@ export class LightspeedUser {
           : ExtensionHost.Remote
         : ExtensionHost.WebWorker;
     this.logAuthProviderDebugHints();
+    this._getUserInfoCache = { time: 0, token: "", locked: false };
   }
 
   private logAuthProviderDebugHints() {
@@ -104,14 +112,36 @@ export class LightspeedUser {
     }
   }
   /* Get the user info from server */
-  public async getUserInfo(token: string) {
-    this._logger.info(
-      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+  public async getUserInfo(token: string): Promise<LoggedInUserInfo> {
+    function waitTillUnlocked(
+      logger: Log,
+      _getUserInfoCache: IGetUserInfoCache,
+    ) {
+      if (_getUserInfoCache.locked) {
+        setTimeout(waitTillUnlocked, 50, logger, _getUserInfoCache);
+      }
+    }
+    waitTillUnlocked(this._logger, this._getUserInfoCache);
+
+    if (
+      this._getUserInfoCache.token === token &&
+      this._getUserInfoCache.userInfo &&
+      this._getUserInfoCache.time > Date.now() - 10 * 1000
+    ) {
+      this._logger.trace(
+        "[ansible-lightspeed-user] Getting user information from cache...",
+      );
+      return this._getUserInfoCache.userInfo;
+    }
+
+    this._logger.debug(
+      "[ansible-lightspeed-user] Fetching user information...",
     );
 
-    try {
-      const fetch = getFetch();
+    this._getUserInfoCache.locked = true;
+    const fetch = getFetch();
 
+    try {
       const response = await fetch(
         `${getBaseUri(this._settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
@@ -124,8 +154,17 @@ export class LightspeedUser {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        return data;
+        const userInfo: LoggedInUserInfo = await response.json();
+        if (!userInfo) {
+          throw new Error("Unexpected userinfo payload");
+        }
+        this._getUserInfoCache.userInfo = userInfo;
+
+        this._getUserInfoCache.time = Date.now();
+        this._getUserInfoCache.token = token;
+        this._getUserInfoCache.locked = false;
+
+        return userInfo;
       } else {
         this._logger.error(
           `[ansible-lightspeed-user] call to get user info returned non-2xx response. Status: ${response.status}`,
@@ -140,6 +179,7 @@ export class LightspeedUser {
         }
       }
     } catch (error) {
+      this._getUserInfoCache.locked = false;
       const err = error as Error;
       this._logger.error(
         `[ansible-lightspeed-user] error message: ${err.message}`,
@@ -149,8 +189,8 @@ export class LightspeedUser {
   }
 
   public async getUserInfoFromMarkdown(token: string) {
-    this._logger.info(
-      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+    this._logger.debug(
+      "[ansible-lightspeed-user] Fetch user information (Markdown)...",
     );
 
     try {
@@ -210,7 +250,7 @@ export class LightspeedUser {
     }
     // Prefer the auth provider that has already worked
     if (this._userType) {
-      this._logger.info(
+      this._logger.debug(
         `[ansible-lightspeed-user] Trying previous auth provider first: ${this._userType}`,
       );
       if (this._userType === AuthProviderType.lightspeed) {
@@ -411,29 +451,8 @@ export class LightspeedUser {
   public async getLightspeedUserContent() {
     const markdownUserDetails =
       await this.getMarkdownLightspeedUserDetails(false);
-    const userDetails = await this.getLightspeedUserDetails(false);
 
-    let content;
-    if (markdownUserDetails) {
-      content = String(markdownUserDetails);
-    } else {
-      if (userDetails) {
-        const sessionInfo = getLoggedInUserDetails(userDetails);
-        const userName = userDetails.displayNameWithUserType;
-        const userType = sessionInfo.userInfo?.userType || "";
-        const userRole =
-          sessionInfo.userInfo?.role !== undefined
-            ? sessionInfo.userInfo.role
-            : "";
-        content = `
-          <p>Logged in as: ${userName}</p>
-          <p>User Type: ${userType}</p>
-          ${userRole ? "Role: " + userRole : ""}
-        `;
-      }
-    }
-
-    return content;
+    return markdownUserDetails || "";
   }
 
   public async rhUserHasSeat(): Promise<boolean | undefined> {
