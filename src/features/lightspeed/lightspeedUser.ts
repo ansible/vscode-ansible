@@ -50,6 +50,13 @@ export interface LoggedInUserInfo {
   org_telemetry_opt_out: boolean;
 }
 
+interface IGetUserInfoCache {
+  time: number;
+  token: string;
+  getUserInfo?: LoggedInUserInfo;
+  locked: boolean;
+}
+
 export class LightspeedUser {
   public _settingsManager: SettingsManager;
   private _lightspeedAuthenticationProvider: LightSpeedAuthenticationProvider;
@@ -59,6 +66,7 @@ export class LightspeedUser {
   private _logger: Log;
   private _extensionHost: ExtensionHostType;
   private _markdownUserDetails: string | undefined;
+  private _getUserInfoCache: IGetUserInfoCache;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -76,6 +84,7 @@ export class LightspeedUser {
           : ExtensionHost.Remote
         : ExtensionHost.WebWorker;
     this.logAuthProviderDebugHints();
+    this._getUserInfoCache = { time: 0, token: "", locked: false };
   }
 
   private logAuthProviderDebugHints() {
@@ -104,14 +113,36 @@ export class LightspeedUser {
     }
   }
   /* Get the user info from server */
-  public async getUserInfo(token: string) {
-    this._logger.info(
-      "[ansible-lightspeed-user] Sending request for logged-in user info...",
-    );
+  public async getUserInfo(token: string): Promise<LoggedInUserInfo> {
+    this._logger.info("[ansible-lightspeed-user] Fetching user information...");
+
+    function waitTillUnlocked(
+      logger: Log,
+      _getUserInfoCache: IGetUserInfoCache,
+    ) {
+      logger.info(`--locked? ${_getUserInfoCache.locked}`);
+
+      if (_getUserInfoCache.locked) {
+        logger.info("waiting...");
+        setTimeout(waitTillUnlocked, 50, logger, _getUserInfoCache);
+      }
+    }
+    this._logger.info(`locked? ${this._getUserInfoCache.locked}`);
+    waitTillUnlocked(this._logger, this._getUserInfoCache);
+
+    if (
+      this._getUserInfoCache.token === token &&
+      this._getUserInfoCache.getUserInfo &&
+      this._getUserInfoCache.time > Date.now() - 10 * 1000
+    ) {
+      this._logger.info("FROM CACHE!");
+      return this._getUserInfoCache.getUserInfo;
+    }
+
+    this._getUserInfoCache.locked = true;
+    const fetch = getFetch();
 
     try {
-      const fetch = getFetch();
-
       const response = await fetch(
         `${getBaseUri(this._settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
@@ -124,8 +155,17 @@ export class LightspeedUser {
       );
 
       if (response.ok) {
-        const data = await response.json();
-        return data;
+        const userInfo: LoggedInUserInfo = await response.json();
+        if (!userInfo) {
+          throw new Error("Unexpect userinfo payload");
+        }
+        this._getUserInfoCache.getUserInfo = userInfo;
+
+        this._getUserInfoCache.time = Date.now();
+        this._getUserInfoCache.token = token;
+        this._getUserInfoCache.locked = false;
+
+        return userInfo;
       } else {
         this._logger.error(
           `[ansible-lightspeed-user] call to get user info returned non-2xx response. Status: ${response.status}`,
@@ -140,6 +180,7 @@ export class LightspeedUser {
         }
       }
     } catch (error) {
+      this._getUserInfoCache.locked = false;
       const err = error as Error;
       this._logger.error(
         `[ansible-lightspeed-user] error message: ${err.message}`,
@@ -150,7 +191,7 @@ export class LightspeedUser {
 
   public async getUserInfoFromMarkdown(token: string) {
     this._logger.info(
-      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+      "[ansible-lightspeed-user] Sending request for logged-in user info (c)...",
     );
 
     try {
@@ -245,6 +286,9 @@ export class LightspeedUser {
     createIfNone: boolean,
     useProviderType: AuthProviderType | undefined = undefined,
   ) {
+    this._logger.info(
+      `DEBUG: setLightspeedUser(createIfNone=${createIfNone}, ${useProviderType})`,
+    );
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
       return undefined;
@@ -301,6 +345,7 @@ export class LightspeedUser {
   }
 
   public async updateUserInformation(): Promise<void> {
+    this._logger.info("updateUserInformation()");
     if (this._session) {
       await this._updateUserInformation(false, this._session);
     }
@@ -362,6 +407,7 @@ export class LightspeedUser {
   }
 
   public async refreshLightspeedUser() {
+    this._logger.info("DEBUG refreshLightspeedUser()");
     this._session = undefined;
     this._userDetails = undefined;
     this._markdownUserDetails = undefined;
@@ -372,6 +418,7 @@ export class LightspeedUser {
     createIfNone: boolean,
     useProviderType: AuthProviderType | undefined = undefined,
   ) {
+    this._logger.info("DEBUG getLightspeedUserDetails");
     // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
       return undefined;
@@ -403,6 +450,7 @@ export class LightspeedUser {
       return this._markdownUserDetails;
     }
 
+    this._logger.info("DEBUG getMarkdownLightspeedUserDetails");
     await this.setLightspeedUser(createIfNone, useProviderType);
 
     return this._markdownUserDetails;
