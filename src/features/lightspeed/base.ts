@@ -37,7 +37,7 @@ export class LightSpeedManager {
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
   public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
-  private _logger: Log;
+  private logger: Log;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -49,12 +49,13 @@ export class LightSpeedManager {
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
-    this._logger = new Log();
+    this.logger = new Log();
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
         this.context,
         this.settingsManager,
+        this.logger,
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME,
       );
@@ -66,7 +67,7 @@ export class LightSpeedManager {
       this.context,
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
-      this._logger,
+      this.logger,
     );
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
