@@ -73,6 +73,7 @@ export class LightSpeedManager {
       this.settingsManager,
       this.lightspeedAuthenticatedUser,
       this.context,
+      this.logger,
     );
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
