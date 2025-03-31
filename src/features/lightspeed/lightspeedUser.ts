@@ -369,11 +369,9 @@ export class LightspeedUser {
       const displayName = userinfo.external_username || userinfo.username || "";
       const userTypeLabel = getUserTypeLabel(
         userinfo.rh_org_has_subscription,
-        userinfo.rh_user_has_seat,
       ).toLowerCase();
 
       this._userDetails = {
-        rhUserHasSeat: userinfo.rh_user_has_seat,
         rhOrgHasSubscription: userinfo.rh_org_has_subscription,
         rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
         displayName,
@@ -453,27 +451,6 @@ export class LightspeedUser {
       await this.getMarkdownLightspeedUserDetails(false);
 
     return markdownUserDetails || "";
-  }
-
-  public async rhUserHasSeat(): Promise<boolean | undefined> {
-    const userDetails = await this.getLightspeedUserDetails(false);
-
-    if (userDetails === undefined) {
-      this._logger.info(
-        "[ansible-lightspeed-user] User authentication session not found for seat check.",
-      );
-      return undefined;
-    } else if (userDetails.rhUserHasSeat) {
-      this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" has a seat.`,
-      );
-      return true;
-    } else {
-      this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" does not have a seat.`,
-      );
-      return false;
-    }
   }
 
   public async rhOrgHasSubscription(): Promise<boolean | undefined> {
