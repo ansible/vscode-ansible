@@ -172,14 +172,9 @@ export class LightSpeedAuthenticationProvider
       const rhOrgHasSubscription = userinfo.rh_org_has_subscription
         ? userinfo.rh_org_has_subscription
         : false;
-      const rhUserHasSeat = userinfo.rh_user_has_seat
-        ? userinfo.rh_user_has_seat
-        : false;
 
-      const userTypeLabel = getUserTypeLabel(
-        rhOrgHasSubscription,
-        rhUserHasSeat,
-      ).toLowerCase();
+      const userTypeLabel =
+        getUserTypeLabel(rhOrgHasSubscription).toLowerCase();
       const label = `${userName} (${userTypeLabel})`;
       const session: LightspeedAuthSession = {
         id: identifier,
@@ -190,7 +185,6 @@ export class LightSpeedAuthenticationProvider
         },
         // scopes: account.scope,
         scopes: [],
-        rhUserHasSeat: rhUserHasSeat,
         rhOrgHasSubscription: userinfo.rh_org_has_subscription
           ? userinfo.rh_org_has_subscription
           : false,

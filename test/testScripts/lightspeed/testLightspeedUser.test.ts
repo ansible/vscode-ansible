@@ -197,7 +197,6 @@ function testRedHatSignInCommand() {
       );
       getLightspeedUserDetailsStub.returns(
         Promise.resolve({
-          rhUserHasSeat: true,
           rhOrgHasSubscription: true,
           rhUserIsOrgAdmin: true,
           displayName: "Joe Lightspeed",
