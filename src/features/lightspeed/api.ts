@@ -36,6 +36,7 @@ import {
   OneClickTrialProvider,
 } from "./utils/oneClickTrial";
 import { mapError } from "./handleApiError";
+import { Log } from "../../utils/logger";
 
 const UNKNOWN_ERROR: string = "An unknown error occurred.";
 
@@ -53,17 +54,20 @@ export class LightSpeedAPI {
   private _suggestionFeedbacks: string[];
   private _extensionVersion: string;
   private _oneClickTrialProvider: OneClickTrialProvider;
+  private logger: Log;
 
   constructor(
     settingsManager: SettingsManager,
     lightspeedAuthenticatedUser: LightspeedUser,
     context: vscode.ExtensionContext,
+    logger: Log,
   ) {
     this.settingsManager = settingsManager;
     this.lightspeedAuthenticatedUser = lightspeedAuthenticatedUser;
     this._suggestionFeedbacks = [];
     this._extensionVersion = context.extension.packageJSON.version;
     this._oneClickTrialProvider = getOneClickTrialProvider();
+    this.logger = logger;
   }
 
   private async lightspeedPost(endpoint: string, body: string) {
@@ -99,7 +103,7 @@ export class LightSpeedAPI {
     inputData: CompletionRequestParams,
   ): Promise<CompletionResponseParams> {
     const suggestionId = inputData.suggestionId;
-    console.log(
+    this.logger.info(
       `[ansible-lightspeed] Completion request sent to lightspeed: ${JSON.stringify(
         inputData,
       )}`,
@@ -139,7 +143,7 @@ export class LightSpeedAPI {
         );
         return {} as CompletionResponseParams;
       }
-      console.log(
+      this.logger.debug(
         `[ansible-lightspeed] Completion response: ${JSON.stringify(data)}`,
       );
       return data;
@@ -209,7 +213,7 @@ export class LightSpeedAPI {
       ...inputData,
       metadata: { ansibleExtensionVersion: this._extensionVersion },
     };
-    console.log(
+    this.logger.debug(
       `[ansible-lightspeed] Feedback request sent to lightspeed: ${JSON.stringify(
         requestData,
       )}`,
@@ -260,7 +264,7 @@ export class LightSpeedAPI {
         metadata: { ansibleExtensionVersion: this._extensionVersion },
       };
 
-      console.log(
+      this.logger.debug(
         `[ansible-lightspeed] Content Match request sent to lightspeed: ${JSON.stringify(
           requestData,
         )}`,
@@ -293,8 +297,8 @@ export class LightSpeedAPI {
         metadata: { ansibleExtensionVersion: this._extensionVersion },
       };
 
-      console.log(
-        `[ansible-lightspeed] Explanation request sent to lightspeed: ${JSON.stringify(
+      this.logger.info(
+        `[ansible-lightspeed] Playbook Explanation request sent to lightspeed: ${JSON.stringify(
           requestData,
         )}`,
       );
@@ -326,8 +330,8 @@ export class LightSpeedAPI {
         metadata: { ansibleExtensionVersion: this._extensionVersion },
       };
 
-      console.log(
-        `[ansible-lightspeed] Generation request sent to lightspeed: ${JSON.stringify(
+      this.logger.info(
+        `[ansible-lightspeed] Playbook generation request sent to lightspeed: ${JSON.stringify(
           requestData,
         )}`,
       );
@@ -358,7 +362,7 @@ export class LightSpeedAPI {
         ...inputData,
         metadata: { ansibleExtensionVersion: this._extensionVersion },
       };
-      console.log(
+      this.logger.info(
         `[ansible-lightspeed] Role Generation request sent to lightspeed: ${JSON.stringify(
           requestData,
         )}`,
@@ -395,8 +399,8 @@ export class LightSpeedAPI {
         metadata: { ansibleExtensionVersion: this._extensionVersion },
       };
 
-      console.log(
-        `[ansible-lightspeed] Role explanation request sent to lightspeed: ${JSON.stringify(
+      this.logger.info(
+        `[ansible-lightspeed] Role Explanation request sent to lightspeed: ${JSON.stringify(
           requestData,
         )}`,
       );

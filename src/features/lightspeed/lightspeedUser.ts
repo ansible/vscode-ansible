@@ -479,7 +479,7 @@ export class LightspeedUser {
   }
 
   public async getLightspeedUserAccessToken() {
-    this._logger.info("[ansible-lightspeed-user] Getting access token...");
+    this._logger.trace("[ansible-lightspeed-user] Getting access token...");
 
     if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
       this._logger.info("[ansible-lightspeed-user] Test access token returned");
@@ -487,7 +487,7 @@ export class LightspeedUser {
     }
 
     if (!this._session) {
-      this._logger.info(
+      this._logger.trace(
         "[ansible-lightspeed-user] Session not found. Returning...",
       );
       const selection = await vscode.window.showWarningMessage(
@@ -508,7 +508,7 @@ export class LightspeedUser {
       }
       return;
     }
-    this._logger.info(
+    this._logger.debug(
       `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes}"`,
     );
 

@@ -422,7 +422,7 @@ export class LightSpeedAuthenticationProvider
       "Content-Type": "application/x-www-form-urlencoded",
     };
 
-    this._logger.debug(
+    this._logger.trace(
       "[ansible-lightspeed-oauth] Sending request for a new access token...",
     );
 
@@ -499,7 +499,7 @@ export class LightSpeedAuthenticationProvider
    * it requests for a new token and updates the secret store
    */
   public async refreshAccessToken(session: AuthenticationSession) {
-    this._logger.debug("[ansible-lightspeed-oauth] Getting access token...");
+    this._logger.trace("[ansible-lightspeed-oauth] Refresh access token...");
 
     const sessionId = session.id;
 
@@ -508,7 +508,7 @@ export class LightSpeedAuthenticationProvider
       throw new Error(`Unable to fetch account`);
     }
 
-    this._logger.debug("[ansible-lightspeed-oauth] Account found");
+    this._logger.trace("[ansible-lightspeed-oauth] Account found");
 
     const currentAccount: OAuthAccount = JSON.parse(account);
     let tokenToBeReturned = currentAccount.accessToken;
