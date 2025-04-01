@@ -223,7 +223,7 @@ describe("Test Lightspeed Explorer features", () => {
     )) as WebView;
     expect(webView, "webView should not be undefined").not.to.be.undefined;
     webView = await getWebviewByLocator(
-      By.xpath("//div[@class='playbookGeneration']"),
+      By.xpath("//div[@class='explanation']"),
     );
     await webView.findWebElement(
       By.xpath("//h2[contains(text(), 'Playbook Overview and Structure')]"),

@@ -25,7 +25,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   await new EditorView().openEditor("Explanation", 1);
   // Locate the playbook explanation webview
   const webView = await getWebviewByLocator(
-    By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+    By.xpath("//div[contains(@class, 'explanation') ]"),
   );
   const thumbsUpButton = await webView.findWebElement(
     By.xpath("//vscode-button[@id='thumbsup-button']"),
@@ -97,11 +97,11 @@ describe("Verify playbook explanation features work as expected", function () {
     await new EditorView().openEditor("Explanation", 1);
     // Locate the playbook explanation webview
     const webView = await getWebviewByLocator(
-      By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+      By.xpath("//div[contains(@class, 'explanation') ]"),
     );
     // Find the main div element of the webview and verify the expected text is found.
     const mainDiv = await webView.findWebElement(
-      By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+      By.xpath("//div[contains(@class, 'explanation') ]"),
     );
     expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
     const text = await mainDiv.getText();
