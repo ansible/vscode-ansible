@@ -2,12 +2,13 @@
 
 import * as vscode from "vscode";
 import * as os from "os";
+import * as semver from "semver";
 import * as yaml from "yaml";
 import { getUri } from "../utils/getUri";
 import { getNonce } from "../utils/getNonce";
 import { AnsibleExecutionEnvInterface, PostMessageEvent } from "./types";
 import { SettingsManager } from "../../settings";
-import { expandPath, runCommand } from "./utils";
+import { expandPath, getCreatorVersion, runCommand } from "./utils";
 import { execFile } from "child_process";
 import { withInterpreter } from "../utils/commandRunner";
 
@@ -215,7 +216,6 @@ export class CreateExecutionEnv {
                 <vscode-form-group variant="vertical">
                   <vscode-label for="tag-name">
                     <span class="normal">Tag</span>
-                    <sup>*</sup>
                   </vscode-label>
                   <vscode-textfield
                     id="tag-name"
@@ -247,7 +247,7 @@ export class CreateExecutionEnv {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox id="initEE-checkbox" form="init-form">Include full project files <br><i>Initialize entire structure of execution-environment project.</i></vscode-checkbox>
+                  <vscode-checkbox id="initEE-checkbox" form="init-form">Include full project files <br><i>Initialize entire structure of execution-environment project (uncheck to disable EE-project creation).</i></vscode-checkbox>
                 </div>
 
                 <div class="overwriteCheckbox-div">
@@ -568,11 +568,22 @@ export class CreateExecutionEnv {
 
       commandOutput = "";
 
+      const creatorVersion = await getCreatorVersion();
+      const minRequiredCreatorVersion = "25.3.0";
+
       commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
 
-      const ansibleCreatorExecutionResult = await runCommand(command, env);
-      commandOutput += ansibleCreatorExecutionResult.output;
-      commandResult = ansibleCreatorExecutionResult.status;
+      if (semver.gte(creatorVersion, minRequiredCreatorVersion)) {
+        // execute ansible-creator command
+        const ansibleCreatorExecutionResult = await runCommand(command, env);
+        commandOutput += ansibleCreatorExecutionResult.output;
+        commandResult = ansibleCreatorExecutionResult.status;
+      } else {
+        commandOutput += `Minimum ansible-creator version needed to initialize an execution-environment project is ${minRequiredCreatorVersion}\n`;
+        commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+        commandResult = "failed";
+      }
     }
 
     console.debug(commandOutput);

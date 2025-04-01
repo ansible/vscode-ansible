@@ -78,6 +78,9 @@ function main() {
     "initEE-checkbox",
   ) as VscodeCheckbox;
 
+  // Enable the initEEProjectCheckbox by default
+  initEEProjectCheckbox.checked = true;
+
   suggestedCollectionsCheckboxes = document.querySelectorAll(
     "#suggestedCollections-checkboxes vscode-checkbox",
   );
