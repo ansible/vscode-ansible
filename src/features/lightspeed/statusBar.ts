@@ -53,18 +53,13 @@ export class LightspeedStatusBar {
     }
     return this.getLightSpeedStatusBarTextSync(
       userDetails.rhOrgHasSubscription,
-      userDetails.rhUserHasSeat,
     );
   }
 
   private getLightSpeedStatusBarTextSync(
-    rhUserHasSeat?: boolean,
     rhOrgHasSubscription?: boolean,
   ): string {
-    const userTypeLabel = getUserTypeLabel(
-      rhOrgHasSubscription,
-      rhUserHasSeat,
-    ).toLowerCase();
+    const userTypeLabel = getUserTypeLabel(rhOrgHasSubscription).toLowerCase();
     return `Lightspeed (${userTypeLabel})`;
   }
 
