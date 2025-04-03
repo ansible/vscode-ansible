@@ -204,21 +204,7 @@ describe("GetWebviewContent", () => {
       return createMatchResponse();
     };
 
-    function setRhUserHasSeat(has_seat: boolean) {
-      cmw["lightspeedAuthenticatedUser"].rhUserHasSeat = async (): Promise<
-        boolean | undefined
-      > => {
-        return has_seat;
-      };
-    }
-
-    setRhUserHasSeat(false);
-    let res = await cmw["getWebviewContent"]();
-    assert.match(res, new RegExp("<summary>ansible.ansible</summary>"));
-    assert.doesNotMatch(res, new RegExp("<li>License:.*</li>"));
-
-    setRhUserHasSeat(true);
-    res = await cmw["getWebviewContent"]();
+    const res = await cmw["getWebviewContent"]();
     assert.match(res, new RegExp("<summary>ansible.ansible</summary>"));
     assert.match(res, new RegExp("<li>License:.*</li>"));
   });

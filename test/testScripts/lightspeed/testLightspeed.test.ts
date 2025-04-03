@@ -201,36 +201,24 @@ export function testLightspeed(): void {
 
     describe("Test Ansible Lightspeed multitask inline completion suggestions", function () {
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let rhUserHasSeatStub: any;
 
       before(async function () {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
         await activate(docUri1);
-        rhUserHasSeatStub = sinon.stub(
-          lightSpeedManager.lightspeedAuthenticatedUser,
-          "rhUserHasSeat",
-        );
       });
 
       const tests = testMultiTaskSuggestionPrompts();
 
       tests.forEach(({ taskName, expectedModule }) => {
         it(`Should give multitask inline suggestion for task prompt '${taskName}'`, async function () {
-          rhUserHasSeatStub.returns(Promise.resolve(true));
           await testInlineSuggestion(taskName, expectedModule, true);
         });
 
         it(`Should not give multitask inline suggestion for task prompt '${taskName}' if the user is unseated`, async function () {
-          rhUserHasSeatStub.returns(Promise.resolve(false));
           await testInlineSuggestionNotTriggered(taskName, true);
         });
-      });
-
-      after(async function () {
-        rhUserHasSeatStub.restore();
       });
     });
 
@@ -241,8 +229,7 @@ export function testLightspeed(): void {
       let completionRequestSpy: any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let isAuthenticatedStub: any;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let rhUserHasSeatStub: any;
+
       const docUri1 = getDocUri("lightspeed/playbook_1.yml");
 
       before(async function () {
@@ -261,10 +248,6 @@ export function testLightspeed(): void {
         isAuthenticatedStub = sinon.stub(
           lightSpeedManager.lightspeedAuthenticatedUser,
           "isAuthenticated",
-        );
-        rhUserHasSeatStub = sinon.stub(
-          lightSpeedManager.lightspeedAuthenticatedUser,
-          "rhUserHasSeat",
         );
         isAuthenticatedStub.returns(Promise.resolve(true));
       });
@@ -319,7 +302,6 @@ export function testLightspeed(): void {
 
       it(`Should not call completion API with a keystroke before Wait Window (multi task) '${taskName}'`, async function () {
         try {
-          rhUserHasSeatStub.returns(Promise.resolve(true));
           await setInlineSuggestionsWaitWindow();
           await testInlineSuggestion(
             taskName,
@@ -367,7 +349,6 @@ export function testLightspeed(): void {
         feedbackRequestSpy.restore();
         completionRequestSpy.restore();
         isAuthenticatedStub.restore();
-        rhUserHasSeatStub.restore();
         sinon.restore();
       });
     });
