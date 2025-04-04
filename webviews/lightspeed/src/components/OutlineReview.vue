@@ -1,5 +1,8 @@
 <script setup lang="ts">
-defineProps<{ outline: string }>();
+defineProps<{ 
+  outline: string; 
+  type: "playbook" | "role"; 
+}>();
 
 const emit = defineEmits<{ outlineUpdate: [outline: string] }>();
 
@@ -18,7 +21,7 @@ function outlineWithLineNumber() {
 
 <template>
   <div>
-    <h4>Review the suggested steps for your role and modify as needed.</h4>
+    <h4>Review the suggested steps for your {{type}} and modify as needed.</h4>
     <textarea id="outline-field" :rows="outline.split('\n').length + 2" :cols="70" :value="outline.toString()"
       @input="outlineWithLineNumber" />
   </div>
