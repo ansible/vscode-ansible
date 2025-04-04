@@ -1,4 +1,14 @@
 <script setup lang="ts">
+import {
+  calculateNewCursorPosition, 
+  digitsInNumber, 
+  countNewlinesBeforePosition, 
+  getStringBetweenNewlines, 
+  reapplyLineNumbers, 
+  removeLine, 
+  shouldRemoveLine 
+} from '../utils/outlineLineNumbers';
+
 defineProps<{ 
   outline: string; 
   type: "playbook" | "role"; 
@@ -6,17 +16,33 @@ defineProps<{
 
 const emit = defineEmits<{ outlineUpdate: [outline: string] }>();
 
+function outlineWithLineNumber(): void {
+  const textField = document.querySelector("#outline-field") as HTMLTextAreaElement;
+  if (!textField) return;
 
-function outlineWithLineNumber() {
-  let textField = document.querySelector("#outline-field") as HTMLTextAreaElement;
+  const originalPosition = textField.selectionStart || 0;
+  const newLinesBeforePosition = countNewlinesBeforePosition(textField.value, originalPosition);
+  const numDigits = digitsInNumber(newLinesBeforePosition + 1);
+  const lineText = getStringBetweenNewlines(textField.value, originalPosition);
+  const previousNewLineIndex = textField.value.lastIndexOf("\n", originalPosition - 1);
 
-  const originalPosition = textField?.selectionStart || 0;
-  textField.value = textField.value.split("\n").map((l) => l.replace(/\d+\.\s/, '')).map((l, idx) => { return `${idx + 1}. ${l}` }).join("\n");
+  if (shouldRemoveLine(lineText, numDigits)) {
+    removeLine(textField, originalPosition, previousNewLineIndex);
+  }
 
-  const newPosition = textField.value[originalPosition - 1] === '\n' ? originalPosition + 3 : originalPosition;
-  textField.setSelectionRange(newPosition, newPosition)
+  reapplyLineNumbers(textField);
+
+  const newCursorPosition = calculateNewCursorPosition(
+    textField.value,
+    originalPosition,
+    previousNewLineIndex,
+    numDigits
+  );
+
+  textField.setSelectionRange(newCursorPosition, newCursorPosition);
   emit("outlineUpdate", textField.value);
 }
+
 </script>
 
 <template>
