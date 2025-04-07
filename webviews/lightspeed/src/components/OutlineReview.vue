@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import {
-  calculateNewCursorPosition, 
-  digitsInNumber, 
-  countNewlinesBeforePosition, 
-  getStringBetweenNewlines, 
-  reapplyLineNumbers, 
-  removeLine, 
-  shouldRemoveLine 
+  calculateNewCursorPosition,
+  digitsInNumber,
+  countNewlinesBeforePosition,
+  getStringBetweenNewlines,
+  reapplyLineNumbers,
+  removeLine,
+  shouldRemoveLine
 } from '../utils/outlineLineNumbers';
 
-defineProps<{ 
-  outline: string; 
-  type: "playbook" | "role"; 
+defineProps<{
+  outline: string;
+  type: "playbook" | "role";
 }>();
 
 const emit = defineEmits<{ outlineUpdate: [outline: string] }>();

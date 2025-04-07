@@ -111,8 +111,8 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
   <div v-else-if="page === 2">
     <StatusBoxPrompt :prompt="prompt" @restart-wizard="page = 1" />
 
-    <OutlineReview 
-      :outline 
+    <OutlineReview
+      :outline
       type="playbook"
       @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
 
