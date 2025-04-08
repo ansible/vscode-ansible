@@ -201,7 +201,7 @@ jobs:
         run: curl -sfL https://direnv.net/install.sh | bash
 
       - name: Setup python
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ contains(matrix.shell, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
