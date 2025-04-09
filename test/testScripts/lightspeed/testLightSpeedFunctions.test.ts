@@ -12,12 +12,10 @@ import {
 import * as inlineSuggestions from "../../../src/features/lightspeed/inlineSuggestions";
 
 function getLightSpeedUserDetails(
-  rhUserHasSeat: boolean,
   rhOrgHasSubscription: boolean,
   rhUserIsOrgAdmin: boolean = false,
 ): LightspeedUserDetails {
   return {
-    rhUserHasSeat: rhUserHasSeat,
     rhOrgHasSubscription: rhOrgHasSubscription,
     rhUserIsOrgAdmin: rhUserIsOrgAdmin,
     displayName: "jane_doe",
@@ -29,31 +27,15 @@ function getLightSpeedUserDetails(
 function testGetLoggedInUserDetails(): void {
   describe("Test getLoggedInUserDetails", function () {
     it(`Verify a seated user`, function () {
-      const session = getLightSpeedUserDetails(true, true, false);
+      const session = getLightSpeedUserDetails(true, true);
       const { userInfo } = getLoggedInUserDetails(session);
       assert.equal(userInfo?.userType, "Licensed");
       assert.isTrue(userInfo?.subscribed);
       assert.isUndefined(userInfo.role);
     });
 
-    it(`Verify an unseated user`, function () {
-      const session = getLightSpeedUserDetails(false, true, false);
-      const { userInfo } = getLoggedInUserDetails(session);
-      assert.equal(userInfo?.userType, "Unlicensed");
-      assert.isTrue(userInfo?.subscribed);
-      assert.isUndefined(userInfo.role);
-    });
-
-    it(`Verify an unseated user of an unsubscribed org`, function () {
-      const session = getLightSpeedUserDetails(false, false, false);
-      const { userInfo } = getLoggedInUserDetails(session);
-      assert.equal(userInfo?.userType, "Unlicensed");
-      assert.isNotTrue(userInfo?.subscribed);
-      assert.isUndefined(userInfo?.role);
-    });
-
     it(`Verify a seated administrator`, function () {
-      const session = getLightSpeedUserDetails(true, true, true);
+      const session = getLightSpeedUserDetails(true, true);
       const { userInfo } = getLoggedInUserDetails(session);
       assert.equal(userInfo?.userType, "Licensed");
       assert.isTrue(userInfo?.subscribed);

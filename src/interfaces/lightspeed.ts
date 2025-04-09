@@ -7,12 +7,10 @@ import {
 } from "../definitions/lightspeed";
 
 export interface LightspeedAuthSession extends AuthenticationSession {
-  rhUserHasSeat: boolean;
   rhOrgHasSubscription: boolean;
   rhUserIsOrgAdmin: boolean;
 }
 export interface LightspeedUserDetails {
-  rhUserHasSeat: boolean;
   rhOrgHasSubscription: boolean;
   rhUserIsOrgAdmin: boolean;
   displayName: string;

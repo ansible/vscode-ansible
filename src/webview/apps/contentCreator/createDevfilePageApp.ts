@@ -183,8 +183,7 @@ function handleResetClick() {
   }
 
   overwriteCheckbox.checked = false;
-  imageDropdown.value =
-    "Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)";
+  imageDropdown.value = "Upstream (ghcr.io/ansible/ansible-devspaces:latest)";
 
   if (
     devfileNameTextField.value.trim() &&

@@ -35,7 +35,7 @@ describe("Check walkthroughs, elements and associated commands", async () => {
     [
       "Start automating with your first Ansible playbook",
       [
-        "Log in to Ansible Lightspeed",
+        "Enable Ansible Lightspeed",
         "Create an Ansible playbook project",
         "Create an Ansible playbook",
         "Save your playbook to a playbook project",

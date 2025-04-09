@@ -37,7 +37,7 @@ export class LightSpeedManager {
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
   public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
-  private _logger: Log;
+  private logger: Log;
 
   constructor(
     context: vscode.ExtensionContext,
@@ -49,27 +49,31 @@ export class LightSpeedManager {
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
-    this._logger = new Log();
+    this.logger = new Log();
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
         this.context,
         this.settingsManager,
+        this.logger,
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME,
       );
-    this.lightSpeedAuthenticationProvider.initialize();
+    if (this.settingsManager.settings.lightSpeedService.enabled) {
+      this.lightSpeedAuthenticationProvider.initialize();
+    }
 
     this.lightspeedAuthenticatedUser = new LightspeedUser(
       this.context,
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
-      this._logger,
+      this.logger,
     );
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightspeedAuthenticatedUser,
       this.context,
+      this.logger,
     );
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
@@ -108,21 +112,29 @@ export class LightSpeedManager {
     const lightspeedSettings = <LightSpeedServiceSettings>(
       vscode.workspace.getConfiguration("ansible").get("lightspeed")
     );
+    const lightspeedEnabled = lightspeedSettings.enabled;
 
-    this.lightSpeedAuthenticationProvider.initialize();
-    this.statusBarProvider.setLightSpeedStatusBarTooltip();
-    this.setContext();
-    if (lightspeedSettings.suggestions.enabled) {
-      const githubConfig = (<unknown>(
-        vscode.workspace.getConfiguration("github")
-      )) as {
-        copilot: { enable?: { ansible?: boolean } };
-      };
-      const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
-      if (copilotEnableForAnsible) {
-        vscode.window.showInformationMessage(
-          "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed.",
-        );
+    if (!lightspeedEnabled) {
+      this.resetContext();
+      await this.lightSpeedAuthenticationProvider.dispose();
+      this.statusBarProvider.statusBar.hide();
+      return;
+    } else {
+      this.lightSpeedAuthenticationProvider.initialize();
+      this.statusBarProvider.setLightSpeedStatusBarTooltip();
+      this.setContext();
+      if (lightspeedSettings.suggestions.enabled) {
+        const githubConfig = (<unknown>(
+          vscode.workspace.getConfiguration("github")
+        )) as {
+          copilot: { enable?: { ansible?: boolean } };
+        };
+        const copilotEnableForAnsible = githubConfig?.copilot?.enable?.ansible;
+        if (copilotEnableForAnsible) {
+          vscode.window.showInformationMessage(
+            "Please disable GitHub Copilot for Ansible Lightspeed file types to use Ansible Lightspeed.",
+          );
+        }
       }
     }
 
@@ -156,9 +168,10 @@ export class LightSpeedManager {
     const lightspeedSettings = <LightSpeedServiceSettings>(
       vscode.workspace.getConfiguration("ansible").get("lightspeed")
     );
+    const lightspeedEnabled = lightspeedSettings?.enabled;
     const lightspeedSuggestionsEnabled =
       lightspeedSettings?.suggestions.enabled;
-    return lightspeedSuggestionsEnabled;
+    return lightspeedEnabled && lightspeedSuggestionsEnabled;
   }
 
   private setCustomWhenClauseContext(): void {
