@@ -77,6 +77,7 @@ import {
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
+import { CreateRole } from "./features/contentCreator/createRolePage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
@@ -590,6 +591,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.add-plugin",
       () => {
         AddPlugin.render(context.extensionUri);
+      },
+    ),
+  );
+
+  // open web-view for adding role in an ansible collection
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-role",
+      () => {
+        CreateRole.render(context.extensionUri);
       },
     ),
   );

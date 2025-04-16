@@ -480,3 +480,66 @@ describe("Test collection plugins scaffolding", () => {
     );
   });
 });
+
+describe("Test role scaffolding in an existing collection", () => {
+  let editorView: EditorView;
+
+  before(async () => {
+    await workbenchExecuteCommand("Install Ansible Content Creator");
+    await sleep(2000);
+  });
+
+  async function testWebViewElements(command: string, editorTitle: string) {
+    await workbenchExecuteCommand(command);
+    await sleep(4000);
+
+    await new EditorView().openEditor(editorTitle);
+    const webview = await getWebviewByLocator(
+      By.xpath("//vscode-textfield[@id='path-url']"),
+    );
+
+    async function checkAndInteractWithField(fieldId: string, value: string) {
+      const textField = await webview.findWebElement(
+        By.xpath(`//vscode-textfield[@id='${fieldId}']`),
+      );
+      expect(textField, `${fieldId} should not be undefined`).not.to.be
+        .undefined;
+      await textField.sendKeys(value);
+      await sleep(2000);
+    }
+    await checkAndInteractWithField("path-url", path.join(homeDir, "/test"));
+    await checkAndInteractWithField("role-name", "role_name");
+    async function clickButtonAndCheckEnabled(buttonId: string) {
+      const button = await webview.findWebElement(
+        By.xpath(`//vscode-button[@id='${buttonId}']`),
+      );
+      expect(button, `${buttonId} should not be undefined`).not.to.be.undefined;
+      expect(await button.isEnabled(), `${buttonId} should be enabled`).to.be
+        .true;
+      await button.click();
+      await sleep(2000);
+    }
+
+    await clickButtonAndCheckEnabled("create-button");
+
+    const overwriteCheckbox = await webview.findWebElement(
+      By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+    );
+    expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+      .to.be.undefined;
+    await overwriteCheckbox.click();
+    await sleep(1000);
+
+    await clickButtonAndCheckEnabled("create-button");
+    await webview.switchBack();
+
+    editorView = new EditorView();
+    if (editorView) {
+      await editorView.closeAllEditors();
+    }
+  }
+
+  it("Check create-ansible-project webview elements", async () => {
+    await testWebViewElements("Ansible: Add Role", "Create Role");
+  });
+});
