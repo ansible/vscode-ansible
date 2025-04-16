@@ -89,16 +89,20 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-          - name: test (wsl)
-            # runner does not support running containers
-            task-name: als:test-without-ee
-            log-name: als-test-without-ee
-            # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
-            shell: "wsl-bash {0}"
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: test (wsl)
+          #   # runner does not support running containers
+          #   task-name: als:test-without-ee
+          #   log-name: als-test-without-ee
+          #   # https://github.com/actions/virtual-environments/issues/5151
+          #   os: devtools-win-x64
+          #   shell: "wsl-bash {0}"
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          - name: test (windows)
+            task-name: test
+            os: wsl-runner
+            
     steps:
       - uses: actions/checkout@v4
         with:
