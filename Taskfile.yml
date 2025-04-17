@@ -55,8 +55,6 @@ tasks:
     desc: Build the project
     cmds:
       - task: install
-      # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
-      # - cd node_modules/vscode-extension-tester && npm update vsce
       - npm exec -- yarn run clean
       - npm exec -- yarn run als-compile
       - npm exec -- yarn run compile

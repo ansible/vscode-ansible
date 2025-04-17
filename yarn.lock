@@ -2075,9 +2075,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/vsce@npm:^3.2.1, @vscode/vsce@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "@vscode/vsce@npm:3.3.0"
+"@vscode/vsce@npm:^3.2.1, @vscode/vsce@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "@vscode/vsce@npm:3.3.2"
   dependencies:
     "@azure/identity": "npm:^4.1.0"
     "@vscode/vsce-sign": "npm:^2.0.0"
@@ -2109,7 +2109,7 @@ __metadata:
       optional: true
   bin:
     vsce: vsce
-  checksum: 10/dd75287b2719f46390cbec5ddbff9cdafc5a5eb92698178cbd1f3c196910d5d21a63848e60cbdc300912e09a45be742ee5653911e8c8a40af9f86ff3864c81d7
+  checksum: 10/b7995cf35dfb7d1eacf4094c5bdf1bb186d3cd23bcfa2da85d27ad1d99ed5b662006d2ddba0d80359fac76472c32b95288634e07bd5563689f5a9705e250212c
   languageName: node
   linkType: hard
 
@@ -2671,7 +2671,7 @@ __metadata:
     "@vitejs/plugin-vue": "npm:^5.2.3"
     "@vscode-elements/elements": "npm:^1.13.1"
     "@vscode/test-electron": "npm:^2.4.1"
-    "@vscode/vsce": "npm:^3.3.0"
+    "@vscode/vsce": "npm:^3.3.2"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"
     chai: "npm:^4.5.0"
     depcheck: "npm:^1.4.7"
