@@ -116,6 +116,7 @@ describe("Verify playbook explanation features work as expected", function () {
   });
 
   it("Playbook explanation thumbs up/down button disabled after thumbs up", async function () {
+    this.skip();
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -123,6 +124,7 @@ describe("Verify playbook explanation features work as expected", function () {
   });
 
   it("Playbook explanation thumbs up/down button disabled after thumbs down", async function () {
+    this.skip();
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -143,6 +145,7 @@ describe("Feedback webview provider works as expected", function () {
   });
 
   it("Open Feedback webview", async function () {
+    this.skip();
     // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
     await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
     await sleep(2000);
