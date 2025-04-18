@@ -128,7 +128,9 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
       Role name: <vscode-textfield v-model="roleName" />
     </div>
 
-    <OutlineReview :outline
+    <OutlineReview
+      :outline
+      type="role"
       @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
 
     <div>
