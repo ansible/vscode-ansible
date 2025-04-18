@@ -27,12 +27,12 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   await new EditorView().openEditor("Explanation", 1);
   // Locate the role explanation webview
   const webView = await getWebviewByLocator(
-    By.xpath("//div[contains(@class, 'roleExplanation') ]"),
+    By.xpath("//div[contains(@class, 'explanation') ]"),
   );
 
   // Find the main div element of the webview and verify the expected text is found.
   const mainDiv = await webView.findWebElement(
-    By.xpath("//div[contains(@class, 'roleExplanation') ]"),
+    By.xpath("//div[contains(@class, 'explanation') ]"),
   );
   expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
   const text = await mainDiv.getText();

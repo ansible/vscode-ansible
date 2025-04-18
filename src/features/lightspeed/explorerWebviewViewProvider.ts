@@ -14,8 +14,7 @@ import {
 } from "./utils/explorerView";
 import { LightspeedUser } from "./lightspeedUser";
 
-import { isPlaybook } from "./playbookExplanation";
-import { isDocumentInRole } from "./roleExplanation";
+import { isPlaybook, isDocumentInRole } from "./utils/explanationUtils";
 
 export class LightspeedExplorerWebviewViewProvider
   implements WebviewViewProvider

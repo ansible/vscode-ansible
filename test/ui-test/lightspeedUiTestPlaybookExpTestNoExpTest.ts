@@ -43,12 +43,12 @@ describe.skip("Verify playbook explanation features when no explanation is retur
     await new EditorView().openEditor("Explanation", 1);
 
     const webView = await getWebviewByLocator(
-      By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+      By.xpath("//div[contains(@class, 'explanation') ]"),
     );
 
     // Find the main div element of the webview and verify the expected text is found.
     const mainDiv = await webView.findWebElement(
-      By.xpath("//div[contains(@class, 'playbookGeneration') ]"),
+      By.xpath("//div[contains(@class, 'explanation') ]"),
     );
     expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
     await sleep(5000);

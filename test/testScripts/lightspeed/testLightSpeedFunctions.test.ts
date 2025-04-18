@@ -8,7 +8,7 @@ import { LIGHTSPEED_STATUS_BAR_TEXT_DEFAULT } from "../../../src/definitions/lig
 import {
   findTasks,
   isPlaybook,
-} from "../../../src/features/lightspeed/playbookExplanation";
+} from "../../../src/features/lightspeed/utils/explanationUtils";
 import * as inlineSuggestions from "../../../src/features/lightspeed/inlineSuggestions";
 
 function getLightSpeedUserDetails(

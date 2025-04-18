@@ -10,6 +10,9 @@ export default defineConfig({
         entry: "src/extension.ts",
         //minify: false,
       },
+      webview: {
+        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}'; style-src {{cspSource}}; font-src {{cspSource}};">`,
+      },
     }),
     vue({
       template: {
@@ -33,6 +36,10 @@ export default defineConfig({
         "playbook-generation": path.resolve(
           __dirname,
           "webviews/lightspeed/playbook-generation.html",
+        ),
+        explanation: path.resolve(
+          __dirname,
+          "webviews/lightspeed/explanation.html",
         ),
       },
     },
