@@ -154,7 +154,7 @@ jobs:
 
       - name: Setup node.js
         if: ${{ !contains(matrix.name, 'wsl') }}
-        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           cache: yarn
@@ -307,7 +307,7 @@ jobs:
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
-        if: ${{ matrix.name == 'test (linux)' }}
+        if: ${{ (matrix.name == 'test (linux)') &&  matrix.task-name == 'test (wsl)' }}
         uses: actions/upload-artifact@v4
         with:
           name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
