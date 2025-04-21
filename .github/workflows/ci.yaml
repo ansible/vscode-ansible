@@ -153,11 +153,39 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        if: ${{ !contains(matrix.name, 'wsl') }}
+        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: yarn
+          # yarn cache is broken due https://github.com/actions/setup-node/issues/531
+          # cache: yarn
+
+      - name: Corepack enable
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: corepack enable
+
+      - name: Enable caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            .vscode-test
+            .yarn/cache
+            out/ext
+            out/test-resources
+            out/test-resources-oldest
+            ~/.cache/pip
+            ~/.cache/yarn
+            ~/.cache/pre-commit/
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
+
+      # - name: Enable caching for podman-machine
+      #   if: "contains(matrix.os, 'macos')"
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.local/share/containers
+      #       ~/.config/containers
+      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
         if: ${{ !contains(matrix.name, 'wsl') }}
@@ -230,29 +258,6 @@ jobs:
           }
           # Ensure NODE_OPTIONS config on CI is identical with the one in .env
           [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
-
-      - name: Enable caching
-        uses: actions/cache@v4
-        with:
-          path: |
-            .vscode-test
-            .yarn/cache
-            out/ext
-            out/test-resources
-            out/test-resources-oldest
-            ~/.cache/pip
-            ~/.cache/yarn
-            ~/.cache/pre-commit/
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
-
-      # - name: Enable caching for podman-machine
-      #   if: "contains(matrix.os, 'macos')"
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       ~/.local/share/containers
-      #       ~/.config/containers
-      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Install dependencies
         uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
