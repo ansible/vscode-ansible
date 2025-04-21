@@ -177,10 +177,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install ansible-dev-tools
-        # if: ${{ !contains(matrix.name, 'wsl') }}
+      - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
         run: |
-          pip install ansible-dev-tools
+          if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
+            pipx install ansible-dev-tools
+          else
+            pip install ansible-dev-tools
+          fi
 
       # - name: Install asdf inside WSL
       #   if: contains(matrix.name, 'wsl')
