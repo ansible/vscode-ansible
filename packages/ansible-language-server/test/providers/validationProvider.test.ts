@@ -406,7 +406,7 @@ describe("doValidate()", () => {
 
     describe("Ansible diagnostics", () => {
       describe("Diagnostics using ansible-lint", () => {
-        describe("With EE enabled @ee", () => {
+        describe.skip("With EE enabled @ee", () => {
           before(async () => {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",

@@ -13,13 +13,14 @@ dictionaries:
   - "!cryptocurrencies"
   - "!cpp"
 ignorePaths:
-  - syntaxes/external/*.*
+  - "**/requirements.in"
+  - .config/constraints.txt
+  - .yarn/
   - media
   - package.json
-  - test/testFixtures/lightspeed/*.yml
-  - .yarn/
-  - "**/requirements.in"
   - syntaxes
+  - syntaxes/external/*.*
+  - test/testFixtures/lightspeed/*.yml
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"

@@ -283,7 +283,7 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
     python3 -m uv pip install -q \
-        -r .config/requirements.in
+        -r .config/requirements.in -c .config/constraints.txt
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
