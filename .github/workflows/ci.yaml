@@ -149,10 +149,38 @@ jobs:
 
       - name: Setup node.js
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          cache: yarn
+          # yarn cache is broken due https://github.com/actions/setup-node/issues/531
+          # cache: yarn
+
+      - name: Corepack enable
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: corepack enable
+
+      - name: Enable caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            .vscode-test
+            .yarn/cache
+            out/ext
+            out/test-resources
+            out/test-resources-oldest
+            ~/.cache/pip
+            ~/.cache/yarn
+            ~/.cache/pre-commit/
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
+
+      # - name: Enable caching for podman-machine
+      #   if: "contains(matrix.os, 'macos')"
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.local/share/containers
+      #       ~/.config/containers
+      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
         if: ${{ !contains(matrix.shell, 'wsl') }}
@@ -222,29 +250,6 @@ jobs:
           }
           # Ensure NODE_OPTIONS config on CI is identical with the one in .env
           [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
-
-      - name: Enable caching
-        uses: actions/cache@v4
-        with:
-          path: |
-            .vscode-test
-            .yarn/cache
-            out/ext
-            out/test-resources
-            out/test-resources-oldest
-            ~/.cache/pip
-            ~/.cache/yarn
-            ~/.cache/pre-commit/
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
-
-      # - name: Enable caching for podman-machine
-      #   if: "contains(matrix.os, 'macos')"
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       ~/.local/share/containers
-      #       ~/.config/containers
-      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Install dependencies
         uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
@@ -398,7 +403,7 @@ jobs:
           find . -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.4.0
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: als
           files: ./*/coverage/als/lcov.info
@@ -408,7 +413,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.4.0
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: unit
           files: ./*/coverage/unit/lcov.info
@@ -424,7 +429,7 @@ jobs:
           echo "COVERAGE_FILES=$COVERAGE_FILES" >> $GITHUB_ENV
 
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.4.0
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: ui
           files: ${{ env.COVERAGE_FILES }}
@@ -434,7 +439,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.4.0
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: e2e
           files: ./*/coverage/e2e/lcov.info
