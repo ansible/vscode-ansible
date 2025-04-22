@@ -955,7 +955,7 @@
     "@highlightjs/vue-plugin": "2.1.0",
     "@primeuix/themes": "^1.0.3",
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
-    "@tomjs/vite-plugin-vscode": "^3.2.1",
+    "@tomjs/vite-plugin-vscode": "^4.0.0",
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.3",
