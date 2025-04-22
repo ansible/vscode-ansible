@@ -1,5 +1,17 @@
 version: 2
 updates:
+  - package-ecosystem: pip
+    directory: /.config/
+    schedule:
+      day: sunday
+      interval: weekly
+    labels:
+      - dependabot-deps-updates
+      - skip-changelog
+    groups:
+      dependencies:
+        patterns:
+          - "*"
   - package-ecosystem: npm
     directories:
       - "/"
