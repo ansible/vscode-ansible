@@ -89,16 +89,21 @@ jobs:
           #   # in order to enable the caching
           #   continue-on-error: true
 
+          # - name: test (wsl)
+          #   # runner does not support running containers
+          #   task-name: als:test-without-ee
+          #   log-name: als-test-without-ee
+          #   # https://github.com/actions/virtual-environments/issues/5151
+          #   os: devtools-win-x64
+          #   shell: "wsl-bash {0}"
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
           - name: test (wsl)
-            # runner does not support running containers
-            task-name: als:test-without-ee
-            log-name: als-test-without-ee
-            # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
-            shell: "wsl-bash {0}"
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+            task-name: test
+            os: wsl-runner
+            runs-on: self-hosted
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -150,7 +155,7 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        # if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
         with:
           node-version: 20
@@ -191,47 +196,50 @@ jobs:
           version: 3.37.2
 
       - name: Setup direnv
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: HatsuneMiku3939/direnv-action@v1.1.0
+        if: ${{ !contains(matrix.name, 'wsl') }}
+        uses: HatsuneMiku3939/direnv-action@v1
         with:
           direnvVersion: 2.35.0
 
       - name: Setup direnv for wsl
-        if: ${{ contains(matrix.shell, 'wsl') }}
+        if: ${{ contains(matrix.name, 'wsl') }}
         run: curl -sfL https://direnv.net/install.sh | bash
 
       - name: Setup python
-        if: ${{ contains(matrix.shell, 'wsl') }}
+        if: ${{ contains(matrix.name, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install ansible-dev-tools
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+      - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
         run: |
-          pip install ansible-dev-tools
+          if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
+            pipx install ansible-dev-tools
+          else
+            pip install ansible-dev-tools
+          fi
 
-      - name: Install asdf inside WSL
-        if: contains(matrix.shell, 'wsl')
-        run: |
-          set -ex
-          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
-          export ASDF_DIR="$HOME/.asdf"
-          . "$HOME/.asdf/asdf.sh"
-          asdf plugin add direnv
-          asdf plugin add nodejs
-          asdf plugin add python
-          asdf plugin add task
-          asdf plugin add yarn
-          asdf install
-          direnv --version
-          task --version
-          node --version
-          python3 --version
+      # - name: Install asdf inside WSL
+      #   if: contains(matrix.shell, 'wsl')
+      #   run: |
+      #     set -ex
+      #     git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+      #     echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+      #     export ASDF_DIR="$HOME/.asdf"
+      #     . "$HOME/.asdf/asdf.sh"
+      #     asdf plugin add direnv
+      #     asdf plugin add nodejs
+      #     asdf plugin add python
+      #     asdf plugin add task
+      #     asdf plugin add yarn
+      #     asdf install
+      #     direnv --version
+      #     task --version
+      #     node --version
+      #     python3 --version
 
       - name: Activate direnv
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        # if: ${{ !contains(matrix.name, 'wsl') }}
         run: |
           direnv allow
           direnv reload
@@ -243,7 +251,7 @@ jobs:
           direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
       - name: Ensure .env file is automatically loaded (direnv)
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        # if: ${{ !contains(matrix.name, 'wsl') }}
         run: |
           set -ex
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
@@ -296,7 +304,7 @@ jobs:
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        if: "${{ contains(matrix.name, 'test') }}"
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
