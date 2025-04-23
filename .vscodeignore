@@ -26,6 +26,7 @@
 !media/contentCreator/createDevfilePageStyle.css
 !media/contentCreator/createExecutionEnvPageStyle.css
 !media/contentCreator/createDevcontainerPageStyle.css
+!media/contentCreator/createRolePageStyle.css
 !media/contentCreator/addPluginPageStyle.css
 !media/contentCreator/welcomePageStyle.css
 !media/lightspeedExplorerView/style.css
@@ -45,6 +46,7 @@
 !out/client/webview/apps/contentCreator/createDevfilePageApp.js
 !out/client/webview/apps/contentCreator/createExecutionEnvPageApp.js
 !out/client/webview/apps/contentCreator/createDevcontainerPageApp.js
+!out/client/webview/apps/contentCreator/createRolePageApp.js
 !out/client/webview/apps/contentCreator/addPluginPageApp.js
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/client/webview/apps/welcomePage/welcomePageApp.js

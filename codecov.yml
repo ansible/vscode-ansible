@@ -20,6 +20,7 @@ ignore:
   - src/webview/apps/contentCreator/createDevfilePageApp.ts
   - src/webview/apps/contentCreator/createExecutionEnvPageApp.ts
   - src/webview/apps/contentCreator/createDevcontainerPageApp.ts
+  - src/webview/apps/contentCreator/createRolePageApp.ts
   - src/webview/apps/contentCreator/addPluginPageApp.ts
   - src/webview/apps/welcomePage/welcomePageApp.ts
   - src/webview/apps/quickLinks/quickLinksApp.ts
