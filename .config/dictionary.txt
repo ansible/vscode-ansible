@@ -31,6 +31,8 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
+Role
+Roles
 SIGINT
 SIGTERM
 Sbarnea

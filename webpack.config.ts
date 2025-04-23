@@ -264,6 +264,19 @@ const addPluginWebviewConfig = {
   },
 };
 
+const createRoleWebviewConfig = {
+  ...config,
+  target: ["web", "es2020"],
+  entry: "./src/webview/apps/contentCreator/createRolePageApp.ts",
+  experiments: { outputModule: true },
+  output: {
+    path: path.resolve(__dirname, "out"),
+    filename: "./client/webview/apps/contentCreator/createRolePageApp.js",
+    libraryTarget: "module",
+    chunkFormat: "module",
+  },
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
@@ -282,6 +295,7 @@ module.exports = (_env: any, argv: { mode: string }) => {
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,
     addPluginWebviewConfig,
+    createRoleWebviewConfig,
     quickLinksWebviewConfig,
     createExecutionEnvWebviewConfig,
   ];
