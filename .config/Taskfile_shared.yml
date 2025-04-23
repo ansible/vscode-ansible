@@ -23,7 +23,7 @@ tasks:
       - tools/test-setup.sh
       - .config/requirements.in
     generates:
-      - out/log/manifest-{{.HOSTNAME}}.yml
+      - out/log/manifest-*.yml
       - "{{.PYTHON3}}"
     run: once
     interactive: true
