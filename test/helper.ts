@@ -6,7 +6,6 @@ import findProcess from "find-process";
 
 import { LightSpeedCommands } from "../src/definitions/lightspeed";
 import { integer } from "vscode-languageclient";
-import axios from "axios";
 import { LIGHTSPEED_ME_AUTH_URL } from "../src/definitions/lightspeed";
 import { getInlineSuggestionItems } from "../src/features/lightspeed/inlineSuggestions";
 import { rmSync } from "fs";
@@ -205,9 +204,8 @@ export async function canRunLightspeedTests(): Promise<boolean> {
     return false;
   }
 
-  let result: number;
   try {
-    const { status } = await axios.get(
+    const response: Response = await fetch(
       `${ansibleLightspeedURL}${LIGHTSPEED_ME_AUTH_URL}`,
       {
         headers: {
@@ -215,24 +213,23 @@ export async function canRunLightspeedTests(): Promise<boolean> {
         },
       },
     );
-    result = status;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
+
+    if (response.status !== 200) {
       console.error(
-        "Skipping lightspeed tests because of the following error message: ",
-        error.message,
+        `Skipping lightspeed tests because the request to lightspeed me endpoint failed with status code: ${response.status} and status message: ${response.statusText}`,
+        response.statusText,
       );
-    } else {
-      console.error(
-        "Skipping lightspeed tests because of unexpected error: ",
-        error,
-      );
+      return false;
     }
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Skipping lightspeed tests because of unexpected error: ",
+      error,
+    );
     return false;
   }
-
-  // finally, check if status code is not 200
-  return result === 200;
 }
 
 export async function testDiagnostics(

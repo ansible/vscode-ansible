@@ -25,7 +25,6 @@ describe("Verify the presence of lightspeed login button in the activity bar", (
   before(async function () {
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
-
     view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
     sideBar = await view.openView();
 

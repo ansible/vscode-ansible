@@ -1,74 +1,82 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import {
-  allComponents,
-  Button,
-  Checkbox,
-  TextArea,
-  TextField,
-  provideVSCodeDesignSystem,
-  Dropdown,
-} from "@vscode/webview-ui-toolkit";
-import {
   DevfileFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-
-provideVSCodeDesignSystem().register(allComponents);
+import "@vscode-elements/elements";
+import {
+  VscodeButton,
+  VscodeCheckbox,
+  VscodeIcon,
+  VscodeSingleSelect,
+  VscodeTextarea,
+  VscodeTextfield,
+} from "@vscode-elements/elements";
 
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-let destinationPathUrlTextField: TextField;
-let folderExplorerButton: Button;
+let destinationPathUrlTextField: VscodeTextfield;
+let folderExplorerIcon: VscodeIcon;
 
-let devfileNameTextField: TextField;
+let devfileNameTextField: VscodeTextfield;
 
-let devfileCreateButton: Button;
-let devfileClearButton: Button;
+let devfileCreateButton: VscodeButton;
+let devfileClearButton: VscodeButton;
 
-let devfileClearLogsButton: Button;
+let devfileClearLogsButton: VscodeButton;
 
-let overwriteCheckbox: Checkbox;
+let overwriteCheckbox: VscodeCheckbox;
 
-let imageDropdown: Dropdown;
+let imageDropdown: VscodeSingleSelect;
 
 let devfilePathDiv: HTMLElement | null;
 let devfilePathElement: HTMLElement;
 
-let devfileLogsTextArea: TextArea;
-let devfileOpenScaffoldedFolderButton: Button;
+let devfileLogsTextArea: VscodeTextarea;
+let devfileOpenScaffoldedFolderButton: VscodeButton;
 
 let projectUrl = "";
 
 function main() {
   destinationPathUrlTextField = document.getElementById(
     "path-url",
-  ) as TextField;
-  folderExplorerButton = document.getElementById("folder-explorer") as Button;
+  ) as VscodeTextfield;
+  folderExplorerIcon = document.getElementById("folder-explorer") as VscodeIcon;
 
-  devfileNameTextField = document.getElementById("devfile-name") as TextField;
+  devfileNameTextField = document.getElementById(
+    "devfile-name",
+  ) as VscodeTextfield;
 
-  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById(
+    "overwrite-checkbox",
+  ) as VscodeCheckbox;
 
-  imageDropdown = document.getElementById("image-dropdown") as Dropdown;
-  devfileCreateButton = document.getElementById("create-button") as Button;
-  devfileClearButton = document.getElementById("reset-button") as Button;
+  imageDropdown = document.getElementById(
+    "image-dropdown",
+  ) as VscodeSingleSelect;
+  devfileCreateButton = document.getElementById(
+    "create-button",
+  ) as VscodeButton;
+  devfileClearButton = document.getElementById("reset-button") as VscodeButton;
 
-  devfileLogsTextArea = document.getElementById("log-text-area") as TextArea;
+  devfileLogsTextArea = document.getElementById(
+    "log-text-area",
+  ) as VscodeTextarea;
 
   devfileClearLogsButton = document.getElementById(
     "clear-logs-button",
-  ) as Button;
+  ) as VscodeButton;
 
   devfileOpenScaffoldedFolderButton = document.getElementById(
     "open-file-button",
-  ) as Button;
+  ) as VscodeButton;
 
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
   devfileNameTextField.addEventListener("input", toggleCreateButton);
 
-  folderExplorerButton.addEventListener("click", openFolderExplorer);
+  folderExplorerIcon.addEventListener("click", openFolderExplorer);
 
   devfileCreateButton.addEventListener("click", handleCreateClick);
 
@@ -86,15 +94,15 @@ function main() {
   devfilePathElement = document.createElement("p");
 
   if (destinationPathUrlTextField.placeholder !== "") {
-    devfilePathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devfile.yaml`;
+    devfilePathElement.innerHTML = `${destinationPathUrlTextField.placeholder as string}/devfile.yaml`;
   } else {
     devfilePathElement.innerHTML =
       "No folders are open in the workspace - Enter a destination directory.";
   }
 
-  destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
-
-  devfileNameTextField.value = devfileNameTextField.placeholder;
+  destinationPathUrlTextField.value =
+    destinationPathUrlTextField.placeholder as string;
+  devfileNameTextField.value = devfileNameTextField.placeholder as string;
 
   if (
     devfileNameTextField.value.trim() &&
@@ -109,7 +117,7 @@ function main() {
 }
 
 function openFolderExplorer(event: any) {
-  const source = event.target.parentNode.id;
+  const source = event.target.id;
 
   const typeOption = "folder";
 
@@ -131,7 +139,7 @@ function openFolderExplorer(event: any) {
         if (selectedUri) {
           if (source === "folder-explorer") {
             destinationPathUrlTextField.value = selectedUri;
-            devfilePathElement.innerHTML = selectedUri;
+            devfilePathElement.innerHTML = `${selectedUri}/devfile.yaml`;
           }
         }
       }
@@ -143,7 +151,7 @@ function toggleCreateButton() {
   //   update <p> tag text
   if (!destinationPathUrlTextField.value.trim()) {
     if (destinationPathUrlTextField.placeholder !== "") {
-      devfilePathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devfile.yaml`;
+      devfilePathElement.innerHTML = `${destinationPathUrlTextField.placeholder as string}/devfile.yaml`;
     } else {
       devfilePathElement.innerHTML =
         "No folders are open in the workspace - Enter a destination directory.";
@@ -163,8 +171,9 @@ function toggleCreateButton() {
 }
 
 function handleResetClick() {
-  destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
-  devfileNameTextField.value = devfileNameTextField.placeholder;
+  destinationPathUrlTextField.value =
+    destinationPathUrlTextField.placeholder as string;
+  devfileNameTextField.value = devfileNameTextField.placeholder as string;
 
   if (destinationPathUrlTextField.placeholder !== "") {
     devfilePathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/devfile.yaml`;
@@ -174,8 +183,7 @@ function handleResetClick() {
   }
 
   overwriteCheckbox.checked = false;
-  imageDropdown.currentValue =
-    "Upstream (ghcr.io/ansible/ansible-workspace-env-reference:latest)";
+  imageDropdown.value = "Upstream (ghcr.io/ansible/ansible-devspaces:latest)";
 
   if (
     devfileNameTextField.value.trim() &&
@@ -191,7 +199,7 @@ function handleCreateClick() {
   let path: string;
   devfileCreateButton.disabled = true;
   if (destinationPathUrlTextField.value === "") {
-    path = destinationPathUrlTextField.placeholder;
+    path = destinationPathUrlTextField.placeholder as string;
   } else {
     path = destinationPathUrlTextField.value.trim();
   }
@@ -201,7 +209,7 @@ function handleCreateClick() {
     payload: {
       destinationPath: path,
       name: devfileNameTextField.value.trim(),
-      image: imageDropdown.currentValue.trim(),
+      image: imageDropdown.value.trim(),
       isOverwritten: overwriteCheckbox.checked,
     } as DevfileFormInterface,
   });

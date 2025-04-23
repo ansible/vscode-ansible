@@ -18,3 +18,4 @@ ignores:
   - vscode
   - webpack-cli
   - yarn-audit-fix
+  - electron

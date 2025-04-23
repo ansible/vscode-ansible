@@ -3,27 +3,35 @@
 .container {
     display: flex;
     flex-direction: column;
+    font-size: 1em;
 }
 
 .element {
     margin-bottom: 14px;
 }
 
-vscode-text-field {
+vscode-textfield {
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+vscode-textarea {
     margin-top: 6px;
     margin-bottom: 6px;
 }
 
-vscode-text-area {
-    margin-top: 6px;
-    margin-bottom: 6px;
+vscode-form-group {
+    width: 100%;
+    margin: 0;
 }
 
 .plugin-name-div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items: center;
+    margin-top: 18px;
+    margin-bottom: 20px;
+    width: 100%;
 }
 
 #plugin-name {
@@ -55,7 +63,7 @@ vscode-text-area {
     width: 100%;
 }
 
-vscode-dropdown {
+vscode-single-select {
     width: 200px;
 }
 
@@ -86,6 +94,16 @@ vscode-button {
 vscode-checkbox i {
     color: var(--vscode-descriptionForeground);
     font-size: small;
+}
+
+vscode-divider {
+    width: 100%;
+}
+
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-top: 12px;
 }
 
 #ade-docs-link {

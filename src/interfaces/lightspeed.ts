@@ -7,12 +7,10 @@ import {
 } from "../definitions/lightspeed";
 
 export interface LightspeedAuthSession extends AuthenticationSession {
-  rhUserHasSeat: boolean;
   rhOrgHasSubscription: boolean;
   rhUserIsOrgAdmin: boolean;
 }
 export interface LightspeedUserDetails {
-  rhUserHasSeat: boolean;
   rhOrgHasSubscription: boolean;
   rhUserIsOrgAdmin: boolean;
   displayName: string;
@@ -96,6 +94,16 @@ export interface RoleGenerationActionEvent {
   toPage?: number;
 }
 
+export interface RoleExplanationEvent {
+  explanationId?: string;
+}
+
+export interface RoleFeedbackEvent {
+  action: ThumbsUpDownAction;
+  explanationId?: string;
+  generationId?: string;
+}
+
 export interface FeedbackRequestParams {
   inlineSuggestion?: InlineSuggestionEvent;
   sentimentFeedback?: SentimentFeedbackEvent;
@@ -103,9 +111,10 @@ export interface FeedbackRequestParams {
   issueFeedback?: IssueFeedbackEvent;
   playbookExplanation?: PlaybookExplanationEvent;
   playbookExplanationFeedback?: PlaybookFeedbackEvent;
-  playbookGenerationFeedback?: PlaybookFeedbackEvent;
   playbookGenerationAction?: PlaybookGenerationActionEvent;
   roleGenerationAction?: RoleGenerationActionEvent;
+  roleExplanation?: RoleExplanationEvent;
+  roleExplanationFeedback?: RoleFeedbackEvent;
   playbookOutlineFeedback?: PlaybookFeedbackEvent;
   model?: string;
 }
@@ -148,7 +157,16 @@ export interface ISuggestionDetails {
   isPlaybook: boolean;
 }
 
-export interface GenerationRequestParams {
+export interface PlaybookGenerationRequestParams {
+  text: string;
+  outline?: string;
+  generationId: string;
+  createOutline: boolean;
+  wizardId?: string;
+}
+
+export interface RoleGenerationRequestParams {
+  name?: string;
   text: string;
   outline?: string;
   generationId: string;
@@ -162,21 +180,30 @@ export interface PlaybookGenerationResponseParams {
   generationId: string;
 }
 
-export enum RoleGenerationFileType {
+export enum RoleFileType {
   Default = "default",
   Task = "task",
+  Playbook = "playbook",
 }
 
-export interface RoleGenerationListEntry {
+export interface GenerationListEntry {
   path: string;
-  file_type: RoleGenerationFileType;
+  file_type: RoleFileType;
   content: string;
 }
 
 export interface RoleGenerationResponseParams {
-  files: RoleGenerationListEntry[];
+  files: GenerationListEntry[];
   outline?: string;
   generationId: string;
+  name: string;
+  role?: string; // deprecated
+}
+
+export interface RoleExplanationRequestParams {
+  files: GenerationListEntry[];
+  explanationId: string;
+  roleName: string;
 }
 
 export interface ExplanationRequestParams {

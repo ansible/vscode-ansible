@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import * as path from "path";
-import { readFileSync } from "fs";
+import { readFileSync, rmSync } from "fs";
 import { WorkspaceManager } from "../src/services/workspaceManager";
 import {
   CompletionItem,
@@ -10,7 +10,6 @@ import {
 } from "vscode-languageserver/node";
 import { ValidationManager } from "../src/services/validationManager";
 import { ExtensionSettings } from "../src/interfaces/extensionSettings";
-import { rmSync } from "fs";
 
 import Fuse from "fuse.js";
 

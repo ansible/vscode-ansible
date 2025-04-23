@@ -12,7 +12,7 @@ if sys.version_info < (3, 9):
 
 if "--max-old-space-size" not in os.environ.get("NODE_OPTIONS", "") != "ignore":
     print(
-        "FATAL: NODE_OPTIONS variable was not found, this likely means that .envrc file was not"
+        "FATAL: NODE_OPTIONS variable was not found, this likely means that .env file was not"
         " loaded. Build will likely fail.",
         file=sys.stderr,
     )

@@ -16,7 +16,6 @@ import {
 } from "vscode";
 import { v4 as uuid } from "uuid";
 import { PromiseAdapter, promiseFromEvent } from "./utils/promiseHandlers";
-import axios from "axios";
 import { SettingsManager } from "../../settings";
 import {
   generateCodeVerifier,
@@ -26,18 +25,19 @@ import {
   calculateTokenExpiryTime,
   SESSIONS_SECRET_KEY,
   ACCOUNT_SECRET_KEY,
-  LoggedInUserInfo,
   getBaseUri,
   getUserTypeLabel,
 } from "./utils/webUtils";
 import {
   LIGHTSPEED_CLIENT_ID,
   LIGHTSPEED_SERVICE_LOGIN_TIMEOUT,
-  LIGHTSPEED_ME_AUTH_URL,
   LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { LightspeedAuthSession } from "../../interfaces/lightspeed";
 import { lightSpeedManager } from "../../extension";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { Log } from "../../utils/logger";
+import { getFetch } from "./api";
 
 const CODE_VERIFIER = generateCodeVerifier();
 const CODE_CHALLENGE = generateCodeChallengeFromVerifier(CODE_VERIFIER);
@@ -69,6 +69,7 @@ export class LightSpeedAuthenticationProvider
     new EventEmitter<AuthenticationProviderAuthenticationSessionsChangeEvent>();
   private _disposable: Disposable | undefined;
   private _uriHandler = new UriEventHandler();
+  private _logger: Log;
   private _authId: string;
   private _authName: string;
   private _externalRedirectUri: string;
@@ -76,11 +77,13 @@ export class LightSpeedAuthenticationProvider
   constructor(
     private readonly context: ExtensionContext,
     settingsManager: SettingsManager,
+    logger: Log,
     authId: string,
     authName: string,
     externalRedirectUri = "",
   ) {
     this.settingsManager = settingsManager;
+    this._logger = logger;
     this._authId = authId;
     this._authName = authName;
     this._externalRedirectUri = externalRedirectUri;
@@ -88,7 +91,7 @@ export class LightSpeedAuthenticationProvider
 
   public initialize() {
     if (this._disposable) {
-      console.log(
+      this._logger.debug(
         "[ansible-lightspeed-oauth] Auth provider already registered",
       );
       return;
@@ -159,23 +162,19 @@ export class LightSpeedAuthenticationProvider
         throw new Error(`Ansible Lightspeed login failure`);
       }
 
-      const userinfo: LoggedInUserInfo = await this.getUserInfo(
-        account.accessToken,
-      );
+      const userinfo =
+        await lightSpeedManager.lightspeedAuthenticatedUser.getUserInfo(
+          account.accessToken,
+        );
 
       const identifier = uuid();
       const userName = userinfo.external_username || userinfo.username || "";
       const rhOrgHasSubscription = userinfo.rh_org_has_subscription
         ? userinfo.rh_org_has_subscription
         : false;
-      const rhUserHasSeat = userinfo.rh_user_has_seat
-        ? userinfo.rh_user_has_seat
-        : false;
 
-      const userTypeLabel = getUserTypeLabel(
-        rhOrgHasSubscription,
-        rhUserHasSeat,
-      ).toLowerCase();
+      const userTypeLabel =
+        getUserTypeLabel(rhOrgHasSubscription).toLowerCase();
       const label = `${userName} (${userTypeLabel})`;
       const session: LightspeedAuthSession = {
         id: identifier,
@@ -186,7 +185,6 @@ export class LightSpeedAuthenticationProvider
         },
         // scopes: account.scope,
         scopes: [],
-        rhUserHasSeat: rhUserHasSeat,
         rhOrgHasSubscription: userinfo.rh_org_has_subscription
           ? userinfo.rh_org_has_subscription
           : false,
@@ -205,7 +203,7 @@ export class LightSpeedAuthenticationProvider
         changed: [],
       });
 
-      console.log("[ansible-lightspeed-oauth] Session created...");
+      this._logger.debug("[ansible-lightspeed-oauth] Session created...");
 
       return session;
     } catch (e) {
@@ -255,7 +253,7 @@ export class LightSpeedAuthenticationProvider
         this.removeSession(sessionId);
       }
 
-      console.log("[ansible-lightspeed-oauth] Disposing auth provider");
+      this._logger.debug("[ansible-lightspeed-oauth] Disposing auth provider");
       await this._disposable.dispose();
       this._disposable = undefined;
     }
@@ -263,7 +261,7 @@ export class LightSpeedAuthenticationProvider
 
   /* Log in to the Ansible Lightspeed auth service */
   private async login(scopes: string[] = []) {
-    console.log("[ansible-lightspeed-oauth] Logging in...");
+    this._logger.debug("[ansible-lightspeed-oauth] Logging in...");
 
     await this.setExternalRedirectUri();
 
@@ -360,54 +358,58 @@ export class LightSpeedAuthenticationProvider
       "Content-Type": "application/x-www-form-urlencoded",
     };
 
-    const postData = {
-      client_id: LIGHTSPEED_CLIENT_ID,
-      code: code,
-      code_verifier: CODE_VERIFIER,
-      redirect_uri: this._externalRedirectUri,
-      grant_type: "authorization_code",
-    };
-
-    console.log(
+    this._logger.debug(
       "[ansible-lightspeed-oauth] Sending request for access token...",
     );
 
     try {
-      const { data } = await axios.post(
+      const fetch = getFetch();
+
+      const response = await fetch(
         `${getBaseUri(this.settingsManager)}/o/token/`,
-        postData,
         {
-          headers: headers,
+          method: "POST",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
+          body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&code_verifier=${encodeURIComponent(CODE_VERIFIER)}&grant_type=authorization_code&code=${code}&redirect_uri=${encodeURIComponent(this._externalRedirectUri)}`,
+          headers,
         },
       );
 
-      const account: OAuthAccount = {
-        type: "oauth",
-        accessToken: data.access_token,
-        refreshToken: data.refresh_token,
-        expiresAtTimestampInSeconds: calculateTokenExpiryTime(data.expires_in),
-        // scope: data.scope,
-      };
-      // store the account info
-      this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
+      const data = await response.json();
 
-      return account;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "[ansible-lightspeed-oauth] error message: ",
-          error.message,
-        );
-        /* istanbul ignore next */
-        console.error(
-          "[ansible-lightspeed-oauth] error response data: ",
-          error.response?.data,
-        );
-        throw new Error("An unexpected error occurred");
+      if (response.ok) {
+        const account: OAuthAccount = {
+          type: "oauth",
+          accessToken: data?.access_token,
+          refreshToken: data?.refresh_token,
+          expiresAtTimestampInSeconds: calculateTokenExpiryTime(
+            data?.expires_in,
+          ),
+          // scope: data.scope,
+        };
+        // store the account info
+        this.context.secrets.store(ACCOUNT_SECRET_KEY, JSON.stringify(account));
+
+        return account;
       } else {
-        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
-        throw new Error("An unexpected error occurred");
+        console.error(
+          `[ansible-lightspeed-oauth] call to get access token returned non-2xx response. Status: ${response.status}. Body: `,
+          data,
+        );
+
+        throw new Error(`Request failed with status code: ${response.status}`);
       }
+    } catch (error) {
+      const err = error as Error;
+      console.error(
+        `[ansible-lightspeed-oauth] Error occurred: ${err.message}`,
+        {
+          name: err.name,
+          message: err.message,
+          stack: err.stack,
+        },
+      );
+      throw err;
     }
   }
 
@@ -420,13 +422,7 @@ export class LightSpeedAuthenticationProvider
       "Content-Type": "application/x-www-form-urlencoded",
     };
 
-    const postData = {
-      client_id: LIGHTSPEED_CLIENT_ID,
-      refresh_token: currentAccount.refreshToken,
-      grant_type: "refresh_token",
-    };
-
-    console.log(
+    this._logger.trace(
       "[ansible-lightspeed-oauth] Sending request for a new access token...",
     );
 
@@ -436,18 +432,28 @@ export class LightSpeedAuthenticationProvider
         location: ProgressLocation.Notification,
       },
       async () => {
-        return axios
-          .post(`${getBaseUri(this.settingsManager)}/o/token/`, postData, {
-            headers: headers,
-          })
-          .then((response) => {
-            const data = response.data;
+        try {
+          const fetch = getFetch();
+
+          const response = await fetch(
+            `${getBaseUri(this.settingsManager)}/o/token/`,
+            {
+              method: "POST",
+              signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
+              body: `client_id=${encodeURIComponent(LIGHTSPEED_CLIENT_ID)}&refresh_token=${encodeURIComponent(currentAccount.refreshToken)}&grant_type=refresh_token`,
+              headers,
+            },
+          );
+
+          const data = await response.json();
+
+          if (response.ok) {
             const account: OAuthAccount = {
               ...currentAccount,
-              accessToken: data.access_token,
-              refreshToken: data.refresh_token,
+              accessToken: data?.access_token,
+              refreshToken: data?.refresh_token,
               expiresAtTimestampInSeconds: calculateTokenExpiryTime(
-                data.expires_in,
+                data?.expires_in,
               ),
               // scope: data.scope,
             };
@@ -459,13 +465,28 @@ export class LightSpeedAuthenticationProvider
             );
 
             return account;
-          })
-          .catch((error) => {
+          } else {
             console.error(
-              `[ansible-lightspeed-oauth] Request token failed with error: ${error}`,
+              `[ansible-lightspeed-oauth] call to get new access token returned non-2xx response. Status: ${response.status}. Body: `,
+              data,
             );
-            return;
-          });
+
+            throw new Error(
+              `Request failed with status code: ${response.status}`,
+            );
+          }
+        } catch (error) {
+          const err = error as Error;
+          console.error(
+            `[ansible-lightspeed-oauth] Error occurred: ${err.message}`,
+            {
+              name: err.name,
+              message: err.message,
+              stack: err.stack,
+            },
+          );
+          throw err;
+        }
       },
     );
 
@@ -478,7 +499,7 @@ export class LightSpeedAuthenticationProvider
    * it requests for a new token and updates the secret store
    */
   public async refreshAccessToken(session: AuthenticationSession) {
-    console.log("[ansible-lightspeed-oauth] Getting access token...");
+    this._logger.trace("[ansible-lightspeed-oauth] Refresh access token...");
 
     const sessionId = session.id;
 
@@ -487,7 +508,7 @@ export class LightSpeedAuthenticationProvider
       throw new Error(`Unable to fetch account`);
     }
 
-    console.log("[ansible-lightspeed-oauth] Account found");
+    this._logger.trace("[ansible-lightspeed-oauth] Account found");
 
     const currentAccount: OAuthAccount = JSON.parse(account);
     let tokenToBeReturned = currentAccount.accessToken;
@@ -495,13 +516,12 @@ export class LightSpeedAuthenticationProvider
     // check if token needs to be refreshed
     const timeNow = Math.floor(new Date().getTime() / 1000);
     if (timeNow >= currentAccount["expiresAtTimestampInSeconds"] - GRACE_TIME) {
-      // get new token
-      console.log(
+      this._logger.debug(
         "[ansible-lightspeed-oauth] Ansible Lightspeed token expired. Getting new token...",
       );
 
       const result = await this.requestTokenAfterExpiry(currentAccount);
-      console.log(
+      this._logger.info(
         "[ansible-lightspeed-oauth] New Ansible Lightspeed token received.",
       );
 
@@ -552,41 +572,6 @@ export class LightSpeedAuthenticationProvider
     }
 
     return tokenToBeReturned;
-  }
-
-  /* Get the user info from server */
-  private async getUserInfo(token: string) {
-    console.log(
-      "[ansible-lightspeed-oauth] Sending request for logged-in user info...",
-    );
-
-    try {
-      const { data } = await axios.get(
-        `${getBaseUri(this.settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-
-      return data;
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.error(
-          "[ansible-lightspeed-oauth] error message: ",
-          error.message,
-        );
-        console.error(
-          "[ansible-lightspeed-oauth] error response data: ",
-          error.response?.data,
-        );
-        throw new Error(error.message);
-      } else {
-        console.error("[ansible-lightspeed-oauth] unexpected error: ", error);
-        throw new Error("An unexpected error occurred");
-      }
-    }
   }
 
   /* Return session info if user is authenticated, else undefined */

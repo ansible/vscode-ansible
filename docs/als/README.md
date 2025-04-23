@@ -65,8 +65,8 @@ improve the user experience:
 - on module options, the required properties are shown first, and aliases are
   shown last, otherwise ordering from the documentation is preserved
 - FQCNs (fully qualified collection names) are inserted only when necessary;
-  collections configured with the [`collections` keyword] are honored. This behavior
-  can be disabled in extension settings.
+  collections configured with the [`collections` keyword] are honored. This
+  behavior can be disabled in extension settings.
 
 [`collections` keyword]:
   https://docs.ansible.com/ansible/latest/collections_guide/collections_using_playbooks.html#simplifying-module-names-with-the-collections-keyword
@@ -108,7 +108,7 @@ npm install -g @ansible/ansible-language-server
 ## Language Server Settings
 
 For details on settings, their descriptions and their default values refer to
-[settings](https://als.readthedocs.io/en/latest/settings/).
+[settings](https://ansible.readthedocs.io/projects/vscode-ansible/als/settings/).
 
 ## Developer support
 

@@ -1,107 +1,113 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import {
-  allComponents,
-  Button,
-  Checkbox,
-  TextArea,
-  TextField,
-  provideVSCodeDesignSystem,
-  Dropdown,
-} from "@vscode/webview-ui-toolkit";
-import {
   AnsibleProjectFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-
-provideVSCodeDesignSystem().register(allComponents);
+import "@vscode-elements/elements";
+import {
+  VscodeButton,
+  VscodeCheckbox,
+  VscodeIcon,
+  VscodeSingleSelect,
+  VscodeTextarea,
+  VscodeTextfield,
+} from "@vscode-elements/elements";
 
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-let destinationPathUrlTextField: TextField;
-let folderExplorerButton: Button;
+let destinationPathUrlTextField: VscodeTextfield;
+let folderExplorerIcon: VscodeIcon;
 
-let namespaceNameTextField: TextField;
-let collectionNameTextField: TextField;
+let namespaceNameTextField: VscodeTextfield;
+let collectionNameTextField: VscodeTextfield;
 
-let initCreateButton: Button;
-let initClearButton: Button;
+let initCreateButton: VscodeButton;
+let initClearButton: VscodeButton;
 
-let overwriteCheckbox: Checkbox;
+let overwriteCheckbox: VscodeCheckbox;
 
-let logToFileCheckbox: Checkbox;
+let logToFileCheckbox: VscodeCheckbox;
 let logToFileOptionsDiv: HTMLElement | null;
-let logFilePath: TextField;
-let fileExplorerButton: Button;
-let logFileAppendCheckbox: Checkbox;
-let logLevelDropdown: Dropdown;
+let logFilePath: VscodeTextfield;
+let fileExplorerButton: VscodeButton;
+let logFileAppendCheckbox: VscodeCheckbox;
+let logLevelDropdown: VscodeSingleSelect;
 
-let verboseDropdown: Dropdown;
+let verboseDropdown: VscodeSingleSelect;
 
 let initCollectionPathDiv: HTMLElement | null;
 let initCollectionPathElement: HTMLElement;
 
-let initLogsTextArea: TextArea;
-let initClearLogsButton: Button;
-let initOpenLogFileButton: Button;
-let initCopyLogsButton: Button;
-let initOpenScaffoldedFolderButton: Button;
+let initLogsTextArea: VscodeTextarea;
+let initClearLogsButton: VscodeButton;
+let initOpenLogFileButton: VscodeButton;
+let initCopyLogsButton: VscodeButton;
+let initOpenScaffoldedFolderButton: VscodeButton;
 
 let logFileUrl = "";
 let projectUrl = "";
 
 function main() {
   // elements for scaffold ansible project interface
-  // projectNameTextField = document.getElementById("project-name") as TextField;
   destinationPathUrlTextField = document.getElementById(
     "path-url",
-  ) as TextField;
-  folderExplorerButton = document.getElementById("folder-explorer") as Button;
+  ) as VscodeTextfield;
+  folderExplorerIcon = document.getElementById("folder-explorer") as VscodeIcon;
 
   namespaceNameTextField = document.getElementById(
     "namespace-name",
-  ) as TextField;
+  ) as VscodeTextfield;
   collectionNameTextField = document.getElementById(
     "collection-name",
-  ) as TextField;
+  ) as VscodeTextfield;
 
-  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById(
+    "overwrite-checkbox",
+  ) as VscodeCheckbox;
 
   logToFileCheckbox = document.getElementById(
     "log-to-file-checkbox",
-  ) as Checkbox;
+  ) as VscodeCheckbox;
   logToFileCheckbox.addEventListener("change", toggleLogToFileOptions);
 
   logToFileOptionsDiv = document.getElementById("log-to-file-options-div");
 
-  logFilePath = document.getElementById("log-file-path") as TextField;
-  fileExplorerButton = document.getElementById("file-explorer") as Button;
+  logFilePath = document.getElementById("log-file-path") as VscodeTextfield;
+  fileExplorerButton = document.getElementById("file-explorer") as VscodeButton;
   logFileAppendCheckbox = document.getElementById(
     "log-file-append-checkbox",
-  ) as Checkbox;
-  logLevelDropdown = document.getElementById("log-level-dropdown") as Dropdown;
+  ) as VscodeCheckbox;
+  logLevelDropdown = document.getElementById(
+    "log-level-dropdown",
+  ) as VscodeSingleSelect;
 
-  verboseDropdown = document.getElementById("verbosity-dropdown") as Dropdown;
-  initCreateButton = document.getElementById("create-button") as Button;
-  initClearButton = document.getElementById("clear-button") as Button;
+  verboseDropdown = document.getElementById(
+    "verbosity-dropdown",
+  ) as VscodeSingleSelect;
+  initCreateButton = document.getElementById("create-button") as VscodeButton;
+  initClearButton = document.getElementById("clear-button") as VscodeButton;
 
-  initLogsTextArea = document.getElementById("log-text-area") as TextArea;
-  initClearLogsButton = document.getElementById("clear-logs-button") as Button;
+  initLogsTextArea = document.getElementById("log-text-area") as VscodeTextarea;
+  initClearLogsButton = document.getElementById(
+    "clear-logs-button",
+  ) as VscodeButton;
   initOpenLogFileButton = document.getElementById(
     "open-log-file-button",
-  ) as Button;
-  initCopyLogsButton = document.getElementById("copy-logs-button") as Button;
+  ) as VscodeButton;
+  initCopyLogsButton = document.getElementById(
+    "copy-logs-button",
+  ) as VscodeButton;
   initOpenScaffoldedFolderButton = document.getElementById(
     "open-folder-button",
-  ) as Button;
+  ) as VscodeButton;
 
-  // projectNameTextField?.addEventListener("input", toggleCreateButton);
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
   namespaceNameTextField.addEventListener("input", toggleCreateButton);
   collectionNameTextField.addEventListener("input", toggleCreateButton);
 
-  folderExplorerButton.addEventListener("click", openExplorer);
+  folderExplorerIcon.addEventListener("click", openExplorer);
   fileExplorerButton.addEventListener("click", openExplorer);
 
   initCreateButton.addEventListener("click", handleInitCreateClick);
@@ -120,62 +126,47 @@ function main() {
   initCollectionPathDiv = document.getElementById("full-collection-path");
 
   initCollectionPathElement = document.createElement("p");
-  initCollectionPathElement.innerHTML = destinationPathUrlTextField.placeholder;
+  initCollectionPathElement.innerHTML =
+    destinationPathUrlTextField.placeholder as string;
   initCollectionPathDiv?.appendChild(initCollectionPathElement);
 }
 
+let Source = "";
 function openExplorer(event: any) {
-  const source = event.target.parentNode.id;
-
-  let selectOption;
-
-  if (source === "folder-explorer") {
-    selectOption = "folder";
-  } else {
-    selectOption = "file";
-  }
-
+  Source = event.target.id;
+  const selectOption = Source === "folder-explorer" ? "folder" : "file";
   vscode.postMessage({
     command: "open-explorer",
-    payload: {
-      selectOption: selectOption,
-    },
+    payload: { selectOption },
   });
-
-  window.addEventListener(
-    "message",
-    (event: MessageEvent<PostMessageEvent>) => {
-      const message = event.data;
-
-      if (message.command === "file-uri") {
-        const selectedUri = message.arguments.selectedUri;
-
-        if (selectedUri) {
-          if (source === "folder-explorer") {
-            destinationPathUrlTextField.value = selectedUri;
-            initCollectionPathElement.innerHTML = selectedUri;
-          } else {
-            logFilePath.value = selectedUri;
-          }
-        }
-      }
-    },
-  );
 }
+window.addEventListener("message", (event: MessageEvent<PostMessageEvent>) => {
+  const message = event.data;
+  if (message.command === "file-uri") {
+    const selectedUri = message.arguments.selectedUri;
+    if (selectedUri) {
+      if (Source === "folder-explorer") {
+        destinationPathUrlTextField.value = selectedUri;
+        initCollectionPathElement.innerHTML = selectedUri;
+      } else if (Source === "file-explorer") {
+        logFilePath.value = selectedUri;
+      }
+    }
+  }
+});
 
 function toggleCreateButton() {
   //   update collection path <p> tag
   if (!destinationPathUrlTextField.value.trim()) {
-    initCollectionPathElement.innerHTML = `${
-      destinationPathUrlTextField.placeholder
-    }/${namespaceNameTextField.value.trim()}-${collectionNameTextField.value.trim()}`;
+    initCollectionPathElement.innerHTML =
+      destinationPathUrlTextField.placeholder as string;
 
     if (
       !namespaceNameTextField.value.trim() ||
       !collectionNameTextField.value.trim()
     ) {
       initCollectionPathElement.innerHTML =
-        destinationPathUrlTextField.placeholder;
+        destinationPathUrlTextField.placeholder as string;
     }
   } else {
     initCollectionPathElement.innerHTML =
@@ -193,22 +184,26 @@ function toggleCreateButton() {
 }
 
 function handleInitClearClick() {
-  // projectNameTextField.value = "";
-  destinationPathUrlTextField.value = "";
   namespaceNameTextField.value = "";
   collectionNameTextField.value = "";
+  destinationPathUrlTextField.value = "";
+  logFilePath.value = "";
 
-  initCollectionPathElement.innerHTML = destinationPathUrlTextField.placeholder;
+  initCollectionPathElement.innerHTML =
+    destinationPathUrlTextField.placeholder as string;
 
   overwriteCheckbox.checked = false;
-  verboseDropdown.currentValue = "Off";
+  verboseDropdown.value = "Off";
 
   initCreateButton.disabled = true;
 
+  if (logToFileOptionsDiv?.style.display === "flex") {
+    logToFileOptionsDiv.style.display = "none";
+  }
+
   logToFileCheckbox.checked = false;
-  logFilePath.value = "";
   logFileAppendCheckbox.checked = false;
-  logLevelDropdown.currentValue = "Debug";
+  logLevelDropdown.value = "Debug";
 }
 
 function toggleLogToFileOptions() {
@@ -236,11 +231,11 @@ function handleInitCreateClick() {
       destinationPath: destinationPathUrlTextField.value.trim(),
       namespaceName: namespaceNameTextField.value.trim(),
       collectionName: collectionNameTextField.value.trim(),
-      verbosity: verboseDropdown.currentValue.trim(),
+      verbosity: verboseDropdown.value.trim(),
       logToFile: logToFileCheckbox.checked,
       logFilePath: logFilePath.value.trim(),
       logFileAppend: logFileAppendCheckbox.checked,
-      logLevel: logLevelDropdown.currentValue.trim(),
+      logLevel: logLevelDropdown.value.trim(),
       isOverwritten: overwriteCheckbox.checked,
     } as AnsibleProjectFormInterface,
   });

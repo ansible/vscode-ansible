@@ -1,71 +1,77 @@
 /* eslint-disable  @typescript-eslint/no-explicit-any */
 
 import {
-  allComponents,
-  Button,
-  Checkbox,
-  TextArea,
-  TextField,
-  provideVSCodeDesignSystem,
-  Dropdown,
-} from "@vscode/webview-ui-toolkit";
-import {
   DevcontainerFormInterface,
   PostMessageEvent,
 } from "../../../features/contentCreator/types";
-
-provideVSCodeDesignSystem().register(allComponents);
+import "@vscode-elements/elements";
+import {
+  VscodeButton,
+  VscodeCheckbox,
+  VscodeIcon,
+  VscodeSingleSelect,
+  VscodeTextarea,
+  VscodeTextfield,
+} from "@vscode-elements/elements";
 
 const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
-let destinationPathUrlTextField: TextField;
-let folderExplorerButton: Button;
+let destinationPathUrlTextField: VscodeTextfield;
+let folderExplorerIcon: VscodeIcon;
 
-let devcontainerCreateButton: Button;
-let devcontainerClearButton: Button;
+let devcontainerCreateButton: VscodeButton;
+let devcontainerClearButton: VscodeButton;
 
-let devcontainerClearLogsButton: Button;
+let devcontainerClearLogsButton: VscodeButton;
 
-let overwriteCheckbox: Checkbox;
+let overwriteCheckbox: VscodeCheckbox;
 
-let imageDropdown: Dropdown;
+let imageDropdown: VscodeSingleSelect;
 
 let devcontainerPathDiv: HTMLElement | null;
 let devcontainerPathElement: HTMLElement;
 
-let devcontainerLogsTextArea: TextArea;
-let devcontainerOpenScaffoldedFolderButton: Button;
+let devcontainerLogsTextArea: VscodeTextarea;
+let devcontainerOpenScaffoldedFolderButton: VscodeButton;
 
 let projectUrl = "";
 
 function main() {
   destinationPathUrlTextField = document.getElementById(
     "path-url",
-  ) as TextField;
-  folderExplorerButton = document.getElementById("folder-explorer") as Button;
+  ) as VscodeTextfield;
+  folderExplorerIcon = document.getElementById("folder-explorer") as VscodeIcon;
 
-  overwriteCheckbox = document.getElementById("overwrite-checkbox") as Checkbox;
+  overwriteCheckbox = document.getElementById(
+    "overwrite-checkbox",
+  ) as VscodeCheckbox;
 
-  imageDropdown = document.getElementById("image-dropdown") as Dropdown;
-  devcontainerCreateButton = document.getElementById("create-button") as Button;
-  devcontainerClearButton = document.getElementById("reset-button") as Button;
+  imageDropdown = document.getElementById(
+    "image-dropdown",
+  ) as VscodeSingleSelect;
+  devcontainerCreateButton = document.getElementById(
+    "create-button",
+  ) as VscodeButton;
+  devcontainerClearButton = document.getElementById(
+    "reset-button",
+  ) as VscodeButton;
 
   devcontainerLogsTextArea = document.getElementById(
     "log-text-area",
-  ) as TextArea;
+  ) as VscodeTextarea;
 
   devcontainerClearLogsButton = document.getElementById(
     "clear-logs-button",
-  ) as Button;
+  ) as VscodeButton;
 
   devcontainerOpenScaffoldedFolderButton = document.getElementById(
     "open-file-button",
-  ) as Button;
+  ) as VscodeButton;
 
   destinationPathUrlTextField.addEventListener("input", toggleCreateButton);
 
-  folderExplorerButton.addEventListener("click", openFolderExplorer);
+  folderExplorerIcon.addEventListener("click", openFolderExplorer);
 
   devcontainerCreateButton.addEventListener("click", handleCreateClick);
 
@@ -86,13 +92,14 @@ function main() {
   devcontainerPathElement = document.createElement("p");
 
   if (destinationPathUrlTextField.placeholder !== "") {
-    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
+    devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder as string}/.devcontainer`;
   } else {
     devcontainerPathElement.innerHTML =
       "No folders are open in the workspace - Enter a destination directory.";
   }
 
-  destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
+  destinationPathUrlTextField.value =
+    destinationPathUrlTextField.placeholder as string;
 
   if (destinationPathUrlTextField.value.trim()) {
     devcontainerCreateButton.disabled = false;
@@ -104,7 +111,7 @@ function main() {
 }
 
 function openFolderExplorer(event: any) {
-  const source = event.target.parentNode.id;
+  const source = event.target.id;
 
   const typeOption = "folder";
 
@@ -126,7 +133,7 @@ function openFolderExplorer(event: any) {
         if (selectedUri) {
           if (source === "folder-explorer") {
             destinationPathUrlTextField.value = selectedUri;
-            devcontainerPathElement.innerHTML = selectedUri;
+            devcontainerPathElement.innerHTML = `${selectedUri}/.devcontainer`;
           }
         }
       }
@@ -138,7 +145,7 @@ function toggleCreateButton() {
   //   update <p> tag text
   if (!destinationPathUrlTextField.value.trim()) {
     if (destinationPathUrlTextField.placeholder !== "") {
-      devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
+      devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder as string}/.devcontainer`;
     } else {
       devcontainerPathElement.innerHTML =
         "No folders are open in the workspace - Enter a destination directory.";
@@ -155,7 +162,8 @@ function toggleCreateButton() {
 }
 
 function handleResetClick() {
-  destinationPathUrlTextField.value = destinationPathUrlTextField.placeholder;
+  destinationPathUrlTextField.value =
+    destinationPathUrlTextField.placeholder as string;
 
   if (destinationPathUrlTextField.placeholder !== "") {
     devcontainerPathElement.innerHTML = `${destinationPathUrlTextField.placeholder}/.devcontainer`;
@@ -169,7 +177,7 @@ function handleResetClick() {
     "Upstream (ghcr.io/ansible/community-ansible-dev-tools:latest)",
     "Downstream (registry.redhat.io/ansible-automation-platform-25/ansible-dev-tools-rhel8:latest)",
   ];
-  imageDropdown.currentValue = imageDropdownOptions[0];
+  imageDropdown.value = imageDropdownOptions[0];
 
   if (destinationPathUrlTextField.value.trim()) {
     devcontainerCreateButton.disabled = false;
@@ -182,7 +190,7 @@ function handleCreateClick() {
   let path: string;
   devcontainerCreateButton.disabled = true;
   if (destinationPathUrlTextField.value === "") {
-    path = destinationPathUrlTextField.placeholder;
+    path = destinationPathUrlTextField.placeholder as string;
   } else {
     path = destinationPathUrlTextField.value.trim();
   }
@@ -191,7 +199,7 @@ function handleCreateClick() {
     command: "devcontainer-create",
     payload: {
       destinationPath: path,
-      image: imageDropdown.currentValue.trim(),
+      image: imageDropdown.value.trim(),
       isOverwritten: overwriteCheckbox.checked,
     } as DevcontainerFormInterface,
   });

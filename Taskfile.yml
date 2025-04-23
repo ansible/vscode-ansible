@@ -14,7 +14,7 @@ env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
-  # basically the same thing from .envrc file:
+  # basically the same thing from .env file:
 vars:
   HOSTNAME:
     sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
@@ -55,12 +55,10 @@ tasks:
     desc: Build the project
     cmds:
       - task: install
-      # Workaround for https://github.com/redhat-developer/vscode-extension-tester/pull/460#issuecomment-1166315428
-      # - cd node_modules/vscode-extension-tester && npm update vsce
-      - yarn run clean
-      - yarn run als-compile
-      - yarn run compile
-      - npx tsc -p ./
+      - npm exec -- yarn run clean
+      - npm exec -- yarn run als-compile
+      - npm exec -- yarn run compile
+      - npm exec -- tsc -p ./
     sources:
       - Taskfile.yml
       - node_modules/**/*
@@ -84,6 +82,7 @@ tasks:
       VSCODE_VERSION:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
+      - uv pip compile -q --universal --no-annotate --output-file .config/constraints.txt .config/requirements.in
       - task: install
       # upgrade yarn itself
       - yarn set version latest
@@ -109,8 +108,8 @@ tasks:
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
-      - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
-      - bash -c 'source "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
+      - npm exec -- ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
+      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
       - tools/dirty.sh
   lint:
     desc: Lint the project
@@ -154,7 +153,7 @@ tasks:
     cmds:
       - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - '{{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
+      - '{{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
@@ -163,7 +162,7 @@ tasks:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
       - bash -c 'rm -rf ./out/test-resources ./out/ext'
-      - ' {{.XVFB}} bash -c ''source "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - ' {{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report

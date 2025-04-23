@@ -6,10 +6,7 @@ set -o pipefail
 cleanup()
 {
     echo "Final clean up"
-#    if [ -s out/log/express.log ]; then
-#        # cat out/log/express.log
-#        # cat out/log/mock-server.log
-#    fi
+    stop_server
 }
 
 trap "cleanup" HUP INT ABRT BUS TERM EXIT
@@ -46,9 +43,13 @@ function start_server() {
 
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-        curl "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
+        curl --silent "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
+        touch out/log/express.log out/log/mock-server.log
+        cat out/log/express.log >> out/log/express-full.log
+        cat out/log/mock-server.log >> out/log/mock-server-full.log
         echo "" > out/log/express.log
         echo "" > out/log/mock-server.log
+        TEST_LIGHTSPEED_URL=0
     fi
 }
 
@@ -65,6 +66,9 @@ function refresh_settings() {
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
+    rm -rf out/test-resources/settings/
+
+    jq < out/settings.json
 }
 
 
@@ -104,10 +108,7 @@ if [[ "$COVERAGE" == "" ]]; then
         yarn package
         vsix=$(find . -maxdepth 1 -name '*.vsix')
     fi
-    if [ "$(find test/ui-test/ -newer out/client/test/index.d.ts)" != "" ]; then
-	echo "ui-test TypeScript files have been changed. Recompiling!"
-	yarn compile
-    fi
+    yarn compile
 
     ${EXTEST} install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
@@ -120,14 +121,21 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
 
     for test_file in $(find out/client/test/ui-test/ -name "${UI_TARGET}"); do
         echo "🧐testing ${test_file}"
+        echo "  cleaning existing User settings..."
+        rm -rfv ./out/test-resources/settings/User/
 
         if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
+            stop_server
             start_server
         fi
         refresh_settings "${test_file}"
 
+        TEST_COVERAGE_FILE=./out/coverage/ui/lcov.${test_file##*/}.info
         ${EXTEST} run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
-        stop_server
+
+        if [[ -f ./out/coverage/ui/lcov.info ]]; then
+            mv ./out/coverage/ui/lcov.info "$TEST_COVERAGE_FILE"
+        fi
     done
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then

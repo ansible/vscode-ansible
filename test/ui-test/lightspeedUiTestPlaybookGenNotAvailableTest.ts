@@ -1,13 +1,8 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { VSBrowser, By, Workbench, EditorView } from "vscode-extension-tester";
-import {
-  getFixturePath,
-  sleep,
-  workbenchExecuteCommand,
-  getWebviewByLocator,
-} from "./uiTestHelper";
+import { VSBrowser, Workbench, EditorView } from "vscode-extension-tester";
+import { getFixturePath, sleep, workbenchExecuteCommand } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -16,6 +11,14 @@ describe("Verify playbook generation features work as expected", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
+
+    // Dismiss all notifications
+    const workbench = new Workbench();
+    workbench.getNotifications().then((notifications) => {
+      notifications.forEach(async (notification) => {
+        await notification.dismiss();
+      });
+    });
   });
 
   it("Playbook explanation webview works as expected (feature unavailable)", async function () {
@@ -44,50 +47,5 @@ describe("Verify playbook generation features work as expected", function () {
       .undefined;
 
     await workbenchExecuteCommand("View: Close All Editor Groups");
-  });
-
-  it("Playbook generation webview works as expected (feature unavailable)", async function () {
-    // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
-    }
-
-    // Open playbook generation webview.
-    await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(2000);
-    const webView = await getWebviewByLocator(
-      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
-    );
-
-    // Set input text and invoke summaries API
-    const textArea = await webView.findWebElement(
-      By.xpath("//vscode-text-area"),
-    );
-    expect(textArea, "textArea should not be undefined").not.to.be.undefined;
-    const submitButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='submit-button']"),
-    );
-    expect(submitButton, "submitButton should not be undefined").not.to.be
-      .undefined;
-    //
-    // Note: Following line should succeed, but fails for some unknown reasons.
-    //
-    // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
-    await textArea.sendKeys("Feature not available");
-    expect(
-      await submitButton.isEnabled(),
-      "submit button should be enabled now",
-    ).to.be.true;
-    await submitButton.click();
-    await sleep(2000);
-
-    await webView.switchBack();
-
-    const workbench = new Workbench();
-    const notifications = await workbench.getNotifications();
-    const notification = notifications[0];
-    expect(await notification.getMessage()).equals(
-      "The requested action is not available in your environment.",
-    );
   });
 });

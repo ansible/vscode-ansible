@@ -21,6 +21,22 @@
   ],
   "configurations": [
     {
+      "name": "Debug Extension (Vite)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
+      "preLaunchTask": "npm: vite-dev"
+    },
+    {
+      "name": "Preview Extension (Vite)",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
+      "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
+      "preLaunchTask": "npm: vite-build"
+    },
+    {
       "name": "Launch Extension",
       "type": "extensionHost",
       "request": "launch",

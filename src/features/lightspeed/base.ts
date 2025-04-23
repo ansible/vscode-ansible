@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import { LanguageClient } from "vscode-languageclient/node";
 import { LightSpeedAPI } from "./api";
 import { TelemetryManager } from "../../utils/telemetryUtils";
 import { SettingsManager } from "../../settings";
@@ -25,7 +24,6 @@ import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProv
 
 export class LightSpeedManager {
   private context;
-  public client;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
   public apiInstance: LightSpeedAPI;
@@ -39,46 +37,46 @@ export class LightSpeedManager {
   public ansibleIncludeVarsCache: IIncludeVarsContext = {};
   public currentModelValue: string | undefined = undefined;
   public lightspeedExplorerProvider: LightspeedExplorerWebviewViewProvider;
-  private _logger: Log;
+  private logger: Log;
 
   constructor(
     context: vscode.ExtensionContext,
-    client: LanguageClient,
     settingsManager: SettingsManager,
     telemetry: TelemetryManager,
   ) {
     this.context = context;
-    this.client = client;
     this.settingsManager = settingsManager;
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
-    this._logger = new Log();
+    this.logger = new Log();
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
         this.context,
         this.settingsManager,
+        this.logger,
         ANSIBLE_LIGHTSPEED_AUTH_ID,
         ANSIBLE_LIGHTSPEED_AUTH_NAME,
       );
     if (this.settingsManager.settings.lightSpeedService.enabled) {
       this.lightSpeedAuthenticationProvider.initialize();
     }
+
     this.lightspeedAuthenticatedUser = new LightspeedUser(
       this.context,
       this.settingsManager,
       this.lightSpeedAuthenticationProvider,
-      this._logger,
+      this.logger,
     );
     this.apiInstance = new LightSpeedAPI(
       this.settingsManager,
       this.lightspeedAuthenticatedUser,
       this.context,
+      this.logger,
     );
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
-      this.client,
       this.settingsManager,
       this.apiInstance,
       this.lightspeedAuthenticatedUser,
@@ -89,7 +87,6 @@ export class LightSpeedManager {
       this.apiInstance,
       this.lightspeedAuthenticatedUser,
       context,
-      client,
       settingsManager,
     );
 

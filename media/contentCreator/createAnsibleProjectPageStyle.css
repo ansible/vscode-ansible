@@ -3,31 +3,35 @@
 .container {
     display: flex;
     flex-direction: column;
+    font-size: 1em;
 }
 
 .element {
     margin-bottom: 14px;
 }
 
-vscode-text-field {
+vscode-textfield {
+    margin-bottom: 6px;
+    width: 100%;
+}
+
+vscode-textarea {
     margin-top: 6px;
     margin-bottom: 6px;
 }
 
-vscode-text-area {
-    margin-top: 6px;
-    margin-bottom: 6px;
+vscode-form-group {
+    width: 100%;
+    margin: 0;
 }
 
 .playbook-project-div {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
+    width: 100%;
 }
 
-#namespace-name, #collection-name {
-    width:49%;
+#namespace-name {
+    width:95%;
     display:inline-block;
 }
 
@@ -39,6 +43,12 @@ vscode-text-area {
     width: 100%;
 }
 
+#vscode-logs-label {
+    padding: 0;
+    align-self: flex-start;
+    margin-left: 5px;
+}
+
 .verbose-div {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
@@ -47,7 +57,7 @@ vscode-text-area {
     width: 100%;
 }
 
-vscode-dropdown {
+vscode-single-select {
     width: 200px;
 }
 
@@ -99,6 +109,7 @@ vscode-checkbox i {
 
 #log-to-file-options-div {
     display: none;
+    width: 100%;
     flex-direction: column;
     border-style: dotted;
     border-color: var(--focus-border);;
@@ -108,4 +119,8 @@ vscode-checkbox i {
 
 .log-level-div {
     margin: 4px 0px;
+}
+
+vscode-divider {
+    width: 100%;
 }

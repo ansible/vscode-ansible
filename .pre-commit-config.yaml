@@ -8,9 +8,6 @@ ci:
 
     for more information, see https://pre-commit.ci
   skip:
-    #- yarn-audit
-    #- yarn-audit-fix
-    - yarn-dedupe
     - codecov
     - depcheck
     - eslint
@@ -24,14 +21,14 @@ exclude: >
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.16.0
+    rev: v8.17.3
     hooks:
       - id: cspell
         args:
           -  --config=cspell.config.yaml
         # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         pass_filenames: false # we want to use its own config
@@ -48,7 +45,7 @@ repos:
           - -e
           - SC1091
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.11.4
     hooks:
       - id: ruff
         args:
@@ -58,7 +55,7 @@ repos:
       - id: ruff-format # must be after ruff
         types_or: [python, pyi]
   - repo: https://github.com/psf/black # must be after ruff
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
   - repo: local
@@ -71,9 +68,12 @@ repos:
         always_run: true
       - id: eslint
         name: eslint
-        entry: npx eslint
+        entry: npm
         language: system
         args:
+          - exec
+          - --
+          - eslint
           - --no-warn-ignored
           - --color
           - --format=gha
@@ -91,12 +91,6 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      # - id: yarn-audit-fix
-      #   name: yarn-audit-fix
-      #   language: system
-      #   pass_filenames: false
-      #   files: \.tool-versions|package\.json|yarn(-.*\.cjs|\.lock)
-      #   entry: npx yarn run yarn-audit-fix
       - id: codecov
         name: Check codecov.yml
         # https://superuser.com/a/1587813/3004
@@ -118,14 +112,6 @@ repos:
         name: Compare extension devcontainer with ansible-creator
         entry: tools/compare_devcontainer.sh
         language: script
-
-  - repo: https://github.com/ScribeMD/pre-commit-hooks
-    rev: 0.16.3
-    hooks:
-      - id: yarn-dedupe
-        entry: npx yarn dedupe
-      # - id: yarn-audit
-      #   entry: npx yarn npm audit
 
   - repo: https://github.com/pre-commit/pre-commit-hooks.git
     rev: v5.0.0
@@ -164,7 +150,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.35.1
+    rev: v1.37.0
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -178,7 +164,7 @@ repos:
           )$
   - repo: https://github.com/pycontribs/mirrors-prettier
     # keep it before markdownlint and eslint
-    rev: "v3.3.3"
+    rev: "v3.5.3"
     hooks:
       - id: prettier
         types_or: ["markdown", "json", "ts"]
@@ -189,7 +175,7 @@ repos:
             docs/als/settings.md
           )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.43.0
+    rev: v0.44.0
     hooks:
       - id: markdownlint
         exclude: >
@@ -205,7 +191,7 @@ repos:
             docs/development/webview_guide.md
           $
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.19.0
+    rev: v9.22.0
     hooks:
       - id: commitlint
         stages: [commit-msg]

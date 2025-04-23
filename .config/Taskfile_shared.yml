@@ -30,13 +30,5 @@ tasks:
   install:
     cmds:
       - task: setup
-      - yarn install
-    sources:
-      - "package.json"
-      - "packages/*/package.json"
-      - "packages/*/package-lock.json"
-      - yarn.lock
-      - node_modules/**/*
-      - .tool-versions
     run: once
     interactive: true

@@ -167,7 +167,7 @@ function getCompletionState(
   if (isCancellationRequested) {
     return CompletionState.CancellationRequested;
   }
-  if (!lightSpeedSetting.enabled || !lightSpeedSetting.suggestions.enabled) {
+  if (!lightSpeedSetting.suggestions.enabled) {
     return CompletionState.LightspeedIsDisabled;
   }
 
@@ -235,41 +235,7 @@ export class LightSpeedInlineSuggestionProvider
   }
 }
 
-const onUnexpectedPromptWithNoSeat: CallbackEntry = async function (
-  suggestionDisplayed: SuggestionDisplayed,
-  inlinePosition: InlinePosition,
-) {
-  suggestionDisplayed.reset();
-  // If the user has triggered the inline suggestion by pressing the configured keys,
-  // we will show an information message to the user to help them understand the
-  // correct cursor position to trigger the inline suggestion.
-  if (
-    inlinePosition.context.triggerKind ===
-    vscode.InlineCompletionTriggerKind.Invoke
-  ) {
-    const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
-    if (
-      !suggestionMatchInfo.taskMatchedPattern ||
-      !suggestionMatchInfo.currentLineText.isEmptyOrWhitespace
-    ) {
-      vscode.window.showInformationMessage(
-        "Cursor should be positioned on the line after the task name with the same indent as that of the task name line to trigger an inline suggestion.",
-      );
-    } else if (
-      suggestionMatchInfo.taskMatchedPattern &&
-      suggestionMatchInfo.currentLineText.isEmptyOrWhitespace &&
-      suggestionMatchInfo.spacesBeforePromptStart !==
-        suggestionMatchInfo.spacesBeforeCursor
-    ) {
-      vscode.window.showInformationMessage(
-        `Cursor must be in column ${suggestionMatchInfo.spacesBeforePromptStart} to trigger an inline suggestion.`,
-      );
-    }
-  }
-  return [];
-};
-
-const onUnexpectedPromptWithSeat: CallbackEntry = async function (
+const onUnexpectedPrompt: CallbackEntry = async function (
   suggestionDisplayed: SuggestionDisplayed,
   inlinePosition: InlinePosition,
 ) {
@@ -305,13 +271,6 @@ const onUnexpectedPromptWithSeat: CallbackEntry = async function (
   return [];
 };
 
-const onMultiTaskWithNoSeat: CallbackEntry = async function () {
-  console.debug(
-    "[inline-suggestions] Multitask suggestions not supported for a non seat user.",
-  );
-  return [];
-};
-
 const onShouldNotTriggerSuggestion: CallbackEntry = async function () {
   return [];
 };
@@ -336,8 +295,6 @@ async function requestSuggestion(
   documentInfo: DocumentInfo,
   inlinePosition: InlinePosition,
 ): Promise<CompletionResponseParams> {
-  const rhUserHasSeat =
-    await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
   const lightSpeedStatusbarText =
     await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
   const suggestionId = uuidv4();
@@ -364,7 +321,6 @@ async function requestSuggestion(
       documentInfo.parsedAnsibleDocument,
       documentInfo.documentUri,
       activityId,
-      rhUserHasSeat,
       documentInfo.documentDirPath,
       documentInfo.documentFilePath,
       documentInfo.ansibleFileType,
@@ -633,10 +589,8 @@ function loadFile(inlinePosition: InlinePosition): DocumentInfo {
 }
 
 const InlineSuggestionState = {
-  UnexpectedPromptWithNoSeat: onUnexpectedPromptWithNoSeat,
-  UnexpectedPromptWithSeat: onUnexpectedPromptWithSeat,
+  UnexpectedPrompt: onUnexpectedPrompt,
   CancellationRequested: onCancellationRequested,
-  MultiTaskWithNoSeat: onMultiTaskWithNoSeat,
   ShouldNotTriggerSuggestion: onShouldNotTriggerSuggestion,
   DoMultiTasksSuggestion: onDoMultiTasksSuggestion,
   DoSingleTaskSuggestion: onDoSingleTasksSuggestion,
@@ -648,8 +602,6 @@ async function getInlineSuggestionState(
   inlinePosition: InlinePosition,
 ): Promise<CallbackEntry> {
   const suggestionMatchInfo = getSuggestionMatchType(inlinePosition);
-  const rhUserHasSeat =
-    await lightSpeedManager.lightspeedAuthenticatedUser.rhUserHasSeat();
 
   if (
     !suggestionMatchInfo.suggestionMatchType ||
@@ -664,9 +616,7 @@ async function getInlineSuggestionState(
       inlinePosition.context.triggerKind ===
       vscode.InlineCompletionTriggerKind.Invoke
     ) {
-      return rhUserHasSeat
-        ? InlineSuggestionState.UnexpectedPromptWithSeat
-        : InlineSuggestionState.UnexpectedPromptWithNoSeat;
+      return InlineSuggestionState.UnexpectedPrompt;
     }
     return InlineSuggestionState.CancellationRequested;
   }
@@ -692,21 +642,11 @@ async function getInlineSuggestionState(
     return InlineSuggestionState.ShouldNotTriggerSuggestion;
   }
 
-  switch (
-    `${suggestionMatchInfo.suggestionMatchType}-${
-      rhUserHasSeat ? "has-seat" : "no-seat"
-    }`
-  ) {
-    case "MULTI-TASK-no-seat": {
-      return InlineSuggestionState.MultiTaskWithNoSeat;
-    }
-    case "MULTI-TASK-has-seat": {
+  switch (suggestionMatchInfo.suggestionMatchType) {
+    case "MULTI-TASK": {
       return InlineSuggestionState.DoMultiTasksSuggestion;
     }
-    case "SINGLE-TASK-no-seat": {
-      return InlineSuggestionState.DoSingleTaskSuggestion;
-    }
-    case "SINGLE-TASK-has-seat": {
+    case "SINGLE-TASK": {
       return InlineSuggestionState.DoSingleTaskSuggestion;
     }
   }
@@ -728,7 +668,6 @@ async function requestInlineSuggest(
   parsedAnsibleDocument: any,
   documentUri: string,
   activityId: string,
-  rhUserHasSeat: boolean | undefined,
   documentDirPath: string,
   documentFilePath: string,
   ansibleFileType: IAnsibleFileType,

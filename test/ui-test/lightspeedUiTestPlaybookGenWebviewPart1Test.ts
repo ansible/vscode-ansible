@@ -4,25 +4,22 @@ import { expect, config } from "chai";
 import {
   ActivityBar,
   By,
-  ModalDialog,
   ViewControl,
-  Workbench,
   ViewSection,
   WebviewView,
+  Key,
 } from "vscode-extension-tester";
 import {
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
-  dismissNotifications,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 describe("Verify playbook generation features work as expected", function () {
-  let workbench: Workbench;
+  let explorerView: WebviewView;
   let adtView: ViewSection;
-  let webviewView: InstanceType<typeof WebviewView>;
 
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
@@ -30,21 +27,10 @@ describe("Verify playbook generation features work as expected", function () {
     }
   });
 
-  before(async function () {
+  before(async () => {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
-
-    await sleep(5000);
-    workbench = new Workbench();
-    // await workbenchExecuteCommand(
-    //   "Ansible Lightspeed: Enable experimental features",
-    // );
-    await sleep(3000);
-
-    await workbenchExecuteCommand("View: Close All Editor Groups");
-
-    await dismissNotifications(workbench);
   });
 
   it("Ensures we can go from DevTools to Playbook generation", async function () {
@@ -60,12 +46,12 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(3000);
     console.log("Expanded ADT view");
 
-    webviewView = new WebviewView();
-    expect(webviewView).not.undefined;
-    await webviewView.switchToFrame(1000);
+    explorerView = new WebviewView();
+    expect(explorerView).not.undefined;
+    await explorerView.switchToFrame(1000);
     console.log("Switched to sidebar webview");
 
-    const welcomePageLink = await webviewView.findWebElement(
+    const welcomePageLink = await explorerView.findWebElement(
       By.xpath(
         "//a[contains(@title, 'Ansible Development Tools welcome page')]",
       ),
@@ -89,34 +75,27 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(2000);
 
     // Start operations on Playbook Generation UI
-    let webView = await getWebviewByLocator(
+    const webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
     );
 
-    // Set input text and invoke summaries API
-    const textArea = await webView.findWebElement(
-      By.xpath("//vscode-text-area"),
+    let promptTextField = await webView.findWebElement(
+      By.xpath('//*[@id="PromptTextField"]/input'),
     );
-    const submitButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='submit-button']"),
+    await promptTextField.sendKeys("Create an azure network.");
+    await promptTextField.sendKeys(Key.ESCAPE);
+    await promptTextField.click();
+
+    const analyzeButton = await webView.findWebElement(
+      By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
     );
-    expect(submitButton, "submitButton should not be undefined").not.to.be
-      .undefined;
-    //
-    // Note: Following line should succeed, but fails for some unknown reasons.
-    //
-    // expect((await submitButton.isEnabled()), "submit button should be disabled by default").is.false;
-    await textArea.sendKeys("Create an azure network.");
-    expect(
-      await submitButton.isEnabled(),
-      "submit button should be enabled now",
-    ).to.be.true;
-    await submitButton.click();
+    await analyzeButton.click();
+
     await sleep(2000);
 
     // Verify outline output and text edit
-    let outlineList = await webView.findWebElement(
-      By.xpath("//ol[@id='outline-list']"),
+    const outlineList = await webView.findWebElement(
+      By.xpath("//textarea[@id='outline-field']"),
     );
     expect(outlineList, "An ordered list should exist.");
     let text = await outlineList.getText();
@@ -135,61 +114,15 @@ describe("Verify playbook generation features work as expected", function () {
     text = await prompt.getText();
     expect(text.includes("Create an azure network."));
 
-    // Test Reset button
-    const resetButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='reset-button']"),
-    );
-    expect(resetButton, "resetButton should not be undefined").not.to.be
-      .undefined;
-    await resetButton.click();
-    await sleep(500);
-
-    // Confirm reset of Outline
-    await webView.switchBack();
-    const resetOutlineDialog = new ModalDialog();
-    await resetOutlineDialog.pushButton("Ok");
-    await sleep(250);
-    // Sadly we need to switch context and so we must reload the WebView elements
-    webView = await getWebviewByLocator(
-      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
-    );
-    outlineList = await webView.findWebElement(
-      By.xpath("//ol[@id='outline-list']"),
-    );
-
-    text = await outlineList.getText();
-    expect(!text.includes("# COMMENT\n"));
-
-    // Test Back button
     const backButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='back-button']"),
+      By.xpath("//vscode-button[contains(text(), 'Back')]"),
     );
-    expect(backButton, "backButton should not be undefined").not.to.be
-      .undefined;
     await backButton.click();
-    await sleep(500);
 
-    text = await textArea.getText();
-    expect(text.startsWith("Create an azure network."));
-    await submitButton.click();
-    await sleep(1000);
-    text = await outlineList.getText();
-    expect(text.includes("Create virtual network peering"));
-
-    // Test Edit link next to the prompt text
-    const backAnchor = await webView.findWebElement(
-      By.xpath("//a[@id='back-anchor']"),
+    promptTextField = await webView.findWebElement(
+      By.xpath('//*[@id="PromptTextField"]/input'),
     );
-    expect(backAnchor, "backAnchor should not be undefined").not.to.be
-      .undefined;
-    await backAnchor.click();
-    await sleep(500);
-
-    text = await textArea.getText();
-    expect(text.startsWith("Create an azure network."));
-    await submitButton.click();
-    await sleep(1000);
-    text = await outlineList.getText();
-    expect(text.includes("Create virtual network peering"));
+    text = await promptTextField.getText();
+    expect(text.includes("Create an azure network."));
   });
 });

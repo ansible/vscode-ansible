@@ -150,7 +150,7 @@ holding `ctrl`/`cmd`.
 
 AI based Ansible code recommendations
 
-- [Getting started](https://access.redhat.com/documentation/en-us/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/configuring-with-code-assistant_lightspeed-user-guide#doc-wrapper)
+- [Getting started](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/set-up-lightspeed_lightspeed-user-guide#set-up-lightspeed_lightspeed-user-guide)
 
 - [Contact](https://matrix.to/#/%23ansible-lightspeed:ansible.im)
 
@@ -233,6 +233,13 @@ any level (User, Remote, Workspace and/or Folder).
   Ansible Lightspeed seat assignment.
 - `ansible.playbook.arguments`: Specify additional arguments to append to
   ansible-playbook invocation. e.g. `--syntax-check`
+
+## Environment variable
+
+- `LIGHTSPEED_PREFER_RHSSO_AUTH`: When set to `true`, Lightspeed with use the
+  OAuth2 Device Flow by default instead of the default OAuth2 authentication.
+  You can trigger it manually with the
+  `Ansible Lightspeed: Sign in with Red Hat` action.
 
 ## Data and Telemetry
 

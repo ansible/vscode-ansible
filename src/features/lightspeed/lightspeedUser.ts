@@ -4,7 +4,6 @@ import {
   ANSIBLE_LIGHTSPEED_AUTH_ID,
   getBaseUri,
   getUserTypeLabel,
-  getLoggedInUserDetails,
 } from "./utils/webUtils";
 import {
   LIGHTSPEED_MARKDOWN_ME_AUTH_URL,
@@ -12,7 +11,6 @@ import {
   LightSpeedCommands,
 } from "../../definitions/lightspeed";
 import { SettingsManager } from "../../settings";
-import axios from "axios";
 import { LightspeedUserDetails } from "../../interfaces/lightspeed";
 import {
   LightSpeedAuthenticationProvider,
@@ -20,6 +18,8 @@ import {
 } from "./lightSpeedOAuthProvider";
 import { Log } from "../../utils/logger";
 import * as marked from "marked";
+import { ANSIBLE_LIGHTSPEED_API_TIMEOUT } from "../../definitions/constants";
+import { getFetch } from "./api";
 
 export class LightspeedAccessDenied extends Error {
   constructor(message: string) {
@@ -49,6 +49,13 @@ export interface LoggedInUserInfo {
   org_telemetry_opt_out: boolean;
 }
 
+interface IGetUserInfoCache {
+  time: number;
+  token: string;
+  userInfo?: LoggedInUserInfo;
+  locked: boolean;
+}
+
 export class LightspeedUser {
   public _settingsManager: SettingsManager;
   private _lightspeedAuthenticationProvider: LightSpeedAuthenticationProvider;
@@ -58,6 +65,7 @@ export class LightspeedUser {
   private _logger: Log;
   private _extensionHost: ExtensionHostType;
   private _markdownUserDetails: string | undefined;
+  private _getUserInfoCache: IGetUserInfoCache;
 
   constructor(
     private readonly context: vscode.ExtensionContext,
@@ -75,6 +83,7 @@ export class LightspeedUser {
           : ExtensionHost.Remote
         : ExtensionHost.WebWorker;
     this.logAuthProviderDebugHints();
+    this._getUserInfoCache = { time: 0, token: "", locked: false };
   }
 
   private logAuthProviderDebugHints() {
@@ -103,88 +112,124 @@ export class LightspeedUser {
     }
   }
   /* Get the user info from server */
-  public async getUserInfo(token: string) {
-    this._logger.info(
-      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+  public async getUserInfo(token: string): Promise<LoggedInUserInfo> {
+    function waitTillUnlocked(
+      logger: Log,
+      _getUserInfoCache: IGetUserInfoCache,
+    ) {
+      if (_getUserInfoCache.locked) {
+        setTimeout(waitTillUnlocked, 50, logger, _getUserInfoCache);
+      }
+    }
+    waitTillUnlocked(this._logger, this._getUserInfoCache);
+
+    if (
+      this._getUserInfoCache.token === token &&
+      this._getUserInfoCache.userInfo &&
+      this._getUserInfoCache.time > Date.now() - 10 * 1000
+    ) {
+      this._logger.trace(
+        "[ansible-lightspeed-user] Getting user information from cache...",
+      );
+      return this._getUserInfoCache.userInfo;
+    }
+
+    this._logger.debug(
+      "[ansible-lightspeed-user] Fetching user information...",
     );
 
+    this._getUserInfoCache.locked = true;
+    const fetch = getFetch();
+
     try {
-      const { data } = await axios.get(
+      const response = await fetch(
         `${getBaseUri(this._settingsManager)}${LIGHTSPEED_ME_AUTH_URL}`,
         {
+          method: "GET",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      return data;
-    } catch (error) {
-      if (
-        axios.isAxiosError(error) &&
-        error.response &&
-        error.response.status === 401
-      ) {
-        throw new LightspeedAccessDenied(error.message);
-      } else if (axios.isAxiosError(error)) {
-        this._logger.error(
-          `[ansible-lightspeed-user] error message: ${error.message}`,
-        );
-        console.error(
-          "[ansible-lightspeed-user] error response data: ",
-          error.response?.data,
-        );
-        throw new Error(error.message);
+      if (response.ok) {
+        const userInfo: LoggedInUserInfo = await response.json();
+        if (!userInfo) {
+          throw new Error("Unexpected userinfo payload");
+        }
+        this._getUserInfoCache.userInfo = userInfo;
+
+        this._getUserInfoCache.time = Date.now();
+        this._getUserInfoCache.token = token;
+        this._getUserInfoCache.locked = false;
+
+        return userInfo;
       } else {
         this._logger.error(
-          `[ansible-lightspeed-user] unexpected error: ${error}`,
+          `[ansible-lightspeed-user] call to get user info returned non-2xx response. Status: ${response.status}`,
         );
-        throw new Error("An unexpected error occurred");
+
+        if (response.status === 401) {
+          throw new LightspeedAccessDenied("Access Denied");
+        } else {
+          throw new Error(
+            `Request failed with status code: ${response.status}`,
+          );
+        }
       }
+    } catch (error) {
+      this._getUserInfoCache.locked = false;
+      const err = error as Error;
+      this._logger.error(
+        `[ansible-lightspeed-user] error message: ${err.message}`,
+      );
+      throw err;
     }
   }
 
   public async getUserInfoFromMarkdown(token: string) {
-    this._logger.info(
-      "[ansible-lightspeed-user] Sending request for logged-in user info...",
+    this._logger.debug(
+      "[ansible-lightspeed-user] Fetch user information (Markdown)...",
     );
 
     try {
-      const { data } = await axios.get(
+      const fetch = getFetch();
+
+      const response = await fetch(
         `${getBaseUri(this._settingsManager)}${LIGHTSPEED_MARKDOWN_ME_AUTH_URL}`,
         {
+          method: "GET",
+          signal: AbortSignal.timeout(ANSIBLE_LIGHTSPEED_API_TIMEOUT),
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
 
-      const markdownData = marked.parseInline(data.content) as string;
-
-      return markdownData;
-    } catch (error) {
-      if (
-        axios.isAxiosError(error) &&
-        error.response &&
-        error.response.status === 401
-      ) {
-        throw new LightspeedAccessDenied(error.message);
-      } else if (axios.isAxiosError(error)) {
-        this._logger.error(
-          `[ansible-lightspeed-user] error message: ${error.message}`,
-        );
-        /* istanbul ignore next */
-        console.error(
-          "[ansible-lightspeed-user] error response data: ",
-          error.response?.data,
-        );
-        throw new Error(error.message);
+      if (response.ok) {
+        const data = await response.json();
+        const markdownData = marked.parseInline(data.content) as string;
+        return markdownData;
       } else {
         this._logger.error(
-          `[ansible-lightspeed-user] unexpected error: ${error}`,
+          `[ansible-lightspeed-user] call to get user info from markdown returned non-2xx response. Status: ${response.status}`,
         );
-        throw new Error("An unexpected error occurred");
+
+        if (response.status === 401) {
+          throw new LightspeedAccessDenied("Access Denied");
+        } else {
+          throw new Error(
+            `Request failed with status code: ${response.status}`,
+          );
+        }
       }
+    } catch (error) {
+      const err = error as Error;
+      this._logger.error(
+        `[ansible-lightspeed-user] error message: ${err.message}`,
+      );
+      throw err;
     }
   }
 
@@ -205,7 +250,7 @@ export class LightspeedUser {
     }
     // Prefer the auth provider that has already worked
     if (this._userType) {
-      this._logger.info(
+      this._logger.debug(
         `[ansible-lightspeed-user] Trying previous auth provider first: ${this._userType}`,
       );
       if (this._userType === AuthProviderType.lightspeed) {
@@ -240,6 +285,10 @@ export class LightspeedUser {
     createIfNone: boolean,
     useProviderType: AuthProviderType | undefined = undefined,
   ) {
+    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
+    if (!this._settingsManager.settings.lightSpeedService.enabled) {
+      return undefined;
+    }
     let session = undefined;
     // If user specified the provider type to sign in with, use only that provider type
     if (useProviderType) {
@@ -320,11 +369,9 @@ export class LightspeedUser {
       const displayName = userinfo.external_username || userinfo.username || "";
       const userTypeLabel = getUserTypeLabel(
         userinfo.rh_org_has_subscription,
-        userinfo.rh_user_has_seat,
       ).toLowerCase();
 
       this._userDetails = {
-        rhUserHasSeat: userinfo.rh_user_has_seat,
         rhOrgHasSubscription: userinfo.rh_org_has_subscription,
         rhUserIsOrgAdmin: userinfo.rh_user_is_org_admin,
         displayName,
@@ -400,57 +447,10 @@ export class LightspeedUser {
   }
 
   public async getLightspeedUserContent() {
-    // Ensure we don't try to get a lightspeed auth session when the provider is not initialized
-    if (!this._settingsManager.settings.lightSpeedService.enabled) {
-      return undefined;
-    }
-
     const markdownUserDetails =
       await this.getMarkdownLightspeedUserDetails(false);
-    const userDetails = await this.getLightspeedUserDetails(false);
 
-    let content;
-    if (markdownUserDetails) {
-      content = String(markdownUserDetails);
-    } else {
-      if (userDetails) {
-        const sessionInfo = getLoggedInUserDetails(userDetails);
-        const userName = userDetails.displayNameWithUserType;
-        const userType = sessionInfo.userInfo?.userType || "";
-        const userRole =
-          sessionInfo.userInfo?.role !== undefined
-            ? sessionInfo.userInfo.role
-            : "";
-        content = `
-          <p>Logged in as: ${userName}</p>
-          <p>User Type: ${userType}</p>
-          ${userRole ? "Role: " + userRole : ""}
-        `;
-      }
-    }
-
-    return content;
-  }
-
-  public async rhUserHasSeat(): Promise<boolean | undefined> {
-    const userDetails = await this.getLightspeedUserDetails(false);
-
-    if (userDetails === undefined) {
-      this._logger.info(
-        "[ansible-lightspeed-user] User authentication session not found for seat check.",
-      );
-      return undefined;
-    } else if (userDetails.rhUserHasSeat) {
-      this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" has a seat.`,
-      );
-      return true;
-    } else {
-      this._logger.info(
-        `[ansible-lightspeed-user] User "${userDetails.displayNameWithUserType}" does not have a seat.`,
-      );
-      return false;
-    }
+    return markdownUserDetails || "";
   }
 
   public async rhOrgHasSubscription(): Promise<boolean | undefined> {
@@ -479,7 +479,7 @@ export class LightspeedUser {
   }
 
   public async getLightspeedUserAccessToken() {
-    this._logger.info("[ansible-lightspeed-user] Getting access token...");
+    this._logger.trace("[ansible-lightspeed-user] Getting access token...");
 
     if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
       this._logger.info("[ansible-lightspeed-user] Test access token returned");
@@ -487,22 +487,28 @@ export class LightspeedUser {
     }
 
     if (!this._session) {
-      this._logger.info(
+      this._logger.trace(
         "[ansible-lightspeed-user] Session not found. Returning...",
       );
       const selection = await vscode.window.showWarningMessage(
         "You must be logged in to use Ansible Lightspeed.\n",
         "Login",
+        "Disable Lightspeed",
       );
       if (selection === "Login") {
         vscode.commands.executeCommand(
           LightSpeedCommands.LIGHTSPEED_AUTH_REQUEST,
         );
       }
+      if (selection === "Disable Lightspeed") {
+        vscode.commands.executeCommand(
+          "workbench.action.openSettings",
+          "ansible.lightspeed.enabled",
+        );
+      }
       return;
     }
-
-    this._logger.info(
+    this._logger.debug(
       `[ansible-lightspeed-user] Session found for auth provider "${this._userType}" with scopes "${this._session.scopes}"`,
     );
 

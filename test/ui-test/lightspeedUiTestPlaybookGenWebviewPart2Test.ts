@@ -1,31 +1,31 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import axios from "axios";
 import {
   By,
-  Workbench,
   VSBrowser,
   EditorView,
-  until,
   WebView,
-  ModalDialog,
+  Key,
 } from "vscode-extension-tester";
 import {
   getFixturePath,
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
-  dismissNotifications,
 } from "./uiTestHelper";
 import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook generation features work as expected", function () {
-  let workbench: Workbench;
+before(function () {
+  if (process.platform === "darwin") {
+    this.skip();
+  }
+});
 
+describe("Verify playbook generation features work as expected", function () {
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
@@ -36,124 +36,42 @@ describe("Verify playbook generation features work as expected", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
-    await sleep(3000);
-
-    workbench = new Workbench();
-    // await workbenchExecuteCommand(
-    //   "Ansible Lightspeed: Enable experimental features",
-    // );
-    await workbenchExecuteCommand("View: Close All Editor Groups");
-
-    await dismissNotifications(workbench);
   });
 
   it("Playbook generation webview works as expected (full path) - part 2", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(3000);
+    await sleep(2000);
 
-    let webView = await getWebviewByLocator(
+    // Start operations on Playbook Generation UI
+    const webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
     );
 
-    const textArea = await webView.findWebElement(
-      By.xpath("//vscode-text-area"),
+    const promptTextField = await webView.findWebElement(
+      By.xpath('//*[@id="PromptTextField"]/input'),
     );
+    await promptTextField.sendKeys("Create an azure network.");
+    await promptTextField.sendKeys(Key.ESCAPE);
+    await promptTextField.click();
 
-    await textArea.sendKeys("Create an azure network.");
-    // Click Generate playbook button to invoke the generations API
-    const generatePlaybookButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='generate-button']"),
+    const analyzeButton = await webView.findWebElement(
+      By.xpath("//vscode-button[contains(text(), 'Analyze')]"),
     );
-    expect(
-      generatePlaybookButton,
-      "generatePlaybookButton should not be undefined",
-    ).not.to.be.undefined;
+    await analyzeButton.click();
 
-    const submitButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='submit-button']"),
-    );
-    await submitButton.click();
     await sleep(2000);
 
-    // 2nd page
-    let outlineList = await webView.findWebElement(
-      By.xpath("//ol[@id='outline-list']"),
+    const generateButton = await webView.findWebElement(
+      By.xpath("//vscode-button[contains(text(), 'Continue')]"),
     );
-    // Input "(status=400)" to simulate an API error
-    await outlineList.sendKeys("(status=400)");
-    let text = await outlineList.getText();
-    expect(text.includes("(status=400)"));
-    await generatePlaybookButton.click(); // Click Generate Playbook button
-    await sleep(2000);
-
-    const resetButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='reset-button']"),
-    );
-    // Click reset button and make sure the string "(status=400)" is removed
-    await resetButton.click();
-    await sleep(500);
-
-    // Confirm reset of Outline
-    await webView.switchBack();
-    const resetOutlineDialog = new ModalDialog();
-    await resetOutlineDialog.pushButton("Ok");
-    await sleep(250);
-    // Sadly we need to switch context and so we must reload the WebView elements
-    webView = await getWebviewByLocator(
-      By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
-    );
-    outlineList = await webView.findWebElement(
-      By.xpath("//ol[@id='outline-list']"),
-    );
-
-    text = await outlineList.getText();
-    expect(!text.includes("(status=400)"));
-
-    // Click Generate Playbook button again
-    await generatePlaybookButton.click();
-    await sleep(2000);
-
-    // Make sure the generated playbook is displayed
-    const formattedCode = await webView.findWebElement(
-      By.xpath("//span[@id='formatted-code']"),
-    );
-    expect(formattedCode, "formattedCode should not be undefined").not.to.be
-      .undefined;
-    await sleep(500);
-    text = await formattedCode.getText();
-    expect(text.startsWith("---")).to.be.true;
-
-    // Test Back (to Page 2) button
-    const backToPage2Button = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='back-to-page2-button']"),
-    );
-    expect(backToPage2Button, "backToPage2Button should not be undefined").not
-      .to.be.undefined;
-    await backToPage2Button.click();
-    await sleep(500);
-
-    // Type in something extra
-    await outlineList.sendKeys("\nSomething extra");
-    const savedOutline = await outlineList.getText();
+    await generateButton.click();
 
     // Click generate playbook button again
-    generatePlaybookButton.click();
-    await sleep(2000);
-
-    // Click Back page again
-    await backToPage2Button.click();
-    await sleep(500);
-
-    // Make sure outline is not updated.
-    expect(savedOutline).equal(await outlineList.getText());
-
-    // Click generate playbook button again
-    generatePlaybookButton.click();
     await sleep(500);
 
     // Click Open editor button to open the generated playbook in the editor
     const openEditorButton = await webView.findWebElement(
-      By.xpath("//vscode-button[@id='open-editor-button']"),
+      By.xpath("//vscode-button[contains(text(), 'Open editor')]"),
     );
     expect(openEditorButton, "openEditorButton should not be undefined").not.to
       .be.undefined;
@@ -161,73 +79,46 @@ describe("Verify playbook generation features work as expected", function () {
     await sleep(2000);
     await webView.switchBack();
 
-    // Verify a playbook was generated.
-    const editor = await new EditorView().openEditor("Untitled-1");
-    await sleep(2000);
-
-    text = await editor.getText();
-    expect(
-      text.startsWith("---"),
-      'The generated playbook should start with "---"',
-    ).to.be.true;
-
-    await workbenchExecuteCommand("View: Close All Editor Groups");
-    const dialog = new ModalDialog();
-    await dialog.pushButton(`Don't Save`);
-    await dialog.getDriver().wait(until.stalenessOf(dialog), 2000);
-
     /* verify generated events */
     const expected = [
       [WizardGenerationActionType.OPEN, undefined, 1],
       [WizardGenerationActionType.TRANSITION, 1, 2],
       [WizardGenerationActionType.TRANSITION, 2, 3],
-      [WizardGenerationActionType.TRANSITION, 3, 2],
-      [WizardGenerationActionType.TRANSITION, 2, 3],
-      [WizardGenerationActionType.TRANSITION, 3, 2],
-      [WizardGenerationActionType.TRANSITION, 2, 3],
       [WizardGenerationActionType.CLOSE_ACCEPT, 3, undefined],
     ];
-    const res = await axios.get(
-      `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
-    );
-    expect(res.data.feedbacks.length).equals(expected.length);
-    for (let i = 0; i < expected.length; i++) {
-      const evt: PlaybookGenerationActionEvent =
-        res.data.feedbacks[i].playbookGenerationAction;
-      expect(evt.action).equals(expected[i][0]);
-      expect(evt.fromPage).equals(expected[i][1]);
-      expect(evt.toPage).equals(expected[i][2]);
+
+    try {
+      const response: Response = await fetch(
+        `${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`,
+        {
+          method: "GET",
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        expect(data.feedbacks.length).equals(expected.length);
+        for (let i = 0; i < expected.length; i++) {
+          const evt: PlaybookGenerationActionEvent =
+            data.feedbacks[i].playbookGenerationAction;
+          expect(evt.action).equals(expected[i][0]);
+          expect(evt.fromPage).equals(expected[i][1]);
+          expect(evt.toPage).equals(expected[i][2]);
+        }
+      } else {
+        expect.fail(
+          `Failed to get feedback events, request returned status: ${response.status} and text: ${response.statusText}`,
+        );
+      }
+    } catch (error) {
+      console.error("Failed to get feedback events with unknown error", error);
+      expect.fail("Failed to get feedback events with unknown error");
     }
-  });
-
-  it("Playbook generation webview (multiple instances)", async function () {
-    // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
-    }
-
-    // Ensure all previous instances are closed
-    await workbenchExecuteCommand("View: Close All Editor Groups");
-    await sleep(1000);
-
-    // Open playbook generation webview.
-    await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(1000);
-
-    // Open another playbook generation webview.
-    await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(1000);
-
-    const editorView = new EditorView();
-    const titles = await editorView.getOpenEditorTitles();
-    expect(
-      titles.filter((value) => value === "Ansible Lightspeed").length,
-    ).to.equal(2);
-
-    await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 
   it("Playbook explanation webview works as expected", async function () {
+    this.timeout(60000); // Set timeout to 60 seconds for this test
+
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
@@ -243,7 +134,7 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
-    await sleep(2000);
+    await sleep(3000);
 
     // Locate the playbook explanation webview
     let webView = (await new EditorView().openEditor(

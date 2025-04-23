@@ -41,7 +41,7 @@ jobs:
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
-      # NODE_OPTIONS must be kept in sync with one inside .envrc file
+      # NODE_OPTIONS must be kept in sync with one inside .env file
       NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
@@ -49,7 +49,7 @@ jobs:
       run:
         shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
-    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
     # see https://github.com/containers/podman/issues/13609
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
@@ -63,7 +63,7 @@ jobs:
         continue-on-error:
           - false
         os:
-          - ubuntu-22.04
+          - ubuntu-24.04
         task-name:
           - docs
         name:
@@ -71,7 +71,7 @@ jobs:
         include:
           - name: lint
             task-name: lint
-            os: ubuntu-22.04
+            os: ubuntu-24.04
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -113,9 +113,9 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v4.0.0
+        uses: Vampire/setup-wsl@v5.0.0
         with:
-          distribution: Ubuntu-22.04
+          distribution: Ubuntu-24.04
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
@@ -137,6 +137,7 @@ jobs:
             dbus
             dirmngr
             gawk
+            gcc
             git
             gpg
             gpg-agent
@@ -151,66 +152,17 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Setup asdf
+      - name: Setup node.js
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: asdf-vm/actions/install@v3
-
-      - name: Setup python
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-node@v4.4.0
         with:
-          python-version: "3.12"
+          node-version: 20
+          # yarn cache is broken due https://github.com/actions/setup-node/issues/531
+          # cache: yarn
 
-      - name: Install asdf inside WSL
-        if: contains(matrix.shell, 'wsl')
-        run: |
-          set -ex
-          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
-          export ASDF_DIR="$HOME/.asdf"
-          . "$HOME/.asdf/asdf.sh"
-          asdf plugin add direnv
-          asdf plugin add nodejs
-          asdf plugin add python
-          asdf plugin add task
-          asdf plugin add yarn
-          asdf install
-          direnv --version
-          task --version
-          yarn --version
-          node --version
-          python3 --version
-
-      - name: Activate direnv
+      - name: Corepack enable
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        run: |
-          set -x
-          asdf direnv setup --shell bash --version latest
-          asdf current
-          asdf exec direnv allow
-          asdf exec direnv reload
-
-          # https://github.com/direnv/direnv/wiki/GitHubActions
-          # Github prevents export of NODE_OPTIONS to GITHUB_ENV due to security reasons:
-          # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
-          asdf exec direnv export gha >> "$GITHUB_ENV"
-          asdf exec direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
-
-
-      - name: Ensure .envrc file is automatically loaded (direnv)
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        run: |
-          set -ex
-          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
-            echo "VIRTUAL_ENV mismatch"
-            exit 99
-          }
-          test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
-            echo "python3 mismatch"
-            exit 98
-          }
-          # Ensure NODE_OPTIONS config on CI is identical with the one in .envrc
-          [[ "${NODE_OPTIONS:-}" == "$(asdf exec direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .envrc and ci.yaml"; exit 97; }
+        run: corepack enable
 
       - name: Enable caching
         uses: actions/cache@v4
@@ -235,6 +187,80 @@ jobs:
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
+      - name: Setup task
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.37.2
+
+      - name: Setup direnv
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        uses: HatsuneMiku3939/direnv-action@v1
+        with:
+          direnvVersion: 2.35.0
+
+      - name: Setup python
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install ansible-dev-tools
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: |
+          pip install ansible-dev-tools
+
+      - name: Install asdf inside WSL
+        if: contains(matrix.shell, 'wsl')
+        run: |
+          set -ex
+          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
+          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
+          export ASDF_DIR="$HOME/.asdf"
+          . "$HOME/.asdf/asdf.sh"
+          asdf plugin add direnv
+          asdf plugin add nodejs
+          asdf plugin add python
+          asdf plugin add task
+          asdf plugin add yarn
+          asdf install
+          direnv --version
+          task --version
+          node --version
+          python3 --version
+
+      - name: Activate direnv
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: |
+          direnv allow
+          direnv reload
+
+          # https://github.com/direnv/direnv/wiki/GitHubActions
+          # Github prevents export of NODE_OPTIONS to GITHUB_ENV due to security reasons:
+          # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
+          direnv export gha >> "$GITHUB_ENV"
+          direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
+
+      - name: Ensure .env file is automatically loaded (direnv)
+        if: ${{ !contains(matrix.shell, 'wsl') }}
+        run: |
+          set -ex
+          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
+            echo "VIRTUAL_ENV mismatch"
+            exit 99
+          }
+          test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
+            echo "python3 mismatch"
+            exit 98
+          }
+          # Ensure NODE_OPTIONS config on CI is identical with the one in .env
+          [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
+
+      - name: Install dependencies
+        uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
+        with:
+          cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
+
       - name: task setup
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
@@ -246,7 +272,18 @@ jobs:
       - name: task package
         id: package
         run: |
-            task package ${{ matrix.env.TASKFILE_ARGS }}
+          task package ${{ matrix.env.TASKFILE_ARGS }}
+
+      - name: configure podman
+        if: ${{ matrix.name == 'test (linux)' }}
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          mkdir -p ~/.config/containers
+          cat <<EOT >> ~/.config/containers/containers.conf
+          [engine]
+          cgroup_manager="cgroupfs"
+          EOT
+          podman info
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
@@ -288,6 +325,13 @@ jobs:
           path: packages/ansible-language-server/*.tgz
           if-no-files-found: error
           retention-days: 90
+
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find out -name '*\?*' -exec rm -r {} \; || true
+          find out -name '*"*' -exec rm -r {} \; || true
+          find out -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload test logs and reports
         if: ${{ always() }}
@@ -339,7 +383,7 @@ jobs:
       id-token: write
       checks: read
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Merge logs into a single archive
@@ -356,8 +400,15 @@ jobs:
           name: logs.zip
           path: .
 
+      - name: Remove invalid files
+        if: ${{ always() }}
+        run: |
+          find . -name '*\?*' -exec rm -r {} \; || true
+          find . -name '*"*' -exec rm -r {} \; || true
+          find . -name '*:*' -exec rm -r {} \; || true
+
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: als
           files: ./*/coverage/als/lcov.info
@@ -367,7 +418,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: unit
           files: ./*/coverage/unit/lcov.info
@@ -376,18 +427,24 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
+      - name: Find all the UI test coverage data
+        run: |
+          COVERAGE_FILES=$(find ./*/coverage/ui/ -name 'lcov.*.info' -print0 | xargs -0 | tr ' ' ',')
+          echo "Found coverage files: $COVERAGE_FILES"
+          echo "COVERAGE_FILES=$COVERAGE_FILES" >> $GITHUB_ENV
+
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: ui
-          files: ./*/coverage/ui/lcov.info
+          files: ${{ env.COVERAGE_FILES }}
           flags: ui
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.1.1
+        uses: codecov/codecov-action@v5.4.2
         with:
           name: e2e
           files: ./*/coverage/e2e/lcov.info
@@ -431,7 +488,7 @@ jobs:
           name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
 
       - run: |
-          yarn install --immutable
+          npm exec -- yarn install --immutable
           ls -la *.vsix
 
       - name: Setup python
