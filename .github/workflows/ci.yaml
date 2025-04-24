@@ -189,11 +189,6 @@ jobs:
         with:
           version: 3.37.2
 
-      - name: Setup direnv
-        uses: HatsuneMiku3939/direnv-action@v1.1.0
-        with:
-          direnvVersion: 2.36.0
-
       - name: Setup python
         uses: actions/setup-python@v5
         with:
@@ -214,30 +209,27 @@ jobs:
             pip install ansible-dev-tools
           fi
 
-      - name: Activate direnv
+      - name: Configure python venv location
         run: |
-          direnv allow
-          direnv reload
+          set -o allexport
+          source .env
+          set +o allexport
 
-          # https://github.com/direnv/direnv/wiki/GitHubActions
           # Github prevents export of NODE_OPTIONS to GITHUB_ENV due to security reasons:
           # https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/workflow-commands-for-github-actions#setting-an-environment-variable
-          direnv export gha >> "$GITHUB_ENV"
-          direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "${VIRTUAL_ENV}/bin" >> "$GITHUB_PATH"
 
-      - name: Ensure .env file is automatically loaded (direnv)
+      - name: Ensure venv is correctly configured # needs to be separate step, at this point the venv is not yet created
         run: |
           set -ex
+          [[ ":$PATH:" == *":$VIRTUAL_ENV/bin:"* ]] && echo "In PATH" || echo "Not in PATH"
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
             echo "VIRTUAL_ENV mismatch"
             exit 99
           }
-          test "$(which python3)" = "${HOME}/.local/share/virtualenvs/vsa/bin/python3" || {
-            echo "python3 mismatch"
-            exit 98
-          }
           # Ensure NODE_OPTIONS config on CI is identical with the one in .env
-          [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
+          [[ "${NODE_OPTIONS:-}" == "$(source .env && printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Install dependencies
         uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
