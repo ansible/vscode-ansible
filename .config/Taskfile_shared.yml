@@ -5,8 +5,6 @@ env: &env
   FORCE_COLOR: "true"
   PRE_COMMIT_COLOR: always
 vars:
-  HOSTNAME:
-    sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
   PYTHON3:
     sh: echo {{.VIRTUAL_ENV}}/bin/python3
 tasks:
@@ -17,11 +15,13 @@ tasks:
       OS: "{{OS}}"
       ARCH: "{{ARCH}}"
     cmds:
-      - python3 ./tools/precheck.py
+      - bash ./tools/precheck.sh
       - bash ./tools/test-setup.sh
     sources:
-      - tools/test-setup.sh
       - .config/requirements.in
+      - package.json
+      - tools/test-setup.sh
+      - yarn.lock
     generates:
       - out/log/manifest-*.yml
       - "{{.PYTHON3}}"
