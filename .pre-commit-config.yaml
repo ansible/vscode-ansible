@@ -20,6 +20,10 @@ exclude: >
   )$
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.24.2
+    hooks:
+      - id: toml-sort-fix
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.11.6"
     hooks:
@@ -30,9 +34,6 @@ repos:
     rev: v8.17.3
     hooks:
       - id: cspell
-        args:
-          -  --config=cspell.config.yaml
-        # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
