@@ -5,6 +5,8 @@ name: ci
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
 on:
+  merge_group:
+    branches: ["main", "devel/*"]
   push:
     branches: ["main", "devel/*"]
     tags:
@@ -170,7 +172,6 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.cache/pre-commit/
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
@@ -199,6 +200,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
+      - name: Enable caching for pre-commit
+        if: ${{ matrix.name == 'lint' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit/
+          key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Install ansible-dev-tools
         if: ${{ !contains(matrix.shell, 'wsl') }}
