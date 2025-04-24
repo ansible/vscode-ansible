@@ -6,13 +6,13 @@ import { vscodeApi } from "./utils";
 import { getObjectKeys } from "../../../src/features/lightspeed/utils/explanationUtils";
 import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 import { ExplanationRequestParams, ExplanationResponseParams, FeedbackRequestParams, GenerationListEntry, RoleExplanationRequestParams } from "../../../src/interfaces/lightspeed";
+import FeedbackBox from "./components/FeedbackBox.vue";
 
 provideVSCodeDesignSystem().register(allComponents);
 
 const loadingExplanation = ref(true);
 const noTasksInPlaybook = ref(false);
 const explanationType = ref<"playbook" | "role" | null>(null);
-const selectedFeedback = ref<"thumbsUp" | "thumbsDown" | null>(null);
 const playbookData = ref<{ content: string | null; fileName: string | null }>({ content: null, fileName: null });
 const roleData = ref<{ files: GenerationListEntry[] | []; roleName: string | null }>({ files: [], roleName: null });
 const errorMessage = ref<string | null>(null);
@@ -71,20 +71,6 @@ async function fetchRoleExplanation() {
     explanationId,
   };
   vscodeApi.post("explainRole", explanationRequest);
-}
-
-function handleThumbsUp() {
-  vscodeApi.post("explanationThumbsUp", {
-    explanationId ,
-  });
-  selectedFeedback.value = "thumbsUp";
-}
-
-function handleThumbsDown() {
-  vscodeApi.post("explanationThumbsDown", {
-    explanationId,
-  });
-  selectedFeedback.value = "thumbsDown";
 }
 
 vscodeApi.on("explainPlaybook", (data: ExplanationResponseParams) => {
@@ -167,16 +153,7 @@ watch(() => playbookData.value, (newValue) => {
   </div>
   <div v-else-if="explanationHtml">
     <div class="explanation" v-html="explanationHtml"></div>
-    <div class="stickyFeedbackContainer">
-      <div class="feedbackContainer">
-        <vscode-button class="iconButton" :class="{'iconButtonSelected': selectedFeedback==='thumbsUp'}" appearance="icon" id="thumbsup-button" @click="handleThumbsUp" :disabled="selectedFeedback">
-            <span class="codicon codicon-thumbsup"></span>
-        </vscode-button>
-        <vscode-button class="iconButton" :class="{'iconButtonSelected': selectedFeedback==='thumbsDown'}" appearance="icon" id="thumbsdown-button" @click="handleThumbsDown" :disabled="selectedFeedback">
-            <span class="codicon codicon-thumbsdown"></span>
-        </vscode-button>
-      </div>
-    </div>
+    <FeedbackBox :explanationId="explanationId" />
   </div>
   <div class="explanation" v-else>
     <p>No explanation available.</p>
@@ -184,24 +161,7 @@ watch(() => playbookData.value, (newValue) => {
 </template>
 
 <style scoped>
-  .stickyFeedbackContainer {
-    position: sticky;
-    bottom: 0px;
-  }
   .codicon {
     line-height: 36px;
-  }
-  .iconButton {
-    width: 36px;
-    height: 36px;
-    margin: 0.2em;
-    background: transparent;
-    border: none;
-    color: var(--vscode-button-secondaryForeground, #cccccc);
-    opacity: 1.0;
-    padding: 0;
-  }
-  .iconButtonSelected, .iconButton:not(:disabled):hover {
-    background: var(--vscode-button-secondaryHoverBackground, #3c3c3c);
   }
 </style>
