@@ -1,10 +1,12 @@
 {
   "recommendations": [
-    "DavidAnson.vscode-markdownlint",
     "charliermarsh.ruff",
+    "DavidAnson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "hbenl.vscode-mocha-test-adapter",
+    "tamasfe.even-better-toml",
     "timonwong.shellcheck"
-  ]
+  ],
+  "unwantedRecommendations": ["ms-python.black-formatter"]
 }

@@ -16,8 +16,6 @@ env:
   PRE_COMMIT_COLOR: always
   # basically the same thing from .env file:
 vars:
-  HOSTNAME:
-    sh: echo ${HOSTNAME:-${HOST:-$(hostname)}}
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:

@@ -20,13 +20,20 @@ exclude: >
   )$
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.24.2
+    hooks:
+      - id: toml-sort-fix
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.11.6"
+    hooks:
+      - id: ruff
+        entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
+        types_or: [python, pyi]
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v8.17.3
     hooks:
       - id: cspell
-        args:
-          -  --config=cspell.config.yaml
-        # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
@@ -44,20 +51,6 @@ repos:
           - --color=always
           - -e
           - SC1091
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.4
-    hooks:
-      - id: ruff
-        args:
-          - --fix
-          - --exit-non-zero-on-fix
-        types_or: [python, pyi]
-      - id: ruff-format # must be after ruff
-        types_or: [python, pyi]
-  - repo: https://github.com/psf/black # must be after ruff
-    rev: 25.1.0
-    hooks:
-      - id: black
   - repo: local
     hooks:
       - id: depcheck
