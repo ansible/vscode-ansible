@@ -151,11 +151,14 @@ export class WebviewHelper {
     context: ExtensionContext,
     name: string,
   ) {
-    return process.env.VITE_DEV_SERVER_URL
-      ? __getWebviewHtml__(
-          `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
-        )
-      : __getWebviewHtml__(webview, context, name);
+    return __getWebviewHtml__({
+      // vite dev mode
+      serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
+      // vite prod mode
+      webview,
+      context,
+      inputName: name,
+    });
   }
 
   public static async setupWebviewHooks(

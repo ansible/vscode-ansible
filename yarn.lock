@@ -1369,28 +1369,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tomjs/node@npm:^2.2.0":
+"@tomjs/node@npm:^2.2.3":
   version: 2.2.3
   resolution: "@tomjs/node@npm:2.2.3"
   checksum: 10/fb572c9fbe0f5deeaa1620e74e4392797363e1f52f67140dea7648b93831bd6be2ad7cc305099d7ccb93605d196502fc24e7b3179588f76b7181ac50cb1649e2
   languageName: node
   linkType: hard
 
-"@tomjs/vite-plugin-vscode@npm:^3.2.1":
-  version: 3.2.1
-  resolution: "@tomjs/vite-plugin-vscode@npm:3.2.1"
+"@tomjs/vite-plugin-vscode@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@tomjs/vite-plugin-vscode@npm:4.0.0"
   dependencies:
-    "@tomjs/node": "npm:^2.2.0"
-    dayjs: "npm:^1.11.10"
+    "@tomjs/node": "npm:^2.2.3"
+    dayjs: "npm:^1.11.13"
     execa: "npm:^5.1.1"
     kolorist: "npm:^1.8.0"
     lodash.clonedeep: "npm:^4.5.0"
     lodash.merge: "npm:^4.6.2"
-    node-html-parser: "npm:^6.1.12"
+    node-html-parser: "npm:^6.1.13"
     tsup: "npm:7.2.0"
   peerDependencies:
     vite: ">=2"
-  checksum: 10/4b0c93357d2079be5ed4b0b9d8b7bfa626557075147a84e2d35821713e58e9f834273850e6598f0f8eedb1b1d89826085bcde0521929cb568d764d2e09de55fe
+  checksum: 10/06f9f97a8eed770d90d3ee1ac98d360e182c6bf27d6af3e9cbf2bcd95f82ff34c76dd4d810d6bfbb9cdc3cdfa797bce2accc0b23505265c0e27d748d9cf30c1d
   languageName: node
   linkType: hard
 
@@ -2640,7 +2640,7 @@ __metadata:
     "@highlightjs/vue-plugin": "npm:2.1.0"
     "@primeuix/themes": "npm:^1.0.3"
     "@redhat-developer/vscode-redhat-telemetry": "npm:^0.9.1"
-    "@tomjs/vite-plugin-vscode": "npm:^3.2.1"
+    "@tomjs/vite-plugin-vscode": "npm:^4.0.0"
     "@tomjs/vscode-webview": "npm:^2.0.2"
     "@types/chai": "npm:^4.3.20"
     "@types/express": "npm:^5.0.1"
@@ -3698,7 +3698,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.10":
+"dayjs@npm:^1.11.13":
   version: 1.11.13
   resolution: "dayjs@npm:1.11.13"
   checksum: 10/7374d63ab179b8d909a95e74790def25c8986e329ae989840bacb8b1888be116d20e1c4eee75a69ea0dfbae13172efc50ef85619d304ee7ca3c01d5878b704f5
@@ -7312,7 +7312,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-html-parser@npm:^6.1.12":
+"node-html-parser@npm:^6.1.13":
   version: 6.1.13
   resolution: "node-html-parser@npm:6.1.13"
   dependencies:
