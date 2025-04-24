@@ -1092,7 +1092,7 @@
     "vite-preview": "vite preview"
   },
   "version": "0.0.0",
-  "packageManager": "yarn@4.7.0",
+  "packageManager": "yarn@4.9.1",
   "vsce": {
     "dependencies": false,
     "yarn": false
