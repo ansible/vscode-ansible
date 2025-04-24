@@ -9,20 +9,20 @@ skip = "out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,pack
 # vscode python extension from showing errors while trying to collect tests.
 [tool.pytest.ini_options]
 norecursedirs = [
-    "*.egg",
-    ".cache",
-    ".eggs",
-    ".git",
-    ".github",
-    ".mypy_cache",
-    ".projects",
-    ".tox",
-    "build",
-    "collections",
-    "dist",
-    "docs",
-    "out",
-    "node_modules",
+  "*.egg",
+  ".cache",
+  ".eggs",
+  ".git",
+  ".github",
+  ".mypy_cache",
+  ".projects",
+  ".tox",
+  "build",
+  "collections",
+  "dist",
+  "docs",
+  "out",
+  "node_modules"
 ]
 
 [tool.ruff]
@@ -31,7 +31,14 @@ fix = true
 line-length = 100
 target-version = "py310"
 
+[tool.tomlsort]
+in_place = true
+sort_inline_tables = true
+sort_table_keys = true
+
 [tool.uv.pip]
+annotation-style = "line"
+custom-compile-command = "task -e deps"
 no-emit-package = [
   "ansible-core",
   "exceptiongroup", # <py311
@@ -44,5 +51,3 @@ no-emit-package = [
   "wheel",
   "uv"
 ]
-annotation-style = "line"
-custom-compile-command = "task -e deps"

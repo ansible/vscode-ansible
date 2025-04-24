@@ -242,6 +242,7 @@ suboptions
 subshells
 sysninja
 seccomp
+tamasfe
 taskfile
 tasklist
 testenv
@@ -254,6 +255,7 @@ tls
 toctree
 todos
 tomaciazek
+tomlsort
 towerhost
 towncrier
 toxenv
