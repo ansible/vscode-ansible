@@ -190,9 +190,9 @@ jobs:
 
       - name: Setup direnv
         if: ${{ !contains(matrix.shell, 'wsl') }}
-        uses: HatsuneMiku3939/direnv-action@v1
+        uses: HatsuneMiku3939/direnv-action@v1.1.0
         with:
-          direnvVersion: 2.35.0
+          direnvVersion: 2.36.0
 
       - name: Setup python
         if: ${{ !contains(matrix.shell, 'wsl') }}
