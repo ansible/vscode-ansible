@@ -11,7 +11,7 @@ export default defineConfig({
         //minify: false,
       },
       webview: {
-        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}'; style-src {{cspSource}}; font-src {{cspSource}};">`,
+        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}' 'unsafe-inline'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}};">`,
       },
     }),
     vue({
