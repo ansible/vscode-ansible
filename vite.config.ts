@@ -10,6 +10,9 @@ export default defineConfig({
         entry: "src/extension.ts",
         //minify: false,
       },
+      webview: {
+        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}' 'unsafe-inline'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}};">`,
+      },
     }),
     vue({
       template: {
@@ -19,6 +22,7 @@ export default defineConfig({
       },
     }),
   ],
+  publicDir: "media",
   build: {
     minify: false,
     outDir: "out/vitebuild",
@@ -33,6 +37,10 @@ export default defineConfig({
         "playbook-generation": path.resolve(
           __dirname,
           "webviews/lightspeed/playbook-generation.html",
+        ),
+        explanation: path.resolve(
+          __dirname,
+          "webviews/lightspeed/explanation.html",
         ),
       },
     },
