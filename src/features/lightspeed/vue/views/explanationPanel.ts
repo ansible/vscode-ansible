@@ -1,7 +1,7 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, window } from "vscode";
-import { WebviewHelper } from "./helper";
 import { GenerationListEntry } from "../../../../interfaces/lightspeed";
+import { setupPanelLifecycle, disposePanelResources } from "./panelUtils";
 
 export type Playbook = {
   content: string;
@@ -20,19 +20,12 @@ export class MainPanel {
 
   private constructor(panel: WebviewPanel, context: ExtensionContext) {
     this._panel = panel;
-
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-
-    this._panel.webview.html = WebviewHelper.setupHtml(
-      this._panel.webview,
+    setupPanelLifecycle(
+      this._panel,
       context,
       "explanation",
-    );
-
-    WebviewHelper.setupWebviewHooks(
-      this._panel.webview,
       this._disposables,
-      context,
+      () => this.dispose(),
     );
   }
 
@@ -74,16 +67,6 @@ export class MainPanel {
    */
   public dispose() {
     MainPanel.currentPanel = undefined;
-
-    // Dispose of the current webview panel
-    this._panel.dispose();
-
-    // Dispose of all disposables (i.e. commands) for the current webview panel
-    while (this._disposables.length) {
-      const disposable = this._disposables.pop();
-      if (disposable) {
-        disposable.dispose();
-      }
-    }
+    disposePanelResources(this._panel, this._disposables);
   }
 }
