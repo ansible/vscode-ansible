@@ -119,8 +119,6 @@ jobs:
           set-as-default: "true"
           # '-i' seems to be the only option that loads .bashrc file that we need
           # https://github.com/Vampire/setup-wsl/discussions/54
-          run:
-            wsl --set-version Ubuntu-24.04 2
           wsl-shell-command: "bash -i -eo pipefail"
           # https://github.com/MicrosoftDocs/WSL/blob/main/WSL/wsl-config.md#L159
           wsl-conf: |
@@ -190,7 +188,7 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
-        # if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         uses: arduino/setup-task@v2
         with:
           version: 3.37.2
