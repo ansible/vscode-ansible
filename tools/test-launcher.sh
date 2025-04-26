@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -eu
+yarn run compile
 set -o pipefail
 
 cleanup()
