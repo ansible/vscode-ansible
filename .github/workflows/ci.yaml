@@ -161,7 +161,7 @@ jobs:
           # cache: yarn
 
       - name: Corepack enable
-        if: ${{ !contains(matrix.shell, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         run: corepack enable
 
       - name: Enable caching
