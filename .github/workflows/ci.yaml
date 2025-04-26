@@ -197,11 +197,7 @@ jobs:
         if: ${{ !contains(matrix.name, 'wsl') }}
         uses: HatsuneMiku3939/direnv-action@v1
         with:
-          direnvVersion: 2.35.0
-
-      - name: Setup direnv for wsl
-        if: ${{ contains(matrix.name, 'wsl') }}
-        run: curl -sfL https://direnv.net/install.sh | bash
+          direnvVersion: 2.36.0
 
       - name: Setup python
         if: ${{ contains(matrix.name, 'wsl') }}
