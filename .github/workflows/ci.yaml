@@ -278,7 +278,7 @@ jobs:
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: configure podman
-        if: ${{ matrix.name == 'test (linux)' }}
+        if: ${{ matrix.name == 'test (linux)' || matrix.name == 'test (wsl)' }}
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           mkdir -p ~/.config/containers
