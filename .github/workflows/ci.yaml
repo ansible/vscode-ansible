@@ -277,10 +277,21 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: configure podman
-        if: ${{ matrix.name == 'test (linux)' || matrix.name == 'test (wsl)' }}
+      - name: configure podman (linux only)
+        if: ${{ matrix.name == 'test (linux)' }}
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          mkdir -p ~/.config/containers
+          cat <<EOT >> ~/.config/containers/containers.conf
+          [engine]
+          cgroup_manager="cgroupfs"
+          EOT
+          podman info
+
+      - name: configure podman (wsl only)
+        if: ${{ matrix.name == 'test (wsl)' }}
+        run: |
+          sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || echo "Skipping sysctl"
           mkdir -p ~/.config/containers
           cat <<EOT >> ~/.config/containers/containers.conf
           [engine]
