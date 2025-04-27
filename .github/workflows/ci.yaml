@@ -76,8 +76,8 @@ jobs:
           #     SKIP_PODMAN: 1
           #     SKIP_DOCKER: 1
 
-          # - name: test (linux)
-          #   task-name: test
+          - name: test (linux)
+            task-name: test
 
           # - name: test (macos)
           #   task-name: test
