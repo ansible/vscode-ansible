@@ -10,6 +10,7 @@ ignores:
   - eslint-formatter-unix
   - mochawesome
   - mochawesome-report-generator
+  - npm-check-updates
   - ovsx
   - rimraf
   - start-server-and-test

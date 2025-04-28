@@ -85,7 +85,9 @@ tasks:
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
-      - yarn upgrade-interactive
+      - yarn ncu -u --workspaces -i
+      # disabled because it does not work recursively
+      # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
       - yarn up "@types/vscode@${VSCODE_VERSION}"
       - yarn dedupe

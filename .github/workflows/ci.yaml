@@ -5,6 +5,8 @@ name: ci
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
 on:
+  merge_group:
+    branches: ["main", "devel/*"]
   push:
     branches: ["main", "devel/*"]
     tags:
@@ -175,7 +177,6 @@ jobs:
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.cache/pre-commit/
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
