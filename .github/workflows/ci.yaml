@@ -56,6 +56,10 @@ jobs:
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
+    permissions:
+      contents: read
+      id-token: write # codecov actions
+      checks: read # codecov actions
     strategy:
       fail-fast: false
       matrix:
@@ -321,12 +325,24 @@ jobs:
           path: |
             out/coverage
             out/e2eTestReport
+            out/junit
             out/log
+            out/test-resources/screenshots
             out/test-resources/settings/logs
             out/userdata/logs
-            out/test-resources/screenshots
           if-no-files-found: ignore
           retention-days: 90
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+          directory: out/junit
+          name: ${{ matrix.name }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ matrix.name }},${{ matrix.os }}
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       # - name: Stop services
       #   if: "contains(matrix.os, 'macos')"

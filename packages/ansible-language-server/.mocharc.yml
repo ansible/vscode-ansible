@@ -1,3 +1,8 @@
+# https://github.com/mochajs/mocha/blob/main/example/config/.mocharc.yml
+reporter: mocha-junit-reporter
+reporter-option:
+  - mochaFile=../../out/junit/als-test-results.xml
+  - suiteTitle=als
 require:
   - ts-node/register
   - test/rootMochaHooks.ts
