@@ -161,7 +161,7 @@ jobs:
           # cache: yarn
 
       - name: Corepack enable
-        # if: ${{ !contains(matrix.name, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         run: corepack enable
 
       - name: Enable caching
@@ -188,19 +188,19 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
-        # if: ${{ !contains(matrix.name, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         uses: arduino/setup-task@v2
         with:
           version: 3.37.2
 
       - name: Setup direnv
-        # if: ${{ !contains(matrix.name, 'wsl') }}
+        if: ${{ !contains(matrix.name, 'wsl') }}
         uses: HatsuneMiku3939/direnv-action@v1
         with:
           direnvVersion: 2.36.0
 
       - name: Setup python
-        # if: ${{ contains(matrix.name, 'wsl') }}
+        if: ${{ contains(matrix.name, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
@@ -277,21 +277,10 @@ jobs:
         run: |
           task package ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: configure podman (linux only)
+      - name: configure podman
         if: ${{ matrix.name == 'test (linux)' }}
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          mkdir -p ~/.config/containers
-          cat <<EOT >> ~/.config/containers/containers.conf
-          [engine]
-          cgroup_manager="cgroupfs"
-          EOT
-          podman info
-
-      - name: configure podman (wsl only)
-        if: ${{ matrix.name == 'test (wsl)' }}
-        run: |
-          sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || echo "Skipping sysctl"
           mkdir -p ~/.config/containers
           cat <<EOT >> ~/.config/containers/containers.conf
           [engine]
@@ -314,7 +303,8 @@ jobs:
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') }}"
+        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        # if: "${{ contains(matrix.name, 'test') }}"
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
