@@ -91,16 +91,6 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-          # - name: test (wsl)
-          #   # runner does not support running containers
-          #   task-name: als:test-without-ee
-          #   log-name: als-test-without-ee
-          #   # https://github.com/actions/virtual-environments/issues/5151
-          #   os: devtools-win-x64
-          #   shell: "wsl-bash {0}"
-          #   env:
-          #     SKIP_PODMAN: 1
-          #     SKIP_DOCKER: 1
           - name: test (wsl)
             task-name: test
             os: wsl-runner
@@ -158,7 +148,6 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        # if: ${{ !contains(matrix.name, 'wsl') }}
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
@@ -166,7 +155,6 @@ jobs:
           # cache: yarn
 
       - name: Corepack enable
-        # if: ${{ !contains(matrix.name, 'wsl') }}
         run: corepack enable
 
       - name: Enable caching
@@ -192,19 +180,16 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
-        # if: ${{ !contains(matrix.name, 'wsl') }}
         uses: arduino/setup-task@v2
         with:
           version: 3.37.2
 
       - name: Setup direnv
-        # if: ${{ !contains(matrix.name, 'wsl') }}
         uses: HatsuneMiku3939/direnv-action@v1.1.0
         with:
           direnvVersion: 2.36.0
 
       - name: Setup python
-        # if: ${{ contains(matrix.name, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
