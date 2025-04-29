@@ -302,7 +302,7 @@ jobs:
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        if: "${{ contains(matrix.name, 'test') }}"
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
