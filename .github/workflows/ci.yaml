@@ -66,30 +66,30 @@ jobs:
           - false
         os:
           - ubuntu-24.04
-        # task-name:
-        #   - docs
-        # name:
-        #   - docs
+        task-name:
+          - docs
+        name:
+          - docs
         include:
-          # - name: lint
-          #   task-name: lint
-          #   os: ubuntu-24.04
-          #   env:
-          #     SKIP_PODMAN: 1
-          #     SKIP_DOCKER: 1
+          - name: lint
+            task-name: lint
+            os: ubuntu-24.04
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
 
           - name: test (linux)
             task-name: test
 
-          # - name: test (macos)
-          #   task-name: test
-          #   os: macos-13-large
-          #   env:
-          #     SKIP_PODMAN: 1
-          #     SKIP_DOCKER: 1
-          #   # only until we fix some broken tests, as we need it to pass
-          #   # in order to enable the caching
-          #   continue-on-error: true
+          - name: test (macos)
+            task-name: test
+            os: macos-13-large
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
+            # only until we fix some broken tests, as we need it to pass
+            # in order to enable the caching
+            continue-on-error: true
 
           # - name: test (wsl)
           #   # runner does not support running containers
@@ -158,8 +158,8 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        #if: ${{ !contains(matrix.name, 'wsl') }}
-        uses: actions/setup-node@0a44ba7841725637a19e28fa30b79a866c81b0a6 # v4
+        if: ${{ !contains(matrix.name, 'wsl') }}
+        uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
           # yarn cache is broken due https://github.com/actions/setup-node/issues/531
@@ -199,7 +199,7 @@ jobs:
 
       - name: Setup direnv
         if: ${{ !contains(matrix.name, 'wsl') }}
-        uses: HatsuneMiku3939/direnv-action@v1
+        uses: HatsuneMiku3939/direnv-action@v1.1.0
         with:
           direnvVersion: 2.36.0
 
@@ -209,6 +209,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Enable caching for pre-commit
+        if: ${{ matrix.name == 'lint' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit/
+          key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
       - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
         run: |
           if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
@@ -217,27 +224,7 @@ jobs:
             pip install ansible-dev-tools
           fi
 
-      # - name: Install asdf inside WSL
-      #   if: contains(matrix.shell, 'wsl')
-      #   run: |
-      #     set -ex
-      #     git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-      #     echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
-      #     export ASDF_DIR="$HOME/.asdf"
-      #     . "$HOME/.asdf/asdf.sh"
-      #     asdf plugin add direnv
-      #     asdf plugin add nodejs
-      #     asdf plugin add python
-      #     asdf plugin add task
-      #     asdf plugin add yarn
-      #     asdf install
-      #     direnv --version
-      #     task --version
-      #     node --version
-      #     python3 --version
-
       - name: Activate direnv
-        # if: ${{ !contains(matrix.name, 'wsl') }}
         run: |
           direnv allow
           direnv reload
@@ -249,7 +236,6 @@ jobs:
           direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
       - name: Ensure .env file is automatically loaded (direnv)
-        # if: ${{ !contains(matrix.name, 'wsl') }}
         run: |
           set -ex
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
@@ -302,12 +288,11 @@ jobs:
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') }}"
+        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        # if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
         if: "${{ contains(matrix.name, 'test') }}"
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
