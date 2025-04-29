@@ -105,6 +105,9 @@ jobs:
             task-name: test
             os: wsl-runner
             runs-on: self-hosted
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
 
     steps:
       - uses: actions/checkout@v4
