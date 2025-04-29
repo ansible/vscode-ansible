@@ -166,7 +166,7 @@ jobs:
           # cache: yarn
 
       - name: Corepack enable
-        if: ${{ !contains(matrix.name, 'wsl') }}
+        # if: ${{ !contains(matrix.name, 'wsl') }}
         run: corepack enable
 
       - name: Enable caching
@@ -192,7 +192,7 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
-        if: ${{ !contains(matrix.name, 'wsl') }}
+        # if: ${{ !contains(matrix.name, 'wsl') }}
         uses: arduino/setup-task@v2
         with:
           version: 3.37.2
