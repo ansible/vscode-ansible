@@ -2,10 +2,10 @@ import {
   allComponents,
   provideVSCodeDesignSystem,
 } from "@vscode/webview-ui-toolkit";
+import { vscode } from "../../../api";
 
 provideVSCodeDesignSystem().register(allComponents);
 
-const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
 let systemReadinessDiv: HTMLElement | null;

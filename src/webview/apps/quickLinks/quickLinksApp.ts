@@ -1,4 +1,5 @@
-const vscode = acquireVsCodeApi();
+import { vscode } from "../../../api";
+
 window.addEventListener("load", main);
 
 let systemReadinessDiv: HTMLElement | null;

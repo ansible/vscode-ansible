@@ -172,8 +172,8 @@ functions that need to use it.
 webview context code:
 
 ```typescript
-// Access the vscode API object and post message
-const vscode = acquireVsCodeApi();
+import { vscode } from "../../../api";
+
 vscode.postMessage({
   command: "alert",
   text: "Hello, world!",

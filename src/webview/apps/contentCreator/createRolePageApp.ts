@@ -13,8 +13,8 @@ import {
   VscodeTextarea,
   VscodeTextfield,
 } from "@vscode-elements/elements";
+import { vscode } from "../../../api";
 
-const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
 let roleNameTextField: VscodeTextfield;

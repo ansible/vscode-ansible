@@ -6,6 +6,7 @@ ignores:
   - "@types/vscode-webview" # provides VSCodeAPI
   - "@vscode/vsce"
   - depcheck
+  - electron
   - eslint-formatter-gha
   - eslint-formatter-unix
   - mochawesome
@@ -17,6 +18,6 @@ ignores:
   - tmp
   - ts-loader
   - vscode
+  - vscode-webview # provides VSCodeAPI
   - webpack-cli
   - yarn-audit-fix
-  - electron
