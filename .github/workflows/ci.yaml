@@ -98,7 +98,6 @@ jobs:
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
-
     steps:
       - uses: actions/checkout@v4
         with:
