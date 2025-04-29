@@ -158,7 +158,7 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        if: ${{ !contains(matrix.name, 'wsl') }}
+        # if: ${{ !contains(matrix.name, 'wsl') }}
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
