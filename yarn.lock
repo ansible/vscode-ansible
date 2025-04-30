@@ -20,7 +20,7 @@ __metadata:
   resolution: "@ansible/ansible-language-server@workspace:packages/ansible-language-server"
   dependencies:
     "@flatten-js/interval-tree": "npm:^1.1.3"
-    "@types/chai": "npm:^4.3.20"
+    "@types/chai": "npm:^5.2.1"
     "@types/glob": "npm:^8.1.0"
     "@types/ini": "npm:^4.1.1"
     "@types/lodash": "npm:^4.17.16"
@@ -1445,12 +1445,28 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/chai@npm:^5.2.1":
+  version: 5.2.1
+  resolution: "@types/chai@npm:5.2.1"
+  dependencies:
+    "@types/deep-eql": "npm:*"
+  checksum: 10/101fcbed19aaecf87163a4261fb0f078b4cede99bc9863d3a288a3d76bc5edf18d3772bbe9bc28cf60dd19be8265eeae1c5bbe735de829e5a6905e96b45a1339
+  languageName: node
+  linkType: hard
+
 "@types/connect@npm:*":
   version: 3.4.38
   resolution: "@types/connect@npm:3.4.38"
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/7eb1bc5342a9604facd57598a6c62621e244822442976c443efb84ff745246b10d06e8b309b6e80130026a396f19bf6793b7cecd7380169f369dac3bfc46fb99
+  languageName: node
+  linkType: hard
+
+"@types/deep-eql@npm:*":
+  version: 4.0.2
+  resolution: "@types/deep-eql@npm:4.0.2"
+  checksum: 10/249a27b0bb22f6aa28461db56afa21ec044fa0e303221a62dff81831b20c8530502175f1a49060f7099e7be06181078548ac47c668de79ff9880241968d43d0c
   languageName: node
   linkType: hard
 
