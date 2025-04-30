@@ -315,7 +315,8 @@ jobs:
         if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
           path: ansible-*.vsix
           if-no-files-found: error
           retention-days: 90
@@ -324,7 +325,8 @@ jobs:
         if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.ref_name }}.tgz"
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
           path: packages/ansible-language-server/*.tgz
           if-no-files-found: error
           retention-days: 90
