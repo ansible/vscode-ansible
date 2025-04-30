@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
+export DONT_PROMPT_WSL_INSTALL=1
 set -eu
+yarn run compile
 set -o pipefail
 
 cleanup()
