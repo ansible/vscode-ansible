@@ -167,6 +167,7 @@ jobs:
           path: |
             .vscode-test
             .yarn/cache
+            node_modules/.cache/webpack
             out/ext
             out/test-resources
             out/test-resources-oldest
