@@ -8,6 +8,7 @@ ignores:
   - depcheck
   - eslint-formatter-gha
   - eslint-formatter-unix
+  - mocha-junit-reporter
   - mochawesome
   - mochawesome-report-generator
   - npm-check-updates
