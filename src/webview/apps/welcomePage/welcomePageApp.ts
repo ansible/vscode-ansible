@@ -95,13 +95,15 @@ function updateAnsibleCreatorAvailabilityStatus() {
             <p class="system-description">
               <b>Looks like you don't have an Ansible environment set up yet</b>.
               <br>
-              Follow the
+                <a href="command:"ansible.content-creator.create-devcontainer"">
+                Create a devcontainer
+                </a> to build your environment using the
+                <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">
+                Dev Containers
+                </a> extension, or follow the
                 <a href="command:ansible.open-walkthrough-create-env">
-                  Create Ansible environment
-                </a> walkthrough, or
-                <a href="command:ansible.python.set.interpreter">
-                  switch to another environment
-                </a> that has the setup ready.
+                Create an Ansible environment
+                </a> walkthrough to get started.
             </p>`;
         }
         systemReadinessDiv?.appendChild(systemReadinessIcon);
