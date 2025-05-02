@@ -1,5 +1,4 @@
-# This is a basic workflow
-
+# cspell:ignore oidc
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -382,6 +381,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Checkout Source # needed by codecov uploader
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Merge logs into a single archive
         uses: actions/upload-artifact/merge@v4
         with:
@@ -407,11 +411,11 @@ jobs:
         uses: codecov/codecov-action@v5.4.2
         with:
           name: als
-          files: ./*/coverage/als/lcov.info
+          files: ./*/coverage/als/cobertura-coverage.xml
           flags: als
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload unit test coverage data [2/4]
         uses: codecov/codecov-action@v5.4.2
@@ -421,7 +425,7 @@ jobs:
           flags: unit
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Find all the UI test coverage data
         run: |
@@ -437,7 +441,7 @@ jobs:
           flags: ui
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload e2e test coverage data [4/4]
         uses: codecov/codecov-action@v5.4.2
@@ -447,7 +451,7 @@ jobs:
           flags: e2e
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1
