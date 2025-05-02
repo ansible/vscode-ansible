@@ -37,7 +37,6 @@ __metadata:
     lodash: "npm:^4.17.21"
     mocha: "npm:^11.1.0"
     mocha-junit-reporter: "npm:^2.2.1"
-    nyc: "npm:^17.1.0"
     rimraf: "npm:^6.0.1"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.8.3"
