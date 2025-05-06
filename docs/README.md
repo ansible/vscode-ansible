@@ -1,9 +1,16 @@
 # **Ansible VS Code Extension**
 
-The Ansible Extension for Visual Studio Code streamlines Ansible development by providing an integrated, feature-rich environment tailored for automation workflows. It offers features such as syntax highlighting, linting, intelligent code completion, and AI-assisted suggestions via Ansible Lightspeed. With support for multi-root workspaces, containerized execution environments, and extensive configuration options, the extension enhances productivity and ensures consistent code quality for both individual and team-based projects.
-This extension adds language support for Ansible in
+The Ansible Extension for Visual Studio Code streamlines Ansible development by
+providing an integrated, feature-rich environment tailored for automation
+workflows. It offers features such as syntax highlighting, linting, intelligent
+code completion, and AI-assisted suggestions via Ansible Lightspeed. With
+support for multi-root workspaces, containerized execution environments, and
+extensive configuration options, the extension enhances productivity and ensures
+consistent code quality for both individual and team-based projects. This
+extension adds language support for Ansible in
 [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible)
-and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) by leveraging the [ansible-language-server](als/README.md).
+and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) by leveraging the
+[ansible-language-server](als/README.md).
 
 ## **Installation Requirements**
 
@@ -12,27 +19,28 @@ Before you begin, make sure your system has:
 - Ansible 2.9 or newer
 - Ansible Lint, unless linter support is disabled
 
-> **Note:** On Windows, use with the Remote - WSL or Remote - Containers extensions for optimal compatibility.
+> **Note:** On Windows, use with the Remote - WSL or Remote - Containers
+> extensions for optimal compatibility.
 
 ## **Getting Started**
 
 ### Welcome Page
 
-The extension provides a comprehensive Welcome Page that serves as a dashboard for Ansible development tools. You can access it by:
+The extension provides a comprehensive Welcome Page that serves as a dashboard
+for Ansible development tools. You can access it by:
 
 - Opening the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 - Typing "Open Ansible Development Tools menu" and selecting it
-![Walkthrough](images/walkthrough.gif){ width=650 height=650 }
+  ![Walkthrough](images/walkthrough.gif){ width=650 height=650 }
 
 **OR**
 
 - Click on Getting Started
 
-    - Walkthroughs will appear on the right-hand side
+  - Walkthroughs will appear on the right-hand side
 
-    ![Getting Started](images/getting_started.gif){ width=650 height=650 }
-  
- 
+  ![Getting Started](images/getting_started.gif){ width=650 height=650 }
+
 The Welcome Page includes:
 
 - Quick access to create new playbooks, collections, and projects
@@ -42,7 +50,8 @@ The Welcome Page includes:
 
 ### Interactive Walkthroughs
 
-The extension includes guided walkthroughs to help you get started with Ansible development:
+The extension includes guided walkthroughs to help you get started with Ansible
+development:
 
 #### Create an Ansible environment
 
@@ -67,7 +76,8 @@ The extension includes guided walkthroughs to help you get started with Ansible 
 
 ### Quick Links
 
-The Quick Links panel provides easy access to common Ansible tasks and is available in the Ansible sidebar view. It includes:
+The Quick Links panel provides easy access to common Ansible tasks and is
+available in the Ansible sidebar view. It includes:
 
 #### Launch Section
 
@@ -84,7 +94,8 @@ This section helps you create new Ansible projects:
 
 - Collection project: Create a new Ansible collection
 - Execution environment project: Set up a new execution environment
-- Playbook project: Create a new Ansible playbook project quickLinksView.ts:83-106
+- Playbook project: Create a new Ansible playbook project
+  quickLinksView.ts:83-106
 
 #### Add Section
 
@@ -99,7 +110,8 @@ This section allows you to add resources to existing projects:
 
 ## **Content Creation Tools**
 
-The extension provides webview-based interfaces for creating and scaffolding Ansible content.
+The extension provides webview-based interfaces for creating and scaffolding
+Ansible content.
 
 ### Creating Collections
 
@@ -138,20 +150,22 @@ The extension offers multiple ways to create playbooks:
 - Enter the namespace and collection name
 - Specify the destination directory
 
-A complete project structure will be created with playbooks, inventory, and configuration files
+A complete project structure will be created with playbooks, inventory, and
+configuration files
 
 ## **Creating Execution Environments**
 
-You can create execution environment configurations for containerized Ansible environments:
+You can create execution environment configurations for containerized Ansible
+environments:
 
 1. Click "Execution environment project" in the Quick Links panel
 
 2. Configure:
 
-    - Base image
-    - Collections to include
-    - System packages
-    - Python packages
+   - Base image
+   - Collections to include
+   - System packages
+   - Python packages
 
 3. Click "Create" to generate the execution environment file
 
@@ -166,7 +180,8 @@ You can add various resources to existing Ansible projects:
 
 ## **Language association to yaml files**
 
-The extension works when a document is assigned the ansible language. Files are automatically recognized as 'Ansible' in these cases:
+The extension works when a document is assigned the ansible language. Files are
+automatically recognized as 'Ansible' in these cases:
 
 ### Without file inspection
 
@@ -192,8 +207,10 @@ to `settings.json` file like this:
 
 ## **With file inspection**
 
-- Files are inspected for top-level playbook keywords like hosts and import_playbook
-- Modelines support: add # code: language=ansible at the top of a file to force language recognition
+- Files are inspected for top-level playbook keywords like hosts and
+  import_playbook
+- Modelines support: add # code: language=ansible at the top of a file to force
+  language recognition
 
 ### File inspection for ansible keywords
 
@@ -315,7 +332,8 @@ holding `ctrl`/`cmd`.
 
 ### Ansible Lightspeed with watsonx Code Assistant
 
-The extension integrates with Ansible Lightspeed with watsonx Code Assistant to provide AI-powered features.
+The extension integrates with Ansible Lightspeed with watsonx Code Assistant to
+provide AI-powered features.
 
 ## **AI-powered Suggestions**
 
@@ -353,8 +371,8 @@ any level (User, Remote, Workspace and/or Folder).
 ### Validation Settings
 
 - `ansible.validation.lint.arguments`: Optional command line arguments to be
-  appended to `ansible-lint` invocation. See `ansible-lint` [documentation](https://ansible.readthedocs.io/projects/lint/configuring/).
-).
+  appended to `ansible-lint` invocation. See `ansible-lint`
+  [documentation](https://ansible.readthedocs.io/projects/lint/configuring/). ).
 - `ansible.validation.lint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.validation.lint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
@@ -401,8 +419,7 @@ any level (User, Remote, Workspace and/or Folder).
   ${workspaceFolder}.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
-  environment.
-  completing module options.
+  environment. completing module options.
 
 ### Lightspeed Configuration
 
