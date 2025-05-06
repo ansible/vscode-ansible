@@ -159,7 +159,7 @@ tasks:
     desc: Run UI tests {{.XVFB}}
     aliases: [ui]
     cmds:
-      - yarn webpack-dev
+      # - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
       - ' {{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
