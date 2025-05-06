@@ -33,7 +33,7 @@ for Ansible development tools. You can access it by:
 - Typing "Open Ansible Development Tools menu" and selecting it
   ![Walkthrough](images/walkthrough.gif){ width=650 height=650 }
 
-**OR**
+  **OR**
 
 - Click on Getting Started
 
