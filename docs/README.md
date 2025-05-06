@@ -16,21 +16,23 @@ Before you begin, make sure your system has:
 
 ## **Getting Started**
 
-Once the extension is installed, open a folder or file containing your Ansible playbooks (YAML files). The extension automatically activates when it detects Ansible content. You can also open the Welcome Page for guidance: run the command palette (F1) and select “Ansible: Show Welcome”, or click the Ansible icon in the Activity Bar. The Welcome Page provides:
-
-- Quick links: Direct access to official Ansible documentation, Red Hat resources, and community sites.
-- Readiness check: A simple status that verifies required tools (Ansible, linter, etc.) are installed and shows warnings if something is missing.
-- Walkthrough tutorials: Guided walkthroughs and examples to help you create your first playbook, set up Ansible Lightspeed AI features, and more.
-
-These resources help you get started quickly and ensure your environment is configured properly. Once set up, you can begin writing playbooks in VS Code with full syntax coloring, autocompletion, inline docs, and execution support. For more details, see the extension’s user documentation and walkthrough guides on the Red Hat Developer site.
-
-## **Welcome Page**
+### Welcome Page
 
 The extension provides a comprehensive Welcome Page that serves as a dashboard for Ansible development tools. You can access it by:
 
 - Opening the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
-- Typing "Ansible: Open Welcome Page" and selecting it
+- Typing "Open Ansible Development Tools menu" and selecting it
+![Walkthrough](images/walkthrough.gif){ width=650 height=650 }
 
+**OR**
+
+- Click on Getting Started
+
+    - Walkthroughs will appear on the right-hand side
+
+    ![Getting Started](images/getting_started.gif){ width=650 height=650 }
+  
+ 
 The Welcome Page includes:
 
 - Quick access to create new playbooks, collections, and projects
@@ -38,36 +40,55 @@ The Welcome Page includes:
 - Links to documentation and learning resources
 - Access to interactive walkthroughs
 
-## **Interactive Walkthroughs**
+### Interactive Walkthroughs
 
-The extension now includes interactive walkthroughs to guide users through common tasks:
+The extension includes guided walkthroughs to help you get started with Ansible development:
 
-1. Create an Ansible environment
+#### Create an Ansible environment
 
-2. Start automating with your first Ansible playbook
+- Create an Ansible playbook
+- Configure the tag in the status bar
+- Install the Ansible environment package
 
-3. Discover Ansible Development Tools
+#### Start automating with your first Ansible playbook
 
-These walkthroughs are accessible from the Welcome page and can be tested as shown in the UI tests
+- Enable Ansible Lightspeed
+- Create an Ansible playbook project
+- Create an Ansible playbook
+- Save your playbook to a playbook project
+- Learn more about playbooks
 
-## **Quick Links**
+#### Discover Ansible Development Tools
+
+- Learn about tools for scaffolding Ansible content
+- Explore testing tools for Ansible
+- Understand deployment options
+- Get guidance on next steps
+
+### Quick Links
 
 The Quick Links panel provides easy access to common Ansible tasks and is available in the Ansible sidebar view. It includes:
 
-### Launch Section
+#### Launch Section
+
+This section provides quick access to:
 
 - Getting Started: Opens the Ansible Development Tools welcome page
 - Ansible code bot: Documentation for the AI-powered code assistant
 - Documentation: Links to Ansible Development Tools documentation
 - Settings: Quick access to extension settings quickLinksView.ts:53-82
 
-### Initialize Section
+#### Initialize Section
+
+This section helps you create new Ansible projects:
 
 - Collection project: Create a new Ansible collection
 - Execution environment project: Set up a new execution environment
 - Playbook project: Create a new Ansible playbook project quickLinksView.ts:83-106
 
-### Add Section
+#### Add Section
+
+This section allows you to add resources to existing projects:
 
 - Collection plugin: Add a plugin to an existing collection
 - Devcontainer: Create a devcontainer configuration
@@ -107,7 +128,7 @@ The extension offers multiple ways to create playbooks:
 
 ### AI-Generated Playbook (with Ansible Lightspeed)
 
-- Use the command "Ansible: Create a playbook with Ansible Lightspeed"
+- Use the command "Ansible Lightspeed: Playbook generation "
 - Describe what you want the playbook to do
 - Review and customize the generated playbook
 
