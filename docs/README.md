@@ -341,7 +341,7 @@ Lightspeed provides inline code suggestions as you type:
 
 - Press Ctrl+. to trigger suggestions
 - Press Tab to accept a suggestion
-- Press Escape to hide a suggestion package.json:738-759
+- Press Escape to hide a suggestion
 
 ## **Playbook Generation**
 
