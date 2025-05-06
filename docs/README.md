@@ -31,7 +31,8 @@ for Ansible development tools. You can access it by:
 
 - Opening the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 - Typing "Open Ansible Development Tools menu" and selecting it
-  ![Walkthrough](images/walkthrough.gif){ width=650 height=650 }
+
+  ![Walkthrough](images/walkthrough.gif){ width=750 height=750 }
 
   **OR**
 
@@ -39,7 +40,7 @@ for Ansible development tools. You can access it by:
 
   - Walkthroughs will appear on the right-hand side
 
-  ![Getting Started](images/getting_started.gif){ width=650 height=650 }
+  ![Getting Started](images/getting_started.gif){ width=750 height=750 }
 
 The Welcome Page includes:
 
