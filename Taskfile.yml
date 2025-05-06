@@ -161,7 +161,6 @@ tasks:
     cmds:
       - yarn webpack-dev
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - bash -c 'rm -rf ./out/test-resources ./out/ext'
       - ' {{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
