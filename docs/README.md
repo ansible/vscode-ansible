@@ -1,15 +1,151 @@
-# Ansible VS Code Extension by Red Hat
+# **Ansible VS Code Extension**
 
-This extension adds language support for Ansible to
+The Ansible Extension for Visual Studio Code streamlines Ansible development by providing an integrated, feature-rich environment tailored for automation workflows. It offers features such as syntax highlighting, linting, intelligent code completion, and AI-assisted suggestions via Ansible Lightspeed. With support for multi-root workspaces, containerized execution environments, and extensive configuration options, the extension enhances productivity and ensures consistent code quality for both individual and team-based projects.
+This extension adds language support for Ansible in
 [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible)
-and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
-by leveraging [ansible-language-server](als/README.md).
+and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) by leveraging the [ansible-language-server](als/README.md).
 
-## Language association to yaml files
+## **Installation Requirements**
 
-The extension works only when a document is assigned `ansible` language. The
-following method is used to assign `ansible` language to the document opened by
-the extension:
+Before you begin, make sure your system has:
+
+- Ansible 2.9 or newer
+- Ansible Lint, unless linter support is disabled
+
+> **Note:** On Windows, use with the Remote - WSL or Remote - Containers extensions for optimal compatibility.
+
+## **Getting Started**
+
+Once the extension is installed, open a folder or file containing your Ansible playbooks (YAML files). The extension automatically activates when it detects Ansible content. You can also open the Welcome Page for guidance: run the command palette (F1) and select “Ansible: Show Welcome”, or click the Ansible icon in the Activity Bar. The Welcome Page provides:
+
+- Quick links: Direct access to official Ansible documentation, Red Hat resources, and community sites.
+- Readiness check: A simple status that verifies required tools (Ansible, linter, etc.) are installed and shows warnings if something is missing.
+- Walkthrough tutorials: Guided walkthroughs and examples to help you create your first playbook, set up Ansible Lightspeed AI features, and more.
+
+These resources help you get started quickly and ensure your environment is configured properly. Once set up, you can begin writing playbooks in VS Code with full syntax coloring, autocompletion, inline docs, and execution support. For more details, see the extension’s user documentation and walkthrough guides on the Red Hat Developer site.
+
+## **Welcome Page**
+
+The extension provides a comprehensive Welcome Page that serves as a dashboard for Ansible development tools. You can access it by:
+
+- Opening the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+- Typing "Ansible: Open Welcome Page" and selecting it
+
+The Welcome Page includes:
+
+- Quick access to create new playbooks, collections, and projects
+- System readiness status showing your Ansible environment configuration
+- Links to documentation and learning resources
+- Access to interactive walkthroughs
+
+## **Interactive Walkthroughs**
+
+The extension now includes interactive walkthroughs to guide users through common tasks:
+
+1. Create an Ansible environment
+
+2. Start automating with your first Ansible playbook
+
+3. Discover Ansible Development Tools
+
+These walkthroughs are accessible from the Welcome page and can be tested as shown in the UI tests
+
+## **Quick Links**
+
+The Quick Links panel provides easy access to common Ansible tasks and is available in the Ansible sidebar view. It includes:
+
+### Launch Section
+
+- Getting Started: Opens the Ansible Development Tools welcome page
+- Ansible code bot: Documentation for the AI-powered code assistant
+- Documentation: Links to Ansible Development Tools documentation
+- Settings: Quick access to extension settings quickLinksView.ts:53-82
+
+### Initialize Section
+
+- Collection project: Create a new Ansible collection
+- Execution environment project: Set up a new execution environment
+- Playbook project: Create a new Ansible playbook project quickLinksView.ts:83-106
+
+### Add Section
+
+- Collection plugin: Add a plugin to an existing collection
+- Devcontainer: Create a devcontainer configuration
+- Devfile: Create a devfile for development environments
+- Execution environment template: Create an execution environment file
+- Role: Add a role to an existing collection
+- Playbook: Generate a playbook with Ansible Lightspeed
+
+## **Content Creation Tools**
+
+The extension provides webview-based interfaces for creating and scaffolding Ansible content.
+
+### Creating Collections
+
+You can create a new Ansible collection with a structured layout including:
+
+- Basic collection metadata
+- Directory structure for plugins, modules, and roles
+- Documentation templates
+- Test framework setup
+
+To create a collection:
+
+- Click "Collection project" in the Quick Links panel
+- Enter the namespace and collection name
+- Specify the destination directory
+- Click "Create"
+
+## **Creating Playbooks**
+
+The extension offers multiple ways to create playbooks:
+
+### Empty Playbook
+
+- Use the command "Ansible: Create an empty Ansible playbook"
+- Edit the playbook manually
+
+### AI-Generated Playbook (with Ansible Lightspeed)
+
+- Use the command "Ansible: Create a playbook with Ansible Lightspeed"
+- Describe what you want the playbook to do
+- Review and customize the generated playbook
+
+### Playbook Project
+
+- Use the command "Ansible: Create New Playbook Project"
+- Enter the namespace and collection name
+- Specify the destination directory
+
+A complete project structure will be created with playbooks, inventory, and configuration files
+
+## **Creating Execution Environments**
+
+You can create execution environment configurations for containerized Ansible environments:
+
+1. Click "Execution environment project" in the Quick Links panel
+
+2. Configure:
+
+    - Base image
+    - Collections to include
+    - System packages
+    - Python packages
+
+3. Click "Create" to generate the execution environment file
+
+## **Adding Resources to Projects**
+
+You can add various resources to existing Ansible projects:
+
+1. **Plugins**: Add modules, lookup plugins, filter plugins, etc. to collections
+2. **Roles**: Create role structures within collections
+3. **Devcontainers**: Add development container configurations
+4. **Devfiles**: Create devfiles for consistent development environments
+
+## **Language association to yaml files**
+
+The extension works when a document is assigned the ansible language. Files are automatically recognized as 'Ansible' in these cases:
 
 ### Without file inspection
 
@@ -33,14 +169,17 @@ to `settings.json` file like this:
 }
 ```
 
-### With file inspection
+## **With file inspection**
 
-#### File inspection for ansible keywords
+- Files are inspected for top-level playbook keywords like hosts and import_playbook
+- Modelines support: add # code: language=ansible at the top of a file to force language recognition
+
+### File inspection for ansible keywords
 
 - Primary method is inspection for top level playbook keywords like hosts and
   import_playbook in yaml files.
 
-#### Modelines (optional)
+### Modelines (optional)
 
 - The extension also supports the usage of
   [modelines](https://vim.fandom.com/wiki/Modeline_magic) and when used, it is
@@ -57,7 +196,7 @@ Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
 below.
 
-## Activating Red Hat Ansible extension manually
+## **Activating Red Hat Ansible extension manually**
 
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
@@ -72,9 +211,16 @@ Note:
   verified in the `Extension` window `Runtime Status` tab for `Ansible`
   extension.
 
-## Features
+## **Features**
 
 ### Syntax highlighting
+
+The extension provides distinct highlighting for:
+
+- Ansible keywords
+- Module names and options
+- Standard YAML elements
+- Jinja expressions, including those in Ansible conditionals
 
 ![Syntax highlighting](images/syntax-highlighting.png)
 
@@ -96,7 +242,7 @@ curly braces.
 While you type, the syntax of your Ansible scripts is verified and any feedback
 is provided instantaneously.
 
-#### Integration with ansible-lint
+### Integration with ansible-lint
 
 ![Linter support](images/ansible-lint.gif)
 
@@ -122,7 +268,7 @@ improve user experience:
   [`collections` keyword](https://docs.ansible.com/ansible/latest/collections_guide/index.html#simplifying-module-names-with-the-collections-keyword)
   are honored. This behavior can be disabled in extension settings.
 
-#### Auto-closing Jinja expressions
+### Auto-closing Jinja expressions
 
 ![Easier Jinja expression typing](images/jinja-expression.gif)
 
@@ -138,7 +284,7 @@ Documentation is available on hover for Ansible keywords, modules and module
 options. The extension works on the same principle as `ansible-doc`, providing
 the documentation straight from the Python implementation of the modules.
 
-#### Jump to module code
+### Jump to module code
 
 ![Go to code on Ctrl+click](images/go-to-definition.gif)
 
@@ -148,28 +294,30 @@ holding `ctrl`/`cmd`.
 
 ### Ansible Lightspeed with watsonx Code Assistant
 
-AI based Ansible code recommendations
+The extension integrates with Ansible Lightspeed with watsonx Code Assistant to provide AI-powered features.
 
-- [Getting started](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/set-up-lightspeed_lightspeed-user-guide#set-up-lightspeed_lightspeed-user-guide)
+## **AI-powered Suggestions**
 
-- [Contact](https://matrix.to/#/%23ansible-lightspeed:ansible.im)
+Lightspeed provides inline code suggestions as you type:
 
-## Requirements
+- Press Ctrl+. to trigger suggestions
+- Press Tab to accept a suggestion
+- Press Escape to hide a suggestion package.json:738-759
 
-- [Ansible 2.9+](https://docs.ansible.com/ansible/latest/index.html)
-- [Ansible Lint](https://ansible-lint.readthedocs.io/en/latest/) (required,
-  unless you disable linter support; install without `yamllint`)
+## **Playbook Generation**
 
-For Windows users, this extension works perfectly well with extensions such as
-`Remote - WSL` and `Remote - Containers`.
+You can generate complete playbooks from natural language descriptions:
 
-> If you have any other extension providing language support for Ansible, you
-> might need to uninstall it first.
+- Use the command "Ansible: Create a playbook with Ansible Lightspeed"
+- Describe what you want the playbook to do
+- Review and customize the generated playbook
 
-## Configuration
+## **Configuration**
 
 This extension supports multi-root workspaces, and as such, can be configured on
 any level (User, Remote, Workspace and/or Folder).
+
+### Basic Configuration
 
 - `ansible.ansible.path`: Path to the `ansible` executable.
 - `ansible.ansible.reuseTerminal`: Enabling this will cause ansible commands run
@@ -178,11 +326,20 @@ any level (User, Remote, Workspace and/or Folder).
   qualified collection names (FQCN) when inserting a module name. Disabling it
   will only use FQCNs when necessary, that is when the collection isn't
   configured for the task.
+- `ansible.playbook.arguments`: Specify additional arguments to append to
+  ansible-playbook invocation. e.g. `--syntax-check`
+
+### Validation Settings
+
 - `ansible.validation.lint.arguments`: Optional command line arguments to be
-  appended to `ansible-lint` invocation. See `ansible-lint` documentation.
+  appended to `ansible-lint` invocation. See `ansible-lint` [documentation](https://ansible.readthedocs.io/projects/lint/configuring/).
+).
 - `ansible.validation.lint.enabled`: Enables/disables use of `ansible-lint`.
 - `ansible.validation.lint.path`: Path to the `ansible-lint` executable.
 - `ansible.ansibleNavigator.path`: Path to the `ansible-navigator` executable.
+
+### Execution Environment Settings
+
 - `ansible.executionEnvironment.containerEngine`: The container engine to be
   used while running with execution environment. Valid values are `auto`,
   `podman` and `docker`. For `auto` it will look for `podman` then `docker`.
@@ -201,6 +358,12 @@ any level (User, Remote, Workspace and/or Folder).
   `missing` will pull if not locally available. Setting `never` will never pull
   the image and setting tag will always pull if the image tag is 'latest',
   otherwise pull if not locally available.
+- `ansible.completion.provideRedirectModules`: Toggle redirected module provider
+  when completing modules.
+- `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
+  completing module options.
+- `ansibleServer.trace.server`: Traces the communication between VS Code and the
+  ansible language server.
 - `ansible.executionEnvironment.volumeMounts`: The setting contains volume mount
   information for each dict entry in the list. Individual entry consists of
   - `src`: The name of the local volume or path to be mounted within execution
@@ -208,6 +371,9 @@ any level (User, Remote, Workspace and/or Folder).
   - `dest`: The path where the file or directory are mounted in the container.
   - `options`: The field is optional, and is a comma-separated list of options,
     such as `ro,Z`
+
+### Python Configuration
+
 - `ansible.python.interpreterPath`: Path to the `python`/`python3` executable.
   This setting may be used to make the extension work with `ansible` and
   `ansible-lint` installations in a Python virtual environment. Supports
@@ -215,12 +381,10 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
   environment.
-- `ansible.completion.provideRedirectModules`: Toggle redirected module provider
-  when completing modules.
-- `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
   completing module options.
-- `ansibleServer.trace.server`: Traces the communication between VS Code and the
-  ansible language server.
+
+### Lightspeed Configuration
+
 - `ansible.lightspeed.enabled`: Enable Ansible Lightspeed.
 - `ansible.lightspeed.URL`: URL for Ansible Lightspeed.
 - `ansible.lightspeed.suggestions.enabled`: Enable Ansible Lightspeed with
@@ -231,17 +395,15 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
-- `ansible.playbook.arguments`: Specify additional arguments to append to
-  ansible-playbook invocation. e.g. `--syntax-check`
 
-## Environment variable
+## **Environment variable**
 
 - `LIGHTSPEED_PREFER_RHSSO_AUTH`: When set to `true`, Lightspeed with use the
   OAuth2 Device Flow by default instead of the default OAuth2 authentication.
   You can trigger it manually with the
   `Ansible Lightspeed: Sign in with Red Hat` action.
 
-## Data and Telemetry
+## **Data and Telemetry**
 
 The `vscode-ansible` extension collects anonymous [usage data](usage-data.md)
 and sends it to Red Hat servers to help improve our products and services. Read
@@ -251,7 +413,7 @@ to learn more. This extension respects the `redhat.telemetry.enabled` setting,
 which you can learn more about at
 <https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting>
 
-## Known limitations
+## **Known limitations**
 
 - The shorthand syntax for module options (key=value pairs) is not supported.
 - Nested module options are not supported yet.
@@ -260,7 +422,7 @@ which you can learn more about at
   extension.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
 
-## Development guide
+## **Development guide**
 
 Refer to the
 [Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/)
