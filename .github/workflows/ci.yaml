@@ -1,15 +1,18 @@
-# This is a basic workflow
-
+# cspell:ignore oidc
 name: ci
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
 on:
+  merge_group:
+    branches: ["main", "devel/*"]
   push:
     branches: ["main", "devel/*"]
     tags:
       - "v*.*"
   pull_request:
+    # types is missing 'closed' to avoid double triggering on PR merge
+    types: [synchronize, opened, edited]
     branches: ["main", "devel/*"]
   schedule:
     - cron: "0 0 * * *"
@@ -54,6 +57,10 @@ jobs:
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
+    permissions:
+      contents: read
+      id-token: write # codecov actions
+      checks: read # codecov actions
     strategy:
       fail-fast: false
       matrix:
@@ -90,12 +97,12 @@ jobs:
             continue-on-error: true
 
           - name: test (wsl)
-            # runner does not support running containers
-            task-name: als:test-without-ee
-            log-name: als-test-without-ee
-            # https://github.com/actions/virtual-environments/issues/5151
-            os: devtools-win-x64
-            shell: "wsl-bash {0}"
+            task-name: test
+            os: wsl-runner
+            runs-on: self-hosted
+            task-name: test
+            os: wsl-runner
+            runs-on: self-hosted
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -108,7 +115,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.shell, 'wsl')
-        uses: Vampire/setup-wsl@v5.0.0
+        uses: Vampire/setup-wsl@v5.0.1
         with:
           distribution: Ubuntu-24.04
           set-as-default: "true"
@@ -148,7 +155,6 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
@@ -156,7 +162,6 @@ jobs:
           # cache: yarn
 
       - name: Corepack enable
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         run: corepack enable
 
       - name: Enable caching
@@ -165,12 +170,12 @@ jobs:
           path: |
             .vscode-test
             .yarn/cache
+            node_modules/.cache/webpack
             out/ext
             out/test-resources
             out/test-resources-oldest
             ~/.cache/pip
             ~/.cache/yarn
-            ~/.cache/pre-commit/
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
@@ -183,49 +188,36 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: arduino/setup-task@v2
         with:
           version: 3.37.2
 
       - name: Setup direnv
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: HatsuneMiku3939/direnv-action@v1.1.0
         with:
           direnvVersion: 2.36.0
 
       - name: Setup python
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install ansible-dev-tools
-        if: ${{ !contains(matrix.shell, 'wsl') }}
-        run: |
-          pip install ansible-dev-tools
+      - name: Enable caching for pre-commit
+        if: ${{ matrix.name == 'lint' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit/
+          key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Install asdf inside WSL
-        if: contains(matrix.shell, 'wsl')
+      - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
         run: |
-          set -ex
-          git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0
-          echo '. "$HOME/.asdf/asdf.sh"' >> ~/.bashrc
-          export ASDF_DIR="$HOME/.asdf"
-          . "$HOME/.asdf/asdf.sh"
-          asdf plugin add direnv
-          asdf plugin add nodejs
-          asdf plugin add python
-          asdf plugin add task
-          asdf plugin add yarn
-          asdf install
-          direnv --version
-          task --version
-          node --version
-          python3 --version
+          if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
+            pipx install ansible-dev-tools
+          else
+            pip install ansible-dev-tools
+          fi
 
       - name: Activate direnv
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
           direnv allow
           direnv reload
@@ -237,7 +229,6 @@ jobs:
           direnv exec . bash -c 'echo "${VIRTUAL_ENV}/bin"' >> "$GITHUB_PATH"
 
       - name: Ensure .env file is automatically loaded (direnv)
-        if: ${{ !contains(matrix.shell, 'wsl') }}
         run: |
           set -ex
           test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
@@ -295,7 +286,7 @@ jobs:
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        if: "${{ contains(matrix.name, 'test') }}"
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
@@ -307,7 +298,8 @@ jobs:
         if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
           path: ansible-*.vsix
           if-no-files-found: error
           retention-days: 90
@@ -316,7 +308,8 @@ jobs:
         if: ${{ matrix.name == 'test (linux)' }}
         uses: actions/upload-artifact@v4
         with:
-          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.ref_name }}.tgz"
+          # Do not use github.ref_name as it contains slashes and we cannot sanitize it
+          name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
           path: packages/ansible-language-server/*.tgz
           if-no-files-found: error
           retention-days: 90
@@ -335,13 +328,24 @@ jobs:
           name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
           path: |
             out/coverage
-            out/e2eTestReport
+            out/junit
             out/log
+            out/test-resources/screenshots
             out/test-resources/settings/logs
             out/userdata/logs
-            out/test-resources/screenshots
           if-no-files-found: ignore
           retention-days: 90
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+          directory: out/junit
+          name: ${{ matrix.name }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ matrix.name }},${{ matrix.os }}
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       # - name: Stop services
       #   if: "contains(matrix.os, 'macos')"
@@ -381,6 +385,11 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Checkout Source # needed by codecov uploader
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Merge logs into a single archive
         uses: actions/upload-artifact/merge@v4
         with:
@@ -406,47 +415,41 @@ jobs:
         uses: codecov/codecov-action@v5.4.2
         with:
           name: als
-          files: ./*/coverage/als/lcov.info
+          files: ./*/coverage/als/cobertura-coverage.xml
           flags: als
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload unit test coverage data [2/4]
         uses: codecov/codecov-action@v5.4.2
         with:
           name: unit
-          files: ./*/coverage/unit/lcov.info
+          files: ./*/coverage/unit/*cobertura-coverage.xml
           flags: unit
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
-
-      - name: Find all the UI test coverage data
-        run: |
-          COVERAGE_FILES=$(find ./*/coverage/ui/ -name 'lcov.*.info' -print0 | xargs -0 | tr ' ' ',')
-          echo "Found coverage files: $COVERAGE_FILES"
-          echo "COVERAGE_FILES=$COVERAGE_FILES" >> $GITHUB_ENV
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload ui test coverage data [3/4]
         uses: codecov/codecov-action@v5.4.2
         with:
           name: ui
-          files: ${{ env.COVERAGE_FILES }}
+          files: ./*/coverage/ui/*cobertura-coverage.xml
           flags: ui
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload e2e test coverage data [4/4]
         uses: codecov/codecov-action@v5.4.2
         with:
           name: e2e
-          files: ./*/coverage/e2e/lcov.info
+          files: ./*/coverage/e2e/*cobertura-coverage.xml
           flags: e2e
           disable_search: true
           fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }} # cspell:ignore oidc
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1

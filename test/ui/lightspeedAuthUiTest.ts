@@ -32,6 +32,7 @@ describe("Login to Lightspeed", () => {
   let sideBar: SideBarView;
   let viewControl: ViewControl;
   let adtView: ViewSection;
+  let alfView: ViewSection;
 
   before(async () => {
     // Enable Lightspeed and open Ansible Light view on sidebar
@@ -52,12 +53,16 @@ describe("Login to Lightspeed", () => {
     adtView = await sideBar
       .getContent()
       .getSection("Ansible Development Tools");
-    adtView.collapse();
-    await sleep(3000);
+    await adtView.collapse();
+
+    alfView = await sideBar
+      .getContent()
+      .getSection("Ansible Lightspeed Feedback");
+    await alfView.collapse();
   });
 
   it("Focus on Ansible Lightspeed View", async () => {
-    explorerView = new WebviewView();
+    explorerView = new WebviewView(new SideBarView());
     expect(explorerView, "contentCreatorWebView should not be undefined").not.to
       .be.undefined;
   });

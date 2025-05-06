@@ -12,6 +12,12 @@ const entry: EntryType = {
 };
 
 const config = {
+  cache: {
+    type: "filesystem",
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
   devtool: "source-map",
   entry,
   externals: {

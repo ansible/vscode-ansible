@@ -35,11 +35,11 @@ describe("Test Lightspeed Explorer features", () => {
   let sideBar: SideBarView;
   let view: ViewControl;
   let adtView: ViewSection;
+  let alfView: ViewSection;
 
   beforeEach(function () {
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
-    }
+    // See: https://github.com/ansible/vscode-ansible/issues/1988
+    this.skip();
   });
 
   before(async () => {
@@ -77,10 +77,14 @@ describe("Test Lightspeed Explorer features", () => {
     adtView = await sideBar
       .getContent()
       .getSection("Ansible Development Tools");
-    adtView.collapse();
+    await adtView.collapse();
 
-    await sleep(3000);
-    explorerView = new WebviewView();
+    alfView = await sideBar
+      .getContent()
+      .getSection("Ansible Lightspeed Feedback");
+    await alfView.collapse();
+
+    explorerView = new WebviewView(new SideBarView());
     expect(explorerView, "contentCreatorWebView should not be undefined").not.to
       .be.undefined;
   });

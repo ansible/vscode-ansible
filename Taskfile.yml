@@ -5,10 +5,6 @@ includes:
   als:
     taskfile: ./packages/ansible-language-server
     dir: ./packages/ansible-language-server
-  shared:
-    taskfile: ./.config/Taskfile_shared.yml
-    internal: true
-
 output: prefixed # do not use "group" due to impact on CI
 env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
@@ -35,19 +31,41 @@ tasks:
       - ./tools/helper --version
   setup:
     desc: Install dependencies
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
     cmds:
-      - task: shared:setup
+      - bash ./tools/precheck.sh
+      - bash ./tools/test-setup.sh
+    sources:
+      - .config/requirements.in
+      - tools/test-setup.sh
+    generates:
+      - out/log/manifest-*.yml
+      - "{{.PYTHON3}}"
+    run: once
+    interactive: true
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
   install:
     cmds:
-      - task: shared:install
+      - task: setup
+      - uv pip install -r .config/requirements.in -c .config/constraints.txt
+      - yarn install
+    generates:
+      - node_modules/.yarn-state.yml
     sources:
-      - "**/package.json"
+      - .config/constraints.txt
+      - .config/requirements.in
+      - node_modules/.yarn-state.yml
+      - package.json
+      - packages/*/package.json
+      - tools/test-setup.sh
       - yarn.lock
-      - node_modules/**/*
+    run: once
     interactive: true
   build:
     desc: Build the project
@@ -85,7 +103,9 @@ tasks:
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
-      - yarn upgrade-interactive
+      - yarn ncu -u --workspaces -i
+      # disabled because it does not work recursively
+      # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
       - yarn up "@types/vscode@${VSCODE_VERSION}"
       - yarn dedupe
@@ -157,9 +177,8 @@ tasks:
     desc: Run UI tests {{.XVFB}}
     aliases: [ui]
     cmds:
-      - yarn webpack-dev
+      - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - bash -c 'rm -rf ./out/test-resources ./out/ext'
       - ' {{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
