@@ -17,7 +17,6 @@ trap "cleanup" HUP INT ABRT BUS TERM EXIT
 CODE_VERSION="${CODE_VERSION:-max}"
 TEST_LIGHTSPEED_URL="${TEST_LIGHTSPEED_URL:-}"
 COVERAGE="${COVERAGE:-}"
-EXTEST=./node_modules/.bin/extest
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
 TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
 COVERAGE_ARG=""
@@ -95,8 +94,8 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
-${EXTEST} get-vscode -c "${CODE_VERSION}" -s out/test-resources
-${EXTEST} get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
     if [ -z "${vsix}" ]; then
@@ -112,9 +111,9 @@ if [[ "$COVERAGE" == "" ]]; then
     fi
     yarn compile
 
-    ${EXTEST} install-vsix -f "${vsix}" -e out/ext -s out/test-resources
+    npm exec -- extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
-${EXTEST} install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
+npm exec -- extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
 
 export COVERAGE
 
@@ -123,6 +122,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
 
     for test_file in $(find out/client/test/ui-test/ -name "${UI_TARGET}"); do
         echo "🧐testing ${test_file}"
+        basename="${test_file##*/}"
         echo "  cleaning existing User settings..."
         rm -rfv ./out/test-resources/settings/User/
 
@@ -131,12 +131,10 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
             start_server
         fi
         refresh_settings "${test_file}"
+        npm exec -- extest run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
 
-        TEST_COVERAGE_FILE=./out/coverage/ui/lcov.${test_file##*/}.info
-        ${EXTEST} run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
-
-        if [[ -f ./out/coverage/ui/lcov.info ]]; then
-            mv ./out/coverage/ui/lcov.info "$TEST_COVERAGE_FILE"
+        if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
+            mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${basename%.*}-cobertura-coverage.xml"
         fi
     done
 fi
