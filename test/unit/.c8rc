@@ -1,0 +1,23 @@
+{
+  "check-coverage": true,
+  "lines": 91.45,
+  "clean": true,
+  "exclude": [
+    "**/__tests__/**",
+    "**/.{eslint,mocha}rc.{js,cjs}",
+    "**/{ava,babel,nyc}.config.{js,cjs,mjs}",
+    "**/{karma,rollup,webpack}.config.js",
+    "**/*.d.ts",
+    "**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}",
+    "**/jest.config.{js,cjs,mjs,ts}",
+    "coverage/**",
+    "out/server/src/**",
+    "packages/*/test{,s}/**",
+    "test{,-*}.{js,cjs,mjs,ts,tsx,jsx}",
+    "test{,s}/**"
+  ],
+  "exclude-after-remap": true,
+  "reporter": ["cobertura", "text"],
+  "reports-dir": "./out/coverage/unit",
+  "temp-directory": "./out/tmp/.c8-tmp-unit"
+}
