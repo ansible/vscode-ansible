@@ -25,13 +25,13 @@ repos:
     hooks:
       - id: toml-sort-fix
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.11.6"
+    rev: "v0.11.8"
     hooks:
       - id: ruff
         entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
         types_or: [python, pyi]
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.17.3
+    rev: v8.19.1
     hooks:
       - id: cspell
   - repo: https://github.com/codespell-project/codespell
@@ -143,7 +143,7 @@ repos:
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.37.0
+    rev: v1.37.1
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
