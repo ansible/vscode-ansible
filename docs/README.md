@@ -19,8 +19,8 @@ Before you begin, make sure your system has:
 - Ansible 2.9 or newer
 - Ansible Lint, unless linter support is disabled
 
-> Note: On Windows, use with the Remote - WSL or Remote - Containers
-> extensions for optimal compatibility.
+> Note: On Windows, use with the Remote - WSL or Remote - Containers extensions
+> for optimal compatibility.
 
 ## Getting Started
 
@@ -44,19 +44,25 @@ for Ansible development tools. You can access it by:
 
 ### Interactive Walkthroughs
 
-The extension offers guided walkthroughs to help you quickly get started with Ansible development using step-by-step instructions.
+The extension offers guided walkthroughs to help you quickly get started with
+Ansible development using step-by-step instructions.
 
 #### Create an Ansible Environment
 
-Learn how to create a new Ansible playbook, configure the environment using the status bar, and install the necessary Ansible packages to get set up.
+Learn how to create a new Ansible playbook, configure the environment using the
+status bar, and install the necessary Ansible packages to get set up.
 
 #### Start Automating with Your First Ansible Playbook
 
-This walkthrough guides you through enabling Ansible Lightspeed, creating a playbook project, writing your first playbook, and saving it within the project structure.
+This walkthrough guides you through enabling Ansible Lightspeed, creating a
+playbook project, writing your first playbook, and saving it within the project
+structure.
 
 #### Discover Ansible Development Tools
 
-Explore the full range of Ansible development tools available in the extension, including scaffolding content, testing, and deployment guidance for your automation journey.
+Explore the full range of Ansible development tools available in the extension,
+including scaffolding content, testing, and deployment guidance for your
+automation journey.
 
 ### Quick Links
 
