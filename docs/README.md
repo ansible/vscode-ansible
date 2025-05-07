@@ -1,4 +1,4 @@
-# **Ansible VS Code Extension**
+# Ansible VS Code Extension
 
 The Ansible Extension for Visual Studio Code streamlines Ansible development by
 providing an integrated, feature-rich environment tailored for automation
@@ -12,17 +12,17 @@ extension adds language support for Ansible in
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) by leveraging the
 [ansible-language-server](als/README.md).
 
-## **Installation Requirements**
+## Installation Requirements
 
 Before you begin, make sure your system has:
 
 - Ansible 2.9 or newer
 - Ansible Lint, unless linter support is disabled
 
-> **Note:** On Windows, use with the Remote - WSL or Remote - Containers
+> Note: On Windows, use with the Remote - WSL or Remote - Containers
 > extensions for optimal compatibility.
 
-## **Getting Started**
+## Getting Started
 
 ### Welcome Page
 
@@ -34,7 +34,7 @@ for Ansible development tools. You can access it by:
 
   ![Walkthrough](images/walkthrough.gif){ width=750 height=750 }
 
-  **OR**
+  OR
 
 - Click on Getting Started
 
@@ -42,38 +42,21 @@ for Ansible development tools. You can access it by:
 
   ![Getting Started](images/getting_started.gif){ width=750 height=750 }
 
-The Welcome Page includes:
-
-- Quick access to create new playbooks, collections, and projects
-- System readiness status showing your Ansible environment configuration
-- Links to documentation and learning resources
-- Access to interactive walkthroughs
-
 ### Interactive Walkthroughs
 
-The extension includes guided walkthroughs to help you get started with Ansible
-development:
+The extension offers guided walkthroughs to help you quickly get started with Ansible development using step-by-step instructions.
 
-#### Create an Ansible environment
+#### Create an Ansible Environment
 
-- Create an Ansible playbook
-- Configure the tag in the status bar
-- Install the Ansible environment package
+Learn how to create a new Ansible playbook, configure the environment using the status bar, and install the necessary Ansible packages to get set up.
 
-#### Start automating with your first Ansible playbook
+#### Start Automating with Your First Ansible Playbook
 
-- Enable Ansible Lightspeed
-- Create an Ansible playbook project
-- Create an Ansible playbook
-- Save your playbook to a playbook project
-- Learn more about playbooks
+This walkthrough guides you through enabling Ansible Lightspeed, creating a playbook project, writing your first playbook, and saving it within the project structure.
 
 #### Discover Ansible Development Tools
 
-- Learn about tools for scaffolding Ansible content
-- Explore testing tools for Ansible
-- Understand deployment options
-- Get guidance on next steps
+Explore the full range of Ansible development tools available in the extension, including scaffolding content, testing, and deployment guidance for your automation journey.
 
 ### Quick Links
 
@@ -87,7 +70,7 @@ This section provides quick access to:
 - Getting Started: Opens the Ansible Development Tools welcome page
 - Ansible code bot: Documentation for the AI-powered code assistant
 - Documentation: Links to Ansible Development Tools documentation
-- Settings: Quick access to extension settings quickLinksView.ts:53-82
+- Settings: Quick access to extension settings
 
 #### Initialize Section
 
@@ -96,7 +79,6 @@ This section helps you create new Ansible projects:
 - Collection project: Create a new Ansible collection
 - Execution environment project: Set up a new execution environment
 - Playbook project: Create a new Ansible playbook project
-  quickLinksView.ts:83-106
 
 #### Add Section
 
@@ -130,7 +112,7 @@ To create a collection:
 - Specify the destination directory
 - Click "Create"
 
-## **Creating Playbooks**
+## Creating Playbooks
 
 The extension offers multiple ways to create playbooks:
 
@@ -154,7 +136,7 @@ The extension offers multiple ways to create playbooks:
 A complete project structure will be created with playbooks, inventory, and
 configuration files
 
-## **Creating Execution Environments**
+## Creating Execution Environments
 
 You can create execution environment configurations for containerized Ansible
 environments:
@@ -170,7 +152,7 @@ environments:
 
 3. Click "Create" to generate the execution environment file
 
-## **Adding Resources to Projects**
+## Adding Resources to Projects
 
 You can add various resources to existing Ansible projects:
 
@@ -179,9 +161,9 @@ You can add various resources to existing Ansible projects:
 3. **Devcontainers**: Add development container configurations
 4. **Devfiles**: Create devfiles for consistent development environments
 
-## **Language association to yaml files**
+## Language association to yaml files
 
-The extension works when a document is assigned the ansible language. Files are
+The extension works when a document is assigned the Ansible language. Files are
 automatically recognized as 'Ansible' in these cases:
 
 ### Without file inspection
@@ -206,14 +188,14 @@ to `settings.json` file like this:
 }
 ```
 
-## **With file inspection**
+## With file inspection
 
 - Files are inspected for top-level playbook keywords like hosts and
   import_playbook
 - Modelines support: add # code: language=ansible at the top of a file to force
   language recognition
 
-### File inspection for ansible keywords
+### File inspection for Ansible keywords
 
 - Primary method is inspection for top level playbook keywords like hosts and
   import_playbook in yaml files.
@@ -235,7 +217,7 @@ Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
 below.
 
-## **Activating Red Hat Ansible extension manually**
+## Activating Red Hat Ansible extension manually
 
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
@@ -250,7 +232,7 @@ Note:
   verified in the `Extension` window `Runtime Status` tab for `Ansible`
   extension.
 
-## **Features**
+## Features
 
 ### Syntax highlighting
 
@@ -336,7 +318,7 @@ holding `ctrl`/`cmd`.
 The extension integrates with Ansible Lightspeed with watsonx Code Assistant to
 provide AI-powered features.
 
-## **AI-powered Suggestions**
+## AI-powered Suggestions
 
 Lightspeed provides inline code suggestions as you type:
 
@@ -344,7 +326,7 @@ Lightspeed provides inline code suggestions as you type:
 - Press Tab to accept a suggestion
 - Press Escape to hide a suggestion
 
-## **Playbook Generation**
+## Playbook Generation
 
 You can generate complete playbooks from natural language descriptions:
 
@@ -352,7 +334,7 @@ You can generate complete playbooks from natural language descriptions:
 - Describe what you want the playbook to do
 - Review and customize the generated playbook
 
-## **Configuration**
+## Configuration
 
 This extension supports multi-root workspaces, and as such, can be configured on
 any level (User, Remote, Workspace and/or Folder).
@@ -435,14 +417,14 @@ any level (User, Remote, Workspace and/or Folder).
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
 
-## **Environment variable**
+## Environment variable
 
 - `LIGHTSPEED_PREFER_RHSSO_AUTH`: When set to `true`, Lightspeed with use the
   OAuth2 Device Flow by default instead of the default OAuth2 authentication.
   You can trigger it manually with the
   `Ansible Lightspeed: Sign in with Red Hat` action.
 
-## **Data and Telemetry**
+## Data and Telemetry
 
 The `vscode-ansible` extension collects anonymous [usage data](usage-data.md)
 and sends it to Red Hat servers to help improve our products and services. Read
@@ -450,9 +432,9 @@ our
 [privacy statement](https://developers.redhat.com/article/tool-data-collection)
 to learn more. This extension respects the `redhat.telemetry.enabled` setting,
 which you can learn more about at
-<https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting>
+<https://github.com/redhat-developer/vscode-redhat-telemetry#how-to-disable-telemetry-reporting>.
 
-## **Known limitations**
+## Known limitations
 
 - The shorthand syntax for module options (key=value pairs) is not supported.
 - Nested module options are not supported yet.
@@ -461,7 +443,7 @@ which you can learn more about at
   extension.
 - Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
 
-## **Development guide**
+## Development guide
 
 Refer to the
 [Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/)
