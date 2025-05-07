@@ -64,7 +64,7 @@ export async function run(): Promise<void> {
 
   // Add  e2e test cases (excluding unit test cases)
   files.forEach((file) => {
-    if (!file.includes("/unit/")) {
+    if (!file.includes("/units/")) {
       mocha.addFile(path.resolve(testsRoot, file));
     }
   });

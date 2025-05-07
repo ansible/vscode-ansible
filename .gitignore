@@ -34,5 +34,5 @@ packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
 !media/
 docs/als/settings.md
 .eslintcache
-test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
+test/units/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
 .ansible

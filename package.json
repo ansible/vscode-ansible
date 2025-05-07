@@ -1073,7 +1073,7 @@
     "package": "NODE_OPTIONS='--max-old-space-size=8192' ./tools/helper --package",
     "preinstall": "",
     "pretest": "node --max-old-space-size=8192 node_modules/webpack/bin/webpack.js --mode development --config ./webpack.config.ts",
-    "unit-tests": "sh -c \"c8 --config test/unit/.c8rc mocha --recursive test/unit/lightspeed ${MOCHA_OPTS:-}\"",
+    "unit-tests": "sh -c \"nyc mocha --recursive test/units/lightspeed ${MOCHA_OPTS:-}\"",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "./tools/test-launcher.sh",
     "test-ui-oldest": "CODE_VERSION='min' ./tools/test-launcher.sh",

@@ -421,7 +421,7 @@ jobs:
         uses: codecov/codecov-action@v5.4.2
         with:
           name: unit
-          files: ./*/coverage/unit/*cobertura-coverage.xml
+          files: ./*/coverage/unit/lcov.info
           flags: unit
           disable_search: true
           fail_ci_if_error: true
