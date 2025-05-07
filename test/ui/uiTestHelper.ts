@@ -61,6 +61,7 @@ export async function getModalDialogAndMessage(details = false): Promise<{
         return { dialog, message };
       }
     } catch {
+      console.log("no modal dialog found");
       await sleep(1000);
     }
   }
