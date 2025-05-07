@@ -116,12 +116,9 @@ describe("Test Lightspeed Explorer features", () => {
     dialogMessage = message;
   });
 
-  it("Click Open if a dialog shows up for opening the external website", async () => {
+  it("Click Open if a dialog shows up for opening the external website (for explorer)", async () => {
     // If the dialog to open the external website is not suppressed, click Open
-    if (
-      process.platform === "darwin" &&
-      dialogMessage === "Do you want Code to open the external website?"
-    ) {
+    if (dialogMessage === "Do you want Code to open the external website?") {
       await modalDialog.pushButton("Configure Trusted Domains");
       const input = await InputBox.create();
       input.confirm();

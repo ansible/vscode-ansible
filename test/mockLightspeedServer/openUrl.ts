@@ -3,6 +3,8 @@ import { spawn } from "child_process";
 import { logger, options } from "./server";
 
 export function openUrl(url: string) {
+  logger.info(`Open URL: ${url}`);
+
   let command: string;
   if (process.platform === "darwin") {
     command = options.uiTest
