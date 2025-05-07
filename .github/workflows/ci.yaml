@@ -11,8 +11,6 @@ on:
     tags:
       - "v*.*"
   pull_request:
-    # types is missing 'closed' to avoid double triggering on PR merge
-    types: [synchronize, opened, edited]
     branches: ["main", "devel/*"]
   schedule:
     - cron: "0 0 * * *"

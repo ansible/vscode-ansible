@@ -120,7 +120,7 @@ export COVERAGE
 if [[ "${TEST_TYPE}" == "ui" ]]; then
     # shellcheck disable=SC2044
 
-    for test_file in $(find out/client/test/ui/ -name "${UI_TARGET}"); do
+    for test_file in $(find out/client/test/ui-test/ -name "${UI_TARGET}"); do
         echo "🧐testing ${test_file}"
         basename="${test_file##*/}"
         echo "  cleaning existing User settings..."
