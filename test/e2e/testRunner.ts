@@ -66,6 +66,7 @@ async function main(): Promise<void> {
       "..",
       "..",
       "..",
+      "..",
       "test",
       "testFixtures",
       "settings.json",
@@ -73,6 +74,7 @@ async function main(): Promise<void> {
 
     const settings_dst = path.join(
       __dirname,
+      "..",
       "..",
       "..",
       "..",

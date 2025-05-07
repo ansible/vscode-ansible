@@ -139,5 +139,5 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
     done
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
-    node ./out/client/test/testRunner
+    node ./out/client/test/e2e/testRunner
 fi
