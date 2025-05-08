@@ -166,10 +166,10 @@ environments:
 
 2. Configure:
 
-      - Base image
-      - Collections to include
-      - System packages
-      - Python packages
+   - Base image
+   - Collections to include
+   - System packages
+   - Python packages
 
 3. Click "Create" to generate the execution environment file
 
@@ -302,7 +302,8 @@ holding `ctrl`/`cmd`.
 ### Ansible Lightspeed Assistant
 
 The extension integrates with Ansible Lightspeed with watsonx Code Assistant to
-provide AI-powered features. Lightspeed provides inline code suggestions as you type:
+provide AI-powered features. Lightspeed provides inline code suggestions as you
+type:
 
 - Press Ctrl+. to trigger suggestions
 - Press Tab to accept a suggestion
