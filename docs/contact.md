@@ -1,4 +1,4 @@
-## Forum
+# Forum
 
 Join the [Ansible Forum](https://forum.ansible.com) as a single starting point
 and our default communication platform for questions and help, development
