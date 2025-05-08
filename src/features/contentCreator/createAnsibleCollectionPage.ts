@@ -457,7 +457,7 @@ export class CreateAnsibleCollection {
       ".venv",
     ).fsPath;
 
-    let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
+    let adeCommand = `cd ${collectionUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
 
     const creatorVersion = await getCreatorVersion();
     const exceedMinVersion = semver.gte(
@@ -527,13 +527,25 @@ export class CreateAnsibleCollection {
 
     // execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    commandOutput += `---------------------------------------------- ansible-creator logs -----------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
 
     if (isEditableModeInstall) {
       // ade command inherits only the verbosity options from ansible-creator command
-      commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
+      commandOutput += `\n\n------------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
+
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            "Collection scaffolding and environment installation in progress, please wait a few moments....\n",
+          logFileUrl: logFilePathUrl,
+          collectionUrl: collectionUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+
       const adeVersion = await getADEVersion();
       const exceedADEImVersion = semver.gte(adeVersion, ADE_ISOLATION_MODE_MIN);
 

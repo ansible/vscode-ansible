@@ -301,16 +301,18 @@ function handleInitCreateClick() {
             message.arguments.status === "passed"
           ) {
             initOpenScaffoldedFolderButton.disabled = false;
+            initCreateButton.disabled = false;
+          } else if (message.arguments.status === "in-progress") {
+            initOpenScaffoldedFolderButton.disabled = true;
+            initCreateButton.disabled = true;
           } else {
             initOpenScaffoldedFolderButton.disabled = true;
+            initCreateButton.disabled = false;
           }
 
           collectionUrl = message.arguments.collectionUrl
             ? message.arguments.collectionUrl
             : "";
-
-          initCreateButton.disabled = false;
-
           return;
       }
     },
