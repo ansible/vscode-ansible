@@ -164,7 +164,8 @@ environments:
 
 1. Click "Execution environment project" in the Quick Links panel
 
-2. Configure: Base image, Collections to include, System packages, Python packages
+2. Configure: Base image, Collections to include, System packages, Python
+   packages
 
 3. Click "Create" to generate the execution environment file
 
@@ -441,7 +442,8 @@ which you can learn more about at
 
 ## Contact
 
-We welcome your feedback, questions and ideas. Learn how to reach us [here](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
+We welcome your feedback, questions and ideas. Learn how to reach us
+[here](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
 
 ## Credit
 
