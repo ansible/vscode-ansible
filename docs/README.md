@@ -97,7 +97,7 @@ This section allows you to add resources to existing projects:
 - Role: Add a role to an existing collection
 - Playbook: Generate a playbook with Ansible Lightspeed
 
-## **Content Creation Tools**
+## Content Creation Tools
 
 The extension provides webview-based interfaces for creating and scaffolding
 Ansible content.
@@ -118,7 +118,7 @@ To create a collection:
 - Specify the destination directory
 - Click "Create"
 
-## Creating Playbooks
+### Creating Playbooks
 
 The extension offers multiple ways to create playbooks:
 
@@ -142,7 +142,7 @@ The extension offers multiple ways to create playbooks:
 A complete project structure will be created with playbooks, inventory, and
 configuration files
 
-## Creating Execution Environments
+### Creating Execution Environments
 
 You can create execution environment configurations for containerized Ansible
 environments:
@@ -151,21 +151,12 @@ environments:
 
 2. Configure:
 
-   - Base image
-   - Collections to include
-   - System packages
-   - Python packages
+      - Base image
+      - Collections to include
+      - System packages
+      - Python packages
 
 3. Click "Create" to generate the execution environment file
-
-## Adding Resources to Projects
-
-You can add various resources to existing Ansible projects:
-
-1. **Plugins**: Add modules, lookup plugins, filter plugins, etc. to collections
-2. **Roles**: Create role structures within collections
-3. **Devcontainers**: Add development container configurations
-4. **Devfiles**: Create devfiles for consistent development environments
 
 ## Language association to yaml files
 
@@ -194,7 +185,7 @@ to `settings.json` file like this:
 }
 ```
 
-## With file inspection
+### With file inspection
 
 - Files are inspected for top-level playbook keywords like hosts and
   import_playbook
@@ -322,23 +313,11 @@ holding `ctrl`/`cmd`.
 ### Ansible Lightspeed with watsonx Code Assistant
 
 The extension integrates with Ansible Lightspeed with watsonx Code Assistant to
-provide AI-powered features.
-
-## AI-powered Suggestions
-
-Lightspeed provides inline code suggestions as you type:
+provide AI-powered features. Lightspeed provides inline code suggestions as you type:
 
 - Press Ctrl+. to trigger suggestions
 - Press Tab to accept a suggestion
 - Press Escape to hide a suggestion
-
-## Playbook Generation
-
-You can generate complete playbooks from natural language descriptions:
-
-- Use the command "Ansible: Create a playbook with Ansible Lightspeed"
-- Describe what you want the playbook to do
-- Review and customize the generated playbook
 
 ## Configuration
 
