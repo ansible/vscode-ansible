@@ -21,7 +21,7 @@ config.truncateThreshold = 0;
 
 function cleanUpTmpfile() {
   fs.rm(
-    "test/units/lightspeed/utils/samples/collections/ansible_collections/community/dummy/roles/install_nginx",
+    "test/unit/lightspeed/utils/samples/collections/ansible_collections/community/dummy/roles/install_nginx",
     {
       recursive: true,
       force: true,
@@ -59,7 +59,7 @@ describe("Verify Role generation feature works as expected", function () {
       return;
     }
     await VSBrowser.instance.openResources(
-      "test/units/lightspeed/utils/samples/",
+      "test/unit/lightspeed/utils/samples/",
     );
     workbench = new Workbench();
     await workbenchExecuteCommand(

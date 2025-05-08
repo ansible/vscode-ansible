@@ -122,7 +122,7 @@ export class CreateDevcontainer {
               <p class="subtitle">Build containerized development environments</p>
             </div>
             <div class="description-div">
-              <h3>Devcontainers are json files used for building containerized development environments.<br><br>Enter your project details below to utilize a devcontainer template designed for the Dev Containers extension.</h3>
+              <h3>Devcontainers are json files used for building containerized development environments.<br><br>Enter your project details below to utilize a devcontainer template designed for the <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Containers</a> extension.</h3>
             </div>
 
             <form id="devcontainer-form">
