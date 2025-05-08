@@ -443,7 +443,7 @@ jobs:
         uses: codecov/codecov-action@v5.4.2
         with:
           name: e2e
-          files: ./*/coverage/e2e/lcov.info
+          files: ./*/coverage/e2e/*cobertura-coverage.xml
           flags: e2e
           disable_search: true
           fail_ci_if_error: true
