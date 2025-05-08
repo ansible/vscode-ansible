@@ -24,6 +24,10 @@ UI_TARGET="${UI_TARGET:-*Test.js}"
 
 OPTSTRING=":c"
 
+# https://github.com/microsoft/vscode/issues/204005
+unset NODE_OPTIONS
+
+
 function start_server() {
     echo "🚀starting the mockLightspeedServer"
     if [[ -n "${TEST_LIGHTSPEED_URL}" ]]; then
@@ -144,5 +148,13 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
     done
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
-    node ./out/client/test/testRunner
+    export NODE_NO_WARNINGS=1
+    export DONT_PROMPT_WSL_INSTALL=1
+    export SKIP_PODMAN=${SKIP_PODMAN:-0}
+    export SKIP_DOCKER=${SKIP_DOCKER:-0}
+
+    mkdir -p out/userdata/User/
+    cp -f test/testFixtures/settings.json out/userdata/User/settings.json
+    # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
+    npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura
 fi
