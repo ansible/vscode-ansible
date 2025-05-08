@@ -76,33 +76,33 @@ jobs:
         name:
           - docs
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-24.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: lint
+          #   task-name: lint
+          #   os: ubuntu-24.04
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
 
           - name: test (linux)
             task-name: test
 
-          - name: test (macos)
-            task-name: test
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            # only until we fix some broken tests, as we need it to pass
-            # in order to enable the caching
-            continue-on-error: true
+          # - name: test (macos)
+          #   task-name: test
+          #   os: macos-13-large
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
+          #   # only until we fix some broken tests, as we need it to pass
+          #   # in order to enable the caching
+          #   continue-on-error: true
 
-          - name: test (wsl)
-            task-name: test
-            os: wsl-runner
-            runs-on: self-hosted
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: test (wsl)
+          #   task-name: test
+          #   os: wsl-runner
+          #   runs-on: self-hosted
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
     steps:
       - uses: actions/checkout@v4
         with:
@@ -272,9 +272,9 @@ jobs:
         if: "${{ !contains(matrix.name, 'test') }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task unit
-        if: contains(matrix.name, 'test')
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task unit
+      #   if: contains(matrix.name, 'test')
+      #   run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451

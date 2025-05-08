@@ -123,7 +123,7 @@ describe("Test One Click Trial feature", () => {
     dialogMessage = message;
   });
 
-  it("Click Open if a dialog shows up for opening the external website", async () => {
+  it("Click Open if a dialog shows up for opening the external website (for Trial)", async () => {
     // If the dialog to open the external website is not suppressed, click Open
     if (dialogMessage === "Do you want Code to open the external website?") {
       await modalDialog.pushButton("Configure Trusted Domains");

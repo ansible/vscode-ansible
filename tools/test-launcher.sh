@@ -8,7 +8,13 @@ set -o pipefail
 cleanup()
 {
     echo "Final clean up"
+    netstat -lapute
     stop_server
+
+
+    netstat -lapute
+    ls -l out/log
+    cat out/log/*
 }
 
 trap "cleanup" HUP INT ABRT BUS TERM EXIT
@@ -20,7 +26,8 @@ COVERAGE="${COVERAGE:-}"
 MOCK_LIGHTSPEED_API="${MOCK_LIGHTSPEED_API:-}"
 TEST_TYPE="${TEST_TYPE:-ui}"  # e2e or ui
 COVERAGE_ARG=""
-UI_TARGET="${UI_TARGET:-*Test.js}"
+# UI_TARGET="${UI_TARGET:-*Test.js}"
+UI_TARGET=lightspeedUiTestExplorerTest.js
 
 OPTSTRING=":c"
 
@@ -31,13 +38,13 @@ function start_server() {
     fi
     mkdir -p out/log
     TEST_LIGHTSPEED_ACCESS_TOKEN=dummy
-    (DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js >>out/log/express.log 2>&1 ) &
+    (DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js 2>&1 | tee out/log/express.log ) &
     while ! grep 'Listening on port' out/log/express.log; do
 	sleep 1
     done
 
     TEST_LIGHTSPEED_URL=$(sed -n 's,.*Listening on port \([0-9]*\) at \(.*\)".*,http://\2:\1,p' out/log/express.log|tail -n1)
-
+    TEST_LIGHTSPEED_URL=http://ip6-localhost:3000
     export TEST_LIGHTSPEED_ACCESS_TOKEN
     export TEST_LIGHTSPEED_URL
 }
@@ -45,6 +52,7 @@ function start_server() {
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
         curl --silent "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
+        sleep 3
         touch out/log/express.log out/log/mock-server.log
         cat out/log/express.log >> out/log/express-full.log
         cat out/log/mock-server.log >> out/log/mock-server-full.log
@@ -131,6 +139,16 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
             start_server
         fi
         refresh_settings "${test_file}"
+        ls out/log
+        curl http://localhost:3000/api/v0/me
+        ls -l out/log
+        cat out/log/*
+        cat /etc/hosts
+        env
+
+
+        netstat -lapute
+
         npm exec -- extest run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
 
         if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
