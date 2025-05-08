@@ -171,7 +171,8 @@ environments:
 
 ### Creating Devcontainer Configurations
 
-The extension supports Devcontainers to provide isolated, consistent Ansible development environments.
+The extension supports Devcontainers to provide isolated, consistent Ansible
+development environments.
 
 #### Create a Devcontainer
 
