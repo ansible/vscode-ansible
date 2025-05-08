@@ -168,6 +168,26 @@ environments:
 
 3. Click "Create" to generate the execution environment file
 
+### Creating Devcontainer Configurations
+
+The extension supports Devcontainers to provide isolated, consistent Ansible development environments.
+
+#### Create a Devcontainer
+
+Quick Links Panel: Go to Ansible sidebar → click Devcontainer
+
+Command Palette: Ctrl+Shift+P → search "Ansible: Create a Devcontainer"
+
+#### Configuration Options
+
+Choose image:
+
+- Upstream: ghcr.io/ansible/community-ansible-dev-tools:latest
+
+- Downstream: registry.redhat.io/.../ansible-dev-tools-rhel8:latest
+
+Set destination and overwrite options via webview
+
 ## Language association to yaml files
 
 The extension works when a document is assigned the Ansible language. Files are
