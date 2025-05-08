@@ -419,7 +419,10 @@ which you can learn more about at
 - Only Jinja _expressions_ inside Ansible YAML files are supported. In order to
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.
-- Full support for Jinja blocks (e.g., {% for %}, {% if %}) within Ansible YAML files, such as advanced syntax highlighting or autocompletion specific to block structures, is not yet implemented. Basic YAML highlighting will apply within these blocks.
+- Full support for Jinja blocks (e.g., {% for %}, {% if %}) within Ansible YAML
+  files, such as advanced syntax highlighting or autocompletion specific to
+  block structures, is not yet implemented. Basic YAML highlighting will apply
+  within these blocks.
 
 ## Contact
 
