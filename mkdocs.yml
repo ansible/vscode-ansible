@@ -55,6 +55,7 @@ nav:
   - FAQ:
       - faq/integrate-ansible-lint-with-language-server-venv.md
       - usage-data.md
+  - Contact: contact.md
 plugins:
   - autorefs
   - search
