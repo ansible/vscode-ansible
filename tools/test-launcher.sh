@@ -115,6 +115,7 @@ if [[ "$COVERAGE" == "" ]]; then
 fi
 npm exec -- extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
 
+ln -s -f chromedriver-linux64/chromedriver out/test-resources/chromedriver
 export COVERAGE
 
 if [[ "${TEST_TYPE}" == "ui" ]]; then
