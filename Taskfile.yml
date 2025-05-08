@@ -45,9 +45,10 @@ tasks:
     cmds:
       - task: shared:install
     sources:
-      - "**/package.json"
+      - "package.json"
+      - "packages/*/package.json"
       - yarn.lock
-      - node_modules/**/*
+      - node_modules/.yarn-state.yml
     interactive: true
   build:
     desc: Build the project
