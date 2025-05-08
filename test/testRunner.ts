@@ -6,8 +6,13 @@ import {
   resolveCliPathFromVSCodeExecutablePath,
 } from "@vscode/test-electron";
 import fs from "fs";
+const project_dir = process.env.INIT_CWD || process.cwd();
 
-export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
+export const FIXTURES_BASE_PATH = path.join(
+  project_dir,
+  "test",
+  "testFixtures",
+);
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
   "common",
@@ -44,8 +49,8 @@ async function main(): Promise<void> {
       executable,
       downloadPlatform,
     );
-    const userDataPath = path.resolve(__dirname, "../../userdata");
-    const extPath = path.resolve(__dirname, "../../ext");
+    const userDataPath = path.resolve(project_dir, "out/userdata");
+    const extPath = path.resolve(project_dir, "out/ext");
     // We want to avoid using developer data dir as this is likely to break
     // testing and make its outcome very hard to reproduce across machines.
     // https://code.visualstudio.com/docs/getstarted/settings#_settings-file-locations
@@ -54,24 +59,22 @@ async function main(): Promise<void> {
       `--user-data-dir=${userDataPath}`,
       `--extensions-dir=${extPath}`,
     ];
-    const env = { ...process.env, NODE_NO_WARNINGS: "1" };
+    const env = {
+      ...process.env,
+      NODE_NO_WARNINGS: "1",
+      DONT_PROMPT_WSL_INSTALL: "1",
+    };
 
     // Copy default user settings.json
     const settings_src = path.join(
-      __dirname,
-      "..",
-      "..",
-      "..",
+      project_dir,
       "test",
       "testFixtures",
       "settings.json",
     );
 
     const settings_dst = path.join(
-      __dirname,
-      "..",
-      "..",
-      "..",
+      project_dir,
       "out",
       "userdata",
       "User",
@@ -84,7 +87,7 @@ async function main(): Promise<void> {
     const dependencies = ["ms-python.python", "redhat.vscode-yaml"];
     for (const dep of dependencies) {
       const installLog = cp.execSync(
-        `"${cliPath}" ${cliArgs.join(" ")} --install-extension ${dep} --force`,
+        `yes | "${cliPath}" ${cliArgs.join(" ")} --install-extension ${dep} --force`,
         { env: env },
       );
       console.log(installLog.toString());
@@ -99,11 +102,14 @@ async function main(): Promise<void> {
 
     // The folder containing the Extension Manifest package.json
     // Passed to `--extensionDevelopmentPath`
-    const extensionDevelopmentPath = path.resolve(__dirname, "../../../");
+    const extensionDevelopmentPath = path.resolve(project_dir);
 
     // The path to test runner
     // Passed to --extensionTestsPath
-    const extensionTestsPath = path.resolve(__dirname, "./index");
+    const extensionTestsPath = path.resolve(
+      project_dir,
+      "out/client/test/index",
+    );
 
     // Download VS Code, unzip it and run the integration test
     await runTests({

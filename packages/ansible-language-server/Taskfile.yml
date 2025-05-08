@@ -39,17 +39,6 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-  deps:
-    dir: "{{ .TASKFILE_DIR }}"
-    desc: Update dependencies
-    cmds:
-      - npm install -g npm@latest
-      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
-      - npm outdated
-      # bumps some developments dependencies
-      - npm exec -- ncu -u --dep dev
-      # running install after ncu is needed in order to update the lock file
-      - npm install
   .test:
     # Keep the desc empty to hide entry when listing
     # desc: Run all tests
@@ -86,9 +75,7 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - >
-        .{{.VIRTUAL_ENV}}/bin/activate &&
-        bash -c 'npm run test-without-ee'
+      - bash -c '. {{.VIRTUAL_ENV}}/bin/activate && npm run test-without-ee'
     interactive: true
   package:
     desc: Package extension
