@@ -22,6 +22,21 @@ Before you begin, make sure your system has:
 > Note: On Windows, use with the Remote - WSL or Remote - Containers extensions
 > for optimal compatibility.
 
+## Activating Red Hat Ansible extension manually
+
+It is recommended to open a folder containing Ansible files with a VS Code
+workspace.
+
+![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
+
+Note:
+
+- For Ansible files open in an editor window ensure the language mode is set to
+  `Ansible` (bottom right of VS Code window).
+- The runtime status of extension should be in activate state. It can be
+  verified in the `Extension` window `Runtime Status` tab for `Ansible`
+  extension.
+
 ## Getting Started
 
 ### Welcome Page
@@ -34,11 +49,11 @@ for Ansible development tools. You can access it by:
 
   ![Walkthrough](images/walkthrough.webp){ width=750 height=750 }
 
-  OR
+  **OR**
 
-- Click on Getting Started
+- From the Quick Links panel, click on **Getting Started**.
 
-  - Walkthroughs will appear on the right-hand side
+  - The walkthroughs will appear on the right-hand side.
 
   ![Getting Started](images/getting_started.webp){ width=750 height=750 }
 
@@ -187,11 +202,6 @@ to `settings.json` file like this:
 
 ### With file inspection
 
-- Files are inspected for top-level playbook keywords like hosts and
-  import_playbook
-- Modelines support: add # code: language=ansible at the top of a file to force
-  language recognition
-
 ### File inspection for Ansible keywords
 
 - Primary method is inspection for top level playbook keywords like hosts and
@@ -214,21 +224,6 @@ Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
 below.
 
-## Activating Red Hat Ansible extension manually
-
-It is recommended to open a folder containing Ansible files with a VS Code
-workspace.
-
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
-
-Note:
-
-- For Ansible files open in an editor window ensure the language mode is set to
-  `Ansible` (bottom right of VS Code window).
-- The runtime status of extension should be in activate state. It can be
-  verified in the `Extension` window `Runtime Status` tab for `Ansible`
-  extension.
-
 ## Features
 
 ### Syntax highlighting
@@ -237,16 +232,10 @@ The extension provides distinct highlighting for:
 
 - Ansible keywords
 - Module names and options
-- Standard YAML elements
-- Jinja expressions, including those in Ansible conditionals
+- YAML elements
+- Jinja expressions (even in conditionals like when, failed_when, etc.)
 
 ![Syntax highlighting](images/syntax-highlighting.png)
-
-**Ansible keywords**, **module names** and **module options**, as well as
-standard YAML elements are recognized and highlighted distinctly. Jinja
-expressions are supported too, also those in Ansible conditionals (`when`,
-`failed_when`, `changed_when`, `check_mode`), which are not placed in double
-curly braces.
 
 > The screenshots and animations presented in this README have been taken using
 > the One Dark Pro theme. The default VS Code theme will not show the syntax
@@ -310,7 +299,7 @@ You may also open the implementation of any module using the standard _Go to
 Definition_ operation, for instance, by clicking on the module name while
 holding `ctrl`/`cmd`.
 
-### Ansible Lightspeed with watsonx Code Assistant
+### Ansible Lightspeed Assistant
 
 The extension integrates with Ansible Lightspeed with watsonx Code Assistant to
 provide AI-powered features. Lightspeed provides inline code suggestions as you type:
@@ -365,12 +354,6 @@ any level (User, Remote, Workspace and/or Folder).
   `missing` will pull if not locally available. Setting `never` will never pull
   the image and setting tag will always pull if the image tag is 'latest',
   otherwise pull if not locally available.
-- `ansible.completion.provideRedirectModules`: Toggle redirected module provider
-  when completing modules.
-- `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
-  completing module options.
-- `ansibleServer.trace.server`: Traces the communication between VS Code and the
-  ansible language server.
 - `ansible.executionEnvironment.volumeMounts`: The setting contains volume mount
   information for each dict entry in the list. Individual entry consists of
   - `src`: The name of the local volume or path to be mounted within execution
@@ -387,7 +370,7 @@ any level (User, Remote, Workspace and/or Folder).
   ${workspaceFolder}.
 - `ansible.python.activationScript`: Path to a custom `activate` script, which
   will be used instead of the setting above to run in a Python virtual
-  environment. completing module options.
+  environment.
 
 ### Lightspeed Configuration
 
@@ -401,6 +384,15 @@ any level (User, Remote, Workspace and/or Folder).
 - `ansible.lightspeed.modelIdOverride`: Model ID to override your organization's
   default model. This setting is only applicable to commercial users with an
   Ansible Lightspeed seat assignment.
+
+### Completion & Language Server Settings
+
+- `ansible.completion.provideRedirectModules`: Toggle redirected module provider
+  when completing modules.
+- `ansible.completion.provideModuleOptionAliases`: Toggle alias provider when
+  completing module options.
+- `ansibleServer.trace.server`: Traces the communication between VS Code and the
+  ansible language server.
 
 ## Environment variable
 
@@ -426,13 +418,7 @@ which you can learn more about at
 - Only Jinja _expressions_ inside Ansible YAML files are supported. In order to
   have syntax highlighting of Jinja template files, you'll need to install other
   extension.
-- Jinja _blocks_ (inside Ansible YAML files) are not supported yet.
-
-## Development guide
-
-Refer to the
-[Developer Docs](https://ansible.readthedocs.io/projects/vscode-ansible/development/main/)
-to get started with developing the extension.
+- Full support for Jinja blocks (e.g., {% for %}, {% if %}) within Ansible YAML files, such as advanced syntax highlighting or autocompletion specific to block structures, is not yet implemented. Basic YAML highlighting will apply within these blocks.
 
 ## Contact
 
