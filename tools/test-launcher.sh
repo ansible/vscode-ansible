@@ -131,7 +131,12 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
             start_server
         fi
         refresh_settings "${test_file}"
-        npm exec -- extest run-tests "${COVERAGE_ARG}" -s out/test-resources -e out/ext --code_settings out/settings.json "${test_file}"
+        npm exec -- extest run-tests "${COVERAGE_ARG}" \
+            -s out/test-resources \
+            -e out/ext \
+            --code_settings out/settings.json \
+            -c "${CODE_VERSION}" \
+            "${test_file}"
 
         if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
             mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${basename%.*}-cobertura-coverage.xml"
