@@ -2,7 +2,7 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
-import { toggleEncrypt } from "./features/vault";
+import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
 import { LightSpeedCommands, UserAction } from "./definitions/lightspeed";
 import {
@@ -88,9 +88,6 @@ export const globalFileSystemWatcher: IFileSystemWatchers = {};
 const lsName = "Ansible Support";
 let lsOutputChannel: vscode.OutputChannel;
 
-// Expose settings
-export const extSettings = new SettingsManager();
-
 export async function activate(context: ExtensionContext): Promise<void> {
   // dynamically associate "ansible" language to the yaml file
   await languageAssociation(context);
@@ -105,13 +102,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
   const telemetry = new TelemetryManager(context);
   await telemetry.initTelemetryService();
 
+  // Initialize settings
+  const extSettings = new SettingsManager();
+  await extSettings.initialize();
+
+  // Vault encrypt/decrypt handler
+  const vault = new Vault(extSettings);
+
   await registerCommandWithTelemetry(
     context,
     telemetry,
     AnsibleCommands.ANSIBLE_VAULT,
-    toggleEncrypt,
+    vault.toggleEncrypt.bind(vault),
     true,
   );
+
   await registerCommandWithTelemetry(
     context,
     telemetry,
@@ -140,9 +145,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   await startClient(context, telemetry);
 
   notifyAboutConflicts();
-
-  // Initialize settings
-  await extSettings.initialize();
 
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
 
