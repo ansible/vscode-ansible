@@ -4,9 +4,11 @@ import { glob } from "glob";
 import { MochaOptions } from "vscode-extension-tester";
 import NYC from "nyc";
 
+const project_dir = process.env.INIT_CWD || process.cwd();
+
 function setupCoverage() {
   const nyc = new NYC({
-    cwd: path.join(__dirname, "..", "..", ".."),
+    cwd: project_dir,
     reporter: ["text", "html", "lcov"],
     all: true,
     silent: false,
@@ -16,7 +18,7 @@ function setupCoverage() {
     hookRunInThisContext: true,
     include: ["out/client/src/**/*.js", "out/server/src/**/*.js"],
     reportDir: "out/coverage/e2e",
-    tempDir: "out/.nyc_output",
+    tempDir: "out/tmp/e2e/.nyc_output",
   });
 
   nyc.reset();
@@ -58,7 +60,7 @@ export async function run(): Promise<void> {
   // Create the mocha test
   const mocha = new Mocha(mochaOptions);
 
-  const testsRoot = path.resolve(__dirname, "..");
+  const testsRoot = path.resolve(project_dir, "out/client");
 
   const files = await glob("**/**.test.js", { cwd: testsRoot });
 

@@ -37,9 +37,8 @@ describe("Test Lightspeed Explorer features", () => {
   let adtView: ViewSection;
 
   beforeEach(function () {
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      this.skip();
-    }
+    // See: https://github.com/ansible/vscode-ansible/issues/1988
+    this.skip();
   });
 
   before(async () => {
