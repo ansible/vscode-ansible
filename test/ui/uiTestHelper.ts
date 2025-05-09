@@ -192,9 +192,12 @@ export async function connectLightspeed() {
     );
   }
 
-  adtView.collapse();
+  await adtView.collapse();
 
-  await sleep(3000);
+  const alfView = await sideBar
+    .getContent()
+    .getSection("Ansible Lightspeed Feedback");
+  await alfView.collapse();
 
   await explorerView.switchToFrame(5000);
 
