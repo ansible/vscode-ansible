@@ -8,9 +8,9 @@ import {
   WebviewView,
 } from "vscode-extension-tester";
 import {
-  sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  sleep,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -25,7 +25,10 @@ describe("Verify welcome page is displayed as expected", async () => {
     // Open Ansible Development Tools by clicking the Getting started button on the side bar
     view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
     sideBar = await view.openView();
-    await sleep(2000);
+
+    await workbenchExecuteCommand(
+      "Ansible: Focus on Ansible Development Tools View",
+    );
 
     // to get the content part
     adtSection = await sideBar
@@ -62,7 +65,11 @@ describe("Verify welcome page is displayed as expected", async () => {
     if (getStartedLink) {
       await getStartedLink.click();
     }
-    await sleep(3000);
+
+    await getWebviewByLocator(
+      By.xpath("//h1[text()='Ansible Development Tools']"),
+    );
+
     webviewView.switchBack();
   });
 

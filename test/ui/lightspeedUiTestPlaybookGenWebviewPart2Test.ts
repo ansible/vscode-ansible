@@ -13,17 +13,12 @@ import {
   sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  waitForCondition,
 } from "./uiTestHelper";
 import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 
 config.truncateThreshold = 0;
-
-before(function () {
-  if (process.platform === "darwin") {
-    this.skip();
-  }
-});
 
 describe("Verify playbook generation features work as expected", function () {
   beforeEach(function () {
@@ -40,7 +35,6 @@ describe("Verify playbook generation features work as expected", function () {
 
   it("Playbook generation webview works as expected (full path) - part 2", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(2000);
 
     // Start operations on Playbook Generation UI
     const webView = await getWebviewByLocator(
@@ -59,20 +53,25 @@ describe("Verify playbook generation features work as expected", function () {
     );
     await analyzeButton.click();
 
-    await sleep(2000);
-
-    const generateButton = await webView.findWebElement(
-      By.xpath("//vscode-button[contains(text(), 'Continue')]"),
-    );
+    const generateButton = await waitForCondition({
+      condition: async () => {
+        return await webView.findWebElement(
+          By.xpath("//vscode-button[contains(text(), 'Continue')]"),
+        );
+      },
+      message: "Timed out waiting for Continue button",
+    });
     await generateButton.click();
 
-    // Click generate playbook button again
-    await sleep(500);
-
     // Click Open editor button to open the generated playbook in the editor
-    const openEditorButton = await webView.findWebElement(
-      By.xpath("//vscode-button[contains(text(), 'Open editor')]"),
-    );
+    const openEditorButton = await waitForCondition({
+      condition: async () => {
+        return await webView.findWebElement(
+          By.xpath("//vscode-button[contains(text(), 'Open editor')]"),
+        );
+      },
+      message: "Timed out waiting for Open editor button",
+    });
     expect(openEditorButton, "openEditorButton should not be undefined").not.to
       .be.undefined;
     await openEditorButton.click();
@@ -134,7 +133,6 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
-    await sleep(3000);
 
     // Locate the playbook explanation webview
     let webView = (await new EditorView().openEditor(

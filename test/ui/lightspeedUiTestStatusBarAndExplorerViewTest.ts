@@ -6,7 +6,7 @@ import {
   getFixturePath,
   updateSettings,
   openSettings,
-  sleep,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -45,17 +45,21 @@ describe("Verify the presence of lightspeed element in the status bar and the ex
       false,
     );
     await editorView.openEditor(file);
-    await sleep(3000);
 
-    // The following lines replaced the original code that was using StatusBar.getItem() API.
-    const lightspeedStatusBarItem = await statusBar.findElement(
-      By.xpath(
-        "//div[contains(@class, 'statusbar-item') and " +
-          "contains(@class, 'has-background-color') and " +
-          "contains(@class, 'warning-kind') and " +
-          ".//a/text()='Lightspeed (Not logged in)']",
-      ),
-    );
+    const lightspeedStatusBarItem = await waitForCondition({
+      condition: async () => {
+        return await statusBar.findElement(
+          By.xpath(
+            "//div[contains(@class, 'statusbar-item') and " +
+              "contains(@class, 'has-background-color') and " +
+              "contains(@class, 'warning-kind') and " +
+              ".//a/text()='Lightspeed (Not logged in)']",
+          ),
+        );
+      },
+      message: "Timed out waiting for Lightspeed status bar item to appear",
+    });
+
     expect(lightspeedStatusBarItem).not.to.be.undefined;
   });
 });

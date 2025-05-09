@@ -25,7 +25,6 @@ describe("Verify playbook generation features work as expected", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
-    await sleep(5000);
     const folder = "lightspeed";
     const file = "playbook_explanation_feature_unavailable.yml";
     const filePath = getFixturePath(folder, file);
