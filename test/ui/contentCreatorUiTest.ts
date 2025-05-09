@@ -200,6 +200,9 @@ describe("Test Ansible playbook and collection project scaffolding at provided p
       );
       expect(textField, `${fieldId} should not be undefined`).not.to.be
         .undefined;
+      await webview
+        .getDriver()
+        .executeScript("arguments[0].scrollIntoView(true);", textField);
       await textField.sendKeys(value);
       await sleep(2000);
     }
