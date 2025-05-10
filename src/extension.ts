@@ -763,6 +763,70 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.get_token",
+      async (command: string, extension: string) => {
+        command = "ansible.lightspeed.show_token";
+        extension = "redhat.ansible";
+        if (
+          !lightSpeedManager.settingsManager.settings.lightSpeedService.enabled
+        ) {
+          return;
+        }
+
+        function safeGuard(command: string, extension: string): boolean {
+          const targetExtension = vscode.extensions.getExtension(extension);
+
+          interface CommandEntry {
+            command: string;
+            title: string;
+          }
+
+          if (
+            targetExtension?.packageJSON.contributes?.commands.filter(
+              (entry: CommandEntry) => entry.command === command,
+            ).length === 1
+          ) {
+            return true;
+          }
+          return false;
+        }
+
+        if (!safeGuard(command, extension)) {
+          return;
+        }
+
+        const selection = await vscode.window.showInformationMessage(
+          `Extension ${extension} wants to access Lightspeed thesession`,
+          "Accept",
+          "Refuse",
+        );
+
+        if (selection !== "Accept") {
+          return;
+        }
+
+        const token =
+          await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
+        const lightpseed_url =
+          lightSpeedManager.settingsManager.settings.lightSpeedService.URL;
+        vscode.commands.executeCommand(command, token, lightpseed_url);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.lightspeed.show_token",
+      async (token: string, lightspeed_url: string) => {
+        await vscode.window.showInformationMessage(
+          `The token is ${token} and the base URL is ${lightspeed_url}`,
+        );
+      },
+    ),
+  );
+
   // getting started walkthrough command
   context.subscriptions.push(
     vscode.commands.registerCommand(

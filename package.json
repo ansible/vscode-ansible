@@ -448,6 +448,14 @@
         "title": "Ansible Lightspeed: Enable experimental features"
       },
       {
+        "command": "ansible.lightspeed.get_token",
+        "title": "Ansible Lightspeed: Get token"
+      },
+      {
+        "command": "ansible.lightspeed.show_token",
+        "title": "Ansible Lightspeed: Show token"
+      },
+      {
         "command": "ansible.walkthrough.gettingStarted.setLanguage",
         "title": "Ansible: Getting started - Set Language"
       },
