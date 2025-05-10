@@ -3,10 +3,10 @@ import {
   provideVSCodeDesignSystem,
   Button,
 } from "@vscode/webview-ui-toolkit";
+import { vscode } from "../../../../api";
 
 provideVSCodeDesignSystem().register(allComponents);
 
-const vscode = acquireVsCodeApi();
 window.addEventListener("load", main);
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
