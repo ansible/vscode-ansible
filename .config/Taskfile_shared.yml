@@ -19,9 +19,7 @@ tasks:
       - bash ./tools/test-setup.sh
     sources:
       - .config/requirements.in
-      - package.json
       - tools/test-setup.sh
-      - yarn.lock
     generates:
       - out/log/manifest-*.yml
       - "{{.PYTHON3}}"
@@ -30,5 +28,12 @@ tasks:
   install:
     cmds:
       - task: setup
+    generates:
+      - node_modules/.yarn-state.yml
+    sources:
+      - .config/requirements.in
+      - package.json
+      - tools/test-setup.sh
+      - yarn.lock
     run: once
     interactive: true

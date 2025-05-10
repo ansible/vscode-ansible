@@ -7,7 +7,7 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "skipLibCheck": true,
-    "sourceMap": false,
+    "sourceMap": true,
     "strict": true,
     "target": "ES2022"
   }
