@@ -102,6 +102,16 @@ describe("Test Ansible playbook and collection project scaffolding at default pa
       "Create button should be enabled now",
     ).to.be.true;
 
+    // If on the collection page, look for the editable checkbox
+    if (editorTitle.includes("collection")) {
+      const editableCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='editable-mode-checkbox']"),
+      );
+      expect(editableCheckbox, "editableCheckbox should not be undefined").not
+        .to.be.undefined;
+      await editableCheckbox.click();
+    }
+
     await createButton.click();
     await webview.switchBack();
     editorView = new EditorView();

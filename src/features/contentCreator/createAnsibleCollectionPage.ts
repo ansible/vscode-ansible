@@ -10,11 +10,13 @@ import { withInterpreter } from "../utils/commandRunner";
 import { SettingsManager } from "../../settings";
 import {
   expandPath,
+  getADEVersion,
   getBinDetail,
   getCreatorVersion,
   runCommand,
 } from "./utils";
 import {
+  ADE_ISOLATION_MODE_MIN,
   ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
   ANSIBLE_CREATOR_VERSION_MIN,
 } from "../../definitions/constants";
@@ -233,7 +235,7 @@ export class CreateAnsibleCollection {
                 <div class="checkbox-div">
                   <vscode-checkbox id="editable-mode-checkbox" form="init-form">Install collection from source code (editable mode) <br><i>This will
                     allow immediate reflection of content changes without having to reinstalling it. <br>
-                    (NOTE: Requires ansible-dev-environment installed in the environment.)</i></vscode-checkbox>
+                    (NOTE: Requires ansible-dev-environment v${ADE_ISOLATION_MODE_MIN} or later installed in the environment.)</i></vscode-checkbox>
                     <a id="ade-docs-link" href="https://ansible.readthedocs.io/projects/dev-environment/">Learn more</a>
                 </div>
 
@@ -455,7 +457,7 @@ export class CreateAnsibleCollection {
       ".venv",
     ).fsPath;
 
-    let adeCommand = `ade install --venv ${venvPathUrl} --editable ${collectionUrl} --no-ansi`;
+    let adeCommand = `cd ${collectionUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
 
     const creatorVersion = await getCreatorVersion();
     const exceedMinVersion = semver.gte(
@@ -525,24 +527,47 @@ export class CreateAnsibleCollection {
 
     // execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    commandOutput += `---------------------------------------------- ansible-creator logs -----------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
 
     if (isEditableModeInstall) {
       // ade command inherits only the verbosity options from ansible-creator command
+      commandOutput += `\n\n------------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
+
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            "Collection scaffolding and environment installation in progress, please wait a few moments....\n",
+          logFileUrl: logFilePathUrl,
+          collectionUrl: collectionUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+
+      const adeVersion = await getADEVersion();
+      const exceedADEImVersion = semver.gte(adeVersion, ADE_ISOLATION_MODE_MIN);
+
+      if (exceedADEImVersion) {
+        adeCommand += " --im=cfg";
+        const { command, env } = withInterpreter(
+          extSettings.settings,
+          adeCommand,
+          "",
+        );
+
+        // execute ade command
+        const adeExecutionResult = await runCommand(command, env);
+        commandOutput += adeExecutionResult.output;
+      } else {
+        commandOutput += `Collection could not be installed in editable mode.\n`;
+        commandOutput += `The required version of ansible-dev-environment (ade) for editable mode (using --isolation-mode=cfg) is ${ADE_ISOLATION_MODE_MIN}.\n`;
+        commandOutput += `The installed ade version on this system is ${adeVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ade for this feature.`;
+      }
+
       console.debug("[ade] command: ", adeCommand);
-
-      const { command, env } = withInterpreter(
-        extSettings.settings,
-        adeCommand,
-        "",
-      );
-
-      // execute ade command
-      const adeExecutionResult = await runCommand(command, env);
-      commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
-      commandOutput += adeExecutionResult.output;
     }
 
     await webView.postMessage({

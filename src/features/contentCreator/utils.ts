@@ -20,11 +20,19 @@ export async function getBinDetail(cmd: string, arg: string) {
 }
 
 export async function getCreatorVersion(): Promise<string> {
-  const creatorVersion = (
-    await getBinDetail("ansible-creator", "--version")
-  ).toString();
+  const creatorVersion = (await getBinDetail("ansible-creator", "--version"))
+    .toString()
+    .trimEnd();
   console.log("ansible-creator version: ", creatorVersion);
   return creatorVersion;
+}
+
+export async function getADEVersion(): Promise<string> {
+  const adeVersion = (await getBinDetail("ade", "--version"))
+    .toString()
+    .trimEnd();
+  console.log("ade version: ", adeVersion);
+  return adeVersion;
 }
 
 export async function runCommand(
