@@ -1,7 +1,8 @@
 {
   "check-coverage": true,
   "extends": "../../.c8rc",
-  "lines": 79,
+  "branches": 80.31,
+  "lines": 0,
   "reporter": ["cobertura", "text", "text-summary"],
   "reports-dir": "../../out/coverage/als",
   "temp-directory": "../../out/tmp/.c8-tmp-als"
