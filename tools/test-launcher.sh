@@ -35,7 +35,7 @@ function start_server() {
     fi
     mkdir -p out/log
     TEST_LIGHTSPEED_ACCESS_TOKEN=dummy
-    (DEBUG='express:*' node ./out/client/test/mockLightspeedServer/server.js >>out/log/express.log 2>&1 ) &
+    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedServer/server.js >>out/log/express.log 2>&1 ) &
     while ! grep 'Listening on port' out/log/express.log; do
 	sleep 1
     done
