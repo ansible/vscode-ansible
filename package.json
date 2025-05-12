@@ -3,7 +3,8 @@
     "onLanguage:yaml",
     "onLanguage:yml",
     "workspaceContains:tox-ansible.ini",
-    "onWebviewPanel:ansible-home"
+    "onWebviewPanel:ansible-home",
+    "onAuthenticationRequest:auth-lightspeed"
   ],
   "badges": [
     {
