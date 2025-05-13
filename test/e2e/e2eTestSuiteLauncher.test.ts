@@ -1,3 +1,4 @@
+// This file is loaded by `vscode-test` cli tool.
 import { testDiagnosticsAnsibleWithoutEE } from "./diagnostics/testAnsibleWithoutEE.test";
 import { testDiagnosticsYAMLWithoutEE } from "./diagnostics/testYamlWithoutEE.test";
 import { testHoverEE } from "./hover/testWithEE.test";
