@@ -8,6 +8,59 @@ import {
   waitForDiagnosisCompletion,
 } from "../../helper";
 
+const yamlDiagnostics = [
+  {
+    severity: 0,
+    message: "Nested mappings are not allowed in compact mappings",
+    range: new vscode.Range(
+      new vscode.Position(6, 13),
+      new vscode.Position(6, 14),
+    ),
+    source: "Ansible [YAML]",
+  },
+  {
+    severity: 0,
+    message: "Unexpected scalar at node end",
+    range: new vscode.Range(
+      new vscode.Position(7, 0),
+      new vscode.Position(7, 6),
+    ),
+    source: "Ansible [YAML]",
+  },
+  {
+    severity: 0,
+    message: "Unexpected map-value-ind token in YAML stream",
+    range: new vscode.Range(
+      new vscode.Position(7, 6),
+      new vscode.Position(7, 7),
+    ),
+    source: "Ansible [YAML]",
+  },
+  {
+    severity: 0,
+    message: "Unexpected scalar token in YAML stream",
+    range: new vscode.Range(
+      new vscode.Position(7, 8),
+      new vscode.Position(7, 12),
+    ),
+    source: "Ansible [YAML]",
+  },
+];
+
+async function runDiagnosticsTest(
+  docUri: vscode.Uri,
+  expectedDiagnostics: vscode.Diagnostic[],
+  setup?: () => Promise<void>,
+  teardown?: () => Promise<void>,
+) {
+  if (setup) await setup();
+  await activate(docUri);
+  await vscode.commands.executeCommand("workbench.action.files.save");
+  await waitForDiagnosisCompletion();
+  await testDiagnostics(docUri, expectedDiagnostics);
+  if (teardown) await teardown();
+}
+
 export function testDiagnosticsYAMLWithoutEE(): void {
   describe("TEST FOR YAML DIAGNOSTICS WITHOUT EE", () => {
     const docUri1 = getDocUri("diagnostics/yaml/invalid_yaml.yml");
@@ -18,10 +71,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
 
     describe("YAML diagnostics in the presence of ansible-lint", () => {
       it("should provide diagnostics with YAML validation (with ansible-lint)", async () => {
-        await activate(docUri1);
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, [
+        await runDiagnosticsTest(docUri1, [
           {
             severity: 0,
             message: "Failed to load YAML file",
@@ -31,42 +81,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
             ),
             source: "ansible-lint",
           },
-          {
-            severity: 0,
-            message: "Nested mappings are not allowed in compact mappings",
-            range: new vscode.Range(
-              new vscode.Position(6, 13),
-              new vscode.Position(6, 14),
-            ),
-            source: "Ansible [YAML]",
-          },
-          {
-            severity: 0,
-            message: "Unexpected scalar at node end",
-            range: new vscode.Range(
-              new vscode.Position(7, 0),
-              new vscode.Position(7, 6),
-            ),
-            source: "Ansible [YAML]",
-          },
-          {
-            severity: 0,
-            message: "Unexpected map-value-ind token in YAML stream",
-            range: new vscode.Range(
-              new vscode.Position(7, 6),
-              new vscode.Position(7, 7),
-            ),
-            source: "Ansible [YAML]",
-          },
-          {
-            severity: 0,
-            message: "Unexpected scalar token in YAML stream",
-            range: new vscode.Range(
-              new vscode.Position(7, 8),
-              new vscode.Position(7, 12),
-            ),
-            source: "Ansible [YAML]",
-          },
+          ...yamlDiagnostics,
         ]);
       });
     });
@@ -80,15 +95,11 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       });
 
       after(async () => {
-        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.lint.enabled", true);
       });
 
       it("should provide diagnostics with YAML validation (with --syntax-check)", async () => {
-        await activate(docUri1);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, [
+        await runDiagnosticsTest(docUri1, [
           {
             severity: 0,
             message:
@@ -100,42 +111,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
             ),
             source: "Ansible",
           },
-          {
-            severity: 0,
-            message: "Nested mappings are not allowed in compact mappings",
-            range: new vscode.Range(
-              new vscode.Position(6, 13),
-              new vscode.Position(6, 14),
-            ),
-            source: "Ansible [YAML]",
-          },
-          {
-            severity: 0,
-            message: "Unexpected scalar at node end",
-            range: new vscode.Range(
-              new vscode.Position(7, 0),
-              new vscode.Position(7, 6),
-            ),
-            source: "Ansible [YAML]",
-          },
-          {
-            severity: 0,
-            message: "Unexpected map-value-ind token in YAML stream",
-            range: new vscode.Range(
-              new vscode.Position(7, 6),
-              new vscode.Position(7, 7),
-            ),
-            source: "Ansible [YAML]",
-          },
-          {
-            severity: 0,
-            message: "Unexpected scalar token in YAML stream",
-            range: new vscode.Range(
-              new vscode.Position(7, 8),
-              new vscode.Position(7, 12),
-            ),
-            source: "Ansible [YAML]",
-          },
+          ...yamlDiagnostics,
         ]);
       });
     });
@@ -149,15 +125,11 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       });
 
       after(async () => {
-        await updateSettings("validation.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.enabled", true);
       });
 
       it("should provide no diagnostics with invalid YAML file", async () => {
-        await activate(docUri1);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, []);
+        await runDiagnosticsTest(docUri1, []);
       });
     });
   });
