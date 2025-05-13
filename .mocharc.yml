@@ -1,4 +1,6 @@
-# Not used e2e tests, which instead use .vscode-test.mjs
+# Used only by 'unit' tests
+# 'e2e' is configured via .vscode-test.mjs
+# 'ui' is configured via test/ui/.mocharc.js
 extension: ["ts"]
 require: ts-node/register
 package: "./package.json"

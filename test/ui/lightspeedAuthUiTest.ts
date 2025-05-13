@@ -122,7 +122,7 @@ describe("Login to Lightspeed", () => {
       By.id("lightspeedExplorerView"),
     );
     const text = await div.getText();
-    expect(text).contains("Logged in as:");
+    expect(text).to.match(/Logged in as:/i);
     await explorerView.switchBack();
   });
 });

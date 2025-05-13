@@ -47,16 +47,17 @@ describe("Test One Click Trial feature", () => {
   let alfView: ViewSection;
 
   beforeEach(function () {
-    if (!process.env.TEST_LIGHTSPEED_URL) {
+    if (!process.env.TEST_LIGHTSPEED_URL || process.platform === "darwin") {
+      // We cannot test on MacOS because Safari refuses to open unsecured HTTP urls, with error:
+      // Safari can’t open the page “http://localhost:3000/o/authorize/?response_type...”.
+      // The error is: “Navigation failed because the request was for an HTTP URL with HTTPS-Only enabled” (WebKitErrorDomain:305)
+      // To workaround it we might have to start a HTTPS server, but this would also require us to use a certificate that we need to add as trusted.
+      // https://bugs.webkit.org/show_bug.cgi?id=284559
       this.skip();
     }
   });
 
   before(async () => {
-    if (!process.env.TEST_LIGHTSPEED_URL) {
-      return;
-    }
-
     // Enable Lightspeed and open Ansible Light view on sidebar
     workbench = new Workbench();
     // Close settings and other open editors (if any)

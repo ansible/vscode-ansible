@@ -11,12 +11,14 @@ ignores:
   - eslint-formatter-gha
   - eslint-formatter-unix
   - mocha-junit-reporter
+  - mocha-multi-reporters
   - npm-check-updates
   - ovsx
   - rimraf
   - start-server-and-test
   - tmp
   - ts-loader
+  - ts-node
   - vscode
   - webpack-cli
   - yarn-audit-fix
