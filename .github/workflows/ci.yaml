@@ -325,7 +325,6 @@ jobs:
           name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
           path: |
             out/coverage
-            out/e2eTestReport
             out/junit
             out/log
             out/test-resources/screenshots
