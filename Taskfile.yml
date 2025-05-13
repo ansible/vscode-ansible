@@ -81,7 +81,7 @@ tasks:
       VSCODE_VERSION:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
-      - uv pip compile -q --universal --no-annotate --output-file .config/constraints.txt .config/requirements.in
+      - uv pip compile -q --upgrade --universal --no-annotate --output-file .config/constraints.txt .config/requirements.in
       - task: install
       # upgrade yarn itself
       - yarn set version latest
