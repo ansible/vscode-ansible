@@ -37,8 +37,8 @@ to `settings.json` file like this:
 
 #### File inspection for ansible keywords
 
-- Primary method is inspection for top level playbook keywords like hosts and
-  import_playbook in yaml files.
+- Primary method is inspection for top level playbook keywords like 'hosts',
+  'import_playbook' and 'ansible.builtin.import_playbook' in yaml files.
 
 #### Modelines (optional)
 

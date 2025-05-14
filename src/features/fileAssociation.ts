@@ -4,7 +4,7 @@ import { configureModelines, searchModelines } from "./utils/applyModelines";
 
 /**
  * Function to dynamically set document language by inspecting the file. This is based on 2 things:
- * 1. checking the presence of 'hosts' and 'import_playbook' keyword
+ * 1. checking the presence of 'hosts', 'import_playbook' and 'ansible.builtin.import_playbook' keyword
  * 2. checking for modelines (if any)
  *
  * If modelines is present, it is given priority over keyword check.
