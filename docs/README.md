@@ -466,7 +466,8 @@ which you can learn more about at
 
 ## Contact
 
-We welcome your feedback, questions and ideas. Learn how to reach us [here](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
+We welcome your feedback, questions and ideas. Learn how to reach us
+[here](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
 
 ## Credit
 
