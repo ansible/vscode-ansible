@@ -21,6 +21,7 @@ import {
   getModalDialogAndMessage,
   getWebviewByLocator,
   sleep,
+  waitForCondition,
   workbenchExecuteCommand,
 } from "./uiTestHelper";
 import { Key } from "selenium-webdriver";
@@ -150,9 +151,16 @@ describe("Test One Click Trial feature", () => {
 
   it("Verify Ansible Lightspeed webview now contains user's information", async () => {
     await explorerView.switchToFrame(5000);
-    const div = await explorerView.findWebElement(
-      By.id("lightspeedExplorerView"),
-    );
+
+    const div = await waitForCondition({
+      condition: async () => {
+        return await explorerView.findWebElement(
+          By.id("lightspeedExplorerView"),
+        );
+      },
+      message: "Timed out waiting for lightspeedExplorerView element",
+    });
+
     const text = await div.getText();
     expect(text).contains("Logged in as: ONE_CLICK_USER (unlicensed)");
     await explorerView.switchBack();
@@ -185,7 +193,6 @@ describe("Test One Click Trial feature", () => {
 
     await refreshIcon.click(); // make sure if it could be clicked
 
-    await sleep(2000);
     await explorerView.switchToFrame(5000);
     const div = await explorerView.findWebElement(
       By.id("lightspeedExplorerView"),
@@ -197,7 +204,6 @@ describe("Test One Click Trial feature", () => {
 
   it("Invoke Playbook generation", async () => {
     await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(2000);
     await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
     );
@@ -211,13 +217,11 @@ describe("Test One Click Trial feature", () => {
 
     // Open file in the editor
     await VSBrowser.instance.openResources(filePath);
-    await sleep(1000);
 
     // Open playbook explanation webview.
     await workbench.executeCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
-    await sleep(2000);
     await expectNotification(
       trialNotificationMessage,
       true, // click button
@@ -230,7 +234,6 @@ describe("Test One Click Trial feature", () => {
     const file = "playbook_3.yml";
     const filePath = getFixturePath(folder, file);
     await VSBrowser.instance.openResources(filePath);
-    await sleep(1000);
 
     const editorView = new EditorView();
     const tab = await editorView.getTabByTitle(file);
@@ -239,8 +242,6 @@ describe("Test One Click Trial feature", () => {
     // Trigger completions API. First space key and backspace look redundant,
     // but just sending page down and 4 spaces did not work...
     await tab.sendKeys(" ", Key.BACK_SPACE, Key.PAGE_DOWN, "    ");
-
-    await sleep(4000);
     await expectNotification(
       trialNotificationMessage,
       true, // click button
