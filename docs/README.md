@@ -5,7 +5,7 @@ This extension adds language support for Ansible to
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) compatible editors
 by leveraging [ansible-language-server](als/README.md).
 
-## Language association to yaml files
+## File association for YAML files
 
 The extension works only when a document is assigned `ansible` language. The
 following method is used to assign `ansible` language to the document opened by
@@ -57,7 +57,7 @@ Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
 below.
 
-## Activating Red Hat Ansible extension manually
+## Manual extension activation
 
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.

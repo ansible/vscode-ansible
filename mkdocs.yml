@@ -3,6 +3,7 @@ site_name: Ansible VS Code Extension
 site_url: https://ansible.readthedocs.io/projects/vscode-ansible/
 repo_url: https://github.com/ansible/vscode-ansible
 edit_uri: blob/main/docs/
+strict: true
 
 theme:
   name: ansible
@@ -38,8 +39,7 @@ nav:
       - Settings: als/settings.md
       - Changelog: als/changelog.md
   - Developer Guide:
-      # - development.md
-      - development/main.md
+      - development/index.md
       - development/project_structure.md
       - development/extension_code_structure.md
       - development/server_code_structure.md
@@ -47,6 +47,7 @@ nav:
       - development/debug_extension.md
       - development/webview_guide.md
       - development/additional_resources.md
+      - development/vite.md
       - Contributing: contributing.md
   - FAQ:
       - faq/integrate-ansible-lint-with-language-server-venv.md
@@ -55,6 +56,10 @@ plugins:
   # Do not enable 'material/social' as it causes multiple issues over time
   # See: https://github.com/squidfunk/mkdocs-material/issues/8215
   - autorefs
+  - macros:
+      modules: [mkdocs-ansible:mkdocs_ansible]
+      render_by_default: false
+  - markdown-exec
   - search
   - material/tags
   - git-revision-date-localized:
@@ -76,7 +81,7 @@ markdown_extensions:
       social_url_shorthand: true
       social_url_shortener: true
       user: ansible
-      repo: ansible-language-server
+      repo: vscode-ansible
       normalize_issue_symbols: true
   - pymdownx.tabbed:
       alternate_style: true
@@ -88,3 +93,12 @@ markdown_extensions:
       # reduced to keep TOC nice under Changelog page
       toc_depth: 2
       permalink: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+validation:
+  nav:
+    omitted_files: warn
+    absolute_links: warn
