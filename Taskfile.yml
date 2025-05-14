@@ -153,7 +153,7 @@ tasks:
       - tools
   test:
     # cspell: disable-next-line
-    desc: "Run all tests: \e[22;32munit, ui, e2e, als\e[0m"
+    desc: "Run all tests: unit, ui, e2e, als"
     cmds:
       - task: setup
       - task: unit

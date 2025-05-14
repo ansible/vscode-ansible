@@ -1,8 +1,6 @@
-# Chapter 6: Developing webview in extension
+# Webviews
 
 ## Overview
-
-![webview in extension](media/webview-in-extension.png)
 
 The Webview API allows extensions to create fully customizable views within the
 VS Code extension. You can use Webviews to build complex user interfaces beyond
@@ -17,7 +15,18 @@ extensions using message passing.
 Webview panels are owned by the extension that creates them. The following
 flowchart explains the lifecycle of a webview.
 
-![webview lifecycle](media/webview-lifecycle.png)
+```mermaid
+flowchart TD
+    A[Create webview] --> B[Maintain reference]
+    B --> C[Active state]
+    C --> D[Extension dispose webview]
+    C --> E[User closes webview]
+    E --> F[Webview is destroyed]
+    D --> F
+    F --> G[Clean up resources]
+    E -..-> I[Attempt to interact with closed webview]
+    I -..-> J[Throws exception]
+```
 
 ## Implementation steps
 
@@ -63,7 +72,7 @@ context.subscriptions.push(
 
 To organize the code, create two separate files:
 
-1.  **Extension file (`<webview-name>Page.ts`):** This file hosts the webview.
+1. **Extension file (`<webview-name>Page.ts`):** This file hosts the webview.
     In this file you should:
 
     - Define a class with methods to render, dispose, and manage the Webview
@@ -77,7 +86,7 @@ To organize the code, create two separate files:
     - Access the vscode and workspace elements such as commands and settings and
       manipulate them.
 
-2.  **Webview file: (`<webview-name>PageApp.ts`):** This file manages the
+2. **Webview file: (`<webview-name>PageApp.ts`):** This file manages the
     Webview content. In this file you should:
 
     - Interact with DOM elements within the HTML.
@@ -128,7 +137,16 @@ window. You can use this instance to do the following:
 
 ## Communication between the webview panel and the extension
 
-![communication flow](media/webview-communication-flow.png)
+```mermaid
+sequenceDiagram
+    participant Extension
+    participant Webview
+    participant HTML
+    Webview->>Extension: Ready to get data
+    Extension->>Webview: Post data to webview
+    Webview->>HTML: Render HTML
+    Webview->>Extension: Send message to perform the action
+```
 
 ### Passing message from the extension context to the webview context
 
@@ -199,7 +217,7 @@ panel.webview.onDidReceiveMessage(
 
 ## Resources
 
-1.  **Local resources:** The extension has already implemented some webviews.
+1. **Local resources:** The extension has already implemented some webviews.
     You can see them in the following locations:
 
     - extension context file:
@@ -211,7 +229,7 @@ panel.webview.onDidReceiveMessage(
     - webpack config file:
       [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
 
-2.  **External resources:** The best explanation of implementing a webview is
+2. **External resources:** The best explanation of implementing a webview is
     described by Microsoft. You can look at these:
 
     - [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
