@@ -651,22 +651,6 @@
         }
       },
       {
-        "title": "Telemetry",
-        "properties": {
-          "redhat.telemetry.enabled": {
-            "type": "boolean",
-            "default": null,
-            "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
-            "order": 0,
-            "tags": [
-              "telemetry",
-              "usesOnlineServices"
-            ],
-            "scope": "window"
-          }
-        }
-      },
-      {
         "title": "Ansible Lightspeed",
         "properties": {
           "ansible.lightspeed.enabled": {
