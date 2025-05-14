@@ -209,7 +209,7 @@ environments:
 
 3. Click "Create" to generate the execution environment file
 
-## Language association to yaml files
+## File association for YAML files
 
 The extension works when a document is assigned the Ansible language. Files are
 automatically recognized as 'Ansible' in these cases:
@@ -259,6 +259,21 @@ or
 Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
 below.
+
+## Manual extension activation
+
+It is recommended to open a folder containing Ansible files with a VS Code
+workspace.
+
+![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
+
+Note:
+
+- For Ansible files open in an editor window ensure the language mode is set to
+  `Ansible` (bottom right of VS Code window).
+- The runtime status of extension should be in activate state. It can be
+  verified in the `Extension` window `Runtime Status` tab for `Ansible`
+  extension.
 
 ## Features
 

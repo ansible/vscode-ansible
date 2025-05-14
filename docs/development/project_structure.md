@@ -1,4 +1,4 @@
-# Chapter 1: Understanding project structure
+# Repository layout
 
 The project is divided into two main parts:
 
