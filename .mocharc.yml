@@ -1,3 +1,4 @@
+# Not used e2e tests, which instead use .vscode-test.mjs
 extension: ["ts"]
 require: ts-node/register
 package: "./package.json"
