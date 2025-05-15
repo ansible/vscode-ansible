@@ -52,6 +52,7 @@ nav:
   - FAQ:
       - faq/integrate-ansible-lint-with-language-server-venv.md
       - usage-data.md
+  - Contact: contact.md
 plugins:
   # Do not enable 'material/social' as it causes multiple issues over time
   # See: https://github.com/squidfunk/mkdocs-material/issues/8215
