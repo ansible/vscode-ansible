@@ -114,7 +114,7 @@ This section allows you to add resources to existing projects:
 - Role: Add a role to an existing collection
 - Playbook: Generate a playbook with Ansible Lightspeed
 
-## Dev Container Configurations
+## Using Dev Containers
 
 This extension supports generating dev containers to provide isolated,
 consistent Ansible development environments in VS Code. The
@@ -148,7 +148,7 @@ Select the dev container file that matches your desired container engine.
 The workspace will reopen in a container with all the Ansible Development Tools
 (ADT) installed.
 
-## Ansible Lightspeed with watsonx Code Assistant
+## Ansible Lightspeed
 
 The extension integrates with Ansible Lightspeed with watsonx Code Assistant to
 provide AI-powered features. Lightspeed provides inline code suggestions as you
