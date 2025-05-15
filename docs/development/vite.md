@@ -23,6 +23,4 @@ port to match your local configuration, it may be `5174`.
 
 In some occasion, the Live Reloading may not work, you can manually kill the
 `vite-dev Task`, clean up the `out/vitebuild/` directory and restart the
-`Debug Extension (Vite)` session,
-
-![image](https://github.com/user-attachments/assets/09340362-622d-42bc-9e90-2d4e3451d12d)
+`Debug Extension (Vite)` session.
