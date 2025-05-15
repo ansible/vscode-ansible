@@ -32,8 +32,7 @@ Before you begin, make sure your system has:
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
 
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif){
-width=750 height=750 }
+![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
 
 Note:
 
@@ -256,21 +255,6 @@ or
 Rest all the .yml, or .yaml files will remain yaml by default unless the user
 explicitly changes the language to ansible for which the process is mentioned
 below.
-
-## Manual extension activation
-
-It is recommended to open a folder containing Ansible files with a VS Code
-workspace.
-
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
-
-Note:
-
-- For Ansible files open in an editor window ensure the language mode is set to
-  `Ansible` (bottom right of VS Code window).
-- The runtime status of extension should be in activate state. It can be
-  verified in the `Extension` window `Runtime Status` tab for `Ansible`
-  extension.
 
 ## Features
 
