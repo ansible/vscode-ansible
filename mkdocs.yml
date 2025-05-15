@@ -38,6 +38,7 @@ nav:
       - index: als/README.md
       - Settings: als/settings.md
       - Changelog: als/changelog.md
+  - Configuration: configuration.md
   - Developer Guide:
       - development/index.md
       - development/project_structure.md
@@ -48,7 +49,7 @@ nav:
       - development/webview_guide.md
       - development/additional_resources.md
       - development/vite.md
-      - Contributing: contributing.md
+  - Contributing: contributing.md
   - FAQ:
       - faq/integrate-ansible-lint-with-language-server-venv.md
       - usage-data.md
