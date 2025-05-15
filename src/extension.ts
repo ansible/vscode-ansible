@@ -1061,7 +1061,7 @@ async function updateDocumentInRoleContext() {
     : false;
   vscode.commands.executeCommand(
     "setContext",
-    "ansible.isDocumentInRole",
+    "redhat.ansible.isDocumentInRole",
     isInRole,
   );
 }
