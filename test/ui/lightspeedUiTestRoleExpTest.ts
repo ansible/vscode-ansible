@@ -20,6 +20,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   // Open file in the editor
   await VSBrowser.instance.openResources(filePath);
 
+  // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
   if (process.platform !== "darwin") {
     const editorView = new EditorView();
     const editor = await editorView.openEditor("main.yml");
