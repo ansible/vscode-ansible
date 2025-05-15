@@ -1,4 +1,4 @@
-# Chapter 7: Additional resources for VS Code Extension development
+# Additional resources
 
 ## Creating your first VS Code extension
 
