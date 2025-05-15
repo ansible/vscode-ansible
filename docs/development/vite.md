@@ -1,4 +1,4 @@
-# Chapter 8: Vite Webview development
+# Vite Webview development
 
 Some views relies on Vite to be built. As a developer, you need first to:
 

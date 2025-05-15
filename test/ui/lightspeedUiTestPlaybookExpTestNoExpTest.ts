@@ -4,9 +4,9 @@ import { expect, config } from "chai";
 import { By, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
   getFixturePath,
-  sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -37,8 +37,6 @@ describe.skip("Verify playbook explanation features when no explanation is retur
       "Explain the playbook with Ansible Lightspeed",
     );
 
-    await sleep(5000);
-
     // Locate the playbook explanation webview
     await new EditorView().openEditor("Explanation", 1);
 
@@ -51,10 +49,15 @@ describe.skip("Verify playbook explanation features when no explanation is retur
       By.xpath("//div[contains(@class, 'explanation') ]"),
     );
     expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
-    await sleep(5000);
 
-    const text = await mainDiv.getText();
-    expect(text.includes("No explanation provided")).to.be.true;
+    await waitForCondition({
+      condition: async () => {
+        const text = await mainDiv.getText();
+        return text.includes("No explanation provided");
+      },
+      message:
+        'Timed out waiting for "No explanation provided" text in explanation',
+    });
 
     await webView.switchBack();
 
