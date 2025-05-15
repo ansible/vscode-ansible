@@ -4,7 +4,7 @@ import {
   setupPanelLifecycle,
   disposePanelResources,
   createOrRevealPanel,
-} from "./panelUtils";
+} from "./lightspeedPanelUtils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
