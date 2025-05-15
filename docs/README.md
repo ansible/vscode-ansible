@@ -27,12 +27,12 @@ Before you begin, make sure your system has:
 > Note: On Windows, use with the Remote - WSL or Remote - Containers extensions
 > for optimal compatibility.
 
-## Activating Red Hat Ansible extension manually
+## Manual Extension Activation
 
 It is recommended to open a folder containing Ansible files with a VS Code
 workspace.
 
-![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif)
+![Linter support](https://raw.githubusercontent.com/wiki/ansible/vscode-ansible/images/activate-extension.gif){ width=750 height=750 }
 
 Note:
 
@@ -50,17 +50,13 @@ The extension provides a comprehensive Welcome Page that serves as a dashboard
 for Ansible development tools. Access it as follows:
 
 - Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
-- Type "Open Ansible Development Tools menu" and selecting it
-
-  ![Walkthrough](images/walkthrough.webp){ width=750 height=750 }
+- Type "Open Ansible Development Tools menu" and selecting it.
 
   **OR**
 
 - From the Quick Links panel, click **Getting Started**.
 
   - The walkthroughs will appear on the right-hand side.
-
-  ![Getting Started](images/getting_started.webp){ width=750 height=750 }
 
 ### Interactive Walkthroughs
 
@@ -118,7 +114,7 @@ This section allows you to add resources to existing projects:
 - Role: Add a role to an existing collection
 - Playbook: Generate a playbook with Ansible Lightspeed
 
-## Creating dev container Configurations
+## Dev Container Configurations
 
 This extension supports generating dev containers to provide isolated,
 consistent Ansible development environments in VS Code. The
