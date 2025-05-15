@@ -24,6 +24,30 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   // Open file in the editor
   await VSBrowser.instance.openResources(filePath);
 
+  if (process.platform !== "darwin") {
+    const editorView = new EditorView();
+    const editor = await editorView.openEditor("playbook_1.yml");
+    const contextMenu = await editor.openContextMenu();
+
+    const hasExplainRoleMenuItem = await contextMenu.hasItem(
+      "Explain the role with Ansible Lightspeed",
+    );
+    expect(
+      hasExplainRoleMenuItem,
+      '"Explain the role with Ansible Lightspeed" should not be present in the context menu',
+    ).not.to.be.true;
+
+    const hasExplainPlaybookMenuItem = await contextMenu.hasItem(
+      "Explain the playbook with Ansible Lightspeed",
+    );
+    expect(
+      hasExplainPlaybookMenuItem,
+      '"Explain the playbook with Ansible Lightspeed" should be present in the context menu',
+    ).to.be.true;
+
+    await contextMenu.close();
+  }
+
   // Open playbook explanation webview.
   await workbenchExecuteCommand("Explain the playbook with Ansible Lightspeed");
 
