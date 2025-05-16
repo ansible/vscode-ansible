@@ -199,6 +199,7 @@ tasks:
       - tools/helper
       - src/**/*
       - test/**/*
+      - media/**/*
     generates:
       - "*.vsix"
     cmds:
