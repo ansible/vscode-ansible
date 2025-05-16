@@ -8,22 +8,35 @@ import {
   waitForDiagnosisCompletion,
 } from "../../helper";
 
+const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
+const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
+
+interface ExpectedDiagnostic {
+  severity: number;
+  message: string;
+  range: vscode.Range;
+  source: string;
+}
+
+async function activateAndDiagnose(
+  uri: vscode.Uri,
+  expected: ExpectedDiagnostic[],
+) {
+  await activate(uri);
+  await vscode.commands.executeCommand("workbench.action.files.save");
+  await waitForDiagnosisCompletion();
+  await testDiagnostics(uri, expected);
+}
+
 export function testDiagnosticsAnsibleWithoutEE(): void {
   describe("TEST FOR ANSIBLE DIAGNOSTICS WITHOUT EE", () => {
-    const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
-    const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
-
     before(async () => {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     });
 
     describe("Diagnostic test with ansible-lint", () => {
       it("should complain about no task names", async () => {
-        await activate(docUri1);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, [
+        await activateAndDiagnose(docUri1, [
           {
             severity: 0,
             message: "All tasks should be named",
@@ -37,11 +50,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       });
 
       it("should complain about command syntax-check failed", async function () {
-        await activate(docUri2);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri2, [
+        await activateAndDiagnose(docUri2, [
           {
             severity: 0,
             message:
@@ -65,23 +74,15 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       });
 
       after(async () => {
-        await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.lint.enabled", true);
       });
 
       it("should return no diagnostics", async function () {
-        await activate(docUri1);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri1, []);
+        await activateAndDiagnose(docUri1, []);
       });
 
       it("should complain about invalid `hosts` key", async function () {
-        await activate(docUri2);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri2, [
+        await activateAndDiagnose(docUri2, [
           {
             severity: 0,
             message:
@@ -105,15 +106,11 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       });
 
       after(async () => {
-        await updateSettings("validation.enabled", true); // Revert back the setting to default
+        await updateSettings("validation.enabled", true);
       });
 
       it("should return no diagnostics even when `hosts` key is missing", async function () {
-        await activate(docUri2);
-        await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
-
-        await testDiagnostics(docUri2, []);
+        await activateAndDiagnose(docUri2, []);
       });
     });
   });
