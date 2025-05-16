@@ -22,6 +22,6 @@ COPY . .
 # This script is defined in package.json as:
 # "package": "NODE_OPTIONS='--max-old-space-size=8192' ./tools/helper --package"
 # This will trigger the necessary build and packaging process.
-RUN yarn package
+RUN npm package
 
 # The .vsix file (e.g., redhat.ansible-X.Y.Z.vsix) will be generated in the WORKDIR (/usr/src/app/)
