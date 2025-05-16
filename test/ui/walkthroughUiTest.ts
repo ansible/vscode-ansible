@@ -6,12 +6,21 @@ import {
   until,
   Workbench,
 } from "vscode-extension-tester";
-import { sleep } from "./uiTestHelper";
+import { waitForCondition } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
 let workbench: Workbench;
 let editorView: EditorView;
+
+const openUntitledFile = async () => {
+  return await waitForCondition({
+    condition: async () => {
+      return await new EditorView().openEditor("Untitled-1");
+    },
+    message: "Timed out waiting for Untitled-1 file to open",
+  });
+};
 
 before(async () => {
   workbench = new Workbench();
@@ -51,10 +60,14 @@ describe("Check walkthroughs, elements and associated commands", async () => {
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
 
-      await sleep(1000);
-
       // Select the editor window
-      const welcomeTab = await editorView.getTabByTitle("Walkthrough: Ansible");
+      const welcomeTab = await waitForCondition({
+        condition: async () => {
+          return await editorView.getTabByTitle("Walkthrough: Ansible");
+        },
+        message: "Timed out waiting for walkthrough tab to open",
+      });
+
       expect(welcomeTab).is.not.undefined;
 
       // Locate walkthrough title text
@@ -77,14 +90,15 @@ describe("Check walkthroughs, elements and associated commands", async () => {
 
       const stepText = fullStepText.split("\n")[0];
       expect(steps, "No walkthrough step").to.include(stepText);
+
+      await editorView.closeEditor("Walkthrough: Ansible");
     });
   });
 
   it("Check empty playbook command option", async function () {
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
-    await sleep(500);
 
-    const newFileEditor = await new EditorView().openEditor("Untitled-1");
+    const newFileEditor = await openUntitledFile();
     const startingText = await newFileEditor.getText();
     expect(
       startingText.startsWith("---"),
@@ -100,9 +114,8 @@ describe("Check walkthroughs, elements and associated commands", async () => {
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
-    await sleep(500);
 
-    const newFileEditor = await new EditorView().openEditor("Untitled-1");
+    const newFileEditor = await openUntitledFile();
     const startingText = await newFileEditor.getText();
     expect(
       startingText.startsWith("---"),

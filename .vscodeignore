@@ -51,7 +51,16 @@
 !out/client/webview/apps/quickLinks/quickLinksApp.js
 !out/client/webview/apps/welcomePage/welcomePageApp.js
 !out/server/src/server.js
-!out/vitebuild/**/*
+!out/vitebuild/extension/**/*
+!out/vitebuild/webview/style.css
+!out/vitebuild/webview/assets/**/*
+!out/vitebuild/webview/codicons/**/*
+!out/vitebuild/webview/contentCreator/**/*
+!out/vitebuild/webview/welcomePage/**/*
+!out/vitebuild/webview/webviews/**/*
+!out/vitebuild/webview/quickLinks/**/*
+!out/vitebuild/webview/baseStyles/**/*
+!out/vitebuild/webview/lightspeedExplorerView/**/*
 !package.json
 !package.nls.json
 !syntaxes/**/*

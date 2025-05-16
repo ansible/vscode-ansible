@@ -10,9 +10,9 @@ import {
   Key,
 } from "vscode-extension-tester";
 import {
-  sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -43,8 +43,11 @@ describe("Verify playbook generation features work as expected", function () {
       .getContent()
       .getSection("Ansible Development Tools");
     adtView.expand();
-    await sleep(3000);
     console.log("Expanded ADT view");
+
+    await workbenchExecuteCommand(
+      "Ansible: Focus on Ansible Development Tools View",
+    );
 
     explorerView = new WebviewView();
     expect(explorerView).not.undefined;
@@ -61,7 +64,6 @@ describe("Verify playbook generation features work as expected", function () {
     if (welcomePageLink) {
       await welcomePageLink.click();
     }
-    await sleep(2000);
 
     await getWebviewByLocator(
       By.xpath(
@@ -72,7 +74,6 @@ describe("Verify playbook generation features work as expected", function () {
 
   it("Playbook generation webview works as expected (full path) - part 1", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
-    await sleep(2000);
 
     // Start operations on Playbook Generation UI
     const webView = await getWebviewByLocator(
@@ -91,12 +92,15 @@ describe("Verify playbook generation features work as expected", function () {
     );
     await analyzeButton.click();
 
-    await sleep(2000);
-
     // Verify outline output and text edit
-    const outlineList = await webView.findWebElement(
-      By.xpath("//textarea[@id='outline-field']"),
-    );
+    const outlineList = await waitForCondition({
+      condition: async () => {
+        return await webView.findWebElement(
+          By.xpath("//textarea[@id='outline-field']"),
+        );
+      },
+      message: "Timed out waiting for playbook outline field",
+    });
     expect(outlineList, "An ordered list should exist.");
     let text = await outlineList.getText();
     expect(

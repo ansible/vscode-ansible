@@ -5,10 +5,10 @@ import { By, VSBrowser, EditorView, Workbench } from "vscode-extension-tester";
 import * as path from "path";
 import {
   getFixturePath,
-  sleep,
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -20,9 +20,31 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   // Open file in the editor
   await VSBrowser.instance.openResources(filePath);
 
+  // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
+  if (process.platform !== "darwin") {
+    const editorView = new EditorView();
+    const editor = await editorView.openEditor("main.yml");
+    const contextMenu = await editor.openContextMenu();
+
+    const hasExplainRoleMenuItem = await contextMenu.hasItem(
+      "Explain the role with Ansible Lightspeed",
+    );
+    expect(
+      hasExplainRoleMenuItem,
+      '"Explain the role with Ansible Lightspeed" should be present in the context menu',
+    ).to.be.true;
+
+    const hasFoobarMenuItem = await contextMenu.hasItem("this is foobar");
+    expect(
+      hasFoobarMenuItem,
+      '"this is foobar" should not be present in the context menu',
+    ).not.to.be.true;
+
+    await contextMenu.close();
+  }
+
   // Open role explanation webview.
   await workbenchExecuteCommand("Explain the role with Ansible Lightspeed");
-  await sleep(2000);
 
   await new EditorView().openEditor("Explanation", 1);
   // Locate the role explanation webview
@@ -64,17 +86,14 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     buttonToClick === "thumbsup" ? thumbsUpButton : thumbsDownButton;
   await button.click();
 
-  await sleep(2000);
-
-  expect(
-    await thumbsUpButton.getAttribute("disabled"),
-    "Thumbs up button should be disabled now",
-  ).equals("true");
-
-  expect(
-    await thumbsDownButton.getAttribute("disabled"),
-    "Thumbs down button should be disabled now",
-  ).equals("true");
+  waitForCondition({
+    condition: async () => {
+      const thumbsUpDisabled = await thumbsUpButton.getAttribute("disabled");
+      const thumbsDownDisabled =
+        await thumbsDownButton.getAttribute("disabled");
+      return thumbsUpDisabled === "true" && thumbsDownDisabled === "true";
+    },
+  });
 
   await webView.switchBack();
   await workbenchExecuteCommand("View: Close All Editor Groups");

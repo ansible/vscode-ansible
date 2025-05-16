@@ -12,7 +12,9 @@ import {
   ActivityBar,
   WebviewView,
   InputBox,
+  VSBrowser,
 } from "vscode-extension-tester";
+import { until } from "selenium-webdriver";
 
 // Returns testFixtures/ path by default, and can
 // return testFixtures/ subfolders and files.
@@ -42,7 +44,6 @@ export async function updateSettings(
 
   const settingInUI = await settingsEditor.findSetting(title, ...categories);
   await settingInUI.setValue(value);
-  await sleep(1000);
 }
 
 // In the redirection occurs in the login flow, getting message from a modal dialog
@@ -75,53 +76,110 @@ export async function expectNotification(
   expected: string,
   clickButton = false,
 ): Promise<void> {
-  const notifications = await new Workbench().getNotifications();
-  expect(notifications.length).greaterThan(0);
-  expect(await notifications[0].getMessage()).equals(expected);
+  const workbench = new Workbench();
+
+  const matchingNotification = await waitForCondition({
+    condition: async () => {
+      const notifications = await workbench.getNotifications();
+      for (const notification of notifications) {
+        const message = await notification.getMessage();
+        if (message === expected) {
+          return notification;
+        }
+      }
+      return false;
+    },
+    message: `Timed out waiting for notification with message: "${expected}"`,
+    timeout: 15000,
+  });
+
+  expect(matchingNotification).not.to.be.false;
+
   if (clickButton) {
-    const button = await notifications[0].findElement(
-      By.xpath(".//a[@role='button']"),
+    const button = await VSBrowser.instance.driver.wait(
+      until.elementLocated(By.xpath(".//a[@role='button']")),
+      5000,
+      "Timed out waiting for button to be located",
     );
+    await VSBrowser.instance.driver.wait(
+      until.elementIsEnabled(button),
+      5000,
+      "Timed out waiting for button to be clickable",
+    );
+
     expect(button).not.to.be.undefined;
     await button.click();
     await sleep(500);
   } else {
-    for (const notification of notifications) {
-      notification.dismiss();
-    }
+    const center = await workbench.openNotificationsCenter();
+    await center.clearAllNotifications();
   }
 }
 
 export async function getWebviewByLocator(locator: Locator): Promise<WebView> {
-  const wv = await new WebView();
-  const driver = wv.getDriver();
+  const wv = new WebView();
+  const driver = VSBrowser.instance.driver;
 
-  driver.switchTo().defaultContent();
+  const condition = async () => {
+    try {
+      await driver.switchTo().defaultContent();
+      try {
+        await driver.wait(
+          until.elementLocated(By.xpath("//iframe[@class='webview ready']")),
+          2000,
+        );
+      } catch {
+        return false;
+      }
 
-  const iframes = await wv.findElements(
-    By.xpath("//iframe[@class='webview ready']"),
-  );
+      const iframes = await driver.findElements(
+        By.xpath("//iframe[@class='webview ready']"),
+      );
 
-  for (let i = iframes.length - 1; i >= 0; i--) {
-    await driver.switchTo().defaultContent();
-    await driver.switchTo().frame(iframes[i]);
+      if (iframes.length === 0) {
+        return false;
+      }
 
-    const iframeName = await driver.executeScript("return self.name");
+      for (let i = iframes.length - 1; i >= 0; i--) {
+        try {
+          await driver.switchTo().defaultContent();
+          await driver.switchTo().frame(iframes[i]);
 
-    const activeFrame = await driver.findElement(By.id("active-frame"));
-    await driver.switchTo().frame(activeFrame);
+          const activeFrames = await driver.findElements(By.id("active-frame"));
+          if (activeFrames.length === 0) {
+            continue;
+          }
+          await driver.switchTo().frame(activeFrames[0]);
 
-    const elements = await driver.findElements(locator);
+          const elements = await driver.findElements(locator);
 
-    if (elements.length === 0) {
-      console.log(`locator=${locator} not found :-(`);
-      continue;
+          if (elements.length > 0) {
+            return wv;
+          }
+        } catch (error) {
+          console.log(`Error checking specific iframe: ${error}`);
+          await driver.switchTo().defaultContent();
+        }
+      }
+    } catch (outerError) {
+      console.log(`Error in condition function: ${outerError}`);
     }
-    console.log(`locator=${locator} found in iframe ${iframeName}!`);
 
-    return wv;
+    return false;
+  };
+
+  const result = await waitForCondition({
+    condition,
+    message: `Timed out waiting for locator ${locator} in any webview`,
+  });
+
+  if (!result) {
+    throw new Error(
+      `waitForCondition failed to return a WebView for locator ${locator}`,
+    );
   }
-  throw new Error("Cannot find any matching view");
+
+  return result as WebView;
 }
 
 export async function workbenchExecuteCommand(command: string) {
@@ -192,9 +250,12 @@ export async function connectLightspeed() {
     );
   }
 
-  adtView.collapse();
+  await adtView.collapse();
 
-  await sleep(3000);
+  const alfView = await sideBar
+    .getContent()
+    .getSection("Ansible Lightspeed Feedback");
+  await alfView.collapse();
 
   await explorerView.switchToFrame(5000);
 
@@ -230,4 +291,28 @@ export async function connectLightspeed() {
   // Click Open to allow Ansible extension to open the callback URI
   await modalDialog.pushButton("Open");
   await sleep(2000);
+}
+
+export async function waitForCondition({
+  condition,
+  message = `Timed out waiting for condition: ${condition.toString()}`,
+  timeout = 10000,
+  pollTimeout = 200,
+}: {
+  condition: () => Promise<any>;
+  message?: string;
+  timeout?: number;
+  pollTimeout?: number;
+}): Promise<any> {
+  const driver = VSBrowser.instance.driver;
+  const waitCondition = async () => {
+    try {
+      const result = await condition();
+      return !!result;
+    } catch {
+      return false;
+    }
+  };
+  await driver.wait(waitCondition, timeout, message, pollTimeout);
+  return await condition();
 }

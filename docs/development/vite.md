@@ -1,4 +1,4 @@
-# Chapter 8: Vite Webview development
+# Vite Webview development
 
 Some views relies on Vite to be built. As a developer, you need first to:
 
@@ -15,3 +15,12 @@ it.
 Live reloading won't work for changes that impact the `onDidReceiveMessage`
 callbacks (extension side). These parts not handle by Vite itself and require a
 restart of the nested VSCode.
+
+When the `vite dev` process is running, you can also point your browser on the
+Live rendering, e.g:
+`http://localhost:5173/webviews/lightspeed/role-generation.html`. Adjust the
+port to match your local configuration, it may be `5174`.
+
+In some occasion, the Live Reloading may not work, you can manually kill the
+`vite-dev Task`, clean up the `out/vitebuild/` directory and restart the
+`Debug Extension (Vite)` session.
