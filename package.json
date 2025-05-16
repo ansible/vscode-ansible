@@ -3,7 +3,8 @@
     "onLanguage:yaml",
     "onLanguage:yml",
     "workspaceContains:tox-ansible.ini",
-    "onWebviewPanel:ansible-home"
+    "onWebviewPanel:ansible-home",
+    "onAuthenticationRequest:auth-lightspeed"
   ],
   "badges": [
     {
@@ -1000,6 +1001,7 @@
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.3.2",
     "chai": "^4.5.0",
+    "cypress-multi-reporters": "^2.0.5",
     "depcheck": "^1.4.7",
     "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.5",

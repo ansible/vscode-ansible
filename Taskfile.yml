@@ -5,10 +5,6 @@ includes:
   als:
     taskfile: ./packages/ansible-language-server
     dir: ./packages/ansible-language-server
-  shared:
-    taskfile: ./.config/Taskfile_shared.yml
-    internal: true
-
 output: prefixed # do not use "group" due to impact on CI
 env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
@@ -35,20 +31,41 @@ tasks:
       - ./tools/helper --version
   setup:
     desc: Install dependencies
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
     cmds:
-      - task: shared:setup
+      - bash ./tools/precheck.sh
+      - bash ./tools/test-setup.sh
+    sources:
+      - .config/requirements.in
+      - tools/test-setup.sh
+    generates:
+      - out/log/manifest-*.yml
+      - "{{.PYTHON3}}"
+    run: once
+    interactive: true
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
   install:
     cmds:
-      - task: shared:install
-    sources:
-      - "package.json"
-      - "packages/*/package.json"
-      - yarn.lock
+      - task: setup
+      - uv pip install -r .config/requirements.in -c .config/constraints.txt
+      - yarn install
+    generates:
       - node_modules/.yarn-state.yml
+    sources:
+      - .config/constraints.txt
+      - .config/requirements.in
+      - node_modules/.yarn-state.yml
+      - package.json
+      - packages/*/package.json
+      - tools/test-setup.sh
+      - yarn.lock
+    run: once
     interactive: true
   build:
     desc: Build the project
@@ -136,7 +153,7 @@ tasks:
       - tools
   test:
     # cspell: disable-next-line
-    desc: "Run all tests: \e[22;32munit, ui, e2e, als\e[0m"
+    desc: "Run all tests: unit, ui, e2e, als"
     cmds:
       - task: setup
       - task: unit
