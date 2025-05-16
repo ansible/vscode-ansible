@@ -13,9 +13,7 @@ RUN corepack enable
 COPY package.json yarn.lock ./
 
 # Install project dependencies using Yarn
-# --frozen-lockfile ensures that yarn.lock is not modified (for Yarn Classic)
-# For Yarn Modern (>=2), this is equivalent to 'yarn install --immutable' if a lockfile is present
-RUN yarn install --frozen-lockfile
+RUN yarn install --immutable
 
 # Copy the rest of the application's source code
 COPY . .
