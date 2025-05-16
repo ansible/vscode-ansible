@@ -65,6 +65,9 @@
 !package.nls.json
 !syntaxes/**/*
 # walkthrough media files
+!media/walkthroughs/create-ansible-creator.webp
+!media/walkthroughs/create-lightspeed-completion.webp
+!media/walkthroughs/create-lightspeed-playbook.webp
 !media/walkthroughs/createAnsibleEnv/adt-components.md
 !media/walkthroughs/createAnsibleEnv/all-adt-components.png
 !media/walkthroughs/createAnsibleEnv/language-selector.png
@@ -76,24 +79,18 @@
 !media/walkthroughs/discoverAdt/adt-deploy.md
 !media/walkthroughs/discoverAdt/adt-test.md
 !media/walkthroughs/discoverAdt/all-adt-components.png
-!media/walkthroughs/discoverAdt/create-ansible-creator.gif
 !media/walkthroughs/discoverAdt/create-ansible-navigator.png
 !media/walkthroughs/discoverAdt/create-automation-hub.png
-!media/walkthroughs/discoverAdt/create-lightspeed-completion.gif
-!media/walkthroughs/discoverAdt/create-lightspeed-playbook.gif
 !media/walkthroughs/discoverAdt/deploy-ansible-builder.png
 !media/walkthroughs/discoverAdt/deploy-ansible-sign.png
-!media/walkthroughs/discoverAdt/test-ansible-lint.gif
-!media/walkthroughs/discoverAdt/test-molecule.gif
 !media/walkthroughs/discoverAdt/test-pytest-ansible.png
-!media/walkthroughs/startAutomatingPlaybook/create-lightspeed-completion.gif
-!media/walkthroughs/startAutomatingPlaybook/create-lightspeed-playbook.gif
 !media/walkthroughs/startAutomatingPlaybook/create-playbook.png
 !media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md
 !media/walkthroughs/startAutomatingPlaybook/learning.png
 !media/walkthroughs/startAutomatingPlaybook/open-folder.png
 !media/walkthroughs/startAutomatingPlaybook/playbook-project.md
-
+!media/walkthroughs/test-ansible-lint.webp
+!media/walkthroughs/test-molecule.webp
 # resources
 !resources/contentCreator/createDevfile/devfile-template.txt
 !resources/contentCreator/createDevcontainer/.devcontainer/devcontainer-template.txt
