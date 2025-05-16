@@ -11,8 +11,6 @@ import { me } from "./me";
 import { openUrl } from "./openUrl";
 import * as winston from "winston";
 import morgan from "morgan";
-import fs from "fs";
-import path from "path";
 import yargs from "yargs";
 import { meMarkdown } from "./meMarkdown";
 
@@ -22,20 +20,12 @@ export let options: any = readOptions(process.argv.splice(2));
 function readOptions(args: string[]) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const opt: any = yargs(args)
-    .option("ui-test", { boolean: false })
-    .option("one-click", { boolean: false })
-    .option("me-uppercase", { boolean: false })
+    .option("ui-test", { type: "boolean", default: false })
+    .option("one-click", { type: "boolean", default: false })
+    .option("me-uppercase", { type: "boolean", default: false })
     .help().argv;
   return opt;
 }
-
-const accessLogStream = fs.createWriteStream(
-  path.join(__dirname, "access.log"),
-  {
-    flags: "a",
-  },
-);
-export const morganLogger = morgan("common", { stream: accessLogStream });
 
 const API_VERSION = "v0";
 const API_VERSION_V1 = "v1";
@@ -43,13 +33,21 @@ const API_ROOT = `/api/${API_VERSION}`;
 const API_ROOT_V1 = `/api/${API_VERSION_V1}`;
 
 export const logger = winston.createLogger({
-  level: "info",
+  level: "debug",
   format: winston.format.json(),
   transports: [
     new winston.transports.Console(),
     new winston.transports.File({ filename: "out/log/mock-server.log" }),
   ],
 });
+const morganLogger = morgan(
+  ":method :url :status :res[content-length] - :response-time ms",
+  {
+    stream: {
+      write: (message: string) => logger.http(message.trim()),
+    },
+  },
+);
 
 const url = new URL("http://localhost:3000");
 
@@ -144,10 +142,14 @@ export default class Server {
 
     app.post("/__debug__/options", (req, res) => {
       options = readOptions(req.body);
+      logger.info(
+        `New options are: uiTest=${options.uiTest} oneClick=${options.oneClick} meUppercase=${options.meUppercase}`,
+      );
       res.status(200).send();
     });
 
     app.get("/__debug__/kill", () => {
+      logger.end();
       process.exit(0);
     });
 
@@ -156,5 +158,12 @@ export default class Server {
     });
   }
 }
+
+function shutdown(code: number) {
+  logger.info(`emergency shutdown (${code}!`);
+  logger.end();
+}
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 new Server(express());

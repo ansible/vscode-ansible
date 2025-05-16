@@ -102,6 +102,8 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
     );
     await VSBrowser.instance.openResources(playbookFile);
     await workbench.executeCommand("Run playbook via `ansible-navigator run``");
+    // Tried to remove this sleep but that results in a failure in the after block
+    // unable to interact with workbench element
     await sleep(7000);
 
     const terminalView = await new BottomBarPanel().openTerminalView();

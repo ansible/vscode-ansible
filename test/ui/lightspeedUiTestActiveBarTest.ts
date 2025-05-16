@@ -8,7 +8,6 @@ import {
   ViewSection,
 } from "vscode-extension-tester";
 import {
-  sleep,
   updateSettings,
   getWebviewByLocator,
   openSettings,
@@ -33,9 +32,7 @@ describe("Verify the presence of lightspeed login button in the activity bar", (
     adtView = await sideBar
       .getContent()
       .getSection("Ansible Development Tools");
-    adtView.collapse();
-
-    await sleep(2000);
+    await adtView.collapse();
 
     webviewView = await getWebviewByLocator(
       By.xpath("//vscode-button[text()='Connect']"),
