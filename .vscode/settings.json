@@ -1,12 +1,20 @@
 {
-  "explorer.fileNesting.enabled": true,
-  "editor.codeActionsOnSave": ["source.fixAll.eslint"],
-  "editor.formatOnSave": true,
   "[javascript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
   "[shellscript]": {
     "editor.tabSize": 4
@@ -21,6 +29,10 @@
     // Until https://github.com/ansible/vscode-ansible/pull/388 is addressed.
     "editor.formatOnSave": false
   },
+  "explorer.fileNesting.enabled": true,
+  "editor.codeActionsOnSave": ["source.fixAll.eslint"],
+  "editor.formatOnSave": true,
+
   "files.exclude": {
     ".task": true,
     ".yarn": true,

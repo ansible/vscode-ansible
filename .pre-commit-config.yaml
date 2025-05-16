@@ -20,13 +20,20 @@ exclude: >
   )$
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
+  - repo: https://github.com/pappasam/toml-sort
+    rev: v0.24.2
+    hooks:
+      - id: toml-sort-fix
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: "v0.11.8"
+    hooks:
+      - id: ruff
+        entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
+        types_or: [python, pyi]
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.17.3
+    rev: v8.19.1
     hooks:
       - id: cspell
-        args:
-          -  --config=cspell.config.yaml
-        # name: Spell check with cspell
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
@@ -44,20 +51,6 @@ repos:
           - --color=always
           - -e
           - SC1091
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.4
-    hooks:
-      - id: ruff
-        args:
-          - --fix
-          - --exit-non-zero-on-fix
-        types_or: [python, pyi]
-      - id: ruff-format # must be after ruff
-        types_or: [python, pyi]
-  - repo: https://github.com/psf/black # must be after ruff
-    rev: 25.1.0
-    hooks:
-      - id: black
   - repo: local
     hooks:
       - id: depcheck
@@ -145,12 +138,12 @@ repos:
             packages/ansible-language-server/scripts/tsconfig.esm.json|
             packages/ansible-language-server/scripts/tsconfig.umd.json|
             packages/ansible-language-server/tsconfig.json|
-            test/units/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
+            test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
           )$
       - id: debug-statements
         language_version: python3
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.37.0
+    rev: v1.37.1
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$
@@ -178,18 +171,7 @@ repos:
     rev: v0.44.0
     hooks:
       - id: markdownlint
-        exclude: >
-          (?x)^
-            docs/als/settings.md|
-            docs/development/additional_resources.md|
-            docs/development/debug_extension.md|
-            docs/development/extension_code_structure.md|
-            docs/development/main.md|
-            docs/development/project_structure.md|
-            docs/development/server_code_structure.md|
-            docs/development/test_code.md|
-            docs/development/webview_guide.md
-          $
+        args: ["--fix"]
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.22.0
     hooks:

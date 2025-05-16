@@ -11,16 +11,23 @@ import {
   commands,
 } from "vscode";
 import { LightSpeedAPI } from "../../api";
-import { IError, isError } from "../../utils/errors";
+import { IError, isError, UNKNOWN_ERROR } from "../../utils/errors";
 import {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
   GenerationListEntry,
   FeedbackRequestParams,
   RoleGenerationRequestParams,
+  ExplanationResponseParams,
+  ExplanationRequestParams,
+  RoleExplanationRequestParams,
 } from "../../../../interfaces/lightspeed";
-import { LightSpeedCommands } from "../../../../definitions/lightspeed";
+import {
+  LightSpeedCommands,
+  ThumbsUpDownAction,
+} from "../../../../definitions/lightspeed";
 import { lightSpeedManager } from "../../../../extension";
+import { getOneClickTrialProvider } from "../../utils/oneClickTrial";
 
 async function openNewPlaybookEditor(content: string) {
   const options = {
@@ -67,6 +74,39 @@ async function getRoleBaseDir(
   return roleBaseDirUri;
 }
 
+async function explainPlaybook(
+  apiInstance: LightSpeedAPI,
+  content: string,
+  explanationId: string,
+): Promise<ExplanationResponseParams | IError> {
+  const params: ExplanationRequestParams = {
+    content,
+    explanationId,
+  };
+
+  const response: ExplanationResponseParams | IError =
+    await apiInstance.explanationRequest(params);
+  return response;
+}
+
+async function explainRole(
+  apiInstance: LightSpeedAPI,
+  files: GenerationListEntry[],
+  roleName: string,
+  explanationId: string,
+): Promise<ExplanationResponseParams | IError> {
+  const params: RoleExplanationRequestParams = {
+    files: files,
+    roleName: roleName,
+    explanationId: explanationId,
+  };
+
+  const response: ExplanationResponseParams | IError =
+    await apiInstance.roleExplanationRequest(params);
+
+  return response;
+}
+
 async function generateRole(
   apiInstance: LightSpeedAPI,
   name: string | undefined,
@@ -87,6 +127,13 @@ async function generateRole(
   const response: RoleGenerationResponseParams | IError =
     await apiInstance.roleGenerationRequest(params);
   return response;
+}
+
+async function thumbsUpDown(action: ThumbsUpDownAction, explanationId: string) {
+  commands.executeCommand("ansible.lightspeed.thumbsUpDown", {
+    action: action,
+    explanationId: explanationId,
+  });
 }
 
 async function generatePlaybook(
@@ -151,11 +198,14 @@ export class WebviewHelper {
     context: ExtensionContext,
     name: string,
   ) {
-    return process.env.VITE_DEV_SERVER_URL
-      ? __getWebviewHtml__(
-          `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
-        )
-      : __getWebviewHtml__(webview, context, name);
+    return __getWebviewHtml__({
+      // vite dev mode
+      serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/lightspeed/${name}.html`,
+      // vite prod mode
+      webview,
+      context,
+      inputName: name,
+    });
   }
 
   public static async setupWebviewHooks(
@@ -176,6 +226,91 @@ export class WebviewHelper {
         const type = message.type;
         const data = message.data;
         switch (type) {
+          case "explanationThumbsUp": {
+            thumbsUpDown(ThumbsUpDownAction.UP, data.explanationId);
+            return;
+          }
+          case "explanationThumbsDown": {
+            thumbsUpDown(ThumbsUpDownAction.DOWN, data.explanationId);
+            return;
+          }
+          case "setPlaybookData": {
+            webview.postMessage({
+              type,
+              data,
+            });
+            return;
+          }
+          case "setRoleData": {
+            webview.postMessage({
+              type,
+              data,
+            });
+            return;
+          }
+          case "explainPlaybook": {
+            const lightSpeedStatusbarText =
+              await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
+
+            lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
+            const response = await explainPlaybook(
+              lightSpeedManager.apiInstance,
+              data.content,
+              data.explanationId,
+            );
+            if (isError(response)) {
+              const oneClickTrialProvider = getOneClickTrialProvider();
+              if (!(await oneClickTrialProvider.showPopup(response))) {
+                const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+                window.showErrorMessage(errorMessage);
+              }
+              sendErrorMessage(
+                `Failed to get an answer from the server: ${response.message}`,
+              );
+              return;
+            }
+            webview.postMessage({
+              type: type,
+              data: response,
+            });
+
+            lightSpeedManager.statusBarProvider.statusBar.text =
+              lightSpeedStatusbarText;
+
+            return;
+          }
+          case "explainRole": {
+            const lightSpeedStatusbarText =
+              await lightSpeedManager.statusBarProvider.getLightSpeedStatusBarText();
+
+            lightSpeedManager.statusBarProvider.statusBar.text = `$(loading~spin) ${lightSpeedStatusbarText}`;
+            const response = await explainRole(
+              lightSpeedManager.apiInstance,
+              data.files,
+              data.roleName,
+              data.explanationId,
+            );
+            if (isError(response)) {
+              const oneClickTrialProvider = getOneClickTrialProvider();
+              if (!(await oneClickTrialProvider.showPopup(response))) {
+                const errorMessage: string = `${response.message ?? UNKNOWN_ERROR} ${response.detail ?? ""}`;
+                window.showErrorMessage(errorMessage);
+              }
+              sendErrorMessage(
+                `Failed to get an answer from the server: ${response.message}`,
+              );
+              return;
+            }
+            webview.postMessage({
+              type: type,
+              data: response,
+            });
+
+            lightSpeedManager.statusBarProvider.statusBar.text =
+              lightSpeedStatusbarText;
+
+            return;
+          }
           case "generateRole": {
             const generationId = uuidv4();
             const response = await generateRole(

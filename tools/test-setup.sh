@@ -71,8 +71,8 @@ log () {
 }
 
 if [[ -z "${HOSTNAME:-}" ]]; then
-   log error "A valid HOSTNAME environment variable is required but is missing or empty."
-   exit 2
+   export HOSTNAME=${HOSTNAME:-${HOST:-$(hostname)}}
+   log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
 fi
 
 if [[ "${OSTYPE:-}" != darwin* ]]; then

@@ -1,15 +1,17 @@
 # https://github.com/yarnpkg/yarn/issues/3368
 ignores:
   - "@ansible/ansible-language-server"
-  # determined by (package.json).engines.vscode
-  - "@types/vscode"
   - "@types/vscode-webview" # provides VSCodeAPI
+  - "@types/vscode"  # determined by (package.json).engines.vscode
+  - "@vscode/test-electron" # used by @vscode/test-cli
   - "@vscode/vsce"
+  - cypress-multi-reporters
   - depcheck
+  - electron
   - eslint-formatter-gha
   - eslint-formatter-unix
-  - mochawesome
-  - mochawesome-report-generator
+  - mocha-junit-reporter
+  - npm-check-updates
   - ovsx
   - rimraf
   - start-server-and-test
@@ -18,4 +20,3 @@ ignores:
   - vscode
   - webpack-cli
   - yarn-audit-fix
-  - electron

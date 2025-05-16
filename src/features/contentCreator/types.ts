@@ -59,6 +59,13 @@ export type PluginFormInterface = {
   isOverwritten: boolean;
 };
 
+export type RoleFormInterface = {
+  roleName: string;
+  collectionPath: string;
+  verbosity: string;
+  isOverwritten: boolean;
+};
+
 export type PostMessageEvent =
   | {
       command: "ADEPresence";

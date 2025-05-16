@@ -22,6 +22,7 @@ KUBEDOCK
 Launay
 Maciążek
 Miku
+MKNOD
 Nalawade
 OPTSTRING
 OSTYPE
@@ -31,6 +32,8 @@ PYTHONHOME
 Pinkney
 Pyenv
 RHSSO
+Role
+Roles
 SIGINT
 SIGTERM
 Sbarnea
@@ -162,7 +165,6 @@ maxlength
 microdnf
 mkdocs
 mocharc
-mochawesome
 modeline
 modelines
 monospace
@@ -239,6 +241,7 @@ suboptions
 subshells
 sysninja
 seccomp
+tamasfe
 taskfile
 tasklist
 testenv
@@ -251,6 +254,7 @@ tls
 toctree
 todos
 tomaciazek
+tomlsort
 towerhost
 towncrier
 toxenv

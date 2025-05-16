@@ -32,6 +32,10 @@ import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
 import { registerCommandWithTelemetry } from "./utils/registerCommands";
+import {
+  isDocumentInRole,
+  isPlaybook,
+} from "./features/lightspeed/utils/explanationUtils";
 import { LightSpeedManager } from "./features/lightspeed/base";
 import {
   ignorePendingSuggestion,
@@ -44,8 +48,6 @@ import {
   rejectPendingSuggestion,
   setDocumentChanged,
 } from "./features/lightspeed/inlineSuggestions";
-import { playbookExplanation } from "./features/lightspeed/playbookExplanation";
-import { roleExplanation } from "./features/lightspeed/roleExplanation";
 import { ContentMatchesWebview } from "./features/lightspeed/contentMatchesWebview";
 import {
   setPythonInterpreter,
@@ -77,9 +79,14 @@ import {
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
+import { CreateRole } from "./features/contentCreator/createRolePage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
+import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
+import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
+import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
+import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
 
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
@@ -260,7 +267,23 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_EXPLANATION,
       async () => {
-        await playbookExplanation(context.extensionUri);
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          return;
+        }
+
+        const { document } = editor;
+        const fileName = path.basename(document.fileName);
+        const content = document.getText();
+
+        if (document.languageId !== "ansible" || !isPlaybook(content)) {
+          return;
+        }
+
+        ExplanationPanel.render(context, "playbook", {
+          content,
+          fileName,
+        });
       },
     ),
   );
@@ -598,6 +621,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  // open web-view for adding role in an ansible collection
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-role",
+      () => {
+        CreateRole.render(context.extensionUri);
+      },
+    ),
+  );
+
   // open ansible-creator create
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.create", () => {
@@ -634,7 +667,25 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_ROLE_EXPLANATION,
       async () => {
-        await roleExplanation(context.extensionUri);
+        if (!vscode.window.activeTextEditor) {
+          return;
+        }
+        const document = vscode.window.activeTextEditor.document;
+        const documentInRole = await isDocumentInRole(document);
+
+        if (!documentInRole) {
+          return;
+        }
+
+        const roleName = getRoleNameFromFilePath(document.fileName);
+        const rolePath = getRoleNamePathFromFilePath(document.fileName);
+
+        const files = await getRoleYamlFiles(rolePath);
+
+        ExplanationPanel.render(context, "role", {
+          roleName: roleName,
+          files: files,
+        });
       },
     ),
   );
