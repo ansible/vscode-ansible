@@ -1,6 +1,9 @@
 [env]
 # https://github.com/nodejs/corepack/issues/550
 COREPACK_ENABLE_DOWNLOAD_PROMPT = 0
+# hack installing mkdocs-ansible correctly on macOS
+# https://github.com/squidfunk/mkdocs-material/issues/5121
+DYLD_FALLBACK_LIBRARY_PATH = "{% if os() == 'macos' %}/opt/homebrew/lib{% endif %}"
 # Command such `yarn webpack-dev` might fail with
 # Reached heap limit Allocation failed - JavaScript heap out of memory
 # https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
