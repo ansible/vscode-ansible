@@ -817,7 +817,8 @@
         },
         {
           "group": "2_main@1",
-          "command": "ansible.lightspeed.roleExplanation"
+          "command": "ansible.lightspeed.roleExplanation",
+          "when": "redhat.ansible.lightspeedSuggestionsEnabled && redhat.ansible.isDocumentInRole"
         },
         {
           "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
