@@ -91,6 +91,13 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
           </div>
           <div class="catalogue">
             <h3>
+              <a href="command:ansible.content-creator.create-ansible-collection-vue" title="Collection VUE">
+                <span class="codicon codicon-new-file"></span> Collection project - Vue
+              </a>
+            </h3>
+          </div>
+          <div class="catalogue">
+            <h3>
               <a href="command:ansible.content-creator.create-execution-env-file" title="Create an execution environment project">
                 <span class="codicon codicon-new-file"></span> Execution environment project
                 <span class="new-badge">NEW</ span>
