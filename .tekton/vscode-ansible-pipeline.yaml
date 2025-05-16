@@ -24,7 +24,7 @@ spec:
   - name: output-image
     value: quay.io/redhat-user-workloads/ansible-lightspeed-tenant/vscode-ansible:{{revision}}
   - name: dockerfile
-    value: Dockerfile
+    value: ./vscode-ansible.Containerfile
   pipelineSpec:
     description: |
       This pipeline is ideal for building container images from a Containerfile while reducing network traffic.
