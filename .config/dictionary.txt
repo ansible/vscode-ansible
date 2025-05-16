@@ -283,6 +283,7 @@ vsix
 vyos
 watsonx
 webknjaz
+webp
 webpacked
 whereis
 whitespaces
