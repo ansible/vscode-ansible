@@ -310,6 +310,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           lightSpeedManager,
           pythonInterpreterManager,
         );
+        await updateDocumentInRoleContext();
         if (!editor) {
           await ignorePendingSuggestion();
         }
@@ -1062,4 +1063,16 @@ async function lightspeedLogin(
       `Welcome back ${authenticatedUser.displayNameWithUserType}`,
     );
   }
+}
+
+async function updateDocumentInRoleContext() {
+  const document = vscode.window.activeTextEditor?.document;
+  const isInRole = document
+    ? await isDocumentInRole(document).catch(() => false)
+    : false;
+  vscode.commands.executeCommand(
+    "setContext",
+    "redhat.ansible.isDocumentInRole",
+    isInRole,
+  );
 }
