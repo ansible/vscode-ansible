@@ -21,6 +21,8 @@ ignorePaths:
   - syntaxes
   - syntaxes/external/*.*
   - test/testFixtures/lightspeed/*.yml
+  - .tekton/
+  - ./vscode-ansible.Containerfile
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"
