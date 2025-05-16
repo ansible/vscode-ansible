@@ -15,8 +15,8 @@ vars:
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
-    # prefix to add to allow execution of test in headless machines (CI)
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
+    # prefix to add to allow execution of test in headless machines (CI) (ensure that it has a trailing space unless empty)
+    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log "; fi'
 tasks:
   default:
     desc: Run most commands
@@ -179,7 +179,7 @@ tasks:
     cmds:
       - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - ' {{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - '{{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report
