@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-
 export DONT_PROMPT_WSL_INSTALL=1
 set -eu
 yarn run compile
 set -o pipefail
 
+# shellcheck disable=SC2317
 cleanup()
 {
     echo "Final clean up"
@@ -26,21 +26,21 @@ OPTSTRING=":c"
 
 # https://github.com/microsoft/vscode/issues/204005
 unset NODE_OPTIONS
-
+rm -f out/log/.failed
 
 function start_server() {
-    echo "🚀starting the mockLightspeedServer"
+    echo "INFO: Starting the mockLightspeedServer"
     if [[ -n "${TEST_LIGHTSPEED_URL}" ]]; then
-        echo "MOCK_LIGHTSPEED_API is true, the existing TEST_LIGHTSPEED_URL envvar will be ignored!"
+        echo "INFO: MOCK_LIGHTSPEED_API is true, the existing TEST_LIGHTSPEED_URL envvar will be ignored!"
     fi
     mkdir -p out/log
     TEST_LIGHTSPEED_ACCESS_TOKEN=dummy
-    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedServer/server.js >>out/log/express.log 2>&1 ) &
-    while ! grep 'Listening on port' out/log/express.log; do
+    (DEBUG='express:*' node ./out/client/test/ui/mockLightspeedServer/server.js >>"out/log/${test_id}-express.log" 2>&1 ) &
+    while ! grep 'Listening on port' "out/log/${test_id}-express.log"; do
 	sleep 1
     done
 
-    TEST_LIGHTSPEED_URL=$(sed -n 's,.*Listening on port \([0-9]*\) at \(.*\)".*,http://\2:\1,p' out/log/express.log|tail -n1)
+    TEST_LIGHTSPEED_URL=$(sed -n 's,.*Listening on port \([0-9]*\) at \(.*\)".*,http://\2:\1,p' "out/log/${test_id}-express.log" | tail -n1)
 
     export TEST_LIGHTSPEED_ACCESS_TOKEN
     export TEST_LIGHTSPEED_URL
@@ -49,11 +49,11 @@ function start_server() {
 function stop_server() {
     if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
         curl --silent "${TEST_LIGHTSPEED_URL}/__debug__/kill" || echo "ok"
-        touch out/log/express.log out/log/mock-server.log
-        cat out/log/express.log >> out/log/express-full.log
-        cat out/log/mock-server.log >> out/log/mock-server-full.log
-        echo "" > out/log/express.log
-        echo "" > out/log/mock-server.log
+        touch "out/log/${test_id}-express.log" "out/log/${test_id}-mock-server.log"
+        cat "out/log/${test_id}-express.log" >> "out/log/${test_id}-express-full.log"
+        cat "out/log/${test_id}-mock-server.log" >> "out/log/${test_id}-mock-server-full.log"
+        truncate -s 0 "out/log/${test_id}-express.log"
+        truncate -s 0 "out/log/${test_id}-mock-server.log"
         TEST_LIGHTSPEED_URL=0
     fi
 }
@@ -124,28 +124,32 @@ export COVERAGE
 if [[ "${TEST_TYPE}" == "ui" ]]; then
     # shellcheck disable=SC2044
 
-    for test_file in $(find out/client/test/ui/ -name "${UI_TARGET}"); do
-        echo "🧐testing ${test_file}"
+    exec 3>&1
+    find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
         basename="${test_file##*/}"
-        echo "  cleaning existing User settings..."
-        rm -rfv ./out/test-resources/settings/User/
+        test_id="ui-${basename%.*}"
+        {
+            echo "INFO: Testing ${test_file}"
+            echo "INFO: Cleaning existing User settings..."
+            rm -rfv ./out/test-resources/settings/User/
 
-        if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
-            stop_server
-            start_server
-        fi
-        refresh_settings "${test_file}"
-        npm exec -- extest run-tests "${COVERAGE_ARG}" \
-            -s out/test-resources \
-            -e out/ext \
-            --code_settings out/settings.json \
-            -c "${CODE_VERSION}" \
-            "${test_file}"
-
-        if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
-            mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${basename%.*}-cobertura-coverage.xml"
-        fi
+            if [[ "$MOCK_LIGHTSPEED_API" == "1" ]]; then
+                stop_server
+                start_server
+            fi
+            refresh_settings "${test_file}"
+            npm exec -- extest run-tests "${COVERAGE_ARG}" \
+                -s out/test-resources \
+                -e out/ext \
+                --code_settings out/settings.json \
+                -c "${CODE_VERSION}" \
+                "${test_file}" | tee /dev/fd/3 || touch out/log/.failed
+            if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
+                mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${test_id}-cobertura-coverage.xml"
+            fi
+        } | sed -r "s/\x1B\[[0-9;]*[mK]//g" > "out/log/${test_id}.log" 2>&1
     done
+    exec 3>&-
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
     export NODE_NO_WARNINGS=1
@@ -157,4 +161,11 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
     npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura
+fi
+
+if [[ -f out/log/.failed ]]; then
+    echo "ERROR: One or more tests failed"
+    exit 1
+else
+    echo "INFO: All tests passed"
 fi
