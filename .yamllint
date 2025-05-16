@@ -4,5 +4,4 @@ rules:
     level: error
     indent-sequences: true
 ignore: |
-  .tox|
-  .tekton
+  .tox
