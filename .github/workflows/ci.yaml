@@ -11,8 +11,9 @@ on:
     tags:
       - "v*.*"
   pull_request:
-    # types is missing 'closed' to avoid double triggering on PR merge
-    types: [synchronize, opened, edited]
+    # 'closed' is missing to avoid double triggering on PR merge
+    # 'edited' is missing to allow us to edit PR title/description without triggering
+    types: [synchronize, opened, reopened]
     branches: ["main", "devel/*"]
   schedule:
     - cron: "0 0 * * *"
@@ -325,7 +326,6 @@ jobs:
           name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
           path: |
             out/coverage
-            out/e2eTestReport
             out/junit
             out/log
             out/test-resources/screenshots

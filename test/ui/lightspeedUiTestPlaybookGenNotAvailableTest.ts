@@ -25,7 +25,6 @@ describe("Verify playbook generation features work as expected", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
-    await sleep(5000);
     const folder = "lightspeed";
     const file = "playbook_explanation_feature_unavailable.yml";
     const filePath = getFixturePath(folder, file);
@@ -37,6 +36,9 @@ describe("Verify playbook generation features work as expected", function () {
     await workbenchExecuteCommand(
       "Explain the playbook with Ansible Lightspeed",
     );
+    // This sleep is hard to get rid of because the test this is a negative test.
+    // The intent is to make sure that the explanation view is not opened which is
+    // difficult to achieve without simply waiting.
     await sleep(2000);
 
     // Locate the group 1 of editor view. Since the file does not contain the "hosts" property,

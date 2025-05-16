@@ -165,7 +165,6 @@ maxlength
 microdnf
 mkdocs
 mocharc
-mochawesome
 modeline
 modelines
 monospace

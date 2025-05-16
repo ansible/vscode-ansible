@@ -1,8 +1,9 @@
 // https://github.com/microsoft/vscode-test-cli
+// Used by e2e tests
 import { defineConfig } from "@vscode/test-cli";
 
 export default defineConfig({
-  files: "out/client/test/testScripts/*.test.js",
+  files: "out/client/test/e2e/*.test.js",
   extensionDevelopmentPath: ".", // package.json location
   workspaceFolder: "test/testFixtures",
   launchArgs: [
@@ -28,11 +29,14 @@ export default defineConfig({
     ui: "bdd",
     slow: 25_000,
     timeout: 50_000,
-    reporter: "mocha-junit-reporter",
+    reporter: "cypress-multi-reporters",
     reporterOptions: {
-      mochaFile: "./out/junit/e2e-test-results.xml",
-      toConsole: false,
-      suiteTitle: "e2e",
+      reporterEnabled: "spec, mocha-junit-reporter",
+      mochaJunitReporterReporterOptions: {
+        mochaFile: "./out/junit/e2e-test-results.xml",
+        toConsole: false,
+        suiteTitle: "e2e",
+      },
     },
     preload: "ts-node/register",
     require: [
