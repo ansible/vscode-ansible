@@ -410,7 +410,7 @@ jobs:
           find . -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: als
           files: ./*/coverage/als/cobertura-coverage.xml
@@ -420,7 +420,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: unit
           files: ./*/coverage/unit/*cobertura-coverage.xml
@@ -430,7 +430,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: ui
           files: ./*/coverage/ui/*cobertura-coverage.xml
@@ -440,7 +440,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: e2e
           files: ./*/coverage/e2e/*cobertura-coverage.xml
