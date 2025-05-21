@@ -365,11 +365,6 @@ jobs:
       #   if: ${{ always() }}
       #   uses: mxschmitt/action-tmate@v3
 
-  ack:
-    if: github.event_name == 'pull_request'
-    uses: ansible/team-devtools/.github/workflows/ack.yml@main
-    secrets: inherit
-
   check: # This job does nothing and is only used for the branch protection
     if: always()
 
