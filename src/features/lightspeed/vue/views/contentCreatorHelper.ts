@@ -279,6 +279,7 @@ export class CreatorWebviewHelper {
   public static async setupWebviewHooks(
     webview: Webview,
     disposables: Disposable[],
+    // context: ExtensionContext,
   ) {
     webview.onDidReceiveMessage(
       async (message: any) => {

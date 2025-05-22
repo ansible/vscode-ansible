@@ -671,6 +671,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  // context.subscriptions.push(
+  //   vscode.commands.registerCommand(
+  //     LightSpeedCommands.LIGHTSPEED_ANSIBLEPROJECT_GENERATION,
+  //     async () => {
+  //       CreateAnsibleProjectPanel.render(context);
+  //     },
+  //   ),
+  // );
+
   context.subscriptions.push(
     vscode.commands.registerTextEditorCommand(
       LightSpeedCommands.LIGHTSPEED_ROLE_EXPLANATION,
