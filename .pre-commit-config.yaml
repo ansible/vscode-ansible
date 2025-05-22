@@ -31,7 +31,7 @@ repos:
         entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
         types_or: [python, pyi]
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v8.19.1
+    rev: v9.0.1
     hooks:
       - id: cspell
   - repo: https://github.com/codespell-project/codespell
