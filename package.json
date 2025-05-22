@@ -347,6 +347,10 @@
         "title": "Ansible: Create New Collection"
       },
       {
+        "command": "ansible.content-creator.create-ansible-collection-vue",
+        "title": "Ansible: Create New Collection -Vue"
+      },
+      {
         "command": "ansible.content-creator.create-ansible-project",
         "title": "Ansible: Create New Playbook Project"
       },

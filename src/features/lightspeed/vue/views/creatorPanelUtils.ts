@@ -1,6 +1,6 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import { ViewColumn, window } from "vscode";
-import { WebviewHelper } from "./helper";
+import { CreatorWebviewHelper } from "./contentCreatorHelper";
 
 /**
  * Sets up the common lifecycle hooks and HTML content for a webview panel.
@@ -13,12 +13,12 @@ export function setupPanelLifecycle(
   disposeCallback: () => void,
 ): void {
   panel.onDidDispose(disposeCallback, null, disposables);
-  panel.webview.html = WebviewHelper.setupHtml(
+  panel.webview.html = CreatorWebviewHelper.setupHtml(
     panel.webview,
     context,
     htmlEntryPoint,
   );
-  WebviewHelper.setupWebviewHooks(panel.webview, disposables, context);
+  CreatorWebviewHelper.setupWebviewHooks(panel.webview, disposables, context);
 }
 
 /**

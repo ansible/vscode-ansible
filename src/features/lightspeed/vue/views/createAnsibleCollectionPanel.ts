@@ -16,7 +16,7 @@ export class MainPanel {
     setupPanelLifecycle(
       this._panel,
       context,
-      "role-generation",
+      "create-ansible-collection",
       this._disposables,
       () => this.dispose(),
     );
@@ -24,8 +24,8 @@ export class MainPanel {
 
   public static render(context: ExtensionContext) {
     createOrRevealPanel({
-      viewType: "roleGeneration",
-      viewTitle: "Role Generation",
+      viewType: "createAnsibleCollection",
+      viewTitle: "Create Ansible Collection",
       viewColumn: ViewColumn.One,
       context: context,
       getCurrentPanel: () => MainPanel.currentPanel,
