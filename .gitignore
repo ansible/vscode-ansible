@@ -37,3 +37,4 @@ docs/als/settings.md
 test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
 .ansible
 .eslintcache
+xunit.xml
