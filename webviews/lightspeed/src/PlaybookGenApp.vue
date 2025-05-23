@@ -90,7 +90,7 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
 </script>
 
 <template>
-  <h2 id="main-header">Create a playbook with Ansible Lightspeed</h2>
+  <h2 id="main-header">Create a playbook with Ansible Lightspeed - test</h2>
   <div class="pageNumber" id="page-number">{{ page }} of 3</div>
 
   <ErrorBox v-model:error-messages="errorMessages" />
