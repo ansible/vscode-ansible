@@ -50,6 +50,7 @@ const VALID_DESKTOP_CALLBACK_SCHEMES = [
   "vscodium",
   "vscode-insiders",
   "checode",
+  "cursor",
 ];
 export function isSupportedCallback(uri: Uri) {
   return (
