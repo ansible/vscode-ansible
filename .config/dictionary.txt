@@ -53,6 +53,7 @@ ajinkyau
 akira
 alefragnani
 alphanums
+autofetch
 als
 ansible
 ansiblefest
@@ -290,6 +291,7 @@ whitespaces
 withserver
 wordwrap
 workdir
+xunit
 xvfb
 yaegassy
 yammlint

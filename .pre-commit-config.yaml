@@ -126,6 +126,9 @@ repos:
       - id: check-byte-order-marker
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
+      - id: pretty-format-json
+        files: "test/testFixtures/.*\\.json"
+        args: ["--autofix"]
       - id: check-json
         # does not support JSON with comments
         exclude: >
@@ -134,9 +137,6 @@ repos:
             jinja-language-configuration.json|
             ansible-language-configuration.json|
             packages/ansible-language-server/.vscode/.*|
-            packages/ansible-language-server/scripts/tsconfig.json|
-            packages/ansible-language-server/scripts/tsconfig.esm.json|
-            packages/ansible-language-server/scripts/tsconfig.umd.json|
             packages/ansible-language-server/tsconfig.json|
             test/unit/lightspeed/utils/samples/collections/ansible_collections/community/broken_MANIFEST/MANIFEST.json
           )$
