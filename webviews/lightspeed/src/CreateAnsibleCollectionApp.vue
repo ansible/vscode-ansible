@@ -389,7 +389,7 @@ const verbosity = ref("off");
 const logToFile = ref(false);
 const logFilePath = ref("");
 const logAppend = ref(false);
-const logLevel = ref("info");
+const logLevel = ref("debug");
 const overwrite = ref(false);
 const editable = ref(false);
 const logs = ref("");
@@ -465,42 +465,20 @@ function onCreate() {
 }
 
 function onClear() {
-  console.log("Clearing form...");
-
-  // Clear text fields
   namespace.value = "";
   collectionName.value = "";
   initPath.value = "";
-
-  // Reset verbosity to default
   verbosity.value = "off";
-
-  // Reset checkboxes
   logToFile.value = false;
   logAppend.value = false;
   overwrite.value = false;
   editable.value = false;
-
-  // Reset log-related fields
   logFilePath.value = "";
-  logLevel.value = "info";
+  logLevel.value = "debug";
   logs.value = "";
   logFileUrl.value = "";
   collectionUrl.value = "";
-
-  // Reset full collection name
   fullCollectionName.value = "";
-
-  console.log("Form cleared. Current values:", {
-    verbosity: verbosity.value,
-    logToFile: logToFile.value,
-    logAppend: logAppend.value,
-    overwrite: overwrite.value,
-    editable: editable.value,
-    logLevel: logLevel.value,
-  });
-
-  // Request fresh default paths
   vscode.postMessage({ type: "ui-mounted" });
 }
 
