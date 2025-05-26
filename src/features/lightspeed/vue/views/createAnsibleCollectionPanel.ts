@@ -1,4 +1,5 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
+import * as os from "os";
 import { ViewColumn } from "vscode";
 import {
   setupPanelLifecycle,
@@ -19,6 +20,21 @@ export class MainPanel {
       "create-ansible-collection",
       this._disposables,
       () => this.dispose(),
+    );
+
+    // Listen for messages from the webview
+    this._panel.webview.onDidReceiveMessage(
+      (message) => {
+        if (message.type === "ui-mounted") {
+          this._panel.webview.postMessage({
+            command: "homedirAndTempdir",
+            homedir: os.homedir(),
+            tempdir: os.tmpdir(),
+          });
+        }
+      },
+      null,
+      this._disposables,
     );
   }
 

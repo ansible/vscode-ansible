@@ -18,7 +18,7 @@ export function setupPanelLifecycle(
     context,
     htmlEntryPoint,
   );
-  CreatorWebviewHelper.setupWebviewHooks(panel.webview, disposables, context);
+  CreatorWebviewHelper.setupWebviewHooks(panel.webview, disposables);
 }
 
 /**
