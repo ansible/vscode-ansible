@@ -27,7 +27,7 @@ import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 import { expect } from "chai";
 
-describe("Test Lightspeed Explorer features", () => {
+describe("Test Lightspeed Explorer features", function () {
   let workbench: Workbench;
   let explorerView: WebviewView;
   let modalDialog: ModalDialog;
@@ -42,7 +42,7 @@ describe("Test Lightspeed Explorer features", () => {
     this.skip();
   });
 
-  before(async () => {
+  before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
@@ -70,7 +70,7 @@ describe("Test Lightspeed Explorer features", () => {
     }
   });
 
-  it("Focus on Ansible Lightspeed View", async () => {
+  it("Focus on Ansible Lightspeed View", async function () {
     view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
     sideBar = await view.openView();
 
@@ -90,7 +90,7 @@ describe("Test Lightspeed Explorer features", () => {
       .be.undefined;
   });
 
-  it("Click Connect button Ansible Lightspeed webview", async () => {
+  it("Click Connect button Ansible Lightspeed webview", async function () {
     await explorerView.switchToFrame(5000);
 
     const connectButton = await explorerView.findWebElement(
@@ -103,7 +103,7 @@ describe("Test Lightspeed Explorer features", () => {
     await explorerView.switchBack();
   });
 
-  it("Click Allow to use Lightspeed", async () => {
+  it("Click Allow to use Lightspeed", async function () {
     // Click Allow to use Lightspeed
     const { dialog, message } = await getModalDialogAndMessage(true);
     expect(message).equals(
@@ -112,7 +112,7 @@ describe("Test Lightspeed Explorer features", () => {
     await dialog.pushButton("Allow");
   });
 
-  it("Verify a modal dialog pops up", async () => {
+  it("Verify a modal dialog pops up", async function () {
     await sleep(2000);
     const { dialog, message } = await getModalDialogAndMessage();
     expect(dialog).not.to.be.undefined;
@@ -121,7 +121,7 @@ describe("Test Lightspeed Explorer features", () => {
     dialogMessage = message;
   });
 
-  it("Click Open if a dialog shows up for opening the external website", async () => {
+  it("Click Open if a dialog shows up for opening the external website", async function () {
     // If the dialog to open the external website is not suppressed, click Open
     if (
       process.platform === "darwin" &&
@@ -137,14 +137,14 @@ describe("Test Lightspeed Explorer features", () => {
     }
   });
 
-  it("Click Open to open the callback URI", async () => {
+  it("Click Open to open the callback URI", async function () {
     // Click Open to allow Ansible extension to open the callback URI
     expect(dialogMessage).equals("Allow 'Ansible' extension to open this URI?");
     await modalDialog.pushButton("Open");
     await sleep(2000);
   });
 
-  it("Verify Ansible Lightspeed Generate Playbook button", async () => {
+  it("Verify Ansible Lightspeed Generate Playbook button", async function () {
     await explorerView.switchToFrame(2000);
 
     const generatePlaybookButton = await explorerView.findWebElement(
@@ -200,7 +200,7 @@ describe("Test Lightspeed Explorer features", () => {
     }
   });
 
-  it("Verify Ansible Lightspeed Explain Playbook button", async () => {
+  it("Verify Ansible Lightspeed Explain Playbook button", async function () {
     const folder = "lightspeed";
     const file = "playbook_4.yml";
     const filePath = getFixturePath(folder, file);
@@ -261,7 +261,7 @@ describe("Test Lightspeed Explorer features", () => {
     }
   });
 
-  it("Sign out using Accounts global action", async () => {
+  it("Sign out using Accounts global action", async function () {
     workbench = new Workbench();
     const activityBar = new ActivityBar();
     const actions = (await activityBar.getGlobalAction(

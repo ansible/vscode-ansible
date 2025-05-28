@@ -18,11 +18,13 @@ function testIsSupportedCallback() {
         isSupportedCallback(vscode.Uri.parse("vscode://redhat.ansible")),
       );
     });
+
     it("Returns true for https://*.openshiftapps.com", function () {
       assert.isTrue(
         isSupportedCallback(vscode.Uri.parse("https://foo.openshiftapps.com")),
       );
     });
+
     it("Returns false for https://my.devspaces.acme.com", function () {
       assert.isFalse(
         isSupportedCallback(vscode.Uri.parse("https://my.devspaces.acme.com")),
@@ -120,13 +122,15 @@ function testGetAuthProviderOrder() {
       exports: {},
     };
     let getExtensionStub: sinon.SinonStub;
+
     before(async function () {
       getExtensionStub = sinon.stub(vscode.extensions, "getExtension");
       getExtensionStub
         .withArgs("redhat.vscode-redhat-account")
         .returns(rhAuthExtension);
     });
-    after(() => {
+
+    after(function () {
       getExtensionStub.restore();
     });
 
@@ -140,6 +144,7 @@ function testGetAuthProviderOrder() {
       assert.equal(authProviderOrder[1], AuthProviderType.lightspeed);
       process.env = { ...originalEnv };
     });
+
     it("Prefers the auth type that has already worked previously", async function () {
       const getSessionStub = sinon.stub(vscode.authentication, "getSession");
       const mockSession: vscode.AuthenticationSession = {
@@ -209,12 +214,14 @@ function testRedHatSignInCommand() {
         .withArgs("redhat.vscode-redhat-account")
         .returns(rhAuthExtension);
     });
-    after(() => {
+
+    after(function () {
       getLightspeedUserDetailsStub.restore();
       showInformationMessageStub.restore();
       getExtensionStub.restore();
     });
-    it("Logs in with Red Hat when Red Hat Auth extension is installed", async () => {
+
+    it("Logs in with Red Hat when Red Hat Auth extension is installed", async function () {
       // Trigger Sign in with Red Hat
       await vscode.commands.executeCommand(
         "ansible.lightspeed.signInWithRedHat",
@@ -232,6 +239,7 @@ function testRedHatSignInCommand() {
       );
     });
   });
+
   describe("Test Red Hat Sign-In with Red Hat auth extension not installed", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let showErrorMessageStub: any;
@@ -244,11 +252,13 @@ function testRedHatSignInCommand() {
         .withArgs("redhat.vscode-redhat-account")
         .returns(undefined);
     });
-    after(() => {
+
+    after(function () {
       showErrorMessageStub.restore();
       getExtensionStub.restore();
     });
-    it("Displays an error when signing in with Red Hat without Red Hat Auth extension", async () => {
+
+    it("Displays an error when signing in with Red Hat without Red Hat Auth extension", async function () {
       // Trigger Sign in with Red Hat
       await vscode.commands.executeCommand(
         "ansible.lightspeed.signInWithRedHat",

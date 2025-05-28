@@ -540,7 +540,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint-community/eslint-utils@npm:^4.2.0, @eslint-community/eslint-utils@npm:^4.7.0":
+"@eslint-community/eslint-utils@npm:^4.2.0, @eslint-community/eslint-utils@npm:^4.4.1, @eslint-community/eslint-utils@npm:^4.7.0":
   version: 4.7.0
   resolution: "@eslint-community/eslint-utils@npm:4.7.0"
   dependencies:
@@ -2517,6 +2517,7 @@ __metadata:
     eslint-formatter-gha: "npm:^1.5.2"
     eslint-formatter-unix: "npm:^8.40.0"
     eslint-plugin-chai-friendly: "npm:^1.0.1"
+    eslint-plugin-mocha: "npm:^11.1.0"
     eslint-plugin-prettier: "npm:^5.2.6"
     eslint-plugin-tsdoc: "npm:^0.4.0"
     express: "npm:^5.1.0"
@@ -2531,6 +2532,7 @@ __metadata:
     minimatch: "npm:^10.0.1"
     mocha: "npm:^11.0.1"
     mocha-junit-reporter: "npm:^2.2.1"
+    mocha-multi-reporters: "npm:^1.5.1"
     morgan: "npm:^1.10.0"
     npm-check-updates: "npm:^18.0.1"
     ovsx: "npm:^0.10.2"
@@ -3576,6 +3578,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"debug@npm:^4.1.1":
+  version: 4.4.1
+  resolution: "debug@npm:4.4.1"
+  dependencies:
+    ms: "npm:^2.1.3"
+  peerDependenciesMeta:
+    supports-color:
+      optional: true
+  checksum: 10/8e2709b2144f03c7950f8804d01ccb3786373df01e406a0f66928e47001cf2d336cbed9ee137261d4f90d68d8679468c755e3548ed83ddacdc82b194d2468afe
+  languageName: node
+  linkType: hard
+
 "decamelize@npm:^4.0.0":
   version: 4.0.0
   resolution: "decamelize@npm:4.0.0"
@@ -4178,6 +4192,18 @@ __metadata:
   peerDependencies:
     eslint: ">=3.0.0"
   checksum: 10/459c0162b606d290bc6b10caa7bd7b67a3ce3d37d98ee1b9b91646842553d7282887858efd20cb6a6b8cbaa42746e83258244a32bce0e1d038ebe5559e747730
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-mocha@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "eslint-plugin-mocha@npm:11.1.0"
+  dependencies:
+    "@eslint-community/eslint-utils": "npm:^4.4.1"
+    globals: "npm:^15.14.0"
+  peerDependencies:
+    eslint: ">=9.0.0"
+  checksum: 10/75c35ad70b35414bb2a1e2efe4cc3d8188f4aadafd5d39f0e328c6899ebb286ef04f253b9b6caed44402602667e30d7b816d38c500d5ed817b5ea1b0e8050728
   languageName: node
   linkType: hard
 
@@ -5051,6 +5077,13 @@ __metadata:
   version: 14.0.0
   resolution: "globals@npm:14.0.0"
   checksum: 10/03939c8af95c6df5014b137cac83aa909090c3a3985caef06ee9a5a669790877af8698ab38007e4c0186873adc14c0b13764acc754b16a754c216cc56aa5f021
+  languageName: node
+  linkType: hard
+
+"globals@npm:^15.14.0":
+  version: 15.15.0
+  resolution: "globals@npm:15.15.0"
+  checksum: 10/7f561c87b2fd381b27fc2db7df8a4ea7a9bb378667b8a7193e61fd2ca3a876479174e2a303a74345fbea6e1242e16db48915c1fd3bf35adcf4060a795b425e18
   languageName: node
   linkType: hard
 
@@ -6182,7 +6215,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.21, lodash@npm:^4.17.21":
+"lodash@npm:4.17.21, lodash@npm:^4.17.15, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10/c08619c038846ea6ac754abd6dd29d2568aa705feb69339e836dfa8d8b09abbb2f859371e86863eda41848221f9af43714491467b5b0299122431e202bb0c532
@@ -6664,6 +6697,18 @@ __metadata:
   peerDependencies:
     mocha: ">=2.2.5"
   checksum: 10/f2e9db2daf4b5de8824ed557a7d6b534683558fadf843de6b4f96385c6edad239ee6194e81f5983809d7223b45f57c7af0337442552cab47103e9e92d5ee4cb3
+  languageName: node
+  linkType: hard
+
+"mocha-multi-reporters@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "mocha-multi-reporters@npm:1.5.1"
+  dependencies:
+    debug: "npm:^4.1.1"
+    lodash: "npm:^4.17.15"
+  peerDependencies:
+    mocha: ">=3.1.2"
+  checksum: 10/ae15b9fc12d27fc1c1ead63ec0315dda24fdc94d13051fca1fde110d99f58f4ac5d4f1ec81eec9a5eba694d34b039b8d0ea97b692a40b967ec1181e2eb6fdd4b
   languageName: node
   linkType: hard
 

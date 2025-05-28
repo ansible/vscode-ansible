@@ -88,6 +88,7 @@ commitlint
 compat
 contentmatch
 contentmatches
+coreutils
 copyfiles
 corepack
 customizer
