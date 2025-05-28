@@ -19,13 +19,14 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 export default tseslint.config(
   {
     ignores: [
-      ".vscode-test/*",
-      ".yarn/*",
       "**/.vscode-test/*",
       "**/out/",
+      ".mocharc.js",
+      ".vscode-test/*",
+      ".yarn/*",
       "commitlint.config.js",
-      "test/ui/.mocharc.js",
       "site/*",
+      "test/ui/.mocharc.js",
       "webviews/**",
     ],
   },
