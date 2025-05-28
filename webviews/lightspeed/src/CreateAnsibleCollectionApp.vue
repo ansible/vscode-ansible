@@ -442,7 +442,7 @@ async function openFileExplorer() {
 async function onCreate() {
   const actualInitPath = initPath.value || defaultInitPath.value;
   const actualLogFilePath = logFilePath.value || defaultLogFilePath.value;
-  
+
   // Disable the create button during execution
   if (initCreateButton.value) {
     initCreateButton.value.disabled = true;
