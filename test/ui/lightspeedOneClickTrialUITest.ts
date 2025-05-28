@@ -36,7 +36,7 @@ before(function () {
   }
 });
 
-describe("Test One Click Trial feature", () => {
+describe("Test One Click Trial feature", function () {
   let workbench: Workbench;
   let explorerView: WebviewView;
   let modalDialog: ModalDialog;
@@ -57,7 +57,7 @@ describe("Test One Click Trial feature", () => {
     }
   });
 
-  before(async () => {
+  before(async function () {
     // Enable Lightspeed and open Ansible Light view on sidebar
     workbench = new Workbench();
     // Close settings and other open editors (if any)
@@ -81,7 +81,7 @@ describe("Test One Click Trial feature", () => {
     }
   });
 
-  it("Focus on Ansible Lightspeed View", async () => {
+  it("Focus on Ansible Lightspeed View", async function () {
     view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
     sideBar = await view.openView();
 
@@ -100,7 +100,7 @@ describe("Test One Click Trial feature", () => {
       .be.undefined;
   });
 
-  it("Click Connect button Ansible Lightspeed webview", async () => {
+  it("Click Connect button Ansible Lightspeed webview", async function () {
     await explorerView.switchToFrame(5000);
 
     const connectButton = await explorerView.findWebElement(
@@ -113,7 +113,7 @@ describe("Test One Click Trial feature", () => {
     await explorerView.switchBack();
   });
 
-  it("Click Allow to use Lightspeed", async () => {
+  it("Click Allow to use Lightspeed", async function () {
     // Click Allow to use Lightspeed
     const { dialog, message } = await getModalDialogAndMessage(true);
     expect(message).equals(
@@ -122,7 +122,7 @@ describe("Test One Click Trial feature", () => {
     await dialog.pushButton("Allow");
   });
 
-  it("Verify a modal dialog pops up", async () => {
+  it("Verify a modal dialog pops up", async function () {
     const { dialog, message } = await getModalDialogAndMessage();
     expect(dialog).not.to.be.undefined;
     expect(message).not.to.be.undefined;
@@ -130,7 +130,7 @@ describe("Test One Click Trial feature", () => {
     dialogMessage = message;
   });
 
-  it("Click Open if a dialog shows up for opening the external website", async () => {
+  it("Click Open if a dialog shows up for opening the external website", async function () {
     // If the dialog to open the external website is not suppressed, click Open
     if (dialogMessage === "Do you want Code to open the external website?") {
       await modalDialog.pushButton("Configure Trusted Domains");
@@ -143,14 +143,14 @@ describe("Test One Click Trial feature", () => {
     }
   });
 
-  it("Click Open to open the callback URI", async () => {
+  it("Click Open to open the callback URI", async function () {
     // Click Open to allow Ansible extension to open the callback URI
     expect(dialogMessage).equals("Allow 'Ansible' extension to open this URI?");
     await modalDialog.pushButton("Open");
     await sleep(2000);
   });
 
-  it("Verify Ansible Lightspeed webview now contains user's information", async () => {
+  it("Verify Ansible Lightspeed webview now contains user's information", async function () {
     await explorerView.switchToFrame(5000);
 
     const div = await waitForCondition({
@@ -168,7 +168,7 @@ describe("Test One Click Trial feature", () => {
     await expectNotification("Welcome back ONE_CLICK_USER (unlicensed)");
   });
 
-  it("Verify the Refresh icon is found on the title of Explorer view", async () => {
+  it("Verify the Refresh icon is found on the title of Explorer view", async function () {
     const refreshIcon = await explorerView.findWebElement(
       By.xpath("//a[contains(@class, 'codicon-refresh')]"),
     );
@@ -203,7 +203,7 @@ describe("Test One Click Trial feature", () => {
     await explorerView.switchBack();
   });
 
-  it("Invoke Playbook generation", async () => {
+  it("Invoke Playbook generation", async function () {
     await workbench.executeCommand("Ansible Lightspeed: Playbook generation");
     await getWebviewByLocator(
       By.xpath("//*[text()='Create a playbook with Ansible Lightspeed']"),
@@ -211,7 +211,7 @@ describe("Test One Click Trial feature", () => {
     await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 
-  it("Invoke Playbook explanation", async () => {
+  it("Invoke Playbook explanation", async function () {
     const folder = "lightspeed";
     const file = "playbook_4.yml";
     const filePath = getFixturePath(folder, file);
@@ -230,7 +230,7 @@ describe("Test One Click Trial feature", () => {
     await workbenchExecuteCommand("View: Close All Editor Groups");
   });
 
-  it("Invoke Completion", async () => {
+  it("Invoke Completion", async function () {
     const folder = "lightspeed";
     const file = "playbook_3.yml";
     const filePath = getFixturePath(folder, file);
@@ -259,7 +259,7 @@ describe("Test One Click Trial feature", () => {
     await dialog.getDriver().wait(until.stalenessOf(dialog), 2000);
   });
 
-  it("Sign out using Accounts global action", async () => {
+  it("Sign out using Accounts global action", async function () {
     workbench = new Workbench();
     const activityBar = new ActivityBar();
     const actions = (await activityBar.getGlobalAction(

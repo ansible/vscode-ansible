@@ -2,16 +2,16 @@ import * as vscode from "vscode";
 import { getDocUri, activate, testHover } from "../../helper";
 
 export function testHoverWithoutEE(): void {
-  describe("TEST FOR HOVER WITHOUT EE", () => {
+  describe("TEST FOR HOVER WITHOUT EE", function () {
     const docUri1 = getDocUri("hover/without_ee/1.yml");
 
-    before(async () => {
+    before(async function () {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
     });
 
-    describe("Hover for play keywords", () => {
-      it("should hover over `name` keyword", async () => {
+    describe("Hover for play keywords", function () {
+      it("should hover over `name` keyword", async function () {
         await testHover(docUri1, new vscode.Position(0, 4), [
           {
             contents: [
@@ -21,7 +21,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over `hosts` keyword", async () => {
+      it("should hover over `hosts` keyword", async function () {
         await testHover(docUri1, new vscode.Position(2, 4), [
           {
             contents: [
@@ -31,7 +31,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over `tasks` keyword", async () => {
+      it("should hover over `tasks` keyword", async function () {
         await testHover(docUri1, new vscode.Position(3, 4), [
           {
             contents: [
@@ -42,8 +42,8 @@ export function testHoverWithoutEE(): void {
       });
     });
 
-    describe("Hover for task keywords", () => {
-      it("should hover over builtin module name", async () => {
+    describe("Hover for task keywords", function () {
+      it("should hover over builtin module name", async function () {
         await testHover(docUri1, new vscode.Position(5, 7), [
           {
             contents: ["Print statements during execution"],
@@ -51,7 +51,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over collection module name", async () => {
+      it("should hover over collection module name", async function () {
         await testHover(docUri1, new vscode.Position(9, 7), [
           {
             contents: ["Test module"],
@@ -59,7 +59,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over task keyword", async () => {
+      it("should hover over task keyword", async function () {
         await testHover(docUri1, new vscode.Position(25, 7), [
           {
             contents: [
@@ -70,8 +70,8 @@ export function testHoverWithoutEE(): void {
       });
     });
 
-    describe("Hover for module options and sub-options", () => {
-      it("should hover over builtin module option", async () => {
+    describe("Hover for module options and sub-options", function () {
+      it("should hover over builtin module option", async function () {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
             contents: ["customized message"],
@@ -79,7 +79,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over collection module option (opt_1)", async () => {
+      it("should hover over collection module option (opt_1)", async function () {
         await testHover(docUri1, new vscode.Position(10, 9), [
           {
             contents: ["Option 1"],
@@ -87,7 +87,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over collection module sub-option (opt_1 -> sub_opt_1)", async () => {
+      it("should hover over collection module sub-option (opt_1 -> sub_opt_1)", async function () {
         await testHover(docUri1, new vscode.Position(14, 13), [
           {
             contents: ["Sub option 1"],
@@ -95,7 +95,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over collection module sub-option (opt_1 -> sub_opt_2 -> sub_sub_opt_2)", async () => {
+      it("should hover over collection module sub-option (opt_1 -> sub_opt_2 -> sub_sub_opt_2)", async function () {
         await testHover(docUri1, new vscode.Position(17, 17), [
           {
             contents: ["Sub sub option 2"],
@@ -103,7 +103,7 @@ export function testHoverWithoutEE(): void {
         ]);
       });
 
-      it("should hover over collection module sub-option (opt_1 -> sub_opt_2 -> sub_sub_opt_2 -> sub_sub_sub_opt_1)", async () => {
+      it("should hover over collection module sub-option (opt_1 -> sub_opt_2 -> sub_sub_opt_2 -> sub_sub_sub_opt_1)", async function () {
         await testHover(docUri1, new vscode.Position(19, 21), [
           {
             contents: ["Sub sub sub option 1"],

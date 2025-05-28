@@ -7,7 +7,7 @@ import * as path from "path";
 import { readFileSync } from "fs";
 import { ExecException } from "child_process";
 
-describe("commandRunner", () => {
+describe("commandRunner", function () {
   const packageJsonPath = require.resolve("../../package.json");
   const packageJsonContents = readFileSync(packageJsonPath).toString();
   const pkgJSON = JSON.parse(packageJsonContents);

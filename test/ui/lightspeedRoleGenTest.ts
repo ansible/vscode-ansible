@@ -49,9 +49,11 @@ describe("Verify Role generation feature works as expected", function () {
       this.skip();
     }
   });
+
   beforeEach(async function () {
     await cleanUpTmpfile();
   });
+
   before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
