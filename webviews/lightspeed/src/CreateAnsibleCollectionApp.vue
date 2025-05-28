@@ -119,12 +119,12 @@
               :placeholder="defaultLogFilePath || 'Select or enter log file path'"
               size="512"
             >
-              <vscode-icon
+            <vscode-icon
               slot="content-after"
-              name="folder-opened"
+              id="file-explorer"
+              name="file"
               action-icon
-              @click="openFileExplorer"
-              ></vscode-icon>
+            ></vscode-icon>
             </vscode-textfield>
             </vscode-form-group>
 
