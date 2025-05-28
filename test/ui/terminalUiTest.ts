@@ -6,7 +6,12 @@ import {
   VSBrowser,
   SettingsEditor,
 } from "vscode-extension-tester";
-import { getFixturePath, updateSettings, sleep } from "./uiTestHelper";
+import {
+  getFixturePath,
+  updateSettings,
+  sleep,
+  waitForCondition,
+} from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -83,13 +88,19 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
-      await sleep(3500);
-
       const terminalView = await new BottomBarPanel().openTerminalView();
-      const text = await terminalView.getText();
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return text.includes("Play ");
+        },
+        message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
+        timeout: 20000,
+      });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
-      expect(text).contains("Play ");
       await terminalView.killTerminal();
     }
   });
@@ -107,7 +118,17 @@ describe("Verify the execution of playbook using ansible-navigator command", () 
     await sleep(7000);
 
     const terminalView = await new BottomBarPanel().openTerminalView();
-    const text = await terminalView.getText();
+
+    let text = "";
+    await waitForCondition({
+      condition: async () => {
+        text = await terminalView.getText();
+        return text.includes("Play ");
+      },
+      message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
+      timeout: 20000,
+    });
+
     await terminalView.killTerminal();
 
     // assert with just "Play " rather than "Play name" due to CI output formatting issues
