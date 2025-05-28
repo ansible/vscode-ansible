@@ -1010,6 +1010,7 @@
     "eslint-formatter-gha": "^1.5.2",
     "eslint-formatter-unix": "^8.40.0",
     "eslint-plugin-chai-friendly": "^1.0.1",
+    "eslint-plugin-mocha": "^11.1.0",
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-tsdoc": "^0.4.0",
     "express": "^5.1.0",

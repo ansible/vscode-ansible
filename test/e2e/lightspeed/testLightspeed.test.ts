@@ -153,6 +153,7 @@ export function testLightspeed(): void {
 
       tests.map((test, i) => {
         const { taskName, expectedModule } = test;
+
         it(`Should send inlineSuggestionFeedback with expected text changes for task prompt '${taskName}'`, async function () {
           await testInlineSuggestion(
             taskName,
@@ -189,7 +190,7 @@ export function testLightspeed(): void {
         });
       });
 
-      afterEach(() => {
+      afterEach(function () {
         feedbackRequestSpy.resetHistory();
       });
 
@@ -340,7 +341,7 @@ export function testLightspeed(): void {
         assert.equal(feedbackRequestApiCalls.length, 0);
       });
 
-      afterEach(() => {
+      afterEach(function () {
         feedbackRequestSpy.resetHistory();
         completionRequestSpy.resetHistory();
       });
@@ -399,11 +400,11 @@ export function testLightspeed(): void {
       });
     });
 
-    describe("Test ignore pending suggestions", () => {
+    describe("Test ignore pending suggestions", function () {
       testIgnorePendingSuggestion();
     });
 
-    describe("Test inline suggestion by another provider", () => {
+    describe("Test inline suggestion by another provider", function () {
       testInlineSuggestionByAnotherProvider();
       testInlineSuggestionProviderCoExistence();
     });
@@ -416,7 +417,7 @@ export function testLightspeed(): void {
       testLightspeedUser();
     });
 
-    describe("Test when a inline suggestion should be triggered", () => {
+    describe("Test when a inline suggestion should be triggered", function () {
       testTriggerTaskSuggestion();
     });
 

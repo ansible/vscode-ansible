@@ -19,12 +19,13 @@ function simulateClientSettings(
   };
 }
 
-describe("get()", () => {
-  describe("Merge settings from client", () => {
-    describe("When client provides empty settings", () => {
+describe("get()", function () {
+  describe("Merge settings from client", function () {
+    describe("When client provides empty settings", function () {
       let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
-      before(async () => {
+
+      before(async function () {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, []);
         context = workspaceManager.getContext("");
@@ -32,7 +33,8 @@ describe("get()", () => {
           mergedSettings = await context.documentSettings.get("");
         }
       });
-      it("should return default value for all settings", () => {
+
+      it("should return default value for all settings", function () {
         expect(typeof context !== "undefined");
         if (typeof context !== "undefined") {
           expect(mergedSettings).to.deep.equal(
@@ -42,10 +44,11 @@ describe("get()", () => {
       });
     });
 
-    describe("When client provides partial settings", () => {
+    describe("When client provides partial settings", function () {
       let context: WorkspaceFolderContext | undefined;
       let mergedSettings: ExtensionSettings;
-      before(async () => {
+
+      before(async function () {
         const workspaceManager = createTestWorkspaceManager();
         simulateClientSettings(workspaceManager, {
           validation: { lint: { enabled: false } },
@@ -55,10 +58,12 @@ describe("get()", () => {
           mergedSettings = await context.documentSettings.get("");
         }
       });
-      it("should return setting from client when defined", () => {
+
+      it("should return setting from client when defined", function () {
         expect(mergedSettings.validation.lint.enabled).to.equal(false);
       });
-      it("should return default value otherwise", () => {
+
+      it("should return default value otherwise", function () {
         if (typeof context !== "undefined") {
           expect(mergedSettings.validation.lint.path).to.equal(
             context.documentSettings.globalSettings.validation.lint.path,
