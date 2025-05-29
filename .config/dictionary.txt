@@ -246,6 +246,7 @@ seccomp
 tamasfe
 taskfile
 tasklist
+tekton
 testenv
 testhost
 testorg
