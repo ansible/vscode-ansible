@@ -60,8 +60,8 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
   await button.click();
 }
 
-describe("Content Creator UI Tests", () => {
-  before(async () => {
+describe("Content Creator UI Tests", function () {
+  before(async function () {
     // Install ansible-creator
     await workbenchExecuteCommand("Install Ansible Content Creator");
     // This sleep is hard to get rid of because the installation takes time
@@ -69,7 +69,7 @@ describe("Content Creator UI Tests", () => {
     await sleep(2000);
   });
 
-  describe("Test Ansible playbook and collection project scaffolding at default path", () => {
+  describe("Test Ansible playbook and collection project scaffolding at default path", function () {
     let createButton: WebElement;
     let editorView: EditorView;
 
@@ -137,7 +137,7 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check create-ansible-project webview elements", async () => {
+    it("Check create-ansible-project webview elements", async function () {
       await testWebViewElements(
         "Ansible: Create New Playbook Project",
         "Create Ansible project",
@@ -146,7 +146,7 @@ describe("Content Creator UI Tests", () => {
       );
     });
 
-    it("Check create-ansible-collection webview elements", async () => {
+    it("Check create-ansible-collection webview elements", async function () {
       await testWebViewElements(
         "Ansible: Create New Collection",
         "Create Ansible collection",
@@ -156,8 +156,8 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test execution-environment project scaffolding at default path", () => {
-    it("Check execution-environment webview elements", async () => {
+  describe("Test execution-environment project scaffolding at default path", function () {
+    it("Check execution-environment webview elements", async function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
         "Create Ansible Execution Environment",
@@ -208,7 +208,7 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test Ansible playbook and collection project scaffolding at provided path", () => {
+  describe("Test Ansible playbook and collection project scaffolding at provided path", function () {
     let editorView: EditorView;
 
     async function testWebViewElements(command: string, editorTitle: string) {
@@ -265,14 +265,14 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check create-ansible-project webview elements", async () => {
+    it("Check create-ansible-project webview elements", async function () {
       await testWebViewElements(
         "Ansible: Create New Playbook Project",
         "Create Ansible project",
       );
     });
 
-    it("Check create-ansible-collection webview elements", async () => {
+    it("Check create-ansible-collection webview elements", async function () {
       await testWebViewElements(
         "Ansible: Create New Collection",
         "Create Ansible collection",
@@ -280,7 +280,7 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test collection plugins scaffolding", () => {
+  describe("Test collection plugins scaffolding", function () {
     let createButton: WebElement;
     let editorView: EditorView;
 
@@ -448,7 +448,7 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check add-plugin webview elements for lookup plugin", async () => {
+    it("Check add-plugin webview elements for lookup plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -457,7 +457,8 @@ describe("Content Creator UI Tests", () => {
         "Lookup",
       );
     });
-    it("Check add-plugin webview elements for action plugin", async () => {
+
+    it("Check add-plugin webview elements for action plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -466,7 +467,8 @@ describe("Content Creator UI Tests", () => {
         "Action",
       );
     });
-    it("Check add-plugin webview elements for generic module plugin", async () => {
+
+    it("Check add-plugin webview elements for generic module plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -475,7 +477,8 @@ describe("Content Creator UI Tests", () => {
         "Module",
       );
     });
-    it("Check add-plugin webview elements for test plugin", async () => {
+
+    it("Check add-plugin webview elements for test plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -484,7 +487,8 @@ describe("Content Creator UI Tests", () => {
         "Test",
       );
     });
-    it("Verify Open Plugin button is enabled and plugin file exists", async () => {
+
+    it("Verify Open Plugin button is enabled and plugin file exists", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         os.homedir + "/test",
@@ -496,7 +500,7 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test role scaffolding in an existing collection", () => {
+  describe("Test role scaffolding in an existing collection", function () {
     let editorView: EditorView;
 
     async function testWebViewElements(command: string, editorTitle: string) {
@@ -536,7 +540,7 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check create-ansible-project webview elements", async () => {
+    it("Check create-ansible-project webview elements", async function () {
       await testWebViewElements("Ansible: Add Role", "Create Role");
     });
   });

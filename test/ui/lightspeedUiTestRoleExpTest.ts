@@ -101,6 +101,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
 
 describe("Verify role explanation features work as expected", function () {
   let workbench: Workbench;
+
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();

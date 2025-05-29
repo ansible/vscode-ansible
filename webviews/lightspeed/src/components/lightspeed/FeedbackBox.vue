@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { vscodeApi } from "./../utils";
+import { vscodeApi } from "../../utils";
 
 const props = defineProps({
   explanationId: {
