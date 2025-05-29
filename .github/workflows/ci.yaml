@@ -170,8 +170,10 @@ jobs:
             .yarn/cache
             node_modules/.cache/webpack
             out/ext
-            out/test-resources
-            out/test-resources-oldest
+            out/test-resources*/Visual Studio Code.app
+            out/test-resources*/chromedriver*
+            out/test-resources*/driverVersion
+            out/test-resources*/stable.zip
             ~/.cache/pip
             ~/.cache/yarn
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
@@ -345,6 +347,12 @@ jobs:
           flags: ${{ matrix.name }},${{ matrix.os }}
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
+      - name: Update job summary with test results
+        if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
+        uses: test-summary/action@v2
+        with:
+          paths: "out/junit/*.xml"
+
       # - name: Stop services
       #   if: "contains(matrix.os, 'macos')"
       #   # Stopping podman machine is needed or caching it will fail
@@ -364,11 +372,6 @@ jobs:
       # - name: Setup tmate session
       #   if: ${{ always() }}
       #   uses: mxschmitt/action-tmate@v3
-
-  ack:
-    if: github.event_name == 'pull_request'
-    uses: ansible/team-devtools/.github/workflows/ack.yml@main
-    secrets: inherit
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
