@@ -64,8 +64,8 @@ Open a Webbrowser and point to
 the HTML page location to match your new VueJs vue. You should see an Hello
 World banner.
 
-These copied files will likely trigger a Duplicated Lines error in SonarCloud, you can
-turn the check off by listing them in the `.sonarcloud.properties` file.
+These copied files will likely trigger a Duplicated Lines error in SonarCloud,
+you can turn the check off by listing them in the `.sonarcloud.properties` file.
 
 ### Integration within VSCode
 
