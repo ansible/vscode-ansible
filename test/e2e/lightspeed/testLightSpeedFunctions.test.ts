@@ -55,6 +55,7 @@ function testGetLightSpeedStatusBarText(): void {
         "getLightspeedUserDetails",
       );
     });
+
     after(async function () {
       getLightspeedUserDetailsStub.restore();
     });
@@ -246,8 +247,8 @@ function testFeedbackCompletionAPI(): void {
 }
 
 function testFindTasks(): void {
-  describe("Test findTasks for playbook explanation", () => {
-    it("No tasks are found", () => {
+  describe("Test findTasks for playbook explanation", function () {
+    it("No tasks are found", function () {
       const PLAYBOOK = `---
 - name: Playbook 1
   hosts: all
@@ -257,7 +258,7 @@ function testFindTasks(): void {
       assert.equal(rc, false);
     });
 
-    it("Tasks are found (tasks)", () => {
+    it("Tasks are found (tasks)", function () {
       const PLAYBOOK = `---
 - name: Playbook 2
   hosts: all
@@ -268,7 +269,7 @@ function testFindTasks(): void {
       assert.equal(rc, true);
     });
 
-    it("Tasks are found (pre_tasks)", () => {
+    it("Tasks are found (pre_tasks)", function () {
       const PLAYBOOK = `---
 - name: Playbook 3
   hosts: all
@@ -279,7 +280,7 @@ function testFindTasks(): void {
       assert.equal(rc, true);
     });
 
-    it("Tasks are found (post_tasks)", () => {
+    it("Tasks are found (post_tasks)", function () {
       const PLAYBOOK = `---
 - name: Playbook 4
   hosts: all
@@ -290,7 +291,7 @@ function testFindTasks(): void {
       assert.equal(rc, true);
     });
 
-    it("Tasks are found (handlers)", () => {
+    it("Tasks are found (handlers)", function () {
       const PLAYBOOK = `---
 - name: Playbook 5
   hosts: all
@@ -301,7 +302,7 @@ function testFindTasks(): void {
       assert.equal(rc, true);
     });
 
-    it("Tasks are not found (invalid YAML)", () => {
+    it("Tasks are not found (invalid YAML)", function () {
       const PLAYBOOK = `---
 - name: Playbook 6
   hosts: all
@@ -315,8 +316,8 @@ tasks:
 }
 
 function testIsPlaybook(): void {
-  describe("Test isPlaybook for playbook explanation", () => {
-    it("A playbook", () => {
+  describe("Test isPlaybook for playbook explanation", function () {
+    it("A playbook", function () {
       const PLAYBOOK = `---
 - name: Playbook 1
   hosts: all
@@ -328,7 +329,7 @@ function testIsPlaybook(): void {
       assert.equal(rc, true);
     });
 
-    it("Not a playbook", () => {
+    it("Not a playbook", function () {
       const PLAYBOOK = `---
 - name: Playbook 1
   tasks:

@@ -7,7 +7,7 @@ import {
   reapplyLineNumbers,
   removeLine,
   shouldRemoveLine
-} from '../utils/outlineLineNumbers';
+} from '../../utils/outlineLineNumbers';
 
 defineProps<{
   outline: string;
@@ -47,7 +47,7 @@ function outlineWithLineNumber(): void {
 
 <template>
   <div>
-    <h4>Review the suggested steps for your {{type}} and modify as needed.</h4>
+    <h4>Review the suggested steps for your {{ type }} and modify as needed.</h4>
     <textarea id="outline-field" :rows="outline.split('\n').length + 2" :cols="70" :value="outline.toString()"
       @input="outlineWithLineNumber" />
   </div>

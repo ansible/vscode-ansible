@@ -7,10 +7,10 @@ import {
 } from "../../helper";
 
 export function testHoverEE(): void {
-  describe("TEST FOR HOVER (WITH EE)", () => {
+  describe("TEST FOR HOVER (WITH EE)", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
-    before(async () => {
+    before(async function () {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
       await activate(docUri1);
       setFixtureAnsibleCollectionPathEnv(
@@ -18,8 +18,8 @@ export function testHoverEE(): void {
       );
     });
 
-    describe("Hover for play keywords", () => {
-      it("should hover over `name` keyword", async () => {
+    describe("Hover for play keywords", function () {
+      it("should hover over `name` keyword", async function () {
         await testHover(docUri1, new vscode.Position(0, 4), [
           {
             contents: [
@@ -29,7 +29,7 @@ export function testHoverEE(): void {
         ]);
       });
 
-      it("should hover over `hosts` keyword", async () => {
+      it("should hover over `hosts` keyword", async function () {
         await testHover(docUri1, new vscode.Position(2, 4), [
           {
             contents: [
@@ -39,7 +39,7 @@ export function testHoverEE(): void {
         ]);
       });
 
-      it("should hover over `tasks` keyword", async () => {
+      it("should hover over `tasks` keyword", async function () {
         await testHover(docUri1, new vscode.Position(3, 4), [
           {
             contents: [
@@ -50,8 +50,8 @@ export function testHoverEE(): void {
       });
     });
 
-    describe("Hover for builtin module name and options", () => {
-      it("should hover over builtin module name", async () => {
+    describe("Hover for builtin module name and options", function () {
+      it("should hover over builtin module name", async function () {
         await testHover(docUri1, new vscode.Position(5, 7), [
           {
             contents: ["Print statements during execution"],
@@ -59,7 +59,7 @@ export function testHoverEE(): void {
         ]);
       });
 
-      it("should hover over builtin module option", async () => {
+      it("should hover over builtin module option", async function () {
         await testHover(docUri1, new vscode.Position(6, 9), [
           {
             contents: ["customized message"],
@@ -68,8 +68,8 @@ export function testHoverEE(): void {
       });
     });
 
-    describe("Hover for module name and options present in the EE", () => {
-      it("should hover over collection module name present in EE (ansible.posix.patch)", async () => {
+    describe("Hover for module name and options present in the EE", function () {
+      it("should hover over collection module name present in EE (ansible.posix.patch)", async function () {
         await testHover(docUri1, new vscode.Position(9, 7), [
           {
             contents: ["GNU patch"],
@@ -77,7 +77,7 @@ export function testHoverEE(): void {
         ]);
       });
 
-      it("should hover over collection module option present in EE (ansible.posix.patch -> src)", async () => {
+      it("should hover over collection module option present in EE (ansible.posix.patch -> src)", async function () {
         await testHover(docUri1, new vscode.Position(10, 9), [
           {
             contents: ["GNU patch"],
@@ -85,7 +85,7 @@ export function testHoverEE(): void {
         ]);
       });
 
-      it("should hover over collection module option present in EE (ansible.posix.patch -> dest)", async () => {
+      it("should hover over collection module option present in EE (ansible.posix.patch -> dest)", async function () {
         await testHover(docUri1, new vscode.Position(11, 9), [
           {
             contents: ["remote machine"],
@@ -94,12 +94,12 @@ export function testHoverEE(): void {
       });
     });
 
-    describe("Hover for module name and options absent in the EE", () => {
-      it("should not hover over collection module name present in EE (vyos.vyos.vyos_prefix_list)", async () => {
+    describe("Hover for module name and options absent in the EE", function () {
+      it("should not hover over collection module name present in EE (vyos.vyos.vyos_prefix_list)", async function () {
         await testHover(docUri1, new vscode.Position(14, 8), []);
       });
 
-      it("should not hover over collection module option present in EE (vyos.vyos.vyos_prefix_list -> config)", async () => {
+      it("should not hover over collection module option present in EE (vyos.vyos.vyos_prefix_list -> config)", async function () {
         await testHover(docUri1, new vscode.Position(15, 10), []);
       });
     });

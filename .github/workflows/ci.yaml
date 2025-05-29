@@ -170,8 +170,10 @@ jobs:
             .yarn/cache
             node_modules/.cache/webpack
             out/ext
-            out/test-resources
-            out/test-resources-oldest
+            out/test-resources*/Visual Studio Code.app
+            out/test-resources*/chromedriver*
+            out/test-resources*/driverVersion
+            out/test-resources*/stable.zip
             ~/.cache/pip
             ~/.cache/yarn
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}

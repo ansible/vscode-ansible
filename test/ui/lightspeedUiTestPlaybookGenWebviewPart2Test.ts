@@ -40,6 +40,11 @@ describe("Verify playbook generation features work as expected", function () {
   });
 
   it("Playbook generation webview works as expected (full path) - part 2", async function () {
+    // just to cleanup any previous feedbacks that might pollute the test
+    await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`, {
+      method: "GET",
+    });
+
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
 
     // Start operations on Playbook Generation UI

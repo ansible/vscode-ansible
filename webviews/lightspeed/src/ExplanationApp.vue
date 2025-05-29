@@ -6,7 +6,7 @@ import { vscodeApi } from "./utils";
 import { getObjectKeys } from "../../../src/features/lightspeed/utils/explanationUtils";
 import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-toolkit';
 import { ExplanationRequestParams, ExplanationResponseParams, FeedbackRequestParams, GenerationListEntry, RoleExplanationRequestParams } from "../../../src/interfaces/lightspeed";
-import FeedbackBox from "./components/FeedbackBox.vue";
+import FeedbackBox from "./components/lightspeed/FeedbackBox.vue";
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -136,8 +136,9 @@ watch(() => playbookData.value, (newValue) => {
 <template>
   <div v-if="loadingExplanation" id="icons">
     <span class="codicon codicon-loading codicon-modifier-spin"></span>
-    <span v-if="playbookData.fileName">&nbsp;Generating the explanation for {{playbookData.fileName.split("/").at(-1)}}</span>
-    <span v-if="roleData.roleName">&nbsp;Generating the explanation for role: {{roleData.roleName}}</span>
+    <span v-if="playbookData.fileName">&nbsp;Generating the explanation for
+      {{ playbookData.fileName.split("/").at(-1) }}</span>
+    <span v-if="roleData.roleName">&nbsp;Generating the explanation for role: {{ roleData.roleName }}</span>
   </div>
   <div class="explanation" v-else-if="errorMessage">
     <p>
@@ -161,7 +162,7 @@ watch(() => playbookData.value, (newValue) => {
 </template>
 
 <style scoped>
-  .codicon {
-    line-height: 36px;
-  }
+.codicon {
+  line-height: 36px;
+}
 </style>

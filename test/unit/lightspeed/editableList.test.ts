@@ -3,7 +3,7 @@ import { JSDOM } from "jsdom";
 
 import { EditableList } from "../../../src/webview/apps/common/editableList";
 
-describe("Test EditableList", () => {
+describe("Test EditableList", function () {
   let dom: JSDOM;
   let domWithEmptyList: JSDOM;
   const SAMPLE_TEXT = `1. Do this
@@ -12,7 +12,7 @@ describe("Test EditableList", () => {
 `;
   const SAMPLE_LIST = ["Do this", "Do that", "Verify them"];
 
-  beforeEach(() => {
+  beforeEach(function () {
     dom = new JSDOM(
       "<!DOCTYPE html>\n" +
         "<body>" +
@@ -35,7 +35,7 @@ describe("Test EditableList", () => {
     );
   });
 
-  it("Test stringToList", () => {
+  it("Test stringToList", function () {
     const out = EditableList.stringToList(SAMPLE_TEXT);
     assert.equal(out.length, SAMPLE_LIST.length);
     assert.equal(out[0], SAMPLE_LIST[0]);
@@ -43,7 +43,7 @@ describe("Test EditableList", () => {
     assert.equal(out[2], SAMPLE_LIST[2]);
   });
 
-  it("Test stringToList edge cases", () => {
+  it("Test stringToList edge cases", function () {
     const out1 = EditableList.stringToList("1.");
     assert.equal(out1.length, 1);
     assert.equal(out1[0], "");
@@ -53,12 +53,12 @@ describe("Test EditableList", () => {
     assert.equal(out2[0], "");
   });
 
-  it("Test listToString", () => {
+  it("Test listToString", function () {
     const out = EditableList.listToString(SAMPLE_LIST);
     assert.equal(out, SAMPLE_TEXT);
   });
 
-  it("Test isEmpty", () => {
+  it("Test isEmpty", function () {
     const nonEmptyEditableList = new EditableList("editable-list", dom.window);
     assert.equal(nonEmptyEditableList.isEmpty(), false);
     const emptyEditableList = new EditableList(
@@ -68,7 +68,7 @@ describe("Test EditableList", () => {
     assert.equal(emptyEditableList.isEmpty(), true);
   });
 
-  it("Test constructor", async () => {
+  it("Test constructor", async function () {
     const element = dom.window.document.getElementById("editable-list");
     assert.ok(element);
     const editableList = new EditableList("editable-list", dom.window);

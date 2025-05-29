@@ -15,7 +15,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify the presence of lightspeed login button in the activity bar", () => {
+describe("Verify the presence of lightspeed login button in the activity bar", function () {
   let view: ViewControl;
   let sideBar: SideBarView;
   let adtView: ViewSection;

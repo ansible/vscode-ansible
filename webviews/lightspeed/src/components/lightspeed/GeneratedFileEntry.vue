@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import "highlight.js/styles/atom-one-dark.css";
 
-import { GenerationListEntry } from "../../../../src/interfaces/lightspeed";
+import { GenerationListEntry } from "../../../../../src/interfaces/lightspeed";
 defineProps<{ file: GenerationListEntry }>();
 </script>
 

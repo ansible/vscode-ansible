@@ -11,7 +11,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify the presence of lightspeed element in the status bar and the explorer view", () => {
+describe("Verify the presence of lightspeed element in the status bar and the explorer view", function () {
   const folder = "lightspeed";
   const file = "playbook_1.yml";
   const filePath = getFixturePath(folder, file);
@@ -20,7 +20,8 @@ describe("Verify the presence of lightspeed element in the status bar and the ex
     // open file in the editor
     await VSBrowser.instance.openResources(filePath);
   });
-  it("Ansible Lightspeed status bar item present when lightspeed suggestions are enabled (with normal color)", async () => {
+
+  it("Ansible Lightspeed status bar item present when lightspeed suggestions are enabled (with normal color)", async function () {
     const statusBar = new StatusBar();
     const editorView = new EditorView();
     await editorView.openEditor(file);
@@ -35,7 +36,8 @@ describe("Verify the presence of lightspeed element in the status bar and the ex
     );
     expect(lightspeedStatusBarItem).not.to.be.undefined;
   });
-  it.skip("Ansible Lightspeed status bar item present when lightspeed suggestions are not enabled (with warning color)", async () => {
+
+  it.skip("Ansible Lightspeed status bar item present when lightspeed suggestions are not enabled (with warning color)", async function () {
     const statusBar = new StatusBar();
     const editorView = new EditorView();
     const settingsEditor = await openSettings();

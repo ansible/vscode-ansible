@@ -32,7 +32,7 @@ function createError(
   return error;
 }
 
-describe("testing the error handling", () => {
+describe("testing the error handling", function () {
   function withDetailTest(statusCode: integer, expectedMessage: string) {
     const error = mapError(
       createError(statusCode, { detail: { item: "details" } }),
@@ -44,7 +44,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 200
   // ---------------------------------
-  it("err generic", () => {
+  it("err generic", function () {
     const error = mapError(createError(200));
     assert.equal(
       error.message,
@@ -56,7 +56,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 400
   // ---------------------------------
-  it("err Bad Request from Cloudflare", () => {
+  it("err Bad Request from Cloudflare", function () {
     const error = mapError(
       createError(400, { code: "error__wca_cloud_flare_rejection" }),
     );
@@ -66,7 +66,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Bad Request WCA HAP filter", () => {
+  it("err Bad Request WCA HAP filter", function () {
     const error = mapError(
       createError(400, { code: "error__wca_hap_filter_rejection" }),
     );
@@ -76,12 +76,12 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Bad Request", () => {
+  it("err Bad Request", function () {
     const error = mapError(createError(400));
     assert.equal(error.message, "Bad Request response. Please try again.");
   });
 
-  it("err Preprocessing error", () => {
+  it("err Preprocessing error", function () {
     const error = mapError(
       createError(400, {
         code: "error__preprocess_invalid_yaml",
@@ -93,7 +93,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Preprocessing error with simple detail", () => {
+  it("err Preprocessing error with simple detail", function () {
     const error = mapError(
       createError(400, {
         code: "error__preprocess_invalid_yaml",
@@ -107,7 +107,7 @@ describe("testing the error handling", () => {
     assert.equal(error.detail, "A simple error.");
   });
 
-  it("err Preprocessing error with complex detail", () => {
+  it("err Preprocessing error with complex detail", function () {
     const error = mapError(
       createError(400, {
         code: "error__preprocess_invalid_yaml",
@@ -121,7 +121,7 @@ describe("testing the error handling", () => {
     assert.equal(error.detail, "(1) error 1 (2) error 2");
   });
 
-  it("err generic validation error", () => {
+  it("err generic validation error", function () {
     const error = mapError(
       createError(400, {
         detail: {
@@ -136,7 +136,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Feedback validation error", () => {
+  it("err Feedback validation error", function () {
     const error = mapError(
       createError(400, {
         code: "error__feedback_validation",
@@ -146,7 +146,7 @@ describe("testing the error handling", () => {
     assert.equal(error.message, "A field was invalid.");
   });
 
-  it("err WCA inference failure", () => {
+  it("err WCA inference failure", function () {
     const error = mapError(
       createError(400, {
         code: "error__wca_inference_failure",
@@ -160,7 +160,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err WCA validation failure", () => {
+  it("err WCA validation failure", function () {
     const error = mapError(
       createError(400, {
         code: "error__wca_validation_failure",
@@ -178,7 +178,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 401
   // ---------------------------------
-  it("err Unauthorized", () => {
+  it("err Unauthorized", function () {
     const error = mapError(createError(401));
     assert.equal(
       error.message,
@@ -186,7 +186,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Unauthorized with detail", () => {
+  it("err Unauthorized with detail", function () {
     withDetailTest(
       401,
       "You are not authorized to access Ansible Lightspeed. Please contact your administrator.",
@@ -197,7 +197,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 403
   // ---------------------------------
-  it("err Forbidden - No Seat", () => {
+  it("err Forbidden - No Seat", function () {
     const error = mapError(
       createError(403, {
         code: "permission_denied__user_with_no_seat",
@@ -209,7 +209,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Forbidden - Trial expired", () => {
+  it("err Forbidden - Trial expired", function () {
     const error = mapError(
       createError(403, {
         code: "permission_denied__user_trial_expired",
@@ -221,7 +221,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Forbidden - WCA not ready", () => {
+  it("err Forbidden - WCA not ready", function () {
     const error = mapError(
       createError(403, {
         code: "permission_denied__org_not_ready_because_wca_not_configured",
@@ -233,7 +233,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Forbidden", () => {
+  it("err Forbidden", function () {
     const error = mapError(createError(403));
     assert.equal(
       error.message,
@@ -241,7 +241,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Bad Request from CloudFront", () => {
+  it("err Bad Request from CloudFront", function () {
     const error = mapError(
       createError(
         403,
@@ -255,7 +255,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Not a Bad Request from CloudFront", () => {
+  it("err Not a Bad Request from CloudFront", function () {
     const error = mapError(
       createError(
         403,
@@ -273,7 +273,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err WCA API Key missing", () => {
+  it("err WCA API Key missing", function () {
     const error = mapError(
       createError(403, {
         code: "error__wca_key_not_found",
@@ -285,7 +285,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err no default WCA Model Id found", () => {
+  it("err no default WCA Model Id found", function () {
     const error = mapError(
       createError(403, {
         code: "error__no_default_model_id",
@@ -297,7 +297,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err WCA Model Id missing", () => {
+  it("err WCA Model Id missing", function () {
     const error = mapError(
       createError(403, {
         code: "error__wca_model_id_not_found",
@@ -309,7 +309,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err WCA Model Id is invalid", () => {
+  it("err WCA Model Id is invalid", function () {
     const error = mapError(
       createError(403, {
         code: "error__wca_invalid_model_id",
@@ -321,7 +321,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Terms of Use not accepted", () => {
+  it("err Terms of Use not accepted", function () {
     const error = mapError(
       createError(403, {
         code: "permission_denied__terms_of_use_not_accepted",
@@ -333,7 +333,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err User has no subscription", () => {
+  it("err User has no subscription", function () {
     const error = mapError(
       createError(403, {
         code: "permission_denied__user_has_no_subscription",
@@ -345,7 +345,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Forbidden with detail", () => {
+  it("err Forbidden with detail", function () {
     withDetailTest(
       403,
       "You are not authorized to access Ansible Lightspeed. Please contact your administrator.",
@@ -356,7 +356,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 404
   // ---------------------------------
-  it("err Not found", () => {
+  it("err Not found", function () {
     const error = mapError(createError(404));
     assert.equal(
       error.message,
@@ -364,7 +364,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Feature not available", () => {
+  it("err Feature not available", function () {
     const error = mapError(
       createError(404, {
         code: "feature_not_available",
@@ -376,7 +376,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Not found with detail", () => {
+  it("err Not found with detail", function () {
     withDetailTest(
       404,
       "The resource could not be found. Please try again later.",
@@ -387,7 +387,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 418
   // ---------------------------------
-  it("err WCA instance deleted", () => {
+  it("err WCA instance deleted", function () {
     const error = mapError(
       createError(418, {
         code: "error__wca_instance_deleted",
@@ -403,7 +403,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 429
   // ---------------------------------
-  it("err Too Many Requests", () => {
+  it("err Too Many Requests", function () {
     const error = mapError(createError(429));
     assert.equal(
       error.message,
@@ -411,7 +411,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Too Many Requests with detail", () => {
+  it("err Too Many Requests with detail", function () {
     withDetailTest(
       429,
       "Too many requests to Ansible Lightspeed. Please try again later.",
@@ -422,7 +422,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 500
   // ---------------------------------
-  it("err Internal Server Error - Generic", () => {
+  it("err Internal Server Error - Generic", function () {
     const error = mapError(createError(500));
     assert.equal(
       error.message,
@@ -430,7 +430,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Internal Server Error - Codified", () => {
+  it("err Internal Server Error - Codified", function () {
     const error = mapError(createError(500, { code: "internal_server" }));
     assert.equal(
       error.message,
@@ -438,7 +438,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Error submitting feedback", () => {
+  it("err Error submitting feedback", function () {
     const error = mapError(
       createError(500, {
         code: "error__feedback_internal_server",
@@ -450,7 +450,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err WCA Suggestion Correlation failure", () => {
+  it("err WCA Suggestion Correlation failure", function () {
     const error = mapError(
       createError(500, {
         code: "error__wca_suggestion_correlation_failed",
@@ -462,7 +462,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err WCA X-Request-ID Correlation failure", () => {
+  it("err WCA X-Request-ID Correlation failure", function () {
     const error = mapError(
       createError(500, {
         code: "error__wca_request_id_correlation_failed",
@@ -474,7 +474,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Internal Server Error - Generic with detail", () => {
+  it("err Internal Server Error - Generic with detail", function () {
     withDetailTest(
       500,
       "An error occurred attempting to complete your request. Please try again later.",
@@ -485,7 +485,7 @@ describe("testing the error handling", () => {
   // =================================
   // HTTP 503
   // ---------------------------------
-  it("err Attribution error", () => {
+  it("err Attribution error", function () {
     const error = mapError(
       createError(503, {
         code: "error__attribution_exception",
@@ -497,7 +497,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Service unavailable", () => {
+  it("err Service unavailable", function () {
     const error = mapError(
       createError(503, {
         code: "service_unavailable",
@@ -513,7 +513,7 @@ describe("testing the error handling", () => {
   // =================================
   // Miscellaneous
   // ---------------------------------
-  it("err Abort", () => {
+  it("err Abort", function () {
     const err = new Error("Connection aborted");
     err.name = "AbortError";
 
@@ -524,7 +524,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Timeout", () => {
+  it("err Timeout", function () {
     const err = new Error("Connection timed out");
     err.name = "TimeoutError";
 
@@ -535,7 +535,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Canceled", () => {
+  it("err Canceled", function () {
     const err = new Error("Connection canceled");
     err.name = "CanceledError";
 
@@ -546,7 +546,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Unexpected Client error", () => {
+  it("err Unexpected Client error", function () {
     const error = mapError(createError(0));
     assert.equal(
       error.message,
@@ -554,7 +554,7 @@ describe("testing the error handling", () => {
     );
   });
 
-  it("err Unexpected Err code", () => {
+  it("err Unexpected Err code", function () {
     const error = mapError(createError(599));
     assert.equal(
       error.message,

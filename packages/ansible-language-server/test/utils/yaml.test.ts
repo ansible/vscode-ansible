@@ -25,7 +25,7 @@ function getPathInFile(yamlFile: string, line: number, character: number) {
   );
 }
 
-describe("yaml", () => {
+describe("yaml", function () {
   beforeEach(function (this: Mocha.Context) {
     const brokenTests = new Map([
       // ['<testName>', '<url-of-tracking-issue>'],
@@ -42,32 +42,32 @@ describe("yaml", () => {
     }
   });
 
-  describe("ancestryBuilder", () => {
-    it("canGetParent", async () => {
+  describe("ancestryBuilder", function () {
+    it("canGetParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent().get();
       expect(node).to.be.an.instanceOf(YAMLMap);
     });
 
-    it("canGetAssertedParent", async () => {
+    it("canGetAssertedParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLMap).get();
       expect(node).to.be.an.instanceOf(YAMLMap);
     });
 
-    it("canAssertParent", async () => {
+    it("canAssertParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent(YAMLSeq).get();
       expect(node).to.be.null;
     });
 
-    it("canGetAncestor", async () => {
+    it("canGetAncestor", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parent().parent().get();
       expect(node).to.be.an.instanceOf(YAMLSeq);
     });
 
-    it("canGetParentPath", async () => {
+    it("canGetParentPath", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const subPath = new AncestryBuilder(path).parent().getPath();
       expect(subPath)
@@ -75,19 +75,19 @@ describe("yaml", () => {
         .to.have.lengthOf((path?.length || 0) - 2);
     });
 
-    it("canGetKey", async () => {
+    it("canGetKey", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const key = new AncestryBuilder(path).parent(YAMLMap).getStringKey();
       expect(key).to.be.equal("name");
     });
 
-    it("canGetKeyForValue", async () => {
+    it("canGetKeyForValue", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 13);
       const key = new AncestryBuilder(path).parent(YAMLMap).getStringKey();
       expect(key).to.be.equal("name");
     });
 
-    it("canGetKeyPath", async () => {
+    it("canGetKeyPath", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const subPath = new AncestryBuilder(path).parent(YAMLMap).getKeyPath();
       expect(subPath)
@@ -99,20 +99,20 @@ describe("yaml", () => {
           .to.have.property("value", "name");
     });
 
-    it("canGetAssertedParentOfKey", async () => {
+    it("canGetAssertedParentOfKey", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 7);
       const node = new AncestryBuilder(path).parentOfKey().get();
       expect(node).to.be.an.instanceOf(YAMLMap);
       expect(node).to.have.nested.property("items[0].key.value", "name");
     });
 
-    it("canAssertParentOfKey", async () => {
+    it("canAssertParentOfKey", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 4, 13);
       const node = new AncestryBuilder(path).parentOfKey().get();
       expect(node).to.be.null;
     });
 
-    it("canGetIndentationParent", async () => {
+    it("canGetIndentationParent", async function () {
       const path = await getPathInFile("ancestryBuilder.yml", 7, 9);
       const node = new AncestryBuilder(path)
         .parent(YAMLMap)
@@ -121,7 +121,7 @@ describe("yaml", () => {
       expect(node).to.be.equal("lineinfile");
     });
 
-    it.skip("canGetIndentationParentAtEndOfMap", async () => {
+    it.skip("canGetIndentationParentAtEndOfMap", async function () {
       // skipped -> the YAML parser doesn't correctly interpret indentation in
       // otherwise empty lines; a workaround is implemented for completion
       // provider
@@ -135,7 +135,7 @@ describe("yaml", () => {
       }
     });
 
-    it.skip("canGetIndentationParentAtEOF", async () => {
+    it.skip("canGetIndentationParentAtEOF", async function () {
       // skipped -> the YAML parser doesn't correctly interpret indentation in
       // otherwise empty lines; a workaround is implemented for completion
       // provider
@@ -148,8 +148,8 @@ describe("yaml", () => {
     });
   });
 
-  describe("getDeclaredCollections", () => {
-    it("canGetCollections", async () => {
+  describe("getDeclaredCollections", function () {
+    it("canGetCollections", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 13, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
@@ -157,7 +157,8 @@ describe("yaml", () => {
         "mynamespace2.mycollection2",
       ]);
     });
-    it("canGetCollectionsFromPreTasks", async () => {
+
+    it("canGetCollectionsFromPreTasks", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 9, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
@@ -165,7 +166,8 @@ describe("yaml", () => {
         "mynamespace2.mycollection2",
       ]);
     });
-    it("canGetCollectionsFromBlock", async () => {
+
+    it("canGetCollectionsFromBlock", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 12, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
@@ -173,7 +175,8 @@ describe("yaml", () => {
         "mynamespace2.mycollection2",
       ]);
     });
-    it("canGetCollectionsFromNestedBlock", async () => {
+
+    it("canGetCollectionsFromNestedBlock", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 23, 15);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
@@ -181,7 +184,8 @@ describe("yaml", () => {
         "mynamespace2.mycollection2",
       ]);
     });
-    it("canGetCollectionsFromRescue", async () => {
+
+    it("canGetCollectionsFromRescue", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 27, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
@@ -189,7 +193,8 @@ describe("yaml", () => {
         "mynamespace2.mycollection2",
       ]);
     });
-    it("canGetCollectionsFromAlways", async () => {
+
+    it("canGetCollectionsFromAlways", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 31, 11);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([
@@ -197,20 +202,22 @@ describe("yaml", () => {
         "mynamespace2.mycollection2",
       ]);
     });
-    it("canWorkWithoutCollections", async () => {
+
+    it("canWorkWithoutCollections", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 38, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([]);
     });
-    it("canWorkWithEmptyCollections", async () => {
+
+    it("canWorkWithEmptyCollections", async function () {
       const path = await getPathInFile("getDeclaredCollections.yml", 46, 7);
       const collections = getDeclaredCollections(path);
       expect(collections).to.have.members([]);
     });
   });
 
-  describe("isTaskParam", () => {
-    it("canCorrectlyConfirmTaskParam", async () => {
+  describe("isTaskParam", function () {
+    it("canCorrectlyConfirmTaskParam", async function () {
       const path = (await getPathInFile(
         "isTaskParamInTaskFile.yml",
         2,
@@ -220,7 +227,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyNegateTaskParam", async () => {
+    it("canCorrectlyNegateTaskParam", async function () {
       const path = (await getPathInFile(
         "isTaskParamInvalid.yml",
         1,
@@ -230,7 +237,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateTaskParamForValue", async () => {
+    it("canCorrectlyNegateTaskParamForValue", async function () {
       const path = (await getPathInFile(
         "isTaskParamInTaskFile.yml",
         2,
@@ -240,7 +247,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateTaskParamForPlay", async () => {
+    it("canCorrectlyNegateTaskParamForPlay", async function () {
       const path = (await getPathInFile(
         "isTaskParamInPlaybook.yml",
         4,
@@ -250,7 +257,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateTaskParamForBlock", async () => {
+    it("canCorrectlyNegateTaskParamForBlock", async function () {
       const path = (await getPathInFile(
         "isTaskParamInPlaybook.yml",
         14,
@@ -260,7 +267,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateTaskParamForRole", async () => {
+    it("canCorrectlyNegateTaskParamForRole", async function () {
       const path = (await getPathInFile(
         "isTaskParamInPlaybook.yml",
         17,
@@ -270,7 +277,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyConfirmTaskParamInPreTasks", async () => {
+    it("canCorrectlyConfirmTaskParamInPreTasks", async function () {
       const path = (await getPathInFile(
         "isTaskParamInPlaybook.yml",
         6,
@@ -280,7 +287,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyConfirmTaskParamInTasks", async () => {
+    it("canCorrectlyConfirmTaskParamInTasks", async function () {
       const path = (await getPathInFile(
         "isTaskParamInPlaybook.yml",
         9,
@@ -290,7 +297,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyConfirmTaskParamInBlock", async () => {
+    it("canCorrectlyConfirmTaskParamInBlock", async function () {
       const path = (await getPathInFile(
         "isTaskParamInPlaybook.yml",
         13,
@@ -301,93 +308,95 @@ describe("yaml", () => {
     });
   });
 
-  describe("isPlayParam", () => {
-    it("canCorrectlyConfirmPlayParam", async () => {
+  describe("isPlayParam", function () {
+    it("canCorrectlyConfirmPlayParam", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 1, 3)) as Node[];
       const test = isPlayParam(path, "file://test/isPlay.yml");
       expect(test).to.be.eq(true);
     });
-    it("canCorrectlyConfirmPlayParamWithoutPath", async () => {
+
+    it("canCorrectlyConfirmPlayParamWithoutPath", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 1, 3)) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyConfirmPlayParamInStrangePath", async () => {
+    it("canCorrectlyConfirmPlayParamInStrangePath", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 1, 3)) as Node[];
       const test = isPlayParam(path, "file:///roles/test/tasks/isPlay.yml");
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyNegatePlayParamInRolePathWithoutPlayKeywords", async () => {
+    it("canCorrectlyNegatePlayParamInRolePathWithoutPlayKeywords", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 7, 3)) as Node[];
       const test = isPlayParam(path, "file:///roles/test/tasks/isPlay.yml");
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegatePlayParamForNonRootSequence", async () => {
+    it("canCorrectlyNegatePlayParamForNonRootSequence", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 14, 7)) as Node[];
       const test = isPlayParam(path, "file://test/isPlay.yml");
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegatePlayParamForNonRootSequenceWithoutPath", async () => {
+    it("canCorrectlyNegatePlayParamForNonRootSequenceWithoutPath", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 14, 7)) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegatePlayParamForValue", async () => {
+    it("canCorrectlyNegatePlayParamForValue", async function () {
       const path = (await getPathInFile("isPlayParam.yml", 1, 9)) as Node[];
       const test = isPlayParam(path);
       expect(test).to.be.eq(false);
     });
   });
 
-  describe("isBlockParam", () => {
-    it("canCorrectlyConfirmBlockParam", async () => {
+  describe("isBlockParam", function () {
+    it("canCorrectlyConfirmBlockParam", async function () {
       const path = (await getPathInFile("isBlockParam.yml", 2, 3)) as Node[];
       const test = isBlockParam(path);
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyNegateBlockParam", async () => {
+    it("canCorrectlyNegateBlockParam", async function () {
       const path = (await getPathInFile("isBlockParam.yml", 5, 3)) as Node[];
       const test = isBlockParam(path);
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateBlockParamOnValue", async () => {
+    it("canCorrectlyNegateBlockParamOnValue", async function () {
       const path = (await getPathInFile("isBlockParam.yml", 2, 11)) as Node[];
       const test = isBlockParam(path);
       expect(test).to.be.eq(false);
     });
   });
 
-  describe("isRoleParam", () => {
-    it("canCorrectlyConfirmRoleParam", async () => {
+  describe("isRoleParam", function () {
+    it("canCorrectlyConfirmRoleParam", async function () {
       const path = (await getPathInFile("isRoleParam.yml", 5, 7)) as Node[];
       const test = isRoleParam(path);
       expect(test).to.be.eq(true);
     });
 
-    it("canCorrectlyNegateRoleParam", async () => {
+    it("canCorrectlyNegateRoleParam", async function () {
       const path = (await getPathInFile("isRoleParam.yml", 4, 3)) as Node[];
       const test = isRoleParam(path);
       expect(test).to.be.eq(false);
     });
 
-    it("canCorrectlyNegateRoleParamOnValue", async () => {
+    it("canCorrectlyNegateRoleParamOnValue", async function () {
       const path = (await getPathInFile("isRoleParam.yml", 5, 13)) as Node[];
       const test = isRoleParam(path);
       expect(test).to.be.eq(false);
     });
   });
 
-  describe("isCursorInsideJinjaBrackets", () => {
+  describe("isCursorInsideJinjaBrackets", function () {
     const file = "isCursorInsideJinjaBrackets.yml";
     const document = getDoc(`yaml/${file}`);
-    it("can confirm cursor within normal jinja bracket", async () => {
+
+    it("can confirm cursor within normal jinja bracket", async function () {
       const line = 5;
       const character = 26;
       const position = Position.create(line - 1, character - 1);
@@ -400,7 +409,7 @@ describe("yaml", () => {
       }
     });
 
-    it("can confirm cursor within jinja bracket in correct syntax", async () => {
+    it("can confirm cursor within jinja bracket in correct syntax", async function () {
       const line = 7;
       const character = 20;
       const position = Position.create(line - 1, character - 1);
@@ -413,7 +422,7 @@ describe("yaml", () => {
       }
     });
 
-    it("can confirm cursor within jinja bracket in case of multiple bracket pairs", async () => {
+    it("can confirm cursor within jinja bracket in case of multiple bracket pairs", async function () {
       const line = 9;
       const character = 48;
       const position = Position.create(line - 1, character - 1);
@@ -426,7 +435,7 @@ describe("yaml", () => {
       }
     });
 
-    it("can confirm cursor within jinja bracket even if text already present inside it", async () => {
+    it("can confirm cursor within jinja bracket even if text already present inside it", async function () {
       const line = 9;
       const character = 36;
       const position = Position.create(line - 1, character - 1);
@@ -439,7 +448,7 @@ describe("yaml", () => {
       }
     });
 
-    it("can negate cursor outside jinja bracket", async () => {
+    it("can negate cursor outside jinja bracket", async function () {
       const line = 9;
       const character = 21;
       const position = Position.create(line - 1, character - 1);
@@ -449,7 +458,7 @@ describe("yaml", () => {
       expect(test).to.be.eq(false);
     });
 
-    it("can negate cursor within jinja bracket in case of invalid yaml syntax", async () => {
+    it("can negate cursor within jinja bracket in case of invalid yaml syntax", async function () {
       const line = 11;
       const character = 25;
       const position = Position.create(line - 1, character - 1);

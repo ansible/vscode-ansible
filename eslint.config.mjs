@@ -11,6 +11,7 @@ import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
+import mochaPlugin from "eslint-plugin-mocha";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -18,12 +19,14 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 export default tseslint.config(
   {
     ignores: [
-      ".vscode-test/*",
-      ".yarn/*",
       "**/.vscode-test/*",
       "**/out/",
+      ".mocharc.js",
+      ".vscode-test/*",
+      ".yarn/*",
       "commitlint.config.js",
       "site/*",
+      "test/ui/.mocharc.js",
       "webviews/**",
     ],
   },
@@ -55,8 +58,10 @@ export default tseslint.config(
       // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
       // "@typescript-eslint": ts,
       tsdoc: tsdocPlugin,
+      mocha: mochaPlugin,
     },
     rules: {
+      "mocha/max-top-level-suites": ["warn", { limit: 1 }],
       eqeqeq: ["error", "smart"],
       // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",

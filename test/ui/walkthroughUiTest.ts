@@ -22,12 +22,12 @@ const openUntitledFile = async () => {
   });
 };
 
-before(async () => {
+before(async function () {
   workbench = new Workbench();
   editorView = new EditorView();
 });
 
-describe("Check walkthroughs, elements and associated commands", async () => {
+describe("Check walkthroughs, elements and associated commands", function () {
   const walkthroughs = [
     [
       "Create an Ansible environment",

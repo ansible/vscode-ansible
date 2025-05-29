@@ -7,12 +7,12 @@ import { allComponents, provideVSCodeDesignSystem } from '@vscode/webview-ui-too
 import { PlaybookGenerationResponseParams, RoleFileType, FeedbackRequestParams } from "../../../src/interfaces/lightspeed";
 import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
 
-import OutlineReview from './components/OutlineReview.vue';
-import GeneratedFileEntry from "./components/GeneratedFileEntry.vue";
+import OutlineReview from './components/lightspeed/OutlineReview.vue';
+import GeneratedFileEntry from "./components/lightspeed/GeneratedFileEntry.vue";
 import ErrorBox from './components/ErrorBox.vue';
-import PromptExampleBox from './components/PromptExampleBox.vue';
-import PromptField from './components/PromptField.vue';
-import StatusBoxPrompt from './components/StatusBoxPrompt.vue';
+import PromptExampleBox from './components/lightspeed/PromptExampleBox.vue';
+import PromptField from './components/lightspeed/PromptField.vue';
+import StatusBoxPrompt from './components/lightspeed/StatusBoxPrompt.vue';
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -111,9 +111,7 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
   <div v-else-if="page === 2">
     <StatusBoxPrompt :prompt="prompt" @restart-wizard="page = 1" />
 
-    <OutlineReview
-      :outline
-      type="playbook"
+    <OutlineReview :outline type="playbook"
       @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
 
     <div>

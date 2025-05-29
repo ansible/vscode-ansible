@@ -2,9 +2,10 @@ import { expect } from "chai";
 import path = require("path");
 import { globArray } from "../../src/utils/pathUtils";
 
-describe("docsFinder", () => {
+describe("docsFinder", function () {
   const dir = path.resolve(__dirname, "..", "fixtures", "utils", "docsFinder");
-  describe("globArray()", () => {
+
+  describe("globArray()", function () {
     const tests = [
       {
         name: "multiple patterns with '{}'",
@@ -39,7 +40,7 @@ describe("docsFinder", () => {
     ];
 
     tests.forEach(({ name, pattern, filteredFiles }) => {
-      it(`should provide file path match for ${name}`, () => {
+      it(`should provide file path match for ${name}`, function () {
         const actualResult = globArray(pattern);
         expect(actualResult).to.have.members(filteredFiles);
       });

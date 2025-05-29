@@ -15,13 +15,13 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify welcome page is displayed as expected", async () => {
+describe("Verify welcome page is displayed as expected", function () {
   let view: ViewControl;
   let sideBar: SideBarView;
   let webviewView: InstanceType<typeof WebviewView>;
   let adtSection: ViewSection;
 
-  before(async () => {
+  before(async function () {
     // Open Ansible Development Tools by clicking the Getting started button on the side bar
     view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
     sideBar = await view.openView();
@@ -97,7 +97,7 @@ describe("Verify welcome page is displayed as expected", async () => {
     await welcomePageWebView.switchBack();
   });
 
-  it("Check if start and walkthrough list section is visible", async () => {
+  it("Check if start and walkthrough list section is visible", async function () {
     const welcomePageWebView = await getWebviewByLocator(
       By.className("index-list start-container"),
     );

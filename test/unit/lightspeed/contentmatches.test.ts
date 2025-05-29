@@ -62,220 +62,228 @@ function createContentMatchesWebview(): ContentMatchesWebview {
   return cmw;
 }
 
-describe("ContentMatches view", () => {
-  it("with normal input", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams,
-    ): Promise<ContentMatchesResponseParams> => {
-      assert.equal(inputData.model, undefined);
-      return createMatchResponse();
-    };
-    const res = await cmw.requestInlineSuggestContentMatches(
-      "foo",
-      "bar",
-      false,
-    );
-    assert.equal(cmw.isError(res), false);
+describe(__filename, function () {
+  describe("ContentMatches view", function () {
+    it("with normal input", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams,
+      ): Promise<ContentMatchesResponseParams> => {
+        assert.equal(inputData.model, undefined);
+        return createMatchResponse();
+      };
+      const res = await cmw.requestInlineSuggestContentMatches(
+        "foo",
+        "bar",
+        false,
+      );
+      assert.equal(cmw.isError(res), false);
 
-    const contentMatchesResponse: ContentMatchesResponseParams =
-      res as ContentMatchesResponseParams;
-    assert.equal(
-      contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
-      "ansible.ansible",
-    );
+      const contentMatchesResponse: ContentMatchesResponseParams =
+        res as ContentMatchesResponseParams;
+      assert.equal(
+        contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
+        "ansible.ansible",
+      );
+    });
+
+    it("with normal input with isPlaybook=true", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams,
+      ): Promise<ContentMatchesResponseParams> => {
+        assert.equal(inputData.model, undefined);
+        return createMatchResponse();
+      };
+      const res = await cmw.requestInlineSuggestContentMatches(
+        "foo",
+        "bar",
+        true,
+      );
+      assert.equal(cmw.isError(res), false);
+
+      const contentMatchesResponse: ContentMatchesResponseParams =
+        res as ContentMatchesResponseParams;
+      assert.equal(
+        contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
+        "ansible.ansible",
+      );
+    });
+
+    it("with a specific model", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.settingsManager.settings.lightSpeedService.model = "the_model";
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams,
+      ): Promise<ContentMatchesResponseParams> => {
+        assert.equal(inputData.model, "the_model");
+        return createMatchResponse();
+      };
+      const res = await cmw.requestInlineSuggestContentMatches(
+        "foo",
+        "bar",
+        false,
+      );
+      assert.equal(cmw.isError(res), false);
+
+      const contentMatchesResponse: ContentMatchesResponseParams =
+        res as ContentMatchesResponseParams;
+      assert.equal(
+        contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
+        "ansible.ansible",
+      );
+    });
   });
 
-  it("with normal input with isPlaybook=true", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams,
-    ): Promise<ContentMatchesResponseParams> => {
-      assert.equal(inputData.model, undefined);
-      return createMatchResponse();
-    };
-    const res = await cmw.requestInlineSuggestContentMatches(
-      "foo",
-      "bar",
-      true,
-    );
-    assert.equal(cmw.isError(res), false);
+  describe("GetWebviewContent", function () {
+    it("no suggestion", async function () {
+      const cmw = createContentMatchesWebview();
+      const res = await cmw["getWebviewContent"]();
+      assert.match(
+        res,
+        new RegExp(
+          "Training matches will be displayed here after you accept an inline suggestion.",
+        ),
+      );
+    });
 
-    const contentMatchesResponse: ContentMatchesResponseParams =
-      res as ContentMatchesResponseParams;
-    assert.equal(
-      contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
-      "ansible.ansible",
-    );
-  });
+    it("suggestion has no matches", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.suggestionDetails = [
+        {
+          suggestion: "- name: foo\n  my.mod:\n",
+          suggestionId: "bar",
+        } as ISuggestionDetails,
+      ];
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
+      ): Promise<ContentMatchesResponseParams> => {
+        const res = createMatchResponse();
+        res.contentmatches = [];
+        return res;
+      };
+      const res = await cmw["getWebviewContent"]();
+      assert.match(res, new RegExp("No training matches found"));
+    });
 
-  it("with a specific model", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.settingsManager.settings.lightSpeedService.model = "the_model";
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams,
-    ): Promise<ContentMatchesResponseParams> => {
-      assert.equal(inputData.model, "the_model");
-      return createMatchResponse();
-    };
-    const res = await cmw.requestInlineSuggestContentMatches(
-      "foo",
-      "bar",
-      false,
-    );
-    assert.equal(cmw.isError(res), false);
+    it("suggest has invalid YAML", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.suggestionDetails = [
+        {
+          suggestion: "- name: foo\nI\n\nBROKEN\n",
+          suggestionId: "bar",
+        } as ISuggestionDetails,
+      ];
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
+      ): Promise<ContentMatchesResponseParams> => {
+        return createMatchResponse();
+      };
+      const spiedConsole = sinon.spy(cmw, "log");
+      const res = await cmw["getWebviewContent"]();
+      const console_log_calls = spiedConsole.getCalls();
+      spiedConsole.restore();
+      assert.ok(
+        console_log_calls.find((item) =>
+          String(item.firstArg).includes("YAMLParseError: Unexpected scalar"),
+        ),
+      );
+      assert.match(res, new RegExp("No training matches found"));
+    });
 
-    const contentMatchesResponse: ContentMatchesResponseParams =
-      res as ContentMatchesResponseParams;
-    assert.equal(
-      contentMatchesResponse.contentmatches[0].contentmatch[0].repo_name,
-      "ansible.ansible",
-    );
-  });
-});
+    it("suggestion with a match", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.suggestionDetails = [
+        {
+          suggestion: "- name: foo\n  my.mod:\n",
+          suggestionId: "bar",
+        } as ISuggestionDetails,
+      ];
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
+      ): Promise<ContentMatchesResponseParams> => {
+        return createMatchResponse();
+      };
 
-describe("GetWebviewContent", () => {
-  it("no suggestion", async function () {
-    const cmw = createContentMatchesWebview();
-    const res = await cmw["getWebviewContent"]();
-    assert.match(
-      res,
-      new RegExp(
-        "Training matches will be displayed here after you accept an inline suggestion.",
-      ),
-    );
-  });
+      const res = await cmw["getWebviewContent"]();
+      assert.match(res, new RegExp("<summary>ansible.ansible</summary>"));
+      assert.match(res, new RegExp("<li>License:.*</li>"));
+    });
 
-  it("suggestion has no matches", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.suggestionDetails = [
-      {
-        suggestion: "- name: foo\n  my.mod:\n",
-        suggestionId: "bar",
-      } as ISuggestionDetails,
-    ];
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<ContentMatchesResponseParams> => {
-      const res = createMatchResponse();
-      res.contentmatches = [];
-      return res;
-    };
-    const res = await cmw["getWebviewContent"]();
-    assert.match(res, new RegExp("No training matches found"));
-  });
+    it("no suggestion with error - string", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.suggestionDetails = [
+        {
+          suggestion: "- name: foo\n  my.mod:\n",
+          suggestionId: "bar",
+        } as ISuggestionDetails,
+      ];
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
+      ): Promise<IError> => {
+        return createMatchErrorResponse("Something went wrong");
+      };
 
-  it("suggest has invalid YAML", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.suggestionDetails = [
-      {
-        suggestion: "- name: foo\nI\n\nBROKEN\n",
-        suggestionId: "bar",
-      } as ISuggestionDetails,
-    ];
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<ContentMatchesResponseParams> => {
-      return createMatchResponse();
-    };
-    const spiedConsole = sinon.spy(cmw, "log");
-    const res = await cmw["getWebviewContent"]();
-    const console_log_calls = spiedConsole.getCalls();
-    spiedConsole.restore();
-    assert.ok(
-      console_log_calls.find((item) =>
-        String(item.firstArg).includes("YAMLParseError: Unexpected scalar"),
-      ),
-    );
-    assert.match(res, new RegExp("No training matches found"));
-  });
+      const res = await cmw["getWebviewContent"]();
+      assert.match(
+        res,
+        new RegExp(
+          "An error occurred trying to retrieve the training matches.",
+        ),
+      );
+      assert.match(res, new RegExp("An error occurred"));
+      assert.match(res, new RegExp("Something went wrong"));
+    });
 
-  it("suggestion with a match", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.suggestionDetails = [
-      {
-        suggestion: "- name: foo\n  my.mod:\n",
-        suggestionId: "bar",
-      } as ISuggestionDetails,
-    ];
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<ContentMatchesResponseParams> => {
-      return createMatchResponse();
-    };
+    it("no suggestion with error - object", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.suggestionDetails = [
+        {
+          suggestion: "- name: foo\n  my.mod:\n",
+          suggestionId: "bar",
+        } as ISuggestionDetails,
+      ];
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
+      ): Promise<IError> => {
+        return createMatchErrorResponse({ cheese: "edam" });
+      };
 
-    const res = await cmw["getWebviewContent"]();
-    assert.match(res, new RegExp("<summary>ansible.ansible</summary>"));
-    assert.match(res, new RegExp("<li>License:.*</li>"));
-  });
+      const res = await cmw["getWebviewContent"]();
+      assert.match(
+        res,
+        new RegExp(
+          "An error occurred trying to retrieve the training matches.",
+        ),
+      );
+      assert.match(res, new RegExp("An error occurred"));
+      // eslint-disable-next-line no-control-regex
+      assert.match(res, new RegExp('{\n {2}"cheese": "edam"\n}'));
+    });
 
-  it("no suggestion with error - string", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.suggestionDetails = [
-      {
-        suggestion: "- name: foo\n  my.mod:\n",
-        suggestionId: "bar",
-      } as ISuggestionDetails,
-    ];
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<IError> => {
-      return createMatchErrorResponse("Something went wrong");
-    };
+    it("no suggestion with error - undefined", async function () {
+      const cmw = createContentMatchesWebview();
+      cmw.suggestionDetails = [
+        {
+          suggestion: "- name: foo\n  my.mod:\n",
+          suggestionId: "bar",
+        } as ISuggestionDetails,
+      ];
+      cmw.apiInstance.contentMatchesRequest = async (
+        inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
+      ): Promise<IError> => {
+        return createMatchErrorResponse(undefined);
+      };
 
-    const res = await cmw["getWebviewContent"]();
-    assert.match(
-      res,
-      new RegExp("An error occurred trying to retrieve the training matches."),
-    );
-    assert.match(res, new RegExp("An error occurred"));
-    assert.match(res, new RegExp("Something went wrong"));
-  });
-
-  it("no suggestion with error - object", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.suggestionDetails = [
-      {
-        suggestion: "- name: foo\n  my.mod:\n",
-        suggestionId: "bar",
-      } as ISuggestionDetails,
-    ];
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<IError> => {
-      return createMatchErrorResponse({ cheese: "edam" });
-    };
-
-    const res = await cmw["getWebviewContent"]();
-    assert.match(
-      res,
-      new RegExp("An error occurred trying to retrieve the training matches."),
-    );
-    assert.match(res, new RegExp("An error occurred"));
-    // eslint-disable-next-line no-control-regex
-    assert.match(res, new RegExp('{\n {2}"cheese": "edam"\n}'));
-  });
-
-  it("no suggestion with error - undefined", async function () {
-    const cmw = createContentMatchesWebview();
-    cmw.suggestionDetails = [
-      {
-        suggestion: "- name: foo\n  my.mod:\n",
-        suggestionId: "bar",
-      } as ISuggestionDetails,
-    ];
-    cmw.apiInstance.contentMatchesRequest = async (
-      inputData: ContentMatchesRequestParams, // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): Promise<IError> => {
-      return createMatchErrorResponse(undefined);
-    };
-
-    const res = await cmw["getWebviewContent"]();
-    assert.match(
-      res,
-      new RegExp("An error occurred trying to retrieve the training matches."),
-    );
-    assert.doesNotMatch(res, new RegExp("<details>"));
-    assert.doesNotMatch(res, new RegExp("undefined"));
+      const res = await cmw["getWebviewContent"]();
+      assert.match(
+        res,
+        new RegExp(
+          "An error occurred trying to retrieve the training matches.",
+        ),
+      );
+      assert.doesNotMatch(res, new RegExp("<details>"));
+      assert.doesNotMatch(res, new RegExp("undefined"));
+    });
   });
 });

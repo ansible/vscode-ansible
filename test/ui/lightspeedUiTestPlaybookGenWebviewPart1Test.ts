@@ -27,7 +27,7 @@ describe("Verify playbook generation features work as expected", function () {
     }
   });
 
-  before(async () => {
+  before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }

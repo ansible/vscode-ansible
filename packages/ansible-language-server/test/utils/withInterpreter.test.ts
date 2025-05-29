@@ -10,7 +10,8 @@ interface testType {
   expectedCommand: string;
   expectedEnv: { [name: string]: string };
 }
-describe("withInterpreter", () => {
+
+describe("withInterpreter", function () {
   const tests: testType[] = [
     {
       scenario: "when activation script is provided",
@@ -64,7 +65,7 @@ describe("withInterpreter", () => {
       expectedCommand,
       expectedEnv,
     }) => {
-      it(`should provide command ${scenario}`, () => {
+      it(`should provide command ${scenario}`, function () {
         const actualCommand = withInterpreter(
           executable,
           args,

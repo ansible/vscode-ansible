@@ -74,7 +74,7 @@ function getExecutionEnvironmentTestInfo() {
 }
 
 function testCommands() {
-  describe("Verify the working of command executions", () => {
+  describe("Verify the working of command executions", function () {
     const tests = [
       {
         args: ["ansible", "--version"],
@@ -107,7 +107,7 @@ function testCommands() {
   });
 }
 
-describe("getAnsibleMetaData()", () => {
+describe("getAnsibleMetaData()", function () {
   const workspaceManager = createTestWorkspaceManager();
   const fixtureFilePath = "utils/getAnsibleMetaData/plays.yml";
   const fixtureFileUri = resolveDocUri(fixtureFilePath);
@@ -122,8 +122,8 @@ describe("getAnsibleMetaData()", () => {
   let ansibleLintInfoForTest: ansibleMetaDataEntryType = {};
   let executionEnvironmentInfoForTest: ansibleMetaDataEntryType = {};
 
-  describe("With EE disabled", () => {
-    before(async () => {
+  describe("With EE disabled", function () {
+    before(async function () {
       if (context !== undefined) {
         actualAnsibleMetaData = await getAnsibleMetaData(context, undefined);
       }
@@ -132,7 +132,7 @@ describe("getAnsibleMetaData()", () => {
       ansibleLintInfoForTest = getAnsibleLintTestInfo();
     });
 
-    describe("Verify ansible details", () => {
+    describe("Verify ansible details", function () {
       it("should contain all the keys for ansible information", function () {
         if (actualAnsibleMetaData["ansible information"]) {
           expect(Object.keys(ansibleInfoForTest).length).equals(
@@ -202,7 +202,7 @@ describe("getAnsibleMetaData()", () => {
       });
     });
 
-    describe("Verify python details", () => {
+    describe("Verify python details", function () {
       it("should contain all the keys for python information", function () {
         if (actualAnsibleMetaData["python information"]) {
           expect(Object.keys(pythonInfoForTest).length).equals(
@@ -212,6 +212,7 @@ describe("getAnsibleMetaData()", () => {
           expect(false);
         }
       });
+
       it("should have information about python version used", function () {
         if (actualAnsibleMetaData["python information"]) {
           expect(
@@ -233,7 +234,7 @@ describe("getAnsibleMetaData()", () => {
       });
     });
 
-    describe("Verify ansible-lint details", () => {
+    describe("Verify ansible-lint details", function () {
       it("should contain all the keys for ansible-lint information", function () {
         expect(actualAnsibleMetaData["ansible-lint information"]);
         if (actualAnsibleMetaData["ansible-lint information"]) {
@@ -260,6 +261,7 @@ describe("getAnsibleMetaData()", () => {
           );
         }
       });
+
       it("should have information about ansible-lint version used", function () {
         if (actualAnsibleMetaData["ansible-lint information"]) {
           expect(
@@ -281,7 +283,7 @@ describe("getAnsibleMetaData()", () => {
       });
     });
 
-    describe("Verify the absence of execution environment details", () => {
+    describe("Verify the absence of execution environment details", function () {
       it("should not contain execution environment details", function () {
         expect(actualAnsibleMetaData["execution environment information"]).to.be
           .undefined;
@@ -291,8 +293,8 @@ describe("getAnsibleMetaData()", () => {
     testCommands();
   });
 
-  describe("With EE enabled @ee", () => {
-    before(async () => {
+  describe("With EE enabled @ee", function () {
+    before(async function () {
       if (docSettings) {
         await enableExecutionEnvironmentSettings(docSettings);
       }
@@ -306,7 +308,7 @@ describe("getAnsibleMetaData()", () => {
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
     });
 
-    describe("Verify the presence of execution environment details", () => {
+    describe("Verify the presence of execution environment details", function () {
       it("should have a valid container engine", function () {
         if (actualAnsibleMetaData["execution environment information"]) {
           expect(
@@ -333,7 +335,7 @@ describe("getAnsibleMetaData()", () => {
         }
       });
 
-      after(async () => {
+      after(async function () {
         if (docSettings) {
           await disableExecutionEnvironmentSettings(docSettings);
         }

@@ -9,16 +9,16 @@ import {
 } from "../../helper";
 
 export function testDiagnosticsAnsibleWithoutEE(): void {
-  describe("TEST FOR ANSIBLE DIAGNOSTICS WITHOUT EE", () => {
+  describe("TEST FOR ANSIBLE DIAGNOSTICS WITHOUT EE", function () {
     const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
     const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
 
-    before(async () => {
+    before(async function () {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     });
 
-    describe("Diagnostic test with ansible-lint", () => {
-      it("should complain about no task names", async () => {
+    describe("Diagnostic test with ansible-lint", function () {
+      it("should complain about no task names", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
@@ -56,15 +56,15 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       });
     });
 
-    describe("Diagnostic test with ansible-syntax-check", () => {
-      before(async () => {
+    describe("Diagnostic test with ansible-syntax-check", function () {
+      before(async function () {
         await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
       });
 
-      after(async () => {
+      after(async function () {
         await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
       });
 
@@ -96,15 +96,15 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       });
     });
 
-    describe("Diagnostic test for no diagnostics", () => {
-      before(async () => {
+    describe("Diagnostic test for no diagnostics", function () {
+      before(async function () {
         await updateSettings("validation.enabled", false);
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
       });
 
-      after(async () => {
+      after(async function () {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
       });
 

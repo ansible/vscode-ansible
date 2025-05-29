@@ -8,13 +8,13 @@ import { FeedbackRequestParams, RoleGenerationResponseParams } from "../../../sr
 import { WizardGenerationActionType } from '../../../src/definitions/lightspeed';
 
 import SavedFiles from "./components/SavedFiles.vue";
-import StatusBoxPrompt from './components/StatusBoxPrompt.vue';
-import OutlineReview from './components/OutlineReview.vue';
-import GeneratedFileEntry from './components/GeneratedFileEntry.vue';
+import StatusBoxPrompt from './components/lightspeed/StatusBoxPrompt.vue';
+import OutlineReview from './components/lightspeed/OutlineReview.vue';
+import GeneratedFileEntry from './components/lightspeed/GeneratedFileEntry.vue';
 import CollectionSelector from "./components/CollectionSelector.vue";
 import ErrorBox from './components/ErrorBox.vue';
-import PromptExampleBox from './components/PromptExampleBox.vue';
-import PromptField from './components/PromptField.vue';
+import PromptExampleBox from './components/lightspeed/PromptExampleBox.vue';
+import PromptField from './components/lightspeed/PromptField.vue';
 
 provideVSCodeDesignSystem().register(allComponents);
 
@@ -128,9 +128,7 @@ sendActionEvent(WizardGenerationActionType.OPEN, undefined, 1);
       Role name: <vscode-textfield v-model="roleName" />
     </div>
 
-    <OutlineReview
-      :outline
-      type="role"
+    <OutlineReview :outline type="role"
       @outline-update="(newOutline: string) => { console.log(`new outline: ${newOutline}`); outline = newOutline; }" />
 
     <div>
