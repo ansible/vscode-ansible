@@ -53,6 +53,7 @@ ajinkyau
 akira
 alefragnani
 alphanums
+autofetch
 als
 ansible
 ansiblefest
@@ -87,6 +88,7 @@ commitlint
 compat
 contentmatch
 contentmatches
+coreutils
 copyfiles
 corepack
 customizer
@@ -244,6 +246,7 @@ seccomp
 tamasfe
 taskfile
 tasklist
+tekton
 testenv
 testhost
 testorg
@@ -283,12 +286,14 @@ vsix
 vyos
 watsonx
 webknjaz
+webp
 webpacked
 whereis
 whitespaces
 withserver
 wordwrap
 workdir
+xunit
 xvfb
 yaegassy
 yammlint
