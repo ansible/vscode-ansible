@@ -91,7 +91,7 @@ describe("getDefinition()", function () {
   const docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Module name definitions", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -113,7 +113,7 @@ describe("getDefinition()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {

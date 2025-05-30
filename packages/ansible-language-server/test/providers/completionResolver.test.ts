@@ -222,7 +222,7 @@ describe("doCompletionResolve()", function () {
 
     describe("Resolve completion for module names", function () {
       describe("Resolve completion for module names when FQCN is enabled", function () {
-        describe("with EE enabled @ee", function () {
+        describe("@ee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -237,7 +237,7 @@ describe("doCompletionResolve()", function () {
           });
         });
 
-        describe("with EE disabled", function () {
+        describe("@noee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
@@ -247,7 +247,7 @@ describe("doCompletionResolve()", function () {
       });
 
       describe("Resolve completion for module names when FQCN is disabled", function () {
-        describe("with EE enabled @ee", function () {
+        describe("@ee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -265,7 +265,7 @@ describe("doCompletionResolve()", function () {
           });
         });
 
-        describe("with EE disabled", function () {
+        describe("@noee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
@@ -283,7 +283,7 @@ describe("doCompletionResolve()", function () {
     });
 
     describe("Resolve completion for module options and suboptions", function () {
-      describe("with EE enabled @ee", function () {
+      describe("@ee", function () {
         before(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -299,7 +299,7 @@ describe("doCompletionResolve()", function () {
         });
       });
 
-      describe("with EE disabled", function () {
+      describe("@noee", function () {
         before(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);

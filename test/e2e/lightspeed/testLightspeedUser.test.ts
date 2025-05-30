@@ -12,7 +12,7 @@ import sinon from "sinon";
 import { lightSpeedManager } from "../../../src/extension";
 
 function testIsSupportedCallback() {
-  describe("Test lightSpeedOAuthProvider.isSupportedCallback", function () {
+  describe("lightSpeedOAuthProvider.isSupportedCallback", function () {
     it("Returns true for vscode://redhat.ansible", function () {
       assert.isTrue(
         isSupportedCallback(vscode.Uri.parse("vscode://redhat.ansible")),
@@ -34,7 +34,7 @@ function testIsSupportedCallback() {
 }
 
 function testIsLightspeedUserAuthProviderType() {
-  describe("Test LightspeedUser.isLightspeedUserAuthProviderType", function () {
+  describe("LightspeedUser.isLightspeedUserAuthProviderType", function () {
     it("Returns true for auth-lightspeed", function () {
       assert.isTrue(
         LightspeedUser.isLightspeedUserAuthProviderType("auth-lightspeed"),
@@ -54,7 +54,7 @@ function testIsLightspeedUserAuthProviderType() {
 }
 
 function testGetUserInfo() {
-  describe("Test LightspeedUser.getUserInfo", function () {
+  describe("LightspeedUser.getUserInfo", function () {
     it("Returns /me endpoint results with valid access token", async function () {
       const accessToken =
         (await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserAccessToken()) as string;
@@ -69,7 +69,7 @@ function testGetUserInfo() {
 }
 
 function testGetUserInfoFromMarkdown() {
-  describe("Test LightspeedUser.getUserInfoFromMarkdown", function () {
+  describe("LightspeedUser.getUserInfoFromMarkdown", function () {
     it("Returns /me/summary endpoint results with valid access token", async function () {
       const accessToken =
         (await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserAccessToken()) as string;
@@ -84,7 +84,7 @@ function testGetUserInfoFromMarkdown() {
 }
 
 function testGetMarkdownLightspeedUserDetails() {
-  describe("test LightspeedUser.getMarkdownLightspeedUserDetails", function () {
+  describe("LightspeedUser.getMarkdownLightspeedUserDetails", function () {
     it("Returns formatted content from /me/summary endpoint", async function () {
       const markdownUserDetails =
         await lightSpeedManager.lightspeedAuthenticatedUser.getMarkdownLightspeedUserDetails(
@@ -97,7 +97,7 @@ function testGetMarkdownLightspeedUserDetails() {
 }
 
 function testGetLightspeedUserContent() {
-  describe("test LightspeedUser.getLightspeedUserContent", function () {
+  describe("LightspeedUser.getLightspeedUserContent", function () {
     it("Returns proper HTML markdown based on whether /me/summary is available", async function () {
       const content =
         await lightSpeedManager.lightspeedAuthenticatedUser.getLightspeedUserContent();
@@ -107,7 +107,7 @@ function testGetLightspeedUserContent() {
 }
 
 function testGetAuthProviderOrder() {
-  describe("Test LightspeedUser.getAuthProviderOrder", function () {
+  describe("LightspeedUser.getAuthProviderOrder", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rhAuthExtension: vscode.Extension<any> = {
       id: "redhat.vscode-redhat-account",
@@ -172,7 +172,7 @@ function testGetAuthProviderOrder() {
 }
 
 function testRedHatSignInCommand() {
-  describe("Test Red Hat Sign-In with Red Hat auth extension installed", function () {
+  describe("Red Hat Sign-In with Red Hat auth extension installed", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rhAuthExtension: vscode.Extension<any> = {
       id: "redhat.vscode-redhat-account",
@@ -240,7 +240,7 @@ function testRedHatSignInCommand() {
     });
   });
 
-  describe("Test Red Hat Sign-In with Red Hat auth extension not installed", function () {
+  describe("Red Hat Sign-In with Red Hat auth extension not installed", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let showErrorMessageStub: any;
     let getExtensionStub: sinon.SinonStub;

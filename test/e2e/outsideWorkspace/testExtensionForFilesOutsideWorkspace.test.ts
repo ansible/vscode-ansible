@@ -11,7 +11,7 @@ import { expect } from "chai";
 import { integer } from "vscode-languageclient";
 
 export function testExtensionForFilesOutsideWorkspace() {
-  describe("Test language services for a playbook that is present outside a workspace", function () {
+  describe("language services for a playbook that is present outside a workspace", function () {
     const playbook = "outside_workspace_playbook.yml";
     const docUri = Uri.parse(getDocUriOutsideWorkspace(playbook));
 
@@ -26,7 +26,7 @@ export function testExtensionForFilesOutsideWorkspace() {
       expect(workspaceFolder).to.be.undefined;
     });
 
-    describe("Test hover functionality", function () {
+    describe("hover functionality", function () {
       it("should hover over `name` keyword", async function () {
         await testHover(docUri, new Position(0, 4), [
           {
@@ -46,7 +46,7 @@ export function testExtensionForFilesOutsideWorkspace() {
       });
     });
 
-    describe("Test diagnostics functionality", function () {
+    describe("diagnostics functionality", function () {
       it("should complain about no task names", async function () {
         await commands.executeCommand("workbench.action.files.save");
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
