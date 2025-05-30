@@ -206,7 +206,6 @@ function updatePromptHistory(context: ExtensionContext, new_prompt: string) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class WebviewHelper {
   public static setupHtml(
     webview: Webview,
@@ -292,6 +291,20 @@ export class WebviewHelper {
             payload = message.payload as AnsibleProjectFormInterface;
             const webviewHelper = new WebviewHelper();
             await webviewHelper.runInitCommand(payload, webview);
+            return;
+          }
+          case "init-copy-logs": {
+            payload = message.payload;
+            vscode.env.clipboard.writeText(payload.initExecutionLogs);
+            await vscode.window.showInformationMessage(
+              "Logs copied to clipboard",
+            );
+            return;
+          }
+          case "init-open-log-file": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.openLogFile(payload.logFileUrl);
             return;
           }
           case "explanationThumbsUp": {
@@ -544,39 +557,82 @@ export class WebviewHelper {
     } = payload;
 
     const destinationPathUrl = destinationPath ? destinationPath : os.homedir();
-
+    console.log("payload", payload, payload.destinationPath);
+    console.log(
+      `[ansible-creator] destinationPathUrl:  ${destinationPathUrl} ${destinationPath}`,
+    );
     let ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
       namespaceName,
       collectionName,
       destinationPathUrl,
     );
-
+    console.log(
+      `[ansible-creator] ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+    );
     const creatorVersion = await getCreatorVersion();
     const exceedMinVersion = semver.gte(
       creatorVersion,
       ANSIBLE_CREATOR_VERSION_MIN,
     );
-
+    console.log(
+      `[ansible-creator] creatorVersion: ${creatorVersion}, exceedMinVersion: ${exceedMinVersion}`,
+    );
     if (exceedMinVersion && isOverwritten) {
+      console.log(
+        "[ansible-creator] Using --overwrite flag for ansible-creator init command",
+      );
       ansibleCreatorInitCommand += " --overwrite";
     } else if (!exceedMinVersion && isOverwritten) {
+      console.log(
+        "[ansible-creator] Using --force flag for ansible-creator init command",
+      );
       ansibleCreatorInitCommand += " --force";
     } else if (exceedMinVersion && !isOverwritten) {
+      console.log(
+        `[ansible-creator] overwite-no ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+      );
       ansibleCreatorInitCommand += " --no-overwrite";
+      console.log(
+        `[ansible-creator] overwite-no after ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+      );
     }
 
     switch (verbosity) {
       case "Off":
+        console.log(
+          `[ansible-creator] off ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         ansibleCreatorInitCommand += "";
+        console.log(
+          `[ansible-creator] off ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         break;
       case "Low":
+        console.log(
+          `[ansible-creator] Low ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         ansibleCreatorInitCommand += " -v";
+        console.log(
+          `[ansible-creator] Low ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         break;
       case "Medium":
+        console.log(
+          `[ansible-creator] Medium ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         ansibleCreatorInitCommand += " -vv";
+        console.log(
+          `[ansible-creator] Medium ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         break;
       case "High":
+        console.log(
+          `[ansible-creator] -vvv ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         ansibleCreatorInitCommand += " -vvv";
+        console.log(
+          `[ansible-creator] -vvv ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
+        );
         break;
     }
 
@@ -588,14 +644,22 @@ export class WebviewHelper {
       } else {
         logFilePathUrl = `${os.tmpdir()}/ansible-creator.log`;
       }
-
+      console.log(
+        `[ansible-creator] logFilePathUrl: ${logFilePathUrl} (logToFile: ${logToFile})`,
+      );
       ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
 
       ansibleCreatorInitCommand += ` --ll=${logLevel.toLowerCase()}`;
 
       if (logFileAppend) {
+        console.log(
+          `[ansible-creator] logFileAppend: ${ansibleCreatorInitCommand} (logToFile: ${logToFile})`,
+        );
         ansibleCreatorInitCommand += ` --la=true`;
       } else {
+        console.log(
+          `[ansible-creator] else: ${ansibleCreatorInitCommand} (logToFile: ${logToFile})`,
+        );
         ansibleCreatorInitCommand += ` --la=false`;
       }
     }
@@ -643,5 +707,18 @@ export class WebviewHelper {
       command = `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
     }
     return command;
+  }
+  public async openLogFile(fileUrl: string) {
+    const logFileUrl = vscode.Uri.file(expandPath(fileUrl)).fsPath;
+    console.log(`[ansible-creator] New Log file url: ${logFileUrl}`);
+    const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
+    console.log(`[ansible-creator] Parsed log file url: ${parsedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
+  }
+  public openFileInEditor(fileUrl: string) {
+    const updatedUrl = expandPath(fileUrl);
+    console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
+
+    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 }

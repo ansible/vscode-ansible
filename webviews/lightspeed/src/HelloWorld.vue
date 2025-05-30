@@ -47,29 +47,52 @@ onMounted(() => {
       homeDir.value = message.homedir;
       defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
     }
+    else if (message.type === 'logs') {
+    logs.value += message.data + '\n';
+  }
   });
 
   vscodeApi.postMessage({ type: 'ui-mounted' });
 });
 
+function clearLogs() {
+  logs.value = "";
+}
+
+function copyLogs() {
+  vscodeApi.postMessage({
+    type: "init-copy-logs",
+    payload: {
+      initExecutionLogs: logs.value,
+    }
+  });
+}
+function openLogFile() {
+  if (logFileUrl.value) {
+    vscodeApi.postMessage({
+      type: 'openLogFile',
+      payload: {
+        logFileUrl: logFileUrl.value,
+      },
+    });
+  }
+}
+
+
 function handleCreate() {
   const payload = {
-    type: 'initCollectionCreate',
-    data: {
-      namespace: namespace.value,
+      destinationPath: initPath.value,  // ✅ This matches what backend expects
+      namespaceName: namespace.value,   // ✅ Also rename to match backend
       collectionName: collectionName.value,
-      initPath: initPath.value,
       verbosity: verbosity.value,
       logToFile: logToFile.value,
       logFileAppend: logFileAppend.value,
-      isOverwritten: isOverwritten.value,
       isEditableModeInstall: isEditableModeInstall.value,
       logFilePath: logFilePath.value || defaultLogFilePath.value,
       logLevel: logLevel.value,
-    },
   };
-
-  vscodeApi.postMessage(payload);
+  console.log("Payload for create:", payload);
+  vscodeApi.postMessage({ type: "init-create", payload });
 }
 
 async function onClear() {
@@ -137,16 +160,16 @@ async function onClear() {
                     <vscode-label for="verbosity-dropdown">
                       <span class="normal">Output Verbosity</span>
                     </vscode-label>
-                    <vscode-single-select id="verbosity-dropdown" position="below">
-                      <vscode-option>Off</vscode-option>
-                      <vscode-option>Low</vscode-option>
-                      <vscode-option>Medium</vscode-option>
-                      <vscode-option>High</vscode-option>
+                    <vscode-single-select id="verbosity-dropdown" position="below" v-model="verbosity">
+                      <vscode-option value="off">Off</vscode-option>
+                      <vscode-option value="low">Low</vscode-option>
+                      <vscode-option value="medium">Medium</vscode-option>
+                      <vscode-option value="high">High</vscode-option>
                     </vscode-single-select>
                   </div>
                 </div>
                 <div class="checkbox-div">
-                    <vscode-checkbox id="log-to-file-checkbox" form="init-form">Log output to a file <br><i>Default path: {{defaultLogFilePath}}</i></vscode-checkbox>
+                    <vscode-checkbox id="log-to-file-checkbox" v-model="logToFile" form="init-form">Log output to a file <br><i>Default path: {{defaultLogFilePath}}</i></vscode-checkbox>
                 </div>
                 <div id="log-to-file-options-div">
                   <vscode-form-group variant="vertical">
@@ -165,26 +188,26 @@ async function onClear() {
                     </vscode-textfield>
                   </vscode-form-group>
 
-                  <vscode-checkbox id="log-file-append-checkbox" form="init-form">Append</vscode-checkbox>
+                  <vscode-checkbox id="log-file-append-checkbox" v-model="logFileAppend" form="init-form">Append</vscode-checkbox>
 
                   <div class="log-level-div">
                     <div class="dropdown-container">
                       <vscode-label for="log-level-dropdown">
                         <span class="normal">Log level</span>
                       </vscode-label>
-                      <vscode-single-select id="log-level-dropdown" position="below">
-                        <vscode-option>Debug</vscode-option>
-                        <vscode-option>Info</vscode-option>
-                        <vscode-option>Warning</vscode-option>
-                        <vscode-option>Error</vscode-option>
-                        <vscode-option>Critical</vscode-option>
+                      <vscode-single-select id="log-level-dropdown" position="below" v-model="logLevel">
+                        <vscode-option value="debug">Debug</vscode-option>
+                        <vscode-option value="info">Info</vscode-option>
+                        <vscode-option value="warning">Warning</vscode-option>
+                        <vscode-option value="error">Error</vscode-option>
+                        <vscode-option value="critical">Critical</vscode-option>
                       </vscode-single-select>
                     </div>
                   </div>
 
                 </div>
                 <div class="checkbox-div">
-                  <vscode-checkbox id="overwrite-checkbox" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible project.</i></vscode-checkbox>
+                  <vscode-checkbox id="overwrite-checkbox" v-model="isOverwritten" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible project.</i></vscode-checkbox>
                 </div>
 
                 <div class="group-buttons">
@@ -204,15 +227,22 @@ async function onClear() {
                   <span class="normal">Logs</span>
                 </vscode-label>
 
-                <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
-                  resize="vertical" readonly></vscode-textarea>
+                <vscode-textarea
+                  id="log-text-area"
+                  cols="90"
+                  rows="10"
+                  placeholder="Output of the command execution"
+                  resize="vertical"
+                  readonly
+                  :value="logs"
+                />
 
                 <div class="group-buttons">
-                  <vscode-button id="clear-logs-button" form="init-form" secondary>
+                  <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="clearLogs">
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
-                  <vscode-button id="copy-logs-button" form="init-form" secondary>
+                  <vscode-button id="copy-logs-button" form="init-form" secondary @click.prevent="copyLogs">
                     <span class="codicon codicon-copy"></span>
                     &nbsp; Copy Logs
                   </vscode-button>
