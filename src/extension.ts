@@ -84,6 +84,7 @@ import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnviron
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
+import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorldPanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
@@ -574,6 +575,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.create-ansible-project",
       () => {
         CreateAnsibleProject.render(context.extensionUri);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-ansible-project-vue",
+      () => {
+        HelloWorldPanel.render(context);
       },
     ),
   );

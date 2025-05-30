@@ -1,7 +1,20 @@
 import type { Disposable, ExtensionContext, Webview } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
-
+import * as os from "os";
+import {
+  AnsibleProjectFormInterface,
+  PostMessageEvent,
+} from "../../../contentCreator/types";
+import * as vscode from "vscode";
+import {
+  expandPath,
+  getCreatorVersion,
+  runCommand,
+} from "../../../contentCreator/utils";
+import { withInterpreter } from "../../../utils/commandRunner";
+import { SettingsManager } from "../../../../settings";
+import { ANSIBLE_CREATOR_VERSION_MIN } from "../../../../definitions/constants";
 import {
   Uri,
   workspace,
@@ -10,6 +23,8 @@ import {
   window,
   commands,
 } from "vscode";
+import { TextEncoder } from "util";
+import * as semver from "semver";
 import { LightSpeedAPI } from "../../api";
 import { IError, isError, UNKNOWN_ERROR } from "../../utils/errors";
 import {
@@ -225,7 +240,60 @@ export class WebviewHelper {
       async (message: any) => {
         const type = message.type;
         const data = message.data;
+        let payload;
+        console.log("`Webview message received:'");
         switch (type) {
+          case "getHomeDirectory": {
+            webview.postMessage({
+              type: "homeDirectory",
+              data: os.homedir(),
+            });
+            return data;
+          }
+          case "openFolderExplorer": {
+            const uri = await window.showOpenDialog({
+              canSelectFolders: true,
+              canSelectFiles: false,
+              openLabel: "Select folder",
+            });
+
+            if (uri && uri[0]) {
+              webview.postMessage({
+                type: "folderSelected",
+                data: uri[0].fsPath,
+              });
+            }
+            break;
+          }
+          case "openFileExplorer": {
+            const uri = await window.showOpenDialog({
+              canSelectFolders: false,
+              canSelectFiles: true,
+              openLabel: "Select file",
+            });
+
+            if (uri && uri[0]) {
+              webview.postMessage({
+                type: "fileSelected",
+                data: uri[0].fsPath,
+              });
+            }
+            break;
+          }
+          case "ui-mounted": {
+            webview.postMessage({
+              command: "homedirAndTempdir",
+              homedir: os.homedir(),
+              tempdir: os.tmpdir(),
+            });
+            return;
+          }
+          case "init-create": {
+            payload = message.payload as AnsibleProjectFormInterface;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.runInitCommand(payload, webview);
+            return;
+          }
           case "explanationThumbsUp": {
             thumbsUpDown(ThumbsUpDownAction.UP, data.explanationId);
             return;
@@ -457,5 +525,123 @@ export class WebviewHelper {
       undefined,
       disposables,
     );
+  }
+
+  public async runInitCommand(
+    payload: AnsibleProjectFormInterface,
+    webView: vscode.Webview,
+  ) {
+    const {
+      destinationPath,
+      namespaceName,
+      collectionName,
+      logToFile,
+      logFilePath,
+      logFileAppend,
+      logLevel,
+      verbosity,
+      isOverwritten,
+    } = payload;
+
+    const destinationPathUrl = destinationPath ? destinationPath : os.homedir();
+
+    let ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
+      namespaceName,
+      collectionName,
+      destinationPathUrl,
+    );
+
+    const creatorVersion = await getCreatorVersion();
+    const exceedMinVersion = semver.gte(
+      creatorVersion,
+      ANSIBLE_CREATOR_VERSION_MIN,
+    );
+
+    if (exceedMinVersion && isOverwritten) {
+      ansibleCreatorInitCommand += " --overwrite";
+    } else if (!exceedMinVersion && isOverwritten) {
+      ansibleCreatorInitCommand += " --force";
+    } else if (exceedMinVersion && !isOverwritten) {
+      ansibleCreatorInitCommand += " --no-overwrite";
+    }
+
+    switch (verbosity) {
+      case "Off":
+        ansibleCreatorInitCommand += "";
+        break;
+      case "Low":
+        ansibleCreatorInitCommand += " -v";
+        break;
+      case "Medium":
+        ansibleCreatorInitCommand += " -vv";
+        break;
+      case "High":
+        ansibleCreatorInitCommand += " -vvv";
+        break;
+    }
+
+    let logFilePathUrl = "";
+
+    if (logToFile) {
+      if (logFilePath) {
+        logFilePathUrl = logFilePath;
+      } else {
+        logFilePathUrl = `${os.tmpdir()}/ansible-creator.log`;
+      }
+
+      ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
+
+      ansibleCreatorInitCommand += ` --ll=${logLevel.toLowerCase()}`;
+
+      if (logFileAppend) {
+        ansibleCreatorInitCommand += ` --la=true`;
+      } else {
+        ansibleCreatorInitCommand += ` --la=false`;
+      }
+    }
+
+    console.debug("[ansible-creator] command: ", ansibleCreatorInitCommand);
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command, env } = withInterpreter(
+      extSettings.settings,
+      ansibleCreatorInitCommand,
+      "",
+    );
+
+    let commandOutput = "";
+
+    // execute ansible-creator command
+    const ansibleCreatorExecutionResult = await runCommand(command, env);
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    commandOutput += ansibleCreatorExecutionResult.output;
+    const commandPassed = ansibleCreatorExecutionResult.status;
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        logFileUrl: logFilePathUrl,
+        projectUrl: destinationPathUrl,
+        status: commandPassed,
+      },
+    } as PostMessageEvent);
+  }
+  public async getPlaybookCreatorCommand(
+    namespace: string,
+    collection: string,
+    url: string,
+  ): Promise<string> {
+    let command = "";
+    const creatorVersion = await getCreatorVersion();
+
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+      command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
+    } else {
+      command = `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
+    }
+    return command;
   }
 }

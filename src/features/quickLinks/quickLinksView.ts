@@ -104,6 +104,13 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+          <div class="catalogue">
+            <h3>
+              <a href="command:ansible.content-creator.create-ansible-project-vue" title="Create a playbook project">
+                <span class="codicon codicon-new-file"></span> Playbook project - vue
+              </a>
+            </h3>
+          </div>
         <h3>ADD</h3>
         <p>Add resources to an existing Ansible project</p>
           <div class="catalogue">

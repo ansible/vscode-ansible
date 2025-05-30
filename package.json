@@ -351,6 +351,10 @@
         "title": "Ansible: Create New Playbook Project"
       },
       {
+        "command": "ansible.content-creator.create-ansible-project-vue",
+        "title": "Ansible: Create New Playbook Project with Vue.js"
+      },
+      {
         "command": "ansible.content-creator.create-devfile",
         "title": "Ansible: Create a Devfile"
       },
