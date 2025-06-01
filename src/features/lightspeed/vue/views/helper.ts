@@ -250,12 +250,15 @@ export class WebviewHelper {
             return data;
           }
           case "openFolderExplorer": {
+            const defaultPath = message.payload?.defaultPath;
             const uri = await window.showOpenDialog({
               canSelectFolders: true,
               canSelectFiles: false,
               openLabel: "Select folder",
+              defaultUri: defaultPath
+                ? vscode.Uri.file(defaultPath)
+                : undefined,
             });
-
             if (uri && uri[0]) {
               webview.postMessage({
                 type: "folderSelected",
@@ -265,12 +268,15 @@ export class WebviewHelper {
             break;
           }
           case "openFileExplorer": {
+            const defaultPath = message.payload?.defaultPath;
             const uri = await window.showOpenDialog({
               canSelectFolders: false,
               canSelectFiles: true,
               openLabel: "Select file",
+              defaultUri: defaultPath
+                ? vscode.Uri.file(defaultPath)
+                : undefined,
             });
-
             if (uri && uri[0]) {
               webview.postMessage({
                 type: "fileSelected",
@@ -302,9 +308,17 @@ export class WebviewHelper {
             return;
           }
           case "init-open-log-file": {
+            console.log("open log file");
             payload = message.payload;
             const webviewHelper = new WebviewHelper();
             await webviewHelper.openLogFile(payload.logFileUrl);
+            return;
+          }
+          case "init-open-scaffolded-folder": {
+            console.log("open scaffolded folder");
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.openFolderInWorkspace(payload.projectUrl);
             return;
           }
           case "explanationThumbsUp": {
@@ -716,9 +730,32 @@ export class WebviewHelper {
     this.openFileInEditor(parsedUrl.toString());
   }
   public openFileInEditor(fileUrl: string) {
-    const updatedUrl = expandPath(fileUrl);
+    const updatedUrl = expandPath(String(fileUrl));
     console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
 
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+  }
+  private async openFolderInWorkspace(folderUrl: string) {
+    const folderUri = Uri.parse(expandPath(folderUrl));
+    console.log(`[ansible-creator] Folder url: ${folderUri.fsPath}`);
+    if (workspace.workspaceFolders?.length === 0) {
+      console.log("hey");
+      workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      console.log("hey2");
+      await commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
+
+    // open the galaxy file in the editor
+    const galaxyFileUrl = Uri.joinPath(
+      Uri.parse(folderUrl),
+      "galaxy.yml",
+    ).fsPath;
+    console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
+    const parsedUrl = Uri.parse(`vscode://file${galaxyFileUrl}`);
+    console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
   }
 }

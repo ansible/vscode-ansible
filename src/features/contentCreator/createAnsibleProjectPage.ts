@@ -311,6 +311,9 @@ export class CreateAnsibleProject {
           case "init-open-scaffolded-folder":
             payload = message.payload;
             await this.openFolderInWorkspace(payload.projectUrl);
+            console.log(
+              `[ansible-creator] Opened folder: ${payload.projectUrl}`,
+            );
             return;
         }
       },

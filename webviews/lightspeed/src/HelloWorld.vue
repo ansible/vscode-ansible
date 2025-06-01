@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { vscodeApi } from './utils';
+// import { VscodeFormGroup } from '@vscode/webview-ui-toolkit';
+import '../../../media/contentCreator/createAnsibleProjectPageStyle.css';
 
 // placeholder for the home directory
 const homeDir = ref('');
@@ -19,20 +21,39 @@ const logFileUrl = ref("");
 const collectionUrl = ref("");
 const fullCollectionName = ref("");
 const defaultLogFilePath = ref("");
-
+const isCreating = ref(false);
+const openLogFileButtonDisabled = ref(true);
+const openScaffoldedFolderButtonDisabled = ref(true);
+const createButtonDisabled = ref(false);
+const projectUrl = ref("");
+let logToFileOptionsDiv;
+let logToFileCheckbox;
 
 function openFolderExplorer() {
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
+    payload: {
+      defaultPath: initPath.value || homeDir.value,
+    },
   });
 }
+
+const canCreate = computed(() => {
+  return (
+    namespace.value.trim() !== "" &&
+    collectionName.value.trim() !== ""
+  );
+});
 
 function openFileExplorer() {
   vscodeApi.postMessage({
     type: 'openFileExplorer',
+    payload: {
+      defaultPath: logFilePath.value || defaultLogFilePath.value || homeDir.value,
+    },
   });
 }
-// fetch home directory after component is mounted
+
 onMounted(() => {
   window.addEventListener('message', (event) => {
     const message = event.data;
@@ -46,12 +67,21 @@ onMounted(() => {
     } else if (message.command === 'homedirAndTempdir') {
       homeDir.value = message.homedir;
       defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-    }
-    else if (message.type === 'logs') {
-    logs.value += message.data + '\n';
-  }
-  });
+    } else if (message.type === 'logs') {
+      logs.value += message.data + '\n';
+    } else if (message.command === "execution-log" && isCreating.value) {
+      logs.value = message.arguments.commandOutput;
+      logFileUrl.value = message.arguments.logFileUrl;
+      openLogFileButtonDisabled.value = !logFileUrl.value;
+      openScaffoldedFolderButtonDisabled.value = message.arguments.status !== "passed";
+      projectUrl.value = message.arguments.projectUrl || "";
+      createButtonDisabled.value = false;
 
+      if (message.arguments.status === "passed" || message.arguments.status === "failed") {
+        isCreating.value = false; // done listening
+      }
+    }
+  });
   vscodeApi.postMessage({ type: 'ui-mounted' });
 });
 
@@ -67,31 +97,43 @@ function copyLogs() {
     }
   });
 }
-function openLogFile() {
-  if (logFileUrl.value) {
-    vscodeApi.postMessage({
-      type: 'openLogFile',
-      payload: {
-        logFileUrl: logFileUrl.value,
-      },
-    });
-  }
+async function openLogFile() {
+  vscodeApi.postMessage({
+    type: "init-open-log-file",
+    payload: {
+      logFileUrl: logFileUrl.value,
+    },
+  });
 }
 
+function handleInitOpenScaffoldedFolderClick() {
+  vscodeApi.postMessage({
+    type: "init-open-scaffolded-folder",
+    payload: {
+        projectUrl: projectUrl.value,
+    },
+  });
+  console.log("Open scaffolded folder clicked", projectUrl);
+}
 
 function handleCreate() {
+  isCreating.value = true;
+  logs.value = "";  // clear logs on new create
+  createButtonDisabled.value = true; 
+
   const payload = {
-      destinationPath: initPath.value,  // ✅ This matches what backend expects
-      namespaceName: namespace.value,   // ✅ Also rename to match backend
-      collectionName: collectionName.value,
-      verbosity: verbosity.value,
-      logToFile: logToFile.value,
-      logFileAppend: logFileAppend.value,
-      isEditableModeInstall: isEditableModeInstall.value,
-      logFilePath: logFilePath.value || defaultLogFilePath.value,
-      logLevel: logLevel.value,
+    destinationPath: initPath.value,
+    namespaceName: namespace.value,
+    collectionName: collectionName.value,
+    verbosity: verbosity.value,
+    logToFile: logToFile.value,
+    logFileAppend: logFileAppend.value,
+    isEditableModeInstall: isEditableModeInstall.value,
+    logFilePath: logFilePath.value || defaultLogFilePath.value,
+    logLevel: logLevel.value,
+    isOverwritten: isOverwritten.value,
   };
-  console.log("Payload for create:", payload);
+
   vscodeApi.postMessage({ type: "init-create", payload });
 }
 
@@ -153,7 +195,7 @@ async function onClear() {
                 </vscode-form-group>
                 </div>
                 <div id="full-collection-path" class="full-collection-path">
-                  <p>Project path:&nbsp</p>
+                  <p>Project path: {{ initPath || homeDir }}</p>
                 </div>
                 <div class="verbose-div">
                   <div class="dropdown-container">
@@ -169,53 +211,87 @@ async function onClear() {
                   </div>
                 </div>
                 <div class="checkbox-div">
-                    <vscode-checkbox id="log-to-file-checkbox" v-model="logToFile" form="init-form">Log output to a file <br><i>Default path: {{defaultLogFilePath}}</i></vscode-checkbox>
-                </div>
-                <div id="log-to-file-options-div">
-                  <vscode-form-group variant="vertical">
-                    <vscode-label for="log-file-path">
-                      <span class="normal">Log file path</span>
-                    </vscode-label>
-                    <vscode-textfield id="log-file-path" class="required" form="init-form"  :placeholder="defaultLogFilePath" v-model="logFilePath"
-                      size="512">
-                      <vscode-icon
-                      slot="content-after"
-                      id="file-explorer"
-                      name="file"
-                      @click="openFileExplorer"
-                      action-icon
-                    ></vscode-icon>
-                    </vscode-textfield>
-                  </vscode-form-group>
+          <vscode-checkbox
+            :checked="logToFile"
+            @change="logToFile = $event.target.checked"
+            form="init-form"
+          >
+            Log output to a file <br />
+            <i>Default path: {{ defaultLogFilePath }}</i>
+          </vscode-checkbox>
 
-                  <vscode-checkbox id="log-file-append-checkbox" v-model="logFileAppend" form="init-form">Append</vscode-checkbox>
+    <div v-if="logToFile" class="log-to-file-container">
+      <!-- Log file path -->
+      <vscode-form-group variant="vertical">
+        <vscode-label for="log-file-path">
+          <span class="normal">Log file path</span>
+        </vscode-label>
+        <vscode-textfield
+          id="log-file-path"
+          v-model="logFilePath"
+          :placeholder="defaultLogFilePath"
+        >
+          <vscode-icon
+            slot="content-after"
+            id="file-explorer"
+            name="file"
+            action-icon
+            @click="openFileExplorer"
+          />
+        </vscode-textfield>
+      </vscode-form-group>
+      <div class="checkbox-div">
+        <vscode-checkbox
+          :checked="logFileAppend"
+          @change="logFileAppend = $event.target.checked"
+        >
+          Append
+        </vscode-checkbox>
+      </div>
 
-                  <div class="log-level-div">
-                    <div class="dropdown-container">
-                      <vscode-label for="log-level-dropdown">
-                        <span class="normal">Log level</span>
-                      </vscode-label>
-                      <vscode-single-select id="log-level-dropdown" position="below" v-model="logLevel">
-                        <vscode-option value="debug">Debug</vscode-option>
-                        <vscode-option value="info">Info</vscode-option>
-                        <vscode-option value="warning">Warning</vscode-option>
-                        <vscode-option value="error">Error</vscode-option>
-                        <vscode-option value="critical">Critical</vscode-option>
-                      </vscode-single-select>
-                    </div>
-                  </div>
-
-                </div>
-                <div class="checkbox-div">
-                  <vscode-checkbox id="overwrite-checkbox" v-model="isOverwritten" form="init-form">Overwrite <br><i>Overwriting will remove the existing content in the specified directory and replace it with the files from the Ansible project.</i></vscode-checkbox>
-                </div>
+      <!-- Log level -->
+      <div class="log-level-div">
+        <div class="dropdown-container">
+          <vscode-label for="log-level-dropdown">
+            <span class="normal">Log level</span>
+          </vscode-label>
+          <vscode-single-select
+            :value="logLevel"
+            @change="logLevel = $event.target.value"
+            id="log-level-dropdown"
+            position="below"
+          >
+            <vscode-option value="debug">Debug</vscode-option>
+            <vscode-option value="info">Info</vscode-option>
+            <vscode-option value="warning">Warning</vscode-option>
+            <vscode-option value="error">Error</vscode-option>
+            <vscode-option value="critical">Critical</vscode-option>
+          </vscode-single-select>
+        </div>
+      </div>
+    </div>
+    </div>
+        <div class="checkbox-div">
+          <vscode-checkbox
+            :checked="isOverwritten"
+            @change="isOverwritten = $event.target.checked"
+            form="init-form"
+          >
+            Overwrite <br />
+            <i
+              >Overwriting will remove the existing content in the specified
+              directory and replace it with the files from the Ansible
+              collection.</i
+            >
+          </vscode-checkbox>
+        </div>
 
                 <div class="group-buttons">
                   <vscode-button id="clear-button" form="init-form" secondary @click.prevent="onClear">
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear All
                   </vscode-button>
-                  <vscode-button id="create-button" form="init-form" @click.prevent="handleCreate">
+                  <vscode-button id="create-button" form="init-form" @click.prevent="handleCreate" :disabled="!canCreate">
                     <span class="codicon codicon-run-all"></span>
                     &nbsp; Create
                   </vscode-button>
@@ -223,19 +299,19 @@ async function onClear() {
 
                 <vscode-divider></vscode-divider>
 
-                <vscode-label id="vscode-logs-label" for="log-text-area">
-                  <span class="normal">Logs</span>
-                </vscode-label>
-
-                <vscode-textarea
-                  id="log-text-area"
-                  cols="90"
-                  rows="10"
-                  placeholder="Output of the command execution"
-                  resize="vertical"
-                  readonly
-                  :value="logs"
-                />
+                <vscode-form-group variant="vertical">
+                  <vscode-label id="vscode-logs-label" for="log-text-area">
+                    <span class="normal">Logs</span>
+                  </vscode-label>
+                  <vscode-textarea
+                    id="log-text-area"
+                    v-model="logs"
+                    placeholder="Output of the command execution"
+                    resize="vertical"
+                    readonly
+                  >
+                  </vscode-textarea>
+                </vscode-form-group>
 
                 <div class="group-buttons">
                   <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="clearLogs">
@@ -246,11 +322,16 @@ async function onClear() {
                     <span class="codicon codicon-copy"></span>
                     &nbsp; Copy Logs
                   </vscode-button>
-                  <vscode-button id="open-log-file-button" form="init-form" secondary disabled>
+                  <vscode-button
+                    @click.prevent="openLogFile"
+                    form="init-form"
+                    secondary
+                    :disabled="!logFileUrl"
+                  >
                     <span class="codicon codicon-open-preview"></span>
                     &nbsp; Open Log File
                   </vscode-button>
-                  <vscode-button id="open-folder-button" form="init-form" disabled>
+                  <vscode-button id="open-folder-button" form="init-form" :disabled="openScaffoldedFolderButtonDisabled" @click.prevent="handleInitOpenScaffoldedFolderClick">
                     <span class="codicon codicon-folder-active"></span>
                     &nbsp; Open Project
                   </vscode-button>
