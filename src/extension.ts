@@ -65,7 +65,6 @@ import { CreateAnsibleCollection } from "./features/contentCreator/createAnsible
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
-import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
@@ -570,15 +569,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   // open web-view for creating ansible playbook project
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "ansible.content-creator.create-ansible-project",
-      () => {
-        CreateAnsibleProject.render(context.extensionUri);
-      },
-    ),
-  );
-
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "ansible.content-creator.create-ansible-project",
