@@ -42,7 +42,7 @@ export default defineConfig({
           __dirname,
           "webviews/lightspeed/explanation.html",
         ),
-        "hello-world": path.resolve(
+        "create-ansible-project": path.resolve(
           __dirname,
           "webviews/lightspeed/create-ansible-project.html",
         ),
