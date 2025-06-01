@@ -240,7 +240,6 @@ export class WebviewHelper {
         const type = message.type;
         const data = message.data;
         let payload;
-        console.log("`Webview message received:'");
         switch (type) {
           case "getHomeDirectory": {
             webview.postMessage({
@@ -308,14 +307,12 @@ export class WebviewHelper {
             return;
           }
           case "init-open-log-file": {
-            console.log("open log file");
             payload = message.payload;
             const webviewHelper = new WebviewHelper();
             await webviewHelper.openLogFile(payload.logFileUrl);
             return;
           }
           case "init-open-scaffolded-folder": {
-            console.log("open scaffolded folder");
             payload = message.payload;
             const webviewHelper = new WebviewHelper();
             await webviewHelper.openFolderInWorkspace(payload.projectUrl);
@@ -571,82 +568,36 @@ export class WebviewHelper {
     } = payload;
 
     const destinationPathUrl = destinationPath ? destinationPath : os.homedir();
-    console.log("payload", payload, payload.destinationPath);
-    console.log(
-      `[ansible-creator] destinationPathUrl:  ${destinationPathUrl} ${destinationPath}`,
-    );
     let ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
       namespaceName,
       collectionName,
       destinationPathUrl,
-    );
-    console.log(
-      `[ansible-creator] ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
     );
     const creatorVersion = await getCreatorVersion();
     const exceedMinVersion = semver.gte(
       creatorVersion,
       ANSIBLE_CREATOR_VERSION_MIN,
     );
-    console.log(
-      `[ansible-creator] creatorVersion: ${creatorVersion}, exceedMinVersion: ${exceedMinVersion}`,
-    );
     if (exceedMinVersion && isOverwritten) {
-      console.log(
-        "[ansible-creator] Using --overwrite flag for ansible-creator init command",
-      );
       ansibleCreatorInitCommand += " --overwrite";
     } else if (!exceedMinVersion && isOverwritten) {
-      console.log(
-        "[ansible-creator] Using --force flag for ansible-creator init command",
-      );
       ansibleCreatorInitCommand += " --force";
     } else if (exceedMinVersion && !isOverwritten) {
-      console.log(
-        `[ansible-creator] overwite-no ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-      );
       ansibleCreatorInitCommand += " --no-overwrite";
-      console.log(
-        `[ansible-creator] overwite-no after ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-      );
     }
 
     switch (verbosity) {
       case "Off":
-        console.log(
-          `[ansible-creator] off ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         ansibleCreatorInitCommand += "";
-        console.log(
-          `[ansible-creator] off ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         break;
       case "Low":
-        console.log(
-          `[ansible-creator] Low ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         ansibleCreatorInitCommand += " -v";
-        console.log(
-          `[ansible-creator] Low ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         break;
       case "Medium":
-        console.log(
-          `[ansible-creator] Medium ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         ansibleCreatorInitCommand += " -vv";
-        console.log(
-          `[ansible-creator] Medium ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         break;
       case "High":
-        console.log(
-          `[ansible-creator] -vvv ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         ansibleCreatorInitCommand += " -vvv";
-        console.log(
-          `[ansible-creator] -vvv ansibleCreatorInitCommand: ${ansibleCreatorInitCommand}`,
-        );
         break;
     }
 
@@ -658,27 +609,16 @@ export class WebviewHelper {
       } else {
         logFilePathUrl = `${os.tmpdir()}/ansible-creator.log`;
       }
-      console.log(
-        `[ansible-creator] logFilePathUrl: ${logFilePathUrl} (logToFile: ${logToFile})`,
-      );
       ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
 
       ansibleCreatorInitCommand += ` --ll=${logLevel.toLowerCase()}`;
 
       if (logFileAppend) {
-        console.log(
-          `[ansible-creator] logFileAppend: ${ansibleCreatorInitCommand} (logToFile: ${logToFile})`,
-        );
         ansibleCreatorInitCommand += ` --la=true`;
       } else {
-        console.log(
-          `[ansible-creator] else: ${ansibleCreatorInitCommand} (logToFile: ${logToFile})`,
-        );
         ansibleCreatorInitCommand += ` --la=false`;
       }
     }
-
-    console.debug("[ansible-creator] command: ", ansibleCreatorInitCommand);
 
     const extSettings = new SettingsManager();
     await extSettings.initialize();
@@ -724,25 +664,19 @@ export class WebviewHelper {
   }
   public async openLogFile(fileUrl: string) {
     const logFileUrl = vscode.Uri.file(expandPath(fileUrl)).fsPath;
-    console.log(`[ansible-creator] New Log file url: ${logFileUrl}`);
     const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
-    console.log(`[ansible-creator] Parsed log file url: ${parsedUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
   public openFileInEditor(fileUrl: string) {
     const updatedUrl = expandPath(String(fileUrl));
-    console.log(`[ansible-creator] Updated url: ${updatedUrl}`);
 
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
   private async openFolderInWorkspace(folderUrl: string) {
     const folderUri = Uri.parse(expandPath(folderUrl));
-    console.log(`[ansible-creator] Folder url: ${folderUri.fsPath}`);
     if (workspace.workspaceFolders?.length === 0) {
-      console.log("hey");
       workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
     } else {
-      console.log("hey2");
       await commands.executeCommand("vscode.openFolder", folderUri, {
         forceNewWindow: true,
       });
@@ -753,9 +687,7 @@ export class WebviewHelper {
       Uri.parse(folderUrl),
       "galaxy.yml",
     ).fsPath;
-    console.log(`[ansible-creator] Galaxy file url: ${galaxyFileUrl}`);
     const parsedUrl = Uri.parse(`vscode://file${galaxyFileUrl}`);
-    console.log(`[ansible-creator] Parsed galaxy file url: ${parsedUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
 }

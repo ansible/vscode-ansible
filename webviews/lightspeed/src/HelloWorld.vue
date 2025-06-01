@@ -113,7 +113,6 @@ function handleInitOpenScaffoldedFolderClick() {
         projectUrl: projectUrl.value,
     },
   });
-  console.log("Open scaffolded folder clicked", projectUrl);
 }
 
 function handleCreate() {
@@ -153,7 +152,6 @@ async function onClear() {
   collectionUrl.value = "";
   fullCollectionName.value = "";
   vscodeApi.postMessage({ type: "ui-mounted" });
-  console.log("Form cleared",namespace.value);
 }
 </script>
 <template>
