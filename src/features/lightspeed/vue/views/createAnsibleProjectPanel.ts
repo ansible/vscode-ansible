@@ -16,7 +16,7 @@ export class MainPanel {
     setupPanelLifecycle(
       this._panel,
       context,
-      "hello-world",
+      "create-ansible-project",
       this._disposables,
       () => this.dispose(),
     );
@@ -24,8 +24,8 @@ export class MainPanel {
 
   public static render(context: ExtensionContext) {
     createOrRevealPanel({
-      viewType: "helloWorld",
-      viewTitle: "Hello World",
+      viewType: "CreateAnsibleProject",
+      viewTitle: "Create Ansible Project",
       viewColumn: ViewColumn.One,
       context: context,
       getCurrentPanel: () => MainPanel.currentPanel,
