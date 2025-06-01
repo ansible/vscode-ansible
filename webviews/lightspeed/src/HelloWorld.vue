@@ -157,7 +157,7 @@ async function onClear() {
 <template>
     <body>
         <div class="title-div">
-            <h1>Create new Ansible collection</h1>
+            <h1>Create new Ansible playbook project</h1>
             <p class="subtitle">Streamlining automation</p>
         </div>
         <form id="init-form">
@@ -279,7 +279,7 @@ async function onClear() {
             <i
               >Overwriting will remove the existing content in the specified
               directory and replace it with the files from the Ansible
-              collection.</i
+              project.</i
             >
           </vscode-checkbox>
         </div>
