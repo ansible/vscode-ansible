@@ -118,7 +118,7 @@ function handleInitOpenScaffoldedFolderClick() {
 function handleCreate() {
   isCreating.value = true;
   logs.value = "";  // clear logs on new create
-  createButtonDisabled.value = true; 
+  createButtonDisabled.value = true;
 
   const payload = {
     destinationPath: initPath.value,
