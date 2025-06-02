@@ -1180,16 +1180,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@primeuix/styled@npm:^0.6.1":
-  version: 0.6.1
-  resolution: "@primeuix/styled@npm:0.6.1"
-  dependencies:
-    "@primeuix/utils": "npm:^0.5.3"
-  checksum: 10/51557fda94b3bbdd92ef9a0deca5a12e508387293a9a3b2871d754f39448e46355ead329191c48aa48425a5c5b1d7c20cf49b8e535c2fbe6fc40f3257885ec35
-  languageName: node
-  linkType: hard
-
-"@primeuix/styled@npm:^0.6.4":
+"@primeuix/styled@npm:^0.6.1, @primeuix/styled@npm:^0.6.4":
   version: 0.6.4
   resolution: "@primeuix/styled@npm:0.6.4"
   dependencies:
@@ -1846,16 +1837,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*":
-  version: 22.15.24
-  resolution: "@types/node@npm:22.15.24"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10/249f8206b2da5faf621e200757a15ca936a3d72d84fb31dfbc4021f83b577e3be591b29ba322f832790eeb5bdfa3674b8fd0a0e81059b99f129973250ab7ec04
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^22.15.29":
+"@types/node@npm:*, @types/node@npm:^22.15.29":
   version: 22.15.29
   resolution: "@types/node@npm:22.15.29"
   dependencies:
