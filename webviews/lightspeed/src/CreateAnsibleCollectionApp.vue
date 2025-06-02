@@ -44,7 +44,7 @@
               {{ namespace || "namespace" }}{{ collectionName ? '.' + collectionName : (namespace ? '.' : '.collection') }}
           </p>
         </div>
-      
+
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
             <span class="normal">Init path</span>
@@ -69,8 +69,8 @@
         <!-- <div id="full-collection-path" class="full-collection-name">
           <p>
             Project path:&nbsp;<b>{{
-              initPath.trim() 
-                ? (initPath) 
+              initPath.trim()
+                ? (initPath)
                 : (defaultInitPath + (fullCollectionName ? '/' + fullCollectionName : ''))
             }}</b>
           </p>
@@ -78,8 +78,8 @@
         <div id="full-collection-path" class="full-collection-name">
           <p>
             Project path:&nbsp;{{
-              initPath.trim() 
-                ? (initPath) 
+              initPath.trim()
+                ? (initPath)
                 : (defaultInitPath + (fullCollectionName ? '/' + fullCollectionName : ''))
             }}
           </p>
@@ -487,10 +487,10 @@ async function openFileExplorer() {
 async function onCreate() {
   const actualInitPath = initPath.value || defaultInitPath.value;
   const actualLogFilePath = logFilePath.value || defaultLogFilePath.value;
-  
+
   // Set creating state to disable button and show loading text
   isCreating.value = true;
-  
+
   vscode.postMessage({
     command: "init-create",
     payload: {
@@ -560,12 +560,12 @@ async function handleOpenScaffoldedFolderClick() {
 
 onMounted(() => {
   vscode.postMessage({ type: "ui-mounted" });
-  
+
   window.addEventListener(
     "message",
     (event: MessageEvent<ExtendedPostMessageEvent>) => {
       const message = event.data;
-      
+
       switch (message.command) {
         case "homedirAndTempdir": {
           const homedirMessage = message as HomedirTempdirMessage;
@@ -592,7 +592,7 @@ onMounted(() => {
           logs.value = executionMessage.arguments.commandOutput;
           logFileUrl.value = executionMessage.arguments.logFileUrl ?? "";
           collectionUrl.value = executionMessage.arguments.collectionUrl ?? "";
-          
+
           // Re-enable the create button after execution completes
           isCreating.value = false;
           break;
