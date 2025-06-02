@@ -61,7 +61,6 @@ import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quick
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { AnsibleWelcomePage } from "./features/welcomePage";
-import { CreateAnsibleCollection } from "./features/contentCreator/createAnsibleCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
@@ -84,6 +83,7 @@ import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnviron
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
+import { MainPanel as createAnsibleCollectionPanel } from "./features/lightspeed/vue/views/createAnsibleCollectionPanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
@@ -563,7 +563,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-ansible-collection",
       () => {
-        CreateAnsibleCollection.render(context.extensionUri);
+        createAnsibleCollectionPanel.render(context);
       },
     ),
   );

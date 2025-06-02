@@ -35,6 +35,13 @@ vscode-divider {
     margin-left: 5px;
 }
 
+#log-text-area {
+    width: 100%;
+    max-width: 100%;
+    height: 156px;  
+    resize: vertical;
+}
+
 .checkbox-div {
     display: flex; /* Use flexbox */
     flex-direction: column; /* Arrange child elements vertically */
@@ -60,10 +67,6 @@ vscode-divider {
 .group-buttons {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
-}
-
-.p-collection-name {
-    font-style: italic;
 }
 
 vscode-button {
@@ -101,12 +104,12 @@ vscode-single-select {
     margin-bottom: 2px;
 }
 
-#log-to-file-options-div {
-    display: none;
+.log-to-file-options {
+    display: flex;
     width: 100%;
     flex-direction: column;
     border-style: dotted;
-    border-color: var(--focus-border);;
+    border-color: var(--focus-border);
     border-width: 0.5px;
     padding: 8px;
 }
