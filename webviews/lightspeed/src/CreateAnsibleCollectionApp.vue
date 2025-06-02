@@ -41,14 +41,10 @@
         <div id="full-collection-name" class="full-collection-name">
           <p>
             Collection name:&nbsp;
-            <b>
-              {{ namespace || "namespace" }}.{{
-                collectionName || "collection"
-              }}
-            </b>
+              {{ namespace || "namespace" }}{{ collectionName ? '.' + collectionName : (namespace ? '.' : '.collection') }}
           </p>
         </div>
-
+      
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
             <span class="normal">Init path</span>
@@ -70,11 +66,22 @@
           </vscode-textfield>
         </vscode-form-group>
 
+        <!-- <div id="full-collection-path" class="full-collection-name">
+          <p>
+            Project path:&nbsp;<b>{{
+              initPath.trim() 
+                ? (initPath) 
+                : (defaultInitPath + (fullCollectionName ? '/' + fullCollectionName : ''))
+            }}</b>
+          </p>
+        </div> -->
         <div id="full-collection-path" class="full-collection-name">
           <p>
-            Project path:&nbsp;<b
-              >{{ initPath || defaultInitPath }}/{{ fullCollectionName }}</b
-            >
+            Project path:&nbsp;{{
+              initPath.trim() 
+                ? (initPath) 
+                : (defaultInitPath + (fullCollectionName ? '/' + fullCollectionName : ''))
+            }}
           </p>
         </div>
 
@@ -205,11 +212,11 @@
           <vscode-button
             ref="initCreateButton"
             @click.prevent="onCreate"
-            :disabled="!isFormValid"
+            :disabled="!isFormValid || isCreating"
             form="init-form"
           >
             <span class="codicon codicon-run-all"></span>
-            &nbsp; Create
+            &nbsp; {{ isCreating ? 'Creating...' : 'Create' }}
           </vscode-button>
         </div>
 
@@ -239,6 +246,7 @@
             &nbsp; Copy Logs
           </vscode-button>
           <vscode-button
+            ref="initOpenLogFileButton"
             @click.prevent="openLogs"
             form="init-form"
             secondary
@@ -383,8 +391,40 @@ import {
   PostMessageEvent,
 } from "../../../src/features/contentCreator/types";
 
+// Define extended message types for this component
+interface HomedirTempdirMessage {
+  command: "homedirAndTempdir";
+  homedir: string;
+  tempdir: string;
+}
+
+interface FileUriMessage {
+  command: "file-uri";
+  arguments?: {
+    selectedUri?: string;
+  };
+}
+
+interface ExecutionLogMessage {
+  command: "execution-log";
+  arguments: {
+    commandOutput: string;
+    logFileUrl?: string;
+    collectionUrl?: string;
+    status?: string | boolean;
+  };
+}
+
+interface ADEPresenceMessage {
+  command: "ADEPresence";
+  arguments: boolean;
+}
+
+type ExtendedPostMessageEvent = PostMessageEvent | HomedirTempdirMessage | FileUriMessage | ExecutionLogMessage | ADEPresenceMessage;
+
 const vscode = acquireVsCodeApi();
 
+// Form data reactive variables
 const namespace = ref("");
 const collectionName = ref("");
 const initPath = ref("");
@@ -399,15 +439,19 @@ const isEditableModeInstall = ref(false);
 const logs = ref("");
 const logFileUrl = ref("");
 const collectionUrl = ref("");
+const defaultInitPath = ref("");
+const defaultLogFilePath = ref("");
+const isCreating = ref(false);
+
+// Button references
 const initOpenLogFileButton = ref<HTMLButtonElement | null>(null);
 const initOpenScaffoldedFolderButton = ref<HTMLButtonElement | null>(null);
 const initCreateButton = ref<HTMLButtonElement | null>(null);
-const defaultInitPath = ref("");
-const defaultLogFilePath = ref("");
 
 // Track which explorer action was last triggered
 let lastExplorerAction = ref<'folder' | 'file'>('folder');
 
+// Watch for changes in namespace and collection name to update full collection name
 watch([namespace, collectionName], () => {
   fullCollectionName.value =
     namespace.value && collectionName.value
@@ -415,6 +459,7 @@ watch([namespace, collectionName], () => {
       : "";
 });
 
+// Computed property for form validation
 const isFormValid = computed(() => {
   return (
     namespace.value.trim() !== "" &&
@@ -442,11 +487,10 @@ async function openFileExplorer() {
 async function onCreate() {
   const actualInitPath = initPath.value || defaultInitPath.value;
   const actualLogFilePath = logFilePath.value || defaultLogFilePath.value;
-
-  // Disable the create button during execution
-  if (initCreateButton.value) {
-    initCreateButton.value.disabled = true;
-}
+  
+  // Set creating state to disable button and show loading text
+  isCreating.value = true;
+  
   vscode.postMessage({
     command: "init-create",
     payload: {
@@ -476,10 +520,10 @@ async function onClear() {
   isEditableModeInstall.value = false;
   logFilePath.value = "";
   logLevel.value = "debug";
-  logs.value = "";
   logFileUrl.value = "";
   collectionUrl.value = "";
   fullCollectionName.value = "";
+  isCreating.value = false;
   vscode.postMessage({ type: "ui-mounted" });
 }
 
@@ -495,69 +539,6 @@ async function copyLogs() {
     },
   });
 }
-
-onMounted(() => {
-  vscode.postMessage({ type: "ui-mounted" });
-  window.addEventListener(
-    "message",
-    (event: MessageEvent<PostMessageEvent>) => {
-      const message = event.data;
-      // if (message.command === "homedirAndTempdir") {
-      //   defaultInitPath.value = `${message.homedir}/.ansible/collections/ansible_collections`;
-      //   defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-      // }
-
-      switch (message.command) {
-
-        case "homedirAndTempdir":
-        defaultInitPath.value = `${message.homedir}/.ansible/collections/ansible_collections`;
-        defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-        if (!initPath.value) {
-          initPath.value = defaultInitPath.value;
-        }
-        if (!logFilePath.value) {
-          logFilePath.value = defaultLogFilePath.value;
-        }
-        break;
-
-        case "file-uri":
-        const selectedUri = message.arguments?.selectedUri;
-        if (selectedUri) {
-          if (lastExplorerAction.value === 'folder') {
-            initPath.value = selectedUri;
-          } else if (lastExplorerAction.value === 'file') {
-            logFilePath.value = selectedUri;
-          }
-        }
-        break;
-
-        case "execution-log":
-          logs.value = message.arguments.commandOutput;
-          logFileUrl.value = message.arguments.logFileUrl ?? "";
-          if (logFileUrl.value) {
-            initOpenLogFileButton.value!.disabled = false;
-          } else {
-            initOpenLogFileButton.value!.disabled = true;
-          }
-          if (
-            message.arguments.status &&
-            message.arguments.status === "passed"
-          ) {
-            initOpenScaffoldedFolderButton.value!.disabled =
-              message.arguments.status === "passed" ? false : true;
-          }
-          collectionUrl.value = message.arguments.collectionUrl ?? "";
-          initCreateButton.disabled = false;
-          return;
-          break;
-
-          case "ADEPresence":
-      }
-    },
-  );
-
-  window.parent.postMessage({ command: "ready" }, "*");
-});
 
 async function openLogs() {
   vscode.postMessage({
@@ -576,4 +557,57 @@ async function handleOpenScaffoldedFolderClick() {
     },
   });
 }
+
+onMounted(() => {
+  vscode.postMessage({ type: "ui-mounted" });
+  
+  window.addEventListener(
+    "message",
+    (event: MessageEvent<ExtendedPostMessageEvent>) => {
+      const message = event.data;
+      
+      switch (message.command) {
+        case "homedirAndTempdir": {
+          const homedirMessage = message as HomedirTempdirMessage;
+          defaultInitPath.value = `${homedirMessage.homedir}/.ansible/collections/ansible_collections`;
+          defaultLogFilePath.value = `${homedirMessage.tempdir}/ansible-creator.log`;
+          break;
+        }
+
+        case "file-uri": {
+          const fileUriMessage = message as FileUriMessage;
+          const selectedUri = fileUriMessage.arguments?.selectedUri;
+          if (selectedUri) {
+            if (lastExplorerAction.value === 'folder') {
+              initPath.value = selectedUri;
+            } else if (lastExplorerAction.value === 'file') {
+              logFilePath.value = selectedUri;
+            }
+          }
+          break;
+        }
+
+        case "execution-log": {
+          const executionMessage = message as ExecutionLogMessage;
+          logs.value = executionMessage.arguments.commandOutput;
+          logFileUrl.value = executionMessage.arguments.logFileUrl ?? "";
+          collectionUrl.value = executionMessage.arguments.collectionUrl ?? "";
+          
+          // Re-enable the create button after execution completes
+          isCreating.value = false;
+          break;
+        }
+
+        case "ADEPresence": {
+          // Handle ADE presence check if needed
+          const adeMessage = message as ADEPresenceMessage;
+          console.log("ADE Present:", adeMessage.arguments);
+          break;
+        }
+      }
+    },
+  );
+
+  window.parent.postMessage({ command: "ready" }, "*");
+});
 </script>

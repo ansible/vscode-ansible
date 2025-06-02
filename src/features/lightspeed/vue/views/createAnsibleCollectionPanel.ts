@@ -32,6 +32,38 @@ import {
   ANSIBLE_CREATOR_VERSION_MIN,
 } from "../../../../definitions/constants";
 
+interface OpenExplorerPayload {
+  selectOption: string;
+}
+
+interface CopyLogsPayload {
+  initExecutionLogs: string;
+}
+
+interface OpenLogFilePayload {
+  logFileUrl: string;
+}
+
+interface OpenFolderPayload {
+  collectionUrl: string;
+}
+
+// Defining a union type for all possible payload types
+type WebviewPayload =
+  | OpenExplorerPayload
+  | CopyLogsPayload
+  | OpenLogFilePayload
+  | OpenFolderPayload
+  | AnsibleCollectionFormInterface
+  | undefined; // for commands that don't have payloads
+
+// Defining the message types that can be received from the webview
+interface WebviewMessage {
+  command?: string;
+  type?: string;
+  payload?: WebviewPayload;
+}
+
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
   private readonly _panel: WebviewPanel;
@@ -49,7 +81,7 @@ export class MainPanel {
 
     // Listen for messages from the webview
     this._panel.webview.onDidReceiveMessage(
-      async (message: any) => {
+      async (message: WebviewMessage) => {
         const command = message.command || message.type;
         let payload;
 
@@ -63,7 +95,7 @@ export class MainPanel {
             return;
 
           case "open-explorer": {
-            payload = message.payload;
+            payload = message.payload as OpenExplorerPayload;
             const selectedUri = await this.openExplorerDialog(
               payload.selectOption,
             );
@@ -84,18 +116,18 @@ export class MainPanel {
             return;
 
           case "init-copy-logs":
-            payload = message.payload;
+            payload = message.payload as CopyLogsPayload;
             env.clipboard.writeText(payload.initExecutionLogs);
             await window.showInformationMessage("Logs copied to clipboard");
             return;
 
           case "init-open-log-file":
-            payload = message.payload;
+            payload = message.payload as OpenLogFilePayload;
             await this.openLogFile(payload.logFileUrl);
             return;
 
           case "init-open-scaffolded-folder":
-            payload = message.payload;
+            payload = message.payload as OpenFolderPayload;
             await this.openFolderInWorkspace(payload.collectionUrl);
             return;
         }
@@ -128,13 +160,26 @@ export class MainPanel {
 
   private async isADEPresent() {
     const ADEVersion = await getBinDetail("ade", "--version");
-    const isPresent = ADEVersion !== "failed";
-
+    if (ADEVersion === "failed") {
+      this._panel.webview.postMessage({
+        command: "ADEPresence",
+        arguments: false,
+      } as PostMessageEvent);
+      return;
+    }
     this._panel.webview.postMessage({
       command: "ADEPresence",
-      arguments: isPresent,
+      arguments: true,
     } as PostMessageEvent);
+    return;
   }
+  //   const isPresent = ADEVersion !== "failed";
+
+  //   this._panel.webview.postMessage({
+  //     command: "ADEPresence",
+  //     arguments: isPresent,
+  //   } as PostMessageEvent);
+  // }
 
   private async getCollectionCreatorCommand(
     namespaceName: string,
