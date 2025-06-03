@@ -631,7 +631,6 @@ export class WebviewHelper {
 
     let commandOutput = "";
 
-    // execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
     commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
@@ -682,7 +681,6 @@ export class WebviewHelper {
       });
     }
 
-    // open the galaxy file in the editor
     const galaxyFileUrl = Uri.joinPath(
       Uri.parse(folderUrl),
       "galaxy.yml",

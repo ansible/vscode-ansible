@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue';
 import { vscodeApi } from './utils';
-// import { VscodeFormGroup } from '@vscode/webview-ui-toolkit';
 import '../../../media/contentCreator/createAnsibleProjectPageStyle.css';
 
-// placeholder for the home directory
 const homeDir = ref('');
 const namespace = ref("");
 const collectionName = ref("");
@@ -78,7 +76,7 @@ onMounted(() => {
       createButtonDisabled.value = false;
 
       if (message.arguments.status === "passed" || message.arguments.status === "failed") {
-        isCreating.value = false; // done listening
+        isCreating.value = false;
       }
     }
   });
@@ -117,7 +115,7 @@ function handleInitOpenScaffoldedFolderClick() {
 
 function handleCreate() {
   isCreating.value = true;
-  logs.value = "";  // clear logs on new create
+  logs.value = "";
   createButtonDisabled.value = true;
 
   const payload = {
