@@ -37,7 +37,7 @@ function openFolderExplorer() {
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
     payload: {
-      defaultPath: initPath.value || homeDir.value,
+      defaultPath: initPath.value,
     },
   });
 }
@@ -46,7 +46,7 @@ function openFileExplorer() {
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
-      defaultPath: logFilePath.value || defaultLogFilePath.value || homeDir.value,
+      defaultPath: logFilePath.value,
     },
   });
 }
@@ -149,7 +149,7 @@ function handleCreate() {
     isOverwritten: isOverwritten.value,
   };
 
-  vscodeApi.postMessage({ type: "init-create", payload });
+  vscodeApi.postMessage({ type: "init-collection-create", payload });
 }
 
 async function onClear() {

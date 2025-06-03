@@ -162,20 +162,6 @@ const playbookExplorerWebviewConfig = {
   },
 };
 
-const createAnsibleProjectWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename:
-      "./client/webview/apps/contentCreator/createAnsibleProjectPageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const createDevfileWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -254,7 +240,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
     webviewConfig,
     contentCreatorMenuWebviewConfig,
     playbookExplorerWebviewConfig,
-    createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,
     addPluginWebviewConfig,

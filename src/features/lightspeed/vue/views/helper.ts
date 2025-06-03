@@ -296,10 +296,10 @@ export class WebviewHelper {
             });
             return;
           }
-          case "init-create": {
+          case "init-collection-create": {
             payload = message.payload as AnsibleCollectionFormInterface;
             const webviewHelper = new WebviewHelper();
-            await webviewHelper.runInitCommand(payload, webview);
+            await webviewHelper.runInitCollectionCommand(payload, webview);
             return;
           }
           case "init-copy-logs": {
@@ -560,7 +560,7 @@ export class WebviewHelper {
       disposables,
     );
   }
-  public async runInitCommand(
+  public async runInitCollectionCommand(
     payload: AnsibleCollectionFormInterface,
     webView: vscode.Webview,
   ) {

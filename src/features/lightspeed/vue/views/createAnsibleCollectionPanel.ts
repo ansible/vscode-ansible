@@ -25,7 +25,7 @@ export class MainPanel {
   public static render(context: ExtensionContext) {
     createOrRevealPanel({
       viewType: "createAnsibleCollection",
-      viewTitle: "Create Ansible Collection",
+      viewTitle: "Create Ansible collection",
       viewColumn: ViewColumn.One,
       context: context,
       getCurrentPanel: () => MainPanel.currentPanel,
