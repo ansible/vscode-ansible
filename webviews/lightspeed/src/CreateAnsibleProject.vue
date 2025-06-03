@@ -210,6 +210,7 @@ async function onClear() {
                 </div>
                 <div class="checkbox-div">
           <vscode-checkbox
+            id="log-to-file-checkbox"
             :checked="logToFile"
             @change="logToFile = $event.target.checked"
             form="init-form"
