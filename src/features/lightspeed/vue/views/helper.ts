@@ -681,11 +681,11 @@ export class WebviewHelper {
       });
     }
 
-    const galaxyFileUrl = Uri.joinPath(
+    const playbookFileUrl = Uri.joinPath(
       Uri.parse(folderUrl),
-      "galaxy.yml",
+      "site.yml",
     ).fsPath;
-    const parsedUrl = Uri.parse(`vscode://file${galaxyFileUrl}`);
+    const parsedUrl = Uri.parse(`vscode://file${playbookFileUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
 }
