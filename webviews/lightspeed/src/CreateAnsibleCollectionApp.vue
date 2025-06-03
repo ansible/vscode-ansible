@@ -46,7 +46,7 @@ function openFileExplorer() {
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
-      defaultPath: logFilePath.value || defaultLogFilePath.value || homeDir.value, 
+      defaultPath: logFilePath.value || defaultLogFilePath.value || homeDir.value,
     },
   });
 }
@@ -244,12 +244,12 @@ async function onClear() {
 
         <div id="full-collection-path" class="full-collection-name">
           <p>
-            Project path:&nbsp;{{ 
-                initPath.trim() 
-                  ? initPath 
-                  : (namespace && collectionName) 
+            Project path:&nbsp;{{
+                initPath.trim()
+                  ? initPath
+                  : (namespace && collectionName)
                     ? defaultInitPath + '/' + namespace + '/' + collectionName
-                    : defaultInitPath 
+                    : defaultInitPath
             }}
           </p>
         </div>
