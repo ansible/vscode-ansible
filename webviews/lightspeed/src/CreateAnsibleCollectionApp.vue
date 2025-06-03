@@ -12,6 +12,8 @@ const logToFile = ref(false);
 const logFileAppend = ref(false);
 const isOverwritten = ref(false);
 const isEditableModeInstall = ref(false);
+// const editableModeCheckbox = ref(null);
+const adePresent = ref(false);
 const logFilePath = ref("");
 const logLevel = ref("debug");
 const logs = ref("");
@@ -64,11 +66,7 @@ onMounted(() => {
     if (message.type === 'homeDirectory') {
       homeDir.value = message.data;
     } else if (message.command === "ADEPresence") {
-        if (message.arguments) {
-          editableModeInstall.disabled = false;
-        } else {
-          editableModeInstall.disabled = true;
-        }
+      adePresent.value = message.arguments;
     } else if (message.type === 'folderSelected') {
       initPath.value = message.data;
     } else if (message.type === 'fileSelected') {
@@ -149,7 +147,7 @@ function handleCreate() {
     isOverwritten: isOverwritten.value,
   };
 
-  vscodeApi.postMessage({ type: "init-collection-create", payload });
+  vscodeApi.postMessage({ type: "init-create", payload });
 }
 
 async function onClear() {
@@ -353,6 +351,7 @@ async function onClear() {
           <vscode-checkbox
             :checked="isEditableModeInstall"
             @change="isEditableModeInstall = $event.target.checked"
+            :disabled="!adePresent"
             form="init-form"
           >
             Install collection from source code (editable mode) <br />
