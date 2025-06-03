@@ -24,7 +24,7 @@ export class MainPanel {
 
   public static render(context: ExtensionContext) {
     createOrRevealPanel({
-      viewType: "CreateAnsibleproject",
+      viewType: "CreateAnsibleProject",
       viewTitle: "Create Ansible project",
       viewColumn: ViewColumn.One,
       context: context,
