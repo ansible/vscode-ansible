@@ -275,6 +275,7 @@ async function onClear() {
             :checked="isOverwritten"
             @change="isOverwritten = $event.target.checked"
             form="init-form"
+            id="overwrite-checkbox"
           >
             Overwrite <br />
             <i
