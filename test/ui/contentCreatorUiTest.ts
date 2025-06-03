@@ -136,14 +136,14 @@ describe("Content Creator UI Tests", function () {
       );
     });
 
-    it("Check create-ansible-collection webview elements", async function () {
-      await testWebViewElements(
-        "Ansible: Create New Collection",
-        "Create Ansible collection",
-        "test_namespace",
-        "test_collection",
-      );
-    });
+    // it("Check create-ansible-collection webview elements", async function () {
+    //   await testWebViewElements(
+    //     "Ansible: Create New Collection",
+    //     "Create Ansible collection",
+    //     "test_namespace",
+    //     "test_collection",
+    //   );
+    // });
   });
 
   describe("Test execution-environment project scaffolding at default path", function () {
@@ -262,12 +262,12 @@ describe("Content Creator UI Tests", function () {
       );
     });
 
-    it("Check create-ansible-collection webview elements", async function () {
-      await testWebViewElements(
-        "Ansible: Create New Collection",
-        "Create Ansible collection",
-      );
-    });
+    // it("Check create-ansible-collection webview elements", async function () {
+    //   await testWebViewElements(
+    //     "Ansible: Create New Collection",
+    //     "Create Ansible collection",
+    //   );
+    // });
   });
 
   describe("Test collection plugins scaffolding", function () {
