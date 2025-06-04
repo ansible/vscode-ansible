@@ -334,7 +334,7 @@ async function onClear() {
 
         <div class="checkbox-div">
           <vscode-checkbox
-            @id='overwrite-checkbox'
+            id='overwrite-checkbox'
             :checked="isOverwritten"
             @change="isOverwritten = $event.target.checked"
             form="init-form"
@@ -375,6 +375,7 @@ async function onClear() {
             @click.prevent="onClear"
             form="init-form"
             appearance="secondary"
+            id="clear-button"
           >
             <span class="codicon codicon-clear-all"></span>&nbsp; Clear All
           </vscode-button>
@@ -383,6 +384,7 @@ async function onClear() {
             @click.prevent="handleCreate"
             :disabled="!isFormValid || isCreating"
             form="init-form"
+            id="create-button"
           >
             <span class="codicon codicon-run-all"></span>
             &nbsp; {{ isCreating ? 'Creating...' : 'Create' }}
