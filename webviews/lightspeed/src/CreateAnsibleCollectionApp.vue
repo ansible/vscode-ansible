@@ -12,7 +12,6 @@ const logToFile = ref(false);
 const logFileAppend = ref(false);
 const isOverwritten = ref(false);
 const isEditableModeInstall = ref(false);
-// const editableModeCheckbox = ref(null);
 const adePresent = ref(false);
 const logFilePath = ref("");
 const logLevel = ref("debug");
@@ -273,6 +272,7 @@ async function onClear() {
 
         <div class="checkbox-div">
           <vscode-checkbox
+            id="log-to-file-checkbox"
             :checked="logToFile"
             @change="logToFile = $event.target.checked"
             form="init-form"
@@ -334,6 +334,7 @@ async function onClear() {
 
         <div class="checkbox-div">
           <vscode-checkbox
+            @id='overwrite-checkbox'
             :checked="isOverwritten"
             @change="isOverwritten = $event.target.checked"
             form="init-form"
