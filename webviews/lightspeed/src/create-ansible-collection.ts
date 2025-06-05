@@ -1,5 +1,5 @@
 import { createApp } from "vue";
-import App from "./CreateAnsibleProjectApp.vue";
+import App from "./CreateAnsibleCollectionApp.vue";
 
 const app = createApp(App);
 
