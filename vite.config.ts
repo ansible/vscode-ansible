@@ -44,7 +44,7 @@ export default defineConfig({
         ),
         "create-ansible-project": path.resolve(
           __dirname,
-          "webviews/contentCreator/create-ansible-project.html",
+          "webviews/create-ansible-project.html",
         ),
       },
     },

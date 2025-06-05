@@ -8,6 +8,8 @@
     "vite.config.ts",
     "src/**/*.ts",
     "webviews/lightspeed/src/utils/*.ts",
+    "webviews/*.ts",
+    "webviews/*.vue",
     "test",
     "packages/*/test/consoleOutput.ts",
     "*.js",
