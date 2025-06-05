@@ -296,7 +296,7 @@ jobs:
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
           # Do not use github.ref_name as it contains slashes and we cannot sanitize it
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
@@ -306,7 +306,7 @@ jobs:
 
       - name: Upload ansible-language-server npm package
         if: ${{ matrix.name == 'test (linux)' }}
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
           # Do not use github.ref_name as it contains slashes and we cannot sanitize it
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
@@ -323,7 +323,7 @@ jobs:
 
       - name: Upload test logs and reports
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
           name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
           path: |
