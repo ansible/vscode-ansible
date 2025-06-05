@@ -231,6 +231,7 @@ shiki
 showcontent
 showformat
 simplejson
+sonarcloud
 sourcemaps
 ssbarnea
 ssydoren
@@ -257,6 +258,7 @@ tls
 toctree
 todos
 tomaciazek
+tomjs
 tomlsort
 towerhost
 towncrier

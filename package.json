@@ -463,6 +463,10 @@
       {
         "command": "extension.buildExecutionEnvironment",
         "title": "Build Ansible execution environment"
+      },
+      {
+        "command": "ansible.hello.world",
+        "title": "Ansible: Demo Vue - Hello World"
       }
     ],
     "configuration": [
