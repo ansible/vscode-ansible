@@ -13,7 +13,7 @@ elements that do *not* apply for your PR. -->
       `(fixes|closes|related): #<issue_number|AAP-number>`
 - [ ] PR is kept as **draft** until all checks above are met
 
-# Review checklist
+## Review checklist
 
 - [ ] Size of change. If it can be split into smaller PRs, please do so.
 - [ ] Docs checks:
