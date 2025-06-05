@@ -44,7 +44,7 @@ export default defineConfig({
         ),
         "create-ansible-collection": path.resolve(
           __dirname,
-          "webviews/lightspeed/create-ansible-collection.html",
+          "webviews/create-ansible-collection.html",
         ),
         "create-ansible-project": path.resolve(
           __dirname,

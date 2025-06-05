@@ -82,7 +82,7 @@ import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnviron
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
-import { MainPanel as createAnsibleCollectionPanel } from "./features/lightspeed/vue/views/createAnsibleCollectionPanel";
+import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
