@@ -1,7 +1,25 @@
 import type { Disposable, ExtensionContext, Webview } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { CollectionFinder, AnsibleCollection } from "../../utils/scanner";
-
+import * as os from "os";
+import {
+  AnsibleCollectionFormInterface,
+  AnsibleProjectFormInterface,
+  PostMessageEvent,
+} from "../../../contentCreator/types";
+import * as vscode from "vscode";
+import {
+  expandPath,
+  getCreatorVersion,
+  getBinDetail,
+  runCommand,
+} from "../../../contentCreator/utils";
+import { withInterpreter } from "../../../utils/commandRunner";
+import { SettingsManager } from "../../../../settings";
+import {
+  ANSIBLE_CREATOR_VERSION_MIN,
+  ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
+} from "../../../../definitions/constants";
 import {
   Uri,
   workspace,
@@ -10,6 +28,8 @@ import {
   window,
   commands,
 } from "vscode";
+import { TextEncoder } from "util";
+import * as semver from "semver";
 import { LightSpeedAPI } from "../../api";
 import { IError, isError, UNKNOWN_ERROR } from "../../utils/errors";
 import {
@@ -191,7 +211,6 @@ function updatePromptHistory(context: ExtensionContext, new_prompt: string) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class WebviewHelper {
   public static setupHtml(
     webview: Webview,
@@ -225,7 +244,96 @@ export class WebviewHelper {
       async (message: any) => {
         const type = message.type;
         const data = message.data;
+        let payload;
         switch (type) {
+          case "getHomeDirectory": {
+            webview.postMessage({
+              type: "homeDirectory",
+              data: os.homedir(),
+            });
+            return data;
+          }
+          case "openFolderExplorer": {
+            const defaultPath = message.payload?.defaultPath;
+            const uri = await window.showOpenDialog({
+              canSelectFolders: true,
+              canSelectFiles: false,
+              openLabel: "Select folder",
+              defaultUri: defaultPath
+                ? vscode.Uri.file(defaultPath)
+                : undefined,
+            });
+            if (uri && uri[0]) {
+              webview.postMessage({
+                type: "folderSelected",
+                data: uri[0].fsPath,
+              });
+            }
+            break;
+          }
+          case "openFileExplorer": {
+            const defaultPath = message.payload?.defaultPath;
+            const uri = await window.showOpenDialog({
+              canSelectFolders: false,
+              canSelectFiles: true,
+              openLabel: "Select file",
+              defaultUri: defaultPath
+                ? vscode.Uri.file(defaultPath)
+                : undefined,
+            });
+            if (uri && uri[0]) {
+              webview.postMessage({
+                type: "fileSelected",
+                data: uri[0].fsPath,
+              });
+            }
+            break;
+          }
+          case "ui-mounted": {
+            webview.postMessage({
+              command: "homedirAndTempdir",
+              homedir: os.homedir(),
+              tempdir: os.tmpdir(),
+            });
+            return;
+          }
+          case "init-create": {
+            // Support both collection and project forms
+            payload = message.payload as
+              | AnsibleCollectionFormInterface
+              | AnsibleProjectFormInterface;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.runInitCommand(payload, webview);
+            return;
+          }
+          case "init-copy-logs": {
+            payload = message.payload;
+            vscode.env.clipboard.writeText(payload.initExecutionLogs);
+            await vscode.window.showInformationMessage(
+              "Logs copied to clipboard",
+            );
+            return;
+          }
+          case "init-open-log-file": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.openLogFile(payload.logFileUrl);
+            return;
+          }
+          case "init-open-scaffolded-folder": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            // Support both collection and project URLs
+            const folderUrl = payload.collectionUrl || payload.projectUrl;
+            await webviewHelper.openFolderInWorkspace(folderUrl);
+            return;
+          }
+          case "check-ade-presence": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.isADEPresent(webview);
+            return;
+          }
           case "explanationThumbsUp": {
             thumbsUpDown(ThumbsUpDownAction.UP, data.explanationId);
             return;
@@ -457,5 +565,246 @@ export class WebviewHelper {
       undefined,
       disposables,
     );
+  }
+
+  public async runInitCommand(
+    payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
+    webView: vscode.Webview,
+  ) {
+    // Determine if this is a collection or project payload
+    // Collections have 'initPath', projects have 'destinationPath'
+    const isCollection =
+      "initPath" in payload && !("destinationPath" in payload);
+
+    let ansibleCreatorInitCommand: string;
+    let destinationUrl: string;
+
+    if (isCollection) {
+      // Collection-specific logic
+      const collectionPayload = payload;
+      const { namespaceName, collectionName, initPath } = collectionPayload;
+
+      const initPathUrl =
+        initPath || `${os.homedir()}/.ansible/collections/ansible_collections`;
+
+      ansibleCreatorInitCommand = await this.getCollectionCreatorCommand(
+        namespaceName,
+        collectionName,
+        initPathUrl,
+      );
+
+      destinationUrl = initPathUrl.endsWith("/collections/ansible_collections")
+        ? Uri.joinPath(Uri.parse(initPathUrl), namespaceName, collectionName)
+            .fsPath
+        : initPathUrl;
+    } else {
+      // Project-specific logic
+      const projectPayload = payload;
+      const { destinationPath, namespaceName, collectionName } = projectPayload;
+
+      destinationUrl = destinationPath ? destinationPath : os.homedir();
+
+      ansibleCreatorInitCommand = await this.getPlaybookCreatorCommand(
+        namespaceName,
+        collectionName,
+        destinationUrl,
+      );
+    }
+
+    const creatorVersion = await getCreatorVersion();
+    const exceedMinVersion = semver.gte(
+      creatorVersion,
+      ANSIBLE_CREATOR_VERSION_MIN,
+    );
+
+    if (exceedMinVersion && payload.isOverwritten) {
+      ansibleCreatorInitCommand += " --overwrite";
+    } else if (!exceedMinVersion && payload.isOverwritten) {
+      ansibleCreatorInitCommand += " --force";
+    } else if (exceedMinVersion && !payload.isOverwritten) {
+      ansibleCreatorInitCommand += " --no-overwrite";
+    }
+
+    const verbosityMap: Record<string, string> = {
+      off: "",
+      low: " -v",
+      medium: " -vv",
+      high: " -vvv",
+    };
+
+    const normalizedVerbosity = payload.verbosity.toLowerCase();
+    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
+    ansibleCreatorInitCommand += verbosityFlag;
+
+    let logFilePathUrl = "";
+
+    if (payload.logToFile) {
+      logFilePathUrl =
+        payload.logFilePath || `${os.tmpdir()}/ansible-creator.log`;
+      ansibleCreatorInitCommand += ` --lf=${logFilePathUrl}`;
+      ansibleCreatorInitCommand += ` --ll=${payload.logLevel.toLowerCase()}`;
+
+      if (isCollection) {
+        ansibleCreatorInitCommand += ` --la=${payload.logFileAppend}`;
+      } else {
+        ansibleCreatorInitCommand += ` --la=${payload.logFileAppend ? "true" : "false"}`;
+      }
+    }
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command, env } = withInterpreter(
+      extSettings.settings,
+      ansibleCreatorInitCommand,
+      "",
+    );
+
+    let commandOutput = "";
+
+    // Execute ansible-creator command
+    const ansibleCreatorExecutionResult = await runCommand(command, env);
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    commandOutput += ansibleCreatorExecutionResult.output;
+    const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
+
+    // Execute ADE command for collections if needed
+    if (isCollection && payload.isEditableModeInstall) {
+      const collectionPayload = payload;
+      const venvPathUrl = Uri.joinPath(
+        Uri.parse(destinationUrl),
+        ".venv",
+      ).fsPath;
+      let adeCommand = `ade install --venv ${venvPathUrl} --editable ${destinationUrl} --no-ansi`;
+
+      switch (collectionPayload.verbosity) {
+        case "low":
+          adeCommand += " -v";
+          break;
+        case "medium":
+          adeCommand += " -vv";
+          break;
+        case "high":
+          adeCommand += " -vvv";
+          break;
+      }
+
+      console.debug("[ade] command: ", adeCommand);
+      const { command: adeCmd, env: adeEnv } = withInterpreter(
+        extSettings.settings,
+        adeCommand,
+        "",
+      );
+
+      const adeExecutionResult = await runCommand(adeCmd, adeEnv);
+      commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
+      commandOutput += adeExecutionResult.output;
+    }
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        logFileUrl: logFilePathUrl,
+        collectionUrl: isCollection ? destinationUrl : undefined,
+        projectUrl: isCollection ? undefined : destinationUrl,
+        status: ansibleCreatorCommandPassed,
+      },
+    } as PostMessageEvent);
+  }
+
+  public async isADEPresent(webView: vscode.Webview) {
+    const ADEVersion = await getBinDetail("ade", "--version");
+    if (ADEVersion === "failed") {
+      webView.postMessage({
+        command: "ADEPresence",
+        arguments: false,
+      } as PostMessageEvent);
+      return;
+    }
+    webView.postMessage({
+      command: "ADEPresence",
+      arguments: true,
+    } as PostMessageEvent);
+    return;
+  }
+
+  public async getCollectionCreatorCommand(
+    namespaceName: string,
+    collectionName: string,
+    initPathUrl: string,
+  ): Promise<string> {
+    let command = "";
+    const creatorVersion = await getCreatorVersion();
+
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_COLLECTION_VERSION_MIN)) {
+      command = `ansible-creator init collection ${namespaceName}.${collectionName} ${initPathUrl} --no-ansi`;
+    } else {
+      command = `ansible-creator init ${namespaceName}.${collectionName} --init-path=${initPathUrl} --no-ansi`;
+    }
+    return command;
+  }
+
+  public async getPlaybookCreatorCommand(
+    namespace: string,
+    collection: string,
+    url: string,
+  ): Promise<string> {
+    let command = "";
+    const creatorVersion = await getCreatorVersion();
+
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+      command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
+    } else {
+      command = `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
+    }
+    return command;
+  }
+
+  public async openLogFile(fileUrl: string) {
+    const logFileUrl = vscode.Uri.file(expandPath(fileUrl)).fsPath;
+    const parsedUrl = vscode.Uri.parse(`vscode://file${logFileUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
+  }
+
+  public openFileInEditor(fileUrl: string) {
+    const updatedUrl = expandPath(String(fileUrl));
+    vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+  }
+
+  public async openFolderInWorkspace(folderUrl: string) {
+    const folderUri = Uri.parse(expandPath(folderUrl));
+
+    if (workspace.workspaceFolders?.length === 0) {
+      workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      await commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
+
+    // Determine which file to open based on what was created
+    const galaxyFileUri = Uri.joinPath(Uri.parse(folderUrl), "galaxy.yml");
+    const siteFileUri = Uri.joinPath(Uri.parse(folderUrl), "site.yml");
+
+    let targetFileUrl: string;
+
+    try {
+      await workspace.fs.stat(galaxyFileUri);
+      // galaxy.yml exists, so this is a collection
+      targetFileUrl = galaxyFileUri.fsPath;
+    } catch {
+      try {
+        await workspace.fs.stat(siteFileUri);
+        // site.yml exists, so this is a playbook project
+        targetFileUrl = siteFileUri.fsPath;
+      } catch {
+        // Neither exists, default to site.yml for playbook
+        targetFileUrl = siteFileUri.fsPath;
+      }
+    }
+
+    const parsedUrl = Uri.parse(`vscode://file${targetFileUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
   }
 }
