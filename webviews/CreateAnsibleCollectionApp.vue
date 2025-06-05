@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed } from 'vue';
-import { vscodeApi } from './utils';
-import '../../../media/contentCreator/createAnsibleCollectionPageStyle.css';
+import { vscodeApi } from './lightspeed/src/utils';
+import '../media/contentCreator/createAnsibleCollectionPageStyle.css';
 
 const homeDir = ref('');
 const namespace = ref("");

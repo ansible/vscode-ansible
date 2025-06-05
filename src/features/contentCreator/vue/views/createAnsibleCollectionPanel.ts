@@ -4,7 +4,7 @@ import {
   setupPanelLifecycle,
   disposePanelResources,
   createOrRevealPanel,
-} from "./panelUtils";
+} from "../../../lightspeed/vue/views/panelUtils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
@@ -16,7 +16,7 @@ export class MainPanel {
     setupPanelLifecycle(
       this._panel,
       context,
-      "create-ansible-project",
+      "create-ansible-collection",
       this._disposables,
       () => this.dispose(),
     );
@@ -24,8 +24,8 @@ export class MainPanel {
 
   public static render(context: ExtensionContext) {
     createOrRevealPanel({
-      viewType: "CreateAnsibleProject",
-      viewTitle: "Create Ansible project",
+      viewType: "createAnsibleCollection",
+      viewTitle: "Create Ansible collection",
       viewColumn: ViewColumn.One,
       context: context,
       getCurrentPanel: () => MainPanel.currentPanel,
