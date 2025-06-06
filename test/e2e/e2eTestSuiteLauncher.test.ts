@@ -14,11 +14,11 @@ import {
 import { testLightspeed } from "./lightspeed/testLightspeed.test";
 import { testExtensionForFilesOutsideWorkspace } from "./outsideWorkspace/testExtensionForFilesOutsideWorkspace.test";
 
-describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", function () {
+describe("e2e", function () {
   const run_lightspeed_tests_only =
     process.env.RUN_LIGHTSPEED_TESTS_ONLY || "0";
 
-  describe("TEST EXTENSION IN LOCAL ENVIRONMENT", function () {
+  describe("local-env", function () {
     before(async function () {
       setFixtureAnsibleCollectionPathEnv(
         "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -40,7 +40,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", function () {
 
   const skip_ee = process.env.SKIP_PODMAN || process.env.SKIP_DOCKER || "0";
   if (skip_ee !== "1" && run_lightspeed_tests_only !== "1") {
-    describe("TEST EXTENSION IN EXECUTION ENVIRONMENT", function () {
+    describe("ee", function () {
       before(async function () {
         deleteAlsCache();
         setFixtureAnsibleCollectionPathEnv(
@@ -60,7 +60,7 @@ describe("END-TO-END TEST SUITE FOR REDHAT.ANSIBLE EXTENSION", function () {
   }
 
   if (run_lightspeed_tests_only !== "1") {
-    describe("TEST EXTENSION FOR FILES OUTSIDE WORKSPACE", function () {
+    describe("files-outside-workspace", function () {
       testExtensionForFilesOutsideWorkspace();
     });
   }
