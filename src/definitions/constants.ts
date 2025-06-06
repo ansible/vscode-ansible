@@ -39,6 +39,8 @@ export const IncludeVarValidTaskName = [
   "ansible.legacy.include_vars",
 ];
 
+export const ADE_ISOLATION_MODE_MIN = "25.4.0";
+
 /* Slightly lower than CloudFront's timeout which is 30s. */
 export const ANSIBLE_LIGHTSPEED_API_TIMEOUT = 28000;
 

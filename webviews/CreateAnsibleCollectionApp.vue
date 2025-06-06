@@ -59,6 +59,7 @@ function toggleEditableModeInstallCheckBox() {
 }
 
 onMounted(() => {
+  toggleEditableModeInstallCheckBox();
   window.addEventListener('message', (event) => {
     const message = event.data;
 
@@ -82,11 +83,17 @@ onMounted(() => {
       if (message.arguments.status === "passed") {
         openScaffoldedFolderButtonDisabled.value = false;
         collectionUrl.value = message.arguments.collectionUrl || "";
-        } else {
+        createButtonDisabled.value = false;
+        }
+      else if(message.arguments.status === "in-progress") {
+        openScaffoldedFolderButtonDisabled.value = true;
+        createButtonDisabled.value = false
+      }
+      else {
         openScaffoldedFolderButtonDisabled.value = true;
         collectionUrl.value = "";
-        }
-      createButtonDisabled.value = false;
+        createButtonDisabled.value = false;
+      }
 
       if (message.arguments.status === "passed" || message.arguments.status === "failed") {
         isCreating.value = false;
