@@ -690,13 +690,6 @@ export class WebviewHelper {
           break;
       }
 
-      console.debug("[ade] command: ", adeCommand);
-      const { command: adeCmd, env: adeEnv } = withInterpreter(
-        extSettings.settings,
-        adeCommand,
-        "",
-      );
-
       commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
 
       await webView.postMessage({
