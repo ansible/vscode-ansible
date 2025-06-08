@@ -35,7 +35,7 @@ function openFolderExplorer() {
 
 function handleCreate() {
   if (!isFormValid.value) return;
-  
+
   isCreating.value = true;
   logs.value = '';
   updateCreateButtonState();
@@ -105,7 +105,7 @@ onMounted(() => {
     } else if (message.command === 'execution-log') {
       logs.value = message.arguments.commandOutput || '';
       projectUrl.value = message.arguments.projectUrl || '';
-      
+
       if (message.arguments.status === 'passed') {
         openRoleButtonDisabled.value = false;
       } else {
@@ -126,14 +126,14 @@ onMounted(() => {
       <h1>Add a role to an existing collection</h1>
       <p class="subtitle">Extending automation with Ansible roles</p>
     </div>
-    
+
     <div class="description-div">
       <h3>Ansible roles are modular units that group related tasks and files to promote reusability and organized automation.</h3>
     </div>
 
     <form id="role-form">
       <section class="component-container">
-        
+
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
             <span class="normal">Collection root directories</span>
