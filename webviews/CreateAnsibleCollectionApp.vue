@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, nextTick } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
 import '../media/contentCreator/createAnsibleCollectionPageStyle.css';
 
@@ -58,49 +58,61 @@ function toggleEditableModeInstallCheckBox() {
   });
 }
 
-onMounted(() => {
-  toggleEditableModeInstallCheckBox();
-  window.addEventListener('message', (event) => {
-    const message = event.data;
-
-    if (message.type === 'homeDirectory') {
-      homeDir.value = message.data;
-    } else if (message.command === "ADEPresence") {
-      adePresent.value = message.arguments;
-    } else if (message.type === 'folderSelected') {
-      initPath.value = message.data;
-    } else if (message.type === 'fileSelected') {
-      logFilePath.value = message.data;
-    } else if (message.command === 'homedirAndTempdir') {
-      defaultInitPath.value = `${message.homedir}/.ansible/collections/ansible_collections`;
-      defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-    } else if (message.type === 'logs') {
-      logs.value += message.data + '\n';
-    } else if (message.command === "execution-log" && isCreating.value) {
-      logs.value = message.arguments.commandOutput;
-      logFileUrl.value = message.arguments.logFileUrl;
-      openLogFileButtonDisabled.value = !logFileUrl.value;
-      if (message.arguments.status === "passed") {
-        openScaffoldedFolderButtonDisabled.value = false;
-        collectionUrl.value = message.arguments.collectionUrl || "";
-        createButtonDisabled.value = false;
+onMounted(async () => {
+  try {
+    vscodeApi.postMessage({ type: 'ui-mounted' });
+    await nextTick();
+    const messageHandler = (event: MessageEvent) => {
+      const message = event.data;
+      if (message.type === 'homeDirectory') {
+        homeDir.value = message.data;
+      } else if (message.command === "ADEPresence") {
+        adePresent.value = message.arguments;
+      } else if (message.type === 'folderSelected') {
+        initPath.value = message.data;
+      } else if (message.type === 'fileSelected') {
+        logFilePath.value = message.data;
+      } else if (message.command === 'homedirAndTempdir') {
+        defaultInitPath.value = `${message.homedir}/.ansible/collections/ansible_collections`;
+        defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
+      } else if (message.type === 'logs') {
+        logs.value += message.data + '\n';
+      } else if (message.command === "execution-log" && isCreating.value) {
+        logs.value = message.arguments.commandOutput;
+        logFileUrl.value = message.arguments.logFileUrl;
+        openLogFileButtonDisabled.value = !logFileUrl.value;
+        if (message.arguments.status === "passed") {
+          openScaffoldedFolderButtonDisabled.value = false;
+          collectionUrl.value = message.arguments.collectionUrl || "";
+          createButtonDisabled.value = false;
         }
-      else if(message.arguments.status === "in-progress") {
-        openScaffoldedFolderButtonDisabled.value = true;
-        createButtonDisabled.value = false
+        else if(message.arguments.status === "in-progress") {
+          openScaffoldedFolderButtonDisabled.value = true;
+          createButtonDisabled.value = false
+        }
+        else {
+          openScaffoldedFolderButtonDisabled.value = true;
+          collectionUrl.value = "";
+          createButtonDisabled.value = false;
+        }
+        if (message.arguments.status === "passed" || message.arguments.status === "failed") {
+          isCreating.value = false;
+        }
       }
-      else {
-        openScaffoldedFolderButtonDisabled.value = true;
-        collectionUrl.value = "";
-        createButtonDisabled.value = false;
+    };
+    
+    window.addEventListener('message', messageHandler);
+    setTimeout(async () => {
+      try {
+        toggleEditableModeInstallCheckBox();
+      } catch (error) {
+        console.warn('ADE presence check failed, continuing without it:', error);
       }
-
-      if (message.arguments.status === "passed" || message.arguments.status === "failed") {
-        isCreating.value = false;
-      }
-    }
-  });
-  vscodeApi.postMessage({ type: 'ui-mounted' });
+    }, 0);
+    
+  } catch (error) {
+    console.error('Error during component mounting:', error);
+  }
 });
 
 function clearLogs() {
@@ -357,7 +369,6 @@ async function onClear() {
 
         <div class="checkbox-div">
           <vscode-checkbox
-            id='editable-mode-checkbox'
             :checked="isEditableModeInstall"
             @change="isEditableModeInstall = $event.target.checked"
             :disabled="!adePresent"
