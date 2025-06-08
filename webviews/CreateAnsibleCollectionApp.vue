@@ -357,6 +357,7 @@ async function onClear() {
 
         <div class="checkbox-div">
           <vscode-checkbox
+            id='editable-mode-checkbox'
             :checked="isEditableModeInstall"
             @change="isEditableModeInstall = $event.target.checked"
             :disabled="!adePresent"
