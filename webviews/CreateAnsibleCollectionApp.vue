@@ -100,7 +100,7 @@ onMounted(async () => {
         }
       }
     };
-    
+
     window.addEventListener('message', messageHandler);
     setTimeout(async () => {
       try {
@@ -109,7 +109,7 @@ onMounted(async () => {
         console.warn('ADE presence check failed, continuing without it:', error);
       }
     }, 0);
-    
+
   } catch (error) {
     console.error('Error during component mounting:', error);
   }
