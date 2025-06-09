@@ -63,7 +63,7 @@
             "title": "Make sure you see the \"Ansible\" tag in the status bar",
             "description": "If your Ansible playbook was successfully created, you should see an Ansible tag in the status bar. If not, you can [change the language](command:ansible.walkthrough.gettingStarted.setLanguage).\nHovering over the Ansible tag can tell you about installed versions or environment issues. If tools are missing or warnings are present, continue to the next step to fix the environment.",
             "media": {
-              "markdown": "media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md.html"
             }
           },
           {
@@ -71,7 +71,7 @@
             "title": "Install the Ansible development package",
             "description": "The Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools. \n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
             "media": {
-              "markdown": "media/walkthroughs/createAnsibleEnv/adt-components.md"
+              "markdown": "media/walkthroughs/createAnsibleEnv/adt-components.md.html"
             }
           }
         ]
@@ -86,7 +86,7 @@
             "title": "Enable Ansible Lightspeed",
             "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
             "media": {
-              "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md"
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md.html"
             }
           },
           {
@@ -94,7 +94,7 @@
             "title": "Create an Ansible playbook project",
             "description": "Create a pre-configured Ansible playbook project repository.\n[Create an Ansible playbook project](command:ansible.content-creator.create-ansible-project)",
             "media": {
-              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md"
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html"
             }
           },
           {
@@ -111,7 +111,7 @@
             "title": "Save your playbook to a playbook project",
             "description": "Save your playbook in your new playbook project.\nWe recommend saving your playbooks under the **playbooks/** folder inside your project.",
             "media": {
-              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md"
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html"
             }
           },
           {
@@ -135,7 +135,7 @@
             "title": "Create",
             "description": "**Scaffold automation content with Ansible creator**\nThe fastest way to generate all your Ansible content! Whether you are initializing an Ansible collection or creating the framework for specific plugins, this tool streamlines the process with efficiency and precision based on your requirements.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/creator/) \n-----\n**Manage automation content with Ansible navigator**\nA text-based user interface (TUI) for creating, reviewing, running and troubleshooting Ansible content, including inventories, playbooks, collections, documentation, and execution environments.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/navigator/) \n-----\n**Discover content with Ansible automation hub**\nYour organization's on-premise repository with curated, certified and validated Ansible content.\n[View Documentation ↗](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/managing_automation_content/index) \n-----\n**Build with Ansible Lightspeed**\nAnsible's generative AI service that provides Ansible code based on natural language prompts. Include content explanation and more to help you build with confidence.\n[View Documentation ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) \n[Ansible Lightspeed Trial Walkthrough ↗](https://www.redhat.com/en/products/interactive-walkthrough/install-ansible-lightspeed) ",
             "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-create.md"
+              "markdown": "media/walkthroughs/discoverAdt/adt-create.md.html"
             }
           },
           {
@@ -143,7 +143,7 @@
             "title": "Test",
             "description": "**Test playbooks with Ansible lint**\nChecks playbooks for style errors, best practices, and other issues to ensure the integrity of your code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/lint/) \n-----\n**Test collections with Ansible Molecule**\nAssists in the development and testing of Ansible collections, playbooks, and roles.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/molecule/) \n-----\n**Test collections with tox Ansible**\nAn extension to the tox testing utility that provides additional functionality to check Ansible module and plugin Python code under different Python interpreters and Ansible core versions.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/tox-ansible/) \n-----\n**Integrate with pytest using pytest Ansible**\nA pytest testing framework extension that provides additional functionality for testing Ansible module and plugin Python code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/pytest-ansible/) ",
             "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-test.md"
+              "markdown": "media/walkthroughs/discoverAdt/adt-test.md.html"
             }
           },
           {
@@ -151,7 +151,7 @@
             "title": "Deploy",
             "description": "**Build execution environments with Ansible builder**\nAutomates the process of creating execution environments using schemas and tooling.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/builder/) \n-----\n**Verify Ansible content with Ansible sign**\nUtility for signing and verifying Ansible project directory contents to ensure a secure software supply chain.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/sign/) ",
             "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-deploy.md"
+              "markdown": "media/walkthroughs/discoverAdt/adt-deploy.md.html"
             }
           },
           {
@@ -159,7 +159,7 @@
             "title": "Where do I start?",
             "description": "**Install the Ansible development package, if you have not already**\nThe Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.\n-----\n**Check out other walkthroughs**\n[• Create an Ansible Environment](command:ansible.open-walkthrough-create-env) ",
             "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-components.md"
+              "markdown": "media/walkthroughs/discoverAdt/adt-components.md.html"
             }
           }
         ]
@@ -463,6 +463,10 @@
       {
         "command": "extension.buildExecutionEnvironment",
         "title": "Build Ansible execution environment"
+      },
+      {
+        "command": "ansible.hello.world",
+        "title": "Ansible: Demo Vue - Hello World"
       }
     ],
     "configuration": [
@@ -961,34 +965,35 @@
     "@tomjs/vscode-webview": "^2.0.2",
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vscode-elements/elements": "^1.15.0",
+    "@vscode-elements/elements": "^1.16.1",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "highlight.js": "^11.11.1",
     "ini": "^5.0.0",
-    "marked": "^15.0.11",
+    "marked": "^15.0.12",
     "minimatch": "^10.0.1",
-    "primevue": "4.3.4",
-    "semver": "^7.7.1",
+    "primevue": "4.3.5",
+    "semver": "^7.7.2",
     "uuid": "^11.1.0",
     "vite": "^6.3.4",
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
-    "vue": "^3.5.13",
+    "vue": "^3.5.16",
     "vue-tsc": "^2.2.10",
-    "yaml": "^2.7.1"
+    "yaml": "^2.8.0"
   },
   "description": "Ansible language support",
   "devDependencies": {
-    "@eslint/js": "^9.25.1",
+    "@eslint/js": "^9.28.0",
+    "@html-eslint/eslint-plugin": "^0.41.0",
     "@types/chai": "^4.3.20",
-    "@types/express": "^5.0.1",
+    "@types/express": "^5.0.2",
     "@types/glob": "^8.1.0",
     "@types/jsdom": "^21.1.7",
-    "@types/lodash": "^4.17.16",
+    "@types/lodash": "^4.17.17",
     "@types/minimatch": "^5.1.2",
     "@types/mocha": "^10.0.10",
     "@types/morgan": "^1.9.9",
-    "@types/node": "^22.15.3",
+    "@types/node": "^22.15.29",
     "@types/selenium-webdriver": "^4.1.28",
     "@types/sinon": "^17.0.4",
     "@types/tmp": "^0.2.6",
@@ -996,48 +1001,50 @@
     "@types/vscode": "^1.85.0",
     "@types/vscode-webview": "^1.57.5",
     "@types/yargs": "^17.0.33",
-    "@typescript-eslint/eslint-plugin": "^8.31.0",
-    "@typescript-eslint/parser": "^8.31.0",
-    "@vscode/test-cli": "^0.0.10",
+    "@typescript-eslint/eslint-plugin": "^8.33.0",
+    "@typescript-eslint/parser": "^8.33.0",
+    "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
-    "@vscode/vsce": "^3.3.2",
+    "@vscode/vsce": "^3.4.2",
     "chai": "^4.5.0",
     "cypress-multi-reporters": "^2.0.5",
     "depcheck": "^1.4.7",
-    "eslint": "^9.25.1",
+    "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-formatter-gha": "^1.5.2",
     "eslint-formatter-unix": "^8.40.0",
     "eslint-plugin-chai-friendly": "^1.0.1",
-    "eslint-plugin-prettier": "^5.2.6",
+    "eslint-plugin-mocha": "^11.1.0",
+    "eslint-plugin-prettier": "^5.4.1",
     "eslint-plugin-tsdoc": "^0.4.0",
     "express": "^5.1.0",
     "find-process": "^1.4.10",
     "glob": "^11.0.2",
-    "globals": "^16.0.0",
+    "globals": "^16.2.0",
     "jsdom": "^26.1.0",
     "lodash": "^4.17.21",
-    "mocha": "^11.0.1",
+    "mocha": "^11.5.0",
     "mocha-junit-reporter": "^2.2.1",
+    "mocha-multi-reporters": "^1.5.1",
     "morgan": "^1.10.0",
     "npm-check-updates": "^18.0.1",
-    "ovsx": "^0.10.2",
+    "ovsx": "^0.10.3",
     "prettier": "^3.5.3",
     "react": "^19.1.0",
     "rimraf": "^6.0.1",
-    "selenium-webdriver": "^4.31.0",
+    "selenium-webdriver": "^4.33.0",
     "sinon": "^20.0.0",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.31.0",
+    "typescript-eslint": "^8.33.0",
     "vscode-extension-tester": "^8.14.1",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
-    "webpack": "^5.99.7",
+    "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "winston": "^3.17.0",
-    "yargs": "^17.7.2",
+    "yargs": "^18.0.0",
     "yarn-audit-fix": "^10.1.1"
   },
   "displayName": "Ansible",

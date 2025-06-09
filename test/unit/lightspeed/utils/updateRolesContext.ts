@@ -8,13 +8,14 @@ import fs from "fs";
 
 import { IWorkSpaceRolesContext } from "../../../../src/interfaces/lightspeed";
 
-describe("testing updateRolesContext", () => {
+describe("testing updateRolesContext", function () {
   const tmpDir = tmp.dirSync();
+
   after(function () {
     fs.rmSync(tmpDir.name, { recursive: true, force: true });
   });
 
-  it("with no root directory", () => {
+  it("with no root directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
     const result = updateRolesContext(ansibleRolesCache, "", "workSpace");
 
@@ -22,7 +23,7 @@ describe("testing updateRolesContext", () => {
     assert.equal(Object.keys(ansibleRolesCache).length, 0);
   });
 
-  it("with an empty roles directory", () => {
+  it("with an empty roles directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/empty`;
@@ -33,7 +34,7 @@ describe("testing updateRolesContext", () => {
     assert.equal(Object.keys(ansibleRolesCache).length, 0);
   });
 
-  it("with a file called 'roles'", () => {
+  it("with a file called 'roles'", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_as_file`;
@@ -54,7 +55,7 @@ describe("testing updateRolesContext", () => {
     assert.equal(Object.keys(ansibleRolesCache).length, 0);
   });
 
-  it("with a role with just one task'", () => {
+  it("with a role with just one task'", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_with_one_task`;
@@ -78,7 +79,7 @@ describe("testing updateRolesContext", () => {
     assert.equal(Object.keys(vars).length, 0);
   });
 
-  it("with a role where 'tasks' is a file, not a directory", () => {
+  it("with a role where 'tasks' is a file, not a directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_with_a_file_called_tasks`;
@@ -102,7 +103,7 @@ describe("testing updateRolesContext", () => {
     );
   });
 
-  it("with a role with one task and a vars file'", () => {
+  it("with a role with one task and a vars file'", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_with_task_and_var_file`;
@@ -133,7 +134,7 @@ describe("testing updateRolesContext", () => {
     assert.equal(vars["main.yaml"], "some_var: 1\n");
   });
 
-  it("with a role where 'vars' is a file, not a directory", () => {
+  it("with a role where 'vars' is a file, not a directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_where_vars_is_a_file`;
@@ -154,7 +155,8 @@ describe("testing updateRolesContext", () => {
       ),
     );
   });
-  it("with a role where 'defaults' is a file, not a directory, but 'vars' is a directory as expected", () => {
+
+  it("with a role where 'defaults' is a file, not a directory, but 'vars' is a directory as expected", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_where_defaults_is_a_file_and_vars_is_a_directory`;

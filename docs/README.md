@@ -158,8 +158,8 @@ type:
 - Press Tab to accept a suggestion
 - Press Escape to hide a suggestion
 
-See the guide
-[here](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/set-up-lightspeed_lightspeed-user-guide#set-up-lightspeed_lightspeed-user-guide)
+See the
+[Red Hat Ansible Lightspeed setup guide](https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/set-up-lightspeed_lightspeed-user-guide#set-up-lightspeed_lightspeed-user-guide)
 to get started.
 
 ## Content Creation Tools
@@ -367,8 +367,8 @@ which you can learn more about at
 
 ## Contact
 
-We welcome your feedback, questions and ideas. Learn how to reach us
-[here](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
+We welcome your feedback, questions and ideas. Learn how to
+[contact the Ansible VS Code team](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
 
 ## Credit
 

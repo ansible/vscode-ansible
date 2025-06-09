@@ -60,8 +60,8 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
   await button.click();
 }
 
-describe("Content Creator UI Tests", () => {
-  before(async () => {
+describe("Content Creator UI Tests", function () {
+  before(async function () {
     // Install ansible-creator
     await workbenchExecuteCommand("Install Ansible Content Creator");
     // This sleep is hard to get rid of because the installation takes time
@@ -69,85 +69,8 @@ describe("Content Creator UI Tests", () => {
     await sleep(2000);
   });
 
-  describe("Test Ansible playbook and collection project scaffolding at default path", () => {
-    let createButton: WebElement;
-    let editorView: EditorView;
-
-    async function testWebViewElements(
-      command: string,
-      editorTitle: string,
-      namespaceName: string,
-      collectionName: string,
-    ) {
-      await workbenchExecuteCommand(command);
-
-      await new EditorView().openEditor(editorTitle);
-      const textFieldTag = "vscode-textfield";
-      const webview = await getWebviewByLocator(
-        By.xpath(`//${textFieldTag}[@id='namespace-name']`),
-      );
-
-      const namespaceTextField = await webview.findWebElement(
-        By.xpath(`//${textFieldTag}[@id='namespace-name']`),
-      );
-      expect(namespaceTextField, "namespaceTextField should not be undefined")
-        .not.to.be.undefined;
-      await namespaceTextField.sendKeys(namespaceName);
-
-      const collectionTextField = await webview.findWebElement(
-        By.xpath(`//${textFieldTag}[@id='collection-name']`),
-      );
-      expect(collectionTextField, "collectionTextField should not be undefined")
-        .not.to.be.undefined;
-      await collectionTextField.sendKeys(collectionName);
-
-      const overwriteCheckbox = await webview.findWebElement(
-        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
-      );
-      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
-        .to.be.undefined;
-      await overwriteCheckbox.click();
-
-      createButton = await webview.findWebElement(
-        By.xpath("//vscode-button[@id='create-button']"),
-      );
-      expect(createButton, "createButton should not be undefined").not.to.be
-        .undefined;
-
-      expect(
-        await createButton.isEnabled(),
-        "Create button should be enabled now",
-      ).to.be.true;
-
-      await createButton.click();
-      await webview.switchBack();
-      editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
-    }
-
-    it("Check create-ansible-project webview elements", async () => {
-      await testWebViewElements(
-        "Ansible: Create New Playbook Project",
-        "Create Ansible project",
-        "test_namespace",
-        "test_collection",
-      );
-    });
-
-    it("Check create-ansible-collection webview elements", async () => {
-      await testWebViewElements(
-        "Ansible: Create New Collection",
-        "Create Ansible collection",
-        "test_namespace",
-        "test_collection",
-      );
-    });
-  });
-
-  describe("Test execution-environment project scaffolding at default path", () => {
-    it("Check execution-environment webview elements", async () => {
+  describe("Test execution-environment project scaffolding at default path", function () {
+    it("Check execution-environment webview elements", async function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
         "Create Ansible Execution Environment",
@@ -198,7 +121,7 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test Ansible playbook and collection project scaffolding at provided path", () => {
+  describe("Test Ansible playbook and collection project scaffolding at provided path", function () {
     let editorView: EditorView;
 
     async function testWebViewElements(command: string, editorTitle: string) {
@@ -255,14 +178,14 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check create-ansible-project webview elements", async () => {
+    it("Check create-ansible-project webview elements", async function () {
       await testWebViewElements(
         "Ansible: Create New Playbook Project",
         "Create Ansible project",
       );
     });
 
-    it("Check create-ansible-collection webview elements", async () => {
+    it("Check create-ansible-collection webview elements", async function () {
       await testWebViewElements(
         "Ansible: Create New Collection",
         "Create Ansible collection",
@@ -270,7 +193,94 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test collection plugins scaffolding", () => {
+  describe("Test Ansible playbook and collection project scaffolding at default path", function () {
+    let createButton: WebElement;
+    let editorView: EditorView;
+
+    async function testWebViewElements(
+      command: string,
+      editorTitle: string,
+      namespaceName: string,
+      collectionName: string,
+    ) {
+      await workbenchExecuteCommand(command);
+
+      await new EditorView().openEditor(editorTitle);
+      const textFieldTag = "vscode-textfield";
+      const webview = await getWebviewByLocator(
+        By.xpath(`//${textFieldTag}[@id='namespace-name']`),
+      );
+
+      const namespaceTextField = await webview.findWebElement(
+        By.xpath(`//${textFieldTag}[@id='namespace-name']`),
+      );
+      expect(namespaceTextField, "namespaceTextField should not be undefined")
+        .not.to.be.undefined;
+      await namespaceTextField.sendKeys(namespaceName);
+
+      const collectionTextField = await webview.findWebElement(
+        By.xpath(`//${textFieldTag}[@id='collection-name']`),
+      );
+      expect(collectionTextField, "collectionTextField should not be undefined")
+        .not.to.be.undefined;
+      await collectionTextField.sendKeys(collectionName);
+
+      const overwriteCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+      );
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
+      await overwriteCheckbox.click();
+
+      createButton = await webview.findWebElement(
+        By.xpath("//vscode-button[@id='create-button']"),
+      );
+      expect(createButton, "createButton should not be undefined").not.to.be
+        .undefined;
+
+      expect(
+        await createButton.isEnabled(),
+        "Create button should be enabled now",
+      ).to.be.true;
+
+      // If on the collection page, look for the editable checkbox
+      if (editorTitle.includes("collection")) {
+        const editableCheckbox = await webview.findWebElement(
+          By.xpath("//vscode-checkbox[@id='editable-mode-checkbox']"),
+        );
+        expect(editableCheckbox, "editableCheckbox should not be undefined").not
+          .to.be.undefined;
+        await editableCheckbox.click();
+      }
+
+      await createButton.click();
+      await webview.switchBack();
+      editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
+    }
+
+    it("Check create-ansible-project webview elements", async function () {
+      await testWebViewElements(
+        "Ansible: Create New Playbook Project",
+        "Create Ansible project",
+        "test_namespace",
+        "test_collection",
+      );
+    });
+
+    it("Check create-ansible-collection webview elements", async function () {
+      await testWebViewElements(
+        "Ansible: Create New Collection",
+        "Create Ansible collection",
+        "test_namespace",
+        "test_collection",
+      );
+    });
+  });
+
+  describe("Test collection plugins scaffolding", function () {
     let createButton: WebElement;
     let editorView: EditorView;
 
@@ -438,7 +448,7 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check add-plugin webview elements for lookup plugin", async () => {
+    it("Check add-plugin webview elements for lookup plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -447,7 +457,8 @@ describe("Content Creator UI Tests", () => {
         "Lookup",
       );
     });
-    it("Check add-plugin webview elements for action plugin", async () => {
+
+    it("Check add-plugin webview elements for action plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -456,7 +467,8 @@ describe("Content Creator UI Tests", () => {
         "Action",
       );
     });
-    it("Check add-plugin webview elements for generic module plugin", async () => {
+
+    it("Check add-plugin webview elements for generic module plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -465,7 +477,8 @@ describe("Content Creator UI Tests", () => {
         "Module",
       );
     });
-    it("Check add-plugin webview elements for test plugin", async () => {
+
+    it("Check add-plugin webview elements for test plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -474,7 +487,8 @@ describe("Content Creator UI Tests", () => {
         "Test",
       );
     });
-    it("Verify Open Plugin button is enabled and plugin file exists", async () => {
+
+    it("Verify Open Plugin button is enabled and plugin file exists", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
         os.homedir + "/test",
@@ -486,7 +500,7 @@ describe("Content Creator UI Tests", () => {
     });
   });
 
-  describe("Test role scaffolding in an existing collection", () => {
+  describe("Test role scaffolding in an existing collection", function () {
     let editorView: EditorView;
 
     async function testWebViewElements(command: string, editorTitle: string) {
@@ -526,7 +540,7 @@ describe("Content Creator UI Tests", () => {
       }
     }
 
-    it("Check create-ansible-project webview elements", async () => {
+    it("Check create-ansible-project webview elements", async function () {
       await testWebViewElements("Ansible: Add Role", "Create Role");
     });
   });
