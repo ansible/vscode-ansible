@@ -34,7 +34,7 @@ const LIGHTSPEED_INLINE_SUGGESTION_AFTER_IGNORE_WAIT_TIME =
   LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME;
 
 export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
-  describe("Test an inline suggestion from another provider", function () {
+  describe("Inline suggestion from another provider", function () {
     let disposable: Disposable;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let executeCommandSpy: any;
@@ -69,7 +69,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       );
     });
 
-    it("Test an inline suggestion from another provider is committed", async function () {
+    it("Inline suggestion from another provider is committed", async function () {
       const editor = await invokeInlineSuggestion(1, 8);
 
       // Issue Lightspeed's commit command, which is assigned to the Tab key, which
@@ -118,7 +118,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
 }
 
 export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
-  describe("Test an inline suggestion from another provider to be rejected", function () {
+  describe("Inline suggestion from another provider to be rejected", function () {
     let disposable: Disposable;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let executeCommandSpy: any;
@@ -153,7 +153,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       );
     });
 
-    it("Test an inline suggestion from another provider is committed", async function () {
+    it("Inline suggestion from another provider is committed", async function () {
       // Inline suggestion is triggered at (line, column) = (5, 4).  Note numbers are
       // zero-origin. Since the file does not contain trailing blanks, we need to send
       // four spaces through vscode API.
@@ -213,7 +213,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
 }
 
 export async function testIgnorePendingSuggestion(): Promise<void> {
-  describe("Test to ignore a pending suggestion", function () {
+  describe("Ignore a pending suggestion", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let feedbackRequestSpy: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -236,7 +236,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
       isAuthenticatedStub.returns(Promise.resolve(true));
     });
 
-    it("Test ignorePendingSuggestion method", async function () {
+    it("ignorePendingSuggestion", async function () {
       // Inline suggestion is triggered at (line, column) = (5, 4).  Note numbers are
       // zero-origin. Since the file does not contain trailing blanks, we need to send
       // four spaces through vscode API.
@@ -265,7 +265,7 @@ export async function testIgnorePendingSuggestion(): Promise<void> {
 }
 
 export async function testTriggerTaskSuggestion(): Promise<void> {
-  describe("Test when a inline suggestion should be triggered.", function () {
+  describe("Inline suggestion should be triggered.", function () {
     const taskFileCollection =
       "collections:\n" + "  - name: Deploy web servers\n";
 
@@ -281,7 +281,7 @@ export async function testTriggerTaskSuggestion(): Promise<void> {
 
     const taskFileCollectionEmpty = "collections:\n";
 
-    it("Test taskFileCollectionEmpty.", async function () {
+    it("taskFileCollectionEmpty", async function () {
       const taskFileCollectionResultEmpty = shouldTriggerMultiTaskSuggestion(
         taskFileCollectionEmpty,
         0,
@@ -312,7 +312,7 @@ export async function testTriggerTaskSuggestion(): Promise<void> {
       "    update_cache: true\n" +
       "  become: true";
 
-    it("Test taskFileTaskAlreadySuggested.", async function () {
+    it("taskFileTaskAlreadySuggested", async function () {
       const taskFileTaskAlreadySuggestedResult =
         shouldTriggerMultiTaskSuggestion(
           taskFileTaskAlreadySuggested,
@@ -326,7 +326,7 @@ export async function testTriggerTaskSuggestion(): Promise<void> {
     const taskFileBlock =
       "block:\n" + "  - name: Install httpd and memcached\n";
 
-    it("Test taskFileBlock.", async function () {
+    it("taskFileBlock", async function () {
       const taskFileBlockResult = shouldTriggerMultiTaskSuggestion(
         taskFileBlock,
         2,
@@ -346,7 +346,7 @@ export async function testTriggerTaskSuggestion(): Promise<void> {
       "      state: present\n" +
       "  - name: Display something";
 
-    it("Test taskFileBlockTwoTasks.", async function () {
+    it("taskFileBlockTwoTasks", async function () {
       const taskFileBlockTwoTasksResult = shouldTriggerMultiTaskSuggestion(
         taskFileBlockTwoTasks,
         2,
