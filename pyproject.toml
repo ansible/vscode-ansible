@@ -47,6 +47,7 @@ no-emit-package = [
   "ruamel-yaml-clib",
   "tomli", # <py311
   "typing-extensions",
+  "typing-inspect",
   "setuptools",
   "wheel",
   "uv"

@@ -72,30 +72,32 @@ const expandPathTests = [
   },
 ];
 
-describe("'getBinDetail()' utility functions for the content creator", () => {
-  getBinDetailTests.forEach(({ name, command, arg, expected }) => {
-    it(`should provide details for ${name}`, async function () {
-      const result = (await getBinDetail(command, arg)).toString();
-      assert.include(result, expected);
+describe(__filename, function () {
+  describe("'getBinDetail()' utility functions for the content creator", function () {
+    getBinDetailTests.forEach(({ name, command, arg, expected }) => {
+      it(`should provide details for ${name}`, async function () {
+        const result = (await getBinDetail(command, arg)).toString();
+        assert.include(result, expected);
+      });
     });
   });
-});
 
-describe("'runCommand()' utility functions for the content creator", () => {
-  runCommandTests.forEach(({ name, command, expected }) => {
-    it(`should provide details for ${name}`, async function () {
-      const result = await runCommand(command, process.env);
-      assert.include(result.output, expected.output);
-      assert.equal(result.status, expected.status);
+  describe("'runCommand()' utility functions for the content creator", function () {
+    runCommandTests.forEach(({ name, command, expected }) => {
+      it(`should provide details for ${name}`, async function () {
+        const result = await runCommand(command, process.env);
+        assert.include(result.output, expected.output);
+        assert.equal(result.status, expected.status);
+      });
     });
   });
-});
 
-describe("'expandPath()' utility functions for the content creator", () => {
-  expandPathTests.forEach(({ name, pathUrl, expected }) => {
-    it(`should provide details for ${name}`, function () {
-      const result = expandPath(pathUrl);
-      assert.equal(result, expected);
+  describe("'expandPath()' utility functions for the content creator", function () {
+    expandPathTests.forEach(({ name, pathUrl, expected }) => {
+      it(`should provide details for ${name}`, function () {
+        const result = expandPath(pathUrl);
+        assert.equal(result, expected);
+      });
     });
   });
 });

@@ -6,7 +6,7 @@ mypy # used by vscode
 pip>=22.3.1
 pre-commit>=4.0.1
 pre-commit-uv>=4.1.4
-typing-inspect>=0.8.0,<0.9.0
+typing-inspect>=0.8.0,<0.10.0
 # docs
 mkdocs-ansible
 mkdocs-git-revision-date-localized-plugin

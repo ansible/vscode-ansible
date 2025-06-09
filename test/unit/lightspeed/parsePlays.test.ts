@@ -8,8 +8,8 @@ function parseYaml(yamlString: string) {
   });
 }
 
-describe("Test parsePlays", () => {
-  it("Test a playbook with tasks", () => {
+describe("Test parsePlays", function () {
+  it("Test a playbook with tasks", function () {
     const PLAYBOOK = `---
 - name: Test 1
   hosts: all
@@ -28,7 +28,7 @@ describe("Test parsePlays", () => {
     assert.equal(out[1].name, "Task 2");
   });
 
-  it("Test a playbook without tasks", () => {
+  it("Test a playbook without tasks", function () {
     const PLAYBOOK = `---
 - name: Test 2
   hosts: all
@@ -41,7 +41,7 @@ describe("Test parsePlays", () => {
     assert.equal(out[0].name, "Test 2");
   });
 
-  it("Test a playbook with multiple plays", () => {
+  it("Test a playbook with multiple plays", function () {
     const PLAYBOOK = `---
 - name: Test 3-1
   hosts: all

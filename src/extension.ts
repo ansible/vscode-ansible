@@ -61,11 +61,9 @@ import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quick
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
 import { AnsibleWelcomePage } from "./features/welcomePage";
-import { CreateAnsibleCollection } from "./features/contentCreator/createAnsibleCollectionPage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
-import { CreateAnsibleProject } from "./features/contentCreator/createAnsibleProjectPage";
 import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
@@ -84,6 +82,9 @@ import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnviron
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
 import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/explanationPanel";
+import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
+import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
+import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
@@ -309,6 +310,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           lightSpeedManager,
           pythonInterpreterManager,
         );
+        await updateDocumentInRoleContext();
         if (!editor) {
           await ignorePendingSuggestion();
         }
@@ -562,7 +564,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-ansible-collection",
       () => {
-        CreateAnsibleCollection.render(context.extensionUri);
+        createAnsibleCollectionPanel.render(context);
       },
     ),
   );
@@ -572,7 +574,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-ansible-project",
       () => {
-        CreateAnsibleProject.render(context.extensionUri);
+        createAnsibleProjectPanel.render(context);
       },
     ),
   );
@@ -657,6 +659,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
         RoleGenerationPanel.render(context);
       },
     ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.hello.world", async () => {
+      HelloWorldPanel.render(context);
+    }),
   );
 
   context.subscriptions.push(
@@ -1051,4 +1059,16 @@ async function lightspeedLogin(
       `Welcome back ${authenticatedUser.displayNameWithUserType}`,
     );
   }
+}
+
+async function updateDocumentInRoleContext() {
+  const document = vscode.window.activeTextEditor?.document;
+  const isInRole = document
+    ? await isDocumentInRole(document).catch(() => false)
+    : false;
+  vscode.commands.executeCommand(
+    "setContext",
+    "redhat.ansible.isDocumentInRole",
+    isInRole,
+  );
 }
