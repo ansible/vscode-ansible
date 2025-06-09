@@ -622,7 +622,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
-      "ansible.content-creator.add-plugin",
+      "ansible.content-creator.add-plugin-vue",
       () => {
         addPluginPanel.render(context);
       },

@@ -54,6 +54,7 @@ export default defineConfig({
           __dirname,
           "webviews/create-ansible-project.html",
         ),
+        "add-plugin": path.resolve(__dirname, "webviews/add-plugin.html"),
       },
     },
   },
