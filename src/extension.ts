@@ -85,6 +85,7 @@ import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/e
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
+import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
@@ -615,6 +616,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.add-plugin",
       () => {
         AddPlugin.render(context.extensionUri);
+      },
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.add-plugin",
+      () => {
+        addPluginPanel.render(context);
       },
     ),
   );
