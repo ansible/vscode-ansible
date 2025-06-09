@@ -10,6 +10,7 @@ import {
 import * as vscode from "vscode";
 import {
   expandPath,
+  getADEVersion,
   getCreatorVersion,
   getBinDetail,
   runCommand,
@@ -17,6 +18,7 @@ import {
 import { withInterpreter } from "../../../utils/commandRunner";
 import { SettingsManager } from "../../../../settings";
 import {
+  ADE_ISOLATION_MODE_MIN,
   ANSIBLE_CREATOR_VERSION_MIN,
   ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
 } from "../../../../definitions/constants";
@@ -664,7 +666,7 @@ export class WebviewHelper {
 
     // Execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
 
@@ -675,8 +677,7 @@ export class WebviewHelper {
         Uri.parse(destinationUrl),
         ".venv",
       ).fsPath;
-      let adeCommand = `ade install --venv ${venvPathUrl} --editable ${destinationUrl} --no-ansi`;
-
+      let adeCommand = `cd ${destinationUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
       switch (collectionPayload.verbosity) {
         case "low":
           adeCommand += " -v";
@@ -689,16 +690,38 @@ export class WebviewHelper {
           break;
       }
 
-      console.debug("[ade] command: ", adeCommand);
-      const { command: adeCmd, env: adeEnv } = withInterpreter(
-        extSettings.settings,
-        adeCommand,
-        "",
-      );
+      commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
 
-      const adeExecutionResult = await runCommand(adeCmd, adeEnv);
-      commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
-      commandOutput += adeExecutionResult.output;
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            "Collection scaffolding and environment installation in progress, please wait a few moments....\n",
+          logFileUrl: logFilePathUrl,
+          collectionUrl: destinationUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+      const adeVersion = await getADEVersion();
+      const exceedADEImVersion = semver.gte(adeVersion, ADE_ISOLATION_MODE_MIN);
+
+      if (exceedADEImVersion) {
+        adeCommand += " --im=cfg";
+        const { command, env } = withInterpreter(
+          extSettings.settings,
+          adeCommand,
+          "",
+        );
+        const adeExecutionResult = await runCommand(command, env);
+        commandOutput += adeExecutionResult.output;
+      } else {
+        commandOutput += `Collection could not be installed in editable mode.\n`;
+        commandOutput += `The required version of ansible-dev-environment (ade) for editable mode (using --isolation-mode=cfg) is ${ADE_ISOLATION_MODE_MIN}.\n`;
+        commandOutput += `The installed ade version on this system is ${adeVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ade for this feature.`;
+      }
+
+      console.debug("[ade] command: ", adeCommand);
     }
 
     await webView.postMessage({
@@ -720,12 +743,16 @@ export class WebviewHelper {
         command: "ADEPresence",
         arguments: false,
       } as PostMessageEvent);
+      console.debug(
+        "ADE not found in the environment. Disabling ADE features.",
+      );
       return;
     }
     webView.postMessage({
       command: "ADEPresence",
       arguments: true,
     } as PostMessageEvent);
+    console.debug("ADE found in the environment. Enabling ADE features.");
     return;
   }
 
