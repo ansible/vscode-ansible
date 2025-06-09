@@ -2985,7 +2985,7 @@ __metadata:
     typescript: "npm:^5.8.3"
     typescript-eslint: "npm:^8.33.0"
     uuid: "npm:^11.1.0"
-    vite: "npm:^6.3.3"
+    vite: "npm:^6.3.4"
     vscode-extension-tester: "npm:^8.14.1"
     vscode-languageclient: "npm:^9.0.1"
     vscode-uri: "npm:^3.1.0"
@@ -10121,7 +10121,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite@npm:^6.3.3":
+"vite@npm:^6.3.4":
   version: 6.3.5
   resolution: "vite@npm:6.3.5"
   dependencies:
