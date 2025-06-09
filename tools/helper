@@ -149,10 +149,9 @@ def cli() -> None:
         # Using zipinfo instead of `npm exec -- vsce ls` due to https://github.com/microsoft/vscode-vsce/issues/517
         run("mkdir -p out/log")
         run("zipinfo -1 ./*.vsix > out/log/package.log")
-        run("tools/dirty.sh")
         vsix_file = f"ansible-{version}.vsix"
         size = os.path.getsize(vsix_file) / 1024 / 1024
-        vsx_size_limit_mb = 27
+        vsx_size_limit_mb = 6.2
         print(f"Generated ansible-{vsix_file} of size {size:.2f} MB")
         if size > vsx_size_limit_mb:
             msg = f"The generated vsix file is {size:.2f} MB, larger than {vsx_size_limit_mb} MB limit, this would required extensive review to see if we didn't accidentally include any essential files."

@@ -1,13 +1,12 @@
 version: 2
+# Do not use custom labels due to bugs like https://github.com/dependabot/dependabot-core/issues/2455
+# rely on implicit not-configurable ones: dependencies, major, minor, patch
 updates:
   - package-ecosystem: pip
     directory: /.config/
     schedule:
       day: sunday
       interval: weekly
-    labels:
-      - dependabot-deps-updates
-      - skip-changelog
     groups:
       dependencies:
         patterns:
@@ -18,9 +17,6 @@ updates:
       - "/packages/ansible-language-server/"
     schedule:
       interval: weekly
-    labels:
-      - dependabot-deps-updates
-      - skip-changelog
     versioning-strategy: increase
     open-pull-requests-limit: 3
     groups:
@@ -50,6 +46,6 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
-    labels:
+    labels: # this one does not seem to add semver labels
       - "dependencies"
       - "skip-changelog"

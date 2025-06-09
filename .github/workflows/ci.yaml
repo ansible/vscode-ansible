@@ -170,8 +170,10 @@ jobs:
             .yarn/cache
             node_modules/.cache/webpack
             out/ext
-            out/test-resources
-            out/test-resources-oldest
+            out/test-resources*/Visual Studio Code.app
+            out/test-resources*/chromedriver*
+            out/test-resources*/driverVersion
+            out/test-resources*/stable.zip
             ~/.cache/pip
             ~/.cache/yarn
           key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
@@ -345,6 +347,12 @@ jobs:
           flags: ${{ matrix.name }},${{ matrix.os }}
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
+      - name: Update job summary with test results
+        if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
+        uses: test-summary/action@v2
+        with:
+          paths: "out/junit/*.xml"
+
       # - name: Stop services
       #   if: "contains(matrix.os, 'macos')"
       #   # Stopping podman machine is needed or caching it will fail
@@ -364,11 +372,6 @@ jobs:
       # - name: Setup tmate session
       #   if: ${{ always() }}
       #   uses: mxschmitt/action-tmate@v3
-
-  ack:
-    if: github.event_name == 'pull_request'
-    uses: ansible/team-devtools/.github/workflows/ack.yml@main
-    secrets: inherit
 
   check: # This job does nothing and is only used for the branch protection
     if: always()
@@ -410,7 +413,7 @@ jobs:
           find . -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload als test coverage data [1/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: als
           files: ./*/coverage/als/cobertura-coverage.xml
@@ -420,7 +423,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload unit test coverage data [2/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: unit
           files: ./*/coverage/unit/*cobertura-coverage.xml
@@ -430,7 +433,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload ui test coverage data [3/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: ui
           files: ./*/coverage/ui/*cobertura-coverage.xml
@@ -440,7 +443,7 @@ jobs:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload e2e test coverage data [4/4]
-        uses: codecov/codecov-action@v5.4.2
+        uses: codecov/codecov-action@v5.4.3
         with:
           name: e2e
           files: ./*/coverage/e2e/*cobertura-coverage.xml
@@ -482,6 +485,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ansible-extension-build-${{ github.event.number || github.ref_name }}.zip
+
+      - name: Attach vsix to Github release
+        # cspell: ignore softprops
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: "*.vsix"
 
       - run: |
           npm exec -- yarn install --immutable

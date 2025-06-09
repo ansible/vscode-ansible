@@ -19,6 +19,9 @@
   "[shellscript]": {
     "editor.tabSize": 4
   },
+  "[html]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint"
+  },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },

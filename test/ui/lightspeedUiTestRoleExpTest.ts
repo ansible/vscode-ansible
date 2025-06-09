@@ -20,6 +20,29 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   // Open file in the editor
   await VSBrowser.instance.openResources(filePath);
 
+  // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
+  if (process.platform !== "darwin") {
+    const editorView = new EditorView();
+    const editor = await editorView.openEditor("main.yml");
+    const contextMenu = await editor.openContextMenu();
+
+    const hasExplainRoleMenuItem = await contextMenu.hasItem(
+      "Explain the role with Ansible Lightspeed",
+    );
+    expect(
+      hasExplainRoleMenuItem,
+      '"Explain the role with Ansible Lightspeed" should be present in the context menu',
+    ).to.be.true;
+
+    const hasFoobarMenuItem = await contextMenu.hasItem("this is foobar");
+    expect(
+      hasFoobarMenuItem,
+      '"this is foobar" should not be present in the context menu',
+    ).not.to.be.true;
+
+    await contextMenu.close();
+  }
+
   // Open role explanation webview.
   await workbenchExecuteCommand("Explain the role with Ansible Lightspeed");
 
@@ -78,6 +101,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
 
 describe("Verify role explanation features work as expected", function () {
   let workbench: Workbench;
+
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();

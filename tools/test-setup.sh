@@ -6,27 +6,20 @@
 # (cspell: disable-next-line)
 set -euo pipefail
 
+DIR="$(dirname "$(realpath "$0")")"
+# shellcheck source=/dev/null
+. "$DIR/_utils.sh"
+
 IMAGE_VERSION=$(./tools/get-image-version)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
-NC='\033[0m' # No Color
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
 :> "${PIP_LOG_FILE}"
-
-timed() {
-  local start
-  start=$(date +%s)
-  local exit_code
-  exit_code=0
-  "$@" || exit_code=$?
-  echo >&2 "took ~$(($(date +%s)-start)) seconds. exited with ${exit_code}"
-  return $exit_code
-}
 
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
@@ -50,26 +43,6 @@ get_version () {
     fi
 }
 
-# Use "log [notice|warning|error] message" to  print a colored message to
-# stderr, with colors.
-log () {
-    local prefix
-    if [ "$#" -ne 2 ]; then
-        log error "Incorrect call ($*), use: log [notice|warning|error] 'message'."
-        exit 2
-    fi
-    case $1 in
-        notice) prefix='\033[0;36mNOTICE:  ' ;;
-        warning) prefix='\033[0;33mWARNING: ' ;;
-        error) prefix='\033[0;31mERROR:   ' ;;
-        *)
-        log error "log first argument must be 'notice', 'warning' or 'error', not $1."
-        exit 2
-        ;;
-    esac
-    echo >&2 -e "${prefix}${2}${NC}"
-}
-
 if [[ -z "${HOSTNAME:-}" ]]; then
    export HOSTNAME=${HOSTNAME:-${HOST:-$(hostname)}}
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
@@ -80,6 +53,16 @@ if [[ "${OSTYPE:-}" != darwin* ]]; then
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         exit 55
     }
+fi
+
+if [[ "${OSTYPE:-}" == darwin* ]]; then
+    # coreutils provides 'timeout' command
+    HOMEBREW_NO_ENV_HINTS=1 timed brew bundle --file=- <<-EOS
+brew "coreutils"
+brew "libssh"
+brew "gh"
+EOS
+    # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
 
 is_podman_running() {
@@ -181,7 +164,7 @@ fi
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman gh libssh
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
         podman machine ls --noheading | grep '\*' || time podman machine init
         podman machine ls --noheading | grep "Currently running" || {
             # do not use full path as it varies based on architecture
