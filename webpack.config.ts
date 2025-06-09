@@ -230,7 +230,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,
     addPluginWebviewConfig,
-    // createRoleWebviewConfig,
     quickLinksWebviewConfig,
     createExecutionEnvWebviewConfig,
   ];

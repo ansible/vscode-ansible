@@ -136,7 +136,7 @@ onMounted(() => {
 
         <vscode-form-group variant="vertical">
           <vscode-label for="path-url">
-            <span class="normal">Collection root directories</span>
+            <span class="normal">Collection root directory</span>
             <sup>*</sup>
           </vscode-label>
           <vscode-textfield
