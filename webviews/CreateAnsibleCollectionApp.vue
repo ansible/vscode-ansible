@@ -38,7 +38,7 @@ function openFolderExplorer() {
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
     payload: {
-      defaultPath: initPath.value || defaultInitPath.value || homeDir.value,
+      defaultPath: initPath.value,
     },
   });
 }
@@ -47,7 +47,7 @@ function openFileExplorer() {
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
-      defaultPath: logFilePath.value || defaultLogFilePath.value,
+      defaultPath: logFilePath.value,
     },
   });
 }
