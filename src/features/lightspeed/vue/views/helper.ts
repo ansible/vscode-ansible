@@ -5,6 +5,7 @@ import * as os from "os";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
+  RoleFormInterface,
   PostMessageEvent,
 } from "../../../contentCreator/types";
 import * as vscode from "vscode";
@@ -336,6 +337,22 @@ export class WebviewHelper {
             await webviewHelper.isADEPresent(webview);
             return;
           }
+          case "init-create-role": {
+            payload = message.payload as RoleFormInterface;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.runRoleAddCommand(payload, webview);
+            return;
+          }
+
+          case "init-open-role-folder": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.openRoleFolderInWorkspace(
+              payload.projectUrl,
+              payload.roleName,
+            );
+            return;
+          }
           case "explanationThumbsUp": {
             thumbsUpDown(ThumbsUpDownAction.UP, data.explanationId);
             return;
@@ -567,6 +584,108 @@ export class WebviewHelper {
       undefined,
       disposables,
     );
+  }
+
+  public async getRoleCreatorCommand(
+    roleName: string,
+    url: string,
+  ): Promise<string> {
+    let command = "";
+    command = `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
+    return command;
+  }
+
+  public async runRoleAddCommand(
+    payload: RoleFormInterface,
+    webView: vscode.Webview,
+  ) {
+    const { roleName, collectionPath, verbosity, isOverwritten } = payload;
+
+    const destinationPathUrl =
+      collectionPath ||
+      `${os.homedir()}/.ansible/collections/ansible_collections`;
+
+    let ansibleCreatorAddCommand = await this.getRoleCreatorCommand(
+      roleName,
+      destinationPathUrl,
+    );
+
+    if (isOverwritten) {
+      ansibleCreatorAddCommand += " --overwrite";
+    } else {
+      ansibleCreatorAddCommand += " --no-overwrite";
+    }
+
+    const verbosityMap: Record<string, string> = {
+      off: "",
+      low: " -v",
+      medium: " -vv",
+      high: " -vvv",
+    };
+
+    const normalizedVerbosity = verbosity.toLowerCase();
+    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
+    ansibleCreatorAddCommand += verbosityFlag;
+
+    console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command, env } = withInterpreter(
+      extSettings.settings,
+      ansibleCreatorAddCommand,
+      "",
+    );
+
+    let commandOutput = "";
+    let commandResult: string;
+
+    const creatorVersion = await getCreatorVersion();
+    const minRequiredCreatorVersion: Record<string, string> = {
+      role: "25.4.0",
+    };
+    const requiredCreatorVersion = minRequiredCreatorVersion["role"];
+
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
+    } else {
+      commandOutput += `Minimum ansible-creator version needed to add the role resource is ${requiredCreatorVersion}\n`;
+      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      commandResult = "failed";
+    }
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        projectUrl: destinationPathUrl,
+        status: commandResult,
+      },
+    } as PostMessageEvent);
+  }
+
+  public async openRoleFolderInWorkspace(folderUrl: string, roleName: string) {
+    const folderUri = Uri.parse(expandPath(folderUrl));
+
+    if (workspace.workspaceFolders?.length === 0) {
+      workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      await commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
+
+    const mainFileUrl = `${folderUrl}/roles/${roleName}/meta/main.yml`;
+    console.log(`[ansible-creator] main.yml file url: ${mainFileUrl}`);
+    const parsedUrl = Uri.parse(`vscode://file${mainFileUrl}`);
+    console.log(`[ansible-creator] Parsed main.yml file url: ${parsedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
   }
 
   public async runInitCommand(

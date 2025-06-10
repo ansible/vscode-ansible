@@ -251,6 +251,7 @@ jobs:
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
         run: task setup
+        id: setup
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
@@ -296,7 +297,7 @@ jobs:
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
           # Do not use github.ref_name as it contains slashes and we cannot sanitize it
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
@@ -306,7 +307,7 @@ jobs:
 
       - name: Upload ansible-language-server npm package
         if: ${{ matrix.name == 'test (linux)' }}
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
           # Do not use github.ref_name as it contains slashes and we cannot sanitize it
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
@@ -321,37 +322,54 @@ jobs:
           find out -name '*"*' -exec rm -r {} \; || true
           find out -name '*:*' -exec rm -r {} \; || true
 
-      - name: Upload test logs and reports
+      - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
-          name: logs-${{ matrix.os }}-${{  matrix.log-name || matrix.task-name }}.zip
+          name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
           path: |
             out/coverage
             out/junit
             out/log
             out/test-resources/screenshots
             out/test-resources/settings/logs
-            out/userdata/logs
+          # Not secure to collect due to 'token' being logged by vscode trace logs.
+          # out/userdata/logs
           if-no-files-found: ignore
           retention-days: 90
 
-      - name: Upload test results to Codecov
+      - name: Upload test results to Codecov (als)
         if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
-          directory: out/junit
+          directory: out/junit/als
           name: ${{ matrix.name }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ matrix.name }},${{ matrix.os }}
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
-      - name: Update job summary with test results
+      - name: Upload test results to Codecov (e2e)
         if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
-        uses: test-summary/action@v2
+        uses: codecov/test-results-action@v1
         with:
-          paths: "out/junit/*.xml"
+          fail_ci_if_error: true
+          directory: out/junit/e2e
+          name: ${{ matrix.name }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},e2e
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+
+      - name: Upload test results to Codecov (unit)
+        if: ${{ !cancelled() && hashFiles('out/junit/unit/*.xml') != '' }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+          directory: out/junit/unit
+          name: ${{ matrix.name }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       # - name: Stop services
       #   if: "contains(matrix.os, 'macos')"
@@ -392,17 +410,17 @@ jobs:
           fetch-depth: 0
 
       - name: Merge logs into a single archive
+        if: ${{ !failure() }}
         uses: actions/upload-artifact/merge@v4
         with:
           name: logs.zip
-          pattern: logs*.zip
+          pattern: logs-*.zip
           separate-directories: true
           delete-merged: true
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: logs.zip
           path: .
 
       - name: Remove invalid files
@@ -412,41 +430,51 @@ jobs:
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
 
+      - name: Update job summary with test results
+        if: ${{ !cancelled() && hashFiles('*/junit/*.xml') != '' }}
+        uses: test-summary/action@v2
+        with:
+          paths: "**/junit/*.xml"
+
       - name: Upload als test coverage data [1/4]
+        if: ${{ always() }}
         uses: codecov/codecov-action@v5.4.3
         with:
           name: als
-          files: ./*/coverage/als/cobertura-coverage.xml
+          files: ./**/coverage/als/cobertura-coverage.xml
           flags: als
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload unit test coverage data [2/4]
+        if: ${{ always() }}
         uses: codecov/codecov-action@v5.4.3
         with:
           name: unit
-          files: ./*/coverage/unit/*cobertura-coverage.xml
+          files: ./**/coverage/unit/*cobertura-coverage.xml
           flags: unit
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload ui test coverage data [3/4]
+        if: ${{ always() }}
         uses: codecov/codecov-action@v5.4.3
         with:
           name: ui
-          files: ./*/coverage/ui/*cobertura-coverage.xml
+          files: ./**/coverage/ui/*cobertura-coverage.xml
           flags: ui
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload e2e test coverage data [4/4]
+        if: ${{ always() }}
         uses: codecov/codecov-action@v5.4.3
         with:
           name: e2e
-          files: ./*/coverage/e2e/*cobertura-coverage.xml
+          files: ./**/coverage/e2e/*cobertura-coverage.xml
           flags: e2e
           disable_search: true
           fail_ci_if_error: true
