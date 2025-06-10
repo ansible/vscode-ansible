@@ -28,7 +28,7 @@ function openFolderExplorer() {
     type: 'openFolderExplorer',
     payload: {
       selectOption: 'folder',
-      defaultPath: collectionPath.value,
+      defaultPath: collectionPath.value || defaultCollectionPath.value,
     },
   });
 }
