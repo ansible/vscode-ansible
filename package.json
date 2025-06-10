@@ -367,10 +367,6 @@
         "title": "Ansible: Add a Plugin"
       },
       {
-        "command": "ansible.content-creator.add-plugin-vue",
-        "title": "Ansible: Add a Plugin (Vue)"
-      },
-      {
         "command": "ansible.content-creator.create-role",
         "title": "Ansible: Add Role"
       },

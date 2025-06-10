@@ -64,7 +64,6 @@ import { AnsibleWelcomePage } from "./features/welcomePage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
-import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
@@ -614,15 +613,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand(
       "ansible.content-creator.add-plugin",
-      () => {
-        AddPlugin.render(context.extensionUri);
-      },
-    ),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "ansible.content-creator.add-plugin-vue",
       () => {
         addPluginPanel.render(context);
       },

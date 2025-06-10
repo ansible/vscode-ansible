@@ -1,17 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
-import "../media/contentCreator/addPluginPageStyle.css"
+import "../media/contentCreator/addPluginPageStyle.css";
 const homeDir = ref('');
-const namespace = ref("");
-const collectionName = ref("");
 const initPath = ref("");
-const pluginTypeDropdown = ref("");
 const pluginNameTextField = ref("");
 const collectionPathUrlTextField = ref("");
-const verboseDropdown = ref("");
-const overwriteCheckbox = ref(false);
-const initCreateButton = ref(null);
+const isOverwritten = ref(false);
 const isCreating = ref(false);
 const logs = ref("");
 const createButtonDisabled = ref(false);
@@ -21,11 +16,41 @@ const logFileUrl = ref("");
 const openLogFileButtonDisabled = ref(true);
 const openScaffoldedFolderButtonDisabled = ref(true);
 const projectUrl = ref("");
+const pluginTypeDropdown = ref("Action");      // 👈 default
+const verboseDropdown = ref("Off");            // 👈 default
 
-watch([pluginNameTextField, collectionPathUrlTextField], () => {
-  console.log("Plugin:", pluginNameTextField.value);
-  console.log("Path:", initPath.value);
-  console.log("overwrite:", overwriteCheckbox.value);
+
+onMounted(() => {
+  window.addEventListener('message', (event) => {
+    const message = event.data;
+
+    if (message.type === 'homeDirectory') {
+      homeDir.value = message.data;
+      console.log("Received home directory:", homeDir.value);
+    } else if (message.type === 'folderSelected') {
+      initPath.value = message.data;
+      console.log("Received folder path:", initPath.value);
+    }else if (message.command === 'homedirAndTempdir') {
+      homeDir.value = message.homedir;
+      defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
+    } else if (message.type === 'logs') {
+      logs.value += message.data + '\n';
+      console.log("Received logs:", logs.value);
+    } else if (message.command === "execution-log" && isCreating.value) {
+      logs.value = message.arguments.commandOutput;
+      logFileUrl.value = message.arguments.logFileUrl;
+      openLogFileButtonDisabled.value = !logFileUrl.value;
+      openScaffoldedFolderButtonDisabled.value = message.arguments.status !== "passed";
+      projectUrl.value = message.arguments.projectUrl || "";
+      createButtonDisabled.value = false;
+      console.log("Sending execution-log with projectUrl:", projectUrl.value);
+      console.log("message", message);
+      if (message.arguments.status === "passed" || message.arguments.status === "failed") {
+        isCreating.value = false;
+      }
+    }
+  });
+  vscodeApi.postMessage({ type: 'ui-mounted' });
 });
 
 function openFolderExplorer() {
@@ -40,9 +65,9 @@ function openFolderExplorer() {
 
 function handleInitOpenScaffoldedFolderClick() {
   vscodeApi.postMessage({
-    command: "init-open-scaffolded-folder",
+    type: "init-open-scaffolded-folder-plugin",
     payload: {
-      projectUrl: projectUrl,
+      projectUrl: projectUrl.value,
       pluginName: pluginNameTextField.value.trim(),
       pluginType: pluginTypeDropdown.value.trim(),
     },
@@ -51,8 +76,7 @@ function handleInitOpenScaffoldedFolderClick() {
 
 const canCreate = computed(() => {
   return (
-    pluginNameTextField.value.trim() !== "" &&
-    initPath.value.trim() !== ""
+    pluginNameTextField.value.trim() !== ""
   );
 });
 
@@ -65,58 +89,29 @@ function handleInitCreateClick() {
   logs.value = "";
   createButtonDisabled.value = true;
   vscodeApi.postMessage({
-    type: "init-create",
+    type: "init-create-plugin",
     payload: {
       pluginName: pluginNameTextField.value.trim(),
       pluginType: pluginTypeDropdown.value.trim(),
-      collectionPath: initPath.value.trim(),
+      collectionPath: initPath.value.trim() || homeDir.value.trim(),
       verbosity: verboseDropdown.value.trim(),
-      isOverwritten: overwriteCheckbox.value,
-    },
-  });
+      isOverwritten: isOverwritten.value
+    }
+  })
+  console.log("pluginTyoe in vue", pluginTypeDropdown.value);
 }
 
 async function onClear() {
-  pluginTypeDropdown.value = "";
+  pluginTypeDropdown.value = "Action";
   pluginNameTextField.value = "";
   initPath.value = "";
-  verboseDropdown.value = "";
-  overwriteCheckbox.value = false;
+  verboseDropdown.value = "Off";
+  isOverwritten.value = false;
   logs.value = "";
-  openScaffoldedFolderButtonDisabled.value = true;
+  isOverwritten.value = false;
+  createButtonDisabled.value = false;
   vscodeApi.postMessage({ type: "ui-mounted" });
 }
-
-onMounted(() => {
-  window.addEventListener('message', (event) => {
-    const message = event.data;
-
-    if (message.type === 'homeDirectory') {
-      homeDir.value = message.data;
-    } else if (message.type === 'folderSelected') {
-      initPath.value = message.data;
-    } else if (message.type === 'fileSelected') {
-      logFilePath.value = message.data;
-    } else if (message.command === 'homedirAndTempdir') {
-      homeDir.value = message.homedir;
-      defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-    } else if (message.type === 'logs') {
-      logs.value += message.data + '\n';
-    } else if (message.command === "execution-log" && isCreating.value) {
-      logs.value = message.arguments.commandOutput;
-      logFileUrl.value = message.arguments.logFileUrl;
-      openLogFileButtonDisabled.value = !logFileUrl.value;
-      openScaffoldedFolderButtonDisabled.value = message.arguments.status !== "passed";
-      projectUrl.value = message.arguments.projectUrl || "";
-      createButtonDisabled.value = false;
-
-      if (message.arguments.status === "passed" || message.arguments.status === "failed") {
-        isCreating.value = false;
-      }
-    }
-  });
-  vscodeApi.postMessage({ type: 'ui-mounted' });
-});
 
 </script>
 <template> 
@@ -150,13 +145,14 @@ onMounted(() => {
           <vscode-label for="plugin-dropdown">
             <span class="normal">Plugin type *</span>
           </vscode-label>
-          <vscode-single-select id="plugin-dropdown">
+          <vscode-single-select id="plugin-dropdown" v-model="pluginTypeDropdown">
             <vscode-option>Action</vscode-option>
             <vscode-option>Filter</vscode-option>
             <vscode-option>Lookup</vscode-option>
             <vscode-option>Module</vscode-option>
             <vscode-option>Test</vscode-option>
           </vscode-single-select>
+
         </div>
       </div>
 
@@ -184,21 +180,31 @@ onMounted(() => {
           <vscode-label for="verbosity-dropdown">
             <span class="normal">Output Verbosity</span>
           </vscode-label>
-          <vscode-single-select id="verbosity-dropdown">
+          <vscode-single-select id="verbosity-dropdown" v-model="verboseDropdown">
             <vscode-option>Off</vscode-option>
             <vscode-option>Low</vscode-option>
             <vscode-option>Medium</vscode-option>
             <vscode-option>High</vscode-option>
           </vscode-single-select>
+
         </div>
       </div>
 
       <div class="checkbox-div">
-        <vscode-checkbox id="overwrite-checkbox" form="init-form" v-model="overwriteCheckbox">
-          Overwrite <br />
-          <i>Overwriting will replace an existing plugin with the same name if present in the collection.</i>
-        </vscode-checkbox>
-      </div>
+          <vscode-checkbox
+            :checked="isOverwritten"
+            @change="isOverwritten = $event.target.checked"
+            form="init-form"
+            id="overwrite-checkbox"
+          >
+            Overwrite <br />
+            <i
+              >Overwriting will remove the existing content in the specified
+              directory and replace it with the files from the Ansible
+              project.</i
+            >
+          </vscode-checkbox>
+        </div>
 
       <div class="group-buttons">
         <vscode-button id="clear-button" form="init-form" secondary @click.prevent="onClear">
@@ -213,11 +219,19 @@ onMounted(() => {
 
       <vscode-divider></vscode-divider>
 
-      <vscode-label id="vscode-logs-label" for="log-text-area">
-        <span class="normal">Logs</span>
-      </vscode-label>
-      <vscode-textarea id="log-text-area" cols="90" rows="10" placeholder="Output of the command execution"
-        resize="vertical" readonly></vscode-textarea>
+      <vscode-form-group variant="vertical">
+        <vscode-label id="vscode-logs-label" for="log-text-area">
+          <span class="normal">Logs</span>
+        </vscode-label>
+        <vscode-textarea
+          id="log-text-area"
+          v-model="logs"
+          placeholder="Output of the command execution"
+          resize="vertical"
+          readonly
+        >
+        </vscode-textarea>
+      </vscode-form-group>
 
       <div class="group-buttons">
         <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="clearLogs">
