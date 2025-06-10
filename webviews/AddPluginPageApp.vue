@@ -26,16 +26,13 @@ onMounted(() => {
 
     if (message.type === 'homeDirectory') {
       homeDir.value = message.data;
-      console.log("Received home directory:", homeDir.value);
     } else if (message.type === 'folderSelected') {
       initPath.value = message.data;
-      console.log("Received folder path:", initPath.value);
     }else if (message.command === 'homedirAndTempdir') {
       homeDir.value = message.homedir;
       defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
     } else if (message.type === 'logs') {
       logs.value += message.data + '\n';
-      console.log("Received logs:", logs.value);
     } else if (message.command === "execution-log" && isCreating.value) {
       logs.value = message.arguments.commandOutput;
       logFileUrl.value = message.arguments.logFileUrl;
@@ -43,8 +40,6 @@ onMounted(() => {
       openScaffoldedFolderButtonDisabled.value = message.arguments.status !== "passed";
       projectUrl.value = message.arguments.projectUrl || "";
       createButtonDisabled.value = false;
-      console.log("Sending execution-log with projectUrl:", projectUrl.value);
-      console.log("message", message);
       if (message.arguments.status === "passed" || message.arguments.status === "failed") {
         isCreating.value = false;
       }
@@ -54,7 +49,6 @@ onMounted(() => {
 });
 
 function openFolderExplorer() {
-    console.log("openFolderExplorer called")
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
     payload: {
@@ -98,7 +92,6 @@ function handleInitCreateClick() {
       isOverwritten: isOverwritten.value
     }
   })
-  console.log("pluginTyoe in vue", pluginTypeDropdown.value);
 }
 
 async function onClear() {
