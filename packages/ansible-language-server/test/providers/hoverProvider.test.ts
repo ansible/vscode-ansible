@@ -286,7 +286,7 @@ describe("doHover()", function () {
   expect(docSettings !== undefined);
 
   describe("Play keywords hover", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -307,7 +307,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -321,7 +321,7 @@ describe("doHover()", function () {
   });
 
   describe("Task keywords hover", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -342,7 +342,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -356,7 +356,7 @@ describe("doHover()", function () {
   });
 
   describe("Block keywords hover", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -378,7 +378,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -399,7 +399,7 @@ describe("doHover()", function () {
   docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Role keywords hover", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -421,7 +421,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -443,7 +443,7 @@ describe("doHover()", function () {
   docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Module name and options hover", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -465,7 +465,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -480,7 +480,7 @@ describe("doHover()", function () {
   });
 
   describe("No hover", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -502,7 +502,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -523,7 +523,7 @@ describe("doHover()", function () {
   docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Hover for playbook adjacent collection", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -545,7 +545,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {
@@ -567,7 +567,7 @@ describe("doHover()", function () {
   docSettings = context?.documentSettings.get(textDoc.uri);
 
   describe("Negate hover for non playbook adjacent collection", function () {
-    describe("With EE enabled @ee", function () {
+    describe("@ee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv(
           "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -589,7 +589,7 @@ describe("doHover()", function () {
       });
     });
 
-    describe("With EE disabled", function () {
+    describe("@noee", function () {
       before(async function () {
         setFixtureAnsibleCollectionPathEnv();
         if (docSettings) {

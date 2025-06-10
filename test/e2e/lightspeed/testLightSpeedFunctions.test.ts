@@ -25,7 +25,7 @@ function getLightSpeedUserDetails(
 }
 
 function testGetLoggedInUserDetails(): void {
-  describe("Test getLoggedInUserDetails", function () {
+  describe("getLoggedInUserDetails", function () {
     it(`Verify a seated user`, function () {
       const session = getLightSpeedUserDetails(true, true);
       const { userInfo } = getLoggedInUserDetails(session);
@@ -45,7 +45,7 @@ function testGetLoggedInUserDetails(): void {
 }
 
 function testGetLightSpeedStatusBarText(): void {
-  describe("Test getLightSpeedStatusBarTest", function () {
+  describe("getLightSpeedStatusBarTest", function () {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let getLightspeedUserDetailsStub: any;
 
@@ -122,7 +122,7 @@ function testFeedbackCompletionAPI(): void {
     cancelSuggestionFeedbackSpy.returns(true);
   });
 
-  describe("Test Feedback API", function () {
+  describe("Feedback API", function () {
     it("Verify a sentiment feedback is sent successfully", async function () {
       const apiInstance = lightSpeedManager.apiInstance;
       const request = {
@@ -169,7 +169,7 @@ function testFeedbackCompletionAPI(): void {
     });
   });
 
-  describe("Test Completion API", function () {
+  describe("Completion API", function () {
     it("Verify a completion request competes successfully.", async function () {
       const apiInstance = lightSpeedManager.apiInstance;
 
@@ -247,7 +247,7 @@ function testFeedbackCompletionAPI(): void {
 }
 
 function testFindTasks(): void {
-  describe("Test findTasks for playbook explanation", function () {
+  describe("findTasks for playbook explanation", function () {
     it("No tasks are found", function () {
       const PLAYBOOK = `---
 - name: Playbook 1
@@ -316,7 +316,7 @@ tasks:
 }
 
 function testIsPlaybook(): void {
-  describe("Test isPlaybook for playbook explanation", function () {
+  describe("isPlaybook for playbook explanation", function () {
     it("A playbook", function () {
       const PLAYBOOK = `---
 - name: Playbook 1

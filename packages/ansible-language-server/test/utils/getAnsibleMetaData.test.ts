@@ -122,7 +122,7 @@ describe("getAnsibleMetaData()", function () {
   let ansibleLintInfoForTest: ansibleMetaDataEntryType = {};
   let executionEnvironmentInfoForTest: ansibleMetaDataEntryType = {};
 
-  describe("With EE disabled", function () {
+  describe("@noee", function () {
     before(async function () {
       if (context !== undefined) {
         actualAnsibleMetaData = await getAnsibleMetaData(context, undefined);
@@ -293,7 +293,7 @@ describe("getAnsibleMetaData()", function () {
     testCommands();
   });
 
-  describe("With EE enabled @ee", function () {
+  describe("@ee", function () {
     before(async function () {
       if (docSettings) {
         await enableExecutionEnvironmentSettings(docSettings);

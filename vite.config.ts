@@ -55,6 +55,7 @@ export default defineConfig({
           "webviews/create-ansible-project.html",
         ),
         "add-plugin": path.resolve(__dirname, "webviews/add-plugin.html"),
+        "create-role": path.resolve(__dirname, "webviews/create-role.html"),
       },
     },
   },

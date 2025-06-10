@@ -378,7 +378,7 @@ describe("doValidate()", function () {
     let docSettings = context.documentSettings.get(textDoc.uri);
 
     describe("Get validation only from cache", function () {
-      describe("With EE enabled @ee", function () {
+      describe("@ee", function () {
         before(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -394,7 +394,7 @@ describe("doValidate()", function () {
         });
       });
 
-      describe("With EE disabled", function () {
+      describe("@noee", function () {
         before(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
@@ -406,7 +406,7 @@ describe("doValidate()", function () {
 
     describe("Ansible diagnostics", function () {
       describe("Diagnostics using ansible-lint", function () {
-        describe.skip("With EE enabled @ee", function () {
+        describe.skip("@ee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -424,7 +424,7 @@ describe("doValidate()", function () {
           });
         });
 
-        describe("With EE disabled", function () {
+        describe("@noee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
@@ -444,7 +444,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
-            describe("With EE enabled @ee", function () {
+            describe("@ee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
@@ -467,7 +467,7 @@ describe("doValidate()", function () {
               });
             });
 
-            describe("With EE disabled", function () {
+            describe("@noee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv();
@@ -503,7 +503,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
-            describe("With EE enabled @ee", function () {
+            describe("@ee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
@@ -526,7 +526,7 @@ describe("doValidate()", function () {
               });
             });
 
-            describe("With EE disabled", function () {
+            describe("@noee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv();
@@ -559,7 +559,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
-            describe("With EE enabled @ee", function () {
+            describe("@ee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
@@ -582,7 +582,7 @@ describe("doValidate()", function () {
               });
             });
 
-            describe("With EE disabled", function () {
+            describe("@noee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv();
@@ -615,7 +615,7 @@ describe("doValidate()", function () {
             docSettings = context.documentSettings.get(textDoc.uri);
           }
 
-          describe("With EE enabled @ee", function () {
+          describe("@ee", function () {
             before(async function () {
               (await docSettings).validation.lint.enabled = false;
               setFixtureAnsibleCollectionPathEnv(
@@ -638,7 +638,7 @@ describe("doValidate()", function () {
             });
           });
 
-          describe("With EE disabled", function () {
+          describe("@noee", function () {
             before(async function () {
               (await docSettings).validation.lint.enabled = false;
               setFixtureAnsibleCollectionPathEnv();
@@ -672,7 +672,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
-            describe("With EE enabled @ee", function () {
+            describe("@ee", function () {
               before(async function () {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
@@ -700,7 +700,7 @@ describe("doValidate()", function () {
               });
             });
 
-            describe("With EE disabled", function () {
+            describe("@noee", function () {
               before(async function () {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
@@ -738,7 +738,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
-            describe("With EE enabled @ee", function () {
+            describe("@ee", function () {
               before(async function () {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
@@ -766,7 +766,7 @@ describe("doValidate()", function () {
               });
             });
 
-            describe("With EE disabled", function () {
+            describe("@noee", function () {
               before(async function () {
                 // (await docSettings).validation.lint.enabled = false;
                 // (await docSettings).validation.lint.path =
@@ -806,7 +806,7 @@ describe("doValidate()", function () {
       if (context) {
         docSettings = context.documentSettings.get(textDoc.uri);
 
-        describe("With EE enabled @ee", function () {
+        describe("@ee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
@@ -822,7 +822,7 @@ describe("doValidate()", function () {
           });
         });
 
-        describe("With EE disabled", function () {
+        describe("@noee", function () {
           before(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);

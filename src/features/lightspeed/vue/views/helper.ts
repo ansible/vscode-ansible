@@ -5,12 +5,14 @@ import * as os from "os";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
+  RoleFormInterface,
   PluginFormInterface,
   PostMessageEvent,
 } from "../../../contentCreator/types";
 import * as vscode from "vscode";
 import {
   expandPath,
+  getADEVersion,
   getCreatorVersion,
   getBinDetail,
   runCommand,
@@ -18,6 +20,7 @@ import {
 import { withInterpreter } from "../../../utils/commandRunner";
 import { SettingsManager } from "../../../../settings";
 import {
+  ADE_ISOLATION_MODE_MIN,
   ANSIBLE_CREATOR_VERSION_MIN,
   ANSIBLE_CREATOR_COLLECTION_VERSION_MIN,
 } from "../../../../definitions/constants";
@@ -350,6 +353,22 @@ export class WebviewHelper {
             await webviewHelper.isADEPresent(webview);
             return;
           }
+          case "init-create-role": {
+            payload = message.payload as RoleFormInterface;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.runRoleAddCommand(payload, webview);
+            return;
+          }
+
+          case "init-open-role-folder": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.openRoleFolderInWorkspace(
+              payload.projectUrl,
+              payload.roleName,
+            );
+            return;
+          }
           case "explanationThumbsUp": {
             thumbsUpDown(ThumbsUpDownAction.UP, data.explanationId);
             return;
@@ -583,89 +602,6 @@ export class WebviewHelper {
     );
   }
 
-  public async runAddCommand(
-    payload: PluginFormInterface,
-    webView: vscode.Webview,
-  ) {
-    const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
-      payload;
-    const destinationPathUrl =
-      collectionPath ||
-      `${os.homedir()}/.ansible/collections/ansible_collections`;
-
-    let ansibleCreatorAddCommand = await this.getCreatorPluginCommand(
-      pluginName,
-      pluginType.toLowerCase(),
-      destinationPathUrl,
-    );
-
-    if (isOverwritten) {
-      ansibleCreatorAddCommand += " --overwrite";
-    } else {
-      ansibleCreatorAddCommand += " --no-overwrite";
-    }
-    switch (verbosity) {
-      case "Off":
-        ansibleCreatorAddCommand += "";
-        break;
-      case "Low":
-        ansibleCreatorAddCommand += " -v";
-        break;
-      case "Medium":
-        ansibleCreatorAddCommand += " -vv";
-        break;
-      case "High":
-        ansibleCreatorAddCommand += " -vvv";
-        break;
-    }
-    console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
-
-    const extSettings = new SettingsManager();
-    await extSettings.initialize();
-
-    const { command, env } = withInterpreter(
-      extSettings.settings,
-      ansibleCreatorAddCommand,
-      "",
-    );
-
-    let commandOutput = "";
-    let commandResult: string;
-
-    const creatorVersion = await getCreatorVersion();
-    const minRequiredCreatorVersion: Record<string, string> = {
-      lookup: "24.12.1",
-      filter: "24.12.1",
-      action: "25.0.0",
-      module: "25.3.1",
-      test: "25.3.1",
-    };
-    const requiredCreatorVersion =
-      minRequiredCreatorVersion[pluginType.toLowerCase()];
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
-
-    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
-      // execute ansible-creator command
-      const ansibleCreatorExecutionResult = await runCommand(command, env);
-      commandOutput += ansibleCreatorExecutionResult.output;
-      commandResult = ansibleCreatorExecutionResult.status;
-    } else {
-      commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
-      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
-      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
-      commandResult = "failed";
-    }
-
-    await webView.postMessage({
-      command: "execution-log",
-      arguments: {
-        commandOutput: commandOutput,
-        projectUrl: destinationPathUrl,
-        status: commandResult,
-      },
-    } as PostMessageEvent);
-  }
-
   public async runInitCommand(
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     webView: vscode.Webview,
@@ -763,7 +699,7 @@ export class WebviewHelper {
 
     // Execute ansible-creator command
     const ansibleCreatorExecutionResult = await runCommand(command, env);
-    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+    commandOutput += `------------------------------------------- ansible-creator logs ---------------------------------------------\n`;
     commandOutput += ansibleCreatorExecutionResult.output;
     const ansibleCreatorCommandPassed = ansibleCreatorExecutionResult.status;
 
@@ -774,8 +710,7 @@ export class WebviewHelper {
         Uri.parse(destinationUrl),
         ".venv",
       ).fsPath;
-      let adeCommand = `ade install --venv ${venvPathUrl} --editable ${destinationUrl} --no-ansi`;
-
+      let adeCommand = `cd ${destinationUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
       switch (collectionPayload.verbosity) {
         case "low":
           adeCommand += " -v";
@@ -788,16 +723,38 @@ export class WebviewHelper {
           break;
       }
 
-      console.debug("[ade] command: ", adeCommand);
-      const { command: adeCmd, env: adeEnv } = withInterpreter(
-        extSettings.settings,
-        adeCommand,
-        "",
-      );
+      commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
 
-      const adeExecutionResult = await runCommand(adeCmd, adeEnv);
-      commandOutput += `\n\n------------------------------- ansible-dev-environment logs --------------------------------\n`;
-      commandOutput += adeExecutionResult.output;
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput:
+            "Collection scaffolding and environment installation in progress, please wait a few moments....\n",
+          logFileUrl: logFilePathUrl,
+          collectionUrl: destinationUrl,
+          status: "in-progress",
+        },
+      } as PostMessageEvent);
+      const adeVersion = await getADEVersion();
+      const exceedADEImVersion = semver.gte(adeVersion, ADE_ISOLATION_MODE_MIN);
+
+      if (exceedADEImVersion) {
+        adeCommand += " --im=cfg";
+        const { command, env } = withInterpreter(
+          extSettings.settings,
+          adeCommand,
+          "",
+        );
+        const adeExecutionResult = await runCommand(command, env);
+        commandOutput += adeExecutionResult.output;
+      } else {
+        commandOutput += `Collection could not be installed in editable mode.\n`;
+        commandOutput += `The required version of ansible-dev-environment (ade) for editable mode (using --isolation-mode=cfg) is ${ADE_ISOLATION_MODE_MIN}.\n`;
+        commandOutput += `The installed ade version on this system is ${adeVersion}\n`;
+        commandOutput += `Please upgrade to the latest version of ade for this feature.`;
+      }
+
+      console.debug("[ade] command: ", adeCommand);
     }
 
     await webView.postMessage({
@@ -819,12 +776,16 @@ export class WebviewHelper {
         command: "ADEPresence",
         arguments: false,
       } as PostMessageEvent);
+      console.debug(
+        "ADE not found in the environment. Disabling ADE features.",
+      );
       return;
     }
     webView.postMessage({
       command: "ADEPresence",
       arguments: true,
     } as PostMessageEvent);
+    console.debug("ADE found in the environment. Enabling ADE features.");
     return;
   }
 
