@@ -107,7 +107,7 @@ async function onClear() {
 }
 
 </script>
-<template> 
+<template>
 <body>
   <div class="title-div">
     <h1>Add a plugin to an existing collection</h1>
