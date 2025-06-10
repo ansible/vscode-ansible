@@ -27,7 +27,7 @@ ensures consistent code quality for both individual and team-based projects.
 This extension adds language support for Ansible in
 [Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=redhat.ansible)
 and [OpenVSX](https://open-vsx.org/extension/redhat/ansible) by using the
-[ansible-language-server](als/README.md).
+[ansible-language-server](packages/ansible-language-server).
 
 Please visit
 [vscode-ansible documentation website](https://ansible.readthedocs.io/projects/vscode-ansible/)
