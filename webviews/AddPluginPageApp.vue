@@ -16,8 +16,8 @@ const logFileUrl = ref("");
 const openLogFileButtonDisabled = ref(true);
 const openScaffoldedFolderButtonDisabled = ref(true);
 const projectUrl = ref("");
-const pluginTypeDropdown = ref("Action");      // 👈 default
-const verboseDropdown = ref("Off");            // 👈 default
+const pluginTypeDropdown = ref("Action");
+const verboseDropdown = ref("Off");
 
 
 onMounted(() => {
