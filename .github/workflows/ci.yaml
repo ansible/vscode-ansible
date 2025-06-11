@@ -112,7 +112,7 @@ jobs:
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
-        if: contains(matrix.shell, 'wsl')
+        if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
         uses: Vampire/setup-wsl@v5.0.1
         with:
           distribution: Ubuntu-24.04
@@ -332,9 +332,9 @@ jobs:
             out/junit
             out/log
             out/test-resources/screenshots
-            out/test-resources/settings/logs
           # Not secure to collect due to 'token' being logged by vscode trace logs.
           # out/userdata/logs
+          # out/test-resources/settings/logs
           if-no-files-found: ignore
           retention-days: 90
 
