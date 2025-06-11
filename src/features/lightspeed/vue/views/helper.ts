@@ -6,6 +6,7 @@ import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
   RoleFormInterface,
+  PluginFormInterface,
   PostMessageEvent,
 } from "../../../contentCreator/types";
 import * as vscode from "vscode";
@@ -309,6 +310,12 @@ export class WebviewHelper {
             await webviewHelper.runInitCommand(payload, webview);
             return;
           }
+          case "init-create-plugin": {
+            payload = message.payload as PluginFormInterface;
+            const webviewHelper = new WebviewHelper();
+            await webviewHelper.runAddCommand(payload, webview);
+            return;
+          }
           case "init-copy-logs": {
             payload = message.payload;
             vscode.env.clipboard.writeText(payload.initExecutionLogs);
@@ -326,9 +333,19 @@ export class WebviewHelper {
           case "init-open-scaffolded-folder": {
             payload = message.payload;
             const webviewHelper = new WebviewHelper();
-            // Support both collection and project URLs
             const folderUrl = payload.collectionUrl || payload.projectUrl;
             await webviewHelper.openFolderInWorkspace(folderUrl);
+            return;
+          }
+          case "init-open-scaffolded-folder-plugin": {
+            payload = message.payload;
+            const webviewHelper = new WebviewHelper();
+            // Support both collection and project URLs
+            await webviewHelper.openFolderInWorkspacePlugin(
+              payload.projectUrl,
+              payload.pluginName,
+              payload.pluginType,
+            );
             return;
           }
           case "check-ade-presence": {
@@ -688,6 +705,89 @@ export class WebviewHelper {
     this.openFileInEditor(parsedUrl.toString());
   }
 
+  public async runAddCommand(
+    payload: PluginFormInterface,
+    webView: vscode.Webview,
+  ) {
+    const { pluginName, pluginType, collectionPath, verbosity, isOverwritten } =
+      payload;
+    const destinationPathUrl =
+      collectionPath ||
+      `${os.homedir()}/.ansible/collections/ansible_collections`;
+
+    let ansibleCreatorAddCommand = await this.getCreatorPluginCommand(
+      pluginName,
+      pluginType.toLowerCase(),
+      destinationPathUrl,
+    );
+
+    if (isOverwritten) {
+      ansibleCreatorAddCommand += " --overwrite";
+    } else {
+      ansibleCreatorAddCommand += " --no-overwrite";
+    }
+    switch (verbosity) {
+      case "Off":
+        ansibleCreatorAddCommand += "";
+        break;
+      case "Low":
+        ansibleCreatorAddCommand += " -v";
+        break;
+      case "Medium":
+        ansibleCreatorAddCommand += " -vv";
+        break;
+      case "High":
+        ansibleCreatorAddCommand += " -vvv";
+        break;
+    }
+    console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command, env } = withInterpreter(
+      extSettings.settings,
+      ansibleCreatorAddCommand,
+      "",
+    );
+
+    let commandOutput = "";
+    let commandResult: string;
+
+    const creatorVersion = await getCreatorVersion();
+    const minRequiredCreatorVersion: Record<string, string> = {
+      lookup: "24.12.1",
+      filter: "24.12.1",
+      action: "25.0.0",
+      module: "25.3.1",
+      test: "25.3.1",
+    };
+    const requiredCreatorVersion =
+      minRequiredCreatorVersion[pluginType.toLowerCase()];
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+      // execute ansible-creator command
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
+    } else {
+      commandOutput += `Minimum ansible-creator version needed to add the ${pluginType} plugin is ${requiredCreatorVersion}\n`;
+      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      commandResult = "failed";
+    }
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        projectUrl: destinationPathUrl,
+        status: commandResult,
+      },
+    } as PostMessageEvent);
+  }
+
   public async runInitCommand(
     payload: AnsibleCollectionFormInterface | AnsibleProjectFormInterface,
     webView: vscode.Webview,
@@ -891,6 +991,17 @@ export class WebviewHelper {
     return command;
   }
 
+  public async getCreatorPluginCommand(
+    pluginName: string,
+    pluginType: string,
+    url: string,
+  ): Promise<string> {
+    let command = "";
+
+    command = `ansible-creator add plugin ${pluginType} ${pluginName} ${url} --no-ansi`;
+    return command;
+  }
+
   public async getPlaybookCreatorCommand(
     namespace: string,
     collection: string,
@@ -916,6 +1027,31 @@ export class WebviewHelper {
   public openFileInEditor(fileUrl: string) {
     const updatedUrl = expandPath(String(fileUrl));
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
+  }
+
+  public async openFolderInWorkspacePlugin(
+    folderUrl: string,
+    pluginName: string,
+    pluginType: string,
+  ) {
+    const folderUri = vscode.Uri.parse(expandPath(folderUrl));
+
+    if (vscode.workspace.workspaceFolders?.length === 0) {
+      vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
+    } else {
+      await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
+        forceNewWindow: true,
+      });
+    }
+
+    // open the plugin file in the editor
+    const pluginTypeDir =
+      pluginType.toLowerCase() === "module"
+        ? "modules"
+        : pluginType.toLowerCase();
+    const pluginFileUrl = `${folderUrl}/plugins/${pluginTypeDir}/${pluginName}.py`;
+    const parsedUrl = vscode.Uri.parse(`vscode://file${pluginFileUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
   }
 
   public async openFolderInWorkspace(folderUrl: string) {
