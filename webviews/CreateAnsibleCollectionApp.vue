@@ -35,8 +35,8 @@ const isFormValid = computed(() => {
 });
 
 function openFolderExplorer() {
-  const actualHomeDir = defaultInitPath.value ? 
-    defaultInitPath.value.replace('/.ansible/collections/ansible_collections', '') : 
+  const actualHomeDir = defaultInitPath.value ?
+    defaultInitPath.value.replace('/.ansible/collections/ansible_collections', '') :
     homeDir.value;
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
