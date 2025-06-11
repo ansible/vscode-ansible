@@ -46,7 +46,6 @@ function openFolderExplorer() {
   });
 }
 
-
 function openFileExplorer() {
   vscodeApi.postMessage({
     type: 'openFileExplorer',
@@ -55,7 +54,6 @@ function openFileExplorer() {
     },
   });
 }
-
 
 function toggleEditableModeInstallCheckBox() {
   vscodeApi.postMessage({
