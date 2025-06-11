@@ -35,10 +35,13 @@ const isFormValid = computed(() => {
 });
 
 function openFolderExplorer() {
+  const actualHomeDir = defaultInitPath.value ? 
+    defaultInitPath.value.replace('/.ansible/collections/ansible_collections', '') : 
+    homeDir.value;
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
     payload: {
-      defaultPath: initPath.value,
+      defaultPath: actualHomeDir,
     },
   });
 }
@@ -48,7 +51,7 @@ function openFileExplorer() {
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
-      defaultPath: logFilePath.value,
+      defaultPath: logFilePath.value || defaultLogFilePath.value || homeDir.value,
     },
   });
 }
@@ -162,7 +165,7 @@ function handleCreate() {
     logToFile: logToFile.value,
     logFileAppend: logFileAppend.value,
     isEditableModeInstall: isEditableModeInstall.value,
-    logFilePath: logFilePath.value || defaultLogFilePath.value,
+    logFilePath: actualLogFilePath,
     logLevel: logLevel.value,
     isOverwritten: isOverwritten.value,
   };
