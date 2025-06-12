@@ -3199,12 +3199,12 @@ __metadata:
   linkType: hard
 
 "brace-expansion@npm:^1.1.7":
-  version: 1.1.11
-  resolution: "brace-expansion@npm:1.1.11"
+  version: 1.1.12
+  resolution: "brace-expansion@npm:1.1.12"
   dependencies:
     balanced-match: "npm:^1.0.0"
     concat-map: "npm:0.0.1"
-  checksum: 10/faf34a7bb0c3fcf4b59c7808bc5d2a96a40988addf2e7e09dfbb67a2251800e0d14cd2bfc1aa79174f2f5095c54ff27f46fb1289fe2d77dac755b5eb3434cc07
+  checksum: 10/12cb6d6310629e3048cadb003e1aca4d8c9bb5c67c3c321bafdd7e7a50155de081f78ea3e0ed92ecc75a9015e784f301efc8132383132f4f7904ad1ac529c562
   languageName: node
   linkType: hard
 
@@ -9328,14 +9328,14 @@ __metadata:
   linkType: hard
 
 "tar-fs@npm:^1.8.1":
-  version: 1.16.4
-  resolution: "tar-fs@npm:1.16.4"
+  version: 1.16.5
+  resolution: "tar-fs@npm:1.16.5"
   dependencies:
     chownr: "npm:^1.0.1"
     mkdirp: "npm:^0.5.1"
     pump: "npm:^1.0.0"
     tar-stream: "npm:^1.1.2"
-  checksum: 10/2392fb92ebcdbf1b70961192a0f32955dbfc5cd844d4980e7e0dc7b8cb269d6e23831ae8ceb8137322367dcc42ae946f2349d0fd79b89b3c30b0a7d3ff5fc15e
+  checksum: 10/86061a6a66616d3c424d3f68ceab76d8a62c9326b6d412c8f043f61ae762e5345fae305d983e1abdaff6713e0c470237ec27fa2708eae50c162b42d8c1411bf7
   languageName: node
   linkType: hard
 
