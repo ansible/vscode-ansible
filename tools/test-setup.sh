@@ -55,8 +55,10 @@ find_powershell() {
     for exe in "${candidates[@]}"; do
         if cmd=$(command -v "$exe" 2>/dev/null); then
             echo "$cmd"
+            exit 0
         elif [ -x "$exe" ]; then
             echo "$exe"
+            exit 0
         fi
     done
     log error "Failed to find powershell executable"
@@ -81,6 +83,7 @@ if [[ "${OSTYPE:-}" == darwin* ]]; then
 brew "coreutils"
 brew "libssh"
 brew "gh"
+brew "git-lfs"
 EOS
     # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
@@ -160,6 +163,11 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     command -v npm >/dev/null 2>&1 || {
         DEBS+=(npm)
     }
+    command -v git-lfs >/dev/null 2>&1 || {
+        # curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+        DEBS+=(git-lfs)
+        INSTALL=1
+    }
 
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
@@ -185,6 +193,12 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             sudo apt-get remove -y "$DEB"
     done
 fi
+
+git lfs status >/dev/null || {
+    log error "Please install and configure git lfs to be able to build the project."
+    exit 3
+}
+
 log notice "Using $(python3 --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
