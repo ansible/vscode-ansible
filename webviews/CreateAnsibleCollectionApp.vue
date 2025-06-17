@@ -52,10 +52,8 @@ function openFileExplorer() {
     const lastSlashIndex = fullPath.lastIndexOf('/');
     return lastSlashIndex !== -1 ? fullPath.substring(0, lastSlashIndex) : fullPath;
   };
-
   const defaultPath = logFilePath.value || defaultLogFilePath.value || homeDir.value;
   const directoryPath = getDirectoryPath(defaultPath);
-
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
