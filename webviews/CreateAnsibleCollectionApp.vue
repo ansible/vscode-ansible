@@ -35,24 +35,32 @@ const isFormValid = computed(() => {
 });
 
 function openFolderExplorer() {
+  const actualHomeDir = defaultInitPath.value ?
+    defaultInitPath.value.replace('/.ansible/collections/ansible_collections', '') :
+    homeDir.value;
   vscodeApi.postMessage({
     type: 'openFolderExplorer',
     payload: {
-      defaultPath: initPath.value,
+      defaultPath: actualHomeDir,
     },
   });
 }
 
-
 function openFileExplorer() {
+  const getDirectoryPath = (fullPath) => {
+    if (!fullPath) return '';
+    const lastSlashIndex = fullPath.lastIndexOf('/');
+    return lastSlashIndex !== -1 ? fullPath.substring(0, lastSlashIndex) : fullPath;
+  };
+  const defaultPath = logFilePath.value || defaultLogFilePath.value || homeDir.value;
+  const directoryPath = getDirectoryPath(defaultPath);
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
-      defaultPath: logFilePath.value,
+      defaultPath: directoryPath || homeDir.value,
     },
   });
 }
-
 
 function toggleEditableModeInstallCheckBox() {
   vscodeApi.postMessage({
@@ -162,7 +170,7 @@ function handleCreate() {
     logToFile: logToFile.value,
     logFileAppend: logFileAppend.value,
     isEditableModeInstall: isEditableModeInstall.value,
-    logFilePath: logFilePath.value || defaultLogFilePath.value,
+    logFilePath: actualLogFilePath,
     logLevel: logLevel.value,
     isOverwritten: isOverwritten.value,
   };

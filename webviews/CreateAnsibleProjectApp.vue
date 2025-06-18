@@ -43,10 +43,17 @@ const canCreate = computed(() => {
 });
 
 function openFileExplorer() {
+  const getDirectoryPath = (fullPath) => {
+    if (!fullPath) return '';
+    const lastSlashIndex = fullPath.lastIndexOf('/');
+    return lastSlashIndex !== -1 ? fullPath.substring(0, lastSlashIndex) : fullPath;
+  };
+  const defaultPath = logFilePath.value || defaultLogFilePath.value || homeDir.value;
+  const directoryPath = getDirectoryPath(defaultPath);
   vscodeApi.postMessage({
     type: 'openFileExplorer',
     payload: {
-      defaultPath: logFilePath.value || defaultLogFilePath.value || homeDir.value,
+      defaultPath: directoryPath || homeDir.value,
     },
   });
 }
