@@ -1,15 +1,25 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, watch } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
+import {
+  useCommonWebviewState,
+  openFolderExplorer,
+  clearLogs,
+  openRoleFolder,
+  initializeUI,
+  setupMessageHandler,
+  clearAllFields} from './../src/features/contentCreator/webviewUtils';
 import '../media/contentCreator/createRolePageStyle.css';
+
+const commonState = useCommonWebviewState();
+const logs = commonState.logs;
+const isCreating = commonState.isCreating;
 
 const homeDir = ref('');
 const roleName = ref('');
 const collectionPath = ref('');
 const verbosity = ref('Off');
 const isOverwritten = ref(false);
-const logs = ref('');
-const isCreating = ref(false);
 const projectUrl = ref('');
 const openRoleButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
@@ -20,26 +30,29 @@ const isFormValid = computed(() => {
 });
 
 const displayPath = computed(() => {
-return collectionPath.value.trim() || defaultCollectionPath.value || homeDir.value;
+  return collectionPath.value.trim() || defaultCollectionPath.value || homeDir.value;
 });
 
-function openFolderExplorer() {
-  vscodeApi.postMessage({
-    type: 'openFolderExplorer',
-    payload: {
-      selectOption: 'folder',
-      defaultPath: collectionPath.value || defaultCollectionPath.value || homeDir.value,
-    },
-  });
-}
+const handleOpenFolderExplorer = () => {
+  openFolderExplorer(
+    collectionPath.value || defaultCollectionPath.value || homeDir.value,
+    homeDir.value,
+    { selectOption: 'folder' }
+  );
+};
+const handleClearLogs = () => clearLogs(logs);
+const handleOpenRole = () => {
+  if (!projectUrl.value || !roleName.value.trim()) return;
+  openRoleFolder(projectUrl.value, roleName.value);
+};
 
-function handleCreate() {
+const handleCreate = () => {
   if (!isFormValid.value) return;
-
   isCreating.value = true;
   logs.value = '';
   updateCreateButtonState();
   openRoleButtonDisabled.value = true;
+
   const actualCollectionPath = collectionPath.value.trim() || defaultCollectionPath.value || homeDir.value;
   const payload = {
     roleName: roleName.value.trim(),
@@ -47,66 +60,52 @@ function handleCreate() {
     verbosity: verbosity.value.trim(),
     isOverwritten: isOverwritten.value,
   };
-
   vscodeApi.postMessage({
     type: 'init-create-role',
     payload,
   });
-}
+};
 
-function onClear() {
-  roleName.value = '';
-  collectionPath.value = '';
-  verbosity.value = 'Off';
-  isOverwritten.value = false;
-  logs.value = '';
-  projectUrl.value = '';
+const onClear = () => {
+  const componentFields = {
+    roleName, collectionPath, verbosity, isOverwritten, logs, projectUrl
+  };
+  const defaults = {
+    verbosity: 'Off',
+    isOverwritten: false
+  };
+  clearAllFields(componentFields, defaults);
   openRoleButtonDisabled.value = true;
   createButtonDisabled.value = true;
   isCreating.value = false;
-}
+};
 
-function clearLogs() {
-  logs.value = '';
-}
-
-function handleOpenRole() {
-  if (!projectUrl.value || !roleName.value.trim()) return;
-
-  vscodeApi.postMessage({
-    type: 'init-open-role-folder',
-    payload: {
-      projectUrl: projectUrl.value,
-      roleName: roleName.value.trim(),
-    },
-  });
-}
-
-function updateCreateButtonState() {
+const updateCreateButtonState = () => {
   createButtonDisabled.value = !isFormValid.value || isCreating.value;
-}
+};
 
 watch([roleName, isCreating], () => {
   updateCreateButtonState();
 });
 
 onMounted(() => {
-  window.addEventListener('message', (event) => {
-    const message = event.data;
-
-    if (message.type === 'homeDirectory') {
-      homeDir.value = message.data;
-    } else if (message.command === 'homedirAndTempdir') {
-      if (message.homedir && !defaultCollectionPath.value) {
-        defaultCollectionPath.value = message.homedir;
+  setupMessageHandler({
+    onHomeDirectory: (data) => {
+      homeDir.value = data;
+    },
+    onHomedirAndTempdir: (homedir) => {
+      if (homedir && !defaultCollectionPath.value) {
+        defaultCollectionPath.value = homedir;
       }
-    } else if (message.type === 'folderSelected') {
-      collectionPath.value = message.data;
-    } else if (message.command === 'execution-log') {
-      logs.value = message.arguments.commandOutput || '';
-      projectUrl.value = message.arguments.projectUrl || '';
+    },
+    onFolderSelected: (data) => {
+      collectionPath.value = data;
+    },
+    onExecutionLog: (args) => {
+      logs.value = args.commandOutput || '';
+      projectUrl.value = args.projectUrl || '';
 
-      if (message.arguments.status === 'passed') {
+      if (args.status === 'passed') {
         openRoleButtonDisabled.value = false;
       } else {
         openRoleButtonDisabled.value = true;
@@ -115,9 +114,8 @@ onMounted(() => {
       updateCreateButtonState();
     }
   });
-  vscodeApi.postMessage({ type: 'ui-mounted' });
+  initializeUI();
 });
-
 </script>
 
 <template>
@@ -152,7 +150,7 @@ onMounted(() => {
               id="folder-explorer"
               name="folder-opened"
               action-icon
-              @click="openFolderExplorer"
+              @click="handleOpenFolderExplorer"
             ></vscode-icon>
           </vscode-textfield>
         </vscode-form-group>
@@ -251,7 +249,7 @@ onMounted(() => {
         <div class="group-buttons">
           <vscode-button
             id="clear-logs-button"
-            @click.prevent="clearLogs"
+            @click.prevent="handleClearLogs"
             form="role-form"
             appearance="secondary"
           >
