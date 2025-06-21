@@ -1,111 +1,95 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
+import {
+  useCommonWebviewState,
+  openFolderExplorer,
+  clearLogs,
+  openPluginFolder,
+  initializeUI,
+  setupMessageHandler,
+  clearAllFields,
+  createActionWrapper
+} from './../src/features/contentCreator/webviewUtils';
 import "../media/contentCreator/addPluginPageStyle.css";
-const homeDir = ref('');
+
+const commonState = useCommonWebviewState();
+const homeDir = commonState.homeDir;
+const logs = commonState.logs;
+
 const initPath = ref("");
 const pluginNameTextField = ref("");
-const collectionPathUrlTextField = ref("");
 const isOverwritten = ref(false);
-const isCreating = ref(false);
-const logs = ref("");
-const createButtonDisabled = ref(false);
-const logFilePath = ref("");
-const defaultLogFilePath = ref("");
-const logFileUrl = ref("");
-const openLogFileButtonDisabled = ref(true);
 const openScaffoldedFolderButtonDisabled = ref(true);
 const projectUrl = ref("");
 const pluginTypeDropdown = ref("Action");
 const verboseDropdown = ref("Off");
 
+const canCreate = computed(() => {
+  return pluginNameTextField.value.trim() !== "";
+});
+
+const handleOpenFolderExplorer = () => {
+  openFolderExplorer(initPath.value || homeDir.value);
+};
+const handleClearLogs = () => clearLogs(commonState.logs);
+const handleOpenScaffoldedFolder = () => {
+  openPluginFolder(
+    projectUrl.value,
+    pluginNameTextField.value,
+    pluginTypeDropdown.value
+  );
+};
+
+const handleCreate = createActionWrapper(
+  commonState.isCreating,
+  commonState.logs,
+  commonState.createButtonDisabled,
+  () => {
+    vscodeApi.postMessage({
+      type: "init-create-plugin",
+      payload: {
+        pluginName: pluginNameTextField.value.trim(),
+        pluginType: pluginTypeDropdown.value.trim(),
+        collectionPath: initPath.value.trim() || homeDir.value.trim(),
+        verbosity: verboseDropdown.value.trim(),
+        isOverwritten: isOverwritten.value
+      }
+    });
+  }
+);
+
+const onClear = () => {
+  const componentFields = {
+    pluginTypeDropdown, pluginNameTextField, initPath, verboseDropdown, isOverwritten
+  };
+  const defaults = {
+    pluginTypeDropdown: "Action",
+    verboseDropdown: "Off",
+    isOverwritten: false
+  };
+  clearAllFields(componentFields, defaults);
+  clearAllFields({
+    logs: commonState.logs
+  });
+  commonState.createButtonDisabled.value = false;
+  initializeUI();
+};
 
 onMounted(() => {
-  window.addEventListener('message', (event) => {
-    const message = event.data;
-
-    if (message.type === 'homeDirectory') {
-      homeDir.value = message.data;
-    } else if (message.type === 'folderSelected') {
-      initPath.value = message.data;
-    }else if (message.command === 'homedirAndTempdir') {
-      homeDir.value = message.homedir;
-      defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-    } else if (message.type === 'logs') {
-      logs.value += message.data + '\n';
-    } else if (message.command === "execution-log" && isCreating.value) {
-      logs.value = message.arguments.commandOutput;
-      logFileUrl.value = message.arguments.logFileUrl;
-      openLogFileButtonDisabled.value = !logFileUrl.value;
-      openScaffoldedFolderButtonDisabled.value = message.arguments.status !== "passed";
-      projectUrl.value = message.arguments.projectUrl || "";
-      createButtonDisabled.value = false;
-      if (message.arguments.status === "passed" || message.arguments.status === "failed") {
-        isCreating.value = false;
+  setupMessageHandler({
+    onFolderSelected: (data) => {
+      initPath.value = data;
+    },
+    onExecutionLog: (args) => {
+      if (commonState.isCreating.value) {
+        openScaffoldedFolderButtonDisabled.value = args.status !== "passed";
+        projectUrl.value = args.projectUrl || "";
       }
     }
-  });
-  vscodeApi.postMessage({ type: 'ui-mounted' });
+  }, commonState);
+  initializeUI();
 });
-
-function openFolderExplorer() {
-  vscodeApi.postMessage({
-    type: 'openFolderExplorer',
-    payload: {
-      defaultPath: initPath.value || homeDir.value,
-    },
-  });
-}
-
-function handleInitOpenScaffoldedFolderClick() {
-  vscodeApi.postMessage({
-    type: "init-open-scaffolded-folder-plugin",
-    payload: {
-      projectUrl: projectUrl.value,
-      pluginName: pluginNameTextField.value.trim(),
-      pluginType: pluginTypeDropdown.value.trim(),
-    },
-  });
-}
-
-const canCreate = computed(() => {
-  return (
-    pluginNameTextField.value.trim() !== ""
-  );
-});
-
-function clearLogs() {
-  logs.value = "";
-}
-
-function handleInitCreateClick() {
-  isCreating.value = true;
-  logs.value = "";
-  createButtonDisabled.value = true;
-  vscodeApi.postMessage({
-    type: "init-create-plugin",
-    payload: {
-      pluginName: pluginNameTextField.value.trim(),
-      pluginType: pluginTypeDropdown.value.trim(),
-      collectionPath: initPath.value.trim() || homeDir.value.trim(),
-      verbosity: verboseDropdown.value.trim(),
-      isOverwritten: isOverwritten.value
-    }
-  })
-}
-
-async function onClear() {
-  pluginTypeDropdown.value = "Action";
-  pluginNameTextField.value = "";
-  initPath.value = "";
-  verboseDropdown.value = "Off";
-  isOverwritten.value = false;
-  logs.value = "";
-  isOverwritten.value = false;
-  createButtonDisabled.value = false;
-  vscodeApi.postMessage({ type: "ui-mounted" });
-}
-
 </script>
 <template>
 <body>
@@ -127,7 +111,7 @@ async function onClear() {
                       slot="content-after"
                       id="folder-explorer"
                       name="folder-opened"
-                      @click="openFolderExplorer"
+                      @click="handleOpenFolderExplorer"
                       action-icon
                     ></vscode-icon>
                   </vscode-textfield>
@@ -204,7 +188,7 @@ async function onClear() {
           <span class="codicon codicon-clear-all"></span>
           &nbsp; Clear All
         </vscode-button>
-        <vscode-button id="create-button" form="init-form" @click.prevent="handleInitCreateClick" :disabled="!canCreate">
+        <vscode-button id="create-button" form="init-form" @click.prevent="handleCreate" :disabled="!canCreate">
           <span class="codicon codicon-run-all"></span>
           &nbsp; Create
         </vscode-button>
@@ -227,11 +211,11 @@ async function onClear() {
       </vscode-form-group>
 
       <div class="group-buttons">
-        <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="clearLogs">
+        <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="handleClearLogs">
           <span class="codicon codicon-clear-all"></span>
           &nbsp; Clear Logs
         </vscode-button>
-        <vscode-button id="open-folder-button" form="init-form" :disabled="openScaffoldedFolderButtonDisabled" @click.prevent="handleInitOpenScaffoldedFolderClick">
+        <vscode-button id="open-folder-button" form="init-form" :disabled="openScaffoldedFolderButtonDisabled" @click.prevent="handleOpenScaffoldedFolder">
           <span class="codicon codicon-go-to-file"></span>
           &nbsp; Open Plugin
         </vscode-button>
