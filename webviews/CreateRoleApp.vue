@@ -41,7 +41,7 @@ const handleOpenFolderExplorer = () => {
     { selectOption: 'folder' }
   );
 };
-const handleClearLogs = () => clearLogs(logs);
+
 const handleOpenRole = () => {
   if (!projectUrl.value || !roleName.value.trim()) return;
   vscodeApi.postMessage({
@@ -252,7 +252,7 @@ onMounted(() => {
         <div class="group-buttons">
           <vscode-button
             id="clear-logs-button"
-            @click.prevent="handleClearLogs"
+            @click.prevent="clearLogs(commonState.logs)"
             form="role-form"
             appearance="secondary"
           >

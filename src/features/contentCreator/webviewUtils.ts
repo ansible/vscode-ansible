@@ -46,43 +46,37 @@ interface Message {
 }
 
 class MessageRouter {
+  private typeHandlers: Record<string, (message: Message) => void>;
+  private commandHandlers: Record<string, (message: Message) => void>;
+
   constructor(
     private config: MessageHandlerConfig,
     private commonState?: Partial<CommonWebviewState>,
-  ) {}
+  ) {
+    this.typeHandlers = {
+      homeDirectory: (message) => this.onHomeDirectory(message.data),
+      folderSelected: (message) => this.onFolderSelected(message.data),
+      fileSelected: (message) => this.onFileSelected(message.data),
+      logs: (message) => this.onLogs(message.data),
+    };
+
+    this.commandHandlers = {
+      homedirAndTempdir: (message) => {
+        if (message.homedir && message.tempdir) {
+          this.onHomedirAndTempdir(message.homedir, message.tempdir);
+        }
+      },
+      "execution-log": (message) => this.onExecutionLog(message.arguments),
+      ADEPresence: (message) => this.onADEPresence(message.arguments),
+    };
+  }
 
   handle(message: Message): void {
-    if (message.type) {
-      switch (message.type) {
-        case "homeDirectory":
-          this.onHomeDirectory(message.data);
-          break;
-        case "folderSelected":
-          this.onFolderSelected(message.data);
-          break;
-        case "fileSelected":
-          this.onFileSelected(message.data);
-          break;
-        case "logs":
-          this.onLogs(message.data);
-          break;
-      }
+    if (message.type && this.typeHandlers[message.type]) {
+      this.typeHandlers[message.type](message);
     }
-
-    if (message.command) {
-      switch (message.command) {
-        case "homedirAndTempdir":
-          if (message.homedir && message.tempdir) {
-            this.onHomedirAndTempdir(message.homedir, message.tempdir);
-          }
-          break;
-        case "execution-log":
-          this.onExecutionLog(message.arguments);
-          break;
-        case "ADEPresence":
-          this.onADEPresence(message.arguments);
-          break;
-      }
+    if (message.command && this.commandHandlers[message.command]) {
+      this.commandHandlers[message.command](message);
     }
   }
 
@@ -159,6 +153,7 @@ export function setupMessageHandler(
   return messageHandler;
 }
 
+// Utility functions remain the same
 export function openFolderExplorer(
   defaultPath?: string,
   homeDir?: string,

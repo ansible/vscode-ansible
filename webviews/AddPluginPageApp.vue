@@ -28,10 +28,6 @@ const canCreate = createFormValidator({
   pluginName: () => pluginNameTextField.value.trim() !== ""
 });
 
-const handleOpenFolderExplorer = () => {
-  openFolderExplorer(initPath.value || homeDir.value);
-};
-const handleClearLogs = () => clearLogs(commonState.logs);
 const handleOpenScaffoldedFolder = () => {
   vscodeApi.postMessage({
     type: "init-open-scaffolded-folder-plugin",
@@ -93,6 +89,7 @@ onMounted(() => {
   initializeUI();
 });
 </script>
+
 <template>
 <body>
   <div class="title-div">
@@ -113,7 +110,7 @@ onMounted(() => {
                       slot="content-after"
                       id="folder-explorer"
                       name="folder-opened"
-                      @click="handleOpenFolderExplorer"
+                      @click="openFolderExplorer(initPath || homeDir)"
                       action-icon
                     ></vscode-icon>
                   </vscode-textfield>
@@ -213,7 +210,7 @@ onMounted(() => {
       </vscode-form-group>
 
       <div class="group-buttons">
-        <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="handleClearLogs">
+        <vscode-button id="clear-logs-button" form="init-form" secondary @click.prevent="clearLogs(commonState.logs)">
           <span class="codicon codicon-clear-all"></span>
           &nbsp; Clear Logs
         </vscode-button>
