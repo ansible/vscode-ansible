@@ -108,7 +108,7 @@ export class AnsibleCreatorOperations {
     } as PostMessageEvent);
   }
 
-  public async runAddCommand(
+  public async runPluginAddCommand(
     payload: PluginFormInterface,
     webView: vscode.Webview,
   ) {
@@ -118,7 +118,7 @@ export class AnsibleCreatorOperations {
       collectionPath ||
       `${os.homedir()}/.ansible/collections/ansible_collections`;
 
-    let ansibleCreatorAddCommand = await this.getCreatorPluginCommand(
+    let ansibleCreatorAddCommand = await this.getPluginCreatorCommand(
       pluginName,
       pluginType.toLowerCase(),
       destinationPathUrl,
@@ -129,20 +129,17 @@ export class AnsibleCreatorOperations {
     } else {
       ansibleCreatorAddCommand += " --no-overwrite";
     }
-    switch (verbosity) {
-      case "Off":
-        ansibleCreatorAddCommand += "";
-        break;
-      case "Low":
-        ansibleCreatorAddCommand += " -v";
-        break;
-      case "Medium":
-        ansibleCreatorAddCommand += " -vv";
-        break;
-      case "High":
-        ansibleCreatorAddCommand += " -vvv";
-        break;
-    }
+
+    const verbosityMap: Record<string, string> = {
+      off: "",
+      low: " -v",
+      medium: " -vv",
+      high: " -vvv",
+    };
+
+    const normalizedVerbosity = verbosity.toLowerCase();
+    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
+    ansibleCreatorAddCommand += verbosityFlag;
     console.debug("[ansible-creator] command: ", ansibleCreatorAddCommand);
 
     const extSettings = new SettingsManager();
@@ -393,7 +390,7 @@ export class AnsibleCreatorOperations {
     return command;
   }
 
-  public async getCreatorPluginCommand(
+  public async getPluginCreatorCommand(
     pluginName: string,
     pluginType: string,
     url: string,

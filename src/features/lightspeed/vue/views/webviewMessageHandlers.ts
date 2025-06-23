@@ -193,7 +193,7 @@ export class WebviewMessageHandlers {
 
   private async handleInitCreatePlugin(message: any, webview: vscode.Webview) {
     const payload = message.payload as PluginFormInterface;
-    await this.creatorOps.runAddCommand(payload, webview);
+    await this.creatorOps.runPluginAddCommand(payload, webview);
   }
 
   private async handleInitCreateRole(message: any, webview: vscode.Webview) {
@@ -220,12 +220,12 @@ export class WebviewMessageHandlers {
   private async handleInitOpenScaffoldedFolder(message: any) {
     const payload = message.payload;
     const folderUrl = payload.collectionUrl || payload.projectUrl;
-    await this.fileOps.openFolderInWorkspace(folderUrl);
+    await this.fileOps.openFolderInWorkspaceProjects(folderUrl);
   }
 
   private async handleInitOpenScaffoldedFolderPlugin(message: any) {
     const payload = message.payload;
-    await this.fileOps.openFolderInWorkspacePlugin(
+    await this.fileOps.openPluginFolderInWorkspace(
       payload.projectUrl,
       payload.pluginName,
       payload.pluginType,
@@ -234,7 +234,7 @@ export class WebviewMessageHandlers {
 
   private async handleInitOpenRoleFolder(message: any) {
     const payload = message.payload;
-    await this.fileOps.openRoleFolderInWorkspace(
+    await this.fileOps.openFolderInWorkspaceRole(
       payload.projectUrl,
       payload.roleName,
     );

@@ -78,7 +78,7 @@ export class FileOperations {
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 
-  public async openRoleFolderInWorkspace(folderUrl: string, roleName: string) {
+  private async openFolderInWorkspaceCore(folderUrl: string): Promise<void> {
     const folderUri = Uri.parse(expandPath(folderUrl));
 
     if (workspace.workspaceFolders?.length === 0) {
@@ -88,6 +88,10 @@ export class FileOperations {
         forceNewWindow: true,
       });
     }
+  }
+
+  public async openFolderInWorkspaceRole(folderUrl: string, roleName: string) {
+    await this.openFolderInWorkspaceCore(folderUrl);
 
     const mainFileUrl = `${folderUrl}/roles/${roleName}/meta/main.yml`;
     console.log(`[ansible-creator] main.yml file url: ${mainFileUrl}`);
@@ -96,22 +100,12 @@ export class FileOperations {
     this.openFileInEditor(parsedUrl.toString());
   }
 
-  public async openFolderInWorkspacePlugin(
+  public async openPluginFolderInWorkspace(
     folderUrl: string,
     pluginName: string,
     pluginType: string,
   ) {
-    const folderUri = vscode.Uri.parse(expandPath(folderUrl));
-
-    if (vscode.workspace.workspaceFolders?.length === 0) {
-      vscode.workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
-    } else {
-      await vscode.commands.executeCommand("vscode.openFolder", folderUri, {
-        forceNewWindow: true,
-      });
-    }
-
-    // open the plugin file in the editor
+    await this.openFolderInWorkspaceCore(folderUrl);
     const pluginTypeDir =
       pluginType.toLowerCase() === "module"
         ? "modules"
@@ -121,16 +115,8 @@ export class FileOperations {
     this.openFileInEditor(parsedUrl.toString());
   }
 
-  public async openFolderInWorkspace(folderUrl: string) {
-    const folderUri = Uri.parse(expandPath(folderUrl));
-
-    if (workspace.workspaceFolders?.length === 0) {
-      workspace.updateWorkspaceFolders(0, null, { uri: folderUri });
-    } else {
-      await commands.executeCommand("vscode.openFolder", folderUri, {
-        forceNewWindow: true,
-      });
-    }
+  public async openFolderInWorkspaceProjects(folderUrl: string) {
+    await this.openFolderInWorkspaceCore(folderUrl);
 
     // Determine which file to open based on what was created
     const galaxyFileUri = Uri.joinPath(Uri.parse(folderUrl), "galaxy.yml");
