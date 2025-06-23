@@ -18,7 +18,7 @@ __metadata:
     "@types/node": "npm:^24.0.3"
     "@types/uuid": "npm:^10.0.0"
     "@types/vscode": "npm:^1.85.0"
-    antsibull-docs: "npm:^1.1.1"
+    antsibull-docs: "npm:^1.1.3"
     chai: "npm:^4.5.0"
     fuse.js: "npm:^7.1.0"
     glob: "npm:^11.0.3"
@@ -3026,10 +3026,10 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"antsibull-docs@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "antsibull-docs@npm:1.1.1"
-  checksum: 10/5519078bf48481add6f9d2d34de33cc5f157b75d2bd80d1d8d9949558e06d95e5299c1a8ea5b0b129dad5a384fa37e095512072f8a72f59ecf2795eb94fe24c7
+"antsibull-docs@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "antsibull-docs@npm:1.1.3"
+  checksum: 10/0a71e6b5dc0ec237c43416e7ef9c6e79e384a9438ffab5bde2fce06474e0004c7b8bf335645c74cdd0931621dc03f0264a62bee6ae406b68ca6392e436ae4c4e
   languageName: node
   linkType: hard
 
