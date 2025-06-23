@@ -5,10 +5,11 @@ import {
   useCommonWebviewState,
   openFolderExplorer,
   clearLogs,
-  openRoleFolder,
   initializeUI,
   setupMessageHandler,
-  clearAllFields} from './../src/features/contentCreator/webviewUtils';
+  clearAllFields,
+  createFormValidator,
+  createActionWrapper} from './../src/features/contentCreator/webviewUtils';
 import '../media/contentCreator/createRolePageStyle.css';
 
 const commonState = useCommonWebviewState();
@@ -25,8 +26,8 @@ const openRoleButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
 const defaultCollectionPath = ref('');
 
-const isFormValid = computed(() => {
-  return roleName.value.trim() !== '';
+const isFormValid = createFormValidator({
+  roleName: () => roleName.value.trim() !== ''
 });
 
 const displayPath = computed(() => {
@@ -43,28 +44,34 @@ const handleOpenFolderExplorer = () => {
 const handleClearLogs = () => clearLogs(logs);
 const handleOpenRole = () => {
   if (!projectUrl.value || !roleName.value.trim()) return;
-  openRoleFolder(projectUrl.value, roleName.value);
-};
-
-const handleCreate = () => {
-  if (!isFormValid.value) return;
-  isCreating.value = true;
-  logs.value = '';
-  updateCreateButtonState();
-  openRoleButtonDisabled.value = true;
-
-  const actualCollectionPath = collectionPath.value.trim() || defaultCollectionPath.value || homeDir.value;
-  const payload = {
-    roleName: roleName.value.trim(),
-    collectionPath: actualCollectionPath,
-    verbosity: verbosity.value.trim(),
-    isOverwritten: isOverwritten.value,
-  };
   vscodeApi.postMessage({
-    type: 'init-create-role',
-    payload,
+    type: "init-open-role-folder",
+    payload: {
+      projectUrl: projectUrl.value,
+      roleName: roleName.value.trim(),
+    },
   });
 };
+
+const handleCreate = createActionWrapper(
+  isCreating,
+  logs,
+  createButtonDisabled,
+  () => {
+    openRoleButtonDisabled.value = true;
+    const actualCollectionPath = collectionPath.value.trim() || defaultCollectionPath.value || homeDir.value;
+    const payload = {
+      roleName: roleName.value.trim(),
+      collectionPath: actualCollectionPath,
+      verbosity: verbosity.value.trim(),
+      isOverwritten: isOverwritten.value,
+    };
+    vscodeApi.postMessage({
+      type: 'init-create-role',
+      payload,
+    });
+  }
+);
 
 const onClear = () => {
   const componentFields = {
@@ -80,12 +87,8 @@ const onClear = () => {
   isCreating.value = false;
 };
 
-const updateCreateButtonState = () => {
-  createButtonDisabled.value = !isFormValid.value || isCreating.value;
-};
-
 watch([roleName, isCreating], () => {
-  updateCreateButtonState();
+  createButtonDisabled.value = !isFormValid() || isCreating.value;
 });
 
 onMounted(() => {
@@ -111,7 +114,7 @@ onMounted(() => {
         openRoleButtonDisabled.value = true;
       }
       isCreating.value = false;
-      updateCreateButtonState();
+      createButtonDisabled.value = !isFormValid() || isCreating.value;
     }
   });
   initializeUI();

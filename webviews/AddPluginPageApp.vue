@@ -5,12 +5,11 @@ import {
   useCommonWebviewState,
   openFolderExplorer,
   clearLogs,
-  openPluginFolder,
   initializeUI,
   setupMessageHandler,
   clearAllFields,
-  createActionWrapper
-} from './../src/features/contentCreator/webviewUtils';
+  createActionWrapper,
+  createFormValidator} from './../src/features/contentCreator/webviewUtils';
 import "../media/contentCreator/addPluginPageStyle.css";
 
 const commonState = useCommonWebviewState();
@@ -25,8 +24,8 @@ const projectUrl = ref("");
 const pluginTypeDropdown = ref("Action");
 const verboseDropdown = ref("Off");
 
-const canCreate = computed(() => {
-  return pluginNameTextField.value.trim() !== "";
+const canCreate = createFormValidator({
+  pluginName: () => pluginNameTextField.value.trim() !== ""
 });
 
 const handleOpenFolderExplorer = () => {
@@ -34,11 +33,14 @@ const handleOpenFolderExplorer = () => {
 };
 const handleClearLogs = () => clearLogs(commonState.logs);
 const handleOpenScaffoldedFolder = () => {
-  openPluginFolder(
-    projectUrl.value,
-    pluginNameTextField.value,
-    pluginTypeDropdown.value
-  );
+  vscodeApi.postMessage({
+    type: "init-open-scaffolded-folder-plugin",
+    payload: {
+      projectUrl: projectUrl.value,
+      pluginName: pluginNameTextField.value.trim(),
+      pluginType: pluginTypeDropdown.value.trim(),
+    },
+  });
 };
 
 const handleCreate = createActionWrapper(

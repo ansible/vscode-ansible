@@ -103,31 +103,6 @@ export function openScaffoldedFolder(
   });
 }
 
-export function openPluginFolder(
-  projectUrl: string,
-  pluginName: string,
-  pluginType: string,
-) {
-  vscodeApi.postMessage({
-    type: "init-open-scaffolded-folder-plugin",
-    payload: {
-      projectUrl,
-      pluginName: pluginName.trim(),
-      pluginType: pluginType.trim(),
-    },
-  });
-}
-
-export function openRoleFolder(projectUrl: string, roleName: string) {
-  vscodeApi.postMessage({
-    type: "init-open-role-folder",
-    payload: {
-      projectUrl,
-      roleName: roleName.trim(),
-    },
-  });
-}
-
 export function initializeUI() {
   vscodeApi.postMessage({ type: "ui-mounted" });
 }
