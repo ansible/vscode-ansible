@@ -26,6 +26,139 @@ export function useCommonWebviewState(): CommonWebviewState {
   };
 }
 
+export interface MessageHandlerConfig {
+  onHomeDirectory?: (data: string) => void;
+  onFolderSelected?: (data: string) => void;
+  onFileSelected?: (data: string) => void;
+  onHomedirAndTempdir?: (homedir: string, tempdir: string) => void;
+  onLogs?: (data: string) => void;
+  onExecutionLog?: (args: any) => void;
+  onADEPresence?: (present: boolean) => void;
+}
+
+interface Message {
+  type?: string;
+  command?: string;
+  data?: any;
+  homedir?: string;
+  tempdir?: string;
+  arguments?: any;
+}
+
+class MessageRouter {
+  constructor(
+    private config: MessageHandlerConfig,
+    private commonState?: Partial<CommonWebviewState>,
+  ) {}
+
+  handle(message: Message): void {
+    if (message.type) {
+      switch (message.type) {
+        case "homeDirectory":
+          this.onHomeDirectory(message.data);
+          break;
+        case "folderSelected":
+          this.onFolderSelected(message.data);
+          break;
+        case "fileSelected":
+          this.onFileSelected(message.data);
+          break;
+        case "logs":
+          this.onLogs(message.data);
+          break;
+      }
+    }
+
+    if (message.command) {
+      switch (message.command) {
+        case "homedirAndTempdir":
+          if (message.homedir && message.tempdir) {
+            this.onHomedirAndTempdir(message.homedir, message.tempdir);
+          }
+          break;
+        case "execution-log":
+          this.onExecutionLog(message.arguments);
+          break;
+        case "ADEPresence":
+          this.onADEPresence(message.arguments);
+          break;
+      }
+    }
+  }
+
+  private onHomeDirectory(data: string): void {
+    this.config?.onHomeDirectory?.(data);
+    if (this.commonState?.homeDir) {
+      this.commonState.homeDir.value = data;
+    }
+  }
+
+  private onFolderSelected(data: string): void {
+    this.config?.onFolderSelected?.(data);
+  }
+
+  private onFileSelected(data: string): void {
+    this.config?.onFileSelected?.(data);
+    if (this.commonState?.logFilePath) {
+      this.commonState.logFilePath.value = data;
+    }
+  }
+
+  private onLogs(data: string): void {
+    this.config?.onLogs?.(data);
+    if (this.commonState?.logs) {
+      this.commonState.logs.value += data + "\n";
+    }
+  }
+
+  private onHomedirAndTempdir(homedir: string, tempdir: string): void {
+    this.config?.onHomedirAndTempdir?.(homedir, tempdir);
+    if (this.commonState?.homeDir && this.commonState?.defaultLogFilePath) {
+      this.commonState.homeDir.value = homedir;
+      this.commonState.defaultLogFilePath.value = `${tempdir}/ansible-creator.log`;
+    }
+  }
+
+  private onExecutionLog(args: any): void {
+    this.config?.onExecutionLog?.(args);
+
+    if (
+      this.commonState?.logs &&
+      this.commonState?.logFileUrl &&
+      this.commonState?.openLogFileButtonDisabled &&
+      this.commonState?.createButtonDisabled &&
+      this.commonState?.isCreating
+    ) {
+      this.commonState.logs.value = args.commandOutput;
+      this.commonState.logFileUrl.value = args.logFileUrl;
+      this.commonState.openLogFileButtonDisabled.value = !args.logFileUrl;
+      this.commonState.createButtonDisabled.value = false;
+
+      if (args.status === "passed" || args.status === "failed") {
+        this.commonState.isCreating.value = false;
+      }
+    }
+  }
+
+  private onADEPresence(present: boolean): void {
+    this.config?.onADEPresence?.(present);
+  }
+}
+
+export function setupMessageHandler(
+  config: MessageHandlerConfig,
+  commonState?: Partial<CommonWebviewState>,
+) {
+  const router = new MessageRouter(config, commonState);
+
+  const messageHandler = (event: MessageEvent) => {
+    router.handle(event.data);
+  };
+
+  window.addEventListener("message", messageHandler);
+  return messageHandler;
+}
+
 export function openFolderExplorer(
   defaultPath?: string,
   homeDir?: string,
@@ -105,102 +238,6 @@ export function openScaffoldedFolder(
 
 export function initializeUI() {
   vscodeApi.postMessage({ type: "ui-mounted" });
-}
-
-export interface MessageHandlerConfig {
-  onHomeDirectory?: (data: string) => void;
-  onFolderSelected?: (data: string) => void;
-  onFileSelected?: (data: string) => void;
-  onHomedirAndTempdir?: (homedir: string, tempdir: string) => void;
-  onLogs?: (data: string) => void;
-  onExecutionLog?: (args: any) => void;
-  onADEPresence?: (present: boolean) => void;
-}
-
-export function setupMessageHandler(
-  config: MessageHandlerConfig,
-  commonState?: Partial<CommonWebviewState>,
-) {
-  const messageHandler = (event: MessageEvent) => {
-    const message = event.data;
-    switch (message.type) {
-      case "homeDirectory":
-        if (config.onHomeDirectory) {
-          config.onHomeDirectory(message.data);
-        }
-        if (commonState?.homeDir) {
-          commonState.homeDir.value = message.data;
-        }
-        break;
-      case "folderSelected":
-        if (config.onFolderSelected) {
-          config.onFolderSelected(message.data);
-        }
-        break;
-      case "fileSelected":
-        if (config.onFileSelected) {
-          config.onFileSelected(message.data);
-        }
-        if (commonState?.logFilePath) {
-          commonState.logFilePath.value = message.data;
-        }
-        break;
-      case "logs":
-        if (config.onLogs) {
-          config.onLogs(message.data);
-        }
-        if (commonState?.logs) {
-          commonState.logs.value += message.data + "\n";
-        }
-        break;
-    }
-
-    switch (message.command) {
-      case "homedirAndTempdir":
-        if (config.onHomedirAndTempdir) {
-          config.onHomedirAndTempdir(message.homedir, message.tempdir);
-        }
-        if (commonState?.homeDir && commonState?.defaultLogFilePath) {
-          commonState.homeDir.value = message.homedir;
-          commonState.defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-        }
-        break;
-      case "execution-log":
-        if (config.onExecutionLog) {
-          config.onExecutionLog(message.arguments);
-        }
-        if (
-          commonState?.logs &&
-          commonState?.logFileUrl &&
-          commonState?.openLogFileButtonDisabled &&
-          commonState?.createButtonDisabled &&
-          commonState?.isCreating
-        ) {
-          commonState.logs.value = message.arguments.commandOutput;
-          commonState.logFileUrl.value = message.arguments.logFileUrl;
-          commonState.openLogFileButtonDisabled.value =
-            !message.arguments.logFileUrl;
-          commonState.createButtonDisabled.value = false;
-
-          if (
-            message.arguments.status === "passed" ||
-            message.arguments.status === "failed"
-          ) {
-            commonState.isCreating.value = false;
-          }
-        }
-        break;
-
-      case "ADEPresence":
-        if (config.onADEPresence) {
-          config.onADEPresence(message.arguments);
-        }
-        break;
-    }
-  };
-
-  window.addEventListener("message", messageHandler);
-  return messageHandler;
 }
 
 export function clearAllFields(
