@@ -440,9 +440,7 @@ export class WebviewMessageHandlers {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleGetCollectionList(message: any, webview: vscode.Webview) {
-    const p = new Promise((resolve) => setTimeout(resolve, 200));
-    await p;
-
+    await new Promise((resolve) => setTimeout(resolve, 200));
     webview.postMessage({
       type: message.type,
       data: await getCollectionsFromWorkspace(),
