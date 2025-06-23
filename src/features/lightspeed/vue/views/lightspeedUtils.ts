@@ -1,6 +1,5 @@
-import { v4 as uuidv4 } from "uuid";
 import { LightSpeedAPI } from "../../api";
-import { IError, isError, UNKNOWN_ERROR } from "../../utils/errors";
+import { IError } from "../../utils/errors";
 import {
   PlaybookGenerationResponseParams,
   RoleGenerationResponseParams,
@@ -110,7 +109,6 @@ export function contentMatch(generationId: string, playbook: string) {
     },
   ];
 
-  // Show training matches for the accepted suggestion.
   commands.executeCommand(LightSpeedCommands.LIGHTSPEED_FETCH_TRAINING_MATCHES);
 }
 

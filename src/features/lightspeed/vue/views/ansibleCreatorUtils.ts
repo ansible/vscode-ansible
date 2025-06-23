@@ -10,7 +10,6 @@ import {
   PostMessageEvent,
 } from "../../../contentCreator/types";
 import {
-  expandPath,
   getADEVersion,
   getCreatorVersion,
   getBinDetail,
@@ -171,7 +170,6 @@ export class AnsibleCreatorOperations {
     commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
 
     if (semver.gte(creatorVersion, requiredCreatorVersion)) {
-      // execute ansible-creator command
       const ansibleCreatorExecutionResult = await runCommand(command, env);
       commandOutput += ansibleCreatorExecutionResult.output;
       commandResult = ansibleCreatorExecutionResult.status;
@@ -411,14 +409,14 @@ export class AnsibleCreatorOperations {
     collection: string,
     url: string,
   ): Promise<string> {
-    let command = "";
     const creatorVersion = await getCreatorVersion();
 
-    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-      command = `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
+    const PATH_SUPPORTED_VERSION = "25.6.0"; // Replace with exact version if known
+
+    if (semver.gte(creatorVersion, PATH_SUPPORTED_VERSION)) {
+      return `ansible-creator init playbook ${namespace}.${collection} --path ${url} --no-ansi`;
     } else {
-      command = `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
+      return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
     }
-    return command;
   }
 }

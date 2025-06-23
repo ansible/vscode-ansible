@@ -1,10 +1,10 @@
 import * as os from "os";
 import * as vscode from "vscode";
-import { Uri, workspace, commands, window } from "vscode";
+import { Uri, workspace, window } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { TextEncoder } from "util";
 import { lightSpeedManager } from "../../../../extension";
-import { IError, isError, UNKNOWN_ERROR } from "../../utils/errors";
+import { isError, UNKNOWN_ERROR } from "../../utils/errors";
 import { getOneClickTrialProvider } from "../../utils/oneClickTrial";
 import {
   FeedbackRequestParams,
@@ -145,6 +145,7 @@ export class WebviewMessageHandlers {
   // File/Folder Handlers
 
   private async handleOpenFolderExplorer(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
   ) {
@@ -325,6 +326,7 @@ export class WebviewMessageHandlers {
   }
 
   private async handleGenerateRole(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
@@ -363,6 +365,7 @@ export class WebviewMessageHandlers {
   }
 
   private async handleGeneratePlaybook(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
@@ -420,6 +423,7 @@ export class WebviewMessageHandlers {
   }
 
   private handleGetRecentPrompts(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
@@ -455,6 +459,7 @@ export class WebviewMessageHandlers {
   }
 
   private async handleWriteRoleInWorkspace(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
   ) {
