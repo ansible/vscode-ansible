@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import * as os from "os";
 import * as vscode from "vscode";
 import { Uri, workspace, window } from "vscode";
@@ -38,9 +40,7 @@ import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
 
 interface WebviewMessage {
   type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any;
 }
 
@@ -133,7 +133,6 @@ export class WebviewMessageHandlers {
     return message.data;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleUiMounted(message: any, webview: vscode.Webview) {
     webview.postMessage({
       command: "homedirAndTempdir",
@@ -145,7 +144,6 @@ export class WebviewMessageHandlers {
   // File/Folder Handlers
 
   private async handleOpenFolderExplorer(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
   ) {
@@ -164,7 +162,6 @@ export class WebviewMessageHandlers {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleOpenFileExplorer(message: any, webview: vscode.Webview) {
     const defaultPath = message.payload?.defaultPath;
     const uri = await window.showOpenDialog({
@@ -181,14 +178,12 @@ export class WebviewMessageHandlers {
     }
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleOpenEditor(message: any) {
     const content: string = message.data.content;
     await openNewPlaybookEditor(content);
   }
 
   // Creator Handlers
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitCreate(message: any, webview: vscode.Webview) {
     const payload = message.payload as
       | AnsibleCollectionFormInterface
@@ -196,45 +191,38 @@ export class WebviewMessageHandlers {
     await this.creatorOps.runInitCommand(payload, webview);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitCreatePlugin(message: any, webview: vscode.Webview) {
     const payload = message.payload as PluginFormInterface;
     await this.creatorOps.runAddCommand(payload, webview);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitCreateRole(message: any, webview: vscode.Webview) {
     const payload = message.payload as RoleFormInterface;
     await this.creatorOps.runRoleAddCommand(payload, webview);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleCheckAdePresence(message: any, webview: vscode.Webview) {
     await this.creatorOps.isADEPresent(webview);
   }
 
   // File Operation Handlers
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitCopyLogs(message: any) {
     const payload = message.payload;
     vscode.env.clipboard.writeText(payload.initExecutionLogs);
     await vscode.window.showInformationMessage("Logs copied to clipboard");
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitOpenLogFile(message: any) {
     const payload = message.payload;
     await this.fileOps.openLogFile(payload.logFileUrl);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitOpenScaffoldedFolder(message: any) {
     const payload = message.payload;
     const folderUrl = payload.collectionUrl || payload.projectUrl;
     await this.fileOps.openFolderInWorkspace(folderUrl);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitOpenScaffoldedFolderPlugin(message: any) {
     const payload = message.payload;
     await this.fileOps.openFolderInWorkspacePlugin(
@@ -244,7 +232,6 @@ export class WebviewMessageHandlers {
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleInitOpenRoleFolder(message: any) {
     const payload = message.payload;
     await this.fileOps.openRoleFolderInWorkspace(
@@ -254,7 +241,6 @@ export class WebviewMessageHandlers {
   }
 
   // LightSpeed Handlers
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleExplainPlaybook(message: any, webview: vscode.Webview) {
     const { data } = message;
     const lightSpeedStatusbarText =
@@ -289,7 +275,6 @@ export class WebviewMessageHandlers {
       lightSpeedStatusbarText;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleExplainRole(message: any, webview: vscode.Webview) {
     const { data } = message;
     const lightSpeedStatusbarText =
@@ -326,7 +311,6 @@ export class WebviewMessageHandlers {
   }
 
   private async handleGenerateRole(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
@@ -365,7 +349,6 @@ export class WebviewMessageHandlers {
   }
 
   private async handleGeneratePlaybook(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
@@ -395,18 +378,15 @@ export class WebviewMessageHandlers {
     updatePromptHistory(context, data.text);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleExplanationThumbsUp(message: any) {
     await thumbsUpDown(ThumbsUpDownAction.UP, message.data.explanationId);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleExplanationThumbsDown(message: any) {
     await thumbsUpDown(ThumbsUpDownAction.DOWN, message.data.explanationId);
   }
 
   // Data Handlers
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleSetPlaybookData(message: any, webview: vscode.Webview) {
     webview.postMessage({
       type: message.type,
@@ -414,7 +394,6 @@ export class WebviewMessageHandlers {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleSetRoleData(message: any, webview: vscode.Webview) {
     webview.postMessage({
       type: message.type,
@@ -423,7 +402,6 @@ export class WebviewMessageHandlers {
   }
 
   private handleGetRecentPrompts(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
@@ -438,7 +416,6 @@ export class WebviewMessageHandlers {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private async handleGetCollectionList(message: any, webview: vscode.Webview) {
     await new Promise((resolve) => setTimeout(resolve, 200));
     webview.postMessage({
@@ -447,7 +424,6 @@ export class WebviewMessageHandlers {
     });
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private handleFeedback(message: any) {
     const request = message.data.request as FeedbackRequestParams;
     lightSpeedManager.apiInstance.feedbackRequest(
@@ -457,7 +433,6 @@ export class WebviewMessageHandlers {
   }
 
   private async handleWriteRoleInWorkspace(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     message: any,
     webview: vscode.Webview,
   ) {
