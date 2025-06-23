@@ -493,7 +493,7 @@ describe("Content Creator UI Tests", function () {
         "Ansible: Add a Plugin",
         os.homedir + "/test",
         "Add Plugin",
-        "plugin_name",
+        "sample_filter",
         "Filter",
         true,
       );
