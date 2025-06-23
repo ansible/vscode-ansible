@@ -100,7 +100,7 @@ export class FileOperations {
     this.openFileInEditor(parsedUrl.toString());
   }
 
-  public async openPluginFolderInWorkspace(
+  public async openFolderInWorkspacePlugin(
     folderUrl: string,
     pluginName: string,
     pluginType: string,

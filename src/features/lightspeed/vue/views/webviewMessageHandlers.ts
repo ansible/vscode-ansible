@@ -225,7 +225,7 @@ export class WebviewMessageHandlers {
 
   private async handleInitOpenScaffoldedFolderPlugin(message: any) {
     const payload = message.payload;
-    await this.fileOps.openPluginFolderInWorkspace(
+    await this.fileOps.openFolderInWorkspacePlugin(
       payload.projectUrl,
       payload.pluginName,
       payload.pluginType,

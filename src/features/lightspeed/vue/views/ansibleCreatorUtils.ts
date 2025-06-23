@@ -296,17 +296,17 @@ export class AnsibleCreatorOperations {
         ".venv",
       ).fsPath;
       let adeCommand = `cd ${destinationUrl} && ade install --venv ${venvPathUrl} --editable . --no-ansi`;
-      switch (collectionPayload.verbosity) {
-        case "low":
-          adeCommand += " -v";
-          break;
-        case "medium":
-          adeCommand += " -vv";
-          break;
-        case "high":
-          adeCommand += " -vvv";
-          break;
-      }
+
+      const verbosityMap: Record<string, string> = {
+        off: "",
+        low: " -v",
+        medium: " -vv",
+        high: " -vvv",
+      };
+
+      const normalizedVerbosity = collectionPayload.verbosity.toLowerCase();
+      const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
+      adeCommand += verbosityFlag;
 
       commandOutput += `\n\n-----------------------------------------ansible-dev-environment logs -----------------------------------------\n`;
 
