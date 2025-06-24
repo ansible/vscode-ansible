@@ -1,9 +1,29 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, nextTick } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
+import {
+  useCommonWebviewState,
+  openFolderExplorer,
+  openFileExplorer,
+  checkADEPresence,
+  clearLogs,
+  copyLogs,
+  openLogFile,
+  openScaffoldedFolder,
+  initializeUI,
+  setupMessageHandler,
+  clearAllFields,
+  createActionWrapper
+} from './../src/features/contentCreator/webviewUtils';
 import '../media/contentCreator/createAnsibleCollectionPageStyle.css';
 
-const homeDir = ref('');
+const commonState = useCommonWebviewState();
+const logs = commonState.logs;
+const isCreating = commonState.isCreating;
+const logFileUrl = commonState.logFileUrl;
+const logFilePath = commonState.logFilePath;
+const defaultLogFilePath = commonState.defaultLogFilePath;
+
 const namespace = ref("");
 const collectionName = ref("");
 const initPath = ref("");
@@ -13,18 +33,11 @@ const logFileAppend = ref(false);
 const isOverwritten = ref(false);
 const isEditableModeInstall = ref(false);
 const adePresent = ref(false);
-const logFilePath = ref("");
 const logLevel = ref("debug");
-const logs = ref("");
-const logFileUrl = ref("");
 const collectionUrl = ref("");
 const defaultInitPath = ref("");
 const fullCollectionName = ref("");
-const defaultLogFilePath = ref("");
-const isCreating = ref(false);
-const openLogFileButtonDisabled = ref(true);
 const openScaffoldedFolderButtonDisabled = ref(true);
-const createButtonDisabled = ref(false);
 
 const isFormValid = computed(() => {
   return (
@@ -34,87 +47,110 @@ const isFormValid = computed(() => {
   );
 });
 
-function openFolderExplorer() {
+const handleOpenFolderExplorer = () => {
   const actualHomeDir = defaultInitPath.value ?
     defaultInitPath.value.replace('/.ansible/collections/ansible_collections', '') :
-    homeDir.value;
-  vscodeApi.postMessage({
-    type: 'openFolderExplorer',
-    payload: {
-      defaultPath: actualHomeDir,
-    },
-  });
-}
+    commonState.homeDir.value;
+  openFolderExplorer(actualHomeDir);
+};
 
-function openFileExplorer() {
-  const getDirectoryPath = (fullPath) => {
-    if (!fullPath) return '';
-    const lastSlashIndex = fullPath.lastIndexOf('/');
-    return lastSlashIndex !== -1 ? fullPath.substring(0, lastSlashIndex) : fullPath;
+const handleOpenFileExplorer = () => {
+  openFileExplorer(
+    commonState.logFilePath.value,
+    commonState.defaultLogFilePath.value,
+    commonState.homeDir.value
+  );
+};
+
+const handleClearLogs = () => clearLogs(commonState.logs);
+const handleCopyLogs = () => copyLogs(commonState.logs.value);
+const handleOpenLogFile = () => openLogFile(commonState.logFileUrl.value);
+const handleOpenScaffoldedFolder = () => {
+  openScaffoldedFolder(collectionUrl.value, 'collection');
+};
+const handleCheckADEPresence = () => checkADEPresence();
+const handleCreate = createActionWrapper(
+  isCreating,
+  commonState.logs,
+  commonState.createButtonDisabled,
+  () => {
+    const actualInitPath = initPath.value || defaultInitPath.value;
+    const actualLogFilePath = commonState.logFilePath.value || commonState.defaultLogFilePath.value;
+
+    const payload = {
+      initPath: actualInitPath,
+      namespaceName: namespace.value,
+      collectionName: collectionName.value,
+      verbosity: verbosity.value,
+      logToFile: logToFile.value,
+      logFileAppend: logFileAppend.value,
+      isEditableModeInstall: isEditableModeInstall.value,
+      logFilePath: actualLogFilePath,
+      logLevel: logLevel.value,
+      isOverwritten: isOverwritten.value,
+    };
+
+    vscodeApi.postMessage({ type: "init-create", payload });
+  }
+);
+
+const onClear = () => {
+  const componentFields = {
+    namespace, collectionName, initPath, verbosity, logToFile,
+    logFileAppend, isOverwritten, isEditableModeInstall, logLevel,
+    collectionUrl, fullCollectionName
   };
-  const defaultPath = logFilePath.value || defaultLogFilePath.value || homeDir.value;
-  const directoryPath = getDirectoryPath(defaultPath);
-  vscodeApi.postMessage({
-    type: 'openFileExplorer',
-    payload: {
-      defaultPath: directoryPath || homeDir.value,
-    },
+  const defaults = {
+    verbosity: "off",
+    logLevel: "debug",
+    logToFile: false,
+    logFileAppend: false,
+    isOverwritten: false,
+    isEditableModeInstall: false
+  };
+  clearAllFields(componentFields, defaults);
+  clearAllFields({
+    logs: commonState.logs,
+    logFileUrl: commonState.logFileUrl,
+    logFilePath: commonState.logFilePath
   });
-}
-
-function toggleEditableModeInstallCheckBox() {
-  vscodeApi.postMessage({
-    type: "check-ade-presence",
-  });
-}
+  commonState.openLogFileButtonDisabled.value = true;
+  openScaffoldedFolderButtonDisabled.value = true;
+  commonState.createButtonDisabled.value = false;
+};
 
 onMounted(async () => {
   try {
-    vscodeApi.postMessage({ type: 'ui-mounted' });
+    initializeUI();
     await nextTick();
-    const messageHandler = (event: MessageEvent) => {
-      const message = event.data;
-      if (message.type === 'homeDirectory') {
-        homeDir.value = message.data;
-      } else if (message.command === "ADEPresence") {
-        adePresent.value = message.arguments;
-      } else if (message.type === 'folderSelected') {
-        initPath.value = message.data;
-      } else if (message.type === 'fileSelected') {
-        logFilePath.value = message.data;
-      } else if (message.command === 'homedirAndTempdir') {
-        defaultInitPath.value = `${message.homedir}/.ansible/collections/ansible_collections`;
-        defaultLogFilePath.value = `${message.tempdir}/ansible-creator.log`;
-      } else if (message.type === 'logs') {
-        logs.value += message.data + '\n';
-      } else if (message.command === "execution-log" && isCreating.value) {
-        logs.value = message.arguments.commandOutput;
-        logFileUrl.value = message.arguments.logFileUrl;
-        openLogFileButtonDisabled.value = !logFileUrl.value;
-        if (message.arguments.status === "passed") {
-          openScaffoldedFolderButtonDisabled.value = false;
-          collectionUrl.value = message.arguments.collectionUrl || "";
-          createButtonDisabled.value = false;
-        }
-        else if(message.arguments.status === "in-progress") {
-          openScaffoldedFolderButtonDisabled.value = true;
-          createButtonDisabled.value = false
-        }
-        else {
-          openScaffoldedFolderButtonDisabled.value = true;
-          collectionUrl.value = "";
-          createButtonDisabled.value = false;
-        }
-        if (message.arguments.status === "passed" || message.arguments.status === "failed") {
-          isCreating.value = false;
-        }
-      }
-    };
+    setupMessageHandler({
+      onHomedirAndTempdir: (homedir, tempdir) => {
+        defaultInitPath.value = `${homedir}/.ansible/collections/ansible_collections`;
+      },
+      onExecutionLog: (args) => {
+        if (isCreating.value) {
+          collectionUrl.value = args.collectionUrl || "";
 
-    window.addEventListener('message', messageHandler);
-    setTimeout(async () => {
+          if (args.status === "passed") {
+            openScaffoldedFolderButtonDisabled.value = false;
+          } else if (args.status === "in-progress") {
+            openScaffoldedFolderButtonDisabled.value = true;
+          } else {
+            openScaffoldedFolderButtonDisabled.value = true;
+            collectionUrl.value = "";
+          }
+        }
+      },
+      onADEPresence: (present) => {
+        adePresent.value = present;
+      },
+      onFolderSelected: (selectedPath) => {
+        initPath.value = selectedPath;
+      }
+    }, commonState);
+    setTimeout(() => {
       try {
-        toggleEditableModeInstallCheckBox();
+        handleCheckADEPresence();
       } catch (error) {
         console.warn('ADE presence check failed, continuing without it:', error);
       }
@@ -124,80 +160,6 @@ onMounted(async () => {
     console.error('Error during component mounting:', error);
   }
 });
-
-function clearLogs() {
-  logs.value = "";
-}
-
-function copyLogs() {
-  vscodeApi.postMessage({
-    type: "init-copy-logs",
-    payload: {
-      initExecutionLogs: logs.value,
-    }
-  });
-}
-async function openLogFile() {
-  vscodeApi.postMessage({
-    type: "init-open-log-file",
-    payload: {
-      logFileUrl: logFileUrl.value,
-    },
-  });
-}
-
-function handleInitOpenScaffoldedFolderClick() {
-  vscodeApi.postMessage({
-    type: "init-open-scaffolded-folder",
-    payload: {
-        collectionUrl: collectionUrl.value,
-    },
-  });
-}
-
-function handleCreate() {
-  const actualInitPath = initPath.value || defaultInitPath.value;
-  const actualLogFilePath = logFilePath.value || defaultLogFilePath.value;
-  isCreating.value = true;
-  logs.value = "";
-  createButtonDisabled.value = true;
-
-  const payload = {
-    initPath: actualInitPath,
-    namespaceName: namespace.value,
-    collectionName: collectionName.value,
-    verbosity: verbosity.value,
-    logToFile: logToFile.value,
-    logFileAppend: logFileAppend.value,
-    isEditableModeInstall: isEditableModeInstall.value,
-    logFilePath: actualLogFilePath,
-    logLevel: logLevel.value,
-    isOverwritten: isOverwritten.value,
-  };
-
-  vscodeApi.postMessage({ type: "init-create", payload });
-}
-
-async function onClear() {
-  namespace.value = "";
-  collectionName.value = "";
-  initPath.value = "";
-  verbosity.value = "off";
-  logToFile.value = false;
-  logFileAppend.value = false;
-  isOverwritten.value = false;
-  isEditableModeInstall.value = false;
-  logFilePath.value = "";
-  logLevel.value = "debug";
-  logs.value = "";
-  logFileUrl.value = "";
-  collectionUrl.value = "";
-  fullCollectionName.value = "";
-  openLogFileButtonDisabled.value = true;
-  openScaffoldedFolderButtonDisabled.value = true;
-  createButtonDisabled.value = false;
-  vscodeApi.postMessage({ type: "ui-mounted" });
-}
 </script>
 
 <template>
@@ -263,7 +225,7 @@ async function onClear() {
               id="folder-explorer"
               name="folder-opened"
               action-icon
-              @click="openFolderExplorer"
+              @click="handleOpenFolderExplorer"
             ></vscode-icon>
           </vscode-textfield>
         </vscode-form-group>
@@ -326,7 +288,7 @@ async function onClear() {
                 id="file-explorer"
                 name="file"
                 action-icon
-                @click="openFileExplorer"
+                @click="handleOpenFileExplorer"
               />
             </vscode-textfield>
           </vscode-form-group>
@@ -438,17 +400,17 @@ async function onClear() {
         </vscode-form-group>
 
         <div class="group-buttons">
-          <vscode-button @click.prevent="clearLogs" form="init-form" secondary>
+          <vscode-button @click.prevent="handleClearLogs" form="init-form" secondary>
             <span class="codicon codicon-clear-all"></span>
             &nbsp; Clear Logs
           </vscode-button>
-          <vscode-button @click.prevent="copyLogs" form="init-form" secondary>
+          <vscode-button @click.prevent="handleCopyLogs" form="init-form" secondary>
             <span class="codicon codicon-copy"></span>
             &nbsp; Copy Logs
           </vscode-button>
           <vscode-button
             ref="initOpenLogFileButton"
-            @click.prevent="openLogFile"
+            @click.prevent="handleOpenLogFile"
             form="init-form"
             secondary
             :disabled="!logFileUrl"
@@ -459,7 +421,7 @@ async function onClear() {
           <vscode-button
             ref="initOpenScaffoldedFolderButton"
             appearance="secondary"
-            @click.prevent="handleInitOpenScaffoldedFolderClick"
+            @click.prevent="handleOpenScaffoldedFolder"
             form="init-form"
             :disabled="!collectionUrl"
           >
