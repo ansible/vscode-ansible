@@ -1,5 +1,5 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns pwsh
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
@@ -43,6 +43,28 @@ get_version () {
     fi
 }
 
+find_powershell() {
+    # Sometimes these are not in PATH under wsl, so we need to look deeper
+    local candidates=(
+        "pwsh.exe"
+        "powershell.exe"
+        "/mnt/c/Program Files/PowerShell/7/pwsh.exe"
+        "/mnt/c/Program Files (x86)/PowerShell/7/pwsh.exe"
+        "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+    )
+    for exe in "${candidates[@]}"; do
+        if cmd=$(command -v "$exe" 2>/dev/null); then
+            echo "$cmd"
+            exit 0
+        elif [ -x "$exe" ]; then
+            echo "$exe"
+            exit 0
+        fi
+    done
+    log error "Failed to find powershell executable"
+    exit 2
+}
+
 if [[ -z "${HOSTNAME:-}" ]]; then
    export HOSTNAME=${HOSTNAME:-${HOST:-$(hostname)}}
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
@@ -61,6 +83,7 @@ if [[ "${OSTYPE:-}" == darwin* ]]; then
 brew "coreutils"
 brew "libssh"
 brew "gh"
+brew "git-lfs"
 EOS
     # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
@@ -90,6 +113,7 @@ if [[ -f "/etc/redhat-release" ]]; then
     fi
 fi
 
+
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
 WSL=0
@@ -105,6 +129,26 @@ if grep -qi microsoft /proc/version >/dev/null 2>&1; then
     WSL=1
 fi
 
+# determine os_version as lowercase string
+if [[ "${OSTYPE:-}" == darwin* ]]; then
+    OS_VERSION="macos-$(sw_vers --productVersion)"
+else
+    OS_VERSION="$(lsb_release --id --short 2> /dev/null)-$(lsb_release --release --short 2> /dev/null)"
+    OS_VERSION="${OS_VERSION,,}"
+    if [[ "$WSL" -eq 1 ]]; then
+        OS_VERSION=$($(find_powershell) -Command 'Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -property Caption, BuildNumber' | grep "Microsoft " | \
+        tr -d '\r' | \
+        sed 's/^Microsoft //I' | \
+        tr '[:upper:]' '[:lower:]' | \
+        sed 's/[ -]\+/-/g')-wsl-$OS_VERSION
+    fi
+fi
+log notice "Platform: $OS_VERSION"
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    echo "ARCH=$ARCH" >> "$GITHUB_OUTPUT"
+    echo "OS_VERSION=$OS_VERSION" >> "$GITHUB_OUTPUT"
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
@@ -118,6 +162,11 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     }
     command -v npm >/dev/null 2>&1 || {
         DEBS+=(npm)
+    }
+    command -v git-lfs >/dev/null 2>&1 || {
+        # curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+        DEBS+=(git-lfs)
+        INSTALL=1
     }
 
     for DEB in "${DEBS[@]}"; do
@@ -144,6 +193,12 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             sudo apt-get remove -y "$DEB"
     done
 fi
+
+git lfs status >/dev/null || {
+    log error "Please install and configure git lfs to be able to build the project."
+    exit 3
+}
+
 log notice "Using $(python3 --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
@@ -197,7 +252,7 @@ fi
 # fail-fast if we detect incompatible filesystem (o-w)
 # https://github.com/ansible/ansible/pull/42070
 python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
-    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://github.com/ansible/devtools/wiki/permissions#ansible-filesystem-requirements"
+    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://ansible.readthedocs.io/projects/team-devtools/guides/ansible/permissions/"
     exit 100
 }
 

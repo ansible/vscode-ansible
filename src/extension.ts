@@ -64,7 +64,6 @@ import { AnsibleWelcomePage } from "./features/welcomePage";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
-import { AddPlugin } from "./features/contentCreator/addPluginPage";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
@@ -77,7 +76,6 @@ import {
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
-import { CreateRole } from "./features/contentCreator/createRolePage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
@@ -85,6 +83,8 @@ import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/e
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
+import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
+import { MainPanel as createRolePanel } from "./features/contentCreator/vue/views/createRolePanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
@@ -618,7 +618,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.add-plugin",
       () => {
-        AddPlugin.render(context.extensionUri);
+        addPluginPanel.render(context);
       },
     ),
   );
@@ -628,7 +628,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-role",
       () => {
-        CreateRole.render(context.extensionUri);
+        createRolePanel.render(context);
       },
     ),
   );

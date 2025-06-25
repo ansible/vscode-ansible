@@ -436,7 +436,7 @@ describe("Content Creator UI Tests", function () {
           "test",
           "plugins",
           "filter",
-          "plugin_name.py",
+          "sample_filter.py",
         );
         console.log("Checking if plugin file exists at:", pluginPath);
         expect(fs.existsSync(pluginPath)).to.be.true;
@@ -493,7 +493,7 @@ describe("Content Creator UI Tests", function () {
         "Ansible: Add a Plugin",
         os.homedir + "/test",
         "Add Plugin",
-        "plugin_name",
+        "sample_filter",
         "Filter",
         true,
       );
