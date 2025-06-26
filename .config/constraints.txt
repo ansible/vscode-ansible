@@ -8,11 +8,11 @@ ansible-runner==2.4.1
 argparse-manpage==4.6
 attrs==25.3.0
 babel==2.17.0
-backrefs==5.8
+backrefs==5.9
 beautifulsoup4==4.13.4
 bindep==2.13.0
 black==25.1.0
-bracex==2.5.post1
+bracex==2.6
 cairocffi==1.7.1
 cairosvg==2.8.2
 certifi==2025.6.15
@@ -108,7 +108,7 @@ tzdata==2025.2
 urllib3==2.5.0
 virtualenv==20.31.2
 watchdog==6.0.0
-wcmatch==10.0
+wcmatch==10.1
 webencodings==0.5.1
 yamllint==1.37.1
 zipp==3.23.0
