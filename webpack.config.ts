@@ -1,7 +1,7 @@
 import WarningsToErrorsPlugin from "warnings-to-errors-webpack-plugin";
 
 import path from "path";
-const webpack = require("webpack");
+import { fileURLToPath } from "url";
 
 type EntryType = {
   server?: string;
@@ -10,6 +10,9 @@ type EntryType = {
 const entry: EntryType = {
   server: "./packages/ansible-language-server/src/server.ts",
 };
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const config = {
   cache: {
@@ -21,7 +24,7 @@ const config = {
   devtool: "source-map",
   entry,
   externals: {
-    vscode: "commonjs vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed
+    vscode: "vscode", // the vscode-module is created on-the-fly and must be excluded. Add other modules that cannot be webpack'ed
     shiki: "shiki",
   },
   module: {
@@ -73,9 +76,9 @@ const config = {
   },
   plugins: [
     new WarningsToErrorsPlugin(),
-    new webpack.IgnorePlugin({
-      resourceRegExp: /^electron$/,
-    }),
+    //    new webpack.IgnorePlugin({
+    //      resourceRegExp: /^electron$/,
+    //    }),
   ],
   ignoreWarnings: [
     {
@@ -204,7 +207,7 @@ const createDevcontainerWebviewConfig = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-module.exports = (_env: any, argv: { mode: string }) => {
+export default (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
     delete config.entry.server;
