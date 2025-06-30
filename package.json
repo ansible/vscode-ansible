@@ -969,7 +969,7 @@
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "highlight.js": "^11.11.1",
     "ini": "^5.0.0",
-    "marked": "^15.0.12",
+    "marked": "^16.0.0",
     "minimatch": "^10.0.3",
     "primevue": "4.3.5",
     "semver": "^7.7.2",
