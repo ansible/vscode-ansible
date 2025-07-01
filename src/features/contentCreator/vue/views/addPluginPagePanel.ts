@@ -5,6 +5,7 @@ import {
   disposePanelResources,
   createOrRevealPanel,
 } from "../../../lightspeed/vue/views/panelUtils";
+import { checkContentCreatorRequirements } from "../../utils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
@@ -19,6 +20,20 @@ export class MainPanel {
       "add-plugin",
       this._disposables,
       () => this.dispose(),
+    );
+    // Post requirements status when webview is ready
+    this._panel.webview.onDidReceiveMessage(
+      async (msg) => {
+        if (msg && msg.type === "request-requirements-status") {
+          const status = await checkContentCreatorRequirements();
+          this._panel.webview.postMessage({
+            type: "requirements-status",
+            ...status,
+          });
+        }
+      },
+      null,
+      this._disposables,
     );
   }
 
