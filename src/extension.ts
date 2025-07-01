@@ -737,8 +737,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           "redhat.ansible.lightspeedExperimentalEnabled",
           true,
         );
-        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled =
-          true;
+        lightSpeedManager.lightspeedExplorerProvider.lightspeedExperimentalEnabled = true;
         if (!extSettings.settings.lightSpeedService.enabled) {
           return;
         }

@@ -243,7 +243,8 @@ jobs:
           [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Install dependencies
-        uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
+        uses: coactions/actions/yarn-install@fix/install
+        # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
         with:
           cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
 
