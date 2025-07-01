@@ -346,16 +346,130 @@ describe("Content Creator UI Tests", function () {
         Lookup: 2,
       } as { [key: string]: number };
 
+      console.log(`Executing command: ${command}`);
       await workbenchExecuteCommand(command);
-      await waitForCondition({
-        condition: async () => {
-          return await new EditorView().openEditor(editorTitle);
-        },
-        message: `Timed out waiting for ${editorTitle} to open`,
-      });
-      const webview = await getWebviewByLocator(
+
+      // Try multiple approaches to open the editor
+      console.log(`Waiting for editor "${editorTitle}" to open...`);
+
+      let editorOpened = false;
+      let webview: WebView;
+
+      // Approach 1: Try with default parameters (current approach)
+      try {
+        await waitForCondition({
+          condition: async () => {
+            try {
+              const result = await new EditorView().openEditor(editorTitle);
+              console.log(`Successfully opened editor with default parameters`);
+              return result;
+            } catch (error) {
+              console.log(`Default approach failed:`, (error as Error).message);
+              return false;
+            }
+          },
+          message: `Timed out waiting for ${editorTitle} to open (default approach)`,
+          timeout: 15000, // Shorter timeout for first attempt
+        });
+        editorOpened = true;
+      } catch (error) {
+        console.log(
+          `Default approach failed after timeout: ${(error as Error).message}`,
+        );
+      }
+
+      // Approach 2: Try with tab index parameter if first approach failed
+      if (!editorOpened) {
+        console.log(`Trying alternative approach with tab index...`);
+        try {
+          await waitForCondition({
+            condition: async () => {
+              try {
+                // Try different tab indices
+                for (let tabIndex = 0; tabIndex < 3; tabIndex++) {
+                  try {
+                    const result = await new EditorView().openEditor(
+                      editorTitle,
+                      tabIndex,
+                    );
+                    console.log(
+                      `Successfully opened editor with tab index ${tabIndex}`,
+                    );
+                    return result;
+                  } catch (e) {
+                    console.log(
+                      `Tab index ${tabIndex} failed: ${(e as Error).message}`,
+                    );
+                  }
+                }
+                return false;
+              } catch (error) {
+                console.log(
+                  `Tab index approach error:`,
+                  (error as Error).message,
+                );
+                return false;
+              }
+            },
+            message: `Timed out waiting for ${editorTitle} to open (tab index approach)`,
+            timeout: 20000, // Longer timeout for second attempt
+          });
+          editorOpened = true;
+        } catch (error) {
+          console.log(
+            `Tab index approach failed after timeout: ${(error as Error).message}`,
+          );
+        }
+      }
+
+      // Approach 3: Try waiting longer with more retries if still failed
+      if (!editorOpened) {
+        console.log(`Trying final approach with extended timeout...`);
+        await waitForCondition({
+          condition: async () => {
+            try {
+              const editorView = new EditorView();
+              console.log(`Attempting to open editor "${editorTitle}"...`);
+
+              // Add extra delay to allow for Vue app mounting
+              await sleep(1000);
+
+              const result = await editorView.openEditor(editorTitle);
+              console.log(`Successfully opened editor with extended timeout`);
+              return result;
+            } catch (error) {
+              console.log(
+                `Extended timeout attempt failed:`,
+                (error as Error).message,
+              );
+
+              // Log available editors for debugging
+              try {
+                const editorView = new EditorView();
+                const titles = await editorView.getOpenEditorTitles();
+                console.log(`Available editor titles:`, titles);
+              } catch (e) {
+                console.log(
+                  `Could not get editor titles:`,
+                  (e as Error).message,
+                );
+              }
+
+              return false;
+            }
+          },
+          message: `Timed out waiting for ${editorTitle} to open (final approach)`,
+          timeout: 30000, // Maximum timeout
+        });
+      }
+
+      console.log(
+        `Editor "${editorTitle}" opened successfully, getting webview...`,
+      );
+      webview = await getWebviewByLocator(
         By.xpath("//vscode-textfield[@id='path-url']"),
       );
+      console.log(`Webview obtained successfully for "${editorTitle}"`);
 
       const collectionPathUrlTextField = await webview.findWebElement(
         By.xpath("//vscode-textfield[@id='path-url']"),
