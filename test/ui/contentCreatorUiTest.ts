@@ -351,7 +351,6 @@ describe("Content Creator UI Tests", function () {
 
       console.log(`Waiting for editor "${editorTitle}" to open...`);
 
-      // Approach 1: Try with default parameters (current approach)
       try {
         await waitForCondition({
           condition: async () => {
@@ -360,7 +359,7 @@ describe("Content Creator UI Tests", function () {
               console.log(`Successfully opened editor with default parameters`);
               return result;
             } catch (error) {
-              console.log(`Retry opening editor:`, (error as Error).message);
+              //console.log(`Retry opening editor:`, (error as Error).message);
               return false;
             }
           },
