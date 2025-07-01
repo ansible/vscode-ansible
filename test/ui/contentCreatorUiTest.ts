@@ -351,25 +351,38 @@ describe("Content Creator UI Tests", function () {
 
       console.log(`Waiting for editor "${editorTitle}" to open...`);
 
-      try {
-        await waitForCondition({
-          condition: async () => {
+      await waitForCondition({
+        condition: async () => {
+          // Try default approach first
+          try {
+            const result = await new EditorView().openEditor(editorTitle);
+            console.log(`Successfully opened editor with default parameters`);
+            return result;
+          } catch {
+            console.log(`Default approach failed, trying tab indices...`);
+          }
+
+          // Try different tab indices as fallback
+          for (let tabIndex = 0; tabIndex < 3; tabIndex++) {
             try {
-              const result = await new EditorView().openEditor(editorTitle);
-              console.log(`Successfully opened editor with default parameters`);
+              const result = await new EditorView().openEditor(
+                editorTitle,
+                tabIndex,
+              );
+              console.log(
+                `Successfully opened editor with tab index ${tabIndex}`,
+              );
               return result;
             } catch {
-              return false;
+              console.log(`Tab index ${tabIndex} failed`);
             }
-          },
-          message: `Timed out waiting for ${editorTitle} to open.`,
-          timeout: 20000, // Longer timeout
-        });
-      } catch (error) {
-        console.log(
-          `Default approach failed after timeout: ${(error as Error).message}`,
-        );
-      }
+          }
+
+          return false;
+        },
+        message: `Timed out waiting for ${editorTitle} to open.`,
+        timeout: 20000, // Combined timeout for both approaches
+      });
 
       console.log(
         `Editor "${editorTitle}" opened successfully, getting webview...`,
