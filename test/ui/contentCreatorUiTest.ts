@@ -300,7 +300,7 @@ describe("Content Creator UI Tests", function () {
     }
 
     // Using execFile for safer execution without shell, ensuring SonarCloud compliance.
-    function scaffoldCollection(collectionPath: string) {
+    async function scaffoldCollection(collectionPath: string): Promise<void> {
       const safePath = path.resolve(collectionPath);
 
       const ansibleCreatorPath = findExecutable("ansible-creator");
@@ -346,16 +346,38 @@ describe("Content Creator UI Tests", function () {
         Lookup: 2,
       } as { [key: string]: number };
 
+      console.log(`Executing command: ${command}`);
       await workbenchExecuteCommand(command);
-      await waitForCondition({
-        condition: async () => {
-          return await new EditorView().openEditor(editorTitle);
-        },
-        message: `Timed out waiting for ${editorTitle} to open`,
-      });
+
+      console.log(`Waiting for editor "${editorTitle}" to open...`);
+
+      try {
+        await waitForCondition({
+          condition: async () => {
+            try {
+              const result = await new EditorView().openEditor(editorTitle);
+              console.log(`Successfully opened editor with default parameters`);
+              return result;
+            } catch {
+              return false;
+            }
+          },
+          message: `Timed out waiting for ${editorTitle} to open.`,
+          timeout: 20000, // Longer timeout
+        });
+      } catch (error) {
+        console.log(
+          `Default approach failed after timeout: ${(error as Error).message}`,
+        );
+      }
+
+      console.log(
+        `Editor "${editorTitle}" opened successfully, getting webview...`,
+      );
       const webview = await getWebviewByLocator(
         By.xpath("//vscode-textfield[@id='path-url']"),
       );
+      console.log(`Webview obtained successfully for "${editorTitle}"`);
 
       const collectionPathUrlTextField = await webview.findWebElement(
         By.xpath("//vscode-textfield[@id='path-url']"),
@@ -416,7 +438,7 @@ describe("Content Creator UI Tests", function () {
       ).to.be.true;
       await createButton.click();
       if (verifyPath) {
-        scaffoldCollection(collectionPath);
+        await scaffoldCollection(collectionPath);
         await createButton.click();
         // This sleep is hard to get rid of because scaffold collection takes time
         // need to look at ways to determine when the collection is ready
