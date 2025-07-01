@@ -49,4 +49,4 @@ defineProps<{ failures: Array<{ type: string; required: string; current: string 
   margin-right: 8px;
   color: var(--vscode-inputValidation-warningForeground, #8a6d3b);
 }
-</style> 
+</style>
