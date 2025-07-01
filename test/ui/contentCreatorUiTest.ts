@@ -358,8 +358,7 @@ describe("Content Creator UI Tests", function () {
               const result = await new EditorView().openEditor(editorTitle);
               console.log(`Successfully opened editor with default parameters`);
               return result;
-            } catch (error) {
-              //console.log(`Retry opening editor:`, (error as Error).message);
+            } catch {
               return false;
             }
           },
