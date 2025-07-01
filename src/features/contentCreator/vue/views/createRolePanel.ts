@@ -21,7 +21,7 @@ export class MainPanel {
       this._disposables,
       () => this.dispose(),
     );
-    // Post requirements status when webview is ready
+
     this._panel.webview.onDidReceiveMessage(
       async (msg) => {
         if (msg && msg.type === "request-requirements-status") {
