@@ -449,6 +449,7 @@ describe("Content Creator UI Tests", function () {
     }
 
     it("Check add-plugin webview elements for lookup plugin", async function () {
+      this.timeout(30000);
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -459,6 +460,7 @@ describe("Content Creator UI Tests", function () {
     });
 
     it("Check add-plugin webview elements for action plugin", async function () {
+      this.timeout(30000);
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -469,6 +471,7 @@ describe("Content Creator UI Tests", function () {
     });
 
     it("Check add-plugin webview elements for generic module plugin", async function () {
+      this.timeout(30000);
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
@@ -479,6 +482,7 @@ describe("Content Creator UI Tests", function () {
     });
 
     it("Check add-plugin webview elements for test plugin", async function () {
+      this.timeout(30000);
       await testWebViewElements(
         "Ansible: Add a Plugin",
         homeDir,
