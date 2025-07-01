@@ -300,7 +300,7 @@ describe("Content Creator UI Tests", function () {
     }
 
     // Using execFile for safer execution without shell, ensuring SonarCloud compliance.
-    function scaffoldCollection(collectionPath: string) {
+    async function scaffoldCollection(collectionPath: string): Promise<void> {
       const safePath = path.resolve(collectionPath);
 
       const ansibleCreatorPath = findExecutable("ansible-creator");
@@ -440,7 +440,7 @@ describe("Content Creator UI Tests", function () {
       ).to.be.true;
       await createButton.click();
       if (verifyPath) {
-        scaffoldCollection(collectionPath);
+        await scaffoldCollection(collectionPath);
         await createButton.click();
         // This sleep is hard to get rid of because scaffold collection takes time
         // need to look at ways to determine when the collection is ready
