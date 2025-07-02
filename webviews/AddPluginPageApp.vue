@@ -103,13 +103,13 @@ onMounted(() => {
 
 <template>
 <body>
+  <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
+  <div :class="{ 'disabled-content': !requirementsMet }">
   <div class="title-div">
     <h1>Add a plugin to an existing collection</h1>
     <p class="subtitle">Extending automation with python</p>
   </div>
 
-  <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
-  <div :class="{ 'disabled-content': !requirementsMet }">
     <form id="init-form">
       <section class="component-container">
 

@@ -134,12 +134,12 @@ onMounted(() => {
 </script>
 <template>
     <body>
+      <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
+      <div :class="{ 'disabled-content': !requirementsMet }">
         <div class="title-div">
             <h1>Create new Ansible playbook project</h1>
             <p class="subtitle">Streamlining automation</p>
         </div>
-        <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
-        <div :class="{ 'disabled-content': !requirementsMet }">
             <form id="init-form">
                 <section class="component-container">
 
