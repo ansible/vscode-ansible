@@ -5,7 +5,8 @@
       <div class="banner-title">Requirements Not Met</div>
       <div class="banner-message">
         <template v-if="failures.length === 1 && failures[0].type === 'ansible-creator'">
-          This feature requires ansible-creator version <b>{{ failures[0].required }}</b> or higher. Please upgrade to this version to use this feature.
+          This feature requires ansible-creator version <b>25.0.1</b> or higher.  
+          To upgrade or install ansible-creator, please refer to the official installation and upgrade <a href="https://ansible.readthedocs.io/projects/creator/installing/">guide</a>.
         </template>
         <template v-else>
           <ul>
