@@ -1,8 +1,12 @@
 # https://github.com/mochajs/mocha/blob/main/example/config/.mocharc.yml
 reporter: mocha-junit-reporter
 reporter-option:
-  - mochaFile=../../out/junit/als-test-results.xml
+  - attachments=true
+  - includePending=true
+  - mochaFile=../../out/junit/als/als-test-results.xml
+  - outputs=true
   - suiteTitle=als
+  - suiteTitleSeparatedBy="::"
 require:
   - ts-node/register
   - test/rootMochaHooks.ts
