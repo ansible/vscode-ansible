@@ -451,9 +451,7 @@ export class AnsibleCreatorOperations {
   ): Promise<string> {
     const creatorVersion = await getCreatorVersion();
 
-    const PATH_SUPPORTED_VERSION = "25.6.0"; // Replace with exact version if known
-
-    if (semver.gte(creatorVersion, PATH_SUPPORTED_VERSION)) {
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
       return `ansible-creator init playbook ${namespace}.${collection} --path ${url} --no-ansi`;
     } else {
       return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
