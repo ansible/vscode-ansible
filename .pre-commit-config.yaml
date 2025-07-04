@@ -27,9 +27,10 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.11.12"
     hooks:
-      - id: ruff
-        entry: sh -c 'ruff check --fix --force-exclude && ruff format --force-exclude'
-        types_or: [python, pyi]
+      - id: ruff-format
+        alias: ruff
+      - id: ruff-check
+        alias: ruff
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v9.0.1
     hooks:
@@ -160,7 +161,10 @@ repos:
     rev: "v3.5.3"
     hooks:
       - id: prettier
-        types_or: ["markdown", "json", "ts"]
+        types_or: ["markdown", "json"]
+        args:
+          - --log-level
+          - silent
         exclude: >
           (?x)^(
             jinja-language-configuration.json|

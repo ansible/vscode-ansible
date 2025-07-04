@@ -243,7 +243,8 @@ jobs:
           [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Install dependencies
-        uses: backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
+        uses: coactions/actions/yarn-install@fix/install
+        # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
         with:
           cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
 
@@ -282,17 +283,17 @@ jobs:
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}"
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: "${{ contains(matrix.name, 'test') }}"
+        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: contains(matrix.name, 'test')
+        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
@@ -323,7 +324,7 @@ jobs:
           find out -name '*:*' -exec rm -r {} \; || true
 
       - name: Upload test logs and reports as logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
-        if: ${{ always() }}
+        if: ${{ !cancelled() }}
         uses: coactions/upload-artifact@v4
         with:
           name: logs-${{ steps.setup.outputs.OS_VERSION }}-${{ matrix.task-name }}.zip
@@ -339,22 +340,24 @@ jobs:
           retention-days: 90
 
       - name: Upload test results to Codecov (als)
-        if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
+        if: ${{ !cancelled() && hashFiles('out/junit/als/*.xml') != '' }}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
           directory: out/junit/als
+          handle_no_reports_found: true
           name: ${{ matrix.name }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       - name: Upload test results to Codecov (e2e)
-        if: ${{ !cancelled() && hashFiles('out/junit/*.xml') != '' }}
+        if: ${{ !cancelled() && hashFiles('out/junit/e2e/*.xml') != '' }}
         uses: codecov/test-results-action@v1
         with:
           fail_ci_if_error: true
           directory: out/junit/e2e
+          handle_no_reports_found: true
           name: ${{ matrix.name }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},e2e
@@ -366,9 +369,22 @@ jobs:
         with:
           fail_ci_if_error: true
           directory: out/junit/unit
+          handle_no_reports_found: true
           name: ${{ matrix.name }}
           # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+
+      - name: Upload test results to Codecov (ui)
+        if: ${{ !cancelled() && hashFiles('out/junit/ui/*.xml') != '' }}
+        uses: codecov/test-results-action@v1
+        with:
+          fail_ci_if_error: true
+          directory: out/junit/ui
+          handle_no_reports_found: true
+          name: ${{ matrix.name }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,ui
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       # - name: Stop services
@@ -429,12 +445,6 @@ jobs:
           find . -name '*\?*' -exec rm -r {} \; || true
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
-
-      - name: Update job summary with test results
-        if: ${{ !cancelled() && hashFiles('*/junit/*.xml') != '' }}
-        uses: test-summary/action@v2
-        with:
-          paths: "**/junit/*.xml"
 
       - name: Upload als test coverage data [1/4]
         if: ${{ always() }}
