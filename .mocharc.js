@@ -21,9 +21,11 @@ module.exports = {
   reporterEnabled: "spec,mocha-junit-reporter",
   "reporter-options": `configFile=${__filename}`,
   mochaJunitReporterReporterOptions: {
-    mochaFile: `./out/junit/${process.env.TEST_ID ?? "unit-"}-test-results.xml`,
+    attachments: true,
     includePending: true,
+    mochaFile: `./out/junit/unit/${process.env.TEST_ID ?? "unit"}-test-results.xml`,
     outputs: true,
     suiteTitle: "ui",
+    suiteTitleSeparatedBy: "::",
   },
 };

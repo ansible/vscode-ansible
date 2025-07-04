@@ -13,12 +13,15 @@ module.exports = {
   // to appear on unexpected long tests, not on an expected duration.
   slow: 25000,
   reporter: "mocha-multi-reporters",
-  reporterEnabled: "spec,mocha-junit-reporter",
-  "reporter-options": `configFile=${__filename}`,
-  mochaJunitReporterReporterOptions: {
-    mochaFile: `./out/junit/${process.env.TEST_ID ?? "ui-"}-test-results.xml`,
-    includePending: true,
-    outputs: true,
-    suiteTitle: "ui",
+  reporterOptions: {
+    reporterEnabled: "spec,mocha-junit-reporter",
+    mochaJunitReporterReporterOptions: {
+      attachments: true,
+      includePending: true,
+      mochaFile: `./out/junit/ui/${process.env.TEST_ID ?? "ui-"}-test-results.xml`,
+      outputs: true,
+      suiteTitle: "ui",
+      suiteTitleSeparatedBy: "::",
+    },
   },
 };

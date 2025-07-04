@@ -85,11 +85,12 @@ function stop_server() {
 }
 
 function refresh_settings() {
-    test_file=$1
+    local test_path=$1
+    local test_id=$2
     cp test/testFixtures/settings.json out/settings.json
     sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
     sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
-    if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_file}"; then
+    if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_path}"; then
         sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' out/settings.json
         sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": true,/' out/settings.json
     fi
@@ -98,8 +99,7 @@ function refresh_settings() {
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
     rm -rf out/test-resources/settings/ >/dev/null
-
-    jq --color-output --compact-output < out/settings.json
+    cp -f out/settings.json "out/log/${test_id}-settings.json"
 }
 
 
@@ -149,8 +149,8 @@ export COVERAGE
 
 if [[ "${TEST_TYPE}" == "ui" ]]; then
     # shellcheck disable=SC2044
-    rm -rfv ./out/log/ui* >/dev/null
-    mkdir -p out/log
+    rm -f out/junit/ui/*.* >/dev/null
+    mkdir -p out/log/ui
 
     find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
         basename="${test_file##*/}"
@@ -165,7 +165,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 stop_server
                 start_server
             fi
-            refresh_settings "${test_file}"
+            refresh_settings "${test_file}" "${TEST_ID}"
             timeout --preserve-status 120s npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \
@@ -185,8 +185,9 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                     mv "${files[@]}" "out/log/"
                 fi
             fi
-        } | tee >(sed -r "s/\x1B\[[0-9;]*[mK]//g" > "out/log/${TEST_ID}.log") 2>&1
+        } | tee >(sed -r "s/\x1B\[[0-9;]*[mK]//g" > "out/log/ui/${TEST_ID}.log") 2>&1
     done
+    ls out/junit/ui/*-test-results.xml 1>/dev/null 2>&1 || { echo "No junit reports files reported, failing the build."; exit 1; }
 fi
 if [[ "${TEST_TYPE}" == "e2e" ]]; then
     export NODE_NO_WARNINGS=1
@@ -195,6 +196,7 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
     export SKIP_DOCKER=${SKIP_DOCKER:-0}
 
     mkdir -p out/userdata/User/
+    mkdir -p out/junit/e2e
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
     npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura
