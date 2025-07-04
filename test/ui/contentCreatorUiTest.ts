@@ -475,7 +475,7 @@ describe("Content Creator UI Tests", function () {
         "Ansible: Add a Plugin",
         homeDir,
         "Add Plugin",
-        "test_plugin_name",
+        "sample_plugin_name",
         "Lookup",
       );
     });
@@ -485,7 +485,7 @@ describe("Content Creator UI Tests", function () {
         "Ansible: Add a Plugin",
         homeDir,
         "Add Plugin",
-        "test_plugin_name",
+        "sample_plugin_name",
         "Action",
       );
     });
@@ -495,7 +495,7 @@ describe("Content Creator UI Tests", function () {
         "Ansible: Add a Plugin",
         homeDir,
         "Add Plugin",
-        "test_plugin_name",
+        "sample_plugin_name",
         "Module",
       );
     });
@@ -505,7 +505,7 @@ describe("Content Creator UI Tests", function () {
         "Ansible: Add a Plugin",
         homeDir,
         "Add Plugin",
-        "test_plugin_name",
+        "sample_plugin_name",
         "Test",
       );
     });

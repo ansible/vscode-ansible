@@ -141,3 +141,8 @@ vscode-divider {
     margin-bottom: 22px;
     width: 100%;
 }
+
+.disabled-content {
+  opacity: 0.4;
+  pointer-events: none;
+}

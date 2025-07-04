@@ -138,3 +138,8 @@ vscode-checkbox i {
 vscode-divider {
     width: 100%;
 }
+
+.disabled-content {
+  opacity: 0.4;
+  pointer-events: none;
+}

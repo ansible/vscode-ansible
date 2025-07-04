@@ -80,6 +80,20 @@ export class AnsibleCreatorOperations {
     let commandResult: string;
 
     const creatorVersion = await getCreatorVersion();
+    if (!creatorVersion || creatorVersion === "failed") {
+      commandOutput += `ansible-creator is not installed or not found in PATH.\n`;
+      commandOutput += `Please install ansible-creator and try again.\n`;
+      commandResult = "failed";
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput: commandOutput,
+          projectUrl: destinationPathUrl,
+          status: commandResult,
+        },
+      } as PostMessageEvent);
+      return;
+    }
     const minRequiredCreatorVersion: Record<string, string> = {
       role: "25.4.0",
     };
@@ -155,6 +169,20 @@ export class AnsibleCreatorOperations {
     let commandResult: string;
 
     const creatorVersion = await getCreatorVersion();
+    if (!creatorVersion || creatorVersion === "failed") {
+      commandOutput += `ansible-creator is not installed or not found in PATH.\n`;
+      commandOutput += `Please install ansible-creator and try again.\n`;
+      commandResult = "failed";
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput: commandOutput,
+          projectUrl: destinationPathUrl,
+          status: commandResult,
+        },
+      } as PostMessageEvent);
+      return;
+    }
     const minRequiredCreatorVersion: Record<string, string> = {
       lookup: "24.12.1",
       filter: "24.12.1",
@@ -232,6 +260,21 @@ export class AnsibleCreatorOperations {
     }
 
     const creatorVersion = await getCreatorVersion();
+    if (!creatorVersion || creatorVersion === "failed") {
+      let commandOutput =
+        "ansible-creator is not installed or not found in PATH.\n";
+      commandOutput += "Please install ansible-creator and try again.\n";
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput: commandOutput,
+          collectionUrl: isCollection ? destinationUrl : undefined,
+          projectUrl: isCollection ? undefined : destinationUrl,
+          status: "failed",
+        },
+      } as PostMessageEvent);
+      return;
+    }
     const exceedMinVersion = semver.gte(
       creatorVersion,
       ANSIBLE_CREATOR_VERSION_MIN,
@@ -408,9 +451,7 @@ export class AnsibleCreatorOperations {
   ): Promise<string> {
     const creatorVersion = await getCreatorVersion();
 
-    const PATH_SUPPORTED_VERSION = "25.6.0"; // Replace with exact version if known
-
-    if (semver.gte(creatorVersion, PATH_SUPPORTED_VERSION)) {
+    if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
       return `ansible-creator init playbook ${namespace}.${collection} --path ${url} --no-ansi`;
     } else {
       return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
