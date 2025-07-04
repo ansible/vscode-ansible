@@ -23,7 +23,6 @@ export default tseslint.config(
       "**/out/",
       ".mocharc.js",
       ".vscode-test/*",
-      ".yarn/*",
       "commitlint.config.js",
       "site/*",
       "test/ui/.mocharc.js",

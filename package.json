@@ -1044,17 +1044,14 @@
     "webpack": "^5.99.9",
     "webpack-cli": "^6.0.1",
     "winston": "^3.17.0",
-    "yargs": "^18.0.0",
-    "yarn-audit-fix": "^10.1.1"
+    "yargs": "^18.0.0"
   },
   "displayName": "Ansible",
   "engineStrict": true,
   "engines": {
     "//": "node version affects only development, it does not affect VS Code runtime",
     "node": ">=20.0",
-    "npm": "\n\nERROR: Please use yarn instead of npm for this repository.!!!\n\n",
-    "vscode": "^1.85.0",
-    "yarn": ">=4.5.1"
+    "vscode": "^1.85.0"
   },
   "extensionDependencies": [
     "ms-python.python",
@@ -1082,28 +1079,28 @@
     "preinstall": "",
     "pretest": "node --max-old-space-size=8192 node_modules/webpack/bin/webpack.js --mode development --config ./webpack.config.ts",
     "unit-tests": "sh -c \"c8 --config test/unit/.c8rc mocha --recursive test/unit/lightspeed ${MOCHA_OPTS:-}\"",
-    "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
+    "test-ui": "pnpm run test-ui-current && pnpm run test-ui-oldest",
     "test-ui-current": "./tools/test-launcher.sh",
     "test-ui-oldest": "CODE_VERSION='min' ./tools/test-launcher.sh",
     "coverage-ui-current": "COVERAGE=1 ./tools/test-launcher.sh",
     "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' ./tools/test-launcher.sh",
-    "vscode-prepublish": "yarn run webpack",
+    "vscode-prepublish": "pnpm run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
-    "webpack": "yarn run clean && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run clean && yarn test-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode development --config ./webpack.config.ts",
+    "webpack": "pnpm run clean && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
+    "webpack-dev": "pnpm run clean && pnpm test-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
     "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
-    "test-compile": "yarn run clean && yarn run compile && tsc -p ./ --sourceMap",
-    "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
+    "test-compile": "pnpm run clean && pnpm run compile && tsc -p ./ --sourceMap",
+    "test-e2e": "pnpm run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
     "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
-    "als-compile": "yarn workspace @ansible/ansible-language-server compile",
+    "als-compile": "pnpm compile",
     "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-build": "vue-tsc --noEmit && vite build",
     "vite-preview": "vite preview"
   },
   "version": "0.0.0",
-  "packageManager": "yarn@4.9.2",
+  "packageManager": "pnpm@10.12.4",
   "vsce": {
     "dependencies": false,
     "yarn": false

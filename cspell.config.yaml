@@ -15,7 +15,7 @@ dictionaries:
 ignorePaths:
   - "**/requirements.in"
   - .config/constraints.txt
-  - .yarn/
+  - pnpm-lock.yaml
   - media
   - package.json
   - syntaxes

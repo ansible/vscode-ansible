@@ -17,7 +17,7 @@ echo "${RELEASE_NAME}" | grep -Pq "^v\d+\.\d+\$" || {
 }
 
 # update version
-yarn version --immediate "${RELEASE_NAME}.0"
+pnpm version --immediate "${RELEASE_NAME}.0"
 
 # commit the release
 git add package.json

@@ -299,5 +299,3 @@ xunit
 xvfb
 yaegassy
 yammlint
-yarnpkg
-yarnrc

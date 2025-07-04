@@ -185,8 +185,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
     fi
-    # Remove undesirable packages, like cmdtest which provides another "yarn"
-    DEBS=(cmdtest)
+    # Remove undesirable packages
+    DEBS=()
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
@@ -359,7 +359,7 @@ for CMD in ansible ansible-lint ansible-navigator; do
 done
 unset CMD
 
-if [[ -f yarn.lock ]]; then
+if [[ -f pnpm-lock.yaml ]]; then
     # Check if npm has permissions to install packages (system installed does not)
     # Share https://stackoverflow.com/a/59227497/99834
     test -w "$(npm config get prefix)" || {
@@ -489,7 +489,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python3)
   task: $(get_version task)
-  yarn: $(npx --yes yarn --version || echo null)
+  pnpm: $(npx --yes pnpm --version || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: ${DOCKER_VERSION}

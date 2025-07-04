@@ -105,7 +105,7 @@ the `webpack.config.ts` file.
 
 ### Step 5: Build and debug
 
-Build the extension using the command `yarn run webpack-dev` and run the
+Build the extension using the command `pnpm run webpack-dev` and run the
 extension in debug mode using the configuration `Launch extension`. Make changes
 in the code and reload the extension host window to see the live implementation.
 

@@ -12,14 +12,14 @@ the required remote URLs so that you can create PRs.
 
 ### Step 2: Compile
 
-Run `yarn install` in the root of the project (for the extension) and then run
+Run `pnpm install` in the root of the project (for the extension) and then run
 it again after navigating to the packages/ansible-language-server directory.
 
-Then, run `yarn run compile` at both the levels.
+Then, run `pnpm run compile` at both the levels.
 
 ### Step 3: Run Webpack dev
 
-Navigate to the project root directory and run `yarn run webpack-dev`.
+Navigate to the project root directory and run `pnpm run webpack-dev`.
 
 !!! note
 
@@ -44,4 +44,4 @@ extension development host window to see the live changes.
 
 When you switch between debug and compilation modes, or if you have a
 compilation or debugger problem, clean the output directory by running
-`yarn run clean`.
+`pnpm run clean`.

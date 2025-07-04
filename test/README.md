@@ -33,25 +33,25 @@ forget to install `node`.
 | :----------------- |
 | nvm install node   |
 
-#### Installing Yarn
+#### Installing pnpm
 
 Once you have `npm` installed you can run the following both to install and
-upgrade `Yarn`:
+upgrade `pnpm`:
 
 | :memo: Cheat Sheet        |
 | :------------------------ |
-| npm install --global yarn |
+| npm install --global pnpm |
 
 #### Installing Remaining Dependencies
 
-Now that you have `yarn` installed, all we have to do is run the following
+Now that you have `pnpm` installed, all we have to do is run the following
 commands to ensure that you have all other remaining dependencies installed
 locally:
 
 ```shell
-    yarn install
-    yarn clean
-    yarn webpack-dev
+    pnpm install
+    pnpm clean
+    pnpm webpack-dev
 ```
 
 ### Running Test Suites
@@ -63,7 +63,7 @@ There are a few different test suites to choose from:
 Run the following command:
 
 ```shell
-    yarn unit-tests
+    pnpm unit-tests
 ```
 
 #### End to End

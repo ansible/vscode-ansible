@@ -7,8 +7,7 @@ Extension development.
 ## Build tasks
 
 To ease local development and testing, we use
-[taskfile.dev](https://taskfile.dev/) but you can also call yarn directly for
-most commands if you want.
+[taskfile.dev](https://taskfile.dev/).
 
 To see all the commands available, run `task -l` and it will list all of them
 along with their descriptions.
