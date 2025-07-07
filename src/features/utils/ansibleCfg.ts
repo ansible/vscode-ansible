@@ -1,6 +1,7 @@
 /* node "stdlib" */
 import * as fs from "fs";
 import os from "node:os";
+import path from "node:path";
 
 /* vscode"stdlib" */
 import * as vscode from "vscode";
@@ -20,13 +21,33 @@ export default function untildify(pathWithTilde: string) {
     : pathWithTilde;
 }
 
-// Get rootPath based on multi-workspace API
+// Get rootPath based on multi-workspace API, start at document location and
+// move up until we find a directory with ansible.cfg
 export function getRootPath(editorDocumentUri: vscode.Uri): string | undefined {
-  if (typeof vscode.workspace.getWorkspaceFolder !== "function") {
-    return vscode.workspace.workspaceFolders?.[0]?.name;
+  let currentDir = path.dirname(editorDocumentUri.fsPath);
+
+  // Determine the workspace folder if possible
+  const workspaceFolder =
+    typeof vscode.workspace.getWorkspaceFolder === "function"
+      ? vscode.workspace.getWorkspaceFolder(editorDocumentUri)?.uri.fsPath
+      : vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+  while (currentDir && currentDir !== workspaceFolder) {
+    if (fs.existsSync(path.join(currentDir, "ansible.cfg"))) {
+      console.log(`Ansible root directory found: ${currentDir}`);
+      return currentDir;
+    }
+    const parentDir = path.dirname(currentDir);
+    if (parentDir === currentDir) {
+      break; // Stop if we reach the filesystem root
+    }
+    currentDir = parentDir;
   }
 
-  return vscode.workspace.getWorkspaceFolder(editorDocumentUri)?.uri.path;
+  console.log(
+    `No ansible.cfg found, using workspace folder: ${workspaceFolder}`,
+  );
+  return workspaceFolder;
 }
 
 export type AnsibleVaultConfig = {
@@ -43,7 +64,7 @@ export async function scanAnsibleCfg(
   /*
    * Reading order (based on the documentation: https://docs.ansible.com/ansible/latest/reference_appendices/config.html#ansible-configuration-settings):
    * 1) ANSIBLE_CONFIG
-   * 2) ansible.cfg (in current workspace)
+   * 2) ansible.cfg (in root path)
    * 3) ~/.ansible.cfg
    * 4) /etc/ansible/ansible.cfg
    */
