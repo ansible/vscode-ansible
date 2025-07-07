@@ -1,4 +1,4 @@
 direnv 2.36.0
-nodejs 20.18.0
+nodejs 20.19.3
 # asdf install task latest
 task 3.37.2

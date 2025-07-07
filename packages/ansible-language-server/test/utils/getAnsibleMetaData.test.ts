@@ -19,7 +19,7 @@ function getAnsibleTestInfo() {
   ansibleInfo["core version"] = ".";
   ansibleInfo["location"] = "/ansible";
   // eslint-disable-next-line chai-friendly/no-unused-expressions
-  (ansibleInfo["config file path"] = path.resolve(
+  ((ansibleInfo["config file path"] = path.resolve(
     __dirname,
     "..",
     "fixtures",
@@ -29,7 +29,7 @@ function getAnsibleTestInfo() {
   )),
     (ansibleInfo["collections location"] = [
       path.resolve(__dirname, "..", "fixtures", "common", "collections"),
-    ]);
+    ]));
   ansibleInfo["module location"] = ["/modules"];
   ansibleInfo["default host list path"] = [
     path.resolve(

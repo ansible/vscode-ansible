@@ -374,7 +374,7 @@ if [[ -n ${DOCKER_HOST+x} ]]; then
     exit 1
 fi
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
-DOCKER_VERSION="$(get_version docker 2>/dev/null || echo null)"
+DOCKER_VERSION="$(get_version docker 2>/dev/null || echo 'null' && log warning 'docker not found, skipping related tests')"
 if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
 
     DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
@@ -489,7 +489,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python3)
   task: $(get_version task)
-  yarn: $(npm exec -- yarn --version || echo null)
+  yarn: $(npx --yes yarn --version || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: ${DOCKER_VERSION}
