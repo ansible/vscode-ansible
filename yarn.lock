@@ -2241,6 +2241,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vscode/codicons@npm:^0.0.36":
+  version: 0.0.36
+  resolution: "@vscode/codicons@npm:0.0.36"
+  checksum: 10/c360387f6d550ddb5039f6ed92ecf08531ad247226a9340cf444d80264daba9771ebc6e1eaeac945b58932ca3795b3deab3a58964c035973adc509e912fb388a
+  languageName: node
+  linkType: hard
+
 "@vscode/test-cli@npm:^0.0.11":
   version: 0.0.11
   resolution: "@vscode/test-cli@npm:0.0.11"
@@ -2966,6 +2973,7 @@ __metadata:
     "@typescript-eslint/parser": "npm:^8.35.1"
     "@vitejs/plugin-vue": "npm:^5.2.4"
     "@vscode-elements/elements": "npm:^1.16.1"
+    "@vscode/codicons": "npm:^0.0.36"
     "@vscode/test-cli": "npm:^0.0.11"
     "@vscode/test-electron": "npm:^2.5.2"
     "@vscode/vsce": "npm:^3.5.0"

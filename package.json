@@ -966,6 +966,7 @@
     "@types/ini": "^4.1.1",
     "@vitejs/plugin-vue": "^5.2.4",
     "@vscode-elements/elements": "^1.16.1",
+    "@vscode/codicons": "^0.0.36",
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "highlight.js": "^11.11.1",
     "ini": "^5.0.0",
