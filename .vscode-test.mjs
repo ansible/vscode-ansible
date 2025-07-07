@@ -33,9 +33,13 @@ export default defineConfig({
     reporterOptions: {
       reporterEnabled: "spec, mocha-junit-reporter",
       mochaJunitReporterReporterOptions: {
-        mochaFile: "./out/junit/e2e-test-results.xml",
+        attachments: true,
+        includePending: true,
+        mochaFile: "./out/junit/e2e/test-results.xml",
+        outputs: true,
         toConsole: false,
         suiteTitle: "e2e",
+        suiteTitleSeparatedBy: "::",
       },
     },
     preload: "ts-node/register",
