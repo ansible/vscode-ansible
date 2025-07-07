@@ -388,7 +388,7 @@ describe("Content Creator UI Tests", function () {
       ).not.to.be.undefined;
       await collectionPathUrlTextField.sendKeys(collectionPath);
       const pluginNameTextField = await webview.findWebElement(
-        By.xpath("//vscode-textfield[@id='plugin-name']"),
+        By.xpath("//vscode-textfield[@id='name']"),
       );
       expect(pluginNameTextField, "pluginNameTextField should not be undefined")
         .not.to.be.undefined;
