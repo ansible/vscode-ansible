@@ -22,9 +22,14 @@ export async function getBinDetail(cmd: string, arg: string) {
 }
 
 export async function getCreatorVersion(): Promise<string> {
-  const creatorVersion = (await getBinDetail("ansible-creator", "--version"))
+  let creatorVersion = (await getBinDetail("ansible-creator", "--version"))
     .toString()
     .trimEnd();
+  // Extract only the version number (e.g., 25.6.0)
+  const match = creatorVersion.match(/([0-9]+\.[0-9]+\.[0-9]+)/);
+  if (match) {
+    creatorVersion = match[1];
+  }
   console.log("ansible-creator version: ", creatorVersion);
   return creatorVersion;
 }

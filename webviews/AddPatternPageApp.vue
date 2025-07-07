@@ -10,7 +10,7 @@ import {
   clearAllFields,
   createActionWrapper,
   createFormValidator} from './../src/features/contentCreator/webviewUtils';
-import "../media/contentCreator/addPluginPageStyle.css";
+import "../media/contentCreator/addPluginAndPatterPageStyle.css";
 import RequirementsBanner from './RequirementsBanner.vue';
 
 const commonState = useCommonWebviewState();
@@ -51,6 +51,7 @@ const handleCreate = createActionWrapper(
       payload: {
         patternName: patternNameTextField.value.trim(),
         collectionPath: initPath.value.trim() || homeDir.value.trim(),
+        verbosity: verboseDropdown.value.trim(),
         isOverwritten: isOverwritten.value
       }
     });
@@ -124,19 +125,33 @@ onMounted(() => {
                     </vscode-textfield>
         </vscode-form-group>
 
-        <div class="pattern-name-div">
+        <div class="name-div">
           <vscode-form-group variant="vertical">
-            <vscode-label for="pattern-name">
+            <vscode-label for="name">
               <span class="normal">Pattern name *</span>
             </vscode-label>
             <vscode-textfield
-              id="pattern-name"
+              id="name"
               form="init-form"
               placeholder="Enter pattern name"
               size="512"
               v-model="patternNameTextField"
             />
           </vscode-form-group>
+        </div>
+        <div class="verbose-div">
+          <div class="dropdown-container">
+            <vscode-label for="verbosity-dropdown">
+              <span class="normal">Output Verbosity</span>
+            </vscode-label>
+            <vscode-single-select id="verbosity-dropdown" v-model="verboseDropdown">
+              <vscode-option>Off</vscode-option>
+              <vscode-option>Low</vscode-option>
+              <vscode-option>Medium</vscode-option>
+              <vscode-option>High</vscode-option>
+            </vscode-single-select>
+
+          </div>
         </div>
 
         <div id="full-collection-path" class="full-collection-path">

@@ -59,6 +59,13 @@ export type PluginFormInterface = {
   isOverwritten: boolean;
 };
 
+export type PatternFormInterface = {
+  patternName: string;
+  collectionPath: string;
+  verbosity: string;
+  isOverwritten: boolean;
+};
+
 export type RoleFormInterface = {
   roleName: string;
   collectionPath: string;

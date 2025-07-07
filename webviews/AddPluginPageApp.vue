@@ -10,7 +10,7 @@ import {
   clearAllFields,
   createActionWrapper,
   createFormValidator} from './../src/features/contentCreator/webviewUtils';
-import "../media/contentCreator/addPluginPageStyle.css";
+import "../media/contentCreator/addPluginAndPatterPageStyle.css";
 import RequirementsBanner from './RequirementsBanner.vue';
 
 const commonState = useCommonWebviewState();
@@ -129,8 +129,8 @@ onMounted(() => {
                     </vscode-textfield>
         </vscode-form-group>
 
-        <div class="plugin-type-div">
-          <div class="dropdown-container">
+        <div class="plugin-type-div name-div">
+          <vscode-form-group variant="vertical">
             <vscode-label for="plugin-dropdown">
               <span class="normal">Plugin type *</span>
             </vscode-label>
@@ -141,17 +141,16 @@ onMounted(() => {
               <vscode-option>Module</vscode-option>
               <vscode-option>Test</vscode-option>
             </vscode-single-select>
-
-          </div>
+          </vscode-form-group>
         </div>
 
-        <div class="plugin-name-div">
+        <div class="name-div">
           <vscode-form-group variant="vertical">
-            <vscode-label for="plugin-name">
+            <vscode-label for="name">
               <span class="normal">Plugin name *</span>
             </vscode-label>
             <vscode-textfield
-              id="plugin-name"
+              id="name"
               form="init-form"
               placeholder="Enter plugin name"
               size="512"
