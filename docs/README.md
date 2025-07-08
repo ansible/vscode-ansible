@@ -55,7 +55,6 @@ for Ansible development tools. Access it as follows:
   **OR**
 
 - From the Quick Links panel, click **Getting Started**.
-
   - The walkthroughs will appear on the right-hand side.
 
 ### Interactive Walkthroughs
