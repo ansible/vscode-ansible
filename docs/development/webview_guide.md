@@ -74,7 +74,6 @@ To organize the code, create two separate files:
 
 1. **Extension file (`<webview-name>Page.ts`):** This file hosts the webview. In
    this file you should:
-
    - Define a class with methods to render, dispose, and manage the Webview
      lifecycle.
 
@@ -88,7 +87,6 @@ To organize the code, create two separate files:
 
 2. **Webview file: (`<webview-name>PageApp.ts`):** This file manages the Webview
    content. In this file you should:
-
    - Interact with DOM elements within the HTML.
 
    - Add event listeners and manipulate HTML elements, excluding vscode and
@@ -219,7 +217,6 @@ panel.webview.onDidReceiveMessage(
 
 1. **Local resources:** The extension has already implemented some webviews. You
    can see them in the following locations:
-
    - extension context file:
      [createAnsibleProjectPage.ts](https://github.com/ansible/vscode-ansible/blob/main/src/features/contentCreator/createAnsibleProjectPage.ts)
 
@@ -231,7 +228,6 @@ panel.webview.onDidReceiveMessage(
 
 2. **External resources:** The best explanation of implementing a webview is
    described by Microsoft. You can look at these:
-
    - [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
 
    - [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
