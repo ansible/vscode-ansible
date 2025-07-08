@@ -4,7 +4,7 @@ import {
   setupPanelLifecycle,
   disposePanelResources,
   createOrRevealPanel,
-} from "../../../lightspeed/vue/views/panelUtils";
+} from "./panelUtils";
 import { checkContentCreatorRequirements } from "../../utils";
 
 export class MainPanel {
