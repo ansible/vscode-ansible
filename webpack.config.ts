@@ -66,6 +66,15 @@ const config = {
           },
         ],
       },
+      {
+        // Handle ES modules in node_modules (specifically @vscode-elements/elements)
+        test: /\.js$/,
+        include: /node_modules\/@vscode-elements\/elements/,
+        type: "javascript/esm",
+        resolve: {
+          fullySpecified: false,
+        },
+      },
     ],
   },
   node: {
