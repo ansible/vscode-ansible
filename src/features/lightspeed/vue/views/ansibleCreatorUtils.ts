@@ -8,6 +8,7 @@ import {
   RoleFormInterface,
   PluginFormInterface,
   PostMessageEvent,
+  PatternFormInterface,
 } from "../../../contentCreator/types";
 import {
   getADEVersion,
@@ -31,6 +32,101 @@ export class AnsibleCreatorOperations {
     let command = "";
     command = `ansible-creator add resource role ${roleName} ${url} --no-ansi`;
     return command;
+  }
+  public async getPatternAddCommand(
+    patternName: string,
+    collectionPath: string,
+  ): Promise<string> {
+    let command = "";
+
+    command = `ansible-creator add resource pattern ${patternName} ${collectionPath} --no-ansi`;
+    return command;
+  }
+
+  public async runPatternAddCommand(
+    payload: PatternFormInterface,
+    webView: vscode.Webview,
+  ) {
+    const { patternName, collectionPath, isOverwritten, verbosity } = payload;
+
+    const destinationPathUrl =
+      collectionPath ||
+      `${os.homedir()}/.ansible/collections/ansible_collections`;
+
+    let ansibleCreatorAddCommand = await this.getPatternAddCommand(
+      patternName,
+      destinationPathUrl,
+    );
+
+    if (isOverwritten) {
+      ansibleCreatorAddCommand += " --overwrite";
+    } else {
+      ansibleCreatorAddCommand += " --no-overwrite";
+    }
+
+    const verbosityMap: Record<string, string> = {
+      off: "",
+      low: " -v",
+      medium: " -vv",
+      high: " -vvv",
+    };
+    const normalizedVerbosity = verbosity.toLowerCase();
+    const verbosityFlag = verbosityMap[normalizedVerbosity] || "";
+    ansibleCreatorAddCommand += verbosityFlag;
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    const { command, env } = withInterpreter(
+      extSettings.settings,
+      ansibleCreatorAddCommand,
+      "",
+    );
+
+    let commandOutput = "";
+    let commandResult: string;
+
+    const creatorVersion = await getCreatorVersion();
+    if (!creatorVersion || creatorVersion === "failed") {
+      commandOutput += `ansible-creator is not installed or not found in PATH.\n`;
+      commandOutput += `Please install ansible-creator and try again.\n`;
+      commandResult = "failed";
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput: commandOutput,
+          projectUrl: destinationPathUrl,
+          status: commandResult,
+        },
+      } as PostMessageEvent);
+      return;
+    }
+    const minRequiredCreatorVersion: Record<string, string> = {
+      role: "25.4.0",
+    };
+    const requiredCreatorVersion = minRequiredCreatorVersion["role"];
+
+    commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+    if (semver.gte(creatorVersion, requiredCreatorVersion)) {
+      const ansibleCreatorExecutionResult = await runCommand(command, env);
+      commandOutput += ansibleCreatorExecutionResult.output;
+      commandResult = ansibleCreatorExecutionResult.status;
+    } else {
+      commandOutput += `Minimum ansible-creator version needed to add the role resource is ${requiredCreatorVersion}\n`;
+      commandOutput += `The installed ansible-creator version on this system is ${creatorVersion}\n`;
+      commandOutput += `Please upgrade to the latest version of ansible-creator and try again.`;
+      commandResult = "failed";
+    }
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        projectUrl: destinationPathUrl,
+        status: commandResult,
+      },
+    } as PostMessageEvent);
   }
 
   public async runRoleAddCommand(
