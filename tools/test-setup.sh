@@ -199,6 +199,19 @@ git lfs status >/dev/null || {
     exit 3
 }
 
+# Pull Git LFS files to ensure media files are available for packaging
+log notice "Pulling Git LFS files..."
+git lfs pull || {
+    log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
+    exit 3
+}
+log notice "Git LFS files pulled successfully."
+
+if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
+    log error "Detected LFS pointer files, not real files. Check the git lfs configuration and status."
+    exit 3
+fi
+
 log notice "Using $(python3 --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
