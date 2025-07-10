@@ -367,6 +367,10 @@
         "title": "Ansible: Add a Plugin"
       },
       {
+        "command": "ansible.content-creator.add-pattern",
+        "title": "Ansible: Add a Pattern"
+      },
+      {
         "command": "ansible.content-creator.create-role",
         "title": "Ansible: Add Role"
       },

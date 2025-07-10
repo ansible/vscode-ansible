@@ -138,6 +138,14 @@ export function getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
               </a>
             </h3>
           </div>
+           <div class="catalogue">
+            <h3>
+              <a href="command:ansible.content-creator.add-pattern" title="Add a pattern structure to an existing Ansible collection.">
+                <span class="codicon codicon-new-file"></span> Pattern
+                <span class="new-badge">NEW</span>
+              </a>
+            </h3>
+          </div>
           <div class="catalogue">
             <h3>
               <a href="command:ansible.content-creator.create-role" title="Create a role and add it to an existing Ansible collection">

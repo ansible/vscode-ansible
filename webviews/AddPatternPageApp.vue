@@ -18,15 +18,14 @@ const homeDir = commonState.homeDir;
 const logs = commonState.logs;
 
 const initPath = ref("");
-const pluginNameTextField = ref("");
+const patternNameTextField = ref("");
 const isOverwritten = ref(false);
 const openScaffoldedFolderButtonDisabled = ref(true);
 const projectUrl = ref("");
-const pluginTypeDropdown = ref("Action");
 const verboseDropdown = ref("Off");
 
 const canCreate = createFormValidator({
-  pluginName: () => pluginNameTextField.value.trim() !== ""
+  patternName: () => patternNameTextField.value.trim() !== ""
 });
 
 const requirementsMet = ref(true);
@@ -34,11 +33,10 @@ const requirementFailures = ref([]);
 
 const handleOpenScaffoldedFolder = () => {
   vscodeApi.postMessage({
-    type: "init-open-scaffolded-folder-plugin",
+    type: "init-open-scaffolded-folder-pattern",
     payload: {
       projectUrl: projectUrl.value,
-      pluginName: pluginNameTextField.value.trim(),
-      pluginType: pluginTypeDropdown.value.trim(),
+      patternName: patternNameTextField.value.trim(),
     },
   });
 };
@@ -49,10 +47,9 @@ const handleCreate = createActionWrapper(
   commonState.createButtonDisabled,
   () => {
     vscodeApi.postMessage({
-      type: "init-create-plugin",
+      type: "init-add-pattern",
       payload: {
-        pluginName: pluginNameTextField.value.trim(),
-        pluginType: pluginTypeDropdown.value.trim(),
+        patternName: patternNameTextField.value.trim(),
         collectionPath: initPath.value.trim() || homeDir.value.trim(),
         verbosity: verboseDropdown.value.trim(),
         isOverwritten: isOverwritten.value
@@ -63,10 +60,9 @@ const handleCreate = createActionWrapper(
 
 const onClear = () => {
   const componentFields = {
-    pluginTypeDropdown, pluginNameTextField, initPath, verboseDropdown, isOverwritten
+    patternNameTextField, initPath, verboseDropdown, isOverwritten
   };
   const defaults = {
-    pluginTypeDropdown: "Action",
     verboseDropdown: "Off",
     isOverwritten: false
   };
@@ -106,8 +102,8 @@ onMounted(() => {
   <RequirementsBanner v-if="!requirementsMet" :failures="requirementFailures" />
   <div :class="{ 'disabled-content': !requirementsMet }">
   <div class="title-div">
-    <h1>Add a plugin to an existing collection</h1>
-    <p class="subtitle">Simplify the deployment of automation to the Ansible Automation Platform</p>
+    <h1>Add a pattern to an existing collection</h1>
+    <p class="subtitle">Extending automation with python</p>
   </div>
 
     <form id="init-form">
@@ -129,40 +125,20 @@ onMounted(() => {
                     </vscode-textfield>
         </vscode-form-group>
 
-        <div class="plugin-type-div name-div">
-          <vscode-form-group variant="vertical">
-            <vscode-label for="plugin-dropdown">
-              <span class="normal">Plugin type *</span>
-            </vscode-label>
-            <vscode-single-select id="plugin-dropdown" v-model="pluginTypeDropdown">
-              <vscode-option>Action</vscode-option>
-              <vscode-option>Filter</vscode-option>
-              <vscode-option>Lookup</vscode-option>
-              <vscode-option>Module</vscode-option>
-              <vscode-option>Test</vscode-option>
-            </vscode-single-select>
-          </vscode-form-group>
-        </div>
-
         <div class="name-div">
           <vscode-form-group variant="vertical">
             <vscode-label for="name">
-              <span class="normal">Plugin name *</span>
+              <span class="normal">Pattern name *</span>
             </vscode-label>
             <vscode-textfield
               id="name"
               form="init-form"
-              placeholder="Enter plugin name"
+              placeholder="Enter pattern name"
               size="512"
-              v-model="pluginNameTextField"
+              v-model="patternNameTextField"
             />
           </vscode-form-group>
         </div>
-
-        <div id="full-collection-path" class="full-collection-path">
-          <p>Project path: {{ initPath || homeDir }}</p>
-        </div>
-
         <div class="verbose-div">
           <div class="dropdown-container">
             <vscode-label for="verbosity-dropdown">
@@ -178,6 +154,10 @@ onMounted(() => {
           </div>
         </div>
 
+        <div id="full-collection-path" class="full-collection-path">
+          <p>Project path: {{ initPath || homeDir }}</p>
+        </div>
+
         <div class="checkbox-div">
             <vscode-checkbox
               :checked="isOverwritten"
@@ -189,7 +169,7 @@ onMounted(() => {
               <i
                 >Overwriting will remove the existing content in the specified
                 directory and replace it with the files from the Ansible
-                project.</i
+                collection.</i
               >
             </vscode-checkbox>
           </div>
@@ -228,7 +208,7 @@ onMounted(() => {
           </vscode-button>
           <vscode-button id="open-folder-button" form="init-form" :disabled="openScaffoldedFolderButtonDisabled" @click.prevent="handleOpenScaffoldedFolder">
             <span class="codicon codicon-go-to-file"></span>
-            &nbsp; Open Plugin
+            &nbsp; Open Pattern
           </vscode-button>
         </div>
 

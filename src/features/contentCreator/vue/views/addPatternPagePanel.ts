@@ -17,7 +17,7 @@ export class MainPanel {
     setupPanelLifecycle(
       this._panel,
       context,
-      "create-role",
+      "add-pattern",
       this._disposables,
       () => this.dispose(),
     );
@@ -39,8 +39,8 @@ export class MainPanel {
 
   public static render(context: ExtensionContext) {
     createOrRevealPanel({
-      viewType: "createRole",
-      viewTitle: "Create Role",
+      viewType: "AddPattern",
+      viewTitle: "Add Pattern",
       viewColumn: ViewColumn.One,
       context: context,
       getCurrentPanel: () => MainPanel.currentPanel,

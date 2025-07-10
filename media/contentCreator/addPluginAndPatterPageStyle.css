@@ -25,7 +25,7 @@ vscode-form-group {
     margin: 0;
 }
 
-.plugin-name-div {
+.name-div {
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -34,12 +34,12 @@ vscode-form-group {
     width: 100%;
 }
 
-#plugin-name {
+#name {
     width:49%;
     display:inline-block;
 }
 
-.plugin-type-div {
+.type-div {
     display: flex; /* Use flexbox */
     flex-direction: row; /* Arrange child elements vertically */
     margin-top: 12px;
