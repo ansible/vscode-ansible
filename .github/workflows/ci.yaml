@@ -113,7 +113,7 @@ jobs:
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
-        uses: Vampire/setup-wsl@v5.0.1
+        uses: Vampire/setup-wsl@v6.0.0
         with:
           distribution: Ubuntu-24.04
           set-as-default: "true"
