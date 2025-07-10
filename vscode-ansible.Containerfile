@@ -10,6 +10,6 @@ RUN apt-get update && \
 
 COPY . .
 
-RUN yarn install --immutable
+RUN pnpm install --immutable
 
 RUN npm run package

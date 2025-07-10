@@ -1,0 +1,11 @@
+# cspell: ignore esbuild keytar
+packages:
+  - ansible
+  - packages/*
+
+onlyBuiltDependencies:
+  - '@vscode/vsce-sign'
+  - esbuild
+  - keytar
+
+linkWorkspacePackages: true

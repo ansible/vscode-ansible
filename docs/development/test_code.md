@@ -31,11 +31,11 @@ language feature.
 
 ## Running the Tests
 
-Each type of test has its own script and can be run by `yarn run <script-name>`:
+Each type of test has its own script and can be run by `pnpm run <script-name>`:
 
 !!! tip
 
-    Always run `yarn run compile` before running the tests.
+    Always run `pnpm run compile` before running the tests.
 
 ### Extension test scripts
 
@@ -52,17 +52,17 @@ Each type of test has its own script and can be run by `yarn run <script-name>`:
 
 !!! note
 
-    For `test-ui*` scripts, you must package and build a `.vsix file` of the extension by running `yarn run package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
+    For `test-ui*` scripts, you must package and build a `.vsix file` of the extension by running `task package`. As you run the UI tests, the .vsix file is automatically installed and the UI elements are checked.
 
 !!! tip
 
     In case of debugging, use `coverage-ui*` script for running UI tests. Make sure to compile the sources with:
 
-    `yarn webpack-dev`
+    `pnpm webpack-dev`
 
     To run a single UI test case, you can use `MOCHA_GREP` environment variable as follows:
 
-    `MOCHA_GREP="your test case name in describe statement" yarn coverage-ui-current`
+    `MOCHA_GREP="your test case name in describe statement" pnpm coverage-ui-current`
 
 ### Language server test scripts
 

@@ -59,26 +59,22 @@ tasks:
     cmds:
       - task: setup
       - uv pip install -r .config/requirements.in -c .config/constraints.txt
-      - yarn install
-    generates:
-      - node_modules/.yarn-state.yml
+      - pnpm install
     sources:
       - .config/constraints.txt
       - .config/requirements.in
-      - node_modules/.yarn-state.yml
       - package.json
       - packages/*/package.json
       - tools/test-setup.sh
-      - yarn.lock
     run: once
     interactive: true
   build:
     desc: Build the project
     cmds:
       - task: install
-      - npm exec -- yarn run clean
-      - npm exec -- yarn run als-compile
-      - npm exec -- yarn run compile
+      - npm exec -- pnpm run clean
+      - npm exec -- pnpm run als-compile
+      - npm exec -- pnpm run compile
       - npm exec -- tsc -p ./
     sources:
       - Taskfile.yml
@@ -88,7 +84,6 @@ tasks:
       - test/**/*
       - tsconfig.json
       - webpack.config.ts
-      - yarn.lock.json
   code:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
@@ -105,19 +100,14 @@ tasks:
     cmds:
       - uv pip compile -q --universal --no-annotate --output-file .config/constraints.txt .config/requirements.in
       - task: install
-      # upgrade yarn itself
-      - yarn set version latest
+      - pnpm set version latest
       # bumps some developments dependencies
-      - yarn ncu -u --workspaces -i
+      - pnpm ncu -u --workspaces -i
       # disabled because it does not work recursively
-      # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
-      - yarn up "@types/vscode@${VSCODE_VERSION}"
-      - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - task: shared:install
       # check deps
-      - yarn dlx depcheck
       - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint

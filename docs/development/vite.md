@@ -2,7 +2,7 @@
 
 Some views relies on Vite to be built. As a developer, you need first to:
 
-- run `yarn run webpack`, this way the extension will be able to start
+- run `pnpm run webpack`, this way the extension will be able to start
 - then you can run the Extension with the `Debug Extension (Vite)`
   configuration.
 
@@ -45,10 +45,10 @@ Copy the following example files to match the name of your new webview:
   ```
 
 - Now you need to register your new VueJs file in the `vite.config.ts`, this way
-  the page will be render when `yarn vite-build` is called.
+  the page will be render when `pnpm vite-build` is called.
 
 At this stage, the ViteJs side is ready and you should be able to call
-`yarn vite-dev` and you should get an output similar too this:
+`pnpm vite-dev` and you should get an output similar too this:
 
 ```console
   VITE v6.3.5  ready in 542 ms

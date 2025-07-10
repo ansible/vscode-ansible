@@ -2,7 +2,7 @@
 # cspell: ignore nullglob
 export DONT_PROMPT_WSL_INSTALL=1
 set -eu
-yarn run compile
+pnpm run compile
 set -o pipefail
 
 DIR="$(dirname "$(realpath "$0")")"
@@ -130,16 +130,16 @@ if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
     if [ -z "${vsix}" ]; then
         log notice "Building the vsix package"
-        yarn package
+        pnpm package
         vsix=$(find . -maxdepth 1 -name '*.vsix')
     fi
     # shellcheck disable=SC2086
     if [ "$(find src -newer ${vsix})" != "" ]; then
         log notice "Rebuilding the vsix package (it was outdated)"
-        yarn package
+        pnpm package
         vsix=$(find . -maxdepth 1 -name '*.vsix')
     fi
-    yarn compile
+    pnpm compile
 
     npm exec -- extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi

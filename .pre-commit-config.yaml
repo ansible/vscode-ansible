@@ -16,6 +16,7 @@ ci:
 exclude: >
   (?x)^(
     .config/requirements.in|
+    pnpm-lock.yaml|
     .*.svg
   )$
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
@@ -54,12 +55,6 @@ repos:
           - SC1091
   - repo: local
     hooks:
-      - id: depcheck
-        name: depcheck
-        entry: yarn dlx depcheck
-        language: system
-        pass_filenames: false
-        always_run: true
       - id: eslint
         name: eslint
         entry: npm
@@ -118,7 +113,6 @@ repos:
       - id: trailing-whitespace
         exclude: >
           (?x)^(
-            .yarn/.*|
             examples/playbooks/(with-skip-tag-id|unicode).yml|
             examples/playbooks/example.yml|
             docs/als/settings.md

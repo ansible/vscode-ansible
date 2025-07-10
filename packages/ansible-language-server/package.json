@@ -72,14 +72,15 @@
     "mocha-junit-reporter": "^2.2.1",
     "rimraf": "^6.0.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vscode-jsonrpc": "^8.2.1"
   },
   "scripts": {
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
-    "prepack": "yarn compile",
+    "prepack": "pnpm compile",
     "//prepare": "Prepare is needed for installation from source",
-    "prepare": "yarn run compile",
+    "prepare": "pnpm run compile",
     "watch": "tsc --watch -p .",
     "test": "sh -c \"c8 mocha ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\"",
     "test-with-ee": "sh -c \"c8 mocha --grep @ee ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts \"",

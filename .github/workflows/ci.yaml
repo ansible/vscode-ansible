@@ -152,22 +152,25 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Setup node.js
+      - name: Install pnpm # keep before setup-node
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Install node.js
         uses: actions/setup-node@v4.4.0
         with:
           node-version: 20
-          # yarn cache is broken due https://github.com/actions/setup-node/issues/531
-          # cache: yarn
+          cache: pnpm
 
-      - name: Corepack enable
-        run: corepack enable
+      - name: Install node dependencies
+        run: pnpm install
 
       - name: Enable caching
         uses: actions/cache@v4
         with:
           path: |
             .vscode-test
-            .yarn/cache
             node_modules/.cache/webpack
             out/ext
             out/test-resources*/Visual Studio Code.app
@@ -175,8 +178,7 @@ jobs:
             out/test-resources*/driverVersion
             out/test-resources*/stable.zip
             ~/.cache/pip
-            ~/.cache/yarn
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
+          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', '.config/requirements.txt', 'tools/*.*') }}
 
       # - name: Enable caching for podman-machine
       #   if: "contains(matrix.os, 'macos')"
@@ -185,7 +187,7 @@ jobs:
       #     path: |
       #       ~/.local/share/containers
       #       ~/.config/containers
-      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
+      #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'pnpm-lock.yaml', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
         uses: arduino/setup-task@v2
@@ -241,12 +243,6 @@ jobs:
           }
           # Ensure NODE_OPTIONS config on CI is identical with the one in .env
           [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
-
-      - name: Install dependencies
-        uses: coactions/actions/yarn-install@fix/install
-        # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
-        with:
-          cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
 
       - name: task setup
         # starting podman machine can randomly get stuck on macos
@@ -515,8 +511,7 @@ jobs:
       - name: Install Node
         uses: actions/setup-node@v4
         with:
-          cache: yarn
-          cache-dependency-path: "**/yarn.lock"
+          cache: pnpm
           node-version-file: .tool-versions
 
       - name: Download the artifact
@@ -532,7 +527,7 @@ jobs:
           files: "*.vsix"
 
       - run: |
-          npm exec -- yarn install --immutable
+          npm exec -- pnpm install --immutable
           ls -la *.vsix
 
       - name: Setup python
@@ -563,8 +558,7 @@ jobs:
       # Setup .npmrc file to publish to npm
       - uses: actions/setup-node@v4
         with:
-          cache: yarn
-          cache-dependency-path: "**/yarn.lock"
+          cache: pnpm
           node-version-file: .tool-versions
           registry-url: "https://registry.npmjs.org"
 

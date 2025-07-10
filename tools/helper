@@ -138,10 +138,9 @@ def cli() -> None:
         sys.exit()
     if opt.package:
         run("rm -f ./*.vsix")
-        run("npm exec -- yarn run webpack")
-        # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
-        run("npm exec -- yarn run vite-build")
-
+        run("npm exec -- pnpm run webpack")
+        run("npm exec -- pnpm run vite-build")
+        # --no-dependencies needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run(
             "npm exec -- vsce package --no-dependencies --no-git-tag-version"
             f" --no-update-package-json --readme-path docs/README.md {pre_release_arg} {version}"
