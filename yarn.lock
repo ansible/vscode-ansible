@@ -2972,7 +2972,7 @@ __metadata:
     eslint-plugin-prettier: "npm:^5.5.1"
     eslint-plugin-tsdoc: "npm:^0.4.0"
     express: "npm:^5.1.0"
-    find-process: "npm:^1.4.10"
+    find-process: "npm:^2.0.0"
     glob: "npm:^11.0.3"
     globals: "npm:^16.3.0"
     highlight.js: "npm:^11.11.1"
@@ -5121,16 +5121,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"find-process@npm:^1.4.10":
-  version: 1.4.10
-  resolution: "find-process@npm:1.4.10"
+"find-process@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "find-process@npm:2.0.0"
   dependencies:
     chalk: "npm:~4.1.2"
     commander: "npm:^12.1.0"
     loglevel: "npm:^1.9.2"
   bin:
-    find-process: bin/find-process.js
-  checksum: 10/cda45cfb3f52cbc7f643a465a8bffc19e2a3ac49ec5aa74e9b18ed2e4d6d62e370443d38c5fdd3de6b30b232fda51db1d74c2574d70d28e6c896d49df3bc3bcd
+    find-process: dist/bin/find-process.js
+  checksum: 10/a8f23b72e7b67c8f039c2234116f68439c067e8d0f90484b53814aac04f1891cf322c7cf4b4193a14b91a19ba9c68bd8bcfb8a556626e6667dcaaefbca3294f9
   languageName: node
   linkType: hard
 
