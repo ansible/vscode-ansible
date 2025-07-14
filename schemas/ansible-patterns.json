@@ -129,7 +129,7 @@
         "ungrouped",
         "localhost",
         "webservers",
-        "webservers:dbservers",
+        "webservers:database-servers",
         "webservers:&production",
         "webservers:!maintenance",
         "~(web|db).*\\.example\\.com",
