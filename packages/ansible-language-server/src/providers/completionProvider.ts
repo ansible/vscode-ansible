@@ -430,14 +430,8 @@ export async function doCompletion(
 
           const hostsList = (await context.ansibleInventory).hostList;
 
-          // Get current text to provide context-aware pattern completions
-          const currentText =
-            node && isScalar(node) ? (node.value as string) || "" : "";
-
-          const testHostCompletion: CompletionItem[] = getHostCompletion(
-            hostsList,
-            currentText,
-          );
+          const testHostCompletion: CompletionItem[] =
+            getHostCompletion(hostsList);
 
           return testHostCompletion;
         }
@@ -487,10 +481,7 @@ function getKeywordCompletion(
   });
 }
 
-function getHostCompletion(
-  hostObjectList: HostType[],
-  currentText: string = "",
-): CompletionItem[] {
+function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
   const hostCompletions = hostObjectList.map(({ host, priority }) => {
     const completionItem: CompletionItem = {
       label: host,
@@ -503,15 +494,12 @@ function getHostCompletion(
   });
 
   // Add pattern-specific completions
-  const patternCompletions = getPatternCompletion(hostObjectList, currentText);
+  const patternCompletions = getPatternCompletion(hostObjectList);
 
   return [...hostCompletions, ...patternCompletions];
 }
 
-function getPatternCompletion(
-  hostObjectList: HostType[],
-  currentText: string = "",
-): CompletionItem[] {
+function getPatternCompletion(hostObjectList: HostType[]): CompletionItem[] {
   const patternCompletions: CompletionItem[] = [];
 
   // Common pattern completions
