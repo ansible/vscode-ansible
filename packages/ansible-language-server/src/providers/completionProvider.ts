@@ -430,8 +430,14 @@ export async function doCompletion(
 
           const hostsList = (await context.ansibleInventory).hostList;
 
-          const testHostCompletion: CompletionItem[] =
-            getHostCompletion(hostsList);
+          // Get current text to provide context-aware pattern completions
+          const currentText =
+            node && isScalar(node) ? (node.value as string) || "" : "";
+
+          const testHostCompletion: CompletionItem[] = getHostCompletion(
+            hostsList,
+            currentText,
+          );
 
           return testHostCompletion;
         }
@@ -481,8 +487,11 @@ function getKeywordCompletion(
   });
 }
 
-function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
-  return hostObjectList.map(({ host, priority }) => {
+function getHostCompletion(
+  hostObjectList: HostType[],
+  currentText: string = "",
+): CompletionItem[] {
+  const hostCompletions = hostObjectList.map(({ host, priority }) => {
     const completionItem: CompletionItem = {
       label: host,
       sortText: `${priority}_${host}`,
@@ -492,6 +501,135 @@ function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
     };
     return completionItem;
   });
+
+  // Add pattern-specific completions
+  const patternCompletions = getPatternCompletion(hostObjectList, currentText);
+
+  return [...hostCompletions, ...patternCompletions];
+}
+
+function getPatternCompletion(
+  hostObjectList: HostType[],
+  currentText: string = "",
+): CompletionItem[] {
+  const patternCompletions: CompletionItem[] = [];
+
+  // Common pattern completions
+  const commonPatterns = [
+    {
+      label: "all",
+      detail: "All hosts",
+      documentation: "Target all hosts in the inventory",
+    },
+    {
+      label: "ungrouped",
+      detail: "Ungrouped hosts",
+      documentation: "Target hosts not in any group",
+    },
+    {
+      label: "localhost",
+      detail: "Local machine",
+      documentation: "Target the local machine",
+    },
+  ];
+
+  // Add common patterns
+  commonPatterns.forEach((pattern, index) => {
+    patternCompletions.push({
+      label: pattern.label,
+      detail: pattern.detail,
+      documentation: pattern.documentation,
+      sortText: `0_${index}_${pattern.label}`,
+      kind: CompletionItemKind.Constant,
+    });
+  });
+
+  // Extract unique group names from inventory
+  const groupNames = new Set<string>();
+  hostObjectList.forEach(({ host, priority }) => {
+    if (priority === 1) {
+      // Groups have priority 1
+      groupNames.add(host);
+    }
+  });
+
+  // Add pattern examples with groups
+  if (groupNames.size > 0) {
+    const groupArray = Array.from(groupNames);
+    const firstGroup = groupArray[0];
+    const secondGroup = groupArray[1] || "production";
+
+    const groupPatterns = [
+      {
+        label: `${firstGroup}:${secondGroup}`,
+        detail: "Union pattern",
+        documentation: "Target hosts in either group (union)",
+      },
+      {
+        label: `${firstGroup}:&${secondGroup}`,
+        detail: "Intersection pattern",
+        documentation: "Target hosts in both groups (intersection)",
+      },
+      {
+        label: `${firstGroup}:!${secondGroup}`,
+        detail: "Exclusion pattern",
+        documentation: "Target hosts in first group but not in second group",
+      },
+      {
+        label: `${firstGroup}[0]`,
+        detail: "Indexed selection",
+        documentation: "Target the first host in the group",
+      },
+      {
+        label: `${firstGroup}[0:2]`,
+        detail: "Range selection",
+        documentation: "Target first 3 hosts in the group (0, 1, 2)",
+      },
+    ];
+
+    groupPatterns.forEach((pattern, index) => {
+      patternCompletions.push({
+        label: pattern.label,
+        detail: pattern.detail,
+        documentation: pattern.documentation,
+        sortText: `1_${index}_${pattern.label}`,
+        kind: CompletionItemKind.Snippet,
+      });
+    });
+  }
+
+  // Add wildcard and regex patterns
+  const wildcardPatterns = [
+    {
+      label: "*.example.com",
+      detail: "Wildcard pattern",
+      documentation: "Target all hosts ending with .example.com",
+    },
+    {
+      label: "web*.example.com",
+      detail: "Wildcard pattern",
+      documentation:
+        "Target all hosts starting with 'web' and ending with .example.com",
+    },
+    {
+      label: "~(web|db).*",
+      detail: "Regex pattern",
+      documentation:
+        "Target hosts matching regular expression (starts with web or db)",
+    },
+  ];
+
+  wildcardPatterns.forEach((pattern, index) => {
+    patternCompletions.push({
+      label: pattern.label,
+      detail: pattern.detail,
+      documentation: pattern.documentation,
+      sortText: `2_${index}_${pattern.label}`,
+      kind: CompletionItemKind.Text,
+    });
+  });
+
+  return patternCompletions;
 }
 
 /**
