@@ -982,7 +982,7 @@
     "vscode-languageclient": "^9.0.1",
     "vscode-uri": "^3.1.0",
     "vue": "^3.5.17",
-    "vue-tsc": "^2.2.10",
+    "vue-tsc": "^3.0.1",
     "yaml": "^2.8.0"
   },
   "description": "Ansible language support",
