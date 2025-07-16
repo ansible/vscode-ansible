@@ -353,37 +353,41 @@ export class ExecutionEnvironment {
   }
 
   private cleanUpContainer(containerName: string): void {
-    const cleanUpCommands = [
-      `${this._container_engine} stop $(${this._container_engine} ps -q --filter "name=${containerName}")`,
-      `${this._container_engine} rm $(${this._container_engine} container ls -aq -f 'name=${containerName}')`,
-    ];
-
     if (!this.doesContainerNameExist(containerName)) {
       return;
     }
-    for (const command of cleanUpCommands) {
-      try {
-        child_process.execSync(command, {
-          cwd: URI.parse(this.context.workspaceFolder.uri).path,
-        });
-      } catch (error) {
-        console.error(
-          `Error detected while trying to stop the container ${containerName}: ${error}`,
-        );
-        // container already stopped and/or removed
-        break;
-      }
+
+    const cwd = URI.parse(this.context.workspaceFolder.uri).path;
+
+    // Safe container stop
+    try {
+      const stopCmd = `IDS=$(${this._container_engine} ps -q --filter "name=${containerName}"); [ -n "$IDS" ] && ${this._container_engine} stop $IDS || echo "No containers to stop."`;
+      child_process.execSync(stopCmd, { cwd });
+    } catch (error) {
+      console.error(
+        `Error detected while trying to stop the container ${containerName}: ${error}`,
+      );
+    }
+
+    // Safe container removal
+    try {
+      const rmCmd = `IDS=$(${this._container_engine} container ls -aq -f 'name=${containerName}'); [ -n "$IDS" ] && ${this._container_engine} rm $IDS || echo "No containers to remove."`;
+      child_process.execSync(rmCmd, { cwd });
+    } catch (error) {
+      console.error(
+        `Error detected while trying to remove the container ${containerName}: ${error}`,
+      );
     }
   }
 
   private doesContainerNameExist(containerName: string): boolean {
     let containerNameExist = false;
     try {
-      const result = child_process.spawnSync(
+      const result = child_process.execSync(
         `${this._container_engine} container ls -aq -f 'name=${containerName}'`,
-        { shell: false },
+        { encoding: "utf8" },
       );
-      containerNameExist = result.toString() !== "";
+      containerNameExist = result.trim() !== "";
     } catch {
       containerNameExist = false;
     }
