@@ -1,5 +1,4 @@
 // Suppress Sonar rule: this is a controlled test environment with safe checks
-// NOSONAR
 import { expect } from "chai";
 import * as child_process from "child_process";
 
