@@ -42,6 +42,7 @@ export class ExecutionEnvironment {
         this.context.workspaceFolder.uri,
       );
       if (!this.settings.executionEnvironment.enabled) {
+        this.isServiceInitialized = true;
         return;
       }
       this._container_image = this.settings.executionEnvironment.image;
