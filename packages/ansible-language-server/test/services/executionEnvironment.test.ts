@@ -3,7 +3,6 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ExecutionEnvironment } from "../../src/services/executionEnvironment";
 
-// Mocks
 const mockConnection = {
   window: {
     showErrorMessage: sinon.stub(),
@@ -167,6 +166,4 @@ describe("ExecutionEnvironment", () => {
       expect(details.containerVolumeMounts).to.deep.equal([]);
     });
   });
-
-  // You can add more tests for private methods by accessing them via `ee as any`
 });
