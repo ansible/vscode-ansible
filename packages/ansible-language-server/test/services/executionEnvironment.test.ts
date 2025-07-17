@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { expect } from "chai";
 import sinon from "sinon";
 import { ExecutionEnvironment } from "../../src/services/executionEnvironment";
