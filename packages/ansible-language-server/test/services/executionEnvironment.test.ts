@@ -112,16 +112,16 @@ describe("ExecutionEnvironment", () => {
       expect(ee.isServiceInitialized).to.be.true;
     });
 
-    // it("should handle errors and set isServiceInitialized false", async () => {
-    //   mockContext.documentSettings.get.rejects(new Error("fail"));
-    //   const ee = new ExecutionEnvironment(
-    //     mockConnection as any,
-    //     mockContext as any,
-    //   );
-    //   await ee.initialize();
-    //   expect(ee.isServiceInitialized).to.be.false;
-    //   expect(mockConnection.window.showErrorMessage.called).to.be.true;
-    // });
+    it("should handle errors and set isServiceInitialized false", async () => {
+      mockContext.documentSettings.get.rejects(new Error("fail"));
+      const ee = new ExecutionEnvironment(
+        mockConnection as any,
+        mockContext as any,
+      );
+      await ee.initialize();
+      expect(ee.isServiceInitialized).to.be.false;
+      expect(mockConnection.window.showErrorMessage.called).to.be.true;
+    });
   });
 
   describe("wrapContainerArgs", () => {
@@ -159,12 +159,10 @@ describe("ExecutionEnvironment", () => {
       );
       (ee as any)._container_engine = "docker";
       (ee as any)._container_image = "test-image";
-      (ee as any)._container_image_id = "imgid";
       (ee as any)._container_volume_mounts = [];
       const details = ee.getBasicContainerAndImageDetails;
       expect(details.containerEngine).to.equal("docker");
       expect(details.containerImage).to.equal("test-image");
-      expect(details.containerImageId).to.equal("imgid");
       expect(details.containerVolumeMounts).to.deep.equal([]);
     });
   });

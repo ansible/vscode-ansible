@@ -75,6 +75,7 @@ export class ExecutionEnvironment {
         );
       }
       this.isServiceInitialized = false;
+      return;
     }
     this.isServiceInitialized = true;
   }
