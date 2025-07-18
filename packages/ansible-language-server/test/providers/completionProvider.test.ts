@@ -11,6 +11,7 @@ import {
 } from "../../src/providers/completionProvider";
 import {} from "../../src/providers/validationProvider";
 import { WorkspaceFolderContext } from "../../src/services/workspaceManager";
+import { getPatternCompletion } from "../../src/providers/completionProvider";
 import {
   createTestWorkspaceManager,
   getDoc,
@@ -725,6 +726,92 @@ function testModuleKindAndDocumentation(
           doc = doc["value"];
         }
         expect(doc).be.equal(documentation);
+      });
+
+      describe("getPatternCompletion()", function () {
+        it("should return common patterns even with empty hostObjectList", function () {
+          const completions = getPatternCompletion([]);
+          const labels = completions.map((c: CompletionItem) => c.label);
+          expect(labels).to.include.members(["all", "ungrouped", "localhost"]);
+          completions.forEach((item: CompletionItem) => {
+            if (["all", "ungrouped", "localhost"].includes(item.label)) {
+              expect(item.kind).to.equal(CompletionItemKind.Constant);
+            }
+          });
+        });
+
+        it("should include group-based patterns when groups are present", function () {
+          const hostObjectList = [
+            { host: "groupA", priority: 1 },
+            { host: "groupB", priority: 1 },
+            { host: "host1", priority: 2 },
+          ];
+          const completions = getPatternCompletion(hostObjectList);
+          const labels = completions.map((c: CompletionItem) => c.label);
+
+          expect(labels).to.include.members([
+            `${hostObjectList[0].host}:${hostObjectList[1].host}`,
+            `${hostObjectList[0].host}:&${hostObjectList[1].host}`,
+            `${hostObjectList[0].host}:!${hostObjectList[1].host}`,
+            `${hostObjectList[0].host}[0]`,
+            `${hostObjectList[0].host}[0:2]`,
+          ]);
+
+          completions.forEach((item: CompletionItem) => {
+            if (
+              item.label.endsWith("[0]") ||
+              item.label.endsWith("[0:2]") ||
+              item.kind === CompletionItemKind.Snippet
+            ) {
+              expect(item.kind).to.equal(CompletionItemKind.Snippet);
+            }
+          });
+        });
+
+        it("should use 'production' as second group if only one group exists", function () {
+          const hostObjectList = [
+            { host: "groupA", priority: 1 },
+            { host: "host1", priority: 2 },
+          ];
+          const completions = getPatternCompletion(hostObjectList);
+          const labels = completions.map((c) => c.label);
+
+          expect(labels).to.include("groupA:production");
+          expect(labels).to.include("groupA:&production");
+          expect(labels).to.include("groupA:!production");
+          expect(labels).to.include("groupA[0]");
+          expect(labels).to.include("groupA[0:2]");
+        });
+
+        it("should include wildcard and regex patterns", function () {
+          const completions = getPatternCompletion([]);
+          const labels = completions.map((c) => c.label);
+
+          expect(labels).to.include("*.example.com");
+          expect(labels).to.include("web*.example.com");
+          expect(labels).to.include("~(web|db).*");
+
+          completions.forEach((item: CompletionItem) => {
+            if (
+              item.label === "*.example.com" ||
+              item.label === "web*.example.com" ||
+              item.label === "~(web|db).*"
+            ) {
+              expect(item.kind).to.equal(CompletionItemKind.Text);
+            }
+          });
+        });
+
+        it("should set correct documentation and sortText for all patterns", function () {
+          const completions = getPatternCompletion([
+            { host: "groupA", priority: 1 },
+            { host: "groupB", priority: 1 },
+          ]);
+          completions.forEach((item: CompletionItem) => {
+            expect(item.documentation).to.be.a("string");
+            expect(item.sortText).to.match(/^\d+_\d+_.+/);
+          });
+        });
       });
     }
   });

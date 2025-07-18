@@ -499,7 +499,9 @@ function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
   return [...hostCompletions, ...patternCompletions];
 }
 
-function getPatternCompletion(hostObjectList: HostType[]): CompletionItem[] {
+export function getPatternCompletion(
+  hostObjectList: HostType[],
+): CompletionItem[] {
   const patternCompletions: CompletionItem[] = [];
 
   // Common pattern completions
