@@ -42,6 +42,7 @@ export class ExecutionEnvironment {
         this.context.workspaceFolder.uri,
       );
       if (!this.settings.executionEnvironment.enabled) {
+        this.isServiceInitialized = true;
         return;
       }
       this._container_image = this.settings.executionEnvironment.image;
@@ -74,6 +75,7 @@ export class ExecutionEnvironment {
         );
       }
       this.isServiceInitialized = false;
+      return;
     }
     this.isServiceInitialized = true;
   }
@@ -353,37 +355,95 @@ export class ExecutionEnvironment {
   }
 
   private cleanUpContainer(containerName: string): void {
-    const cleanUpCommands = [
-      `${this._container_engine} stop $(${this._container_engine} ps -q --filter "name=${containerName}")`,
-      `${this._container_engine} rm $(${this._container_engine} container ls -aq -f 'name=${containerName}')`,
-    ];
+    if (!this._container_engine) {
+      return;
+    }
 
     if (!this.doesContainerNameExist(containerName)) {
       return;
     }
-    for (const command of cleanUpCommands) {
+
+    const cwd = URI.parse(this.context.workspaceFolder.uri).path;
+
+    let runningContainers: string;
+    try {
+      const result = child_process.spawnSync(
+        this._container_engine,
+        ["ps", "-q", "--filter", `name=${containerName}`],
+        { encoding: "utf-8", shell: false },
+      );
+      runningContainers = result.stdout.toString().trim();
+    } catch {
+      runningContainers = "";
+    }
+
+    // Stop running containers if any exist
+    if (runningContainers) {
       try {
-        child_process.execSync(command, {
-          cwd: URI.parse(this.context.workspaceFolder.uri).path,
-        });
+        const containerIds = runningContainers
+          .split("\n")
+          .filter((id) => id.trim() !== "");
+        if (containerIds.length > 0) {
+          child_process.spawnSync(
+            this._container_engine,
+            ["stop", ...containerIds],
+            { cwd, shell: false },
+          );
+        }
       } catch (error) {
         console.error(
           `Error detected while trying to stop the container ${containerName}: ${error}`,
         );
-        // container already stopped and/or removed
-        break;
+      }
+    }
+
+    // Get all containers (including stopped ones) with the specified name
+    let allContainers: string;
+    try {
+      const result = child_process.spawnSync(
+        this._container_engine,
+        ["container", "ls", "-aq", "-f", `name=${containerName}`],
+        { encoding: "utf-8", shell: false },
+      );
+      allContainers = result.stdout.toString().trim();
+    } catch {
+      allContainers = "";
+    }
+
+    // Remove containers if any exist
+    if (allContainers) {
+      try {
+        const containerIds = allContainers
+          .split("\n")
+          .filter((id) => id.trim() !== "");
+        if (containerIds.length > 0) {
+          child_process.spawnSync(
+            this._container_engine,
+            ["rm", ...containerIds],
+            { cwd, shell: false },
+          );
+        }
+      } catch (error) {
+        console.error(
+          `Error detected while trying to remove the container ${containerName}: ${error}`,
+        );
       }
     }
   }
 
   private doesContainerNameExist(containerName: string): boolean {
+    if (!this._container_engine) {
+      return false;
+    }
+
     let containerNameExist = false;
     try {
       const result = child_process.spawnSync(
-        `${this._container_engine} container ls -aq -f 'name=${containerName}'`,
-        { shell: false },
+        this._container_engine,
+        ["container", "ls", "-aq", "-f", `name=${containerName}`],
+        { encoding: "utf-8", shell: false },
       );
-      containerNameExist = result.toString() !== "";
+      containerNameExist = result.stdout.toString().trim() !== "";
     } catch {
       containerNameExist = false;
     }
