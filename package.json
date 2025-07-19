@@ -1022,7 +1022,7 @@
     "eslint-plugin-prettier": "^5.5.1",
     "eslint-plugin-tsdoc": "^0.4.0",
     "express": "^5.1.0",
-    "find-process": "^1.4.10",
+    "find-process": "^2.0.0",
     "glob": "^11.0.3",
     "globals": "^16.3.0",
     "jsdom": "^26.1.0",
