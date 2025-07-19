@@ -220,6 +220,15 @@
           "ansible-navigator.json"
         ],
         "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
+      },
+      {
+        "fileMatch": [
+          "**/playbooks/*.json",
+          "**/*playbook*.json",
+          "**/patterns/*.json",
+          "**/*patterns*.json"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/vscode-ansible/main/schemas/ansible-patterns.json"
       }
     ],
     "yamlValidation": [
@@ -292,6 +301,17 @@
           "rulebooks/*.yml"
         ],
         "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
+      },
+      {
+        "fileMatch": [
+          "**/playbooks/*.yml",
+          "**/playbooks/*.yaml",
+          "**/*playbook*.yml",
+          "**/*playbook*.yaml",
+          "site.yml",
+          "site.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/vscode-ansible/main/schemas/ansible-patterns.json"
       }
     ],
     "commands": [
