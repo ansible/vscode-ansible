@@ -9,14 +9,14 @@ import {
 } from "../../helper";
 
 export function testDiagnosticsYAMLWithoutEE(): void {
-  describe("TEST FOR YAML DIAGNOSTICS WITHOUT EE", function () {
+  describe("yaml-diag-no-ee", function () {
     const docUri1 = getDocUri("diagnostics/yaml/invalid_yaml.yml");
 
     before(async function () {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     });
 
-    describe("YAML diagnostics in the presence of ansible-lint", function () {
+    describe("yaml-diag-ansible-lint", function () {
       it("should provide diagnostics with YAML validation (with ansible-lint)", async function () {
         await activate(docUri1);
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
@@ -71,7 +71,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       });
     });
 
-    describe("YAML diagnostics in the absence of ansible-lint", function () {
+    describe("yaml-diag-no-ansible-lint", function () {
       before(async function () {
         await updateSettings("validation.lint.enabled", false);
         await vscode.commands.executeCommand(
@@ -140,7 +140,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       });
     });
 
-    describe("YAML diagnostics when diagnostics is disabled", function () {
+    describe("yaml-diag-disabled", function () {
       before(async function () {
         await updateSettings("validation.enabled", false);
         await vscode.commands.executeCommand(

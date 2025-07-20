@@ -15,7 +15,7 @@ import { getFixturePath } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
-describe("Verify the presence of lightspeed element in the status bar and the explorer view", function () {
+describe("presence of lightspeed element in the status bar and the explorer view", function () {
   let statusBar: StatusBar;
   let editorView: EditorView;
   let viewControl: ViewControl;
