@@ -90,9 +90,10 @@ function testAnsibleLintErrors(
       diagnosticReport: [
         {
           severity: 1,
-          message: "Variables names",
+          message:
+            "Variables names should match ^[a-z_][a-z0-9_]*$ regex. (MY_VAR)",
           range: {
-            start: { line: 4, character: 0 } as Position,
+            start: { line: 4, character: 4 } as Position,
             end: {
               line: 4,
               character: integer.MAX_VALUE,
@@ -107,18 +108,6 @@ function testAnsibleLintErrors(
             start: { line: 6, character: 0 } as Position,
             end: {
               line: 6,
-              character: integer.MAX_VALUE,
-            } as Position,
-          },
-          source: "ansible-lint",
-        },
-        {
-          severity: 1,
-          message: "Use FQCN for builtin module actions",
-          range: {
-            start: { line: 14, character: 0 } as Position,
-            end: {
-              line: 14,
               character: integer.MAX_VALUE,
             } as Position,
           },
@@ -150,8 +139,20 @@ function testAnsibleLintErrors(
           source: "ansible-lint",
         },
         {
+          severity: 1,
+          message: "Use FQCN for builtin module actions (command).",
+          range: {
+            start: { line: 15, character: 6 } as Position,
+            end: {
+              line: 15,
+              character: integer.MAX_VALUE,
+            } as Position,
+          },
+          source: "ansible-lint",
+        },
+        {
           severity: 2,
-          message: "should not use a relative path",
+          message: "The src argument should not use a relative path.",
           range: {
             start: { line: 18, character: 0 } as Position,
             end: {

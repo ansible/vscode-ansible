@@ -732,9 +732,9 @@ function testModuleKindAndDocumentation(
         it("should return common patterns even with empty hostObjectList", function () {
           const completions = getPatternCompletion([]);
           const labels = completions.map((c: CompletionItem) => c.label);
-          expect(labels).to.include.members(["all", "ungrouped", "localhost"]);
+          expect(labels).to.include.members(["ungrouped"]);
           completions.forEach((item: CompletionItem) => {
-            if (["all", "ungrouped", "localhost"].includes(item.label)) {
+            if (["ungrouped"].includes(item.label)) {
               expect(item.kind).to.equal(CompletionItemKind.Constant);
             }
           });

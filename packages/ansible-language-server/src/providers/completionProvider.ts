@@ -493,7 +493,14 @@ function getHostCompletion(hostObjectList: HostType[]): CompletionItem[] {
     return completionItem;
   });
 
-  // Add pattern-specific completions
+  // If there are groups in the inventory, don't add pattern completions
+  // This prevents unwanted pattern suggestions like "group1:group2"
+  const hasGroups = hostObjectList.some((host) => host.priority === 1);
+  if (hasGroups) {
+    return hostCompletions;
+  }
+
+  // Add pattern-specific completions only when no groups are present
   const patternCompletions = getPatternCompletion(hostObjectList);
 
   return [...hostCompletions, ...patternCompletions];
@@ -507,19 +514,9 @@ export function getPatternCompletion(
   // Common pattern completions
   const commonPatterns = [
     {
-      label: "all",
-      detail: "All hosts",
-      documentation: "Target all hosts in the inventory",
-    },
-    {
       label: "ungrouped",
       detail: "Ungrouped hosts",
       documentation: "Target hosts not in any group",
-    },
-    {
-      label: "localhost",
-      detail: "Local machine",
-      documentation: "Target the local machine",
     },
   ];
 
