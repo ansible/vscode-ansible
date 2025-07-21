@@ -103,7 +103,7 @@ onMounted(() => {
   <div :class="{ 'disabled-content': !requirementsMet }">
   <div class="title-div">
     <h1>Add a pattern to an existing collection</h1>
-    <p class="subtitle">Extending automation with python</p>
+    <p class="subtitle">Enhance automation consumption with Ansible patterns</p>
   </div>
 
     <form id="init-form">

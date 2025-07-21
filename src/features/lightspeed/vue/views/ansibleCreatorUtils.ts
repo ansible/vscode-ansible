@@ -548,9 +548,9 @@ export class AnsibleCreatorOperations {
     const creatorVersion = await getCreatorVersion();
 
     if (semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
-      return `ansible-creator init playbook ${namespace}.${collection} --path ${url} --no-ansi`;
-    } else {
       return `ansible-creator init playbook ${namespace}.${collection} ${url} --no-ansi`;
+    } else {
+      return `ansible-creator init --project=ansible-project --init-path=${url} --scm-org=${namespace} --scm-project=${collection} --no-ansi`;
     }
   }
 }
