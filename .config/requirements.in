@@ -1,5 +1,5 @@
 cython>=3.0.5; python_version >= "3.12"
-ansible-core>=2.13.0
+ansible-core>=2.13.0,<2.19
 ansible-lint>=6.8.7
 ansible-navigator
 mypy # used by vscode
