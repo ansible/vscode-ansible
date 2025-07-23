@@ -32,7 +32,7 @@ function createError(
   return error;
 }
 
-describe("testing the error handling", function () {
+describe("error handling", function () {
   function withDetailTest(statusCode: integer, expectedMessage: string) {
     const error = mapError(
       createError(statusCode, { detail: { item: "details" } }),

@@ -9,7 +9,7 @@ import {
 } from "../../helper";
 
 export function testDiagnosticsAnsibleWithoutEE(): void {
-  describe("TEST FOR ANSIBLE DIAGNOSTICS WITHOUT EE", function () {
+  describe("ansible-diag-no-ee", function () {
     const docUri1 = getDocUri("diagnostics/ansible/without_ee/playbook_1.yml");
     const docUri2 = getDocUri("diagnostics/ansible/without_ee/playbook_2.yml");
 
@@ -96,7 +96,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       });
     });
 
-    describe("Diagnostic test for no diagnostics", function () {
+    describe("no diagnostics", function () {
       before(async function () {
         await updateSettings("validation.enabled", false);
         await vscode.commands.executeCommand(

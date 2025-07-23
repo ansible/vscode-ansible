@@ -10,7 +10,7 @@ const WAIT_TIME = 10000;
 
 config.truncateThreshold = 0;
 
-describe("Verify base assets are available after installation", function () {
+describe("base assets are available after installation", function () {
   let view: ViewControl;
   let sideBar: SideBarView;
 
