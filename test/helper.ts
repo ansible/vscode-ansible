@@ -238,18 +238,35 @@ export async function testDiagnostics(
 ): Promise<void> {
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
-  assert.strictEqual(actualDiagnostics.length, expectedDiagnostics.length);
+  assert.strictEqual(
+    actualDiagnostics.length,
+    expectedDiagnostics.length,
+    `Expected ${expectedDiagnostics.length} diagnostics but got ${actualDiagnostics.length}`,
+  );
 
   if (actualDiagnostics.length && expectedDiagnostics.length) {
     expectedDiagnostics.forEach((expectedDiagnostic, i) => {
       const actualDiagnostic = actualDiagnostics[i];
-      assert.include(actualDiagnostic.message, expectedDiagnostic.message); // subset of expected message
-      assert.deepEqual(actualDiagnostic.range, expectedDiagnostic.range);
+      assert.include(
+        actualDiagnostic.message,
+        expectedDiagnostic.message,
+        `Expected message ${expectedDiagnostic.message} but got ${actualDiagnostic.message}`,
+      ); // subset of expected message
+      assert.deepEqual(
+        actualDiagnostic.range,
+        expectedDiagnostic.range,
+        `Expected range ${expectedDiagnostic.range} but got ${actualDiagnostic.range}`,
+      );
       assert.strictEqual(
         actualDiagnostic.severity,
         expectedDiagnostic.severity,
+        `Expected severity ${expectedDiagnostic.severity} but got ${actualDiagnostic.severity}`,
       );
-      assert.strictEqual(actualDiagnostic.source, expectedDiagnostic.source);
+      assert.strictEqual(
+        actualDiagnostic.source,
+        expectedDiagnostic.source,
+        `Expected source ${expectedDiagnostic.source} but got ${actualDiagnostic.source}`,
+      );
     });
   }
 }
