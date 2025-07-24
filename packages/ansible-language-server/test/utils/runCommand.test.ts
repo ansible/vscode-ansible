@@ -57,7 +57,7 @@ describe("commandRunner", function () {
       args: ["ansible-playbook", "missing-file"],
       rc: 1,
       stdout: "",
-      stderr: "ERROR! the playbook: missing-file could not be found",
+      stderr: "the playbook: missing-file could not be found",
       pythonInterpreterPath: "",
       activationScript: "",
     },
