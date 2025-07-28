@@ -1,10 +1,14 @@
 #!/bin/bash
-# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns
+# cSpell:ignore RPMS xorg cmdtest corepack xrandr nocolor userns pwsh
 #
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
 set -euo pipefail
+
+DIR="$(dirname "$(realpath "$0")")"
+# shellcheck source=/dev/null
+. "$DIR/_utils.sh"
 
 IMAGE_VERSION=$(./tools/get-image-version)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
@@ -12,21 +16,10 @@ PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
-NC='\033[0m' # No Color
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
 :> "${PIP_LOG_FILE}"
-
-timed() {
-  local start
-  start=$(date +%s)
-  local exit_code
-  exit_code=0
-  "$@" || exit_code=$?
-  echo >&2 "took ~$(($(date +%s)-start)) seconds. exited with ${exit_code}"
-  return $exit_code
-}
 
 # Function to retrieve the version number for a specific command. If a second
 # argument is passed, it will be used as return value when tool is missing.
@@ -50,24 +43,26 @@ get_version () {
     fi
 }
 
-# Use "log [notice|warning|error] message" to  print a colored message to
-# stderr, with colors.
-log () {
-    local prefix
-    if [ "$#" -ne 2 ]; then
-        log error "Incorrect call ($*), use: log [notice|warning|error] 'message'."
-        exit 2
-    fi
-    case $1 in
-        notice) prefix='\033[0;36mNOTICE:  ' ;;
-        warning) prefix='\033[0;33mWARNING: ' ;;
-        error) prefix='\033[0;31mERROR:   ' ;;
-        *)
-        log error "log first argument must be 'notice', 'warning' or 'error', not $1."
-        exit 2
-        ;;
-    esac
-    echo >&2 -e "${prefix}${2}${NC}"
+find_powershell() {
+    # Sometimes these are not in PATH under wsl, so we need to look deeper
+    local candidates=(
+        "pwsh.exe"
+        "powershell.exe"
+        "/mnt/c/Program Files/PowerShell/7/pwsh.exe"
+        "/mnt/c/Program Files (x86)/PowerShell/7/pwsh.exe"
+        "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe"
+    )
+    for exe in "${candidates[@]}"; do
+        if cmd=$(command -v "$exe" 2>/dev/null); then
+            echo "$cmd"
+            exit 0
+        elif [ -x "$exe" ]; then
+            echo "$exe"
+            exit 0
+        fi
+    done
+    log error "Failed to find powershell executable"
+    exit 2
 }
 
 if [[ -z "${HOSTNAME:-}" ]]; then
@@ -80,6 +75,17 @@ if [[ "${OSTYPE:-}" != darwin* ]]; then
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         exit 55
     }
+fi
+
+if [[ "${OSTYPE:-}" == darwin* ]]; then
+    # coreutils provides 'timeout' command
+    HOMEBREW_NO_ENV_HINTS=1 timed brew bundle --file=- <<-EOS
+brew "coreutils"
+brew "libssh"
+brew "gh"
+brew "git-lfs"
+EOS
+    # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
 
 is_podman_running() {
@@ -107,6 +113,7 @@ if [[ -f "/etc/redhat-release" ]]; then
     fi
 fi
 
+
 # Fail-fast if run on Windows or under WSL1/2 on /mnt/c because it is so slow
 # that we do not support it at all. WSL use is ok, but not on mounts.
 WSL=0
@@ -122,6 +129,26 @@ if grep -qi microsoft /proc/version >/dev/null 2>&1; then
     WSL=1
 fi
 
+# determine os_version as lowercase string
+if [[ "${OSTYPE:-}" == darwin* ]]; then
+    OS_VERSION="macos-$(sw_vers --productVersion)"
+else
+    OS_VERSION="$(lsb_release --id --short 2> /dev/null)-$(lsb_release --release --short 2> /dev/null)"
+    OS_VERSION="${OS_VERSION,,}"
+    if [[ "$WSL" -eq 1 ]]; then
+        OS_VERSION=$($(find_powershell) -Command 'Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -property Caption, BuildNumber' | grep "Microsoft " | \
+        tr -d '\r' | \
+        sed 's/^Microsoft //I' | \
+        tr '[:upper:]' '[:lower:]' | \
+        sed 's/[ -]\+/-/g')-wsl-$OS_VERSION
+    fi
+fi
+log notice "Platform: $OS_VERSION"
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+    echo "ARCH=$ARCH" >> "$GITHUB_OUTPUT"
+    echo "OS_VERSION=$OS_VERSION" >> "$GITHUB_OUTPUT"
+fi
+
 if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
@@ -135,6 +162,11 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     }
     command -v npm >/dev/null 2>&1 || {
         DEBS+=(npm)
+    }
+    command -v git-lfs >/dev/null 2>&1 || {
+        # curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
+        DEBS+=(git-lfs)
+        INSTALL=1
     }
 
     for DEB in "${DEBS[@]}"; do
@@ -161,6 +193,25 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             sudo apt-get remove -y "$DEB"
     done
 fi
+
+git lfs status >/dev/null || {
+    log error "Please install and configure git lfs to be able to build the project."
+    exit 3
+}
+
+# Pull Git LFS files to ensure media files are available for packaging
+log notice "Pulling Git LFS files..."
+git lfs pull || {
+    log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
+    exit 3
+}
+log notice "Git LFS files pulled successfully."
+
+if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
+    log error "Detected LFS pointer files, not real files. Check the git lfs configuration and status."
+    exit 3
+fi
+
 log notice "Using $(python3 --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
@@ -181,7 +232,7 @@ fi
 # macos specific
 if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
     command -v podman >/dev/null 2>&1 || {
-        HOMEBREW_NO_ENV_HINTS=1 time brew install podman gh libssh
+        HOMEBREW_NO_ENV_HINTS=1 time brew install podman
         podman machine ls --noheading | grep '\*' || time podman machine init
         podman machine ls --noheading | grep "Currently running" || {
             # do not use full path as it varies based on architecture
@@ -214,7 +265,7 @@ fi
 # fail-fast if we detect incompatible filesystem (o-w)
 # https://github.com/ansible/ansible/pull/42070
 python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)" || {
-    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://github.com/ansible/devtools/wiki/permissions#ansible-filesystem-requirements"
+    log error "Cannot run from world-writable filesystem, try moving code to a secured location and read https://ansible.readthedocs.io/projects/team-devtools/guides/ansible/permissions/"
     exit 100
 }
 
@@ -340,7 +391,7 @@ if [[ -n ${DOCKER_HOST+x} ]]; then
     exit 1
 fi
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
-DOCKER_VERSION="$(get_version docker 2>/dev/null || echo null)"
+DOCKER_VERSION="$(get_version docker 2>/dev/null || echo 'null' && log warning 'docker not found, skipping related tests')"
 if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
 
     DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
@@ -459,7 +510,7 @@ tools:
   pre-commit: $(get_version pre-commit)
   python: $(get_version python3)
   task: $(get_version task)
-  yarn: $(npm exec -- yarn --version || echo null)
+  yarn: $(npx --yes yarn --version || echo null)
 containers:
   podman: ${PODMAN_VERSION}
   docker: ${DOCKER_VERSION}

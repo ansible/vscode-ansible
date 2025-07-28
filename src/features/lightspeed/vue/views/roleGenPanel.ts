@@ -1,6 +1,10 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
-import { ViewColumn, window } from "vscode";
-import { WebviewHelper } from "./helper";
+import { ViewColumn } from "vscode";
+import {
+  setupPanelLifecycle,
+  disposePanelResources,
+  createOrRevealPanel,
+} from "./panelUtils";
 
 export class MainPanel {
   public static currentPanel: MainPanel | undefined;
@@ -9,38 +13,28 @@ export class MainPanel {
 
   private constructor(panel: WebviewPanel, context: ExtensionContext) {
     this._panel = panel;
-
-    this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
-    this._panel.webview.html = WebviewHelper.setupHtml(
-      this._panel.webview,
+    setupPanelLifecycle(
+      this._panel,
       context,
       "role-generation",
-    );
-
-    WebviewHelper.setupWebviewHooks(
-      this._panel.webview,
       this._disposables,
-      context,
+      () => this.dispose(),
     );
   }
 
   public static render(context: ExtensionContext) {
-    if (MainPanel.currentPanel) {
-      MainPanel.currentPanel._panel.reveal(ViewColumn.One);
-    } else {
-      const panel = window.createWebviewPanel(
-        "roleGeneration",
-        "Role Generation",
-        ViewColumn.One,
-        {
-          enableScripts: true,
-          enableCommandUris: true,
-          retainContextWhenHidden: true,
-        },
-      );
-
-      MainPanel.currentPanel = new MainPanel(panel, context);
-    }
+    createOrRevealPanel({
+      viewType: "roleGeneration",
+      viewTitle: "Role Generation",
+      viewColumn: ViewColumn.One,
+      context: context,
+      getCurrentPanel: () => MainPanel.currentPanel,
+      setCurrentPanel: (panel) => {
+        MainPanel.currentPanel = panel;
+      },
+      getPanel: (instance) => instance._panel,
+      panelConstructor: (panel, context) => new MainPanel(panel, context),
+    });
   }
 
   /**
@@ -48,16 +42,6 @@ export class MainPanel {
    */
   public dispose() {
     MainPanel.currentPanel = undefined;
-
-    // Dispose of the current webview panel
-    this._panel.dispose();
-
-    // Dispose of all disposables (i.e. commands) for the current webview panel
-    while (this._disposables.length) {
-      const disposable = this._disposables.pop();
-      if (disposable) {
-        disposable.dispose();
-      }
-    }
+    disposePanelResources(this._panel, this._disposables);
   }
 }

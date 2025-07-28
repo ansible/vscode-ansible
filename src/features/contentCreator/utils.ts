@@ -2,6 +2,8 @@ import * as cp from "child_process";
 import * as os from "os";
 import { SettingsManager } from "../../settings";
 import { withInterpreter } from "../utils/commandRunner";
+import { ANSIBLE_CREATOR_VERSION_MIN } from "../../definitions/constants";
+import * as semver from "semver";
 
 export async function getBinDetail(cmd: string, arg: string) {
   const extSettings = new SettingsManager();
@@ -20,9 +22,9 @@ export async function getBinDetail(cmd: string, arg: string) {
 }
 
 export async function getCreatorVersion(): Promise<string> {
-  const creatorVersion = (
-    await getBinDetail("ansible-creator", "--version")
-  ).toString();
+  const creatorVersion = (await getBinDetail("ansible-creator", "--version"))
+    .toString()
+    .trimEnd();
   console.log("ansible-creator version: ", creatorVersion);
   return creatorVersion;
 }
@@ -77,4 +79,37 @@ export function expandPath(pathUrl: string): string {
   updatedUrl = updatedUrl.replace(re2, os.homedir());
 
   return updatedUrl;
+}
+
+export async function getADEVersion(): Promise<string> {
+  const adeVersion = (await getBinDetail("ade", "--version"))
+    .toString()
+    .trimEnd();
+  console.log("ade version: ", adeVersion);
+  return adeVersion;
+}
+
+export async function checkContentCreatorRequirements() {
+  const failures = [];
+  let creatorVersion = "unknown";
+  try {
+    creatorVersion = await getCreatorVersion();
+    if (!semver.gte(creatorVersion, ANSIBLE_CREATOR_VERSION_MIN)) {
+      failures.push({
+        type: "ansible-creator",
+        required: ANSIBLE_CREATOR_VERSION_MIN,
+        current: creatorVersion,
+      });
+    }
+  } catch {
+    failures.push({
+      type: "ansible-creator",
+      required: ANSIBLE_CREATOR_VERSION_MIN,
+      current: "not found",
+    });
+  }
+  return {
+    met: failures.length === 0,
+    failures,
+  };
 }

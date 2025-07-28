@@ -209,7 +209,7 @@ function testResolveModuleOptionCompletion(context: WorkspaceFolderContext) {
   );
 }
 
-describe("doCompletionResolve()", () => {
+describe("doCompletionResolve()", function () {
   const workspaceManager = createTestWorkspaceManager();
   const fixtureFilePath = "completion/resolve_completion.yml";
   const fixtureFileUri = resolveDocUri(fixtureFilePath);
@@ -220,10 +220,10 @@ describe("doCompletionResolve()", () => {
   if (context) {
     const docSettings = context.documentSettings.get(textDoc.uri);
 
-    describe("Resolve completion for module names", () => {
+    describe("Resolve completion for module names", function () {
       describe("Resolve completion for module names when FQCN is enabled", function () {
-        describe("with EE enabled @ee", () => {
-          before(async () => {
+        describe("@ee", function () {
+          before(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -231,14 +231,14 @@ describe("doCompletionResolve()", () => {
           });
           testFQCNEnabled(context);
 
-          after(async () => {
+          after(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
         });
 
-        describe("with EE disabled", () => {
-          before(async () => {
+        describe("@noee", function () {
+          before(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
           });
@@ -247,8 +247,8 @@ describe("doCompletionResolve()", () => {
       });
 
       describe("Resolve completion for module names when FQCN is disabled", function () {
-        describe("with EE enabled @ee", () => {
-          before(async () => {
+        describe("@ee", function () {
+          before(async function () {
             setFixtureAnsibleCollectionPathEnv(
               "/home/runner/.ansible/collections:/usr/share/ansible/collections",
             );
@@ -258,15 +258,15 @@ describe("doCompletionResolve()", () => {
           });
           testFQCNDisabled(context);
 
-          after(async () => {
+          after(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
             (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
           });
         });
 
-        describe("with EE disabled", () => {
-          before(async () => {
+        describe("@noee", function () {
+          before(async function () {
             setFixtureAnsibleCollectionPathEnv();
             await disableExecutionEnvironmentSettings(docSettings);
             (await docSettings).ansible.useFullyQualifiedCollectionNames =
@@ -274,7 +274,7 @@ describe("doCompletionResolve()", () => {
           });
           testFQCNDisabled(context);
 
-          after(async () => {
+          after(async function () {
             setFixtureAnsibleCollectionPathEnv();
             (await docSettings).ansible.useFullyQualifiedCollectionNames = true;
           });
@@ -282,9 +282,9 @@ describe("doCompletionResolve()", () => {
       });
     });
 
-    describe("Resolve completion for module options and suboptions", () => {
-      describe("with EE enabled @ee", () => {
-        before(async () => {
+    describe("Resolve completion for module options and suboptions", function () {
+      describe("@ee", function () {
+        before(async function () {
           setFixtureAnsibleCollectionPathEnv(
             "/home/runner/.ansible/collections:/usr/share/ansible/collections",
           );
@@ -293,14 +293,14 @@ describe("doCompletionResolve()", () => {
 
         testResolveModuleOptionCompletion(context);
 
-        after(async () => {
+        after(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });
       });
 
-      describe("with EE disabled", () => {
-        before(async () => {
+      describe("@noee", function () {
+        before(async function () {
           setFixtureAnsibleCollectionPathEnv();
           await disableExecutionEnvironmentSettings(docSettings);
         });

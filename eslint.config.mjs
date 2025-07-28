@@ -10,6 +10,8 @@ import pluginChaiFriendly from "eslint-plugin-chai-friendly";
 import globals from "globals";
 import path from "path";
 import { fileURLToPath } from "url";
+import html from "@html-eslint/eslint-plugin";
+import mochaPlugin from "eslint-plugin-mocha";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
@@ -17,12 +19,14 @@ const __dirname = path.dirname(__filename); // get the name of the directory
 export default tseslint.config(
   {
     ignores: [
+      "**/.vscode-test/*",
       "**/out/",
+      ".mocharc.js",
       ".vscode-test/*",
       ".yarn/*",
-      "media/*",
-      "site/*",
       "commitlint.config.js",
+      "site/*",
+      "test/ui/.mocharc.js",
       "webviews/**",
     ],
   },
@@ -54,8 +58,10 @@ export default tseslint.config(
       // loaded implicitly, will trigger 'Cannot redefine plugin' if enabled:
       // "@typescript-eslint": ts,
       tsdoc: tsdocPlugin,
+      mocha: mochaPlugin,
     },
     rules: {
+      "mocha/max-top-level-suites": ["warn", { limit: 1 }],
       eqeqeq: ["error", "smart"],
       // Needed for tseslint.configs.strictTypeChecked
       "@typescript-eslint/no-namespace": "error",
@@ -107,6 +113,14 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-require-imports": "off",
       "chai-friendly/no-unused-expressions": "error",
+    },
+  },
+  {
+    ...html.configs["flat/recommended"],
+    files: ["**/*.html"],
+    rules: {
+      ...html.configs["flat/recommended"].rules, // Must be defined. If not, all recommended rules will be lost
+      "@html-eslint/indent": ["error", 2],
     },
   },
 );

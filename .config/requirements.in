@@ -6,22 +6,9 @@ mypy # used by vscode
 pip>=22.3.1
 pre-commit>=4.0.1
 pre-commit-uv>=4.1.4
-typing-inspect>=0.8.0,<0.9.0
+typing-inspect>=0.8.0,<0.10.0
 # docs
-argparse-manpage
-cairosvg
-markdown-include
-mkdocs
 mkdocs-ansible
-mkdocs-autorefs
-mkdocs-exclude
 mkdocs-git-revision-date-localized-plugin
-mkdocs-material
 mkdocs-material-extensions
-mkdocs-multirepo-plugin
-mkdocstrings
-mkdocstrings-python
-pillow
-pymdown-extensions
-slugify
 uv>=0.4.29

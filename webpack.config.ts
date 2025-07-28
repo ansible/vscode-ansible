@@ -12,6 +12,12 @@ const entry: EntryType = {
 };
 
 const config = {
+  cache: {
+    type: "filesystem",
+    buildDependencies: {
+      config: [__filename],
+    },
+  },
   devtool: "source-map",
   entry,
   externals: {
@@ -59,6 +65,15 @@ const config = {
             },
           },
         ],
+      },
+      {
+        // Handle ES modules in node_modules (specifically @vscode-elements/elements)
+        test: /\.js$/,
+        include: /node_modules\/@vscode-elements\/elements/,
+        type: "javascript/esm",
+        resolve: {
+          fullySpecified: false,
+        },
       },
     ],
   },
@@ -156,60 +171,6 @@ const playbookExplorerWebviewConfig = {
   },
 };
 
-const playbookExplanationWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/playbookExplanation/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/playbookExplanation/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const roleExplanationWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/lightspeed/roleExplanation/main.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/lightspeed/roleExplanation/main.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const createAnsibleCollectionWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createAnsibleCollectionPageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename:
-      "./client/webview/apps/contentCreator/createAnsibleCollectionPageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const createAnsibleProjectWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename:
-      "./client/webview/apps/contentCreator/createAnsibleProjectPageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const createDevfileWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -251,32 +212,6 @@ const createDevcontainerWebviewConfig = {
   },
 };
 
-const addPluginWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/addPluginPageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/addPluginPageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const createRoleWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createRolePageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/createRolePageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
@@ -287,15 +222,9 @@ module.exports = (_env: any, argv: { mode: string }) => {
     config,
     webviewConfig,
     contentCreatorMenuWebviewConfig,
-    createAnsibleCollectionWebviewConfig,
     playbookExplorerWebviewConfig,
-    playbookExplanationWebviewConfig,
-    roleExplanationWebviewConfig,
-    createAnsibleProjectWebviewConfig,
     createDevfileWebviewConfig,
     createDevcontainerWebviewConfig,
-    addPluginWebviewConfig,
-    createRoleWebviewConfig,
     quickLinksWebviewConfig,
     createExecutionEnvWebviewConfig,
   ];

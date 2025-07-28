@@ -1,17 +1,23 @@
 {
-    "reporter": ["text", "html", "lcov"],
-    "report-dir": "./out/coverage/ui",
-    "exclude": [
-        "coverage/**",
-        "packages/*/test{,s}/**",
-        "**/*.d.ts",
-        "test{,s}/**",
-        "test{,-*}.{js,cjs,mjs,ts,tsx,jsx}",
-        "**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}",
-        "**/__tests__/**",
-        "**/{ava,babel,nyc}.config.{js,cjs,mjs}",
-        "**/jest.config.{js,cjs,mjs,ts}",
-        "**/{karma,rollup,webpack}.config.js",
-        "**/.{eslint,mocha}rc.{js,cjs}"
-    ]
+  "//": "Do not enable 'check-coverage' or text reporters because we loop over the tests from test-launcher.sh.",
+  "check-coverage": false,
+  "clean": true,
+  "exclude": [
+    "**/__tests__/**",
+    "**/.{eslint,mocha}rc.{js,cjs}",
+    "**/{ava,babel,nyc}.config.{js,cjs,mjs}",
+    "**/{karma,rollup,webpack}.config.js",
+    "**/*.d.ts",
+    "**/*{.,-}test.{js,cjs,mjs,ts,tsx,jsx}",
+    "**/jest.config.{js,cjs,mjs,ts}",
+    "coverage/**",
+    "out/server/src/**",
+    "packages/*/test{,s}/**",
+    "test{,-*}.{js,cjs,mjs,ts,tsx,jsx}",
+    "test{,s}/**"
+  ],
+  "exclude-after-remap": true,
+  "reporter": ["cobertura"],
+  "reports-dir": "./out/coverage/ui",
+  "temp-directory": "./out/tmp/.c8-tmp-ui"
 }

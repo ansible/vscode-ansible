@@ -1,6 +1,9 @@
 [env]
 # https://github.com/nodejs/corepack/issues/550
 COREPACK_ENABLE_DOWNLOAD_PROMPT = 0
+# hack installing mkdocs-ansible correctly on macOS
+# https://github.com/squidfunk/mkdocs-material/issues/5121
+DYLD_FALLBACK_LIBRARY_PATH = "{% if os() == 'macos' %}/opt/homebrew/lib{% endif %}"
 # Command such `yarn webpack-dev` might fail with
 # Reached heap limit Allocation failed - JavaScript heap out of memory
 # https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
@@ -11,6 +14,8 @@ NODE_OPTIONS = "--max-old-space-size=8192"
 # temporary data and to allow us to mount the codebase on multiple machines
 # for build and testing purposes.
 VIRTUAL_ENV = "{{ xdg_cache_home }}/.local/share/virtualenvs/vsa"
+# https://mise.jdx.dev/mise-cookbook/python.html
+_.python.venv = {create = true, path = "~/.local/share/virtualenvs/vsa", python = "3.13", uv_create_args = ["--system-site-packages", "--seed"]} # pass args to uv venv
 
 # Do not use other hooks than preinstall or postinstall because they will
 # not work without 'mise activate' command, something that we do not use on CI.
@@ -23,3 +28,4 @@ experimental = true
 [tools]
 # do not add tools unsupported on windows such: gh, yarn
 direnv = "latest"
+node = "20.19.3"

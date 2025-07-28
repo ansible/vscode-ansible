@@ -1,4 +1,4 @@
-# Chapter 4: Understanding testing style and structure
+# Testing
 
 Tests for the extension and the language server are stored separately in their
 respective directories inside the `test` sub-folders.
@@ -75,3 +75,22 @@ For the language server tests, navigate to the root of the
    environment.
 3. **test:** Runs the language server unit tests in both the environments one
    after the other.
+
+## Coverage
+
+- [c8] is recommended in favor of the older [nyc] for coverage reporting.
+- [codecov.io] coverage reports should use `cobertura` format, as it proves to
+  be more reliable than the `lcov` format, which has weird problems with
+  processing.
+- [codecov.io] unit-test reports should use junit-format
+- [mocha] natively supports just one reporter, and we recommend setting it to
+  [mocha-junit-reporter] as coverage can be achieved by using [c8] as a runner.
+- Use `branches` percentage for coverage check as it is more reliable than
+  `lines`, `statements` or `functions` percentage, especially when refactoring
+  the code, causing far less false positive results.
+
+[c8]: https://www.npmjs.com/package/c8
+[nyc]: https://www.npmjs.com/package/nyc
+[codecov.io]: https://codecov.io/
+[mocha-junit-reporter]: https://www.npmjs.com/package/mocha-junit-reporter
+[mocha]: https://mochajs.org/

@@ -5,10 +5,6 @@ includes:
   als:
     taskfile: ./packages/ansible-language-server
     dir: ./packages/ansible-language-server
-  shared:
-    taskfile: ./.config/Taskfile_shared.yml
-    internal: true
-
 output: prefixed # do not use "group" due to impact on CI
 env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
@@ -20,7 +16,8 @@ vars:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
   XVFB:
     # prefix to add to allow execution of test in headless machines (CI)
-    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log"; fi'
+    # keep the space after log filename as it is needed.
+    sh: bash -c 'if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v xvfb-run >/dev/null; then echo "$(command -v xvfb-run) --auto-servernum -e out/log/xvfb.log "; fi'
 tasks:
   default:
     desc: Run most commands
@@ -35,19 +32,45 @@ tasks:
       - ./tools/helper --version
   setup:
     desc: Install dependencies
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
     cmds:
-      - task: shared:setup
+      - bash ./tools/precheck.sh
+      - bash ./tools/test-setup.sh
+    sources:
+      - .config/requirements.in
+      - tools/test-setup.sh
+    generates:
+      - out/log/manifest-*.yml
+      - "{{.PYTHON3}}"
+    run: once
+    interactive: true
   clean:
     desc: Clean up all files that not tracked by git
     cmds:
       - git clean -dxf
+  finish:
+    desc: Commands to run at the end
+    cmds:
+      - tools/dirty.sh
   install:
     cmds:
-      - task: shared:install
+      - task: setup
+      - uv pip install -r .config/requirements.in -c .config/constraints.txt
+      - yarn install
+    generates:
+      - node_modules/.yarn-state.yml
     sources:
-      - "**/package.json"
+      - .config/constraints.txt
+      - .config/requirements.in
+      - node_modules/.yarn-state.yml
+      - package.json
+      - packages/*/package.json
+      - tools/test-setup.sh
       - yarn.lock
-      - node_modules/**/*
+    run: once
     interactive: true
   build:
     desc: Build the project
@@ -85,7 +108,9 @@ tasks:
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
-      - yarn upgrade-interactive
+      - yarn ncu -u --workspaces -i
+      # disabled because it does not work recursively
+      # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
       - yarn up "@types/vscode@${VSCODE_VERSION}"
       - yarn dedupe
@@ -93,7 +118,7 @@ tasks:
       - task: shared:install
       # check deps
       - yarn dlx depcheck
-      - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
+      - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
@@ -108,16 +133,16 @@ tasks:
       - git fetch --tags --force
       - npm exec -- ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
       - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
-      - tools/dirty.sh
+      - defer: { task: finish }
   lint:
     desc: Lint the project
     cmds:
       - task: install
       - task: als:package # to produce the tgz file that can-release is using
       - packages/ansible-language-server/tools/can-release.sh
-      - "{{.VIRTUAL_ENV}}/bin/python3 ./tools/precheck.py"
+      - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit run -a"
-      - tools/dirty.sh
+      - defer: { task: finish }
     silent: true
     sources:
       - "*.*"
@@ -133,7 +158,7 @@ tasks:
       - tools
   test:
     # cspell: disable-next-line
-    desc: "Run all tests: \e[22;32munit, ui, e2e, als\e[0m"
+    desc: "Run all tests: unit, ui, e2e, als"
     cmds:
       - task: setup
       - task: unit
@@ -143,7 +168,7 @@ tasks:
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
-      - tools/dirty.sh
+      - defer: { task: finish }
     interactive: true
   test-e2e:
     desc: Run e2e tests {{.XVFB}}
@@ -151,16 +176,15 @@ tasks:
     cmds:
       - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - '{{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
+      - '{{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" &&  COVERAGE=1 MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh'''
     interactive: true
   test-ui:
     desc: Run UI tests {{.XVFB}}
     aliases: [ui]
     cmds:
-      - yarn webpack-dev
+      - task: package
       - "{{.VIRTUAL_ENV}}/bin/python3 --version"
-      - bash -c 'rm -rf ./out/test-resources ./out/ext'
-      - ' {{.XVFB}} bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
+      - ' {{.XVFB}}bash -c ''. "{{.VIRTUAL_ENV}}/bin/activate" && COVERAGE=1 MOCK_LIGHTSPEED_API=1 ./tools/test-launcher.sh'''
     interactive: true
   test-unit:
     desc: Run unit tests with coverage report
@@ -174,12 +198,11 @@ tasks:
       - CHANGELOG.md
       - README.md
       - package*.json
-      - out/
       - webpack.config.ts
-      - Taskfile.yml
       - tools/helper
       - src/**/*
       - test/**/*
+      - media/**/*
     generates:
       - "*.vsix"
     cmds:
@@ -187,6 +210,7 @@ tasks:
       # while not a real dependency, we want to build both all the time:
       - task: als:package
       - ./tools/helper --package
+      - defer: { task: finish }
     silent: true
   pr:
     desc: Opens a pull request using gh

@@ -1,3 +1,15 @@
+# https://github.com/mochajs/mocha/blob/main/example/config/.mocharc.yml
+color: true
+reporter: mocha-multi-reporters
+reporter-options:
+  reporterEnabled: spec,mocha-junit-reporter
+  mochaJunitReporterReporterOptions:
+    attachments: true
+    includePending: true
+    mochaFile: ../../out/junit/als/als-test-results.xml
+    outputs: true
+    suiteTitle: als
+    suiteTitleSeparatedBy: "::"
 require:
   - ts-node/register
   - test/rootMochaHooks.ts

@@ -1,8 +1,6 @@
-# Chapter 6: Developing webview in extension
+# Webviews
 
 ## Overview
-
-![webview in extension](media/webview-in-extension.png)
 
 The Webview API allows extensions to create fully customizable views within the
 VS Code extension. You can use Webviews to build complex user interfaces beyond
@@ -17,7 +15,18 @@ extensions using message passing.
 Webview panels are owned by the extension that creates them. The following
 flowchart explains the lifecycle of a webview.
 
-![webview lifecycle](media/webview-lifecycle.png)
+```mermaid
+flowchart TD
+    A[Create webview] --> B[Maintain reference]
+    B --> C[Active state]
+    C --> D[Extension dispose webview]
+    C --> E[User closes webview]
+    E --> F[Webview is destroyed]
+    D --> F
+    F --> G[Clean up resources]
+    E -..-> I[Attempt to interact with closed webview]
+    I -..-> J[Throws exception]
+```
 
 ## Implementation steps
 
@@ -63,27 +72,25 @@ context.subscriptions.push(
 
 To organize the code, create two separate files:
 
-1.  **Extension file (`<webview-name>Page.ts`):** This file hosts the webview.
-    In this file you should:
+1. **Extension file (`<webview-name>Page.ts`):** This file hosts the webview. In
+   this file you should:
+   - Define a class with methods to render, dispose, and manage the Webview
+     lifecycle.
 
-    - Define a class with methods to render, dispose, and manage the Webview
-      lifecycle.
+   - Create a method to return the HTML content for the Webview.
 
-    - Create a method to return the HTML content for the Webview.
+   - Link to the Webview file and access VSCode elements like commands and
+     settings.
 
-    - Link to the Webview file and access VSCode elements like commands and
-      settings.
+   - Access the vscode and workspace elements such as commands and settings and
+     manipulate them.
 
-    - Access the vscode and workspace elements such as commands and settings and
-      manipulate them.
+2. **Webview file: (`<webview-name>PageApp.ts`):** This file manages the Webview
+   content. In this file you should:
+   - Interact with DOM elements within the HTML.
 
-2.  **Webview file: (`<webview-name>PageApp.ts`):** This file manages the
-    Webview content. In this file you should:
-
-    - Interact with DOM elements within the HTML.
-
-    - Add event listeners and manipulate HTML elements, excluding vscode and
-      workspace elements.
+   - Add event listeners and manipulate HTML elements, excluding vscode and
+     workspace elements.
 
 !!! tip
 
@@ -128,7 +135,16 @@ window. You can use this instance to do the following:
 
 ## Communication between the webview panel and the extension
 
-![communication flow](media/webview-communication-flow.png)
+```mermaid
+sequenceDiagram
+    participant Extension
+    participant Webview
+    participant HTML
+    Webview->>Extension: Ready to get data
+    Extension->>Webview: Post data to webview
+    Webview->>HTML: Render HTML
+    Webview->>Extension: Send message to perform the action
+```
 
 ### Passing message from the extension context to the webview context
 
@@ -199,25 +215,23 @@ panel.webview.onDidReceiveMessage(
 
 ## Resources
 
-1.  **Local resources:** The extension has already implemented some webviews.
-    You can see them in the following locations:
+1. **Local resources:** The extension has already implemented some webviews. You
+   can see them in the following locations:
+   - extension context file:
+     [createAnsibleProjectPage.ts](https://github.com/ansible/vscode-ansible/blob/main/src/features/contentCreator/createAnsibleProjectPage.ts)
 
-    - extension context file:
-      [createAnsibleProjectPage.ts](https://github.com/ansible/vscode-ansible/blob/main/src/features/contentCreator/createAnsibleProjectPage.ts)
+   - webview context file:
+     [createAnsibleProjectPageApp.ts](https://github.com/ansible/vscode-ansible/blob/main/src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts)
 
-    - webview context file:
-      [createAnsibleProjectPageApp.ts](https://github.com/ansible/vscode-ansible/blob/main/src/webview/apps/contentCreator/createAnsibleProjectPageApp.ts)
+   - webpack config file:
+     [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
 
-    - webpack config file:
-      [webpack.config.ts](https://github.com/ansible/vscode-ansible/blob/main/webpack.config.ts)
+2. **External resources:** The best explanation of implementing a webview is
+   described by Microsoft. You can look at these:
+   - [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
 
-2.  **External resources:** The best explanation of implementing a webview is
-    described by Microsoft. You can look at these:
+   - [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
 
-    - [Microsoft’s guide for the Webview API](https://code.visualstudio.com/api/extension-guides/webview)
+   - [Microsoft's webview sample extension](https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/README.md)
 
-    - [Microsoft’s UX guidelines for webviews](https://code.visualstudio.com/api/ux-guidelines/webviews)
-
-    - [Microsoft's webview sample extension](https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/README.md)
-
-    - [VS Code webview UI toolkit](https://github.com/microsoft/vscode-webview-ui-toolkit)
+   - [VS Code webview UI toolkit](https://github.com/microsoft/vscode-webview-ui-toolkit)

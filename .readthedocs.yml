@@ -25,10 +25,26 @@ build:
   tools:
     python: >-  # PyYAML parses it as float `3.1` it it's not an explicit string
       3.12
-
-# Optionally set the version of Python and requirements required
-# to build docs
-python:
-  install:
-    # We also defined PIP_CONSTRAINTS=.config/requirements.txt on readthedocs config
-    - requirements: .config/requirements.in
+  apt_packages:
+    - git-lfs
+  jobs:
+    install:
+      - asdf plugin add task
+      - asdf install task
+      - pip install -r .config/requirements.in -c .config/constraints.txt
+    post_checkout:
+      # Check out the full depth for setuptools-scm
+      - git fetch --unshallow || true
+      # Check out git-lfs files
+      # See https://docs.readthedocs.io/en/stable/build-customization.html#support-git-lfs-large-file-storage
+      - wget
+        https://github.com/git-lfs/git-lfs/releases/download/v3.4.0/git-lfs-linux-amd64-v3.4.0.tar.gz
+      # cspell: ignore xvfz
+      - tar xvfz git-lfs-linux-amd64-v3.4.0.tar.gz
+      - ln --symbolic git-lfs-3.4.0/git-lfs git-lfs
+      - git config filter.lfs.process "`pwd`/git-lfs filter-process"
+      - git config filter.lfs.smudge  "`pwd`/git-lfs smudge -- %f"
+      - git config filter.lfs.clean "`pwd`/git-lfs clean -- %f"
+      - ./git-lfs install
+      - ./git-lfs fetch
+      - ./git-lfs checkout

@@ -1,5 +1,6 @@
 import { CommandRunner } from "../../src/utils/commandRunner";
-import { AssertionError, expect } from "chai";
+import { expect } from "chai";
+import { AssertionError } from "assert";
 import { WorkspaceManager } from "../../src/services/workspaceManager";
 import { createConnection } from "vscode-languageserver/node";
 import { getDoc } from "../helper";
@@ -7,7 +8,7 @@ import * as path from "path";
 import { readFileSync } from "fs";
 import { ExecException } from "child_process";
 
-describe("commandRunner", () => {
+describe("commandRunner", function () {
   const packageJsonPath = require.resolve("../../package.json");
   const packageJsonContents = readFileSync(packageJsonPath).toString();
   const pkgJSON = JSON.parse(packageJsonContents);
@@ -56,7 +57,7 @@ describe("commandRunner", () => {
       args: ["ansible-playbook", "missing-file"],
       rc: 1,
       stdout: "",
-      stderr: "ERROR! the playbook: missing-file could not be found",
+      stderr: "the playbook: missing-file could not be found",
       pythonInterpreterPath: "",
       activationScript: "",
     },

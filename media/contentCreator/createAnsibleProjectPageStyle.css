@@ -38,8 +38,8 @@ vscode-form-group {
 .checkbox-div {
     display: flex; /* Use flexbox */
     flex-direction: column; /* Arrange child elements vertically */
-    margin-top: 22px;
-    margin-bottom: 10px;
+    margin-top: 5px;
+    margin-bottom: 8px;
     width: 100%;
 }
 
@@ -47,6 +47,12 @@ vscode-form-group {
     padding: 0;
     align-self: flex-start;
     margin-left: 5px;
+}
+
+#log-text-area {
+    width: 650px;
+    height: 156px;
+    resize: vertical;
 }
 
 .verbose-div {
@@ -118,9 +124,22 @@ vscode-checkbox i {
 }
 
 .log-level-div {
-    margin: 4px 0px;
+    margin: -4px 0px;
 }
+
+.log-to-file-container {
+    border: 0.2px solid var(--vscode-editorWidget-border);
+    border-color: var(--focus-border);;
+    padding: 8px;
+    border-width: 0.5px;
+    flex-direction: column;
+  }
 
 vscode-divider {
     width: 100%;
+}
+
+.disabled-content {
+  opacity: 0.4;
+  pointer-events: none;
 }

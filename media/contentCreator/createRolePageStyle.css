@@ -66,6 +66,13 @@ vscode-form-group {
     display:inline-block;
 }
 
+#log-text-area {
+    width: 100%;
+    max-width: 100%;
+    height: 156px;
+    resize: vertical;
+}
+
 .checkbox-div {
     display: flex;
     /* Use flexbox */
@@ -103,10 +110,6 @@ vscode-single-select {
     /* Arrange child elements vertically */
 }
 
-.p-collection-name {
-    font-style: italic;
-}
-
 vscode-button {
     margin: 0px 3px;
 }
@@ -137,4 +140,9 @@ vscode-divider {
     margin-top: 12px;
     margin-bottom: 22px;
     width: 100%;
+}
+
+.disabled-content {
+  opacity: 0.4;
+  pointer-events: none;
 }
