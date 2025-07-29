@@ -26,7 +26,7 @@ before(function () {
   }
 });
 
-describe("Verify playbook generation features work as expected", function () {
+describe("playbook generation features work", function () {
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
@@ -39,7 +39,7 @@ describe("Verify playbook generation features work as expected", function () {
     }
   });
 
-  it("Playbook generation webview works as expected (full path) - part 2", async function () {
+  it("Playbook generation webview works (full path) - part 2", async function () {
     // just to cleanup any previous feedbacks that might pollute the test
     await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/feedbacks`, {
       method: "GET",
@@ -129,7 +129,7 @@ describe("Verify playbook generation features work as expected", function () {
     }
   });
 
-  it("Playbook explanation webview works as expected", async function () {
+  it("Playbook explanation webview works", async function () {
     this.timeout(60000); // Set timeout to 60 seconds for this test
 
     if (!process.env.TEST_LIGHTSPEED_URL) {

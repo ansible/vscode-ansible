@@ -11,7 +11,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify the presence of lightspeed element in the status bar and the explorer view", function () {
+describe("presence of lightspeed element in the status bar and the explorer view", function () {
   const folder = "lightspeed";
   const file = "playbook_1.yml";
   const filePath = getFixturePath(folder, file);

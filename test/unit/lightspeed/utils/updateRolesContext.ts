@@ -8,7 +8,7 @@ import fs from "fs";
 
 import { IWorkSpaceRolesContext } from "../../../../src/interfaces/lightspeed";
 
-describe("testing updateRolesContext", function () {
+describe("updateRolesContext", function () {
   const tmpDir = tmp.dirSync();
 
   after(function () {
@@ -156,7 +156,7 @@ describe("testing updateRolesContext", function () {
     );
   });
 
-  it("with a role where 'defaults' is a file, not a directory, but 'vars' is a directory as expected", function () {
+  it("with a role where 'defaults' is a file, not a directory, but 'vars' is a directory", function () {
     const ansibleRolesCache: IWorkSpaceRolesContext = {};
 
     const root_dir = `${tmpDir.name}/role_where_defaults_is_a_file_and_vars_is_a_directory`;
