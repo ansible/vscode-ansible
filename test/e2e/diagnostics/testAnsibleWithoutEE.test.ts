@@ -45,10 +45,10 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
           {
             severity: 0,
             message:
-              "The field 'hosts' has an invalid value, which includes an undefined variable.",
+              "Error processing keyword 'hosts': 'my_hosts' is undefined",
             range: new vscode.Range(
-              new vscode.Position(0, 2),
-              new vscode.Position(0, integer.MAX_VALUE),
+              new vscode.Position(1, 9),
+              new vscode.Position(1, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },
@@ -85,9 +85,9 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
           {
             severity: 0,
             message:
-              "The field 'hosts' has an invalid value, which includes an undefined variable.",
+              "Error processing keyword 'hosts': 'my_hosts' is undefined",
             range: new vscode.Range(
-              new vscode.Position(0, 2),
+              new vscode.Position(0, 0),
               new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "Ansible",

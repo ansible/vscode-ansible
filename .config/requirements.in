@@ -1,5 +1,5 @@
 cython>=3.0.5; python_version >= "3.12"
-ansible-core>=2.13.0,<2.19
+ansible-core>=2.13.0
 ansible-lint>=6.8.7
 ansible-navigator
 mypy # used by vscode
@@ -8,20 +8,7 @@ pre-commit>=4.0.1
 pre-commit-uv>=4.1.4
 typing-inspect>=0.8.0,<0.10.0
 # docs
-argparse-manpage
-cairosvg
-markdown-include
-mkdocs
 mkdocs-ansible
-mkdocs-autorefs
-mkdocs-exclude
 mkdocs-git-revision-date-localized-plugin
-mkdocs-material
 mkdocs-material-extensions
-mkdocs-multirepo-plugin
-mkdocstrings
-mkdocstrings-python
-pillow
-pymdown-extensions
-slugify
 uv>=0.4.29

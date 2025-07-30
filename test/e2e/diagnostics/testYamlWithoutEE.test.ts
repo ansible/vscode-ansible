@@ -23,11 +23,11 @@ export function testDiagnosticsYAMLWithoutEE(): void {
 
         await testDiagnostics(docUri1, [
           {
-            severity: 0,
+            severity: 1,
             message: "Failed to load YAML file",
             range: new vscode.Range(
-              new vscode.Position(0, 0),
-              new vscode.Position(0, integer.MAX_VALUE),
+              new vscode.Position(6, 21),
+              new vscode.Position(6, integer.MAX_VALUE),
             ),
             source: "ansible-lint",
           },
@@ -92,11 +92,11 @@ export function testDiagnosticsYAMLWithoutEE(): void {
           {
             severity: 0,
             message:
-              "Syntax Error while loading YAML.\n" +
-              "  mapping values are not allowed in this context",
+              "YAML parsing failed: " +
+              "Colons in unquoted values must be followed by a non-space character.",
             range: new vscode.Range(
-              new vscode.Position(6, 21),
-              new vscode.Position(6, integer.MAX_VALUE),
+              new vscode.Position(0, 0),
+              new vscode.Position(0, integer.MAX_VALUE),
             ),
             source: "Ansible",
           },
