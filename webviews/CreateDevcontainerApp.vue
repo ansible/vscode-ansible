@@ -78,7 +78,7 @@ const handleCreate = createActionWrapper(
     } else {
       path = destinationPath.value.trim();
     }
-    
+
     const payload = {
       destinationPath: path,
       image: selectedImage.value.trim(),
@@ -98,7 +98,7 @@ const onClear = () => {
   isOverwritten.value = false;
   logs.value = '';
   projectUrl.value = '';
-  
+
   openDevcontainerButtonDisabled.value = true;
   createButtonDisabled.value = !isFormValid() || isCreating.value;
   isCreating.value = false;
@@ -156,7 +156,7 @@ onMounted(() => {
         <h1>Create a devcontainer</h1>
         <p class="subtitle">Build containerized development environments</p>
       </div>
-      
+
       <div class="description-div">
         <h3>Devcontainers are json files used for building containerized development environments.<br><br>Enter your project details below to utilize a devcontainer template designed for the <a href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">Dev Containers</a> extension.</h3>
       </div>
@@ -168,11 +168,11 @@ onMounted(() => {
                     <span class="normal">Destination directory </span>
                     <sup>*</sup>
                   </vscode-label>
-                  <vscode-textfield 
-                    id="path-url" 
+                  <vscode-textfield
+                    id="path-url"
                     v-model="destinationPath"
-                    class="required" 
-                    form="devcontainer-form" 
+                    class="required"
+                    form="devcontainer-form"
                     :placeholder="defaultDestinationPath || homeDir"
                     size="512"
                   >
@@ -195,8 +195,8 @@ onMounted(() => {
                     <vscode-label for="image-dropdown">
                       <span class="normal">Container image</span>
                     </vscode-label>
-                    <vscode-single-select 
-                      id="image-dropdown" 
+                    <vscode-single-select
+                      id="image-dropdown"
                       :value="selectedImage"
                       @change="selectedImage = ($event.target as HTMLSelectElement).value"
                       position="below"
@@ -212,8 +212,8 @@ onMounted(() => {
                 </div>
 
                 <div class="checkbox-div">
-                  <vscode-checkbox 
-                    id="overwrite-checkbox" 
+                  <vscode-checkbox
+                    id="overwrite-checkbox"
                     :checked="isOverwritten"
                     @change="isOverwritten = ($event.target as HTMLInputElement).checked"
                     form="devcontainer-form"
@@ -224,17 +224,17 @@ onMounted(() => {
                 </div>
 
                 <div class="group-buttons">
-                  <vscode-button 
-                    id="reset-button" 
+                  <vscode-button
+                    id="reset-button"
                     @click.prevent="onClear"
-                    form="devcontainer-form" 
+                    form="devcontainer-form"
                     appearance="secondary"
                   >
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Reset All
                   </vscode-button>
-                  <vscode-button 
-                    id="create-button" 
+                  <vscode-button
+                    id="create-button"
                     @click.prevent="handleCreate"
                     :disabled="!isFormValid || isCreating"
                     form="devcontainer-form"
@@ -250,33 +250,33 @@ onMounted(() => {
                   <vscode-label id="vscode-logs-label" for="log-text-area">
                   <span class="normal">Logs</span>
                   </vscode-label>
-                  <vscode-textarea 
-                  id="log-text-area" 
+                  <vscode-textarea
+                  id="log-text-area"
                   v-model="logs"
-                  cols="90" 
-                  rows="15" 
+                  cols="90"
+                  rows="15"
                   placeholder="Output of the command execution"
-                  resize="vertical" 
+                  resize="vertical"
                   readonly
                   style="width: 100%; height: 200px;"
                   ></vscode-textarea>
                 </vscode-form-group>
 
                 <div class="group-buttons">
-                  <vscode-button 
-                    id="clear-logs-button" 
+                  <vscode-button
+                    id="clear-logs-button"
                     @click.prevent="clearLogs(commonState.logs)"
-                    form="devcontainer-form" 
+                    form="devcontainer-form"
                     appearance="secondary"
                   >
                     <span class="codicon codicon-clear-all"></span>
                     &nbsp; Clear Logs
                   </vscode-button>
-                  <vscode-button 
-                    id="open-file-button" 
+                  <vscode-button
+                    id="open-file-button"
                     @click.prevent="handleOpenDevcontainer"
                     :disabled="openDevcontainerButtonDisabled"
-                    form="devcontainer-form" 
+                    form="devcontainer-form"
                     appearance="secondary"
                   >
                     <span class="codicon codicon-go-to-file"></span>

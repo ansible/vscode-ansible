@@ -92,7 +92,7 @@ function testAnsibleLintErrors(
           severity: 1,
           message: "Variables names",
           range: {
-            start: { line: 4, character: 0 } as Position,
+            start: { line: 4, character: 4 } as Position,
             end: {
               line: 4,
               character: integer.MAX_VALUE,
@@ -107,18 +107,6 @@ function testAnsibleLintErrors(
             start: { line: 6, character: 0 } as Position,
             end: {
               line: 6,
-              character: integer.MAX_VALUE,
-            } as Position,
-          },
-          source: "ansible-lint",
-        },
-        {
-          severity: 1,
-          message: "Use FQCN for builtin module actions",
-          range: {
-            start: { line: 14, character: 0 } as Position,
-            end: {
-              line: 14,
               character: integer.MAX_VALUE,
             } as Position,
           },
@@ -144,6 +132,18 @@ function testAnsibleLintErrors(
             start: { line: 14, character: 0 } as Position,
             end: {
               line: 14,
+              character: integer.MAX_VALUE,
+            } as Position,
+          },
+          source: "ansible-lint",
+        },
+        {
+          severity: 1,
+          message: "Use FQCN for builtin module actions (command).",
+          range: {
+            start: { line: 15, character: 6 } as Position,
+            end: {
+              line: 15,
               character: integer.MAX_VALUE,
             } as Position,
           },
@@ -187,9 +187,9 @@ function testAnsibleSyntaxCheckErrorsInAnsibleLint(
           severity: 1,
           message: "--syntax-check",
           range: {
-            start: { line: 1, character: 2 } as Position,
+            start: { line: 0, character: 0 } as Position,
             end: {
-              line: 1,
+              line: 0,
               character: integer.MAX_VALUE,
             } as Position,
           },
@@ -268,7 +268,7 @@ function testAnsibleSyntaxCheckNoHost(
         {
           severity: 1,
 
-          message: "the field 'hosts' is required but was not set",
+          message: "field 'hosts' is required but was not set",
           range: {
             start: { line: 0, character: 0 } as Position,
             end: {
@@ -444,7 +444,7 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
 
-            describe("@ee", function () {
+            describe.skip("@ee", function () {
               before(async function () {
                 (await docSettings).validation.lint.enabled = false;
                 setFixtureAnsibleCollectionPathEnv(
@@ -614,8 +614,9 @@ describe("doValidate()", function () {
           if (context) {
             docSettings = context.documentSettings.get(textDoc.uri);
           }
-
-          describe("@ee", function () {
+          // Skipping this EE test temporarily because of incompatibilities
+          // with container version of lint vs upstream version of lint
+          describe.skip("@ee", function () {
             before(async function () {
               (await docSettings).validation.lint.enabled = false;
               setFixtureAnsibleCollectionPathEnv(
