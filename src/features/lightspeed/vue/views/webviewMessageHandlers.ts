@@ -14,6 +14,7 @@ import {
   FeedbackRequestParams,
   GenerationListEntry,
 } from "../../../../interfaces/lightspeed";
+import { SettingsManager } from "../../../../settings";
 import {
   AnsibleCollectionFormInterface,
   AnsibleProjectFormInterface,
@@ -21,6 +22,7 @@ import {
   PluginFormInterface,
   PatternFormInterface,
   DevcontainerFormInterface,
+  PostMessageEvent,
 } from "../../../contentCreator/types";
 
 import {
@@ -235,9 +237,14 @@ export class WebviewMessageHandlers {
   private async handleInitCreateDevcontainer(
     message: any,
     webview: vscode.Webview,
+    context: vscode.ExtensionContext,
   ) {
     const payload = message.payload as DevcontainerFormInterface;
-    await this.runDevcontainerCreateProcess(payload, webview);
+    await this.runDevcontainerCreateProcess(
+      payload,
+      webview,
+      context.extensionUri,
+    );
   }
 
   private async handleCheckAdePresence(message: any, webview: vscode.Webview) {
@@ -537,9 +544,10 @@ export class WebviewMessageHandlers {
   }
 
   // Devcontainer Handlers
-  private async runDevcontainerCreateProcess(
+  public async runDevcontainerCreateProcess(
     payload: DevcontainerFormInterface,
-    webview: vscode.Webview,
+    webView: vscode.Webview,
+    extensionUri: vscode.Uri,
   ) {
     const { destinationPath, image, isOverwritten } = payload;
     let commandResult: string;
@@ -555,41 +563,40 @@ export class WebviewMessageHandlers {
     );
 
     const imageURL = this.getContainerImage(image);
+
     const recommendedExtensions = this.getRecommendedExtensions();
 
     if (devcontainerExists && !isOverwritten) {
       message = `Error: Devcontainer already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
       commandResult = "failed";
     } else {
-      try {
-        commandResult = await this.createDevcontainer(
-          destinationPathUrl,
-          recommendedExtensions,
-          imageURL,
-        );
-        if (commandResult === "failed") {
-          message =
-            "ERROR: Could not create devcontainer. Please check that your destination path exists and write permissions are configured for it.";
-        } else {
-          message = `Created new devcontainer at ${destinationPathUrl}`;
-        }
-      } catch (error) {
-        commandResult = "failed";
-        message = `ERROR: Could not create devcontainer: ${error}`;
+      commandResult = await this.createDevcontainer(
+        destinationPathUrl,
+        recommendedExtensions,
+        imageURL,
+        extensionUri,
+      );
+      if (commandResult === "failed") {
+        message =
+          "ERROR: Could not create devcontainer. Please check that your destination path exists and write permissions are configured for it.";
+      } else {
+        message = `Created new devcontainer at ${destinationPathUrl}`;
       }
     }
-
     commandOutput += message;
     console.debug(message);
 
-    webview.postMessage({
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    await webView.postMessage({
       command: "execution-log",
       arguments: {
         commandOutput: commandOutput,
         projectUrl: destinationPathUrl,
         status: commandResult,
       },
-    });
+    } as PostMessageEvent);
   }
 
   private getContainerImage(dropdownImage: string): string {
@@ -609,6 +616,7 @@ export class WebviewMessageHandlers {
     destinationUrl: string,
     recommendedExtensions: string[],
     devcontainerImage: string,
+    extensionUri: vscode.Uri,
   ): Promise<string> {
     try {
       const expandedPath = expandPath(destinationUrl);
@@ -623,39 +631,31 @@ export class WebviewMessageHandlers {
         fs.mkdirSync(devcontainerDir, { recursive: true });
       }
 
-      // Create devcontainer.json content
-      const devcontainerConfig = {
-        name: "Ansible Development Tools",
-        image: devcontainerImage,
-        features: {
-          "ghcr.io/devcontainers/features/common-utils:2": {
-            installZsh: true,
-            configureZshAsDefaultShell: true,
-            installOhMyZsh: true,
-            upgradePackages: true,
-            username: "vscode",
-            userUid: 1000,
-            userGid: 1000,
-          },
-        },
-        customizations: {
-          vscode: {
-            extensions: recommendedExtensions,
-            settings: {
-              "terminal.integrated.defaultProfile.linux": "zsh",
-            },
-          },
-        },
-        postCreateCommand: "ansible --version",
-        remoteUser: "vscode",
-      };
+      // Use template to create devcontainer.json content
+      const relativeTemplatePath =
+        "resources/contentCreator/createDevcontainer/.devcontainer/devcontainer-template.txt";
+
+      const absoluteTemplatePath = vscode.Uri.joinPath(
+        extensionUri,
+        relativeTemplatePath,
+      )
+        .toString()
+        .replace("file://", "");
+
+      let devcontainerContent = fs.readFileSync(absoluteTemplatePath, "utf8");
+
+      // Replace template placeholders
+      devcontainerContent = devcontainerContent.replace(
+        "{{ dev_container_image }}",
+        devcontainerImage,
+      );
+      devcontainerContent = devcontainerContent.replace(
+        "{{ recommended_extensions | json }}",
+        JSON.stringify(recommendedExtensions),
+      );
 
       // Write devcontainer.json
-      fs.writeFileSync(
-        devcontainerJsonPath,
-        JSON.stringify(devcontainerConfig, null, 2),
-        "utf8",
-      );
+      fs.writeFileSync(devcontainerJsonPath, devcontainerContent, "utf8");
 
       return "passed";
     } catch (error) {
