@@ -621,46 +621,71 @@ export class WebviewMessageHandlers {
     try {
       const expandedPath = expandPath(destinationUrl);
       const devcontainerDir = path.join(expandedPath, ".devcontainer");
-      const devcontainerJsonPath = path.join(
-        devcontainerDir,
-        "devcontainer.json",
-      );
 
       // Create .devcontainer directory if it doesn't exist
       if (!fs.existsSync(devcontainerDir)) {
         fs.mkdirSync(devcontainerDir, { recursive: true });
       }
 
-      // Use template to create devcontainer.json content
-      const relativeTemplatePath =
-        "resources/contentCreator/createDevcontainer/.devcontainer/devcontainer-template.txt";
-
-      const absoluteTemplatePath = vscode.Uri.joinPath(
+      const templateSourcePath = vscode.Uri.joinPath(
         extensionUri,
-        relativeTemplatePath,
+        "resources/contentCreator/createDevcontainer/.devcontainer",
       )
         .toString()
         .replace("file://", "");
 
-      let devcontainerContent = fs.readFileSync(absoluteTemplatePath, "utf8");
-
-      // Replace template placeholders
-      devcontainerContent = devcontainerContent.replace(
-        "{{ dev_container_image }}",
+      await this.scaffoldDevcontainerStructure(
+        templateSourcePath,
+        devcontainerDir,
         devcontainerImage,
+        recommendedExtensions,
       );
-      devcontainerContent = devcontainerContent.replace(
-        "{{ recommended_extensions | json }}",
-        JSON.stringify(recommendedExtensions),
-      );
-
-      // Write devcontainer.json
-      fs.writeFileSync(devcontainerJsonPath, devcontainerContent, "utf8");
 
       return "passed";
     } catch (error) {
       console.error("Error creating devcontainer:", error);
       return "failed";
+    }
+  }
+
+  private async scaffoldDevcontainerStructure(
+    templateSourcePath: string,
+    destinationPath: string,
+    devcontainerImage: string,
+    recommendedExtensions: string[],
+  ): Promise<void> {
+    const templateFiles = [
+      "devcontainer-template.txt", // Root devcontainer.json
+      "docker/devcontainer-template.txt", // Docker variant
+      "podman/devcontainer-template.txt", // Podman variant
+    ];
+
+    for (const templateFile of templateFiles) {
+      const sourceFilePath = path.join(templateSourcePath, templateFile);
+      const destinationFilePath = path.join(
+        destinationPath,
+        templateFile.replace("-template.txt", ".json"),
+      );
+
+      const destinationDir = path.dirname(destinationFilePath);
+      if (!fs.existsSync(destinationDir)) {
+        fs.mkdirSync(destinationDir, { recursive: true });
+      }
+
+      if (fs.existsSync(sourceFilePath)) {
+        let templateContent = fs.readFileSync(sourceFilePath, "utf8");
+
+        templateContent = templateContent.replace(
+          "{{ dev_container_image }}",
+          devcontainerImage,
+        );
+        templateContent = templateContent.replace(
+          "{{ recommended_extensions | json }}",
+          JSON.stringify(recommendedExtensions),
+        );
+
+        fs.writeFileSync(destinationFilePath, templateContent, "utf8");
+      }
     }
   }
 }
