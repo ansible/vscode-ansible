@@ -25,14 +25,14 @@ repos:
     hooks:
       - id: toml-sort-fix
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.12.2"
+    rev: "v0.12.7"
     hooks:
       - id: ruff-format
         alias: ruff
       - id: ruff-check
         alias: ruff
   - repo: https://github.com/streetsidesoftware/cspell-cli
-    rev: v9.0.1
+    rev: v9.2.0
     hooks:
       - id: cspell
   - repo: https://github.com/codespell-project/codespell
