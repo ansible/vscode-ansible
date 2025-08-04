@@ -465,7 +465,7 @@ const onDoMultiTasksSuggestion: CallbackEntry = async function (
     if (leadingWhitespaceCount > 0) {
       leadingWhitespace = " ".repeat(leadingWhitespaceCount);
     }
-    let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction}`;
+    let insertText = `${leadingWhitespace}${LIGHTSPEED_SUGGESTION_GHOST_TEXT_COMMENT}${prediction.trimEnd()}`;
     insertText = adjustInlineSuggestionIndent(
       insertText,
       inlinePosition.position,
