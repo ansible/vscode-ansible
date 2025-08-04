@@ -16,6 +16,12 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       await vscode.commands.executeCommand("workbench.action.closeAllEditors");
     });
     describe("YAML diagnostics in the presence of ansible-lint", function () {
+      before(async function () {
+        if (process.env.IS_WSL === "1") {
+          this.skip();
+        }
+      });
+
       it("should provide diagnostics with YAML validation (with ansible-lint)", async function () {
         await activate(docUri1);
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
