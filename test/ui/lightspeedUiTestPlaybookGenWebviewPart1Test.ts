@@ -17,7 +17,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook generation features work as expected", function () {
+describe("playbook generation features work", function () {
   let explorerView: WebviewView;
   let adtView: ViewSection;
 
@@ -72,7 +72,7 @@ describe("Verify playbook generation features work as expected", function () {
     );
   });
 
-  it("Playbook generation webview works as expected (full path) - part 1", async function () {
+  it("Playbook generation webview works (full path) - part 1", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Playbook generation");
 
     // Start operations on Playbook Generation UI

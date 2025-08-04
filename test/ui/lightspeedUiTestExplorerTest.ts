@@ -27,7 +27,7 @@ import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
 import { expect } from "chai";
 
-describe("Test Lightspeed Explorer features", function () {
+describe("Lightspeed Explorer features", function () {
   let workbench: Workbench;
   let explorerView: WebviewView;
   let modalDialog: ModalDialog;

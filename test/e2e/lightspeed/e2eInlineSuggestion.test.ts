@@ -79,7 +79,7 @@ export async function testInlineSuggestionByAnotherProvider(): Promise<void> {
       );
       await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
-      // Make sure vscode's commit command was issued as expected
+      // Make sure vscode's commit command was issued
       let foundCommitCommand = false;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       executeCommandSpy.args.forEach((arg: any) => {
@@ -166,7 +166,7 @@ export async function testInlineSuggestionProviderCoExistence(): Promise<void> {
       );
       await sleep(LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME);
 
-      // Make sure vscode's commit command was issued as expected
+      // Make sure vscode's commit command was issued
       let foundCommitCommand = false;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       executeCommandSpy.args.forEach((arg: any) => {

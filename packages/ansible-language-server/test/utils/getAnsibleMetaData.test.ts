@@ -74,7 +74,7 @@ function getExecutionEnvironmentTestInfo() {
 }
 
 function testCommands() {
-  describe("Verify the working of command executions", function () {
+  describe("command executions", function () {
     const tests = [
       {
         args: ["ansible", "--version"],
@@ -283,7 +283,7 @@ describe("getAnsibleMetaData()", function () {
       });
     });
 
-    describe("Verify the absence of execution environment details", function () {
+    describe("absence of execution environment details", function () {
       it("should not contain execution environment details", function () {
         expect(actualAnsibleMetaData["execution environment information"]).to.be
           .undefined;
@@ -308,7 +308,7 @@ describe("getAnsibleMetaData()", function () {
       executionEnvironmentInfoForTest = getExecutionEnvironmentTestInfo();
     });
 
-    describe("Verify the presence of execution environment details", function () {
+    describe("presence of execution environment details", function () {
       it("should have a valid container engine", function () {
         if (actualAnsibleMetaData["execution environment information"]) {
           expect(
