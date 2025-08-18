@@ -45,6 +45,7 @@ jobs:
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
+      IS_WSL: ${{ contains(matrix.name, 'wsl') && 1 || 0 }}
       # NODE_OPTIONS must be kept in sync with one inside .env file
       NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'

@@ -75,7 +75,6 @@ import {
 } from "./interfaces/lightspeed";
 import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
-import { CreateDevcontainer } from "./features/contentCreator/createDevcontainerPage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
 import { MainPanel as PlaybookGenerationPanel } from "./features/lightspeed/vue/views/playbookGenPanel";
@@ -86,6 +85,7 @@ import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreato
 import { MainPanel as addPatternPanel } from "./features/contentCreator/vue/views/addPatternPagePanel";
 import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
 import { MainPanel as createRolePanel } from "./features/contentCreator/vue/views/createRolePanel";
+import { MainPanel as createDevcontainerPanel } from "./features/contentCreator/vue/views/createDevcontainerPanel";
 import { getRoleNameFromFilePath } from "./features/lightspeed/utils/getRoleNameFromFilePath";
 import { getRoleNamePathFromFilePath } from "./features/lightspeed/utils/getRoleNamePathFromFilePath";
 import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
@@ -613,16 +613,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
-  // open web-view for creating devcontainer
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "ansible.content-creator.create-devcontainer",
-      () => {
-        CreateDevcontainer.render(context.extensionUri);
-      },
-    ),
-  );
-
   // open web-view for adding a plugin in an ansible collection
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -639,6 +629,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.create-role",
       () => {
         createRolePanel.render(context);
+      },
+    ),
+  );
+
+  // open web-view for creating devcontainer
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.create-devcontainer",
+      () => {
+        createDevcontainerPanel.render(context);
       },
     ),
   );
