@@ -22,8 +22,6 @@ pnpm add -g @ansible/ansible-mcp-server
 yarn global add @ansible/ansible-mcp-server
 ```
 
-```
-
 **Important**: Update the paths and replace `SYSTEM_PATH_HERE` with your actual
 system PATH to ensure ansible-lint can be found in your virtual environment.
 
@@ -100,7 +98,7 @@ For ansible-lint to work properly, ensure:
 
 ### Resource Examples
 
-```
+```text
 workspace://file/examples/playbooks/play1.yml
 workspace://file/ansible.cfg
 workspace://file/requirements.txt

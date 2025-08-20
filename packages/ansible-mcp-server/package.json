@@ -10,7 +10,6 @@
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
     "build": "npm run clean && npm run compile",
-    "dev:ws": "tsx src/cli.ts --ws",
     "dev:stdio": "tsx src/cli.ts --stdio",
     "lint": "eslint .",
     "test": "vitest run",
