@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createAnsibleMcpServer } from "../src/server.js";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -7,11 +8,12 @@ import { ZEN_OF_ANSIBLE } from "../src/constants.js";
  * Test wrapper that provides test-friendly methods for the MCP server
  */
 export function createTestServer(workspaceRoot: string) {
-  const server = createAnsibleMcpServer(workspaceRoot);
+  // Create the server but don't use it directly in tests - we simulate the behavior
+  void createAnsibleMcpServer(workspaceRoot);
 
   return {
     // Test helper methods that simulate MCP server behavior
-    async callTool(name: string, args: any) {
+    async callTool(name: string, args: Record<string, unknown>) {
       if (name === "debug_env") {
         return {
           content: [

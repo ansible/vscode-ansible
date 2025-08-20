@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
@@ -97,7 +98,7 @@ describe("Ansible MCP Server Real Handlers", () => {
 
       // Mock successful execution
       mockChildProcess.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (code: number) => void) => {
           if (event === "close") {
             setTimeout(() => callback(0), 0);
           }
@@ -106,7 +107,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       );
 
       mockChildProcess.stdout.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (data: string) => void) => {
           if (event === "data") {
             setTimeout(() => callback("No violations found\n"), 0);
           }
@@ -115,7 +116,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       );
 
       mockChildProcess.stderr.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (data: string) => void) => {
           if (event === "data") {
             setTimeout(() => callback(""), 0);
           }
@@ -145,7 +146,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       const expectedPath = path.resolve(workspaceRoot, file);
 
       mockChildProcess.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (code: number) => void) => {
           if (event === "close") {
             setTimeout(() => callback(0), 0);
           }
@@ -177,7 +178,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       const error = new Error("spawn ansible-lint ENOENT");
 
       mockChildProcess.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (error: Error) => void) => {
           if (event === "error") {
             setTimeout(() => callback(error), 0);
           }
@@ -203,7 +204,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       const file = "playbook.yml";
 
       mockChildProcess.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (code: number) => void) => {
           if (event === "close") {
             setTimeout(() => callback(2), 0); // Exit code 2 = violations found
           }
@@ -212,7 +213,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       );
 
       mockChildProcess.stdout.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (data: string) => void) => {
           if (event === "data") {
             setTimeout(() => callback("Found 3 violations\n"), 0);
           }
@@ -221,7 +222,7 @@ describe("Ansible MCP Server Real Handlers", () => {
       );
 
       mockChildProcess.stderr.on.mockImplementation(
-        (event: string, callback: Function) => {
+        (event: string, callback: (data: string) => void) => {
           if (event === "data") {
             setTimeout(() => callback("WARNING: Issues detected\n"), 0);
           }
@@ -245,7 +246,8 @@ describe("Ansible MCP Server Real Handlers", () => {
 
       // Mock a process that never completes
       mockChildProcess.on.mockImplementation(
-        (event: string, callback: Function) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        (_event: string, _callback: (...args: any[]) => void) => {
           // Never call the callback - simulates hanging process
           return mockChildProcess;
         },
@@ -260,7 +262,7 @@ describe("Ansible MCP Server Real Handlers", () => {
 
       // This test should timeout or be handled gracefully
       // In a real implementation, you might want to add timeouts
-      const resultPromise = ansibleLintHandler({ file });
+      void ansibleLintHandler({ file });
 
       // For now, we'll just verify the process was spawned
       await new Promise((resolve) => setTimeout(resolve, 10)); // Small delay

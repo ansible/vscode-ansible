@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, beforeAll } from "vitest";
 import path from "node:path";
 import fs from "node:fs/promises";
@@ -33,7 +34,7 @@ describe("Ansible MCP Server Integration Tests", () => {
         expect(result.contents[0].text).toContain("Test playbook");
       } catch (error) {
         // If the fixture file doesn't exist, skip this test gracefully
-        if ((error as any).code === "ENOENT") {
+        if ((error as Error & { code?: string }).code === "ENOENT") {
           console.warn("Fixture file not found, skipping integration test");
           return;
         }
