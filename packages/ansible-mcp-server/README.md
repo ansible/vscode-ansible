@@ -29,19 +29,20 @@ system PATH to ensure ansible-lint can be found in your virtual environment.
 
 ### Inside Ansible VS Code extension
 
-The Ansible MCP server ships with the Ansible extension. 
+The Ansible MCP server ships with the Ansible extension.
 
-Activate through the command palette (CTRL+Shift+P) -> `MCP: List Servers`. 
+Activate through the command palette (CTRL+Shift+P) -> `MCP: List Servers`.
 
 Select "Ansible Development Tools MCP Server" and start the server.
 
-To access tools, open the VS Code Chat and select "Add Context -> Tools". The Ansible MCP server tools will be available in the list for selection.
+To access tools, open the VS Code Chat and select "Add Context -> Tools". The
+Ansible MCP server tools will be available in the list for selection.
 
 ### Configuration for Cursor IDE
 
 Add to your `~/.cursor/mcp.json` or `.cursor/mcp.json`:
 
-```json
+````json
 {
   "mcpServers": {
     "ansible-mcp-server": {
@@ -66,7 +67,7 @@ Add to your `~/.cursor/mcp.json` or `.cursor/mcp.json`:
 
 ```bash
 WORKSPACE_ROOT=/abs/path/to/workspace ansible-mcp-server --stdio
-```
+````
 
 ## Virtual Environment Setup
 
@@ -74,7 +75,8 @@ For ansible-lint to work properly, ensure:
 
 1. **Virtual environment exists**: `.venv/` in your workspace
 2. **ansible-lint installed**: `pip install ansible-lint` in your venv
-3. **PATH configured**: Include `<path-to-venv-bin>` in your MCP server configuration
+3. **PATH configured**: Include `<path-to-venv-bin>` in your MCP server
+   configuration
 
 ## Tools
 
