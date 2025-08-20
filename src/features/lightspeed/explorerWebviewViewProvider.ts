@@ -75,7 +75,7 @@ export class LightspeedExplorerWebviewViewProvider
       return getWebviewContentWithActiveSession(
         webview,
         extensionUri,
-        String(content),
+        content,
         this.hasPlaybookOpened(),
         await this.hasRoleOpened(),
       );

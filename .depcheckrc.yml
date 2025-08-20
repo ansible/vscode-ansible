@@ -1,5 +1,6 @@
 # https://github.com/yarnpkg/yarn/issues/3368
 ignores:
+  - "@ansible/ansible-mcp-server"
   - "@ansible/ansible-language-server"
   - "@types/vscode-webview" # provides VSCodeAPI
   - "@types/vscode"  # determined by (package.json).engines.vscode
