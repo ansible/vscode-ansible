@@ -936,6 +936,56 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
   context.subscriptions.push(eeBuilderCommand);
+
+  // Register Ansible MCP Server Definition Provider
+  const mcpDidChangeEmitter = new vscode.EventEmitter<void>();
+  context.subscriptions.push(mcpDidChangeEmitter);
+
+  context.subscriptions.push(
+    vscode.lm.registerMcpServerDefinitionProvider("ansibleMcpProvider", {
+      onDidChangeMcpServerDefinitions: mcpDidChangeEmitter.event,
+      provideMcpServerDefinitions: async () => {
+        const servers: vscode.McpServerDefinition[] = [];
+
+        // Determine workspace root
+        const workspaceRoot =
+          vscode.workspace.workspaceFolders?.[0]?.uri || context.extensionUri;
+
+        // Path to the built MCP server CLI
+        const mcpCliPath = path.join(
+          context.extensionPath,
+          "out",
+          "mcp",
+          "cli.js",
+        );
+
+        // Register the Ansible MCP server
+        const mcpServer = new vscode.McpStdioServerDefinition(
+          "ansible-mcp-server",
+          "node",
+          [mcpCliPath, "--stdio"],
+          {
+            WORKSPACE_ROOT: workspaceRoot.fsPath,
+          },
+        );
+
+        // Set additional properties if needed
+        (mcpServer as any).cwd = workspaceRoot;
+        (mcpServer as any).version = "0.1.0";
+        (mcpServer as any).label = "Ansible Development Tools MCP Server";
+
+        servers.push(mcpServer);
+
+        return servers;
+      },
+      resolveMcpServerDefinition: async (
+        server: vscode.McpServerDefinition,
+      ) => {
+        // No additional resolution needed for our server
+        return server;
+      },
+    }),
+  );
 }
 
 const startClient = async (

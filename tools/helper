@@ -141,6 +141,9 @@ def cli() -> None:
         run("npm exec -- yarn run webpack")
         # --no-dependencies and --no-yarn needed due to https://github.com/microsoft/vscode-vsce/issues/439
         run("npm exec -- yarn run vite-build")
+        # Build and stage the MCP server into out/mcp so it is included in the VSIX
+        run("npm exec -- yarn workspace @ansible/ansible-mcp-server build")
+        run("mkdir -p out/mcp && cp -r packages/ansible-mcp-server/out/server/src/* out/mcp/")
 
         run(
             "npm exec -- vsce package --no-dependencies --no-git-tag-version"

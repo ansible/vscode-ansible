@@ -106,7 +106,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -297,6 +297,11 @@ jobs:
         if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
+      - name: task mcp
+        # https://github.com/ansible/vscode-ansible/issues/1451
+        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        run: task mcp ${{ matrix.env.TASKFILE_ARGS }}
+
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
         uses: coactions/upload-artifact@v4
@@ -424,7 +429,7 @@ jobs:
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
@@ -506,7 +511,7 @@ jobs:
       - check
     steps:
       - name: Checkout Source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 

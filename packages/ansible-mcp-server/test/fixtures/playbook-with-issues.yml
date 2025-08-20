@@ -1,0 +1,15 @@
+---
+- name: Playbook with lint issues
+  hosts: all
+
+  tasks:
+    - name: Use copy module without FQCN
+      copy:
+        src: /tmp/source
+        dest: /tmp/dest
+
+    - name: Task with trailing whitespace
+      command: echo "test"
+
+    - name: Use shell instead of command
+      shell: echo "This should use command module"
