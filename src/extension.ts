@@ -969,10 +969,12 @@ export async function activate(context: ExtensionContext): Promise<void> {
           },
         );
 
-        // Set additional properties if needed
-        (mcpServer as any).cwd = workspaceRoot;
-        (mcpServer as any).version = "0.1.0";
-        (mcpServer as any).label = "Ansible Development Tools MCP Server";
+        // Set additional properties if needed (using object assignment for better typing)
+        Object.assign(mcpServer, {
+          cwd: workspaceRoot,
+          version: "0.1.0",
+          label: "Ansible Development Tools MCP Server",
+        });
 
         servers.push(mcpServer);
 

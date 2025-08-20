@@ -4,5 +4,5 @@
     "outDir": "./out/server",
     "resolveJsonModule": true
   },
-  "exclude": ["node_modules", "out", "test"]
+  "exclude": ["node_modules", "out"]
 }

@@ -88,7 +88,7 @@ export function createAnsibleLintHandler(workspaceRoot: string) {
 export function createWorkspaceFileHandler(workspaceRoot: string) {
   return async (uri: URL, variables: Record<string, string | string[]>) => {
     const raw = variables["relPath"];
-    const rel = Array.isArray(raw) ? raw.join("/") : String(raw ?? "");
+    const rel = Array.isArray(raw) ? raw.join("/") : (raw ?? "");
     const abs = path.resolve(workspaceRoot, rel);
     const data = await fs.readFile(abs, "utf8");
     return {

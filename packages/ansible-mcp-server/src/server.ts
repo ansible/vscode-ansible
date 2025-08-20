@@ -91,5 +91,7 @@ export async function runStdio(workspaceRoot: string) {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   // Keep process alive for stdio-based clients until they close the transport
-  await new Promise<void>(() => {});
+  await new Promise<void>(() => {
+    // Intentionally empty - this keeps the process alive
+  });
 }

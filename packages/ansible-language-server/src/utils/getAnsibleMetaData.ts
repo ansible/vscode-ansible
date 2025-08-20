@@ -218,14 +218,12 @@ async function getExecutionEnvironmentInfo() {
   let inspectResult;
   try {
     inspectResult = JSON.parse(
-      child_process
-        .execSync(
-          `${basicDetails.containerEngine} inspect --format='{{json .Config}}' ${basicDetails.containerImage}`,
-          {
-            encoding: "utf-8",
-          },
-        )
-        .toString(),
+      child_process.execSync(
+        `${basicDetails.containerEngine} inspect --format='{{json .Config}}' ${basicDetails.containerImage}`,
+        {
+          encoding: "utf-8",
+        },
+      ),
     );
     eeServiceWorking = true;
   } catch (error) {
