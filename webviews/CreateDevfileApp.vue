@@ -25,18 +25,26 @@ const isOverwritten = ref(false);
 const projectUrl = ref('');
 const openDevfileButtonDisabled = ref(true);
 const createButtonDisabled = ref(true);
+const clearLogsButtonDisabled = ref(true);
 const defaultDestinationPath = ref('');
 const defaultProjectName = ref('');
 const requirementsMet = ref(true);
 const requirementFailures = ref([]);
 
-const isFormValid = createFormValidator({
-  destinationPath: () => {
-    return destinationPath.value.trim() !== '' || (defaultDestinationPath.value || homeDir.value) !== '';
-  },
-  devfileName: () => {
-    return devfileName.value.trim() !== '' || defaultProjectName.value !== '';
-  }
+const isFormValid = computed(() => {
+  const currentPath = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
+  const currentName = devfileName.value.trim() || defaultProjectName.value;
+  const isValid = currentPath !== '' && currentPath !== undefined && currentName !== '' && currentName !== undefined;
+  
+  console.log('Form validation check:', {
+    currentPath,
+    currentName,
+    isValid,
+    destinationPath: destinationPath.value,
+    devfileName: devfileName.value
+  });
+  
+  return isValid;
 });
 
 const displayPath = computed(() => {
@@ -79,20 +87,22 @@ const handleCreate = createActionWrapper(
   logs,
   createButtonDisabled,
   () => {
-    openDevfileButtonDisabled.value = true;
-
-    let path: string;
-    if (destinationPath.value === "" || !destinationPath.value.trim()) {
-      path = defaultDestinationPath.value || homeDir.value;
-    } else {
-      path = destinationPath.value.trim();
+    // Validate before creating
+    if (!isFormValid.value) {
+      return;
     }
-
-    let name: string;
-    if (devfileName.value === "" || !devfileName.value.trim()) {
-      name = defaultProjectName.value;
-    } else {
-      name = devfileName.value.trim();
+    
+    openDevfileButtonDisabled.value = true;
+    clearLogsButtonDisabled.value = true;
+    
+    // Use current values or defaults
+    const path = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
+    const name = devfileName.value.trim() || defaultProjectName.value;
+    
+    // Double check we have required values
+    if (!path || !name) {
+      console.error('Missing required fields: path or name');
+      return;
     }
 
     const payload = {
@@ -118,13 +128,12 @@ const onClear = () => {
   projectUrl.value = '';
 
   openDevfileButtonDisabled.value = true;
-  createButtonDisabled.value = !isFormValid() || isCreating.value;
+  clearLogsButtonDisabled.value = true;
+  createButtonDisabled.value = !isFormValid.value || isCreating.value;
   isCreating.value = false;
 };
 
-watch([destinationPath, devfileName, isCreating], () => {
-  createButtonDisabled.value = !isFormValid() || isCreating.value;
-});
+// Form validation is now reactive through computed properties
 
 onMounted(() => {
   vscodeApi.postMessage({ type: 'request-requirements-status' });
@@ -134,20 +143,42 @@ onMounted(() => {
       requirementFailures.value = event.data.failures || [];
     }
   });
+  
+  // Debug: Log when mounted
+  console.log('Devfile webview mounted');
+  
   setupMessageHandler({
     onHomeDirectory: (data) => {
+      console.log('onHomeDirectory called with:', data);
       homeDir.value = data;
       if (!defaultDestinationPath.value) {
         defaultDestinationPath.value = data;
-        destinationPath.value = data; // Set as default value
+        destinationPath.value = data; // Always set as default value
       }
       // Extract project name from workspace path
       if (data && !defaultProjectName.value) {
         const projectNameSplit = data.split("/");
         const extractedName = projectNameSplit[projectNameSplit.length - 1];
+        console.log('Extracted project name:', extractedName);
         if (extractedName) {
           defaultProjectName.value = extractedName;
-          devfileName.value = extractedName; // Set as default value
+          devfileName.value = extractedName; // Always set as default value
+        }
+      }
+    },
+    onHomedirAndTempdir: (homedir, tempdir) => {
+      console.log('onHomedirAndTempdir called with:', { homedir, tempdir });
+      if (homedir && !defaultDestinationPath.value) {
+        defaultDestinationPath.value = homedir;
+        destinationPath.value = homedir; // Always set as default value
+        
+        // Extract project name from the path
+        const pathParts = homedir.split('/');
+        const extractedName = pathParts[pathParts.length - 1];
+        console.log('Extracted project name from homedir:', extractedName);
+        if (extractedName && !defaultProjectName.value) {
+          defaultProjectName.value = extractedName;
+          devfileName.value = extractedName;
         }
       }
     },
@@ -163,11 +194,25 @@ onMounted(() => {
       } else {
         openDevfileButtonDisabled.value = true;
       }
+      
+      // Enable Clear Logs button after creation attempt (success or failure)
+      clearLogsButtonDisabled.value = false;
+      
       isCreating.value = false;
-      createButtonDisabled.value = !isFormValid() || isCreating.value;
+      createButtonDisabled.value = !isFormValid.value || isCreating.value;
     }
   });
   initializeUI();
+  
+  // Fallback: Check if we need to set default values after message handlers have had time to run
+  setTimeout(() => {
+    console.log('Checking if values were set:', {
+      destinationPath: destinationPath.value,
+      defaultDestinationPath: defaultDestinationPath.value,
+      devfileName: devfileName.value,
+      defaultProjectName: defaultProjectName.value
+    });
+  }, 1000);
 });
 </script>
 
@@ -300,6 +345,7 @@ onMounted(() => {
           <vscode-button
             id="clear-logs-button"
             @click.prevent="clearLogs(commonState.logs)"
+            :disabled="clearLogsButtonDisabled"
             form="devfile-form"
             appearance="secondary"
           >

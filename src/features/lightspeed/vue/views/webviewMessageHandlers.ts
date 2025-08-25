@@ -788,6 +788,12 @@ export class WebviewMessageHandlers {
       .replace("file://", "");
 
     try {
+      // Ensure the directory exists
+      const dirPath = path.dirname(expandedDestUrl);
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+
       devfile = fs.readFileSync(absoluteTemplatePath, "utf8");
       devfile = devfile.replace("{{ dev_file_name }}", fullDevfileName);
       devfile = devfile.replace("{{ dev_file_image }}", devfileImage);
@@ -795,6 +801,8 @@ export class WebviewMessageHandlers {
       return "passed";
     } catch (err) {
       console.error("Devfile could not be created. Error: ", err);
+      console.error("Expanded destination path:", expandedDestUrl);
+      console.error("Template path:", absoluteTemplatePath);
       return "failed";
     }
   }
