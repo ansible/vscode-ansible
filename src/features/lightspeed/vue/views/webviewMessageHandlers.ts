@@ -641,7 +641,6 @@ export class WebviewMessageHandlers {
       const expandedPath = expandPath(destinationUrl);
       const devcontainerDir = path.join(expandedPath, ".devcontainer");
 
-      // Create .devcontainer directory if it doesn't exist
       if (!fs.existsSync(devcontainerDir)) {
         fs.mkdirSync(devcontainerDir, { recursive: true });
       }
@@ -788,7 +787,6 @@ export class WebviewMessageHandlers {
       .replace("file://", "");
 
     try {
-      // Ensure the directory exists
       const dirPath = path.dirname(expandedDestUrl);
       if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });

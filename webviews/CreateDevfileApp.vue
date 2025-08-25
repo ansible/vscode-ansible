@@ -87,7 +87,6 @@ const handleCreate = createActionWrapper(
   logs,
   createButtonDisabled,
   () => {
-    // Validate before creating
     if (!isFormValid.value) {
       return;
     }
@@ -95,11 +94,9 @@ const handleCreate = createActionWrapper(
     openDevfileButtonDisabled.value = true;
     clearLogsButtonDisabled.value = true;
     
-    // Use current values or defaults
     const path = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
     const name = devfileName.value.trim() || defaultProjectName.value;
     
-    // Double check we have required values
     if (!path || !name) {
       console.error('Missing required fields: path or name');
       return;
@@ -133,8 +130,6 @@ const onClear = () => {
   isCreating.value = false;
 };
 
-// Form validation is now reactive through computed properties
-
 onMounted(() => {
   vscodeApi.postMessage({ type: 'request-requirements-status' });
   window.addEventListener('message', (event) => {
@@ -144,25 +139,21 @@ onMounted(() => {
     }
   });
   
-  // Debug: Log when mounted
-  console.log('Devfile webview mounted');
-  
   setupMessageHandler({
     onHomeDirectory: (data) => {
       console.log('onHomeDirectory called with:', data);
       homeDir.value = data;
       if (!defaultDestinationPath.value) {
         defaultDestinationPath.value = data;
-        destinationPath.value = data; // Always set as default value
+        destinationPath.value = data; 
       }
-      // Extract project name from workspace path
       if (data && !defaultProjectName.value) {
         const projectNameSplit = data.split("/");
         const extractedName = projectNameSplit[projectNameSplit.length - 1];
         console.log('Extracted project name:', extractedName);
         if (extractedName) {
           defaultProjectName.value = extractedName;
-          devfileName.value = extractedName; // Always set as default value
+          devfileName.value = extractedName; 
         }
       }
     },
@@ -170,9 +161,8 @@ onMounted(() => {
       console.log('onHomedirAndTempdir called with:', { homedir, tempdir });
       if (homedir && !defaultDestinationPath.value) {
         defaultDestinationPath.value = homedir;
-        destinationPath.value = homedir; // Always set as default value
+        destinationPath.value = homedir; 
         
-        // Extract project name from the path
         const pathParts = homedir.split('/');
         const extractedName = pathParts[pathParts.length - 1];
         console.log('Extracted project name from homedir:', extractedName);
@@ -195,7 +185,6 @@ onMounted(() => {
         openDevfileButtonDisabled.value = true;
       }
       
-      // Enable Clear Logs button after creation attempt (success or failure)
       clearLogsButtonDisabled.value = false;
       
       isCreating.value = false;
@@ -204,7 +193,6 @@ onMounted(() => {
   });
   initializeUI();
   
-  // Fallback: Check if we need to set default values after message handlers have had time to run
   setTimeout(() => {
     console.log('Checking if values were set:', {
       destinationPath: destinationPath.value,
