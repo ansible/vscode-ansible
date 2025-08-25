@@ -93,10 +93,10 @@ const handleCreate = createActionWrapper(
 
     openDevfileButtonDisabled.value = true;
     clearLogsButtonDisabled.value = true;
-    
+
     const path = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
     const name = devfileName.value.trim() || defaultProjectName.value;
-    
+
     if (!path || !name) {
       console.error('Missing required fields: path or name');
       return;
@@ -138,14 +138,14 @@ onMounted(() => {
       requirementFailures.value = event.data.failures || [];
     }
   });
-  
+
   setupMessageHandler({
     onHomeDirectory: (data) => {
       console.log('onHomeDirectory called with:', data);
       homeDir.value = data;
       if (!defaultDestinationPath.value) {
         defaultDestinationPath.value = data;
-        destinationPath.value = data; 
+        destinationPath.value = data;
       }
       if (data && !defaultProjectName.value) {
         const projectNameSplit = data.split("/");
@@ -153,7 +153,7 @@ onMounted(() => {
         console.log('Extracted project name:', extractedName);
         if (extractedName) {
           defaultProjectName.value = extractedName;
-          devfileName.value = extractedName; 
+          devfileName.value = extractedName;
         }
       }
     },
@@ -161,8 +161,8 @@ onMounted(() => {
       console.log('onHomedirAndTempdir called with:', { homedir, tempdir });
       if (homedir && !defaultDestinationPath.value) {
         defaultDestinationPath.value = homedir;
-        destinationPath.value = homedir; 
-        
+        destinationPath.value = homedir;
+
         const pathParts = homedir.split('/');
         const extractedName = pathParts[pathParts.length - 1];
         console.log('Extracted project name from homedir:', extractedName);
@@ -184,7 +184,7 @@ onMounted(() => {
       } else {
         openDevfileButtonDisabled.value = true;
       }
-      
+
       clearLogsButtonDisabled.value = false;
 
       isCreating.value = false;
@@ -192,7 +192,7 @@ onMounted(() => {
     }
   });
   initializeUI();
-  
+
   setTimeout(() => {
     console.log('Checking if values were set:', {
       destinationPath: destinationPath.value,
