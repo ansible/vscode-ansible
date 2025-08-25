@@ -35,7 +35,7 @@ const isFormValid = computed(() => {
   const currentPath = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
   const currentName = devfileName.value.trim() || defaultProjectName.value;
   const isValid = currentPath !== '' && currentPath !== undefined && currentName !== '' && currentName !== undefined;
-  
+
   console.log('Form validation check:', {
     currentPath,
     currentName,
@@ -43,7 +43,7 @@ const isFormValid = computed(() => {
     destinationPath: destinationPath.value,
     devfileName: devfileName.value
   });
-  
+
   return isValid;
 });
 
@@ -90,7 +90,7 @@ const handleCreate = createActionWrapper(
     if (!isFormValid.value) {
       return;
     }
-    
+
     openDevfileButtonDisabled.value = true;
     clearLogsButtonDisabled.value = true;
     
@@ -186,7 +186,7 @@ onMounted(() => {
       }
       
       clearLogsButtonDisabled.value = false;
-      
+
       isCreating.value = false;
       createButtonDisabled.value = !isFormValid.value || isCreating.value;
     }
