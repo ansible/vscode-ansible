@@ -35,7 +35,7 @@ const isFormValid = computed(() => {
   const currentPath = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
   const currentName = devfileName.value.trim() || defaultProjectName.value;
   const isValid = currentPath !== '' && currentPath !== undefined && currentName !== '' && currentName !== undefined;
-  
+
   console.log('Form validation check:', {
     currentPath,
     currentName,
@@ -43,7 +43,7 @@ const isFormValid = computed(() => {
     destinationPath: destinationPath.value,
     devfileName: devfileName.value
   });
-  
+
   return isValid;
 });
 
@@ -91,14 +91,14 @@ const handleCreate = createActionWrapper(
     if (!isFormValid.value) {
       return;
     }
-    
+
     openDevfileButtonDisabled.value = true;
     clearLogsButtonDisabled.value = true;
-    
+
     // Use current values or defaults
     const path = destinationPath.value.trim() || defaultDestinationPath.value || homeDir.value;
     const name = devfileName.value.trim() || defaultProjectName.value;
-    
+
     // Double check we have required values
     if (!path || !name) {
       console.error('Missing required fields: path or name');
@@ -143,10 +143,10 @@ onMounted(() => {
       requirementFailures.value = event.data.failures || [];
     }
   });
-  
+
   // Debug: Log when mounted
   console.log('Devfile webview mounted');
-  
+
   setupMessageHandler({
     onHomeDirectory: (data) => {
       console.log('onHomeDirectory called with:', data);
@@ -171,7 +171,7 @@ onMounted(() => {
       if (homedir && !defaultDestinationPath.value) {
         defaultDestinationPath.value = homedir;
         destinationPath.value = homedir; // Always set as default value
-        
+
         // Extract project name from the path
         const pathParts = homedir.split('/');
         const extractedName = pathParts[pathParts.length - 1];
@@ -194,16 +194,16 @@ onMounted(() => {
       } else {
         openDevfileButtonDisabled.value = true;
       }
-      
+
       // Enable Clear Logs button after creation attempt (success or failure)
       clearLogsButtonDisabled.value = false;
-      
+
       isCreating.value = false;
       createButtonDisabled.value = !isFormValid.value || isCreating.value;
     }
   });
   initializeUI();
-  
+
   // Fallback: Check if we need to set default values after message handlers have had time to run
   setTimeout(() => {
     console.log('Checking if values were set:', {
