@@ -80,7 +80,7 @@ const handleCreate = createActionWrapper(
   createButtonDisabled,
   () => {
     openDevfileButtonDisabled.value = true;
-    
+
     let path: string;
     if (destinationPath.value === "" || !destinationPath.value.trim()) {
       path = defaultDestinationPath.value || homeDir.value;
@@ -101,7 +101,7 @@ const handleCreate = createActionWrapper(
       image: selectedImage.value.trim(),
       isOverwritten: isOverwritten.value,
     };
-    
+
     vscodeApi.postMessage({
       type: 'init-create-devfile',
       payload,
