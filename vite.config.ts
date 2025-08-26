@@ -57,6 +57,14 @@ export default defineConfig({
         "add-plugin": path.resolve(__dirname, "webviews/add-plugin.html"),
         "create-role": path.resolve(__dirname, "webviews/create-role.html"),
         "add-pattern": path.resolve(__dirname, "webviews/add-pattern.html"),
+        "create-devcontainer": path.resolve(
+          __dirname,
+          "webviews/create-devcontainer.html",
+        ),
+        "create-devfile": path.resolve(
+          __dirname,
+          "webviews/create-devfile.html",
+        ),
       },
     },
   },
