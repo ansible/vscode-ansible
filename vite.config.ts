@@ -61,6 +61,10 @@ export default defineConfig({
           __dirname,
           "webviews/create-devcontainer.html",
         ),
+        "create-devfile": path.resolve(
+          __dirname,
+          "webviews/create-devfile.html",
+        ),
       },
     },
   },

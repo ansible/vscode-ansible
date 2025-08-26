@@ -171,19 +171,6 @@ const playbookExplorerWebviewConfig = {
   },
 };
 
-const createDevfileWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createDevfilePageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/createDevfilePageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const createExecutionEnvWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -209,7 +196,6 @@ module.exports = (_env: any, argv: { mode: string }) => {
     webviewConfig,
     contentCreatorMenuWebviewConfig,
     playbookExplorerWebviewConfig,
-    createDevfileWebviewConfig,
     quickLinksWebviewConfig,
     createExecutionEnvWebviewConfig,
   ];
