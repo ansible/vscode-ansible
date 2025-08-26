@@ -438,7 +438,7 @@ jobs:
           delete-merged: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: .
 
@@ -523,7 +523,7 @@ jobs:
           node-version-file: .tool-versions
 
       - name: Download the artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
 
@@ -559,7 +559,7 @@ jobs:
       - check
     steps:
       - name: Download the artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
