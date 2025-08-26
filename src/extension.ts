@@ -73,7 +73,7 @@ import {
   PlaybookFeedbackEvent,
   RoleFeedbackEvent,
 } from "./interfaces/lightspeed";
-import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
+import { MainPanel as CreateDevfilePanel } from "./features/contentCreator/vue/views/createDevfilePanel";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
@@ -598,7 +598,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-devfile",
       () => {
-        CreateDevfile.render(context.extensionUri);
+        CreateDevfilePanel.render(context);
       },
     ),
   );

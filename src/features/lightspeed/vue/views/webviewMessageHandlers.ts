@@ -6,6 +6,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import { Uri, workspace, window } from "vscode";
 import { v4 as uuidv4 } from "uuid";
+import { randomUUID } from "crypto";
 import { TextEncoder } from "util";
 import { lightSpeedManager } from "../../../../extension";
 import { isError, UNKNOWN_ERROR } from "../../utils/errors";
@@ -22,6 +23,7 @@ import {
   PluginFormInterface,
   PatternFormInterface,
   DevcontainerFormInterface,
+  DevfileFormInterface,
   PostMessageEvent,
 } from "../../../contentCreator/types";
 
@@ -47,6 +49,7 @@ import { expandPath } from "../../../contentCreator/utils";
 import {
   DevcontainerImages,
   DevcontainerRecommendedExtensions,
+  DevfileImages,
 } from "../../../../definitions/constants";
 
 interface WebviewMessage {
@@ -85,6 +88,7 @@ export class WebviewMessageHandlers {
       "init-create-role": this.handleInitCreateRole.bind(this),
       "init-add-pattern": this.handleInitAddPattern.bind(this),
       "init-create-devcontainer": this.handleInitCreateDevcontainer.bind(this),
+      "init-create-devfile": this.handleInitCreateDevfile.bind(this),
       "check-ade-presence": this.handleCheckAdePresence.bind(this),
 
       // File operation handlers
@@ -99,6 +103,7 @@ export class WebviewMessageHandlers {
       "init-open-role-folder": this.handleInitOpenRoleFolder.bind(this),
       "init-open-devcontainer-folder":
         this.handleInitOpenDevcontainerFolder.bind(this),
+      "init-open-devfile": this.handleInitOpenDevfile.bind(this),
 
       // LightSpeed handlers
       explainPlaybook: this.handleExplainPlaybook.bind(this),
@@ -247,6 +252,15 @@ export class WebviewMessageHandlers {
     );
   }
 
+  private async handleInitCreateDevfile(
+    message: any,
+    webview: vscode.Webview,
+    context: vscode.ExtensionContext,
+  ) {
+    const payload = message.payload as DevfileFormInterface;
+    await this.runDevfileCreateProcess(payload, webview, context.extensionUri);
+  }
+
   private async handleCheckAdePresence(message: any, webview: vscode.Webview) {
     await this.creatorOps.isADEPresent(webview);
   }
@@ -296,6 +310,11 @@ export class WebviewMessageHandlers {
   private async handleInitOpenDevcontainerFolder(message: any) {
     const payload = message.payload;
     await this.fileOps.openFolderInWorkspaceDevcontainer(payload.projectUrl);
+  }
+
+  private async handleInitOpenDevfile(message: any) {
+    const payload = message.payload;
+    await this.fileOps.openDevfile(payload.projectUrl);
   }
 
   // LightSpeed Handlers
@@ -622,7 +641,6 @@ export class WebviewMessageHandlers {
       const expandedPath = expandPath(destinationUrl);
       const devcontainerDir = path.join(expandedPath, ".devcontainer");
 
-      // Create .devcontainer directory if it doesn't exist
       if (!fs.existsSync(devcontainerDir)) {
         fs.mkdirSync(devcontainerDir, { recursive: true });
       }
@@ -686,6 +704,104 @@ export class WebviewMessageHandlers {
 
         fs.writeFileSync(destinationFilePath, templateContent, "utf8");
       }
+    }
+  }
+
+  // Devfile Handlers
+  public async runDevfileCreateProcess(
+    payload: DevfileFormInterface,
+    webView: vscode.Webview,
+    extensionUri: vscode.Uri,
+  ) {
+    const { destinationPath, name, image, isOverwritten } = payload;
+    let commandResult: string;
+    let message: string;
+    let commandOutput = "";
+
+    commandOutput += `---------------------------------------- devfile generation logs ------------------------------------------\n`;
+
+    const destinationPathUrl = `${destinationPath}/devfile.yaml`;
+
+    const devfileExists = fs.existsSync(expandPath(destinationPathUrl));
+
+    const imageURL = this.getDevfileContainerImage(image);
+
+    if (devfileExists && !isOverwritten) {
+      message = `Error: Devfile already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
+      commandResult = "failed";
+    } else {
+      commandResult = this.createDevfile(
+        destinationPathUrl,
+        name,
+        imageURL,
+        extensionUri,
+      );
+      if (commandResult === "failed") {
+        message =
+          "ERROR: Could not create devfile. Please check that your destination path exists and write permissions are configured for it.";
+      } else {
+        message = `Creating new devfile at ${destinationPathUrl}`;
+      }
+    }
+    commandOutput += message;
+    console.debug(message);
+
+    const extSettings = new SettingsManager();
+    await extSettings.initialize();
+
+    await webView.postMessage({
+      command: "execution-log",
+      arguments: {
+        commandOutput: commandOutput,
+        projectUrl: destinationPathUrl,
+        status: commandResult,
+      },
+    } as PostMessageEvent);
+  }
+
+  private getDevfileContainerImage(dropdownImage: string): string {
+    const image = dropdownImage.split(" ")[0];
+    return DevfileImages[image as keyof typeof DevfileImages];
+  }
+
+  public createDevfile(
+    destinationUrl: string,
+    devfileName: string,
+    devfileImage: string,
+    extensionUri: vscode.Uri,
+  ) {
+    let devfile: string;
+    const relativeTemplatePath =
+      "resources/contentCreator/createDevfile/devfile-template.txt";
+
+    const expandedDestUrl = expandPath(destinationUrl);
+
+    const uuid = randomUUID().slice(0, 8);
+    const fullDevfileName = `${devfileName}-${uuid}`;
+
+    const absoluteTemplatePath = vscode.Uri.joinPath(
+      extensionUri,
+      relativeTemplatePath,
+    )
+      .toString()
+      .replace("file://", "");
+
+    try {
+      const dirPath = path.dirname(expandedDestUrl);
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+
+      devfile = fs.readFileSync(absoluteTemplatePath, "utf8");
+      devfile = devfile.replace("{{ dev_file_name }}", fullDevfileName);
+      devfile = devfile.replace("{{ dev_file_image }}", devfileImage);
+      fs.writeFileSync(expandedDestUrl, devfile);
+      return "passed";
+    } catch (err) {
+      console.error("Devfile could not be created. Error: ", err);
+      console.error("Expanded destination path:", expandedDestUrl);
+      console.error("Template path:", absoluteTemplatePath);
+      return "failed";
     }
   }
 }

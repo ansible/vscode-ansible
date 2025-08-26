@@ -158,4 +158,10 @@ export class FileOperations {
     const parsedUrl = Uri.parse(`vscode://file${devcontainerFileUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
+
+  public async openDevfile(fileUrl: string) {
+    const updatedUrl = expandPath(fileUrl);
+    const parsedUrl = Uri.parse(`vscode://file${updatedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
+  }
 }
