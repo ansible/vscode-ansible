@@ -3,7 +3,6 @@ import { onMounted, ref, computed } from 'vue';
 import { vscodeApi } from './lightspeed/src/utils';
 import '../media/welcomePage/style.css';
 import '../media/contentCreator/welcomePageStyle.css';
-const ansibleLogoRed = new URL('../media/contentCreator/icons/ansible-logo-red.png', import.meta.url).href;
 
 // State management
 const systemReadinessStatus = ref('');
@@ -18,6 +17,7 @@ interface Walkthrough {
 
 const walkthroughs = ref<Walkthrough[]>([]);
 const isLoading = ref(true);
+const logoUrl = ref('');
 
 // System status details
 const ansibleVersionStatus = ref('');
@@ -83,11 +83,15 @@ const handleSystemStatusUpdate = (data: any) => {
     ansibleDevEnvironmentStatus.value = data.details.ansibleDevEnvironment || '';
   }
 
-  if (data.walkthroughs) {
+    if (data.walkthroughs) {
     console.log('Setting walkthroughs:', data.walkthroughs);
     walkthroughs.value = data.walkthroughs;
   }
-
+  
+  if (data.logoUrl) {
+    logoUrl.value = data.logoUrl;
+  }
+  
   isLoading.value = false;
 };
 
@@ -234,7 +238,7 @@ onMounted(() => {
                   <button>
                     <div class="main-content">
                       <div class="icon-widget">
-                        <img :src="ansibleLogoRed" alt="Ansible" class="category-icon" />
+                        <img v-if="logoUrl" :src="logoUrl" alt="Ansible" class="category-icon" />
                       </div>
                       <div class="category-title">{{ walkthrough.title }}</div>
                     </div>
