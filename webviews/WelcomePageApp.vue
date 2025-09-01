@@ -67,13 +67,13 @@ const updateAnsibleCreatorAvailabilityStatus = () => {
 // Message handler for system status updates
 const handleSystemStatusUpdate = (data: any) => {
   console.log('Received system status update:', data);
-  
+
   if (data.systemReadiness) {
     systemReadinessStatus.value = data.systemReadiness.status;
     systemReadinessIcon.value = data.systemReadiness.icon;
     systemReadinessDescription.value = data.systemReadiness.description;
   }
-  
+
   if (data.details) {
     ansibleVersionStatus.value = data.details.ansibleVersion || '';
     ansibleLocationStatus.value = data.details.ansibleLocation || '';
@@ -82,12 +82,12 @@ const handleSystemStatusUpdate = (data: any) => {
     ansibleCreatorVersionStatus.value = data.details.ansibleCreatorVersion || '';
     ansibleDevEnvironmentStatus.value = data.details.ansibleDevEnvironment || '';
   }
-  
+
   if (data.walkthroughs) {
     console.log('Setting walkthroughs:', data.walkthroughs);
     walkthroughs.value = data.walkthroughs;
   }
-  
+
   isLoading.value = false;
 };
 
@@ -95,14 +95,14 @@ onMounted(() => {
   // Set up message listener
   window.addEventListener('message', (event) => {
     const message = event.data;
-    
+
     switch (message.type) {
       case 'system-status-update':
         handleSystemStatusUpdate(message.payload);
         break;
     }
   });
-  
+
   // Request initial system status
   updateAnsibleCreatorAvailabilityStatus();
 });
@@ -112,7 +112,7 @@ onMounted(() => {
   <div class="playbookGenerationContainer" :class="{ loading: isLoading }">
     <div class="playbookGenerationSlideCategories">
       <div class="playbookGenerationCategoriesContainer">
-        
+
         <!-- Header Section -->
         <div class="header">
           <h1 class="title caption">Ansible Development Tools</h1>
@@ -130,11 +130,11 @@ onMounted(() => {
 
         <!-- Left Column - Start and Learn Sections -->
         <div class="categories-column-left">
-          
+
           <!-- Start Section -->
           <div class="index-list start-container">
             <h2>Start</h2>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleCommandClick('ansible.lightspeed.playbookGeneration')">
@@ -143,7 +143,7 @@ onMounted(() => {
               </h3>
               <p>Create a lists of tasks that automatically execute for your specified inventory or groups of hosts.</p>
             </div>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleCommandClick('ansible.content-creator.create-ansible-project')">
@@ -152,7 +152,7 @@ onMounted(() => {
               </h3>
               <p>Create a foundational framework and structure for setting your Ansible project with playbooks, roles, variables, templates, and other files.</p>
             </div>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleCommandClick('ansible.content-creator.create-ansible-collection')">
@@ -161,7 +161,7 @@ onMounted(() => {
               </h3>
               <p>Create a structure for your Ansible collection that includes modules, plugins, molecule scenarios and tests.</p>
             </div>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleCommandClick('ansible.create-playbook-options')">
@@ -170,7 +170,7 @@ onMounted(() => {
               </h3>
               <p>Create a new playbook</p>
             </div>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleExternalLink('https://docs.redhat.com/en/documentation/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant/2.x_latest/html-single/red_hat_ansible_lightspeed_with_ibm_watsonx_code_assistant_user_guide/index#using-code-bot-for-suggestions_lightspeed-user-guide')">
@@ -184,7 +184,7 @@ onMounted(() => {
           <!-- Learn Section -->
           <div class="index-list start-container">
             <h2>Learn</h2>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleExternalLink('https://docs.ansible.com')">
@@ -194,7 +194,7 @@ onMounted(() => {
               </h3>
               <p>Explore Ansible documentation, examples and more.</p>
             </div>
-            
+
             <div class="catalogue">
               <h3>
                 <a href="#" @click.prevent="handleExternalLink('https://docs.ansible.com/ansible/latest/getting_started/index.html')">
@@ -204,7 +204,7 @@ onMounted(() => {
               </h3>
               <p>End to end course that will help you master automation development.</p>
             </div>
-            
+
             <div class="catalogue">
               <h3>Once you are in the YAML file:</h3>
               <p>click Ctrl+L to fire the Ansible Lightspeed AI assistance for editing and explaining code.</p>
@@ -225,8 +225,8 @@ onMounted(() => {
               </div>
 
               <ul id="walkthrough-list" v-if="walkthroughs.length > 0">
-                <li 
-                  v-for="walkthrough in walkthroughs" 
+                <li
+                  v-for="walkthrough in walkthroughs"
                   :key="walkthrough.id"
                   class="walkthrough-item"
                   @click="handleWalkthroughClick(walkthrough.id)"
@@ -242,13 +242,13 @@ onMounted(() => {
                   </button>
                 </li>
               </ul>
-              
+
               <div v-else class="no-walkthroughs">
                 <p>Loading walkthroughs...</p>
               </div>
             </div>
           </div>
-          
+
           <div class="shadow"></div>
           <div class="shadow"></div>
           <div class="shadow"></div>
@@ -258,7 +258,7 @@ onMounted(() => {
         <div class="footer">
           <p></p>
         </div>
-        
+
       </div>
     </div>
   </div>
