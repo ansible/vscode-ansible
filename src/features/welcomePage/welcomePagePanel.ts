@@ -2,6 +2,22 @@ import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import * as vscode from "vscode";
 import { ViewColumn, window } from "vscode";
 
+interface WebviewMessage {
+  type: string;
+  payload: {
+    id?: string;
+    command?: string;
+    url?: string;
+  };
+}
+
+interface Walkthrough {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
+
 export class WelcomePagePanel {
   public static currentPanel: WelcomePagePanel | undefined;
   private readonly _panel: WebviewPanel;
@@ -63,16 +79,22 @@ export class WelcomePagePanel {
     });
   }
 
-  private async handleMessage(message: any) {
+  private async handleMessage(message: WebviewMessage) {
     switch (message.type) {
       case "walkthrough-click":
-        await this.handleWalkthroughClick(message.payload.id);
+        if (message.payload.id) {
+          await this.handleWalkthroughClick(message.payload.id);
+        }
         break;
       case "command-click":
-        await this.handleCommandClick(message.payload.command);
+        if (message.payload.command) {
+          await this.handleCommandClick(message.payload.command);
+        }
         break;
       case "external-link":
-        await this.handleExternalLink(message.payload.url);
+        if (message.payload.url) {
+          await this.handleExternalLink(message.payload.url);
+        }
         break;
       case "check-system-status":
         await this.handleSystemStatusCheck();
@@ -123,7 +145,6 @@ export class WelcomePagePanel {
         systemDetails["ansible version"] && systemDetails["ansible location"];
       const hasPython =
         systemDetails["python version"] && systemDetails["python location"];
-      const hasAnsibleCreator = systemDetails["ansible-creator version"];
 
       // Determine system readiness
       const isSystemReady = hasAnsible && hasPython;
@@ -179,7 +200,7 @@ export class WelcomePagePanel {
       const walkthroughs =
         extension?.packageJSON?.contributes?.walkthroughs || [];
 
-      return walkthroughs.map((walkthrough: any) => ({
+      return walkthroughs.map((walkthrough: Walkthrough) => ({
         id: walkthrough.id,
         title: walkthrough.title,
         description: walkthrough.description,
