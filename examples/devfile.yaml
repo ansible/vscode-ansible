@@ -1,0 +1,15 @@
+schemaVersion: 2.2.2
+metadata:
+  name: examples-b9ba1138
+components:
+  - name: tooling-container
+    container:
+      image: ghcr.io/ansible/ansible-devspaces:latest
+      memoryRequest: 256M
+      memoryLimit: 6Gi
+      cpuRequest: 250m
+      cpuLimit: 2000m
+      args: ["tail", "-f", "/dev/null"]
+      env:
+        - name: KUBEDOCK_ENABLED
+          value: "true"

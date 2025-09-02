@@ -11,7 +11,7 @@ export default defineConfig({
         //minify: false,
       },
       webview: {
-        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}' 'unsafe-inline'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}};">`,
+        csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}' 'unsafe-inline'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}}; img-src 'self' {{cspSource}} https: data:;">`,
       },
     }),
     vue({
@@ -65,6 +65,7 @@ export default defineConfig({
           __dirname,
           "webviews/create-devfile.html",
         ),
+        "welcome-page": path.resolve(__dirname, "webviews/welcome-page.html"),
       },
     },
   },
