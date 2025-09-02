@@ -28,13 +28,10 @@ export class WelcomePagePanel {
     this._panel = panel;
     this.context = context;
 
-    // Set up the panel lifecycle
     this._panel.onDidDispose(() => this.dispose(), null, this._disposables);
 
-    // Set up the HTML content using Vite
     this._panel.webview.html = this.getWebviewHtml(context);
 
-    // Set up message listener
     this._panel.webview.onDidReceiveMessage(
       async (message) => {
         await this.handleMessage(message);
@@ -70,9 +67,7 @@ export class WelcomePagePanel {
 
   private getWebviewHtml(context: ExtensionContext): string {
     return __getWebviewHtml__({
-      // vite dev mode
       serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/welcome-page.html`,
-      // vite prod mode
       webview: this._panel.webview,
       context,
       inputName: "welcome-page",
@@ -103,7 +98,6 @@ export class WelcomePagePanel {
   }
 
   private async handleWalkthroughClick(walkthroughId: string) {
-    // Execute walkthrough command with proper extension prefix
     const fullWalkthroughId = `redhat.ansible#${walkthroughId}`;
     await vscode.commands.executeCommand(
       "workbench.action.openWalkthrough",
@@ -112,12 +106,10 @@ export class WelcomePagePanel {
   }
 
   private async handleCommandClick(command: string) {
-    // Execute VS Code command
     await vscode.commands.executeCommand(command);
   }
 
   private async handleExternalLink(url: string) {
-    // Open external link
     await vscode.env.openExternal(vscode.Uri.parse(url));
   }
 
@@ -131,28 +123,22 @@ export class WelcomePagePanel {
     );
     const logoUri = this._panel.webview.asWebviewUri(logoPath).toString();
 
-    // Get system details and send back to webview
     try {
-      // Import the system details utility
       const { getSystemDetails } = await import("../utils/getSystemDetails");
       const systemDetails = await getSystemDetails();
 
-      // Get walkthroughs from extension
       const walkthroughs = this.getWalkthroughs();
 
-      // Check if essential tools are available
       const hasAnsible =
         systemDetails["ansible version"] && systemDetails["ansible location"];
       const hasPython =
         systemDetails["python version"] && systemDetails["python location"];
 
-      // Determine system readiness
       const isSystemReady = hasAnsible && hasPython;
       const statusDescription = isSystemReady
         ? "All the tools are installed.\nYour environment is ready and you can start creating ansible content."
         : "Some required tools are missing. Please install Ansible and Python to get started.";
 
-      // Send system status update to webview
       this._panel.webview.postMessage({
         type: "system-status-update",
         payload: {
@@ -177,7 +163,6 @@ export class WelcomePagePanel {
     } catch (error) {
       console.error("Error checking system status:", error);
 
-      // Send error state
       this._panel.webview.postMessage({
         type: "system-status-update",
         payload: {
@@ -195,7 +180,6 @@ export class WelcomePagePanel {
 
   private getWalkthroughs() {
     try {
-      // Get walkthroughs from extension package.json
       const extension = vscode.extensions.getExtension("redhat.ansible");
       const walkthroughs =
         extension?.packageJSON?.contributes?.walkthroughs || [];
@@ -204,7 +188,7 @@ export class WelcomePagePanel {
         id: walkthrough.id,
         title: walkthrough.title,
         description: walkthrough.description,
-        icon: walkthrough.icon || "compass-active", // Default icon
+        icon: walkthrough.icon || "compass-active",
       }));
     } catch (error) {
       console.error("Error getting walkthroughs:", error);

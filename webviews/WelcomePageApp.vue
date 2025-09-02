@@ -4,7 +4,6 @@ import { vscodeApi } from './lightspeed/src/utils';
 import '../media/welcomePage/style.css';
 import '../media/contentCreator/welcomePageStyle.css';
 
-// State management
 const systemReadinessStatus = ref('');
 const systemReadinessIcon = ref('');
 const systemReadinessDescription = ref('');
@@ -19,7 +18,6 @@ const walkthroughs = ref<Walkthrough[]>([]);
 const isLoading = ref(true);
 const logoUrl = ref('');
 
-// System status details
 const ansibleVersionStatus = ref('');
 const ansibleLocationStatus = ref('');
 const pythonVersionStatus = ref('');
@@ -27,7 +25,6 @@ const pythonLocationStatus = ref('');
 const ansibleCreatorVersionStatus = ref('');
 const ansibleDevEnvironmentStatus = ref('');
 
-// Computed properties
 const hasSystemStatus = computed(() => {
   return systemReadinessStatus.value !== '';
 });
@@ -36,7 +33,6 @@ const isSystemReady = computed(() => {
   return systemReadinessIcon.value === 'pass';
 });
 
-// Event handlers
 const handleWalkthroughClick = (walkthroughId: string) => {
   vscodeApi.postMessage({
     type: 'walkthrough-click',
@@ -64,7 +60,6 @@ const updateAnsibleCreatorAvailabilityStatus = () => {
   });
 };
 
-// Message handler for system status updates
 const handleSystemStatusUpdate = (data: any) => {
   console.log('Received system status update:', data);
 
@@ -96,7 +91,7 @@ const handleSystemStatusUpdate = (data: any) => {
 };
 
 onMounted(() => {
-  // Set up message listener
+
   window.addEventListener('message', (event) => {
     const message = event.data;
 
@@ -107,7 +102,6 @@ onMounted(() => {
     }
   });
 
-  // Request initial system status
   updateAnsibleCreatorAvailabilityStatus();
 });
 </script>

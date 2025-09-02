@@ -79,7 +79,6 @@ describe("Verify welcome page is displayed as expected", function () {
       By.xpath("//h1[text()='Ansible Development Tools']"),
     );
 
-    // Wait for the page to finish loading (isLoading = false)
     await waitForCondition({
       condition: async () => {
         try {
@@ -120,7 +119,6 @@ describe("Verify welcome page is displayed as expected", function () {
       By.className("index-list start-container"),
     );
 
-    // Wait for the page to finish loading (isLoading = false)
     await waitForCondition({
       condition: async () => {
         try {
