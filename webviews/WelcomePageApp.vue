@@ -82,11 +82,11 @@ const handleSystemStatusUpdate = (data: any) => {
     console.log('Setting walkthroughs:', data.walkthroughs);
     walkthroughs.value = data.walkthroughs;
   }
-  
+
   if (data.logoUrl) {
     logoUrl.value = data.logoUrl;
   }
-  
+
   isLoading.value = false;
 };
 
