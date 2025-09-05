@@ -33,12 +33,17 @@ a .codicon {
 	display: flex;
 	flex-direction: row;
 	margin-top: 14px;
-	background-color: var(--vscode-input-background);
+	padding: 12px 16px;
+	background-color: rgba(255, 255, 255, 0.08);
+	border: 1px solid rgba(255, 255, 255, 0.15);
+	border-radius: 6px;
 }
 
 .codicon.codicon-pass {
-	margin: 10px;
-	color: green;
+	margin: 0 8px 0 0;
+	color: #73C991;
+	font-size: 16px;
+	align-self: flex-start;
 }
 
 
@@ -61,7 +66,14 @@ a .codicon {
 
 .system-description {
 	padding: 0px;
-	margin: 6px;
+	margin: 0;
+	flex: 1;
+}
+
+.system-description p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.4;
 }
 
 #system-check {
@@ -229,7 +241,7 @@ a .codicon {
 }
 
 .playbookGenerationContainer.width-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header,
-.playbookGenerationContainer.height-constrained .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer>.header {
+.playbookGenerationContainer.height-constrained .playbookGenerationCategoriesContainer>.header {
 	display: none;
 }
 
@@ -243,10 +255,7 @@ a .codicon {
 }
 
 .statusDisplay {
-	border-color: var(--panel-view-border);
-	border-width: thin;
-	border-style: solid;
-	border-radius: 4px;
+	/* Styling handled by specific selectors like #system-readiness */
 }
 
 .playbookGenerationContainer .playbookGenerationSlideCategories>.playbookGenerationCategoriesContainer > .header > .subtitle {
@@ -280,8 +289,9 @@ ul#walkthrough-list button {
     font-family: inherit;
     font-size: 13px;
     margin: 1px 0;
-    padding: 16px;
+    padding: 12px;
     text-align: left;
+    width: 100%;
 }
 
 ul#walkthrough-list button:hover {
@@ -298,14 +308,13 @@ ul#walkthrough-list > .walkthrough-item {
 	border-radius: 6px;
     overflow: hidden;
     position: relative;
-
 	box-sizing: border-box;
     font-size: 13px;
     line-height: normal;
-    margin: 8px 8px 8px 0;
-    padding: 3px 6px 6px;
+    margin: 4px 4px 4px 0;
+    padding: 8px 12px;
     text-align: left;
-    width: calc(100% - 16px);
+    width: calc(100% - 8px);
 }
 
 ul#walkthrough-list > .walkthrough-item .featured-badge {

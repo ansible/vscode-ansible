@@ -60,7 +60,7 @@ import { findProjectDir } from "./features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
-import { AnsibleWelcomePage } from "./features/welcomePage";
+import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
@@ -560,7 +560,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // open ansible-content-creator menu
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.menu", () => {
-      AnsibleWelcomePage.render(context.extensionUri);
+      WelcomePagePanel.render(context);
     }),
   );
 
