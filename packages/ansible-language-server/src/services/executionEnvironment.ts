@@ -372,7 +372,7 @@ export class ExecutionEnvironment {
         ["ps", "-q", "--filter", `name=${containerName}`],
         { encoding: "utf-8", shell: false },
       );
-      runningContainers = result.stdout.toString().trim();
+      runningContainers = result.stdout.trim();
     } catch {
       runningContainers = "";
     }
@@ -405,7 +405,7 @@ export class ExecutionEnvironment {
         ["container", "ls", "-aq", "-f", `name=${containerName}`],
         { encoding: "utf-8", shell: false },
       );
-      allContainers = result.stdout.toString().trim();
+      allContainers = result.stdout.trim();
     } catch {
       allContainers = "";
     }
@@ -443,7 +443,7 @@ export class ExecutionEnvironment {
         ["container", "ls", "-aq", "-f", `name=${containerName}`],
         { encoding: "utf-8", shell: false },
       );
-      containerNameExist = result.stdout.toString().trim() !== "";
+      containerNameExist = result.stdout.trim() !== "";
     } catch {
       containerNameExist = false;
     }
