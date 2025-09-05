@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { getDocUri, activate, testHover } from "../../helper";
 
 export function testHoverWithoutEE(): void {
-  describe("TEST FOR HOVER WITHOUT EE", function () {
+  describe("hover-no-ee", function () {
     const docUri1 = getDocUri("hover/without_ee/1.yml");
 
     before(async function () {

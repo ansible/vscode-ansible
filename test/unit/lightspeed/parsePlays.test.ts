@@ -8,7 +8,7 @@ function parseYaml(yamlString: string) {
   });
 }
 
-describe("Test parsePlays", function () {
+describe("parsePlays", function () {
   it("Test a playbook with tasks", function () {
     const PLAYBOOK = `---
 - name: Test 1

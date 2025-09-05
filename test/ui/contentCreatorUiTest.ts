@@ -69,7 +69,7 @@ describe("Content Creator UI Tests", function () {
     await sleep(2000);
   });
 
-  describe("Test execution-environment project scaffolding at default path", function () {
+  describe("ee-project-scaffolding-at-default-path", function () {
     it("Check execution-environment webview elements", async function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
@@ -121,7 +121,7 @@ describe("Content Creator UI Tests", function () {
     });
   });
 
-  describe("Test Ansible playbook and collection project scaffolding at provided path", function () {
+  describe("Ansible playbook and collection project scaffolding at provided path", function () {
     let editorView: EditorView;
 
     async function testWebViewElements(command: string, editorTitle: string) {
@@ -193,7 +193,7 @@ describe("Content Creator UI Tests", function () {
     });
   });
 
-  describe("Test Ansible playbook and collection project scaffolding at default path", function () {
+  describe("Ansible playbook and collection project scaffolding at default path", function () {
     let createButton: WebElement;
     let editorView: EditorView;
 
@@ -280,7 +280,7 @@ describe("Content Creator UI Tests", function () {
     });
   });
 
-  describe("Test collection plugins scaffolding", function () {
+  describe("collection plugins scaffolding", function () {
     let createButton: WebElement;
     let editorView: EditorView;
 
@@ -522,7 +522,7 @@ describe("Content Creator UI Tests", function () {
     });
   });
 
-  describe("Test role scaffolding in an existing collection", function () {
+  describe("role scaffolding in an existing collection", function () {
     let editorView: EditorView;
 
     async function testWebViewElements(command: string, editorTitle: string) {

@@ -41,7 +41,7 @@ before(function () {
   }
 });
 
-describe("Verify Role generation feature works as expected", function () {
+describe("Role generation feature works", function () {
   let workbench: Workbench;
 
   before(async function () {
@@ -85,7 +85,7 @@ describe("Verify Role generation feature works as expected", function () {
     }
   });
 
-  it("Role generation webview works as expected", async function () {
+  it("Role generation webview works", async function () {
     await workbenchExecuteCommand("Ansible Lightspeed: Role generation");
     let webView = await getWebviewByLocator(
       By.xpath("//*[text()='Create a role with Ansible Lightspeed']"),

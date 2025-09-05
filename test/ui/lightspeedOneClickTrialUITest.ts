@@ -36,7 +36,7 @@ before(function () {
   }
 });
 
-describe("Test One Click Trial feature", function () {
+describe("One Click Trial feature", function () {
   let workbench: Workbench;
   let explorerView: WebviewView;
   let modalDialog: ModalDialog;

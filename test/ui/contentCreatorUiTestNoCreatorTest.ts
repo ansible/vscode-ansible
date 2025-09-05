@@ -56,7 +56,7 @@ afterEach(async function () {
 });
 
 describe(__filename, function () {
-  describe("Test devfile generation webview (without creator)", function () {
+  describe("devfile generation webview (without creator)", function () {
     it("Check create-devfile webview elements", async function () {
       const devfileWebview = await openCreateWebview(
         "Ansible: Create a Devfile",
@@ -94,7 +94,7 @@ describe(__filename, function () {
     });
   });
 
-  describe("Test devcontainer generation webview (without creator)", function () {
+  describe("devcontainer generation webview (without creator)", function () {
     it("Check create-devcontainer webview elements", async function () {
       const devcontainerWebview = await openCreateWebview(
         "Ansible: Create a Devcontainer",
@@ -140,7 +140,7 @@ describe(__filename, function () {
     });
   });
 
-  describe("Test execution-environment generation webview (without creator)", function () {
+  describe("execution-environment generation webview (without creator)", function () {
     it("Check execution-environment webview elements", async function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",

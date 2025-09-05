@@ -15,7 +15,7 @@ import {
 
 config.truncateThreshold = 0;
 describe(__filename, function () {
-  describe("Verify the execution of playbook using ansible-playbook command", function () {
+  describe("execution of playbook using ansible-playbook command", function () {
     let workbench: Workbench;
     let settingsEditor: SettingsEditor;
     const folder = "terminal";
@@ -62,7 +62,7 @@ describe(__filename, function () {
     });
   });
 
-  describe("Verify the execution of playbook using ansible-navigator command", function () {
+  describe("execution of playbook using ansible-navigator command", function () {
     let workbench: Workbench;
     let settingsEditor: SettingsEditor;
     const folder = "terminal";

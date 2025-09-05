@@ -500,7 +500,7 @@ export function testLightspeed(): void {
         feedbackRequest.returns(Promise.resolve());
       });
 
-      describe("Test suggestion functions.", function () {
+      describe("suggestion-functions", function () {
         it("Test Reject pending suggestion.", async function () {
           inlineSuggestionsEnabled.returns(true);
           isSuggestionFeedbackInProgress.returns(false);
