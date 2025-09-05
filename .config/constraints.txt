@@ -7,7 +7,7 @@ ansible-navigator==25.5.0
 ansible-runner==2.4.1
 attrs==25.3.0
 babel==2.17.0
-backrefs==6.0.1
+backrefs==5.9
 beautifulsoup4==4.13.5
 bindep==2.13.0
 black==25.1.0
