@@ -199,7 +199,7 @@ jobs:
           direnvVersion: 2.36.0
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -539,7 +539,7 @@ jobs:
           ls -la *.vsix
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
