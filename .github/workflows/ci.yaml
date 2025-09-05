@@ -451,7 +451,7 @@ jobs:
 
       - name: Upload als test coverage data [1/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.0
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: als
           files: ./**/coverage/als/cobertura-coverage.xml
@@ -462,7 +462,7 @@ jobs:
 
       - name: Upload unit test coverage data [2/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.0
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: unit
           files: ./**/coverage/unit/*cobertura-coverage.xml
@@ -473,7 +473,7 @@ jobs:
 
       - name: Upload ui test coverage data [3/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.0
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: ui
           files: ./**/coverage/ui/*cobertura-coverage.xml
@@ -484,7 +484,7 @@ jobs:
 
       - name: Upload e2e test coverage data [4/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.0
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: e2e
           files: ./**/coverage/e2e/*cobertura-coverage.xml
