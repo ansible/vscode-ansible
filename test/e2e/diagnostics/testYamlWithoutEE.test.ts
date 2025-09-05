@@ -17,6 +17,12 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     });
 
     describe("yaml-diag-ansible-lint", function () {
+      before(async function () {
+        if (process.env.IS_WSL === "1") {
+          this.skip();
+        }
+      });
+
       it("should provide diagnostics with YAML validation (with ansible-lint)", async function () {
         await activate(docUri1);
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file

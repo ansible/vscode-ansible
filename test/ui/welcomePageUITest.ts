@@ -11,6 +11,7 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   sleep,
+  waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -78,6 +79,22 @@ describe("welcome page is displayed", function () {
       By.xpath("//h1[text()='Ansible Development Tools']"),
     );
 
+    await waitForCondition({
+      condition: async () => {
+        try {
+          const loadingContainer = await welcomePageWebView.findWebElement(
+            By.className("playbookGenerationContainer"),
+          );
+          const classAttr = await loadingContainer.getAttribute("class");
+          return !classAttr.includes("loading");
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for welcome page to finish loading",
+      timeout: 10000,
+    });
+
     const adtHeaderTitle = await welcomePageWebView.findWebElement(
       By.xpath("//h1[text()='Ansible Development Tools']"),
     );
@@ -102,6 +119,22 @@ describe("welcome page is displayed", function () {
       By.className("index-list start-container"),
     );
 
+    await waitForCondition({
+      condition: async () => {
+        try {
+          const loadingContainer = await welcomePageWebView.findWebElement(
+            By.className("playbookGenerationContainer"),
+          );
+          const classAttr = await loadingContainer.getAttribute("class");
+          return !classAttr.includes("loading");
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for welcome page to finish loading",
+      timeout: 10000,
+    });
+
     const startSection = await welcomePageWebView.findWebElement(
       By.className("index-list start-container"),
     );
@@ -116,16 +149,34 @@ describe("welcome page is displayed", function () {
       "Playbook with Ansible Lightspeed",
     );
 
+    // Wait for walkthroughs to load before checking them
+    await waitForCondition({
+      condition: async () => {
+        try {
+          const walkthroughItems = await welcomePageWebView.findWebElements(
+            By.className("walkthrough-item"),
+          );
+          return walkthroughItems.length >= 2;
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for walkthrough items to load",
+      timeout: 10000,
+    });
+
     const walkthroughSection = await getWebviewByLocator(
-      By.xpath("//button[@class='walkthrough-item']"),
+      By.className("walkthrough-item"),
     );
     const walkthroughItems = await walkthroughSection.findWebElements(
-      By.xpath("//button[@class='walkthrough-item']"),
+      By.className("walkthrough-item"),
     );
     expect(walkthroughItems.length).to.greaterThanOrEqual(2);
 
     const firstWalkthrough = await walkthroughSection.findWebElement(
-      By.xpath("//h3[contains(text(), 'Create an Ansible environment')]"),
+      By.xpath(
+        "//div[@class='category-title'][contains(text(), 'Create an Ansible environment')]",
+      ),
     );
     expect(await firstWalkthrough.getText()).to.equal(
       "Create an Ansible environment",

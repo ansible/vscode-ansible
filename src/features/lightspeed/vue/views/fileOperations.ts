@@ -150,4 +150,18 @@ export class FileOperations {
     const parsedUrl = Uri.parse(`vscode://file${targetFileUrl}`);
     this.openFileInEditor(parsedUrl.toString());
   }
+
+  public async openFolderInWorkspaceDevcontainer(folderUrl: string) {
+    await this.openFolderInWorkspaceCore(folderUrl);
+
+    const devcontainerFileUrl = `${folderUrl}/.devcontainer/devcontainer.json`;
+    const parsedUrl = Uri.parse(`vscode://file${devcontainerFileUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
+  }
+
+  public async openDevfile(fileUrl: string) {
+    const updatedUrl = expandPath(fileUrl);
+    const parsedUrl = Uri.parse(`vscode://file${updatedUrl}`);
+    this.openFileInEditor(parsedUrl.toString());
+  }
 }
