@@ -154,7 +154,7 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        uses: actions/setup-node@v4.4.0
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           # yarn cache is broken due https://github.com/actions/setup-node/issues/531
@@ -199,7 +199,7 @@ jobs:
           direnvVersion: 2.36.0
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -516,7 +516,7 @@ jobs:
           npm config set fund false
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
@@ -539,7 +539,7 @@ jobs:
           ls -la *.vsix
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -564,7 +564,7 @@ jobs:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
       # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
