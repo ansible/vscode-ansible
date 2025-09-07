@@ -7,7 +7,7 @@ ansible-navigator==25.5.0
 ansible-runner==2.4.1
 attrs==25.3.0
 babel==2.17.0
-backrefs==5.9
+backrefs==6.0.1
 beautifulsoup4==4.13.5
 bindep==2.13.0
 black==25.1.0
@@ -35,7 +35,7 @@ gitpython==3.1.45
 griffe==1.14.0
 hjson==3.1.0
 htmlmin2==0.1.13
-identify==2.6.13
+identify==2.6.14
 idna==3.10
 importlib-metadata==8.7.0
 jinja2==3.1.6
