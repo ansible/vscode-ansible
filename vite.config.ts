@@ -66,6 +66,10 @@ export default defineConfig({
           "webviews/create-devfile.html",
         ),
         "welcome-page": path.resolve(__dirname, "webviews/welcome-page.html"),
+        "create-execution-env": path.resolve(
+          __dirname,
+          "webviews/create-execution-env.html",
+        ),
       },
     },
   },
