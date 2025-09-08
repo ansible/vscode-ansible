@@ -45,4 +45,3 @@ export class MainPanel {
     disposePanelResources(this._panel, this._disposables);
   }
 }
-
