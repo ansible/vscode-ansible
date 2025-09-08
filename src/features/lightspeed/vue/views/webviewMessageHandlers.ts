@@ -942,7 +942,10 @@ export class WebviewMessageHandlers {
         }
       }
 
-      if (isCreateContextEnabled) {
+      if (
+        isCreateContextEnabled &&
+        (executionFileCreated || isInitEEProjectEnabled)
+      ) {
         const createContextCommand = `ansible-builder create --file ${filePath} --context ${destinationPathUrl}/context`;
         const createContextResult =
           await this.runAnsibleBuilderCommand(createContextCommand);
@@ -955,7 +958,10 @@ export class WebviewMessageHandlers {
         }
       }
 
-      if (isBuildImageEnabled) {
+      if (
+        isBuildImageEnabled &&
+        (executionFileCreated || isInitEEProjectEnabled)
+      ) {
         await webView.postMessage({
           command: "execution-log",
           arguments: {

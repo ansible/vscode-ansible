@@ -52,6 +52,10 @@ const displayDestinationPath = computed(() => {
   return path ? `${path}/execution-environment.yml` : "No folders are open in the workspace - Enter a destination directory.";
 });
 
+const isCreateContextDisabled = computed(() => {
+  return buildImage.value;
+});
+
 const isFormValid = createFormValidator({
   mainValidation: () => {
     const isDestinationPathProvided = destinationPath.value.trim() !== '' || homeDir.value !== '';
@@ -425,6 +429,7 @@ onMounted(() => {
           <vscode-checkbox
             id="createContext-checkbox"
             :checked="createContext"
+            :disabled="isCreateContextDisabled"
             @change="createContext = ($event.target as HTMLInputElement).checked"
             form="init-form"
           >
