@@ -58,7 +58,7 @@ const isFormValid = createFormValidator({
     const isTagProvided = tag.value.trim() !== '';
     const isBaseImageProvided = baseImage.value.trim() !== '' || customBaseImage.value.trim() !== '';
     const isInitEEProjectEnabled = initEEProject.value;
-    
+
     // Original logic: enabled if initEEProject is checked OR (destination + tag + baseImage)
     return isInitEEProjectEnabled || (isDestinationPathProvided && isTagProvided && isBaseImageProvided);
   }
@@ -108,7 +108,7 @@ const handleCreate = createActionWrapper(
   createButtonDisabled,
   () => {
     openFileButtonDisabled.value = true;
-    
+
     // Validate base image if context or build is enabled
     if (createContext.value || buildImage.value) {
       if (!baseImage.value.trim() && !customBaseImage.value.trim()) {
@@ -123,11 +123,11 @@ const handleCreate = createActionWrapper(
     const selectedSuggested = Object.entries(suggestedCollections.value)
       .filter(([_, selected]) => selected)
       .map(([name, _]) => name);
-    
-    const additionalCollections = collections.value.trim() 
+
+    const additionalCollections = collections.value.trim()
       ? collections.value.split(',').map(c => c.trim()).filter(c => c.length > 0)
       : [];
-    
+
     const finalCollections = [...selectedSuggested, ...additionalCollections]
       .filter(c => c.length > 0)
       .join(', ');
@@ -178,12 +178,12 @@ const onClear = () => {
     initEEProject: false
   };
   clearAllFields(componentFields, defaults);
-  
+
   // Reset suggested collections
   Object.keys(suggestedCollections.value).forEach(key => {
     suggestedCollections.value[key] = false;
   });
-  
+
   openFileButtonDisabled.value = true;
   createButtonDisabled.value = true;
   isCreating.value = false;
@@ -220,7 +220,7 @@ onMounted(() => {
       } else {
         openFileButtonDisabled.value = true;
       }
-      
+
       isCreating.value = false;
       updateCreateButtonState();
     }
@@ -319,31 +319,31 @@ onMounted(() => {
               <span class="normal">Suggested collections</span>
             </vscode-label>
             <div id="suggestedCollections-checkboxes">
-              <vscode-checkbox 
+              <vscode-checkbox
                 v-model="suggestedCollections['amazon.aws']"
                 :checked="suggestedCollections['amazon.aws']"
                 @change="suggestedCollections['amazon.aws'] = ($event.target as HTMLInputElement).checked"
                 value="amazon.aws"
               >amazon.aws</vscode-checkbox>
-              <vscode-checkbox 
+              <vscode-checkbox
                 v-model="suggestedCollections['ansible.network']"
                 :checked="suggestedCollections['ansible.network']"
                 @change="suggestedCollections['ansible.network'] = ($event.target as HTMLInputElement).checked"
                 value="ansible.network"
               >ansible.network</vscode-checkbox>
-              <vscode-checkbox 
+              <vscode-checkbox
                 v-model="suggestedCollections['ansible.posix']"
                 :checked="suggestedCollections['ansible.posix']"
                 @change="suggestedCollections['ansible.posix'] = ($event.target as HTMLInputElement).checked"
                 value="ansible.posix"
               >ansible.posix</vscode-checkbox>
-              <vscode-checkbox 
+              <vscode-checkbox
                 v-model="suggestedCollections['ansible.utils']"
                 :checked="suggestedCollections['ansible.utils']"
                 @change="suggestedCollections['ansible.utils'] = ($event.target as HTMLInputElement).checked"
                 value="ansible.utils"
               >ansible.utils</vscode-checkbox>
-              <vscode-checkbox 
+              <vscode-checkbox
                 v-model="suggestedCollections['kubernetes.core']"
                 :checked="suggestedCollections['kubernetes.core']"
                 @change="suggestedCollections['kubernetes.core'] = ($event.target as HTMLInputElement).checked"
@@ -529,4 +529,3 @@ onMounted(() => {
     </form>
   </body>
 </template>
-
