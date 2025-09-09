@@ -608,7 +608,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-execution-env-file",
       () => {
-        CreateExecutionEnv.render(context.extensionUri);
+        CreateExecutionEnv.render(context);
       },
     ),
   );
