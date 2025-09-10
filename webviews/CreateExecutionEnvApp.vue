@@ -87,6 +87,8 @@ watch([buildImage], () => {
   if (buildImage.value) {
     createContext.value = true;
   }
+  // Note: When buildImage is false, createContext remains as user set it
+  // The disabled state is handled by the computed property isCreateContextDisabled
 });
 
 watch([destinationPath, tag, baseImage, customBaseImage, initEEProject, isCreating], () => {
