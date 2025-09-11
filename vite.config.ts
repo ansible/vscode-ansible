@@ -70,6 +70,7 @@ export default defineConfig({
           __dirname,
           "webviews/create-execution-env.html",
         ),
+        "quick-links": path.resolve(__dirname, "webviews/quick-links.html"),
       },
     },
   },

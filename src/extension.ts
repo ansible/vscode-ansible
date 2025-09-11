@@ -416,6 +416,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   const quickLinksHome = new QuickLinksWebviewViewProvider(
     context.extensionUri,
+    context,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(

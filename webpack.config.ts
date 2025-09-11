@@ -132,19 +132,6 @@ const webviewConfig = {
   },
 };
 
-const quickLinksWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/quickLinks/quickLinksApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/quickLinks/quickLinksApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const playbookExplorerWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -164,10 +151,5 @@ module.exports = (_env: any, argv: { mode: string }) => {
   if (argv.mode === "development") {
     delete config.entry.server;
   }
-  return [
-    config,
-    webviewConfig,
-    playbookExplorerWebviewConfig,
-    quickLinksWebviewConfig,
-  ];
+  return [config, webviewConfig, playbookExplorerWebviewConfig];
 };
