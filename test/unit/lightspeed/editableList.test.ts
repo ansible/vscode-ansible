@@ -3,7 +3,7 @@ import { JSDOM } from "jsdom";
 
 import { EditableList } from "../../../src/webview/apps/common/editableList";
 
-describe("Test EditableList", function () {
+describe("EditableList", function () {
   let dom: JSDOM;
   let domWithEmptyList: JSDOM;
   const SAMPLE_TEXT = `1. Do this

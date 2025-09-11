@@ -7,7 +7,7 @@ import {
 } from "../../helper";
 
 export function testHoverEE(): void {
-  describe("TEST FOR HOVER (WITH EE)", function () {
+  describe("hover-ee", function () {
     const docUri1 = getDocUri("hover/with_ee/1.yml");
 
     before(async function () {

@@ -6,7 +6,7 @@ import { getFixturePath, sleep, workbenchExecuteCommand } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook generation features work as expected", function () {
+describe("playbook generation features work", function () {
   beforeEach(function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
@@ -21,7 +21,7 @@ describe("Verify playbook generation features work as expected", function () {
     });
   });
 
-  it("Playbook explanation webview works as expected (feature unavailable)", async function () {
+  it("Playbook explanation webview works (feature unavailable)", async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }

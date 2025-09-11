@@ -99,7 +99,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   await workbenchExecuteCommand("View: Close All Editor Groups");
 }
 
-describe("Verify role explanation features work as expected", function () {
+describe("role explanation features work", function () {
   let workbench: Workbench;
 
   beforeEach(function () {
