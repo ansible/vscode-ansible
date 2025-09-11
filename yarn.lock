@@ -3157,7 +3157,7 @@ __metadata:
     primevue: "npm:4.3.9"
     react: "npm:^19.1.1"
     rimraf: "npm:^6.0.1"
-    selenium-webdriver: "npm:^4.35.0"
+    selenium-webdriver: "npm:^4.34.0"
     semver: "npm:^7.7.2"
     sinon: "npm:^21.0.0"
     ts-loader: "npm:^9.5.4"
@@ -8943,7 +8943,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.35.0":
+"selenium-webdriver@npm:^4.34.0":
   version: 4.35.0
   resolution: "selenium-webdriver@npm:4.35.0"
   dependencies:
