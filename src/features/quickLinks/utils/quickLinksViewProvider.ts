@@ -51,7 +51,7 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
     return this._getVueWebviewContent(webview, extensionUri);
   }
 
-  private _getVueWebviewContent(webview: Webview, extensionUri: Uri) {
+  private _getVueWebviewContent(webview: Webview, _extensionUri: Uri) {
     return __getWebviewHtml__({
       // vite dev mode
       serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/quick-links.html`,
