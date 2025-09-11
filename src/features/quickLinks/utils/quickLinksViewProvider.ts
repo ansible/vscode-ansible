@@ -1,18 +1,21 @@
 import {
   CancellationToken,
+  ExtensionContext,
   Uri,
   Webview,
   WebviewView,
   WebviewViewProvider,
   WebviewViewResolveContext,
 } from "vscode";
-import { getWebviewQuickLinks } from "../quickLinksView";
 import { getSystemDetails } from "../../utils/getSystemDetails";
 
 export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
   public static readonly viewType = "ansible-home";
 
-  constructor(private readonly _extensionUri: Uri) {
+  constructor(
+    private readonly _extensionUri: Uri,
+    private readonly _context: ExtensionContext,
+  ) {
     // no action
   }
 
@@ -44,7 +47,23 @@ export class QuickLinksWebviewViewProvider implements WebviewViewProvider {
   }
 
   private _getWebviewQuickLinks(webview: Webview, extensionUri: Uri) {
-    return getWebviewQuickLinks(webview, extensionUri);
+    // Use the new Vue-based webview
+    return this._getVueWebviewContent(webview, extensionUri);
+  }
+
+  private _getVueWebviewContent(
+    webview: Webview,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    extensionUri: Uri,
+  ) {
+    return __getWebviewHtml__({
+      // vite dev mode
+      serverUrl: `${process.env.VITE_DEV_SERVER_URL}webviews/quick-links.html`,
+      // vite prod mode
+      webview,
+      context: this._context,
+      inputName: "quick-links",
+    });
   }
 
   private _setWebviewMessageListener(webview: Webview) {

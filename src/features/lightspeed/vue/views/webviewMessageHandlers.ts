@@ -4,6 +4,8 @@ import * as os from "os";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
+import * as yaml from "yaml";
+import { execFile } from "child_process";
 import { Uri, workspace, window } from "vscode";
 import { v4 as uuidv4 } from "uuid";
 import { randomUUID } from "crypto";
@@ -24,6 +26,7 @@ import {
   PatternFormInterface,
   DevcontainerFormInterface,
   DevfileFormInterface,
+  AnsibleExecutionEnvInterface,
   PostMessageEvent,
 } from "../../../contentCreator/types";
 
@@ -45,7 +48,8 @@ import {
 } from "./fileOperations";
 import { AnsibleCreatorOperations } from "./ansibleCreatorUtils";
 import { ThumbsUpDownAction } from "../../../../definitions/lightspeed";
-import { expandPath } from "../../../contentCreator/utils";
+import { expandPath, runCommand } from "../../../contentCreator/utils";
+import { withInterpreter } from "../../../utils/commandRunner";
 import {
   DevcontainerImages,
   DevcontainerRecommendedExtensions,
@@ -89,6 +93,7 @@ export class WebviewMessageHandlers {
       "init-add-pattern": this.handleInitAddPattern.bind(this),
       "init-create-devcontainer": this.handleInitCreateDevcontainer.bind(this),
       "init-create-devfile": this.handleInitCreateDevfile.bind(this),
+      "init-create-execution-env": this.handleInitCreateExecutionEnv.bind(this),
       "check-ade-presence": this.handleCheckAdePresence.bind(this),
 
       // File operation handlers
@@ -104,6 +109,7 @@ export class WebviewMessageHandlers {
       "init-open-devcontainer-folder":
         this.handleInitOpenDevcontainerFolder.bind(this),
       "init-open-devfile": this.handleInitOpenDevfile.bind(this),
+      "init-open-scaffolded-file": this.handleInitOpenScaffoldedFile.bind(this),
 
       // LightSpeed handlers
       explainPlaybook: this.handleExplainPlaybook.bind(this),
@@ -128,11 +134,13 @@ export class WebviewMessageHandlers {
     webview: vscode.Webview,
     context: vscode.ExtensionContext,
   ) {
-    const handler = this.handlers[message.type];
+    // Support both 'type' and 'command' fields for message routing
+    const messageKey = message.type || (message as any).command;
+    const handler = this.handlers[messageKey];
     if (handler) {
       await handler(message, webview, context);
     } else {
-      console.warn(`Unknown message type: ${message.type}`);
+      console.warn(`Unknown message type/command: ${messageKey}`);
     }
   }
 
@@ -261,6 +269,14 @@ export class WebviewMessageHandlers {
     await this.runDevfileCreateProcess(payload, webview, context.extensionUri);
   }
 
+  private async handleInitCreateExecutionEnv(
+    message: any,
+    webview: vscode.Webview,
+  ) {
+    const payload = message.payload as AnsibleExecutionEnvInterface;
+    await this.runExecutionEnvCreateProcess(payload, webview);
+  }
+
   private async handleCheckAdePresence(message: any, webview: vscode.Webview) {
     await this.creatorOps.isADEPresent(webview);
   }
@@ -315,6 +331,16 @@ export class WebviewMessageHandlers {
   private async handleInitOpenDevfile(message: any) {
     const payload = message.payload;
     await this.fileOps.openDevfile(payload.projectUrl);
+  }
+
+  private async handleInitOpenScaffoldedFile(message: any) {
+    const payload = message.payload;
+    const projectUrl = payload.projectUrl;
+    if (projectUrl) {
+      // For execution environment, open the specific YAML file
+      const filePath = `${projectUrl}/execution-environment.yml`;
+      await this.fileOps.openFileInEditor(filePath);
+    }
   }
 
   // LightSpeed Handlers
@@ -803,5 +829,306 @@ export class WebviewMessageHandlers {
       console.error("Template path:", absoluteTemplatePath);
       return "failed";
     }
+  }
+
+  // Execution Environment Handlers
+  public async runExecutionEnvCreateProcess(
+    payload: AnsibleExecutionEnvInterface,
+    webView: vscode.Webview,
+  ) {
+    try {
+      await webView.postMessage({
+        command: "disable-build-button",
+      });
+
+      const {
+        destinationPath,
+        verbosity,
+        isOverwritten,
+        isCreateContextEnabled,
+        isBuildImageEnabled,
+        isInitEEProjectEnabled,
+        baseImage,
+        customBaseImage,
+        collections,
+        systemPackages,
+        pythonPackages,
+        tag,
+      } = payload;
+
+      let commandResult: string;
+      let message: string;
+      let commandOutput = "";
+
+      commandOutput += `---------------------------------------- Execution environment generation logs ---------------------------------------\n`;
+
+      const destinationPathUrl = destinationPath || this.getWorkspaceFolder();
+      const filePath = `${destinationPathUrl}/execution-environment.yml`;
+      const fileExists = fs.existsSync(expandPath(filePath));
+      let executionFileCreated = false;
+
+      if (fileExists && !isOverwritten) {
+        message = `Error: Execution environment file already exists at ${destinationPathUrl} and was not overwritten. Use the 'Overwrite' option to overwrite the existing file.`;
+        commandOutput += `${message}\n`;
+        commandResult = "failed";
+      } else {
+        const jsonData: any = {
+          version: 3,
+          images: {
+            base_image: {
+              name: baseImage || customBaseImage,
+            },
+          },
+          dependencies: {
+            ansible_core: { package_pip: "ansible-core" },
+            ansible_runner: { package_pip: "ansible-runner" },
+          },
+          options: {
+            tags: [tag],
+          },
+        };
+
+        const collectionsArray = collections
+          .split(",")
+          .map((col) => col.trim())
+          .filter((col) => col !== "");
+
+        if (collectionsArray.length > 0) {
+          jsonData.dependencies.galaxy = {
+            collections: collectionsArray.map((col) => ({ name: col })),
+          };
+        }
+
+        const systemPackagesArray = systemPackages
+          .split(",")
+          .map((pkg) => pkg.trim())
+          .filter((pkg) => pkg !== "");
+        if (systemPackagesArray.length > 0) {
+          jsonData.dependencies.system = systemPackagesArray;
+        }
+
+        const pythonPackagesArray = pythonPackages
+          .split(",")
+          .map((pkg) => pkg.trim())
+          .filter((pkg) => pkg !== "");
+        if (pythonPackagesArray.length > 0) {
+          jsonData.dependencies.python = pythonPackagesArray;
+        }
+
+        if (baseImage?.toLowerCase().includes("fedora")) {
+          jsonData.additional_build_steps = {
+            prepend_base: ["RUN $PKGMGR -y -q install python3-devel"],
+          };
+          jsonData.options.package_manager_path = "/usr/bin/dnf5";
+        } else if (
+          baseImage?.toLowerCase().includes("rhel") ||
+          baseImage?.toLowerCase().includes("redhat")
+        ) {
+          jsonData.options.package_manager_path = "/usr/bin/microdnf";
+        }
+
+        const isSuccess = this.generateYAMLFromJSON(
+          jsonData,
+          destinationPathUrl,
+        );
+
+        if (isSuccess) {
+          commandOutput += `Execution environment file created at ${destinationPathUrl}/execution-environment.yml\n`;
+          commandResult = "passed";
+          executionFileCreated = true;
+        } else {
+          commandOutput += `ERROR: Could not create execution environment file. Please check that your destination path exists and write permissions are configured for it.\n`;
+          commandResult = "failed";
+        }
+      }
+
+      if (
+        isCreateContextEnabled &&
+        (executionFileCreated || isInitEEProjectEnabled)
+      ) {
+        const createContextCommand = `ansible-builder create --file ${filePath} --context ${destinationPathUrl}/context`;
+        const createContextResult =
+          await this.runAnsibleBuilderCommand(createContextCommand);
+        if (createContextResult.success) {
+          commandOutput += `${createContextResult.output}\n`;
+          commandResult = "passed";
+        } else {
+          commandOutput += `${createContextResult.output}\n`;
+          commandResult = "failed";
+        }
+      }
+
+      if (
+        isBuildImageEnabled &&
+        (executionFileCreated || isInitEEProjectEnabled)
+      ) {
+        await webView.postMessage({
+          command: "execution-log",
+          arguments: {
+            commandOutput:
+              commandOutput +
+              "Building execution environment, this may take a few minutes....\n",
+            projectUrl: destinationPathUrl,
+            status: "in-progress",
+          },
+        } as PostMessageEvent);
+        await webView.postMessage({ command: "disable-build-button" });
+        await webView.postMessage({ command: "enable-open-file-button" });
+
+        let buildImageCommand = `ansible-builder build --file ${filePath} --context ${destinationPathUrl}/context`;
+
+        switch (verbosity) {
+          case "Off":
+            break;
+          case "Low":
+            buildImageCommand += " -v";
+            break;
+          case "Medium":
+            buildImageCommand += " -vv";
+            break;
+          case "High":
+            buildImageCommand += " -vvv";
+            break;
+          default:
+            break;
+        }
+
+        const buildImageResult =
+          await this.runAnsibleBuilderCommand(buildImageCommand);
+        if (buildImageResult.success) {
+          commandOutput += `${buildImageResult.output}\n`;
+          commandResult = "passed";
+        } else {
+          commandOutput += `${buildImageResult.output}\n`;
+          commandResult = "failed";
+        }
+      }
+
+      if (isInitEEProjectEnabled) {
+        await webView.postMessage({
+          command: "execution-log",
+          arguments: {
+            commandOutput:
+              commandOutput + "Building execution environment project....\n",
+            projectUrl: destinationPathUrl,
+            status: "in-progress",
+          },
+        } as PostMessageEvent);
+        await webView.postMessage({ command: "disable-build-button" });
+        await webView.postMessage({ command: "enable-open-file-button" });
+
+        let initEEProjectCommand = `ansible-creator init execution_env ${destinationPathUrl}`;
+
+        if (isOverwritten) {
+          initEEProjectCommand += " --overwrite";
+        } else if (!isOverwritten) {
+          initEEProjectCommand += " --no-overwrite";
+        }
+
+        console.debug("[ansible-creator] command: ", initEEProjectCommand);
+
+        const extSettings = new SettingsManager();
+        await extSettings.initialize();
+
+        const { command, env } = withInterpreter(
+          extSettings.settings,
+          initEEProjectCommand,
+          "",
+        );
+
+        commandOutput = "";
+        commandOutput += `----------------------------------------- ansible-creator logs ------------------------------------------\n`;
+
+        const ansibleCreatorExecutionResult = await runCommand(command, env);
+        commandOutput += ansibleCreatorExecutionResult.output;
+        commandResult = ansibleCreatorExecutionResult.status;
+      }
+
+      console.debug(commandOutput);
+
+      const extSettings = new SettingsManager();
+      await extSettings.initialize();
+
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput: commandOutput,
+          projectUrl: destinationPathUrl,
+          status: commandResult,
+        },
+      } as PostMessageEvent);
+
+      if (executionFileCreated) {
+        await webView.postMessage({ command: "enable-open-file-button" });
+      } else {
+        await webView.postMessage({ command: "disable-open-file-button" });
+      }
+      await webView.postMessage({
+        command: "enable-build-button",
+      });
+    } catch (error) {
+      console.error("Error in runExecutionEnvCreateProcess:", error);
+
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const errorOutput = `ERROR: Execution environment creation failed: ${errorMessage}\n`;
+
+      await webView.postMessage({
+        command: "execution-log",
+        arguments: {
+          commandOutput: errorOutput,
+          projectUrl: "",
+          status: "failed",
+        },
+      } as PostMessageEvent);
+
+      await webView.postMessage({
+        command: "enable-build-button",
+      });
+    }
+  }
+
+  private generateYAMLFromJSON(
+    jsonData: any,
+    destinationPath: string,
+  ): boolean {
+    try {
+      const yamlData = yaml.stringify(jsonData);
+      const filePath = `${destinationPath}/execution-environment.yml`;
+      fs.writeFileSync(filePath, yamlData, "utf8");
+      return true;
+    } catch (error) {
+      console.error("Execution environment file generation Error:", error);
+      return false;
+    }
+  }
+
+  private async runAnsibleBuilderCommand(
+    command: string,
+  ): Promise<{ success: boolean; output: string }> {
+    const [program, ...args] = command.split(" ");
+    return new Promise((resolve) => {
+      execFile(program, args, (error: any, stdout: string, stderr: string) => {
+        let outputMessage = stdout || stderr;
+        const outdatedBuilderError =
+          "ansible_builder.exceptions.DefinitionError: Additional properties are not allowed ('tags' was unexpected)";
+        if (stderr.includes(outdatedBuilderError)) {
+          outputMessage +=
+            "\nWARNING: You are using an outdated version of ansible-builder. Please upgrade to version 3.1.0 or later.";
+        }
+        resolve({
+          success: !error,
+          output: outputMessage,
+        });
+      });
+    });
+  }
+
+  private getWorkspaceFolder(): string {
+    let folder: string = "";
+    if (vscode.workspace.workspaceFolders) {
+      folder = vscode.workspace.workspaceFolders[0].uri.path;
+    }
+    return folder;
   }
 }

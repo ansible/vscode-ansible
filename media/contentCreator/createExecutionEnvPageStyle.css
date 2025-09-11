@@ -20,6 +20,11 @@ vscode-textarea {
     margin-bottom: 6px;
 }
 
+#log-text-area {
+    width: 100%;
+    height: 200px;
+}
+
 vscode-form-group {
     width: 100%;
     margin: 0;
@@ -82,7 +87,7 @@ vscode-form-group {
 }
 
 vscode-single-select {
-    width: 500px;
+    width: 800px;
 }
 
 .full-destination-path {
