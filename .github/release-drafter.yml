@@ -11,19 +11,3 @@ version-template: $MAJOR.$MINOR.$PATCH
 # in different sections in changelog, only the versioning logic being affected.
 # https://code.visualstudio.com/api/working-with-extensions/publishing-extension
 # https://github.com/microsoft/vscode-vsce/issues/806
-version-resolver:
-  major:
-    labels:
-      - "major"
-  minor:
-    labels:
-      - "enhancement"
-      - "feature"
-      - "minor"
-  patch:
-    labels:
-      - "bug"
-      - "deprecated"
-      - "patch"
-      - "refactoring"
-  default: patch
