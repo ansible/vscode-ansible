@@ -933,7 +933,7 @@ describe("doCompletion()", function () {
       });
     });
 
-    describe("Check module kind and documentation of completion item", function () {
+    describe("module kind and documentation of completion item", function () {
       describe("@ee", function () {
         before(async function () {
           setFixtureAnsibleCollectionPathEnv(

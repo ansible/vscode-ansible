@@ -5,7 +5,7 @@ import {
 } from "../../../../src/features/lightspeed/utils/multiLinePromptForMultiTasks";
 
 describe(__filename, function () {
-  describe("Test getContentWithMultiLinePromptForMultiTasksSuggestions", function () {
+  describe("getContentWithMultiLinePromptForMultiTasksSuggestions", function () {
     const testsData = [
       {
         name: "should parse and generate new prompt for playbook",
@@ -105,7 +105,7 @@ tasks:
     );
   });
 
-  describe("Test shouldRequestForPromptPosition", function () {
+  describe("shouldRequestForPromptPosition", function () {
     it("should trigger request even when document starts with empty line", function () {
       const promptContent = `
 ---

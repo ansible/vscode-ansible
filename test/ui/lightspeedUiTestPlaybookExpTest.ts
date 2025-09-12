@@ -97,7 +97,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
 }
 
 describe(__filename, function () {
-  describe("Verify playbook explanation features work as expected", function () {
+  describe("playbook explanation features work", function () {
     beforeEach(function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
@@ -166,7 +166,7 @@ describe(__filename, function () {
     });
   });
 
-  describe("Feedback webview provider works as expected", function () {
+  describe("Feedback webview provider works", function () {
     let editorView: EditorView;
 
     before(async function () {

@@ -16,7 +16,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe("Verify welcome page is displayed as expected", function () {
+describe("welcome page is displayed", function () {
   let view: ViewControl;
   let sideBar: SideBarView;
   let webviewView: InstanceType<typeof WebviewView>;

@@ -416,6 +416,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   const quickLinksHome = new QuickLinksWebviewViewProvider(
     context.extensionUri,
+    context,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(
@@ -608,7 +609,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-execution-env-file",
       () => {
-        CreateExecutionEnv.render(context.extensionUri);
+        CreateExecutionEnv.render(context);
       },
     ),
   );
