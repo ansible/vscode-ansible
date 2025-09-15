@@ -220,12 +220,6 @@
           "ansible-navigator.json"
         ],
         "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
-      },
-      {
-        "fileMatch": [
-          "patterns/*/meta/pattern.json"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/pattern-service/main/specifications/pattern-schema/pattern-schema-latest.json"
       }
     ],
     "yamlValidation": [
@@ -371,10 +365,6 @@
       {
         "command": "ansible.content-creator.add-plugin",
         "title": "Ansible: Add a Plugin"
-      },
-      {
-        "command": "ansible.content-creator.add-pattern",
-        "title": "Ansible: Add a Pattern"
       },
       {
         "command": "ansible.content-creator.create-role",
