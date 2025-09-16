@@ -11,6 +11,7 @@ export type AnsibleCollectionFormInterface = {
   isEditableModeInstall: boolean;
 };
 
+
 export type AnsibleProjectFormInterface = {
   destinationPath: string;
   namespaceName: string;
