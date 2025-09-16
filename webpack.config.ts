@@ -132,32 +132,6 @@ const webviewConfig = {
   },
 };
 
-const contentCreatorMenuWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/welcomePage/welcomePageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/welcomePage/welcomePageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const quickLinksWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/quickLinks/quickLinksApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/quickLinks/quickLinksApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 const playbookExplorerWebviewConfig = {
   ...config,
   target: ["web", "es2020"],
@@ -171,46 +145,11 @@ const playbookExplorerWebviewConfig = {
   },
 };
 
-const createDevfileWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createDevfilePageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename: "./client/webview/apps/contentCreator/createDevfilePageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
-const createExecutionEnvWebviewConfig = {
-  ...config,
-  target: ["web", "es2020"],
-  entry: "./src/webview/apps/contentCreator/createExecutionEnvPageApp.ts",
-  experiments: { outputModule: true },
-  output: {
-    path: path.resolve(__dirname, "out"),
-    filename:
-      "./client/webview/apps/contentCreator/createExecutionEnvPageApp.js",
-    libraryTarget: "module",
-    chunkFormat: "module",
-  },
-};
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 module.exports = (_env: any, argv: { mode: string }) => {
   // Use non-bundled js for client/server in dev environment
   if (argv.mode === "development") {
     delete config.entry.server;
   }
-  return [
-    config,
-    webviewConfig,
-    contentCreatorMenuWebviewConfig,
-    playbookExplorerWebviewConfig,
-    createDevfileWebviewConfig,
-    quickLinksWebviewConfig,
-    createExecutionEnvWebviewConfig,
-  ];
+  return [config, webviewConfig, playbookExplorerWebviewConfig];
 };

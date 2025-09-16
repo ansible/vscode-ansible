@@ -60,7 +60,7 @@ import { findProjectDir } from "./features/ansibleTox/utils";
 import { QuickLinksWebviewViewProvider } from "./features/quickLinks/utils/quickLinksViewProvider";
 import { LightspeedFeedbackWebviewViewProvider } from "./features/lightspeed/feedbackWebviewViewProvider";
 import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbackWebviewProvider";
-import { AnsibleWelcomePage } from "./features/welcomePage";
+import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
 import { ExecException, execSync } from "child_process";
@@ -73,7 +73,7 @@ import {
   PlaybookFeedbackEvent,
   RoleFeedbackEvent,
 } from "./interfaces/lightspeed";
-import { CreateDevfile } from "./features/contentCreator/createDevfilePage";
+import { MainPanel as CreateDevfilePanel } from "./features/contentCreator/vue/views/createDevfilePanel";
 import { CreateExecutionEnv } from "./features/contentCreator/createExecutionEnvPage";
 import { rightClickEEBuildCommand } from "./features/utils/buildExecutionEnvironment";
 import { MainPanel as RoleGenerationPanel } from "./features/lightspeed/vue/views/roleGenPanel";
@@ -416,6 +416,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   const quickLinksHome = new QuickLinksWebviewViewProvider(
     context.extensionUri,
+    context,
   );
 
   const quickLinksDisposable = window.registerWebviewViewProvider(
@@ -560,7 +561,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // open ansible-content-creator menu
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.content-creator.menu", () => {
-      AnsibleWelcomePage.render(context.extensionUri);
+      WelcomePagePanel.render(context);
     }),
   );
 
@@ -598,7 +599,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-devfile",
       () => {
-        CreateDevfile.render(context.extensionUri);
+        CreateDevfilePanel.render(context);
       },
     ),
   );
@@ -608,7 +609,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     vscode.commands.registerCommand(
       "ansible.content-creator.create-execution-env-file",
       () => {
-        CreateExecutionEnv.render(context.extensionUri);
+        CreateExecutionEnv.render(context);
       },
     ),
   );

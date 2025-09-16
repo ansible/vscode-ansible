@@ -154,7 +154,7 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - name: Setup node.js
-        uses: actions/setup-node@v4.4.0
+        uses: actions/setup-node@v5
         with:
           node-version: 20
           # yarn cache is broken due https://github.com/actions/setup-node/issues/531
@@ -199,7 +199,7 @@ jobs:
           direnvVersion: 2.36.0
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -443,7 +443,7 @@ jobs:
           delete-merged: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: .
 
@@ -456,7 +456,7 @@ jobs:
 
       - name: Upload als test coverage data [1/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: als
           files: ./**/coverage/als/cobertura-coverage.xml
@@ -467,7 +467,7 @@ jobs:
 
       - name: Upload unit test coverage data [2/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: unit
           files: ./**/coverage/unit/*cobertura-coverage.xml
@@ -478,7 +478,7 @@ jobs:
 
       - name: Upload ui test coverage data [3/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: ui
           files: ./**/coverage/ui/*cobertura-coverage.xml
@@ -489,7 +489,7 @@ jobs:
 
       - name: Upload e2e test coverage data [4/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@v5.4.3
+        uses: codecov/codecov-action@v5.5.1
         with:
           name: e2e
           files: ./**/coverage/e2e/*cobertura-coverage.xml
@@ -521,14 +521,14 @@ jobs:
           npm config set fund false
 
       - name: Install Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"
           node-version-file: .tool-versions
 
       - name: Download the artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
 
@@ -544,7 +544,7 @@ jobs:
           ls -la *.vsix
 
       - name: Setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -564,12 +564,12 @@ jobs:
       - check
     steps:
       - name: Download the artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
       # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           cache: yarn
           cache-dependency-path: "**/yarn.lock"

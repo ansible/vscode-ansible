@@ -20,7 +20,7 @@ describe.skip("Verify playbook explanation features when no explanation is retur
     }
   });
 
-  it("Playbook explanation webview works as expected, no explanation", async function () {
+  it("Playbook explanation webview works, no explanation", async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       this.skip();
     }
