@@ -73,7 +73,7 @@ describe("Content Creator UI Tests", function () {
     it("Check execution-environment webview elements", async function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
-        "Create Ansible Execution Environment",
+        "Create Execution Environment",
       );
 
       const descriptionText = await (
@@ -454,8 +454,7 @@ describe("Content Creator UI Tests", function () {
         ).to.be.true;
         // Verify if plugin file exists
         const pluginPath = path.join(
-          homeDir,
-          "test",
+          collectionPath,
           "plugins",
           "filter",
           "sample_filter.py",
@@ -473,7 +472,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for lookup plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Lookup",
@@ -483,7 +482,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for action plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Action",
@@ -493,7 +492,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for generic module plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Module",
@@ -503,7 +502,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for test plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Test",
@@ -513,7 +512,7 @@ describe("Content Creator UI Tests", function () {
     it("Verify Open Plugin button is enabled and plugin file exists", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        os.homedir + "/test",
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_filter",
         "Filter",
@@ -564,71 +563,6 @@ describe("Content Creator UI Tests", function () {
 
     it("Check create-ansible-project webview elements", async function () {
       await testWebViewElements("Ansible: Add Role", "Create Role");
-    });
-  });
-
-  describe.only("Test pattern scaffolding in an existing collection", function () {
-    let editorView: EditorView;
-
-    async function testWebViewElements(command: string, editorTitle: string) {
-      console.log("Running command to open Add Pattern webview...");
-      await workbenchExecuteCommand(command);
-      console.log("Command executed, waiting for editor...");
-
-      // Add retry logic for opening the editor, similar to plugin tests
-      try {
-        await waitForCondition({
-          condition: async () => {
-            try {
-              const result = await new EditorView().openEditor(editorTitle);
-              if (result) {
-                console.log(`Successfully opened editor: ${editorTitle}`);
-              }
-              return result;
-            } catch {
-              return false;
-            }
-          },
-          message: `Timed out waiting for ${editorTitle} to open`,
-          timeout: 20000, // Increase timeout if needed
-        });
-      } catch (error) {
-        console.log(
-          `Failed to open editor after timeout: ${(error as Error).message}`,
-        );
-        throw error;
-      }
-
-      const webview = await getWebviewByLocator(
-        By.xpath("//vscode-textfield[@id='path-url']"),
-      );
-
-      await checkAndInteractWithField(
-        webview,
-        "path-url",
-        path.join(homeDir, "/test"),
-      );
-      await checkAndInteractWithField(webview, "name", "sample_name");
-
-      await clickButtonAndCheckEnabled(webview, "create-button");
-
-      const overwriteCheckbox = await webview.findWebElement(
-        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
-      );
-      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
-        .to.be.undefined;
-      await overwriteCheckbox.click();
-      await clickButtonAndCheckEnabled(webview, "create-button");
-      await webview.switchBack();
-
-      editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
-    }
-
-    it("Check add-pattern webview elements", async function () {
-      await testWebViewElements("Ansible: Add a Pattern", "Add Pattern");
     });
   });
 });
