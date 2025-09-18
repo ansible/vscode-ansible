@@ -454,8 +454,7 @@ describe("Content Creator UI Tests", function () {
         ).to.be.true;
         // Verify if plugin file exists
         const pluginPath = path.join(
-          homeDir,
-          "test",
+          collectionPath,
           "plugins",
           "filter",
           "sample_filter.py",
@@ -473,7 +472,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for lookup plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Lookup",
@@ -483,7 +482,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for action plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Action",
@@ -493,7 +492,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for generic module plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Module",
@@ -503,7 +502,7 @@ describe("Content Creator UI Tests", function () {
     it("Check add-plugin webview elements for test plugin", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        homeDir,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_plugin_name",
         "Test",
@@ -513,7 +512,7 @@ describe("Content Creator UI Tests", function () {
     it("Verify Open Plugin button is enabled and plugin file exists", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        `${homeDir}/test`,
+        `${homeDir}/test_collection`,
         "Add Plugin",
         "sample_filter",
         "Filter",
