@@ -23,7 +23,6 @@ import {
   AnsibleProjectFormInterface,
   RoleFormInterface,
   PluginFormInterface,
-  PatternFormInterface,
   DevcontainerFormInterface,
   DevfileFormInterface,
   AnsibleExecutionEnvInterface,
@@ -90,7 +89,6 @@ export class WebviewMessageHandlers {
       "init-create": this.handleInitCreate.bind(this),
       "init-create-plugin": this.handleInitCreatePlugin.bind(this),
       "init-create-role": this.handleInitCreateRole.bind(this),
-      "init-add-pattern": this.handleInitAddPattern.bind(this),
       "init-create-devcontainer": this.handleInitCreateDevcontainer.bind(this),
       "init-create-devfile": this.handleInitCreateDevfile.bind(this),
       "init-create-execution-env": this.handleInitCreateExecutionEnv.bind(this),
@@ -101,8 +99,6 @@ export class WebviewMessageHandlers {
       "init-open-log-file": this.handleInitOpenLogFile.bind(this),
       "init-open-scaffolded-folder":
         this.handleInitOpenScaffoldedFolder.bind(this),
-      "init-open-scaffolded-folder-pattern":
-        this.handleInitOpenScaffoldedFolderPattern.bind(this),
       "init-open-scaffolded-folder-plugin":
         this.handleInitOpenScaffoldedFolderPlugin.bind(this),
       "init-open-role-folder": this.handleInitOpenRoleFolder.bind(this),
@@ -242,10 +238,6 @@ export class WebviewMessageHandlers {
     const payload = message.payload as RoleFormInterface;
     await this.creatorOps.runRoleAddCommand(payload, webview);
   }
-  private async handleInitAddPattern(message: any, webview: vscode.Webview) {
-    const payload = message.payload as PatternFormInterface;
-    await this.creatorOps.runPatternAddCommand(payload, webview);
-  }
 
   private async handleInitCreateDevcontainer(
     message: any,
@@ -305,13 +297,6 @@ export class WebviewMessageHandlers {
       payload.projectUrl,
       payload.pluginName,
       payload.pluginType,
-    );
-  }
-  private async handleInitOpenScaffoldedFolderPattern(message: any) {
-    const payload = message.payload;
-    await this.fileOps.openFolderInWorkspacePattern(
-      payload.projectUrl,
-      payload.patternName,
     );
   }
 

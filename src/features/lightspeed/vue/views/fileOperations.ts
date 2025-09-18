@@ -115,14 +115,6 @@ export class FileOperations {
     this.openFileInEditor(parsedUrl.toString());
   }
 
-  public async openFolderInWorkspacePattern(
-    folderUrl: string,
-    patternName: string,
-  ) {
-    const patternFolderUrl = `${folderUrl}/extensions/patterns/${patternName}/playbooks/site.yml`;
-    await this.openFolderInWorkspaceCore(patternFolderUrl);
-  }
-
   public async openFolderInWorkspaceProjects(folderUrl: string) {
     await this.openFolderInWorkspaceCore(folderUrl);
 
