@@ -73,7 +73,7 @@ describe("Content Creator UI Tests", function () {
     it("Check execution-environment webview elements", async function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
-        "Create Ansible Execution Environment",
+        "Create Execution Environment",
       );
 
       const descriptionText = await (
@@ -513,7 +513,7 @@ describe("Content Creator UI Tests", function () {
     it("Verify Open Plugin button is enabled and plugin file exists", async function () {
       await testWebViewElements(
         "Ansible: Add a Plugin",
-        os.homedir + "/test",
+        `${homeDir}/test`,
         "Add Plugin",
         "sample_filter",
         "Filter",
