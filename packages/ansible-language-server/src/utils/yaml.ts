@@ -538,7 +538,10 @@ export function parseAllDocuments(str: string, options?: Options): Document[] {
   }
   const doc = parseDocument(
     str,
-    Object.assign({ keepSourceTokens: true, options }),
+    Object.assign({ 
+      keepSourceTokens: true, 
+      logLevel: "error" // Suppress warnings for unknown tags like !vault
+    }, options),
   );
   return [doc];
 }

@@ -84,14 +84,14 @@ export async function disableExecutionEnvironmentSettings(
 }
 
 export function resolveDocUri(filename: string): string {
-  return path.resolve(FIXTURES_BASE_PATH, filename);
+  return path.resolve(FIXTURES_BASE_PATH, filename).toString();
 }
 
 export function getDoc(filename: string): TextDocument {
   const file = readFileSync(path.resolve(FIXTURES_BASE_PATH, filename), {
     encoding: "utf8",
   });
-  const docUri = path.resolve(FIXTURES_BASE_PATH, filename);
+  const docUri = path.resolve(FIXTURES_BASE_PATH, filename).toString();
   return TextDocument.create(docUri, "ansible", 1, file);
 }
 
