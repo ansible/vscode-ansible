@@ -8,6 +8,7 @@ export interface ExtensionSettings {
   executionEnvironment: ExecutionEnvironmentSettings;
   lightSpeedService: LightSpeedServiceSettings;
   playbook: PlaybookSettings;
+  mcpServer: McpServerSettings;
 }
 
 export interface IVolumeMounts {
@@ -46,4 +47,8 @@ export interface LightSpeedServiceSettings {
   model: string | undefined;
   playbookGenerationCustomPrompt: string | undefined;
   playbookExplanationCustomPrompt: string | undefined;
+}
+
+export interface McpServerSettings {
+  enabled: boolean;
 }
