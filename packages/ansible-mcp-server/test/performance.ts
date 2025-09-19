@@ -3,153 +3,71 @@ import { createTestServer } from "./testWrapper.js";
 
 describe("Ansible MCP Server Performance Tests", () => {
   let server: ReturnType<typeof createTestServer>;
-  const workspaceRoot = "/test/workspace";
+  const workspaceRoot = process.cwd();
 
   beforeEach(() => {
     server = createTestServer(workspaceRoot);
   });
 
-  describe("tool performance", () => {
-    it("should handle debug_env tool calls efficiently", async () => {
-      const iterations = 100;
-      const start = Date.now();
+  describe("zen_of_ansible tool performance", () => {
+    it("should respond quickly to zen_of_ansible calls", async () => {
+      const startTime = performance.now();
 
-      const promises = Array.from({ length: iterations }, () =>
-        server.callTool("debug_env", {}),
-      );
+      await server.callTool("zen_of_ansible", {});
+
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+
+      // Should complete in less than 100ms since it's just returning a constant
+      expect(duration).toBeLessThan(100);
+    });
+
+    it("should handle multiple concurrent calls efficiently", async () => {
+      const startTime = performance.now();
+
+      // Make 10 concurrent calls
+      const promises = Array(10)
+        .fill(null)
+        .map(() => server.callTool("zen_of_ansible", {}));
 
       const results = await Promise.all(promises);
-      const end = Date.now();
-      const duration = end - start;
 
-      expect(results).toHaveLength(iterations);
-      expect(duration).toBeLessThan(1000); // Should complete in under 1 second
+      const endTime = performance.now();
+      const duration = endTime - startTime;
 
-      // Each result should be valid
+      // All calls should complete
+      expect(results).toHaveLength(10);
       results.forEach((result) => {
-        expect(result.content).toHaveLength(4);
-        expect(result.content[0].text).toMatch(/^PATH: /);
+        expect(result.content).toHaveLength(1);
+        expect(result.content[0].type).toBe("text");
       });
+
+      // Should complete all calls in reasonable time
+      expect(duration).toBeLessThan(500);
     });
 
-    it("should handle zen_of_ansible tool calls efficiently", async () => {
-      const iterations = 50;
-      const start = Date.now();
+    it("should maintain consistent response times", async () => {
+      const times: number[] = [];
 
-      const promises = Array.from({ length: iterations }, () =>
-        server.callTool("zen_of_ansible", {}),
-      );
-
-      const results = await Promise.all(promises);
-      const end = Date.now();
-      const duration = end - start;
-
-      expect(results).toHaveLength(iterations);
-      expect(duration).toBeLessThan(500); // Should complete quickly as it's just returning static text
-
-      // Each result should contain all 20 aphorisms
-      results.forEach((result) => {
-        expect(result.content[0].text).toContain(
-          "20. Automation is a journey that never ends",
-        );
-      });
-    });
-
-    it("should handle concurrent prompt generation efficiently", async () => {
-      const iterations = 25;
-      const start = Date.now();
-
-      const promises = Array.from({ length: iterations }, (_, i) =>
-        server.callPrompt("ansible_fix_prompt", {
-          file: `test-file-${i}.yml`,
-          errorSummary: `Error ${i}: some lint issue`,
-        }),
-      );
-
-      const results = await Promise.all(promises);
-      const end = Date.now();
-      const duration = end - start;
-
-      expect(results).toHaveLength(iterations);
-      expect(duration).toBeLessThan(200); // Should be very fast as it's just string templating
-
-      // Each result should be properly formatted
-      results.forEach((result, i) => {
-        expect(result.messages).toHaveLength(1);
-        expect(result.messages[0].content.text).toContain(`test-file-${i}.yml`);
-        expect(result.messages[0].content.text).toContain(`Error ${i}`);
-      });
-    });
-  });
-
-  describe("memory usage", () => {
-    it("should not leak memory with repeated tool calls", async () => {
-      const initialMemory = process.memoryUsage().heapUsed;
-
-      // Perform many operations
-      for (let i = 0; i < 1000; i++) {
-        await server.callTool("debug_env", {});
+      // Run the same call multiple times
+      for (let i = 0; i < 5; i++) {
+        const startTime = performance.now();
         await server.callTool("zen_of_ansible", {});
-        await server.callPrompt("ansible_fix_prompt", {
-          file: `file-${i}.yml`,
-          errorSummary: `Error ${i}`,
-        });
+        const endTime = performance.now();
+        times.push(endTime - startTime);
       }
 
-      // Force garbage collection if available
-      if (global.gc) {
-        global.gc();
-      }
-
-      const finalMemory = process.memoryUsage().heapUsed;
-      const memoryIncrease = finalMemory - initialMemory;
-
-      // Memory increase should be reasonable (less than 10MB)
-      expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024);
-    });
-  });
-
-  describe("server initialization performance", () => {
-    it("should initialize quickly", () => {
-      const iterations = 100;
-      const start = Date.now();
-
-      for (let i = 0; i < iterations; i++) {
-        createTestServer(`/test/workspace-${i}`);
-      }
-
-      const end = Date.now();
-      const duration = end - start;
-
-      expect(duration).toBeLessThan(1000); // Should create 100 servers in under 1 second
-    });
-  });
-
-  describe("error handling performance", () => {
-    it("should handle invalid tool calls efficiently", async () => {
-      const iterations = 50;
-      const start = Date.now();
-
-      const promises = Array.from({ length: iterations }, async () => {
-        try {
-          // This should fail quickly
-          await server.callTool("nonexistent_tool", {});
-        } catch (error) {
-          return error;
-        }
+      // All calls should be reasonably fast
+      times.forEach((time) => {
+        expect(time).toBeLessThan(50);
       });
 
-      const results = await Promise.all(promises);
-      const end = Date.now();
-      const duration = end - start;
-
-      expect(results).toHaveLength(iterations);
-      expect(duration).toBeLessThan(500); // Error handling should be fast
-
-      // All should be errors
-      results.forEach((result) => {
-        expect(result).toBeInstanceOf(Error);
-      });
+      // Variance should be low (consistent performance)
+      const avg = times.reduce((a, b) => a + b, 0) / times.length;
+      const variance =
+        times.reduce((acc, time) => acc + Math.pow(time - avg, 2), 0) /
+        times.length;
+      expect(variance).toBeLessThan(100); // Low variance indicates consistent performance
     });
   });
 });

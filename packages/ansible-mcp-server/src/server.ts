@@ -2,7 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createZenOfAnsibleHandler } from "./handlers.js";
 
-export function createAnsibleMcpServer(workspaceRoot: string) {
+export function createAnsibleMcpServer() {
   const server = new McpServer({
     name: "ansible-mcp-server",
     version: "0.1.0",
@@ -21,8 +21,9 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   return server;
 }
 
-export async function runStdio(workspaceRoot: string) {
-  const server = createAnsibleMcpServer(workspaceRoot);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export async function runStdio(_workspaceRoot: string) {
+  const server = createAnsibleMcpServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
   // Keep process alive for stdio-based clients until they close the transport
