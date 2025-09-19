@@ -467,6 +467,10 @@
       {
         "command": "ansible.hello.world",
         "title": "Ansible: Demo Vue - Hello World"
+      },
+      {
+        "command": "ansible.mcpServer.enabled",
+        "title": "Enable Ansible Development Tools MCP Server"
       }
     ],
     "configuration": [
@@ -722,6 +726,18 @@
             ],
             "default": "off",
             "markdownDescription": "Traces the communication between editor and the ansible language server.",
+            "order": 0
+          }
+        }
+      },
+      {
+        "title": "MCP Server",
+        "properties": {
+          "ansible.mcpServer.enabled": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Enable the Ansible MCP (Model Context Protocol) server for AI assistant integration.",
             "order": 0
           }
         }
