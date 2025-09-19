@@ -82,6 +82,7 @@ import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/e
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
+import { MainPanel as addPatternPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
 import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
 import { MainPanel as createRolePanel } from "./features/contentCreator/vue/views/createRolePanel";
 import { MainPanel as createDevcontainerPanel } from "./features/contentCreator/vue/views/createDevcontainerPanel";
@@ -584,6 +585,15 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "ansible.content-creator.add-pattern",
+      () => {
+        addPatternPanel.render(context);
+      },
+    ),
+  );
+
   // open web-view for creating devfile
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -927,6 +937,60 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
   context.subscriptions.push(eeBuilderCommand);
+
+  // Register Ansible MCP Server Definition Provider (only if enabled)
+  if (extSettings.settings.mcpServer.enabled) {
+    const mcpDidChangeEmitter = new vscode.EventEmitter<void>();
+    context.subscriptions.push(mcpDidChangeEmitter);
+
+    context.subscriptions.push(
+      vscode.lm.registerMcpServerDefinitionProvider("ansibleMcpProvider", {
+        onDidChangeMcpServerDefinitions: mcpDidChangeEmitter.event,
+        provideMcpServerDefinitions: async () => {
+          const servers: vscode.McpServerDefinition[] = [];
+
+          // Determine workspace root
+          const workspaceRoot =
+            vscode.workspace.workspaceFolders?.[0]?.uri || context.extensionUri;
+
+          // Path to the built MCP server CLI
+          const mcpCliPath = path.join(
+            context.extensionPath,
+            "out",
+            "mcp",
+            "cli.js",
+          );
+
+          // Register the Ansible MCP server
+          const mcpServer = new vscode.McpStdioServerDefinition(
+            "ansible-mcp-server",
+            "node",
+            [mcpCliPath, "--stdio"],
+            {
+              WORKSPACE_ROOT: workspaceRoot.fsPath,
+            },
+          );
+
+          // Set additional properties if needed (using object assignment for better typing)
+          Object.assign(mcpServer, {
+            cwd: workspaceRoot,
+            version: "0.1.0",
+            label: "Ansible Development Tools MCP Server",
+          });
+
+          servers.push(mcpServer);
+
+          return servers;
+        },
+        resolveMcpServerDefinition: async (
+          server: vscode.McpServerDefinition,
+        ) => {
+          // No additional resolution needed for our server
+          return server;
+        },
+      }),
+    );
+  }
 }
 
 const startClient = async (

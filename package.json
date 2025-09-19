@@ -469,6 +469,12 @@
         "title": "Ansible: Demo Vue - Hello World"
       }
     ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "ansibleMcpProvider",
+        "label": "Ansible MCP Server Provider"
+      }
+    ],
     "configuration": [
       {
         "title": "Basic Configurations",
@@ -707,6 +713,18 @@
             "type": "string",
             "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
             "order": 4
+          }
+        }
+      },
+      {
+        "title": "MCP Server",
+        "properties": {
+          "ansible.mcpServer.enabled": {
+            "scope": "resource",
+            "type": "boolean",
+            "default": false,
+            "markdownDescription": "Enable the Ansible MCP (Model Context Protocol) server for AI assistant integration.",
+            "order": 0
           }
         }
       },
@@ -958,6 +976,7 @@
   },
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
+    "@ansible/ansible-mcp-server": "workspace:^",
     "@highlightjs/vue-plugin": "2.1.0",
     "@primeuix/themes": "^1.2.1",
     "@redhat-developer/vscode-redhat-telemetry": "^0.9.1",
@@ -1090,14 +1109,15 @@
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
-    "webpack": "yarn run clean && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
-    "webpack-dev": "yarn run clean && yarn test-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode development --config ./webpack.config.ts",
+    "webpack": "yarn run clean && yarn run mcp-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
+    "webpack-dev": "yarn run clean && yarn test-compile && yarn run mcp-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode development --config ./webpack.config.ts",
     "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
-    "clean": "rimraf out/client out/server out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
+    "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "test-compile": "yarn run clean && yarn run compile && tsc -p ./ --sourceMap",
     "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
     "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
     "als-compile": "yarn workspace @ansible/ansible-language-server compile",
+    "mcp-compile": "yarn workspace @ansible/ansible-mcp-server compile",
     "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-build": "vue-tsc --noEmit && vite build",
     "vite-preview": "vite preview"

@@ -1,0 +1,78 @@
+---
+# see https://taskfile.dev/#/
+version: "3"
+env: &env
+  # basically the same thing from .env file:
+  # Avoid undesired extra hints from docker when pulling images
+  DOCKER_CLI_HINTS: "false"
+vars:
+  VIRTUAL_ENV:
+    sh: echo "${HOME}/.local/share/virtualenvs/vsa"
+tasks:
+  default:
+    dir: "{{ .TASKFILE_DIR }}"
+    desc: Run most commands
+    env:
+      VERSION:
+        sh: node -p "require('./package.json').version"
+    cmds:
+      - task: package
+      - task: test
+      - echo Done ansible-mcp-server {{.VERSION}}!
+  build:
+    dir: "{{ .TASKFILE_DIR }}"
+    desc: Build the project
+    cmds:
+      - task -d ../.. install
+      - npm run build
+    sources:
+      - package-lock.json
+      - package.json
+      - src/**/*.*
+      - test/**/*.*
+      - tsconfig.json
+      - vitest.config.ts
+  lint:
+    desc: Run linting
+    dir: "{{ .TASKFILE_DIR }}"
+    cmds:
+      - npm run lint
+    interactive: true
+  test:
+    desc: Run all tests
+    dir: "{{ .TASKFILE_DIR }}"
+    cmds:
+      - task: build
+      - npm test
+    interactive: true
+  test-watch:
+    desc: Run tests in watch mode
+    dir: "{{ .TASKFILE_DIR }}"
+    cmds:
+      - npm run test:watch
+    interactive: true
+  test-coverage:
+    desc: Run tests with coverage report
+    dir: "{{ .TASKFILE_DIR }}"
+    cmds:
+      - npm run test:coverage
+    interactive: true
+  package:
+    desc: Package MCP server
+    dir: "{{ .TASKFILE_DIR }}"
+    sources:
+      - README.md
+      - package*.json
+      - src/**/*.*
+      - tsconfig.json
+    generates:
+      - "out/server/**/*.*"
+    cmds:
+      - task: build
+    silent: false
+  clean:
+    desc: Clean build artifacts
+    dir: "{{ .TASKFILE_DIR }}"
+    cmds:
+      - rm -rf out/server
+      - rm -rf node_modules/.cache

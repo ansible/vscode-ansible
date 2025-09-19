@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./out/server",
+    "resolveJsonModule": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ES2022"
+  },
+  "exclude": ["node_modules", "out"]
+}

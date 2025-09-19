@@ -280,6 +280,7 @@ varInfiles
 venvs
 virt
 vite
+vitest
 vitebuild
 vnet
 vscodeignore
