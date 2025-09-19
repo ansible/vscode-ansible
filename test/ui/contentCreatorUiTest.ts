@@ -432,7 +432,10 @@ describe("Content Creator UI Tests", function () {
             // Also try setting by value as backup
             const options = dropdown.options;
             for (let i = 0; i < options.length; i++) {
-              if (options[i].text === pluginType || options[i].value === pluginType) {
+              if (
+                options[i].text === pluginType ||
+                options[i].value === pluginType
+              ) {
                 dropdown.selectedIndex = i;
                 dropdown.dispatchEvent(new Event("change"));
                 break;
@@ -504,10 +507,12 @@ describe("Content Creator UI Tests", function () {
       ).to.be.true;
 
       // Scroll create button into view
-      await webview.getDriver().executeScript(
-        "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
-        createButton,
-      );
+      await webview
+        .getDriver()
+        .executeScript(
+          "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
+          createButton,
+        );
 
       // Wait for scroll to complete
       await sleep(500);
