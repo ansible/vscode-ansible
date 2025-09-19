@@ -57,16 +57,16 @@ describe("Check walkthroughs, elements and associated commands", function () {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
       // Increase test timeout for walkthrough loading
       this.timeout(30000);
-      
+
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
-      
+
       // Wait a bit for the command to process
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
-      
+
       // Wait for the command to execute
       await new Promise(resolve => setTimeout(resolve, 2000));
 
