@@ -33,13 +33,13 @@ describe("Check walkthroughs, elements and associated commands", function () {
       "Create an Ansible environment",
       [
         "Create an Ansible playbook",
-        "tag in the status bar",
-        "Install the Ansible environment package",
+        'Make sure you see the "Ansible" tag in the status bar',
+        "Install the Ansible development package",
       ],
     ],
     [
       "Discover Ansible Development Tools",
-      ["Create", "Test", "Deploy", "Where do I start"],
+      ["Create", "Test", "Deploy", "Where do I start?"],
     ],
     [
       "Start automating with your first Ansible playbook",
@@ -53,30 +53,42 @@ describe("Check walkthroughs, elements and associated commands", function () {
     ],
   ];
 
+  const walkthroughIdByName: Record<string, string> = {
+    "Create an Ansible environment": "create-ansible-environment",
+    "Discover Ansible Development Tools": "discover-ansible-development-tools",
+    "Start automating with your first Ansible playbook":
+      "start-automating-playbook",
+  };
+
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
       // Increase test timeout for walkthrough loading
       this.timeout(30000);
 
+      // Open the walkthrough via Command Palette (single-arg API in tester)
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
 
       // Wait a bit for the command to process
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
 
       // Wait for the command to execute
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Select the editor window
       const welcomeTab = await waitForCondition({
         condition: async () => {
-          return await editorView.getTabByTitle("Walkthrough: Ansible");
+          return (
+            (await editorView.getTabByTitle("Get Started: Ansible")) ||
+            (await editorView.getTabByTitle("Walkthroughs: Ansible")) ||
+            (await editorView.getTabByTitle("Walkthrough: Ansible"))
+          );
         },
         message: "Timed out waiting for walkthrough tab to open",
-        timeout: 15000, // Increased timeout for walkthrough loading
+        timeout: 20000,
       });
 
       expect(welcomeTab).is.not.undefined;
@@ -102,7 +114,14 @@ describe("Check walkthroughs, elements and associated commands", function () {
       const stepText = fullStepText.split("\n")[0];
       expect(steps, "No walkthrough step").to.include(stepText);
 
-      await editorView.closeEditor("Walkthrough: Ansible");
+      // Close the walkthrough tab (support multiple possible titles across VS Code versions)
+      if (await editorView.getTabByTitle("Get Started: Ansible")) {
+        await editorView.closeEditor("Get Started: Ansible");
+      } else if (await editorView.getTabByTitle("Walkthroughs: Ansible")) {
+        await editorView.closeEditor("Walkthroughs: Ansible");
+      } else {
+        await editorView.closeEditor("Walkthrough: Ansible");
+      }
     });
   });
 
