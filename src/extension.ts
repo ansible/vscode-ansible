@@ -92,7 +92,6 @@ import { getRoleYamlFiles } from "./features/lightspeed/utils/data";
 export let client: LanguageClient;
 export let lightSpeedManager: LightSpeedManager;
 export const globalFileSystemWatcher: IFileSystemWatchers = {};
-export let mcpServerProcess: any = null; // Track MCP server process
 
 const lsName = "Ansible Support";
 let lsOutputChannel: vscode.OutputChannel;
@@ -638,22 +637,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
-  // open ansible-creator create
-  // this can be removed - this feature is recognized as `ansible-creator add` and has been implemented already
-  context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.content-creator.create", () => {
-      window.showInformationMessage("This feature is coming soon. Stay tuned.");
-    }),
-  );
-
-  // open ansible-creator sample
-  // this can be removed - creator's sample subcommand won't be implemented anytime soon
-  context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.content-creator.sample", () => {
-      window.showInformationMessage("This feature is coming soon. Stay tuned.");
-    }),
-  );
-
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
@@ -678,24 +661,21 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
-  // Enable MCP server
+  // enable MCP server
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.mcpServer.enabled", async () => {
       try {
-        // Check if MCP server is already enabled
         if (extSettings.settings.mcpServer.enabled) {
           vscode.window.showInformationMessage(
-            "Ansible MCP Server is already enabled."
+            "Ansible MCP Server is already enabled.",
           );
           return;
         }
 
         // Enable the MCP server setting
-        await vscode.workspace.getConfiguration("ansible.mcpServer").update(
-          "enabled",
-          true,
-          vscode.ConfigurationTarget.Workspace
-        );
+        await vscode.workspace
+          .getConfiguration("ansible.mcpServer")
+          .update("enabled", true, vscode.ConfigurationTarget.Workspace);
 
         // Reinitialize settings to pick up the change
         await extSettings.reinitialize();
@@ -705,12 +685,13 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
         // Show success message
         vscode.window.showInformationMessage(
-          "Ansible MCP Server has been enabled and started successfully."
+          "Ansible MCP Server has been enabled and started successfully.",
         );
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         vscode.window.showErrorMessage(
-          `Failed to enable MCP Server: ${errorMessage}`
+          `Failed to enable MCP Server: ${errorMessage}`,
         );
         console.error("Error enabling MCP Server:", error);
       }
@@ -1049,10 +1030,14 @@ const startClient = async (
   }
 };
 
-const startMcpServer = async (
-  extSettings: SettingsManager,
-) => {
-  // Check if MCP server is enabled
+export function deactivate(): Thenable<void> | undefined {
+  if (!client) {
+    return undefined;
+  }
+  return client.stop();
+}
+
+const startMcpServer = async (extSettings: SettingsManager) => {
   if (!extSettings.settings.mcpServer.enabled) {
     console.log("MCP server is disabled");
     return;
@@ -1060,22 +1045,10 @@ const startMcpServer = async (
 
   try {
     console.log("Starting Ansible MCP server...");
-    
-    // TODO: Implement MCP server startup logic
-    // This would typically involve:
-    // 1. Starting the MCP server process from packages/ansible-mcp-server
-    // 2. Setting up communication channels
-    // 3. Handling server lifecycle (start/stop/restart)
-    // 4. Storing server process reference for cleanup
-    
-    // For now, just log that the MCP server would be started
+
     console.log("MCP server startup logic to be implemented");
-    
-    // TODO: Store the actual server process reference
-    // mcpServerProcess = spawn('node', ['path/to/mcp-server']);
-    
+
     return true;
-    
   } catch (err) {
     let errorMessage: string;
     if (err instanceof Error) {
@@ -1084,7 +1057,7 @@ const startMcpServer = async (
       errorMessage = String(err);
     }
     console.error(`MCP server initialization failed with ${errorMessage}`);
-    throw err; // Re-throw to allow caller to handle the error
+    throw err;
   }
 };
 
