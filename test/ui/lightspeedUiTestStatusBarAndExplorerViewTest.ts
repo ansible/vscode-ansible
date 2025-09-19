@@ -31,7 +31,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
       By.xpath(
         "//div[contains(@class, 'statusbar-item') and " +
           "not (contains(@class, 'has-background-color')) and " +
-          ".//a/text()='Lightspeed (Not logged in)']",
+          ".//a/text()='Lightspeed (not logged in)']",
       ),
     );
     expect(lightspeedStatusBarItem).not.to.be.undefined;
@@ -55,7 +55,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
             "//div[contains(@class, 'statusbar-item') and " +
               "contains(@class, 'has-background-color') and " +
               "contains(@class, 'warning-kind') and " +
-              ".//a/text()='Lightspeed (Not logged in)']",
+              ".//a/text()='Lightspeed (not logged in)']",
           ),
         );
       },

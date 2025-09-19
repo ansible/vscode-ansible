@@ -74,7 +74,7 @@ export class FileOperations {
   }
 
   public openFileInEditor(fileUrl: string) {
-    const updatedUrl = expandPath(String(fileUrl));
+    const updatedUrl = expandPath(fileUrl);
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(updatedUrl));
   }
 

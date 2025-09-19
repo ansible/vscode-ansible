@@ -1,0 +1,10 @@
+.vscode/**
+.gitignore
+**/node_modules
+**/out
+**/dist
+**/src
+**/*.ts
+**/tsconfig.json
+
+!out/mcp/src/server.js

@@ -40,7 +40,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
     const items = await statusBar.findElements(
       By.xpath(
         "//div[contains(@class, 'statusbar-item') and " +
-          ".//a/text()='Lightspeed (not logged in))']",
+          ".//a/text()='Lightspeed (not logged in)']",
       ),
     );
     expect(items.length).equals(0);

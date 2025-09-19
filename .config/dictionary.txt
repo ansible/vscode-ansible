@@ -10,6 +10,7 @@ Devcontainers
 Dockal
 Dpkg
 Elio
+ENOENT
 FQCN
 FQCNs
 Florian
@@ -281,6 +282,7 @@ venvs
 virt
 vite
 vitebuild
+vitest
 vnet
 vscodeignore
 vscoss
