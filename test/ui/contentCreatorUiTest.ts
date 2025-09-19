@@ -409,18 +409,18 @@ describe("Content Creator UI Tests", function () {
       });
       expect(pluginTypeDropdown, "pluginTypeDropdown should not be undefined")
         .not.to.be.undefined;
-      
+
       // Wait a bit for the dropdown to be fully rendered
       await sleep(1000);
-      
+
       await pluginTypeDropdown.click();
-      
+
       // Wait for dropdown options to be available
       await sleep(500);
-      
+
       const index = dropdownTagMap[pluginType];
       console.log(`Selecting plugin type "${pluginType}" at index ${index}`);
-      
+
       // Use a more robust dropdown selection approach
       await webview.getDriver().executeScript(
         (dropdown: HTMLSelectElement, index: number, pluginType: string) => {
@@ -428,7 +428,7 @@ describe("Content Creator UI Tests", function () {
             // Try setting by index first
             dropdown.selectedIndex = index;
             dropdown.dispatchEvent(new Event("change"));
-            
+
             // Also try setting by value as backup
             const options = dropdown.options;
             for (let i = 0; i < options.length; i++) {
@@ -444,10 +444,10 @@ describe("Content Creator UI Tests", function () {
         index,
         pluginType,
       );
-      
+
       // Wait for the selection to take effect
       await sleep(500);
-      
+
       const overwriteCheckbox = await waitForCondition({
         condition: async () => {
           try {
@@ -472,10 +472,10 @@ describe("Content Creator UI Tests", function () {
         "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
         overwriteCheckbox,
       );
-      
+
       // Wait for scroll to complete
       await sleep(500);
-      
+
       await overwriteCheckbox.click();
 
       createButton = await waitForCondition({
@@ -502,16 +502,16 @@ describe("Content Creator UI Tests", function () {
         await createButton.isEnabled(),
         "Create button should be enabled now",
       ).to.be.true;
-      
+
       // Scroll create button into view
       await webview.getDriver().executeScript(
         "arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});",
         createButton,
       );
-      
+
       // Wait for scroll to complete
       await sleep(500);
-      
+
       await createButton.click();
       if (verifyPath) {
         await scaffoldCollection(collectionPath);
