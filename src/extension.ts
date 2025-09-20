@@ -963,7 +963,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
           // Register the Ansible MCP server
           const mcpServer = new vscode.McpStdioServerDefinition(
-            "ansible-mcp-server",
+            "ansible-mcp-server-provider",
             "node",
             [mcpCliPath, "--stdio"],
             {
@@ -975,7 +975,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           Object.assign(mcpServer, {
             cwd: workspaceRoot,
             version: "0.1.0",
-            label: "Ansible Development Tools MCP Server",
+            label: "Ansible MCP Server Provider",
           });
 
           servers.push(mcpServer);

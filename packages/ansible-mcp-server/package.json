@@ -16,6 +16,10 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run test/handlers.ts",
+    "test:integration": "vitest run test/server.ts test/integration.ts",
+    "test:performance": "vitest run test/performance.ts",
+    "test:ci": "vitest run --coverage --reporter=verbose",
     "prepack": "npm run compile"
   },
   "dependencies": {
