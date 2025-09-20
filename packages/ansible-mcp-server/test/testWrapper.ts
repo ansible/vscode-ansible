@@ -110,17 +110,15 @@ export class TestUtils {
     }
   }
 
-  static measureExecutionTime<T>(
+  static async measureExecutionTime<T>(
     fn: () => Promise<T>,
   ): Promise<{ result: T; duration: number }> {
-    return new Promise(async (resolve) => {
-      const startTime = performance.now();
-      const result = await fn();
-      const endTime = performance.now();
-      const duration = endTime - startTime;
+    const startTime = performance.now();
+    const result = await fn();
+    const endTime = performance.now();
+    const duration = endTime - startTime;
 
-      resolve({ result, duration });
-    });
+    return { result, duration };
   }
 
   static async runConcurrentTests<T>(
