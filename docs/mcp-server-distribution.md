@@ -2,15 +2,19 @@
 
 ## 🎯 Overview
 
-The Ansible MCP Server provides AI assistants with access to Ansible development tools and wisdom. Here are multiple ways to make it available to users dynamically.
+The Ansible MCP Server provides AI assistants with access to Ansible development
+tools and wisdom. Here are multiple ways to make it available to users
+dynamically.
 
 ## 🚀 Distribution Methods
 
 ### 1. **VSCode Extension Auto-Registration** ⭐ (Recommended)
 
-**How it works**: When users install your VSCode Ansible extension, the MCP server is automatically registered.
+**How it works**: When users install your VSCode Ansible extension, the MCP
+server is automatically registered.
 
 **Advantages**:
+
 - ✅ Zero configuration for users
 - ✅ Automatic updates with extension
 - ✅ Works with any AI assistant that supports MCP
@@ -88,14 +92,17 @@ const mcpServer = new vscode.McpStdioServerDefinition(
 ## 📦 For End Users
 
 ### Automatic (Recommended)
+
 1. Install the Ansible VSCode extension
 2. MCP server is automatically available in AI assistants
 3. No additional configuration needed
 
 ### Manual Configuration
+
 If needed, users can manually add to their MCP configuration:
 
 **Cursor** (`~/.cursor/mcp.json`):
+
 ```json
 {
   "mcpServers": {
@@ -111,11 +118,12 @@ If needed, users can manually add to their MCP configuration:
 ```
 
 **VSCode** (`~/.vscode/mcp.json`):
+
 ```json
 {
   "mcpServers": {
     "ansible-dev-tools": {
-      "command": "node", 
+      "command": "node",
       "args": ["/path/to/extension/out/mcp/cli.js", "--stdio"],
       "env": {
         "WORKSPACE_ROOT": "/path/to/ansible/project"
@@ -136,11 +144,13 @@ If needed, users can manually add to their MCP configuration:
 ## 🔍 Troubleshooting
 
 ### Common Issues
+
 - **Node.js not found**: Ensure Node.js is in PATH or use absolute path
 - **Permission errors**: Check file permissions on CLI script
 - **Workspace detection**: Verify WORKSPACE_ROOT environment variable
 
 ### Debug Commands
+
 ```bash
 # Test MCP server directly
 node /path/to/cli.js --stdio
