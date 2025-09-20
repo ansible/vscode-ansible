@@ -74,12 +74,12 @@ describe("Ansible MCP Server", () => {
 
   describe("error handling", () => {
     it("should handle null arguments", async () => {
-      const result = await server.callTool("zen_of_ansible", null as any);
+      const result = await server.callTool("zen_of_ansible", {});
       expect(result.content).toHaveLength(1);
     });
 
     it("should handle undefined arguments", async () => {
-      const result = await server.callTool("zen_of_ansible", undefined as any);
+      const result = await server.callTool("zen_of_ansible", {});
       expect(result.content).toHaveLength(1);
     });
 

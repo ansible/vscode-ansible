@@ -61,6 +61,7 @@ export interface MockPrompt {
 /**
  * Test utilities for common assertions
  */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TestUtils {
   static assertValidToolResponse(response: MockToolResponse): void {
     if (!response || !response.content) {
@@ -135,6 +136,7 @@ export class TestUtils {
 /**
  * Test data generators
  */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class TestDataGenerator {
   private static counter = 0;
 
@@ -169,6 +171,7 @@ export class TestDataGenerator {
 /**
  * Performance testing utilities
  */
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class PerformanceTestUtils {
   static async benchmarkFunction<T>(
     fn: () => Promise<T>,

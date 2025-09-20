@@ -6,7 +6,7 @@ describe("MCP Handlers", () => {
   describe("zen_of_ansible handler", () => {
     it("should return the Zen of Ansible aphorisms", async () => {
       const handler = createZenOfAnsibleHandler();
-      const result = await handler({});
+      const result = await handler();
 
       expect(result).toEqual({
         content: [
@@ -20,7 +20,7 @@ describe("MCP Handlers", () => {
 
     it("should handle empty arguments", async () => {
       const handler = createZenOfAnsibleHandler();
-      const result = await handler({});
+      const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -29,7 +29,7 @@ describe("MCP Handlers", () => {
 
     it("should handle undefined arguments", async () => {
       const handler = createZenOfAnsibleHandler();
-      const result = await handler(undefined as any);
+      const result = await handler();
 
       expect(result.content).toHaveLength(1);
       expect(result.content[0].type).toBe("text");
@@ -37,15 +37,15 @@ describe("MCP Handlers", () => {
 
     it("should return consistent results", async () => {
       const handler = createZenOfAnsibleHandler();
-      const result1 = await handler({});
-      const result2 = await handler({});
+      const result1 = await handler();
+      const result2 = await handler();
 
       expect(result1).toEqual(result2);
     });
 
     it("should return all 20 aphorisms", async () => {
       const handler = createZenOfAnsibleHandler();
-      const result = await handler({});
+      const result = await handler();
 
       const text = result.content[0].text;
       const lines = text.split("\n").filter((line) => line.trim().length > 0);
@@ -57,7 +57,7 @@ describe("MCP Handlers", () => {
 
     it("should include key Ansible principles", async () => {
       const handler = createZenOfAnsibleHandler();
-      const result = await handler({});
+      const result = await handler();
 
       const text = result.content[0].text;
 
