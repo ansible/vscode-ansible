@@ -28,6 +28,12 @@ function makePathsRelative(content: string, basePath: string): string {
 }
 
 function fixJunitPathsInFolder(folder: string) {
+  // Check if the directory exists
+  if (!fs.existsSync(folder)) {
+    console.log(`Junit directory does not exist: ${folder}`);
+    return;
+  }
+
   const basePath = process.cwd();
   const files = getXmlFiles(folder);
 

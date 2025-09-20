@@ -50,6 +50,7 @@ nav:
       - development/webview_guide.md
       - development/additional_resources.md
       - development/vite.md
+      - MCP Server Distribution: mcp-server-distribution.md
   - FAQ:
       - faq/integrate-ansible-lint-with-language-server-venv.md
       - usage-data.md

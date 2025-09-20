@@ -7,6 +7,7 @@ export interface ExtensionSettings {
   interpreterPath: string | undefined;
   executionEnvironment: ExecutionEnvironmentSettings;
   lightSpeedService: LightSpeedServiceSettings;
+  mcpServer: McpServerSettings;
   playbook: PlaybookSettings;
 }
 
@@ -46,4 +47,8 @@ export interface LightSpeedServiceSettings {
   model: string | undefined;
   playbookGenerationCustomPrompt: string | undefined;
   playbookExplanationCustomPrompt: string | undefined;
+}
+
+export interface McpServerSettings {
+  enabled: boolean;
 }

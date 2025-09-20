@@ -16,7 +16,8 @@
   "exclude": [
     "node_modules",
     "test-resources",
-    "src/features/lightspeed/vue/src"
+    "src/features/lightspeed/vue/src",
+    "packages/ansible-mcp-server/test"
   ],
   "ts-node": {
     "files": true
