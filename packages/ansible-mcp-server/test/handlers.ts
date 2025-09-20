@@ -51,7 +51,7 @@ describe("MCP Handlers", () => {
       const lines = text.split("\n").filter((line) => line.trim().length > 0);
 
       // Should have 20 numbered aphorisms
-      const numberedLines = lines.filter((line) => /^\d+\./.test(line.trim()));
+      const numberedLines = lines.filter((line) => /^\d+\./m.test(line.trim()));
       expect(numberedLines).toHaveLength(20);
     });
 

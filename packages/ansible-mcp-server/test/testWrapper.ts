@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createAnsibleMcpServer } from "../src/server.js";
 import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
@@ -104,7 +103,7 @@ export class TestUtils {
     // Check for numbered aphorisms
     const numberedLines = textContent.text
       .split("\n")
-      .filter((line) => /^\d+\./.test(line.trim()));
+      .filter((line) => /^\d+\./m.test(line.trim()));
 
     if (numberedLines.length !== 20) {
       throw new Error(`Expected 20 aphorisms, found ${numberedLines.length}`);

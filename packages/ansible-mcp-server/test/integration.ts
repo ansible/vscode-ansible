@@ -106,7 +106,7 @@ describe("Ansible MCP Server Integration", () => {
       const text = result.content[0].text;
 
       // Should contain numbered items
-      expect(text).toMatch(/\d+\./);
+      expect(text).toMatch(/^\d+\./m);
 
       // Should contain multiple lines
       const lines = text.split("\n");
