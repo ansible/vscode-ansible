@@ -156,7 +156,7 @@ jobs:
       - name: Setup node.js
         uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 22
           # yarn cache is broken due https://github.com/actions/setup-node/issues/531
           # cache: yarn
 
@@ -201,7 +201,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Enable caching for pre-commit
         if: ${{ matrix.name == 'lint' }}
@@ -541,7 +541,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Publish extension to marketplaces
         run: |
