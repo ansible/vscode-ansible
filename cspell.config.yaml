@@ -26,3 +26,5 @@ ignorePaths:
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"
+  # ignore usernames in vscode settings paths
+  - "/Users/[\\w]+/"
