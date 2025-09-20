@@ -138,9 +138,12 @@ export class TestUtils {
  * Test data generators
  */
 export class TestDataGenerator {
+  private static counter = 0;
+
   static generateRandomWorkspacePath(): string {
-    const randomId = Math.random().toString(36).substring(7);
-    return `/test/workspace/${randomId}`;
+    // Use counter-based approach for deterministic test data
+    const uniqueId = `test${++TestDataGenerator.counter}`;
+    return `/test/workspace/${uniqueId}`;
   }
 
   static generateToolCallArgs(
