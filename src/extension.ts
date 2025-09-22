@@ -63,7 +63,7 @@ import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbac
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
-import { ExecException, execSync } from "child_process";
+import { ExecException, execSync } from "node:child_process";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
