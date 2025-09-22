@@ -16,8 +16,6 @@ export class SettingsManager {
     );
     const lightSpeedSettings =
       vscode.workspace.getConfiguration("ansible.lightspeed");
-    const mcpServerSettings =
-      vscode.workspace.getConfiguration("ansible.mcpServer");
     const playbookSettings =
       vscode.workspace.getConfiguration("ansible.playbook");
     this.settings = {
@@ -59,9 +57,6 @@ export class SettingsManager {
           "playbookExplanationCustomPrompt",
           undefined,
         ),
-      },
-      mcpServer: {
-        enabled: mcpServerSettings.get("enabled", false),
       },
       playbook: {
         arguments: playbookSettings.get("arguments", ""),
