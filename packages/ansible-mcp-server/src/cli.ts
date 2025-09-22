@@ -8,7 +8,7 @@ const root = process.env.WORKSPACE_ROOT || process.cwd();
 (async () => {
   if (args.has("--stdio")) {
     await runStdio(root);
-    return; // keep process alive until client disconnects
+    return;
   }
 
   if (args.has("--ws") || args.has("--websocket")) {

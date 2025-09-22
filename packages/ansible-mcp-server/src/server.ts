@@ -8,7 +8,6 @@ export function createAnsibleMcpServer() {
     version: "0.1.0",
   });
 
-  // Tools
   server.registerTool(
     "zen_of_ansible",
     {
@@ -26,7 +25,6 @@ export async function runStdio(_workspaceRoot: string) {
   const server = createAnsibleMcpServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  // Keep process alive for stdio-based clients until they close the transport
   await new Promise<void>(() => {
     // Intentionally empty - this keeps the process alive
   });

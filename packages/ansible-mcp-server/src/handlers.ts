@@ -3,11 +3,6 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 
-/**
- * Exported handlers for direct testing
- * These are the actual implementation functions used by the MCP server
- */
-
 export function createDebugEnvHandler(workspaceRoot: string) {
   return async () => {
     return {
@@ -52,7 +47,7 @@ export function createAnsibleLintHandler(workspaceRoot: string) {
     return await new Promise((resolve) => {
       const child = spawn("ansible-lint", [abs, ...extraArgs], {
         cwd: workspaceRoot,
-        env: process.env, // Trust the inherited environment
+        env: process.env,
       });
       let stdout = "";
       let stderr = "";
