@@ -1,6 +1,6 @@
 /* "stdlib" */
 import * as vscode from "vscode";
-import * as path from "path";
+import * as path from "node:path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
