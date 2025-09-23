@@ -1,0 +1,60 @@
+{
+  "name": "@ansible/ansible-mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
+  "bin": "out/server/src/cli.js",
+  "main": "./out/server/src/server.js",
+  "types": "./out/server/src/server.d.ts",
+  "scripts": {
+    "clean": "rimraf out/server && rimraf lib",
+    "compile": "tsc -p .",
+    "build": "npm run clean && npm run compile",
+    "dev:stdio": "tsx src/cli.ts --stdio",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:unit": "vitest run test/handlers.ts",
+    "test:integration": "vitest run test/server.ts test/integration.ts",
+    "test:performance": "vitest run test/performance.ts",
+    "test:ci": "vitest run --coverage --reporter=verbose",
+    "prepack": "npm run compile"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.15",
+    "@vitest/coverage-v8": "^2.0.0",
+    "@vitest/ui": "^2.0.0",
+    "eslint": "^9.31.0",
+    "rimraf": "^6.0.1",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "vitest": "^2.0.0"
+  },
+  "files": [
+    "./out/server/src/**/*"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "keywords": [
+    "mcp",
+    "ansible",
+    "adt",
+    "development-tools",
+    "ansible-lint",
+    "cli",
+    "stdio",
+    "cursor",
+    "ai-assistant"
+  ]
+}

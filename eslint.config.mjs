@@ -28,6 +28,7 @@ export default tseslint.config(
       "site/*",
       "test/ui/.mocharc.js",
       "webviews/**",
+      "**/coverage/**",
     ],
   },
   {
@@ -113,6 +114,17 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-require-imports": "off",
       "chai-friendly/no-unused-expressions": "error",
+    },
+  },
+  {
+    // Special configuration for MCP server package
+    files: ["packages/ansible-mcp-server/**/*.{js,ts,tsx}"],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        project: ["./packages/ansible-mcp-server/tsconfig.json"],
+        tsconfigRootDir: __dirname,
+      },
     },
   },
   {
