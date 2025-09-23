@@ -12,7 +12,6 @@ ci:
     - compare-devcontainer
 exclude: >
   (?x)^(
-    .config/requirements.in|
     .*.svg
   )$
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
@@ -53,7 +52,7 @@ repos:
     hooks:
       - id: depcheck
         name: depcheck
-        entry: yarn dlx depcheck
+        entry: npx --yes yarn dlx depcheck
         language: system
         pass_filenames: false
         always_run: true
