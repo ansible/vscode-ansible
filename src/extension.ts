@@ -82,7 +82,6 @@ import { MainPanel as ExplanationPanel } from "./features/lightspeed/vue/views/e
 import { MainPanel as HelloWorldPanel } from "./features/lightspeed/vue/views/helloWorld";
 import { MainPanel as createAnsibleCollectionPanel } from "./features/contentCreator/vue/views/createAnsibleCollectionPanel";
 import { MainPanel as createAnsibleProjectPanel } from "./features/contentCreator/vue/views/createAnsibleProjectPanel";
-import { MainPanel as addPatternPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
 import { MainPanel as addPluginPanel } from "./features/contentCreator/vue/views/addPluginPagePanel";
 import { MainPanel as createRolePanel } from "./features/contentCreator/vue/views/createRolePanel";
 import { MainPanel as createDevcontainerPanel } from "./features/contentCreator/vue/views/createDevcontainerPanel";
@@ -581,15 +580,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
       "ansible.content-creator.create-ansible-project",
       () => {
         createAnsibleProjectPanel.render(context);
-      },
-    ),
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand(
-      "ansible.content-creator.add-pattern",
-      () => {
-        addPatternPanel.render(context);
       },
     ),
   );
