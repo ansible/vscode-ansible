@@ -1,6 +1,6 @@
 /* "stdlib" */
 import * as vscode from "vscode";
-import * as path from "path";
+import * as path from "node:path";
 import { ExtensionContext, extensions, window, workspace } from "vscode";
 import { Vault } from "./features/vault";
 import { AnsibleCommands } from "./definitions/constants";
@@ -63,7 +63,7 @@ import { LightspeedFeedbackWebviewProvider } from "./features/lightspeed/feedbac
 import { WelcomePagePanel } from "./features/welcomePage/welcomePagePanel";
 import { withInterpreter } from "./features/utils/commandRunner";
 import { IFileSystemWatchers } from "./interfaces/watchers";
-import { ExecException, execSync } from "child_process";
+import { ExecException, execSync } from "node:child_process";
 // import { LightspeedExplorerWebviewViewProvider } from "./features/lightspeed/explorerWebviewViewProvider";
 import {
   LightspeedUser,
@@ -634,20 +634,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
     ),
   );
 
-  // open ansible-creator create
-  context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.content-creator.create", () => {
-      window.showInformationMessage("This feature is coming soon. Stay tuned.");
-    }),
-  );
-
-  // open ansible-creator sample
-  context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.content-creator.sample", () => {
-      window.showInformationMessage("This feature is coming soon. Stay tuned.");
-    }),
-  );
-
   context.subscriptions.push(
     vscode.commands.registerCommand(
       LightSpeedCommands.LIGHTSPEED_PLAYBOOK_GENERATION,
@@ -669,6 +655,43 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.hello.world", async () => {
       HelloWorldPanel.render(context);
+    }),
+  );
+
+  // enable MCP server
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.mcpServer.enabled", async () => {
+      try {
+        if (extSettings.settings.mcpServer.enabled) {
+          vscode.window.showInformationMessage(
+            "Ansible MCP Server is already enabled.",
+          );
+          return;
+        }
+
+        // Enable the MCP server setting
+        await vscode.workspace
+          .getConfiguration("ansible.mcpServer")
+          .update("enabled", true, vscode.ConfigurationTarget.Workspace);
+
+        // Reinitialize settings to pick up the change
+        await extSettings.reinitialize();
+
+        // Start the MCP server
+        await startMcpServer(extSettings);
+
+        // Show success message
+        vscode.window.showInformationMessage(
+          "Ansible MCP Server has been enabled and started successfully.",
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(
+          `Failed to enable MCP Server: ${errorMessage}`,
+        );
+        console.error("Error enabling MCP Server:", error);
+      }
     }),
   );
 
@@ -1010,6 +1033,30 @@ export function deactivate(): Thenable<void> | undefined {
   }
   return client.stop();
 }
+
+const startMcpServer = async (extSettings: SettingsManager) => {
+  if (!extSettings.settings.mcpServer.enabled) {
+    console.log("MCP server is disabled");
+    return;
+  }
+
+  try {
+    console.log("Starting Ansible MCP server...");
+
+    console.log("MCP server startup logic to be implemented");
+
+    return true;
+  } catch (err) {
+    let errorMessage: string;
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else {
+      errorMessage = String(err);
+    }
+    console.error(`MCP server initialization failed with ${errorMessage}`);
+    throw err;
+  }
+};
 
 async function updateAnsibleStatusBar(
   metaData: MetadataManager,

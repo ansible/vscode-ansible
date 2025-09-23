@@ -44,7 +44,6 @@ no-emit-package = [
   "exceptiongroup", # <py311
   "pip",
   "resolvelib",
-  "ruamel-yaml-clib",
   "tomli", # <py311
   "typing-extensions",
   "typing-inspect",
