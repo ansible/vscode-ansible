@@ -45,28 +45,5 @@
     ".vscode-test": true
   },
   "redhat.telemetry.enabled": false,
-  "eslint.useESLintClass": true,
-  "github.copilot.enable": {
-    "*": true
-  },
-  "chat.mcp.discovery.enabled": {
-    "claude-desktop": true,
-    "windsurf": true,
-    "cursor-global": true,
-    "cursor-workspace": true
-  },
-  "chat.mcp.servers": {
-    "ansible-mcp-server": {
-      "command": "/Users/anshukla/.nvm/versions/node/v22.15.1/bin/node",
-      "args": ["out/server/src/cli.js", "--stdio"],
-      "cwd": "${workspaceFolder}/packages/ansible-mcp-server",
-      "env": {
-        "WORKSPACE_ROOT": "${workspaceFolder}",
-        "PATH": "/usr/local/bin:/usr/bin:/bin"
-      }
-    }
-  },
-  "ansible.mcp.enabled": true,
-  "ansible.mcp.debug": true,
-  "chat.mcp.assisted.nuget.enabled": true
+  "eslint.useESLintClass": true
 }
