@@ -18,6 +18,8 @@ export class SettingsManager {
       vscode.workspace.getConfiguration("ansible.lightspeed");
     const playbookSettings =
       vscode.workspace.getConfiguration("ansible.playbook");
+    const mcpServerSettings =
+      vscode.workspace.getConfiguration("ansible.mcpServer");
     this.settings = {
       activationScript: (await ansibleSettings.get(
         "python.activationScript",
@@ -60,6 +62,9 @@ export class SettingsManager {
       },
       playbook: {
         arguments: playbookSettings.get("arguments", ""),
+      },
+      mcpServer: {
+        enabled: mcpServerSettings.get("enabled", false),
       },
     };
 
