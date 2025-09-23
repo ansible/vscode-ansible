@@ -29,6 +29,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[yaml]": {
+    // Until https://github.com/ansible/vscode-ansible/pull/388 is addressed.
     "editor.formatOnSave": false
   },
   "explorer.fileNesting.enabled": true,
