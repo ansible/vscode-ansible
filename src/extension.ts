@@ -152,9 +152,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
   // start the client and the server
   await startClient(context, telemetry);
 
-  // start MCP server if enabled
-  await startMcpServer(extSettings);
-
   notifyAboutConflicts();
 
   new AnsiblePlaybookRunProvider(context, extSettings, telemetry);
