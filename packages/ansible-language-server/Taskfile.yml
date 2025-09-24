@@ -53,8 +53,6 @@ tasks:
     cmds:
       - task -d ../.. install
       - task: .test
-      # restore implicit node version
-      - defer: git checkout HEAD .tool-versions
       - defer: git clean -dxf
   test-with-ee:
     dir: "{{ .TASKFILE_DIR }}"
