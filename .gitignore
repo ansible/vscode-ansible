@@ -19,7 +19,6 @@ CHANGELOG.html
 !.yarn/sdks
 !.yarn/versions
 .DS_Store
-.direnv
 coverage
 .nyc_output
 .idea
