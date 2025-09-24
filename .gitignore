@@ -38,3 +38,4 @@ test/unit/lightspeed/utils/samples/collections/ansible_collections/community/bro
 .ansible
 .eslintcache
 xunit.xml
+**/*.egg-info

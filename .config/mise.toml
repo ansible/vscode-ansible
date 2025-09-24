@@ -29,3 +29,5 @@ experimental = true
 # do not add tools unsupported on windows such: gh, yarn
 direnv = "latest"
 node = "20.19.3"
+task = "latest"
+uv = "latest"

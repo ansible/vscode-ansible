@@ -73,7 +73,9 @@ fi
 if [[ "${OSTYPE:-}" != darwin* ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
-        exit 55
+        if [[ "${READTHEDOCS:-}" != "True" ]]; then
+            exit 55
+        fi
     }
 fi
 
@@ -153,7 +155,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
+    DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -270,21 +272,23 @@ python3 -c "import os, stat, sys; sys.exit(os.stat('.').st_mode & stat.S_IWOTH)"
 }
 
 # install gh if missing
-command -v gh >/dev/null 2>&1 || {
-    log notice "Trying to install missing gh on ${OS} ..."
-    # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
-    if [[ -f "/usr/bin/apt-get" ]]; then
-      curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-          sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-      sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-      sudo apt-get update
-      sudo apt-get install gh
-    else
-        command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
-    fi
-    gh --version || log warning "gh cli not found and it might be needed for some commands."
-}
+if [[ "${READTHEDOCS:-}" != "True" ]]; then
+    command -v gh >/dev/null 2>&1 || {
+        log notice "Trying to install missing gh on ${OS} ..."
+        # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
+        if [[ -f "/usr/bin/apt-get" ]]; then
+        curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install gh
+        else
+            command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
+        fi
+        gh --version || log warning "gh cli not found and it might be needed for some commands."
+    }
+fi
 
 # on WSL we want to avoid using Windows's npm (broken)
 if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
@@ -333,8 +337,7 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from community-ansible-dev-tools EE in order
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
-    python3 -m uv pip install -q \
-        -r .config/requirements.in -c .config/constraints.txt
+    python3 -m uv sync --active
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere
