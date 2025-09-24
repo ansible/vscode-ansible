@@ -101,7 +101,6 @@ depcheck
 deps
 devel
 devspaces
-direnv
 dirhtml
 dirmngr
 docker
