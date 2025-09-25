@@ -49,7 +49,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
                 `Language server ready after ${attempts + 1} attempts`,
               );
             }
-          } catch (error) {
+          } catch {
             // Server not ready yet
           }
 
