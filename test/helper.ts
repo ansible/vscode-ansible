@@ -32,11 +32,16 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-  const activation = await extension?.activate();
+  if (!extension) {
+    throw new Error("Ansible extension not found");
+  }
+
+  const activation = await extension.activate();
+  console.log("Extension activated");
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
-    await waitForDiagnosisCompletion();
+    console.log("Document opened, showing document...");
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
@@ -46,12 +51,13 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
+    throw e;
   }
 }
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(2000); //  Wait for server activation (reduced from 20000 to 2000)
+  await sleep(5000); //  Wait for server activation (increased from 2000 to 5000)
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -595,23 +601,38 @@ export async function testValidJinjaBrackets(
 
 export async function waitForDiagnosisCompletion(
   interval = 100,
-  timeout = 2000,
+  timeout = 5000, // Increased timeout from 2000 to 5000ms
 ) {
   let started = false;
   let done = false;
   let elapsed = 0;
+  console.log(`Starting waitForDiagnosisCompletion with timeout ${timeout}ms`);
+
   // If either ansible-lint or ansible-playbook has started within the
-  // specified timeout value (default: 2000 msecs), we'll wait until
+  // specified timeout value (default: 5000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {
     const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
     if (!started && processes.length > 0) {
+      console.log(
+        `Found ${processes.length} ansible processes, waiting for completion...`,
+      );
       started = true;
     } else if (started && processes.length === 0) {
+      console.log("Ansible processes completed");
       done = true;
+    } else if (elapsed % 1000 === 0) {
+      console.log(
+        `Waiting... elapsed: ${elapsed}ms, processes: ${processes.length}, started: ${started}`,
+      );
     }
     await sleep(interval);
     elapsed += interval;
   }
+
+  if (!started) {
+    console.log(`No ansible processes detected within ${timeout}ms timeout`);
+  }
+  console.log(`waitForDiagnosisCompletion finished after ${elapsed}ms`);
 }
