@@ -50,7 +50,10 @@ export function testDiagnosticsYAMLWithoutEE(): void {
               );
             }
           } catch {
-            // Server not ready yet
+            // Server not ready yet, will retry
+            console.log(
+              `Attempt ${attempts + 1}: Language server not ready yet`,
+            );
           }
 
           if (!serverReady) {
@@ -103,8 +106,6 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         console.log("Waiting for diagnostics after file save...");
         await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
         console.log("Done waiting for diagnostics completion");
-
-        // Debug: Check current diagnostics
         const actualDiagnostics = vscode.languages.getDiagnostics(docUri1);
         console.log(
           `Found ${actualDiagnostics.length} diagnostics:`,
