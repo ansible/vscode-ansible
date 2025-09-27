@@ -17,11 +17,11 @@ exclude: >
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/pappasam/toml-sort
-    rev: v0.24.2
+    rev: v0.24.3
     hooks:
       - id: toml-sort-fix
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.12.11"
+    rev: "v0.13.1"
     hooks:
       - id: ruff-format
         alias: ruff
