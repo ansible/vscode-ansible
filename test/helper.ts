@@ -32,12 +32,7 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-  if (!extension) {
-    throw new Error("Ansible extension not found");
-  }
-
-  const activation = await extension.activate();
-  console.log("Extension activated");
+  const activation = await extension?.activate();
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
@@ -51,7 +46,6 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
-    throw e;
   }
 }
 
@@ -601,13 +595,11 @@ export async function testValidJinjaBrackets(
 
 export async function waitForDiagnosisCompletion(
   interval = 100,
-  timeout = 5000, // Increased timeout from 2000 to 5000ms
+  timeout = 5000,
 ) {
   let started = false;
   let done = false;
   let elapsed = 0;
-  console.log(`Starting waitForDiagnosisCompletion with timeout ${timeout}ms`);
-
   // If either ansible-lint or ansible-playbook has started within the
   // specified timeout value (default: 5000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
@@ -615,24 +607,11 @@ export async function waitForDiagnosisCompletion(
   while (!done && (started || elapsed < timeout)) {
     const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
     if (!started && processes.length > 0) {
-      console.log(
-        `Found ${processes.length} ansible processes, waiting for completion...`,
-      );
       started = true;
     } else if (started && processes.length === 0) {
-      console.log("Ansible processes completed");
       done = true;
-    } else if (elapsed % 1000 === 0) {
-      console.log(
-        `Waiting... elapsed: ${elapsed}ms, processes: ${processes.length}, started: ${started}`,
-      );
     }
     await sleep(interval);
     elapsed += interval;
   }
-
-  if (!started) {
-    console.log(`No ansible processes detected within ${timeout}ms timeout`);
-  }
-  console.log(`waitForDiagnosisCompletion finished after ${elapsed}ms`);
 }
