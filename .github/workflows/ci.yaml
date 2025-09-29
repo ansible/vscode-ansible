@@ -558,3 +558,16 @@ jobs:
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  notify:
+    if: failure() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/devel/main') # runs only if *any* previous job failed on main branches
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - check
+    steps:
+      - name: Send Slack notification
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+          --data '{"text":"❌ CI failed on main branch for '${{ github.repository }}'. Check logs: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"}' \
+          ${{ secrets.SLACK_WEBHOOK_URL }}
