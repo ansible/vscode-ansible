@@ -63,13 +63,9 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         }
 
         if (!serverReady) {
-          console.log(
-            "Language server may not be fully ready, continuing anyway...",
-          );
+          await sleep(2000); // Give more time for the extension to be ready
+          console.log("Waiting additional time for full initialization...");
         }
-
-        console.log("Waiting additional time for full initialization...");
-        await sleep(2000); // Give more time for the extension to be ready
 
         console.log("Making a small edit to trigger validation...");
         const editor = vscode.window.activeTextEditor;

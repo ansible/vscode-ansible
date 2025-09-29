@@ -57,7 +57,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(5000); //  Wait for server activation (increased from 2000 to 5000)
+  await sleep(2000); //  Wait for server activation
 }
 
 export async function sleep(ms: number): Promise<void> {
