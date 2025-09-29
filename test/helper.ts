@@ -41,6 +41,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
+      await waitForDiagnosisCompletion();
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
