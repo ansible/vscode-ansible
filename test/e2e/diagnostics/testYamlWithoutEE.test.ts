@@ -92,7 +92,9 @@ export function testDiagnosticsYAMLWithoutEE(): void {
       it("should provide diagnostics with YAML validation (with --syntax-check)", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+        console.log("Waiting for diagnostics…");
+        await waitForDiagnosisCompletion();
+        console.log("Done waiting, checking diagnostics…"); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
