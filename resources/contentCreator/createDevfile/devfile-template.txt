@@ -1,3 +1,4 @@
+---
 schemaVersion: 2.2.2
 metadata:
   name: {{ dev_file_name }}
