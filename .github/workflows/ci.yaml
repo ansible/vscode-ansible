@@ -153,12 +153,7 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - name: Setup node.js
-        uses: actions/setup-node@v5
-        with:
-          node-version: 20
-          # yarn cache is broken due https://github.com/actions/setup-node/issues/531
-          # cache: yarn
+      - uses: jdx/mise-action@v3
 
       - name: Corepack enable
         run: corepack enable
@@ -515,12 +510,7 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - name: Install Node
-        uses: actions/setup-node@v5
-        with:
-          cache: yarn
-          cache-dependency-path: "**/yarn.lock"
-          node-version-file: .tool-versions
+      - uses: jdx/mise-action@v3
 
       - name: Download the artifact
         uses: actions/download-artifact@v5
@@ -563,13 +553,7 @@ jobs:
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v5
-        with:
-          cache: yarn
-          cache-dependency-path: "**/yarn.lock"
-          node-version-file: .tool-versions
-          registry-url: "https://registry.npmjs.org"
+      - uses: jdx/mise-action@v3
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:

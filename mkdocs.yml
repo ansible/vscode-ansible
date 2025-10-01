@@ -4,6 +4,7 @@ site_url: https://ansible.readthedocs.io/projects/vscode-ansible/
 repo_url: https://github.com/ansible/vscode-ansible
 edit_uri: blob/main/docs/
 strict: true
+site_dir: out/html
 
 theme:
   name: ansible

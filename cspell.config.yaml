@@ -12,9 +12,9 @@ dictionaries:
   - "!backwards-compatibility"
   - "!cryptocurrencies"
   - "!cpp"
+enabled: true
+useGitignore: true
 ignorePaths:
-  - "**/requirements.in"
-  - .config/constraints.txt
   - .yarn/
   - media
   - package.json
@@ -23,6 +23,7 @@ ignorePaths:
   - test/testFixtures/lightspeed/*.yml
   - .tekton/
   - ./vscode-ansible.Containerfile
+  - uv.lock
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"

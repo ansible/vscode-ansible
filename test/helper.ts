@@ -51,7 +51,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(2000); //  Wait for server activation (reduced from 20000 to 2000)
+  await sleep(2000); //  Wait for server activation
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -595,13 +595,13 @@ export async function testValidJinjaBrackets(
 
 export async function waitForDiagnosisCompletion(
   interval = 100,
-  timeout = 2000,
+  timeout = 5000,
 ) {
   let started = false;
   let done = false;
   let elapsed = 0;
   // If either ansible-lint or ansible-playbook has started within the
-  // specified timeout value (default: 2000 msecs), we'll wait until
+  // specified timeout value (default: 5000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {

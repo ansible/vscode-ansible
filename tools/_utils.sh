@@ -1,8 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-NC='\033[0m' # No Color
-
 timed() {
   local start
   start=$(date +%s)
@@ -13,6 +11,24 @@ timed() {
   return $exit_code
 }
 
+if [[ "${READTHEDOCS:-}" != "True" ]]; then
+    NC='\033[0m' # No Color
+    DEBUG_COLOR='\033[90m'
+    NOTICE_COLOR='\033[0;36m'
+    WARNING_COLOR='\033[0;33m'
+    ERROR_COLOR='\033[0;31m'
+    # see https://github.com/readthedocs/readthedocs.org/issues/8733
+    # shellcheck disable=SC2034
+    FORCE_COLOR=0
+    # shellcheck disable=SC2034
+    NO_COLOR=1
+else
+    NC=''
+    DEBUG_COLOR=''
+    NOTICE_COLOR=''
+    WARNING_COLOR=''
+    ERROR_COLOR=''
+fi
 # Use "log [notice|warning|error] message" to  print a colored message to
 # stderr, with colors.
 log () {
@@ -22,10 +38,10 @@ log () {
         exit 2
     fi
     case $1 in
-        debug) prefix='\033[90mDEBUG:   ' ;;
-        notice) prefix='\033[0;36mNOTICE:  ' ;;
-        warning) prefix='\033[0;33mWARNING: ' ;;
-        error) prefix='\033[0;31mERROR:   ' ;;
+        debug) prefix="${DEBUG_COLOR}DEBUG:   " ;;
+        notice) prefix="${NOTICE_COLOR}NOTICE:  " ;;
+        warning) prefix="${WARNING_COLOR}WARNING: " ;;
+        error) prefix="${ERROR_COLOR}ERROR:   " ;;
         *)
         log error "log first argument must be 'debug', 'notice', 'warning' or 'error', not $1."
         exit 2

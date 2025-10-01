@@ -40,7 +40,7 @@ tasks:
       - bash ./tools/precheck.sh
       - bash ./tools/test-setup.sh
     sources:
-      - .config/requirements.in
+      - pyproject.toml
       - tools/test-setup.sh
     generates:
       - out/log/manifest-*.yml
@@ -58,17 +58,17 @@ tasks:
   install:
     cmds:
       - task: setup
-      - uv pip install -r .config/requirements.in -c .config/constraints.txt
-      - yarn install
+      - uv sync --active
+      - npx --yes yarn install
     generates:
       - node_modules/.yarn-state.yml
     sources:
-      - .config/constraints.txt
-      - .config/requirements.in
       - node_modules/.yarn-state.yml
       - package.json
       - packages/*/package.json
+      - pyproject.toml
       - tools/test-setup.sh
+      - uv.lock
       - yarn.lock
     run: once
     interactive: true
@@ -103,7 +103,7 @@ tasks:
       VSCODE_VERSION:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
-      - uv pip compile -q --universal --no-annotate --output-file .config/constraints.txt .config/requirements.in
+      - uv sync --upgrade
       - task: install
       # upgrade yarn itself
       - yarn set version latest
@@ -127,12 +127,12 @@ tasks:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
     cmds:
-      - task: setup
+      - task: install # implies setup, needed to install node deps
       # Retrieve possibly missing commits:
       - $(git rev-parse --is-shallow-repository) && git fetch --unshallow > /dev/null || true
       - git fetch --tags --force
-      - npm exec -- ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
-      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict'
+      - npx ts-node packages/ansible-language-server/tools/settings-doc-generator.ts
+      - bash -c '. "${VIRTUAL_ENV}/bin/activate" && mkdocs build --strict --site-dir=${READTHEDOCS_OUTPUT:-out}/html/'
       - defer: { task: finish }
   lint:
     desc: Lint the project
