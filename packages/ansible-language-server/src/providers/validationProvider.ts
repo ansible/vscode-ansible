@@ -109,10 +109,23 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
     yDoc.errors.forEach((error) => {
       const [errStart, errEnd] = error.pos;
       if (errStart) {
-        const start = textDocument.positionAt(errStart);
-        const end = textDocument.positionAt(errEnd);
+        let range: Range;
 
-        const range = Range.create(start, end);
+        // Use linePos if available (more accurate for YAML errors), otherwise fall back to character positions
+        if (error.linePos && error.linePos[0]) {
+          const startLine = error.linePos[0].line - 1; // Convert to 0-based
+          const startCol = error.linePos[0].col - 1; // Convert to 0-based
+          const endLine = error.linePos[1]
+            ? error.linePos[1].line - 1
+            : startLine;
+          const endCol = error.linePos[1] ? error.linePos[1].col - 1 : startCol;
+
+          range = Range.create(startLine, startCol, endLine, endCol);
+        } else {
+          const start = textDocument.positionAt(errStart);
+          const end = textDocument.positionAt(errEnd);
+          range = Range.create(start, end);
+        }
 
         let severity: DiagnosticSeverity;
         switch (error.name) {
@@ -129,9 +142,9 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
         let a: number = 0;
         let b: number = 0;
         if (error.linePos) {
-          a = error.linePos[0].line;
+          a = error.linePos[0].line - 1; // Convert to 0-based for interval tree
           if (error.linePos[1]) {
-            b = error.linePos[1].line;
+            b = error.linePos[1].line - 1; // Convert to 0-based for interval tree
           }
         }
         rangeTree.insert([a, b], {

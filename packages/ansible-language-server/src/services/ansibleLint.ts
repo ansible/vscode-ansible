@@ -168,14 +168,29 @@ export class AnsibleLint {
                 (item.location.lines.begin ||
                   typeof item.location.lines.begin === "number")))
           ) {
-            const begin_line = item.location.positions
+            let begin_line = item.location.positions
               ? item.location.positions.begin.line
               : item.location.lines.begin.line ||
                 item.location.lines.begin ||
                 1;
-            const begin_column = item.location.positions
+            let begin_column = item.location.positions
               ? item.location.positions.begin.column
               : item.location.lines.begin.column || 1;
+
+            // For load-failure errors, try to parse the actual line/column from the error message
+            if (
+              item.check_name === "load-failure[runtimeerror]" &&
+              item.content &&
+              item.content.body
+            ) {
+              const lineColumnMatch = item.content.body.match(
+                /line (\d+), column (\d+)/,
+              );
+              if (lineColumnMatch) {
+                begin_line = parseInt(lineColumnMatch[1], 10);
+                begin_column = parseInt(lineColumnMatch[2], 10);
+              }
+            }
             const start: Position = {
               line: begin_line - 1,
               character: begin_column - 1,
