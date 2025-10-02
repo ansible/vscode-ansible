@@ -15,7 +15,10 @@ NODE_OPTIONS = "--max-old-space-size=8192"
 # for build and testing purposes.
 VIRTUAL_ENV = "{{ xdg_cache_home }}/.local/share/virtualenvs/vsa"
 # https://mise.jdx.dev/mise-cookbook/python.html
-_.python.venv = {create = true, path = "~/.local/share/virtualenvs/vsa", python = "3.13", uv_create_args = ["--system-site-packages", "--seed"]} # pass args to uv venv
+_.python.venv = { create = true, path = "~/.local/share/virtualenvs/vsa", python = "3.13", uv_create_args = [
+  "--system-site-packages",
+  "--seed",
+] }  # pass args to uv venv
 
 # Do not use other hooks than preinstall or postinstall because they will
 # not work without 'mise activate' command, something that we do not use on CI.

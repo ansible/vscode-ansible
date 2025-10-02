@@ -24,6 +24,7 @@ ignorePaths:
   - .tekton/
   - ./vscode-ansible.Containerfile
   - uv.lock
+  - "*.svg"
 ignoreRegExpList:
   # ignore github usernames like @foo
   - "@[\\w]+"
