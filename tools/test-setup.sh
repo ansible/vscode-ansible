@@ -314,6 +314,7 @@ fi
 if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
     log warning "Virtualenv broken, trying to recreate it ..."
     python3 -m venv --clear "${VIRTUAL_ENV}"
+    # shellcheck disable=SC1091
     . "${VIRTUAL_ENV}/bin/activate"
     if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
         log error "Virtualenv still broken."
