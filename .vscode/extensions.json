@@ -1,5 +1,6 @@
 {
   "recommendations": [
+    "biomejs.biome",
     "charliermarsh.ruff",
     "DavidAnson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
@@ -9,6 +10,7 @@
     "timonwong.shellcheck"
   ],
   "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
     "ms-python.black-formatter",
     "tamasfe.even-better-toml"
   ]

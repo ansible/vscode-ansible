@@ -1,31 +1,10 @@
 {
-  "name": "@ansible/ansible-mcp-server",
-  "version": "0.1.0",
-  "type": "module",
-  "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "bin": "out/server/src/cli.js",
-  "main": "./out/server/src/server.js",
-  "types": "./out/server/src/server.d.ts",
-  "scripts": {
-    "clean": "rimraf out/server && rimraf lib",
-    "compile": "tsc -p .",
-    "build": "npm run clean && npm run compile",
-    "dev:stdio": "tsx src/cli.ts --stdio",
-    "lint": "eslint .",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "test:unit": "vitest run test/handlers.ts",
-    "test:integration": "vitest run test/server.ts test/integration.ts",
-    "test:performance": "vitest run test/performance.ts",
-    "test:ci": "vitest run --coverage --reporter=verbose",
-    "prepack": "npm run compile"
-  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3",
     "zod": "^3.23.8"
   },
+  "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
     "@types/node": "^24.0.15",
     "@vitest/coverage-v8": "^2.0.0",
@@ -36,16 +15,12 @@
     "typescript": "^5.8.3",
     "vitest": "^2.0.0"
   },
-  "files": [
-    "./out/server/src/**/*"
-  ],
-  "license": "MIT",
   "engines": {
     "node": ">=20.0"
   },
-  "publishConfig": {
-    "access": "public"
-  },
+  "files": [
+    "./out/server/src/**/*"
+  ],
   "keywords": [
     "mcp",
     "ansible",
@@ -56,5 +31,30 @@
     "stdio",
     "cursor",
     "ai-assistant"
-  ]
+  ],
+  "license": "MIT",
+  "main": "./out/server/src/server.js",
+  "name": "@ansible/ansible-mcp-server",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rimraf out/server && rimraf lib",
+    "compile": "tsc -p .",
+    "dev:stdio": "tsx src/cli.ts --stdio",
+    "lint": "eslint .",
+    "prepack": "npm run compile",
+    "test": "vitest run",
+    "test:ci": "vitest run --coverage --reporter=verbose",
+    "test:coverage": "vitest run --coverage",
+    "test:integration": "vitest run test/server.ts test/integration.ts",
+    "test:performance": "vitest run test/performance.ts",
+    "test:ui": "vitest --ui",
+    "test:unit": "vitest run test/handlers.ts",
+    "test:watch": "vitest"
+  },
+  "type": "module",
+  "types": "./out/server/src/server.d.ts",
+  "version": "0.1.0"
 }
