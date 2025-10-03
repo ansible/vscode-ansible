@@ -41,6 +41,7 @@ build:
     build:
       html:
         - >
+          NODE_OPTIONS=--max-old-space-size=8192
           UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH
           PATH=~/.local/bin:$PATH
           CI=1
@@ -53,8 +54,7 @@ build:
       - ~/.local/bin/mise trust
       - ~/.local/bin/mise install -v
       - ~/.local/bin/mise exec -- uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
-      - ~/.local/bin/mise exec -- task --version
-      - NODE_OPTIONS=--max-old-space-size=8192  # NODE_OPTIONS must be kept in sync with one inside .env file
+      - ~/.local/bin/mise exec -- task --version  # NODE_OPTIONS must be kept in sync with one inside .env file
 
     install:
       # Custom docs dependencies installation, based on uv.lock
