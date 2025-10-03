@@ -240,7 +240,7 @@ export async function testDiagnostics(
   process.stdout.write(
     `[testDiagnostics] Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
   );
-  
+
   if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
     const pollTimeout = 5000;
     const pollInterval = 1000;
