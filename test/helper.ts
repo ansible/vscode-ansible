@@ -237,6 +237,7 @@ export async function testDiagnostics(
   expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
+  console.info(`Actual diagnostics: ${actualDiagnostics.length}`);
   if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
     const pollTimeout = 5000;
     const pollInterval = 1000;
