@@ -240,7 +240,7 @@ export async function testDiagnostics(
   if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
     console.info(
         `Diagnostics delayed - Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
-      );    
+      );
     const pollTimeout = 5000;
     const pollInterval = 500;
     let elapsed = 0;
