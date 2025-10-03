@@ -237,13 +237,16 @@ export async function testDiagnostics(
   expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-  process.stderr.write(`Actual diagnostics: ${actualDiagnostics.length}\n`);
+  process.stdout.write(
+    `[testDiagnostics] Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
+  );
+  
   if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
     const pollTimeout = 5000;
     const pollInterval = 1000;
     let elapsed = 0;
 
-    process.stderr.write("Polling for diagnostics for up to 5s...\n");
+    process.stdout.write("Polling for diagnostics for up to 5s...\n");
     while (
       elapsed < pollTimeout ||
       actualDiagnostics.length !== expectedDiagnostics.length
@@ -251,7 +254,7 @@ export async function testDiagnostics(
       await sleep(pollInterval);
       elapsed += pollInterval;
       actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-      process.stderr.write(`...${elapsed / 1000}s\n`);
+      process.stdout.write(`...${elapsed / 1000}s (actual: ${actualDiagnostics.length})\n`);
     }
   }
 
