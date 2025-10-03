@@ -126,8 +126,6 @@ tasks:
   docs:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
-    env:
-      NODE_OPTIONS: "--max-old-space-size=8192"
     cmds:
       - task: install # implies setup, needed to install node deps
       # Retrieve possibly missing commits:
