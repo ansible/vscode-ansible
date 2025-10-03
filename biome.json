@@ -1,0 +1,44 @@
+{
+  "$schema": "https://biomejs.dev/schemas/latest/schema.json",
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedKeys": "on"
+      }
+    }
+  },
+  "files": {
+    "includes": [
+      "**",
+      "!ansible-language-configuration.json",
+      "!jinja-language-configuration.json",
+      "!syntaxes/external/jinja.tmLanguage.json",
+      "!docs/als/settings.md",
+      "!**/*.css",
+      "!**/*.js",
+      "!**/*.mjs",
+      "!**/*.ts",
+      "!**/*.vue"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space"
+  },
+  "javascript": {
+    "formatter": {
+      "enabled": false
+    }
+  },
+  "json": {
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space"
+    }
+  },
+  "vcs": {
+    "clientKind": "git",
+    "enabled": true,
+    "useIgnoreFile": true
+  }
+}

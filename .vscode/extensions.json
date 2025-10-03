@@ -1,12 +1,17 @@
 {
   "recommendations": [
+    "biomejs.biome",
     "charliermarsh.ruff",
     "DavidAnson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
+    "tombi-toml.tombi",
     "esbenp.prettier-vscode",
     "hbenl.vscode-mocha-test-adapter",
-    "tamasfe.even-better-toml",
     "timonwong.shellcheck"
   ],
-  "unwantedRecommendations": ["ms-python.black-formatter"]
+  "unwantedRecommendations": [
+    "esbenp.prettier-vscode",
+    "ms-python.black-formatter",
+    "tamasfe.even-better-toml"
+  ]
 }

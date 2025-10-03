@@ -1,7 +1,7 @@
 {
   "collection_info": {
-    "namespace": "community",
     "name": "general",
+    "namespace": "community",
     "version": "6.5.0"
   }
 }
