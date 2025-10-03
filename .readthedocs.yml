@@ -56,7 +56,9 @@ build:
       - ~/.local/bin/mise exec -- task --version
     install:
       # Custom docs dependencies installation, based on uv.lock
+      # NODE_OPTIONS must be kept in sync with one inside .env file
       - >
+        NODE_OPTIONS=--max-old-space-size=8192
         VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH
         UV_CACHE_DIR=$READTHEDOCS_VIRTUALENV_PATH/../../uv_cache
         ~/.local/bin/mise exec -- uv sync --active --locked
