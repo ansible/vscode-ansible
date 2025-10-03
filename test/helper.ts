@@ -236,6 +236,18 @@ export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
+  if (expectedDiagnostics.length === 0) {
+    const pollTimeout = 5000;
+    const pollInterval = 1000;
+    let elapsed = 0;
+    console.log("Diagnostics not present yet, polling for 5s...");
+    while (elapsed < pollTimeout) {
+      await sleep(pollInterval);
+      elapsed += pollInterval;
+      console.log(`...${elapsed % 1000}s`);
+    }
+  }
+
   const actualDiagnostics = vscode.languages.getDiagnostics(docUri);
 
   assert.strictEqual(
