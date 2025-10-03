@@ -236,7 +236,7 @@ export async function testDiagnostics(
   docUri: vscode.Uri,
   expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
-  if (expectedDiagnostics.length === 0) {
+  if (expectedDiagnostics.length !== 0) {
     const pollTimeout = 5000;
     const pollInterval = 1000;
     let elapsed = 0;
