@@ -27,273 +27,7 @@
     "//": "Oldest version known to work. Be careful updating as it is mentioned in multiple places.",
     "min_vscode": "1.63.0"
   },
-  "contributors": [
-    {
-      "name": "Tomasz Maciążek",
-      "email": "tomaciazek@gmail.com"
-    },
-    {
-      "email": "ssbarnea@redhat.com",
-      "name": "Sorin Sbarnea"
-    },
-    {
-      "email": "info@ansible.com",
-      "name": "Ansible DevTools Team and Community Contributors",
-      "url": "https://github.com/ansible/vscode-ansible/graphs/contributors"
-    }
-  ],
   "contributes": {
-    "walkthroughs": [
-      {
-        "id": "create-ansible-environment",
-        "title": "Create an Ansible environment",
-        "description": "To access Ansible development tools, create an Ansible environment.",
-        "steps": [
-          {
-            "id": "create-ansible-playbook",
-            "title": "Create an Ansible playbook",
-            "description": "This will activate Ansible development tools. Make sure the file is saved as \".yml\" or \".yaml\" .\n[Create Ansible Playbook](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D)",
-            "media": {
-              "image": "media/walkthroughs/createAnsibleEnv/open-folder.png",
-              "altText": "No image found"
-            }
-          },
-          {
-            "id": "check-ansible-tag",
-            "title": "Make sure you see the \"Ansible\" tag in the status bar",
-            "description": "If your Ansible playbook was successfully created, you should see an Ansible tag in the status bar. If not, you can [change the language](command:ansible.walkthrough.gettingStarted.setLanguage).\nHovering over the Ansible tag can tell you about installed versions or environment issues. If tools are missing or warnings are present, continue to the next step to fix the environment.",
-            "media": {
-              "markdown": "media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md.html"
-            }
-          },
-          {
-            "id": "install-ansible-development-package",
-            "title": "Install the Ansible development package",
-            "description": "The Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools. \n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
-            "media": {
-              "markdown": "media/walkthroughs/createAnsibleEnv/adt-components.md.html"
-            }
-          }
-        ]
-      },
-      {
-        "id": "start-automating-playbook",
-        "title": "Start automating with your first Ansible playbook",
-        "description": "Create your first automation playbook while learning best practices.",
-        "steps": [
-          {
-            "id": "enable-lightspeed-playbook",
-            "title": "Enable Ansible Lightspeed",
-            "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
-            "media": {
-              "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md.html"
-            }
-          },
-          {
-            "id": "create-project-playbook",
-            "title": "Create an Ansible playbook project",
-            "description": "Create a pre-configured Ansible playbook project repository.\n[Create an Ansible playbook project](command:ansible.content-creator.create-ansible-project)",
-            "media": {
-              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html"
-            }
-          },
-          {
-            "id": "create-ansible-playbook",
-            "title": "Create an Ansible playbook",
-            "description": "Ansible Playbooks are lists of tasks that automatically execute for your specified inventory or groups of hosts.\nWithin your playbook project, create a new Ansible Playbook.\nIf Ansible Lightspeed is enabled in settings, a generation template will appear. Otherwise, this creates an empty playbook for you to modify.\n[Create Ansible playbook](command:ansible.create-playbook-options)",
-            "media": {
-              "image": "media/walkthroughs/startAutomatingPlaybook/create-playbook.png",
-              "altText": "No image found"
-            }
-          },
-          {
-            "id": "save-ansible-playbook",
-            "title": "Save your playbook to a playbook project",
-            "description": "Save your playbook in your new playbook project.\nWe recommend saving your playbooks under the **playbooks/** folder inside your project.",
-            "media": {
-              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html"
-            }
-          },
-          {
-            "id": "learn-more-playbook",
-            "title": "Learn more about playbooks",
-            "description": "If you want to become a master, start digging into our Ansible playbook learning resources.\n[Check out learning resources ↗](https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook)",
-            "media": {
-              "image": "media/walkthroughs/startAutomatingPlaybook/learning.png",
-              "altText": "No image found"
-            }
-          }
-        ]
-      },
-      {
-        "id": "discover-ansible-development-tools",
-        "title": "Discover Ansible Development Tools",
-        "description": "A quick review of the tools that will help you create, test, and deploy your automation code.",
-        "steps": [
-          {
-            "id": "adt-create",
-            "title": "Create",
-            "description": "**Scaffold automation content with Ansible creator**\nThe fastest way to generate all your Ansible content! Whether you are initializing an Ansible collection or creating the framework for specific plugins, this tool streamlines the process with efficiency and precision based on your requirements.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/creator/) \n-----\n**Manage automation content with Ansible navigator**\nA text-based user interface (TUI) for creating, reviewing, running and troubleshooting Ansible content, including inventories, playbooks, collections, documentation, and execution environments.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/navigator/) \n-----\n**Discover content with Ansible automation hub**\nYour organization's on-premise repository with curated, certified and validated Ansible content.\n[View Documentation ↗](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/managing_automation_content/index) \n-----\n**Build with Ansible Lightspeed**\nAnsible's generative AI service that provides Ansible code based on natural language prompts. Include content explanation and more to help you build with confidence.\n[View Documentation ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) \n[Ansible Lightspeed Trial Walkthrough ↗](https://www.redhat.com/en/products/interactive-walkthrough/install-ansible-lightspeed) ",
-            "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-create.md.html"
-            }
-          },
-          {
-            "id": "adt-test",
-            "title": "Test",
-            "description": "**Test playbooks with Ansible lint**\nChecks playbooks for style errors, best practices, and other issues to ensure the integrity of your code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/lint/) \n-----\n**Test collections with Ansible Molecule**\nAssists in the development and testing of Ansible collections, playbooks, and roles.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/molecule/) \n-----\n**Test collections with tox Ansible**\nAn extension to the tox testing utility that provides additional functionality to check Ansible module and plugin Python code under different Python interpreters and Ansible core versions.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/tox-ansible/) \n-----\n**Integrate with pytest using pytest Ansible**\nA pytest testing framework extension that provides additional functionality for testing Ansible module and plugin Python code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/pytest-ansible/) ",
-            "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-test.md.html"
-            }
-          },
-          {
-            "id": "adt-deploy",
-            "title": "Deploy",
-            "description": "**Build execution environments with Ansible builder**\nAutomates the process of creating execution environments using schemas and tooling.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/builder/) \n-----\n**Verify Ansible content with Ansible sign**\nUtility for signing and verifying Ansible project directory contents to ensure a secure software supply chain.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/sign/) ",
-            "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-deploy.md.html"
-            }
-          },
-          {
-            "id": "adt-where-to-start",
-            "title": "Where do I start?",
-            "description": "**Install the Ansible development package, if you have not already**\nThe Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.\n-----\n**Check out other walkthroughs**\n[• Create an Ansible Environment](command:ansible.open-walkthrough-create-env) ",
-            "media": {
-              "markdown": "media/walkthroughs/discoverAdt/adt-components.md.html"
-            }
-          }
-        ]
-      }
-    ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "ansible-explorer",
-          "title": "Ansible",
-          "icon": "images/ansible.svg"
-        }
-      ],
-      "panel": [
-        {
-          "id": "lightspeed-training-match-panel",
-          "title": "Ansible",
-          "icon": "images/ansible.svg"
-        }
-      ]
-    },
-    "views": {
-      "ansible-explorer": [
-        {
-          "id": "ansible-home",
-          "name": "Ansible Development Tools",
-          "type": "webview"
-        },
-        {
-          "id": "lightspeed-explorer-webview",
-          "name": "Ansible Lightspeed",
-          "type": "webview",
-          "when": "config.ansible.lightspeed.enabled"
-        },
-        {
-          "id": "lightspeed-feedback-webview",
-          "name": "Ansible Lightspeed Feedback",
-          "type": "webview",
-          "when": "config.ansible.lightspeed.enabled"
-        }
-      ],
-      "lightspeed-training-match-panel": [
-        {
-          "id": "ansible.lightspeed.trainingMatchPanel",
-          "name": "Lightspeed Training Matches",
-          "type": "webview",
-          "contextualTitle": "Ansible",
-          "when": "redhat.ansible.lightspeedSuggestionsEnabled",
-          "visibility": "visible",
-          "retainContextWhenHidden": true
-        }
-      ]
-    },
-    "jsonValidation": [
-      {
-        "fileMatch": [
-          ".ansible-navigator.json",
-          "ansible-navigator.json"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
-      }
-    ],
-    "yamlValidation": [
-      {
-        "fileMatch": [
-          "execution-environment.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/execution-environment.json"
-      },
-      {
-        "fileMatch": [
-          "meta/runtime.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta-runtime.json"
-      },
-      {
-        "fileMatch": [
-          ".ansible-navigator.yaml",
-          ".ansible-navigator.yml",
-          "ansible-navigator.yaml",
-          "ansible-navigator.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
-      },
-      {
-        "fileMatch": "requirements.yml",
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json"
-      },
-      {
-        "fileMatch": "meta/main.yml",
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta.json"
-      },
-      {
-        "fileMatch": [
-          "playbooks/vars/*.yml",
-          "playbooks/vars/*.yaml",
-          "vars/*.yml",
-          "vars/*.yaml",
-          "defaults/*.yml",
-          "defaults/*.yaml",
-          "host_vars/*.yml",
-          "host_vars/*.yaml",
-          "group_vars/*.yml",
-          "group_vars/*.yaml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json"
-      },
-      {
-        "fileMatch": [
-          ".ansible-lint",
-          ".config/ansible-lint.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json"
-      },
-      {
-        "fileMatch": [
-          "molecule/*/molecule.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible-community/molecule/main/src/molecule/data/molecule.json"
-      },
-      {
-        "fileMatch": [
-          "galaxy.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/galaxy.json"
-      },
-      {
-        "fileMatch": [
-          "rulebooks/*.yaml",
-          "rulebooks/*.yml"
-        ],
-        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
-      }
-    ],
     "commands": [
       {
         "command": "extension.resync-ansible-inventory",
@@ -436,13 +170,13 @@
       },
       {
         "command": "ansible.lightspeed.openTrialPage",
-        "title": "Ansible Lightspeed: Open trial page",
-        "enablement": "redhat.ansible.lightspeedExperimentalEnabled"
+        "enablement": "redhat.ansible.lightspeedExperimentalEnabled",
+        "title": "Ansible Lightspeed: Open trial page"
       },
       {
         "command": "ansible.lightspeed.explorer.refresh",
-        "title": "Ansible Lightspeed: Refresh explorer view",
-        "icon": "$(refresh)"
+        "icon": "$(refresh)",
+        "title": "Ansible Lightspeed: Refresh explorer view"
       },
       {
         "command": "ansible.lightspeed.enableExperimentalFeatures",
@@ -473,60 +207,53 @@
         "title": "Enable Ansible Development Tools MCP Server"
       }
     ],
-    "mcpServerDefinitionProviders": [
-      {
-        "id": "ansibleMcpProvider",
-        "label": "Ansible MCP Server Provider"
-      }
-    ],
     "configuration": [
       {
-        "title": "Basic Configurations",
         "properties": {
           "ansible.ansible.path": {
-            "scope": "machine-overridable",
-            "type": "string",
             "default": "ansible",
             "markdownDescription": "Path to the ansible executable. All subcommands are expected to have adjacent locations.",
-            "order": 0
-          },
-          "ansible.ansible.useFullyQualifiedCollectionNames": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
-            "order": 1
+            "order": 0,
+            "scope": "machine-overridable",
+            "type": "string"
           },
           "ansible.ansible.reuseTerminal": {
-            "scope": "machine-overridable",
-            "type": "boolean",
             "default": false,
             "markdownDescription": "Enabling this will cause ansible commands run through VS Code to reuse the same Ansible Terminal.",
-            "order": 2
+            "order": 2,
+            "scope": "machine-overridable",
+            "type": "boolean"
+          },
+          "ansible.ansible.useFullyQualifiedCollectionNames": {
+            "default": true,
+            "markdownDescription": "Always use fully qualified collection names (FQCN) when inserting a module name. Disabling it will only use FQCNs when necessary.",
+            "order": 1,
+            "scope": "resource",
+            "type": "boolean"
           }
-        }
+        },
+        "title": "Basic Configurations"
       },
       {
-        "title": "Python",
         "properties": {
-          "ansible.python.interpreterPath": {
-            "scope": "machine-overridable",
-            "type": "string",
-            "default": "",
-            "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
-            "order": 0
-          },
           "ansible.python.activationScript": {
-            "scope": "machine-overridable",
-            "type": "string",
             "default": "",
             "markdownDescription": "Path to the virtual environment activation script. Use only if you have a custom activation script. It will be sourced using bash before executing Ansible commands. When set, the Interpreter Path setting is ignored.",
-            "order": 1
+            "order": 1,
+            "scope": "machine-overridable",
+            "type": "string"
+          },
+          "ansible.python.interpreterPath": {
+            "default": "",
+            "markdownDescription": "Path to the Python interpreter executable. Particularly important if you are using a Python virtual environment. Leave blank to use Python from PATH.",
+            "order": 0,
+            "scope": "machine-overridable",
+            "type": "string"
           }
-        }
+        },
+        "title": "Python"
       },
       {
-        "title": "Ansible Navigator",
         "properties": {
           "ansible.ansibleNavigator.path": {
             "default": "ansible-navigator",
@@ -535,10 +262,10 @@
             "scope": "machine-overridable",
             "type": "string"
           }
-        }
+        },
+        "title": "Ansible Navigator"
       },
       {
-        "title": "Ansible Playbook",
         "properties": {
           "ansible.playbook.arguments": {
             "default": "",
@@ -547,251 +274,349 @@
             "scope": "resource",
             "type": "string"
           }
-        }
+        },
+        "title": "Ansible Playbook"
       },
       {
-        "title": "Completion",
         "properties": {
-          "ansible.completion.provideRedirectModules": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "Toggle redirected module provider when completing modules.",
-            "order": 0
-          },
           "ansible.completion.provideModuleOptionAliases": {
-            "scope": "resource",
-            "type": "boolean",
             "default": true,
             "markdownDescription": "Toggle alias provider when completing module options.",
-            "order": 1
+            "order": 1,
+            "scope": "resource",
+            "type": "boolean"
+          },
+          "ansible.completion.provideRedirectModules": {
+            "default": true,
+            "markdownDescription": "Toggle redirected module provider when completing modules.",
+            "order": 0,
+            "scope": "resource",
+            "type": "boolean"
           }
-        }
+        },
+        "title": "Completion"
       },
       {
-        "title": "Validation",
         "properties": {
           "ansible.validation.enabled": {
-            "type": "boolean",
             "default": true,
             "markdownDescription": "If disabled no validation will be performed.",
-            "order": 0
-          },
-          "ansible.validation.lint.enabled": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
-            "order": 1
-          },
-          "ansible.validation.lint.path": {
-            "scope": "machine-overridable",
-            "type": "string",
-            "default": "ansible-lint",
-            "markdownDescription": "Path to the ansible-lint executable.",
-            "order": 2
+            "order": 0,
+            "type": "boolean"
           },
           "ansible.validation.lint.arguments": {
-            "scope": "resource",
-            "type": "string",
             "default": "",
             "markdownDescription": "Command line arguments to be passed to ansible-lint.",
-            "order": 3
+            "order": 3,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.validation.lint.enabled": {
+            "default": true,
+            "markdownDescription": "Enables `ansible-lint`. If disabled only `ansible-playbook --syntax-check` will run. Requires `#ansible.validation.enabled#` to be enabled.",
+            "order": 1,
+            "scope": "resource",
+            "type": "boolean"
+          },
+          "ansible.validation.lint.path": {
+            "default": "ansible-lint",
+            "markdownDescription": "Path to the ansible-lint executable.",
+            "order": 2,
+            "scope": "machine-overridable",
+            "type": "string"
           }
-        }
+        },
+        "title": "Validation"
       },
       {
-        "title": "Execution Environment",
         "properties": {
-          "ansible.executionEnvironment.enabled": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": false,
-            "markdownDescription": "Enable or disable the use of an execution environment.",
-            "order": 0
-          },
           "ansible.executionEnvironment.containerEngine": {
-            "scope": "resource",
-            "type": "string",
+            "default": "auto",
             "enum": [
               "auto",
               "podman",
               "docker"
             ],
-            "default": "auto",
             "markdownDescription": "Specify the container engine (auto=podman then docker).",
-            "order": 1
+            "order": 1,
+            "scope": "resource",
+            "type": "string"
           },
           "ansible.executionEnvironment.containerOptions": {
-            "scope": "resource",
-            "type": "string",
             "default": "",
             "markdownDescription": "Extra parameters passed to the container engine command example: `--net=host`.",
-            "order": 2
+            "order": 2,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.executionEnvironment.enabled": {
+            "default": false,
+            "markdownDescription": "Enable or disable the use of an execution environment.",
+            "order": 0,
+            "scope": "resource",
+            "type": "boolean"
           },
           "ansible.executionEnvironment.image": {
-            "scope": "resource",
-            "type": "string",
             "default": "ghcr.io/ansible/community-ansible-dev-tools:latest",
             "markdownDescription": "Specify the name of the execution environment image.",
-            "order": 3
+            "order": 3,
+            "scope": "resource",
+            "type": "string"
           },
           "ansible.executionEnvironment.pull.arguments": {
-            "scope": "resource",
-            "type": "string",
             "default": "",
             "markdownDescription": "Specify any additional parameters that should be added to the pull command when pulling an execution environment from a container registry. e.g. `–-tls-verify=false`.",
-            "order": 4
+            "order": 4,
+            "scope": "resource",
+            "type": "string"
           },
           "ansible.executionEnvironment.pull.policy": {
-            "scope": "resource",
-            "type": "string",
+            "default": "missing",
             "enum": [
               "always",
               "missing",
               "never",
               "tag"
             ],
-            "default": "missing",
             "markdownDescription": "Specify the image pull policy.\n**always**: Always pull the image when extension is activated or reloaded\n**missing**: Pull if not locally available\n**never**: Never pull the image\n**tag**: If the image tag is `latest`, always pull the image, otherwise pull if not locally available.",
-            "order": 5
+            "order": 5,
+            "scope": "resource",
+            "type": "string"
           },
           "ansible.executionEnvironment.volumeMounts": {
-            "scope": "resource",
-            "type": "array",
             "default": [],
             "markdownDescription": "Add a dictionary entry to the array with the volume mount source path (key: 'src'), destination (key: 'dest'), and options (key: 'options')",
-            "order": 6
+            "order": 6,
+            "scope": "resource",
+            "type": "array"
           }
-        }
+        },
+        "title": "Execution Environment"
       },
       {
-        "title": "Telemetry",
         "properties": {
           "redhat.telemetry.enabled": {
-            "type": "boolean",
             "default": null,
             "markdownDescription": "Enable usage data and errors to be sent to Red Hat servers. Read our [privacy statement](https://developers.redhat.com/article/tool-data-collection).",
             "order": 0,
+            "scope": "window",
             "tags": [
               "telemetry",
               "usesOnlineServices"
             ],
-            "scope": "window"
+            "type": "boolean"
           }
-        }
+        },
+        "title": "Telemetry"
       },
       {
-        "title": "Ansible Lightspeed",
         "properties": {
           "ansible.lightspeed.enabled": {
-            "scope": "resource",
-            "type": "boolean",
             "default": true,
             "markdownDescription": "Enable Ansible Lightspeed.",
-            "order": 0
-          },
-          "ansible.lightspeed.URL": {
+            "order": 0,
             "scope": "resource",
-            "type": "string",
-            "default": "https://c.ai.ansible.redhat.com",
-            "markdownDescription": "URL for Ansible Lightspeed.",
-            "order": 1
-          },
-          "ansible.lightspeed.suggestions.enabled": {
-            "scope": "resource",
-            "type": "boolean",
-            "default": true,
-            "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
-            "order": 2
-          },
-          "ansible.lightspeed.suggestions.waitWindow": {
-            "scope": "resource",
-            "type": "number",
-            "default": 0,
-            "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request to Ansible Lightspeed with watsonx Code Assistant.",
-            "order": 3
+            "type": "boolean"
           },
           "ansible.lightspeed.modelIdOverride": {
-            "scope": "resource",
-            "type": "string",
             "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
-            "order": 4
+            "order": 4,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.suggestions.enabled": {
+            "default": true,
+            "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
+            "order": 2,
+            "scope": "resource",
+            "type": "boolean"
+          },
+          "ansible.lightspeed.suggestions.waitWindow": {
+            "default": 0,
+            "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request to Ansible Lightspeed with watsonx Code Assistant.",
+            "order": 3,
+            "scope": "resource",
+            "type": "number"
+          },
+          "ansible.lightspeed.URL": {
+            "default": "https://c.ai.ansible.redhat.com",
+            "markdownDescription": "URL for Ansible Lightspeed.",
+            "order": 1,
+            "scope": "resource",
+            "type": "string"
           }
-        }
+        },
+        "title": "Ansible Lightspeed"
       },
       {
-        "title": "Language Server",
         "properties": {
           "ansibleServer.trace.server": {
-            "type": "string",
+            "default": "off",
             "enum": [
               "off",
               "messages",
               "verbose"
             ],
-            "default": "off",
             "markdownDescription": "Traces the communication between editor and the ansible language server.",
-            "order": 0
+            "order": 0,
+            "type": "string"
           }
-        }
+        },
+        "title": "Language Server"
       },
       {
-        "title": "MCP Server",
         "properties": {
           "ansible.mcpServer.enabled": {
-            "scope": "resource",
-            "type": "boolean",
             "default": false,
             "markdownDescription": "Enable the Ansible MCP (Model Context Protocol) server for AI assistant integration.",
-            "order": 0
+            "order": 0,
+            "scope": "resource",
+            "type": "boolean"
           }
-        }
+        },
+        "title": "MCP Server"
       }
     ],
     "configurationDefaults": {
       "[ansible]": {
+        "editor.autoIndent": "advanced",
         "editor.detectIndentation": true,
         "editor.insertSpaces": true,
-        "editor.tabSize": 2,
         "editor.quickSuggestions": {
           "comments": true,
           "other": true,
           "strings": true
         },
-        "editor.autoIndent": "advanced"
+        "editor.tabSize": 2
       }
     },
+    "grammars": [
+      {
+        "comments": [
+          "YAML syntax as base for Ansible",
+          "scopeName changed so that we can use it as base for injections"
+        ],
+        "language": "ansible",
+        "path": "./syntaxes/external/YAML.tmLanguage",
+        "scopeName": "source.ansible"
+      },
+      {
+        "comments": [
+          "Jinja syntax as injection into Ansible YAML",
+          "This is so that we do not need to rely on the Jinja extension being installed"
+        ],
+        "language": "ansible-jinja",
+        "path": "./syntaxes/external/jinja.tmLanguage.json",
+        "scopeName": "source.ansible-jinja"
+      },
+      {
+        "comments": [
+          "Highlighting of Ansible keywords"
+        ],
+        "injectTo": [
+          "source.ansible"
+        ],
+        "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
+        "scopeName": "injection.ansible.keywords"
+      },
+      {
+        "comments": [
+          "Additional Jinja grammars"
+        ],
+        "injectTo": [
+          "source.ansible"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-extras.tmLanguage",
+        "scopeName": "injection.ansible.jinja-extras"
+      },
+      {
+        "comments": [
+          "Support for Jinja in double curly braces"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.inline.jinja": "ansible-jinja"
+        },
+        "injectTo": [
+          "source.ansible"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
+        "scopeName": "injection.ansible.jinja-braces"
+      },
+      {
+        "comments": [
+          "Support for Jinja in conditionals"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.inline.jinja": "ansible-jinja"
+        },
+        "injectTo": [
+          "source.ansible"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
+        "scopeName": "injection.ansible.jinja-conditionals"
+      },
+      {
+        "comments": [
+          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
+          "Support for single quote escapes in Jinja"
+        ],
+        "injectTo": [
+          "source.ansible"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
+        "scopeName": "injection.ansible.jinja-single-quote-escape"
+      },
+      {
+        "comments": [
+          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
+          "Support for double quote escapes in Jinja"
+        ],
+        "injectTo": [
+          "source.ansible"
+        ],
+        "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
+        "scopeName": "injection.ansible.jinja-double-quote-escape"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          ".ansible-navigator.json",
+          "ansible-navigator.json"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
+      }
+    ],
     "keybindings": [
       {
-        "key": "tab",
         "command": "ansible.lightspeed.inlineSuggest.accept",
         "extensionName": "Ansible",
+        "key": "tab",
         "source": "extension",
         "when": "inlineSuggestionVisible && editorLangId == 'ansible'"
       },
       {
-        "key": "escape",
         "command": "ansible.lightspeed.inlineSuggest.hide",
         "extensionName": "Ansible",
+        "key": "escape",
         "source": "extension",
         "when": "inlineSuggestionVisible && editorLangId == 'ansible'"
       },
       {
-        "key": "ctrl+.",
         "command": "ansible.lightspeed.inlineSuggest.trigger",
         "extensionName": "Ansible",
+        "key": "ctrl+.",
         "source": "extension",
         "when": "config.ansible.lightspeed.enabled && config.ansible.lightspeed.suggestions.enabled && editorTextFocus && !editorHasSelection && !inlineSuggestionVisible && editorLangId == 'ansible'"
       }
     ],
     "languages": [
       {
-        "id": "ansible",
         "aliases": [
           "Ansible",
           "ansible"
         ],
+        "configuration": "./ansible-language-configuration.json",
         "extensions": [
           ".ansible.yml",
           ".ansible.yaml"
@@ -813,12 +638,18 @@
           "dark": "images/ansible-fileicon.svg",
           "light": "images/ansible-fileicon.svg"
         },
-        "configuration": "./ansible-language-configuration.json"
+        "id": "ansible"
       },
       {
         "comments": "unfortunately this dummy entry is necessary for embedding to work",
-        "id": "ansible-jinja",
-        "configuration": "./jinja-language-configuration.json"
+        "configuration": "./jinja-language-configuration.json",
+        "id": "ansible-jinja"
+      }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "ansibleMcpProvider",
+        "label": "Ansible MCP Server Provider"
       }
     ],
     "menus": {
@@ -837,19 +668,19 @@
           "when": "isFileSystemResource && editorLangId == ansible"
         },
         {
-          "group": "2_main@1",
           "command": "ansible.lightspeed.playbookExplanation",
+          "group": "2_main@1",
           "when": "redhat.ansible.lightspeedSuggestionsEnabled && editorLangId == ansible"
         },
         {
-          "group": "2_main@1",
           "command": "ansible.lightspeed.roleExplanation",
+          "group": "2_main@1",
           "when": "redhat.ansible.lightspeedSuggestionsEnabled && redhat.ansible.isDocumentInRole"
         },
         {
-          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
           "command": "extension.buildExecutionEnvironment",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'"
         }
       ],
       "explorer/context": [
@@ -859,16 +690,16 @@
           "when": "isFileSystemResource && resourceLangId == ansible"
         },
         {
-          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'",
           "command": "extension.buildExecutionEnvironment",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "resourceFilename == 'execution-environment.yml' || resourceFilename == 'execution-environment.yaml'"
         }
       ],
       "view/title": [
         {
           "command": "ansible.lightspeed.explorer.refresh",
-          "when": "view == lightspeed-explorer-webview",
-          "group": "navigation"
+          "group": "navigation",
+          "when": "view == lightspeed-explorer-webview"
         }
       ]
     },
@@ -878,106 +709,275 @@
         "label": "%submenus.ansible.run-via%"
       }
     ],
-    "grammars": [
-      {
-        "comments": [
-          "YAML syntax as base for Ansible",
-          "scopeName changed so that we can use it as base for injections"
-        ],
-        "language": "ansible",
-        "scopeName": "source.ansible",
-        "path": "./syntaxes/external/YAML.tmLanguage"
-      },
-      {
-        "comments": [
-          "Jinja syntax as injection into Ansible YAML",
-          "This is so that we do not need to rely on the Jinja extension being installed"
-        ],
-        "language": "ansible-jinja",
-        "scopeName": "source.ansible-jinja",
-        "path": "./syntaxes/external/jinja.tmLanguage.json"
-      },
-      {
-        "comments": [
-          "Highlighting of Ansible keywords"
-        ],
-        "path": "./syntaxes/ansible/generated/keywords.tmLanguage",
-        "scopeName": "injection.ansible.keywords",
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "Additional Jinja grammars"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-extras.tmLanguage",
-        "scopeName": "injection.ansible.jinja-extras",
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "Support for Jinja in double curly braces"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-braces.tmLanguage",
-        "scopeName": "injection.ansible.jinja-braces",
-        "embeddedLanguages": {
-          "meta.embedded.inline.jinja": "ansible-jinja"
-        },
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "Support for Jinja in conditionals"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-conditionals.tmLanguage",
-        "scopeName": "injection.ansible.jinja-conditionals",
-        "embeddedLanguages": {
-          "meta.embedded.inline.jinja": "ansible-jinja"
-        },
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
-          "Support for single quote escapes in Jinja"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-single-quote-escape.tmLanguage",
-        "scopeName": "injection.ansible.jinja-single-quote-escape",
-        "injectTo": [
-          "source.ansible"
-        ]
-      },
-      {
-        "comments": [
-          "The quote escapes implemented in the conditionals injection do not work inside brackets etc.",
-          "Support for double quote escapes in Jinja"
-        ],
-        "path": "./syntaxes/ansible/generated/jinja-double-quote-escape.tmLanguage",
-        "scopeName": "injection.ansible.jinja-double-quote-escape",
-        "injectTo": [
-          "source.ansible"
-        ]
-      }
-    ],
     "taskDefinitions": [
       {
-        "type": "Ansible Tox",
         "properties": {
           "ansible": {
-            "type": "string",
-            "description": "The testenv to execute"
+            "description": "The testenv to execute",
+            "type": "string"
           }
+        },
+        "type": "Ansible Tox"
+      }
+    ],
+    "views": {
+      "ansible-explorer": [
+        {
+          "id": "ansible-home",
+          "name": "Ansible Development Tools",
+          "type": "webview"
+        },
+        {
+          "id": "lightspeed-explorer-webview",
+          "name": "Ansible Lightspeed",
+          "type": "webview",
+          "when": "config.ansible.lightspeed.enabled"
+        },
+        {
+          "id": "lightspeed-feedback-webview",
+          "name": "Ansible Lightspeed Feedback",
+          "type": "webview",
+          "when": "config.ansible.lightspeed.enabled"
         }
+      ],
+      "lightspeed-training-match-panel": [
+        {
+          "contextualTitle": "Ansible",
+          "id": "ansible.lightspeed.trainingMatchPanel",
+          "name": "Lightspeed Training Matches",
+          "retainContextWhenHidden": true,
+          "type": "webview",
+          "visibility": "visible",
+          "when": "redhat.ansible.lightspeedSuggestionsEnabled"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "icon": "images/ansible.svg",
+          "id": "ansible-explorer",
+          "title": "Ansible"
+        }
+      ],
+      "panel": [
+        {
+          "icon": "images/ansible.svg",
+          "id": "lightspeed-training-match-panel",
+          "title": "Ansible"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "description": "To access Ansible development tools, create an Ansible environment.",
+        "id": "create-ansible-environment",
+        "steps": [
+          {
+            "description": "This will activate Ansible development tools. Make sure the file is saved as \".yml\" or \".yaml\" .\n[Create Ansible Playbook](command:toSide:workbench.action.files.newUntitledFile?%7B%22languageId%22%3A%22ansible%22%7D)",
+            "id": "create-ansible-playbook",
+            "media": {
+              "altText": "No image found",
+              "image": "media/walkthroughs/createAnsibleEnv/open-folder.png"
+            },
+            "title": "Create an Ansible playbook"
+          },
+          {
+            "description": "If your Ansible playbook was successfully created, you should see an Ansible tag in the status bar. If not, you can [change the language](command:ansible.walkthrough.gettingStarted.setLanguage).\nHovering over the Ansible tag can tell you about installed versions or environment issues. If tools are missing or warnings are present, continue to the next step to fix the environment.",
+            "id": "check-ansible-tag",
+            "media": {
+              "markdown": "media/walkthroughs/createAnsibleEnv/selectAnsibleLanguage.md.html"
+            },
+            "title": "Make sure you see the \"Ansible\" tag in the status bar"
+          },
+          {
+            "description": "The Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools. \n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.",
+            "id": "install-ansible-development-package",
+            "media": {
+              "markdown": "media/walkthroughs/createAnsibleEnv/adt-components.md.html"
+            },
+            "title": "Install the Ansible development package"
+          }
+        ],
+        "title": "Create an Ansible environment"
+      },
+      {
+        "description": "Create your first automation playbook while learning best practices.",
+        "id": "start-automating-playbook",
+        "steps": [
+          {
+            "description": "Use generative AI to assist in your automation content creation.\nAnsible Lightspeed is available to Ansible Automation Platform users.\nCheck availability by logging in with your Red Hat account.\n[Log in with Red Hat ↗](command:ansible.lightspeed.signInWithLightspeed)\n[Learn more ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) ",
+            "id": "enable-lightspeed-playbook",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/enable-lightspeed.md.html"
+            },
+            "title": "Enable Ansible Lightspeed"
+          },
+          {
+            "description": "Create a pre-configured Ansible playbook project repository.\n[Create an Ansible playbook project](command:ansible.content-creator.create-ansible-project)",
+            "id": "create-project-playbook",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html"
+            },
+            "title": "Create an Ansible playbook project"
+          },
+          {
+            "description": "Ansible Playbooks are lists of tasks that automatically execute for your specified inventory or groups of hosts.\nWithin your playbook project, create a new Ansible Playbook.\nIf Ansible Lightspeed is enabled in settings, a generation template will appear. Otherwise, this creates an empty playbook for you to modify.\n[Create Ansible playbook](command:ansible.create-playbook-options)",
+            "id": "create-ansible-playbook",
+            "media": {
+              "altText": "No image found",
+              "image": "media/walkthroughs/startAutomatingPlaybook/create-playbook.png"
+            },
+            "title": "Create an Ansible playbook"
+          },
+          {
+            "description": "Save your playbook in your new playbook project.\nWe recommend saving your playbooks under the **playbooks/** folder inside your project.",
+            "id": "save-ansible-playbook",
+            "media": {
+              "markdown": "media/walkthroughs/startAutomatingPlaybook/playbook-project.md.html"
+            },
+            "title": "Save your playbook to a playbook project"
+          },
+          {
+            "description": "If you want to become a master, start digging into our Ansible playbook learning resources.\n[Check out learning resources ↗](https://www.redhat.com/en/topics/automation/what-is-an-ansible-playbook)",
+            "id": "learn-more-playbook",
+            "media": {
+              "altText": "No image found",
+              "image": "media/walkthroughs/startAutomatingPlaybook/learning.png"
+            },
+            "title": "Learn more about playbooks"
+          }
+        ],
+        "title": "Start automating with your first Ansible playbook"
+      },
+      {
+        "description": "A quick review of the tools that will help you create, test, and deploy your automation code.",
+        "id": "discover-ansible-development-tools",
+        "steps": [
+          {
+            "description": "**Scaffold automation content with Ansible creator**\nThe fastest way to generate all your Ansible content! Whether you are initializing an Ansible collection or creating the framework for specific plugins, this tool streamlines the process with efficiency and precision based on your requirements.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/creator/) \n-----\n**Manage automation content with Ansible navigator**\nA text-based user interface (TUI) for creating, reviewing, running and troubleshooting Ansible content, including inventories, playbooks, collections, documentation, and execution environments.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/navigator/) \n-----\n**Discover content with Ansible automation hub**\nYour organization's on-premise repository with curated, certified and validated Ansible content.\n[View Documentation ↗](https://docs.redhat.com/en/documentation/red_hat_ansible_automation_platform/2.5/html/managing_automation_content/index) \n-----\n**Build with Ansible Lightspeed**\nAnsible's generative AI service that provides Ansible code based on natural language prompts. Include content explanation and more to help you build with confidence.\n[View Documentation ↗](https://www.redhat.com/en/technologies/management/ansible/ansible-lightspeed) \n[Ansible Lightspeed Trial Walkthrough ↗](https://www.redhat.com/en/products/interactive-walkthrough/install-ansible-lightspeed) ",
+            "id": "adt-create",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-create.md.html"
+            },
+            "title": "Create"
+          },
+          {
+            "description": "**Test playbooks with Ansible lint**\nChecks playbooks for style errors, best practices, and other issues to ensure the integrity of your code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/lint/) \n-----\n**Test collections with Ansible Molecule**\nAssists in the development and testing of Ansible collections, playbooks, and roles.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/molecule/) \n-----\n**Test collections with tox Ansible**\nAn extension to the tox testing utility that provides additional functionality to check Ansible module and plugin Python code under different Python interpreters and Ansible core versions.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/tox-ansible/) \n-----\n**Integrate with pytest using pytest Ansible**\nA pytest testing framework extension that provides additional functionality for testing Ansible module and plugin Python code.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/pytest-ansible/) ",
+            "id": "adt-test",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-test.md.html"
+            },
+            "title": "Test"
+          },
+          {
+            "description": "**Build execution environments with Ansible builder**\nAutomates the process of creating execution environments using schemas and tooling.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/builder/) \n-----\n**Verify Ansible content with Ansible sign**\nUtility for signing and verifying Ansible project directory contents to ensure a secure software supply chain.\n[View Documentation ↗](https://ansible.readthedocs.io/projects/sign/) ",
+            "id": "adt-deploy",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-deploy.md.html"
+            },
+            "title": "Deploy"
+          },
+          {
+            "description": "**Install the Ansible development package, if you have not already**\nThe Ansible development package contains all of the dependencies your environment needs to work with Ansible development tools.\n[Install Ansible development package](command:ansible.install-ansible-dev-tools)\nAlternatively, [switch to another environment](command:ansible.python.set.interpreter) that has those installed.\n-----\n**Check out other walkthroughs**\n[• Create an Ansible Environment](command:ansible.open-walkthrough-create-env) ",
+            "id": "adt-where-to-start",
+            "media": {
+              "markdown": "media/walkthroughs/discoverAdt/adt-components.md.html"
+            },
+            "title": "Where do I start?"
+          }
+        ],
+        "title": "Discover Ansible Development Tools"
+      }
+    ],
+    "yamlValidation": [
+      {
+        "fileMatch": [
+          "execution-environment.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/execution-environment.json"
+      },
+      {
+        "fileMatch": [
+          "meta/runtime.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta-runtime.json"
+      },
+      {
+        "fileMatch": [
+          ".ansible-navigator.yaml",
+          ".ansible-navigator.yml",
+          "ansible-navigator.yaml",
+          "ansible-navigator.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-navigator/main/src/ansible_navigator/data/ansible-navigator.json"
+      },
+      {
+        "fileMatch": "requirements.yml",
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/requirements.json"
+      },
+      {
+        "fileMatch": "meta/main.yml",
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/meta.json"
+      },
+      {
+        "fileMatch": [
+          "playbooks/vars/*.yml",
+          "playbooks/vars/*.yaml",
+          "vars/*.yml",
+          "vars/*.yaml",
+          "defaults/*.yml",
+          "defaults/*.yaml",
+          "host_vars/*.yml",
+          "host_vars/*.yaml",
+          "group_vars/*.yml",
+          "group_vars/*.yaml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/vars.json"
+      },
+      {
+        "fileMatch": [
+          ".ansible-lint",
+          ".config/ansible-lint.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible-lint-config.json"
+      },
+      {
+        "fileMatch": [
+          "molecule/*/molecule.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible-community/molecule/main/src/molecule/data/molecule.json"
+      },
+      {
+        "fileMatch": [
+          "galaxy.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/galaxy.json"
+      },
+      {
+        "fileMatch": [
+          "rulebooks/*.yaml",
+          "rulebooks/*.yml"
+        ],
+        "url": "https://raw.githubusercontent.com/ansible/ansible-rulebook/main/schema/ruleset_schema.json"
       }
     ]
   },
+  "contributors": [
+    {
+      "email": "tomaciazek@gmail.com",
+      "name": "Tomasz Maciążek"
+    },
+    {
+      "email": "ssbarnea@redhat.com",
+      "name": "Sorin Sbarnea"
+    },
+    {
+      "email": "info@ansible.com",
+      "name": "Ansible DevTools Team and Community Contributors",
+      "url": "https://github.com/ansible/vscode-ansible/graphs/contributors"
+    }
+  ],
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@ansible/ansible-mcp-server": "workspace:^",
@@ -1093,51 +1093,51 @@
   "license": "MIT",
   "main": "./out/vitebuild/extension/extension.js",
   "name": "ansible",
+  "packageManager": "yarn@4.9.2",
   "publisher": "redhat",
   "qna": false,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ansible/vscode-ansible.git"
   },
+  "resolutions": {
+    "rollup": "npm:@rollup/wasm-node@*"
+  },
   "scripts": {
+    "als-compile": "yarn workspace @ansible/ansible-language-server compile",
+    "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
+    "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
+    "coverage-ui-current": "COVERAGE=1 ./tools/test-launcher.sh",
+    "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' ./tools/test-launcher.sh",
+    "mcp-compile": "yarn workspace @ansible/ansible-mcp-server compile",
     "package": "NODE_OPTIONS='--max-old-space-size=8192' ./tools/helper --package",
     "preinstall": "",
     "pretest": "node --max-old-space-size=8192 node_modules/webpack/bin/webpack.js --mode development --config ./webpack.config.ts",
-    "unit-tests": "sh -c \"c8 --config test/unit/.c8rc mocha --recursive test/unit/lightspeed ${MOCHA_OPTS:-}\"",
+    "test-compile": "yarn run clean && yarn run compile && tsc -p ./ --sourceMap",
+    "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "./tools/test-launcher.sh",
     "test-ui-oldest": "CODE_VERSION='min' ./tools/test-launcher.sh",
-    "coverage-ui-current": "COVERAGE=1 ./tools/test-launcher.sh",
-    "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' ./tools/test-launcher.sh",
+    "unit-tests": "sh -c \"c8 --config test/unit/.c8rc mocha --recursive test/unit/lightspeed ${MOCHA_OPTS:-}\"",
+    "vite-build": "vue-tsc --noEmit && vite build",
+    "vite-dev": "vite build && vue-tsc --noEmit && vite",
+    "vite-preview": "vite preview",
     "vscode-prepublish": "yarn run webpack",
     "watch": "tsc -b -w",
     "watch-server": "tsc -p ../ansible-language-server --outDir out/server -w",
     "webpack": "yarn run clean && yarn run mcp-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode production --config ./webpack.config.ts",
     "webpack-dev": "yarn run clean && yarn test-compile && yarn run mcp-compile && NODE_OPTIONS='--max-old-space-size=8192' webpack --mode development --config ./webpack.config.ts",
-    "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch",
-    "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
-    "test-compile": "yarn run clean && yarn run compile && tsc -p ./ --sourceMap",
-    "test-e2e": "yarn run test-compile && MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e ./tools/test-launcher.sh",
-    "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
-    "als-compile": "yarn workspace @ansible/ansible-language-server compile",
-    "mcp-compile": "yarn workspace @ansible/ansible-mcp-server compile",
-    "vite-dev": "vite build && vue-tsc --noEmit && vite",
-    "vite-build": "vue-tsc --noEmit && vite build",
-    "vite-preview": "vite preview"
+    "webpack:watch": "webpack --mode development --config ./webpack.config.ts --watch"
   },
+  "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
+  "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm",
   "version": "0.0.0",
-  "packageManager": "yarn@4.9.2",
   "vsce": {
     "dependencies": false,
     "yarn": false
   },
   "workspaces": [
     "packages/*"
-  ],
-  "resolutions": {
-    "rollup": "npm:@rollup/wasm-node@*"
-  },
-  "segmentWriteKey": "zJzQozAVCyM6DTyxk3TjqTX1yd05G4Ow",
-  "segmentWriteKeyDebug": "yTJGCq9IUg6o1FdfZJp0PPlNrHRHOOAm"
+  ]
 }

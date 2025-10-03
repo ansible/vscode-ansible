@@ -1,11 +1,11 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./out/server",
-    "resolveJsonModule": true,
     "module": "ESNext",
     "moduleResolution": "node",
+    "outDir": "./out/server",
+    "resolveJsonModule": true,
     "target": "ES2022"
   },
-  "exclude": ["node_modules", "out", "coverage"]
+  "exclude": ["node_modules", "out", "coverage"],
+  "extends": "../../tsconfig.base.json"
 }

@@ -1,48 +1,24 @@
 {
-  "name": "@ansible/ansible-language-server",
-  "publisher": "RedHat Inc.",
-  "displayName": "Ansible",
-  "description": "Ansible language server",
-  "license": "MIT",
-  "version": "1.2.3",
+  "activationEvents": [
+    "onLanguage:ansible"
+  ],
+  "all": true,
+  "bin": "bin/ansible-language-server",
+  "categories": [
+    "Programming Languages"
+  ],
   "contributors": [
     {
-      "name": "Tomasz Maciążek",
-      "email": "tomaciazek@gmail.com"
+      "email": "tomaciazek@gmail.com",
+      "name": "Tomasz Maciążek"
     },
     {
       "name": "RedHat Inc."
     },
     {
-      "name": "Ganesh B. Nalawade",
-      "email": "gnalawad@redhat.com"
+      "email": "gnalawad@redhat.com",
+      "name": "Ganesh B. Nalawade"
     }
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ansible/vscode-ansible.git"
-  },
-  "icon": "icon.png",
-  "engines": {
-    "node": ">=20.0",
-    "npm": ">=7.11.2"
-  },
-  "bin": "bin/ansible-language-server",
-  "main": "./out/server/src/server.js",
-  "types": "./out/server/src/server.d.ts",
-  "files": [
-    "icon.png",
-    "./out/server/src/**/*"
-  ],
-  "categories": [
-    "Programming Languages"
-  ],
-  "activationEvents": [
-    "onLanguage:ansible"
-  ],
-  "keywords": [
-    "ansible",
-    "LSP"
   ],
   "dependencies": {
     "@flatten-js/interval-tree": "^1.1.3",
@@ -56,6 +32,7 @@
     "vscode-uri": "^3.1.0",
     "yaml": "^2.8.0"
   },
+  "description": "Ansible language server",
   "devDependencies": {
     "@types/chai": "^5.2.2",
     "@types/glob": "^9.0.0",
@@ -74,16 +51,39 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   },
+  "displayName": "Ansible",
+  "engines": {
+    "node": ">=20.0",
+    "npm": ">=7.11.2"
+  },
+  "files": [
+    "icon.png",
+    "./out/server/src/**/*"
+  ],
+  "icon": "icon.png",
+  "keywords": [
+    "ansible",
+    "LSP"
+  ],
+  "license": "MIT",
+  "main": "./out/server/src/server.js",
+  "name": "@ansible/ansible-language-server",
+  "publisher": "RedHat Inc.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ansible/vscode-ansible.git"
+  },
   "scripts": {
+    "//prepare": "Prepare is needed for installation from source",
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
     "prepack": "yarn compile",
-    "//prepare": "Prepare is needed for installation from source",
     "prepare": "yarn run compile",
-    "watch": "tsc --watch -p .",
     "test": "sh -c \"c8 mocha ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\"",
     "test-with-ee": "sh -c \"c8 mocha --grep @ee ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts \"",
-    "test-without-ee": "sh -c \"SKIP_PODMAN=1 SKIP_DOCKER=1 c8 mocha --grep @ee --invert ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\""
+    "test-without-ee": "sh -c \"SKIP_PODMAN=1 SKIP_DOCKER=1 c8 mocha --grep @ee --invert ${MOCHA_OPTS:-} && tsx ../../test/fix-junit-reports.ts\"",
+    "watch": "tsc --watch -p ."
   },
-  "all": true
+  "types": "./out/server/src/server.d.ts",
+  "version": "1.2.3"
 }

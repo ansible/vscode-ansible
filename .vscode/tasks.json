@@ -1,110 +1,110 @@
 {
-  "version": "2.0.0",
   "tasks": [
     {
-      "type": "npm",
-      "script": "compile",
       "group": "build",
       "presentation": {
         "panel": "dedicated",
         "reveal": "never"
       },
-      "problemMatcher": ["$tsc"]
+      "problemMatcher": ["$tsc"],
+      "script": "compile",
+      "type": "npm"
     },
     {
-      "type": "npm",
+      "group": {
+        "isDefault": true,
+        "kind": "build"
+      },
+      "isBackground": true,
+      "presentation": {
+        "panel": "dedicated",
+        "reveal": "never"
+      },
+      "problemMatcher": ["$tsc-watch"],
       "script": "watch",
-      "isBackground": true,
+      "type": "npm"
+    },
+    {
       "group": {
-        "kind": "build",
-        "isDefault": true
+        "isDefault": true,
+        "kind": "build"
       },
+      "isBackground": true,
       "presentation": {
         "panel": "dedicated",
         "reveal": "never"
       },
-      "problemMatcher": ["$tsc-watch"]
-    },
-    {
-      "type": "npm",
+      "problemMatcher": ["$tsc-watch"],
       "script": "watch:server",
-      "isBackground": true,
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "panel": "dedicated",
-        "reveal": "never"
-      },
-      "problemMatcher": ["$tsc-watch"]
+      "type": "npm"
     },
     {
+      "group": {
+        "isDefault": true,
+        "kind": "build"
+      },
       "label": "Clean",
-      "type": "npm",
-      "script": "clean",
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
       "presentation": {
         "panel": "dedicated",
         "reveal": "never"
-      }
+      },
+      "script": "clean",
+      "type": "npm"
     },
     {
-      "label": "Webpack Watch",
-      "type": "npm",
-      "script": "webpack:watch",
-      "isBackground": true,
       "group": {
-        "kind": "build",
-        "isDefault": true
+        "isDefault": true,
+        "kind": "build"
       },
+      "isBackground": true,
+      "label": "Webpack Watch",
       "presentation": {
+        "group": "Build",
         "panel": "dedicated",
-        "reveal": "never",
-        "group": "Build"
+        "reveal": "never"
       },
-      "problemMatcher": ["$ts-webpack-watch"]
+      "problemMatcher": ["$ts-webpack-watch"],
+      "script": "webpack:watch",
+      "type": "npm"
     },
     {
-      "type": "npm",
-      "script": "vite-dev",
+      "group": {
+        "isDefault": true,
+        "kind": "build"
+      },
+      "isBackground": true,
+      "presentation": {
+        "reveal": "never"
+      },
       "problemMatcher": {
-        "owner": "typescript",
-        "fileLocation": "relative",
-        "pattern": {
-          "regexp": "^([a-zA-Z]\\:/?([\\w\\-]/?)+\\.\\w+):(\\d+):(\\d+): (ERROR|WARNING)\\: (.*)$",
-          "file": 1,
-          "line": 3,
-          "column": 4,
-          "code": 5,
-          "message": 6
-        },
         "background": {
           "activeOnStart": true,
           "beginsPattern": "^.*extension build start*$",
           "endsPattern": "^.*extension (build|rebuild) success.*$"
+        },
+        "fileLocation": "relative",
+        "owner": "typescript",
+        "pattern": {
+          "code": 5,
+          "column": 4,
+          "file": 1,
+          "line": 3,
+          "message": 6,
+          "regexp": "^([a-zA-Z]\\:/?([\\w\\-]/?)+\\.\\w+):(\\d+):(\\d+): (ERROR|WARNING)\\: (.*)$"
         }
       },
-      "isBackground": true,
-      "presentation": {
-        "reveal": "never"
-      },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      }
+      "script": "vite-dev",
+      "type": "npm"
     },
     {
-      "type": "npm",
-      "script": "vite-build",
       "group": {
-        "kind": "build",
-        "isDefault": true
+        "isDefault": true,
+        "kind": "build"
       },
-      "problemMatcher": []
+      "problemMatcher": [],
+      "script": "vite-build",
+      "type": "npm"
     }
-  ]
+  ],
+  "version": "2.0.0"
 }

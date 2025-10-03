@@ -10,16 +10,14 @@ ci:
     - eslint
     - compare-devfile
     - compare-devcontainer
+    - tombi-format
+    - tombi-lint
 exclude: >
   (?x)^(
     .*.svg
   )$
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
-  - repo: https://github.com/pappasam/toml-sort
-    rev: v0.24.2
-    hooks:
-      - id: toml-sort-fix
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.12.11"
     hooks:
@@ -27,10 +25,27 @@ repos:
         alias: ruff
       - id: ruff-check
         alias: ruff
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v2.2.4"
+    hooks:
+      - id: biome-check
+        name: biome
+        alias: biome
+        args: [--unsafe]
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v9.2.0
     hooks:
       - id: cspell
+        entry: bash
+        pass_filenames: false
+        args:
+          [
+            "-euo",
+            "pipefail",
+            "-c",
+            "cspell-cli . --relative --no-progress --no-summary && cspell-cli . --disable-dictionary=words --no-exit-code --words-only --quiet --unique | LC_ALL=C sort > .config/dictionary.txt",
+          ]
+        name: cspell + remove unused and sort dictionary
   - repo: https://github.com/codespell-project/codespell
     rev: v2.4.1
     hooks:
@@ -123,9 +138,6 @@ repos:
       - id: fix-byte-order-marker
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
-      - id: pretty-format-json
-        files: "test/testFixtures/.*\\.json"
-        args: ["--autofix"]
       - id: check-json
         # does not support JSON with comments
         exclude: >
@@ -152,21 +164,13 @@ repos:
             packages/ansible-language-server/test/testFixtures/diagnostics/yaml/invalid_yaml.yml|
             packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
           )$
-  - repo: https://github.com/pycontribs/mirrors-prettier
-    # keep it before markdownlint and eslint
-    rev: "v3.6.2"
+  - repo: https://github.com/tombi-toml/tombi-pre-commit
+    rev: v0.6.19
     hooks:
-      - id: prettier
-        types_or: ["markdown", "json"]
-        args:
-          - --log-level
-          - silent
-        exclude: >
-          (?x)^(
-            jinja-language-configuration.json|
-            syntaxes/external/jinja.tmLanguage.json|
-            docs/als/settings.md
-          )$
+      - id: tombi-format
+        alias: toml
+      - id: tombi-lint
+        alias: toml
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
     hooks:
