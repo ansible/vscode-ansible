@@ -38,15 +38,15 @@
     [" ", " "] // for spacing Jinja (and other) expressions; this setting might be a bit controversial ;)
   ],
   "folding": {
-    "offSide": true,
     "markers": {
-      "start": "^\\s*#\\s*region\\b",
-      "end": "^\\s*#\\s*endregion\\b"
-    }
+      "end": "^\\s*#\\s*endregion\\b",
+      "start": "^\\s*#\\s*region\\b"
+    },
+    "offSide": true
   },
   "indentationRules": {
-    "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?(\\{[^}\"']*|\\([^)\"']*)?$",
-    "decreaseIndentPattern": "^\\s+\\}$"
+    "decreaseIndentPattern": "^\\s+\\}$",
+    "increaseIndentPattern": "^\\s*.*(:|-) ?(&amp;\\w+)?(\\{[^}\"']*|\\([^)\"']*)?$"
   },
   "wordPattern": "(^.?[^\\s]+)+|([^\\s\n={[][\\w\\-\\./$%&*:\"']+)"
 }

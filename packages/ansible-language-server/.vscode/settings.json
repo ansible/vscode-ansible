@@ -1,31 +1,31 @@
 {
-  "editor.formatOnSave": true,
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.formatOnSave": true,
+  "explorerExclude.backup": null,
   "files.exclude": {
+    "**/.DS_Store": true,
     "**/.git": true,
-    "**/.svn": true,
     "**/.hg": true,
+    "**/.svn": true,
     "**/.task": true,
     "**/CVS": true,
-    "**/.DS_Store": true,
     "**/node_modules": true,
-    "**/out/venvs": true,
     "**/out/.doctrees": true,
     "**/out/.nyc_output": true,
     "**/out/coverage.lcov": true,
     "**/out/docs_out": true,
     "**/out/next.md": true,
+    "**/out/venvs": true,
     "**/out/vscode-ansible": true
   },
-  "explorerExclude.backup": null,
-  "python.defaultInterpreterPath": "${userHome}/.local/share/virtualenvs/vsa/bin/python3",
-  "mypy.configFile": ".config/mypy.ini"
+  "mypy.configFile": ".config/mypy.ini",
+  "python.defaultInterpreterPath": "${userHome}/.local/share/virtualenvs/vsa/bin/python3"
 }

@@ -25,6 +25,13 @@ repos:
         alias: ruff
       - id: ruff-check
         alias: ruff
+  - repo: https://github.com/biomejs/pre-commit
+    rev: "v2.2.4"
+    hooks:
+      - id: biome-check
+        name: biome
+        alias: biome
+        args: [--unsafe]
   - repo: https://github.com/streetsidesoftware/cspell-cli
     rev: v9.2.0
     hooks:
@@ -131,9 +138,6 @@ repos:
       - id: fix-byte-order-marker
       - id: check-executables-have-shebangs
       - id: check-merge-conflict
-      - id: pretty-format-json
-        files: "test/testFixtures/.*\\.json"
-        args: ["--autofix"]
       - id: check-json
         # does not support JSON with comments
         exclude: >
@@ -167,21 +171,6 @@ repos:
         alias: toml
       - id: tombi-lint
         alias: toml
-  - repo: https://github.com/pycontribs/mirrors-prettier
-    # keep it before markdownlint and eslint
-    rev: "v3.6.2"
-    hooks:
-      - id: prettier
-        types_or: ["markdown", "json"]
-        args:
-          - --log-level
-          - silent
-        exclude: >
-          (?x)^(
-            jinja-language-configuration.json|
-            syntaxes/external/jinja.tmLanguage.json|
-            docs/als/settings.md
-          )$
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
     hooks:
