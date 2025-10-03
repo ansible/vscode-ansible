@@ -239,8 +239,8 @@ export async function testDiagnostics(
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
   if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
     console.info(
-        `Diagnostics delayed - Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
-      );
+      `Diagnostics delayed - Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
+    );
     const pollTimeout = 5000;
     const pollInterval = 500;
     let elapsed = 0;
@@ -253,7 +253,9 @@ export async function testDiagnostics(
       await sleep(pollInterval);
       elapsed += pollInterval;
       actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-      console.info(`...${elapsed / 1000}s (diagnostics: ${actualDiagnostics.length})\n`);
+      console.info(
+        `...${elapsed / 1000}s (diagnostics: ${actualDiagnostics.length})\n`,
+      );
     }
   }
 
