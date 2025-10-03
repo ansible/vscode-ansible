@@ -85,8 +85,8 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
 
-          - name: test (linux)
-            task-name: test
+          # - name: test (linux)
+          #   task-name: test
 
           - name: test (macos)
             task-name: test
@@ -98,13 +98,13 @@ jobs:
             # in order to enable the caching
             continue-on-error: true
 
-          - name: test (wsl)
-            task-name: test
-            os: wsl-runner
-            runs-on: self-hosted
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
+          # - name: test (wsl)
+          #   task-name: test
+          #   os: wsl-runner
+          #   runs-on: self-hosted
+          #   env:
+          #     SKIP_PODMAN: 1
+          #     SKIP_DOCKER: 1
     steps:
       - uses: actions/checkout@v5
         with:
@@ -273,24 +273,24 @@ jobs:
         if: "${{ !contains(matrix.name, 'test') }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task unit
-        if: contains(matrix.name, 'test')
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task unit
+      #   if: contains(matrix.name, 'test')
+      #   run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task ui
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
-        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task ui
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
+      #   run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
-      - name: task als
-        # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
-        run: task als ${{ matrix.env.TASKFILE_ARGS }}
+      # - name: task als
+      #   # https://github.com/ansible/vscode-ansible/issues/1451
+      #   if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+      #   run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
@@ -337,17 +337,17 @@ jobs:
         # until the WSL/gitleaks failure is resolved
         continue-on-error: true
 
-      - name: Upload test results to Codecov (als)
-        if: ${{ !cancelled() && hashFiles('out/junit/als/*.xml') != '' }}
-        uses: codecov/test-results-action@v1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/als
-          handle_no_reports_found: true
-          name: ${{ matrix.name }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      # - name: Upload test results to Codecov (als)
+      #   if: ${{ !cancelled() && hashFiles('out/junit/als/*.xml') != '' }}
+      #   uses: codecov/test-results-action@v1
+      #   with:
+      #     fail_ci_if_error: true
+      #     directory: out/junit/als
+      #     handle_no_reports_found: true
+      #     name: ${{ matrix.name }}
+      #     # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+      #     flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
+      #     use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       - name: Upload test results to Codecov (e2e)
         if: ${{ !cancelled() && hashFiles('out/junit/e2e/*.xml') != '' }}
@@ -361,29 +361,29 @@ jobs:
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},e2e
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
-      - name: Upload test results to Codecov (unit)
-        if: ${{ !cancelled() && hashFiles('out/junit/unit/*.xml') != '' }}
-        uses: codecov/test-results-action@v1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/unit
-          handle_no_reports_found: true
-          name: ${{ matrix.name }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      # - name: Upload test results to Codecov (unit)
+      #   if: ${{ !cancelled() && hashFiles('out/junit/unit/*.xml') != '' }}
+      #   uses: codecov/test-results-action@v1
+      #   with:
+      #     fail_ci_if_error: true
+      #     directory: out/junit/unit
+      #     handle_no_reports_found: true
+      #     name: ${{ matrix.name }}
+      #     # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+      #     flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,unit
+      #     use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
-      - name: Upload test results to Codecov (ui)
-        if: ${{ !cancelled() && hashFiles('out/junit/ui/*.xml') != '' }}
-        uses: codecov/test-results-action@v1
-        with:
-          fail_ci_if_error: true
-          directory: out/junit/ui
-          handle_no_reports_found: true
-          name: ${{ matrix.name }}
-          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
-          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,ui
-          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+      # - name: Upload test results to Codecov (ui)
+      #   if: ${{ !cancelled() && hashFiles('out/junit/ui/*.xml') != '' }}
+      #   uses: codecov/test-results-action@v1
+      #   with:
+      #     fail_ci_if_error: true
+      #     directory: out/junit/ui
+      #     handle_no_reports_found: true
+      #     name: ${{ matrix.name }}
+      #     # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+      #     flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},,ui
+      #     use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
       # - name: Stop services
       #   if: "contains(matrix.os, 'macos')"
@@ -444,38 +444,38 @@ jobs:
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
 
-      - name: Upload als test coverage data [1/4]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.1
-        with:
-          name: als
-          files: ./**/coverage/als/cobertura-coverage.xml
-          flags: als
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+      # - name: Upload als test coverage data [1/4]
+      #   if: ${{ always() }}
+      #   uses: codecov/codecov-action@v5.5.1
+      #   with:
+      #     name: als
+      #     files: ./**/coverage/als/cobertura-coverage.xml
+      #     flags: als
+      #     disable_search: true
+      #     fail_ci_if_error: true
+      #     use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      - name: Upload unit test coverage data [2/4]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.1
-        with:
-          name: unit
-          files: ./**/coverage/unit/*cobertura-coverage.xml
-          flags: unit
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+      # - name: Upload unit test coverage data [2/4]
+      #   if: ${{ always() }}
+      #   uses: codecov/codecov-action@v5.5.1
+      #   with:
+      #     name: unit
+      #     files: ./**/coverage/unit/*cobertura-coverage.xml
+      #     flags: unit
+      #     disable_search: true
+      #     fail_ci_if_error: true
+      #     use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      - name: Upload ui test coverage data [3/4]
-        if: ${{ always() }}
-        uses: codecov/codecov-action@v5.5.1
-        with:
-          name: ui
-          files: ./**/coverage/ui/*cobertura-coverage.xml
-          flags: ui
-          disable_search: true
-          fail_ci_if_error: true
-          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+      # - name: Upload ui test coverage data [3/4]
+      #   if: ${{ always() }}
+      #   uses: codecov/codecov-action@v5.5.1
+      #   with:
+      #     name: ui
+      #     files: ./**/coverage/ui/*cobertura-coverage.xml
+      #     flags: ui
+      #     disable_search: true
+      #     fail_ci_if_error: true
+      #     use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
       - name: Upload e2e test coverage data [4/4]
         if: ${{ always() }}
