@@ -153,13 +153,13 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.0.0
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
 
       - name: Corepack enable
         run: corepack enable
 
       - name: Enable caching
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             .vscode-test
@@ -196,11 +196,11 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Enable caching for pre-commit
         if: ${{ matrix.name == 'lint' }}
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/pre-commit/
           key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
@@ -239,7 +239,7 @@ jobs:
           [[ "${NODE_OPTIONS:-}" == "$(direnv exec . printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Install dependencies
-        uses: coactions/actions/yarn-install@ea3c80d71fa1082d8e40bfb15e91445ad48a9a4c # fix/install
+        uses: coactions/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # fix/install
         # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
         with:
           cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
@@ -425,7 +425,7 @@ jobs:
 
       - name: Merge logs into a single archive
         if: ${{ !failure() }}
-        uses: actions/upload-artifact/merge@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.0.0
+        uses: actions/upload-artifact/merge@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: logs.zip
           pattern: logs-*.zip
@@ -446,7 +446,7 @@ jobs:
 
       - name: Upload als test coverage data [1/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f # v5.5.1
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           name: als
           files: ./**/coverage/als/cobertura-coverage.xml
@@ -457,7 +457,7 @@ jobs:
 
       - name: Upload unit test coverage data [2/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f # v5.5.1
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           name: unit
           files: ./**/coverage/unit/*cobertura-coverage.xml
@@ -468,7 +468,7 @@ jobs:
 
       - name: Upload ui test coverage data [3/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f # v5.5.1
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           name: ui
           files: ./**/coverage/ui/*cobertura-coverage.xml
@@ -479,7 +479,7 @@ jobs:
 
       - name: Upload e2e test coverage data [4/4]
         if: ${{ always() }}
-        uses: codecov/codecov-action@af09b5e394c93991b95a5e7646aeb90c1917f78f # v5.5.1
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           name: e2e
           files: ./**/coverage/e2e/*cobertura-coverage.xml
@@ -510,7 +510,7 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.0.0
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
 
       - name: Download the artifact
         uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
@@ -519,7 +519,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.0.0
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
         if: github.ref_type == 'tag'
         with:
           files: "*.vsix"
@@ -531,7 +531,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.13"
 
       - name: Publish extension to marketplaces
         run: |
@@ -553,7 +553,7 @@ jobs:
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.0.0
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:
