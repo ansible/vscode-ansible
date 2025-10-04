@@ -1,4 +1,11 @@
-import { By, EditorView, WebView, WebElement } from "vscode-extension-tester";
+import {
+  By,
+  EditorView,
+  WebView,
+  WebElement,
+  Workbench,
+  InputBox,
+} from "vscode-extension-tester";
 import {
   getWebviewByLocator,
   sleep,
@@ -84,6 +91,45 @@ describe("Content Creator UI Tests", function () {
       );
 
       await checkAndInteractWithField(eeWebview, "path-url", homeDir);
+      await checkAndInteractWithField(
+        eeWebview,
+        "tag-name",
+        "ansible-ee:latest",
+      );
+
+      const imageDropdown = await eeWebview.findWebElement(
+        By.xpath("//vscode-single-select[@id='baseImage-dropdown']"),
+      );
+      await eeWebview.getDriver().executeScript(
+        (dropdown: HTMLSelectElement, index: number) => {
+          if (dropdown) {
+            dropdown.selectedIndex = index;
+            dropdown.dispatchEvent(new Event("change"));
+          }
+        },
+        imageDropdown,
+        0,
+      );
+      await checkAndInteractWithField(
+        eeWebview,
+        "customBaseImage-name",
+        "custom-image:latest",
+      );
+      await checkAndInteractWithField(
+        eeWebview,
+        "collections-name",
+        "ansible.posix, ansible.utils, ansible.aws, ansible.network, kubernetes.core",
+      );
+      await checkAndInteractWithField(
+        eeWebview,
+        "systemPackages-name",
+        "openssh, curl",
+      );
+      await checkAndInteractWithField(
+        eeWebview,
+        "pythonPackages-name",
+        "requests, numpy",
+      );
 
       const initEEProjectCheckbox = await waitForCondition({
         condition: async () => {
@@ -94,30 +140,108 @@ describe("Content Creator UI Tests", function () {
         message: "Timed out waiting for EE project checkbox",
       });
 
+      const overwriteCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+          );
+        },
+        message: `Timed out waiting for overwrite checkbox`,
+      });
+      const buildImageCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='buildImage-checkbox']"),
+          );
+        },
+        message: `Timed out waiting for overwrite checkbox`,
+      });
+      const createContextCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='createContext-checkbox']"),
+          );
+        },
+        message: `Timed out waiting for overwrite checkbox`,
+      });
+      await createContextCheckbox.click();
+      await buildImageCheckbox.click();
       await initEEProjectCheckbox.click();
-
-      const overwriteCheckbox = await eeWebview.findWebElement(
-        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
-      );
       await overwriteCheckbox.click();
       await clickButtonAndCheckEnabled(eeWebview, "create-button");
       await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
       await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-
-      await checkAndInteractWithField(eeWebview, "path-url", homeDir);
-
-      await initEEProjectCheckbox.click();
-      await overwriteCheckbox.click();
-      await clickButtonAndCheckEnabled(eeWebview, "create-button");
-
-      await clickButtonAndCheckEnabled(eeWebview, "clear-button");
-      await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
 
       await eeWebview.switchBack();
       const editorView = new EditorView();
       if (editorView) {
         await editorView.closeAllEditors();
       }
+    });
+    it("Executes the build command from the right-click menu", async function () {
+      const workbench = new Workbench();
+      // Test with no file open in editor
+      await workbenchExecuteCommand("Build Ansible execution environment");
+
+      await waitForCondition({
+        condition: async () => {
+          const notifications = await workbench.getNotifications();
+          for (const notification of notifications) {
+            const message = await notification.getMessage();
+            if (message === "No file selected and no active file found!") {
+              return notification;
+            }
+          }
+          return false;
+        },
+        message: `Timed out waiting for notification with message: "No file selected and no active file found!"`,
+      });
+
+      // Test with a file open but not the execution-environment.yml file
+      await workbenchExecuteCommand("File: New Untitled Text file");
+      await workbenchExecuteCommand("Build Ansible execution environment");
+
+      await waitForCondition({
+        condition: async () => {
+          const notifications = await workbench.getNotifications();
+          for (const notification of notifications) {
+            const message = await notification.getMessage();
+            if (
+              message === "Active file is not an execution environment file!"
+            ) {
+              return notification;
+            }
+          }
+          return false;
+        },
+        message: `Timed out waiting for notification with message: "Active file is not an execution environment file!"`,
+      });
+
+      // Test with the execution-environment.yml file
+      const eeFilePath = path.join(os.homedir(), "execution-environment.yml");
+      fs.writeFileSync(eeFilePath, "ver: 4", "utf8");
+
+      await workbenchExecuteCommand("Go to File...");
+      const inputBox = await InputBox.create();
+      await inputBox.setText(
+        path.join(os.homedir(), "execution-environment.yml"),
+      );
+      await inputBox.confirm();
+      await workbenchExecuteCommand("Build Ansible execution environment");
+
+      await waitForCondition({
+        condition: async () => {
+          const notifications = await workbench.getNotifications();
+          for (const notification of notifications) {
+            const message = await notification.getMessage();
+            if (message.match(/^Build (successful|failed)/)) {
+              return notification;
+            }
+          }
+          return false;
+        },
+        message: `Timed out waiting for notification with message: "Build successful" or "Build failed"`,
+      });
     });
   });
 
