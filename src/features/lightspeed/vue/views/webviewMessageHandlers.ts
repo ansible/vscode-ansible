@@ -630,9 +630,7 @@ export class WebviewMessageHandlers {
   }
 
   private getContainerImage(dropdownImage: string): string {
-    if (dropdownImage.includes("Upstream")) {
-      return DevcontainerImages.Upstream;
-    } else if (dropdownImage.includes("Downstream")) {
+    if (dropdownImage.includes("downstream")) {
       return DevcontainerImages.Downstream;
     }
     return DevcontainerImages.Upstream;
