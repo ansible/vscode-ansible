@@ -83,7 +83,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     buttonToClick === "thumbsup" ? thumbsUpButton : thumbsDownButton;
   await button.click();
 
-  waitForCondition({
+  await waitForCondition({
     condition: async () => {
       const thumbsUpButtonEnabled = await thumbsUpButton.isEnabled();
       const thumbsDownButtonEnabled = await thumbsDownButton.isEnabled();
@@ -189,7 +189,7 @@ describe(__filename, function () {
       // Issuing the Lightspeed feedback command should not open a new tab
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
 
-      waitForCondition({
+      await waitForCondition({
         condition: async () => {
           const titles = await editorView.getOpenEditorTitles();
           return titles.length === 1;

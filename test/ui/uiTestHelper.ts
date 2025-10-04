@@ -215,9 +215,12 @@ export async function openSettings() {
 }
 
 export async function dismissNotifications(workbench: Workbench) {
-  const notifications = await workbench.getNotifications();
-  for (const n of notifications) {
-    await n.dismiss();
+  let notifications = await workbench.getNotifications();
+  while (notifications.length > 0) {
+    // Dismiss the first notification
+    await notifications[0].dismiss();
+    // Re-query
+    notifications = await workbench.getNotifications();
   }
 }
 
