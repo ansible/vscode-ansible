@@ -1,4 +1,4 @@
-import { By, WebView, Workbench, InputBox } from "vscode-extension-tester";
+import { By, WebView, Workbench } from "vscode-extension-tester";
 import {
   dismissNotifications,
   getWebviewByLocator,
@@ -6,9 +6,7 @@ import {
   workbenchExecuteCommand,
 } from "./uiTestHelper";
 import { config, expect } from "chai";
-import path from "path";
 import os from "os";
-import fs from "fs";
 
 config.truncateThreshold = 0;
 
