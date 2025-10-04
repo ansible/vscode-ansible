@@ -19,7 +19,7 @@ exclude: >
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.13.2"
+    rev: "v0.13.3"
     hooks:
       - id: ruff-format
         alias: ruff
