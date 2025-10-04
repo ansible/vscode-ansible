@@ -109,7 +109,6 @@ This section allows you to add resources to existing projects:
 - Collection plugin: Add a plugin to an existing collection
 - dev container: Create a dev container configuration
 - Devfile: Create a devfile for development environments
-- Execution environment template: Create an execution environment file
 - Role: Add a role to an existing collection
 - Playbook: Generate a playbook with Ansible Lightspeed
 

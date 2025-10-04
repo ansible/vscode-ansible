@@ -1,4 +1,4 @@
 {
-  "upgrade": true,
-  "reject": ["@types/vscode", "vscode-languageclient"]
+  "reject": ["@types/vscode", "vscode-languageclient"],
+  "upgrade": true
 }

@@ -1,50 +1,44 @@
 {
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[python]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "charliermarsh.ruff",
-    "editor.codeActionsOnSave": {
-      "source.fixAll": "explicit",
-      "source.organizeImports": "explicit"
-    }
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml"
-  },
-  "[shellscript]": {
-    "editor.tabSize": 4
-  },
   "[html]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "biomejs.biome"
   },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "[markdown]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true
+  },
+  "[shellscript]": {
+    "editor.tabSize": 4
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tombi-toml.tombi"
   },
   "[yaml]": {
     // Until https://github.com/ansible/vscode-ansible/pull/388 is addressed.
     "editor.formatOnSave": false
   },
-  "explorer.fileNesting.enabled": true,
   "editor.codeActionsOnSave": ["source.fixAll.eslint"],
   "editor.formatOnSave": true,
+  "eslint.useESLintClass": true,
+  "explorer.fileNesting.enabled": true,
 
   "files.exclude": {
     ".task": true,
-    ".yarn": true,
-    ".vscode-test": true
+    ".vscode-test": true,
+    ".yarn": true
   },
   "mochaExplorer.cwd": "packages/ansible-language-server",
+  "redhat.telemetry.enabled": false,
   "search.exclude": {
     ".vscode-test": true
-  },
-  "redhat.telemetry.enabled": false,
-  "eslint.useESLintClass": true
+  }
 }

@@ -1,58 +1,53 @@
 {
-  "version": "0.2.0",
   "compounds": [
     {
-      "name": "Both",
-      "stopAll": true,
       "configurations": ["Launch Extension", "Attach to Server"],
+      "name": "Both",
       "presentation": {
-        "order": 2,
-        "hidden": true
-      }
+        "hidden": true,
+        "order": 2
+      },
+      "stopAll": true
     },
     {
-      "name": "Both (src)",
-      "stopAll": true,
       "configurations": ["Launch Extension", "Attach to Server (src)"],
+      "name": "Both (src)",
       "presentation": {
         "order": 1
-      }
+      },
+      "stopAll": true
     }
   ],
   "configurations": [
     {
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "name": "Debug Extension (Vite)",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "preLaunchTask": "npm: vite-dev"
+      "preLaunchTask": "npm: vite-dev",
+      "request": "launch",
+      "type": "extensionHost"
     },
     {
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "name": "Preview Extension (Vite)",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}"],
       "outFiles": ["${workspaceFolder}/dist/extension/*.js"],
-      "preLaunchTask": "npm: vite-build"
+      "preLaunchTask": "npm: vite-build",
+      "request": "launch",
+      "type": "extensionHost"
     },
     {
-      "name": "Launch Extension",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/examples"
       ],
+      "name": "Launch Extension",
       "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
-      "preLaunchTask": "npm: watch"
-    },
-    {
-      "name": "Launch Extension (webpacked)",
-      "type": "extensionHost",
+      "preLaunchTask": "npm: watch",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
+      "type": "extensionHost"
+    },
+    {
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "${workspaceFolder}/examples"
@@ -60,40 +55,45 @@
       "env": {
         "VSCODE_REDHAT_TELEMETRY_DEBUG": "false"
       },
+      "name": "Launch Extension (webpacked)",
       "outFiles": ["${workspaceFolder}/out/client/src/**/*.js"],
-      "preLaunchTask": "Webpack Watch"
+      "preLaunchTask": "Webpack Watch",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "type": "extensionHost"
     },
     {
       "name": "Attach to Server",
-      "type": "node",
-      "request": "attach",
-      "timeout": 30000,
+      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
       "port": 6010,
+      "request": "attach",
       "restart": true,
       "runtimeArgs": ["--max-old-space-size=4096"],
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"]
+      "timeout": 30000,
+      "type": "node"
     },
     {
       "name": "Attach to Server (src)",
-      "type": "node",
-      "request": "attach",
-      "timeout": 30000,
+      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
       "port": 6010,
+      "preLaunchTask": "npm: watch-server",
+      "request": "attach",
       "restart": true,
       "runtimeArgs": ["--max-old-space-size=4096"],
-      "outFiles": ["${workspaceRoot}/out/server/src/**/*.js"],
-      "preLaunchTask": "npm: watch-server"
+      "timeout": 30000,
+      "type": "node"
     },
     {
-      "name": "Extension Tests",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}",
         "--extensionTestsPath=${workspaceFolder}/out/client/test/index"
       ],
-      "outFiles": ["${workspaceFolder}/out/test/**/*.js"]
+      "name": "Extension Tests",
+      "outFiles": ["${workspaceFolder}/out/test/**/*.js"],
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "type": "extensionHost"
     }
-  ]
+  ],
+  "version": "0.2.0"
 }
