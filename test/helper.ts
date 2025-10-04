@@ -626,7 +626,10 @@ export async function waitForDiagnosisCompletion(
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {
-    const processes = await findProcess("name", /ansible-(?:lint|playbook)/);
+    const ansibleProcesses = await findProcess("name", "ansible");
+    const processes = ansibleProcesses.filter((p) =>
+      /ansible-(?:lint|playbook)/.test(p.name),
+    );
     if (!started && processes.length > 0) {
       started = true;
     } else if (started && processes.length === 0) {
