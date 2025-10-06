@@ -215,9 +215,19 @@ export async function openSettings() {
 }
 
 export async function dismissNotifications(workbench: Workbench) {
-  const notifications = await workbench.getNotifications();
-  for (const n of notifications) {
-    await n.dismiss();
+  let notifications = await workbench.getNotifications();
+  while (notifications.length > 0) {
+    try {
+      // Dismiss the first notification
+      await notifications[0].dismiss();
+    } catch (error) {
+      // Notification may have auto-dismissed or become stale - ignore and continue
+      console.log(
+        `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+    // Re-query to get fresh list
+    notifications = await workbench.getNotifications();
   }
 }
 
