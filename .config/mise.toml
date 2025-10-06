@@ -4,11 +4,6 @@ COREPACK_ENABLE_DOWNLOAD_PROMPT = 0
 # hack installing mkdocs-ansible correctly on macOS
 # https://github.com/squidfunk/mkdocs-material/issues/5121
 DYLD_FALLBACK_LIBRARY_PATH = "{% if os() == 'macos' %}/opt/homebrew/lib{% endif %}"
-# Command such `yarn webpack-dev` might fail with
-# Reached heap limit Allocation failed - JavaScript heap out of memory
-# https://nodejs.org/api/cli.html#--max-old-space-sizesize-in-megabytes
-# default 16 MiB for 64-bit systems and 8 MiB for 32-bit systems
-NODE_OPTIONS = "--max-old-space-size=8192"
 # 'vsa' is acronym for 'visual studio ansible'
 # we use HOME location below to avoid polluting the project directory with,
 # temporary data and to allow us to mount the codebase on multiple machines
@@ -31,6 +26,6 @@ experimental = true
 [tools]
 # do not add tools unsupported on windows such: gh, yarn
 direnv = "latest"
-node = "20.19.3"
+node = "22.20.0"
 task = "latest"
 uv = "latest"
