@@ -91,8 +91,9 @@ describe(__filename, function () {
 
     it("Verify a modal dialog pops up", async function () {
       const { dialog, message } = await getModalDialogAndMessage();
-      expect(dialog).not.to.be.undefined;
-      expect(message).not.to.be.undefined;
+      expect(dialog, "Dialog should not be undefined").not.to.be.undefined;
+      expect(message, "Dialog message should not be undefined").not.to.be
+        .undefined;
       modalDialog = dialog;
       dialogMessage = message;
     });
@@ -139,12 +140,13 @@ describe(__filename, function () {
       const actions = (await activityBar.getGlobalAction(
         "Accounts",
       )) as ActionsControl;
-      expect(actions).not.to.be.undefined;
+      expect(actions, "Accounts action should not be undefined").not.to.be
+        .undefined;
       await actions.click();
       const menus = await workbench.findElements(By.className("context-view"));
-      expect(menus.length).greaterThan(0);
+      expect(menus.length, "Context menu should be visible").greaterThan(0);
       const menu = new ContextMenu(workbench);
-      expect(menu).not.to.be.undefined;
+      expect(menu, "Context menu should not be undefined").not.to.be.undefined;
       if (menu) {
         await menu.select(
           "EXTERNAL_USERNAME (licensed) (Ansible Lightspeed)",
