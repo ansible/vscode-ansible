@@ -216,13 +216,17 @@ export async function openSettings() {
 
 export async function dismissNotifications(workbench: Workbench) {
   let notifications = await workbench.getNotifications();
-  while (notifications.length > 0) {
+  let failedAttempts = 0;
+  const maxFailedAttempts = 10;
+
+  while (notifications.length > 0 && failedAttempts < maxFailedAttempts) {
     try {
       await notifications[0].dismiss();
     } catch (error) {
       console.log(
         `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
       );
+      failedAttempts++;
     }
     // Re-query for updated list
     notifications = await workbench.getNotifications();
