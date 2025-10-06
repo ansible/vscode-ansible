@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
-    "outDir": "out/client"
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "out/client",
+    "resolveJsonModule": true,
+    "target": "ES2022"
   },
   "exclude": [
     "node_modules",
