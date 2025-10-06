@@ -52,61 +52,20 @@ export async function getModalDialogAndMessage(details = false): Promise<{
   dialog: ModalDialog;
   message: string;
 }> {
-  const driver = VSBrowser.instance.driver;
-
-  console.log(
-    `[getModalDialogAndMessage] Starting to look for modal dialog (details=${details})`,
-  );
-
   for (let i = 0; i < 30; i++) {
     try {
-      // Log current frame context
-      const currentUrl = await driver.getCurrentUrl();
-      if (i % 5 === 0 || i === 0) {
-        console.log(`[Attempt ${i + 1}/30] Current URL: ${currentUrl}`);
-      }
-
       const dialog = await new ModalDialog().wait();
       const message = details
         ? await dialog.getDetails()
         : await dialog.getMessage();
-
-      if (message !== undefined && message !== "") {
-        console.log(
-          `[Attempt ${i + 1}/30] SUCCESS - Found dialog with message: "${message}"`,
-        );
+      if (message !== undefined) {
         return { dialog, message };
-      } else {
-        console.log(
-          `[Attempt ${i + 1}/30] Dialog found but message was undefined or empty`,
-        );
       }
-    } catch (error) {
-      if (i === 0 || i % 5 === 0) {
-        console.log(
-          `[Attempt ${i + 1}/30] No dialog found: ${error instanceof Error ? error.message : String(error)}`,
-        );
-      }
+    } catch {
       await sleep(1000);
     }
   }
-
-  // Final diagnostic before failing
-  try {
-    const finalUrl = await driver.getCurrentUrl();
-    const pageTitle = await driver.getTitle();
-    console.error(`[getModalDialogAndMessage] FAILED after 30 attempts`);
-    console.error(`  Final URL: ${finalUrl}`);
-    console.error(`  Page title: ${pageTitle}`);
-  } catch (diagError) {
-    console.error(
-      `[getModalDialogAndMessage] Could not get diagnostic info: ${diagError}`,
-    );
-  }
-
-  throw new Error(
-    "Could not retrieve a message from a modal dialog after 30 seconds",
-  );
+  throw new Error("Could not retrieve a message from a modal dialog");
 }
 
 function capitalizeFirstLetter(str: string): string {

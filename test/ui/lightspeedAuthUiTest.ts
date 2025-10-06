@@ -46,23 +46,18 @@ describe(__filename, function () {
         process.env.TEST_LIGHTSPEED_URL,
       );
 
-      // Set "UI Test" option for mock server to enable OAuth callback
-      console.log("[Setup] Configuring mock server");
       try {
         await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(["--ui-test"]),
         });
-        console.log("[Setup] Mock server configured successfully");
       } catch (error) {
         console.error(
           "Failed to set ui-test option for lightspeed mock server",
           error,
         );
-        expect.fail(
-          "Failed to set ui-test option for lightspeed mock server",
-        );
+        expect.fail("Failed to set ui-test option for lightspeed mock server");
       }
 
       viewControl = (await new ActivityBar().getViewControl(
@@ -88,36 +83,27 @@ describe(__filename, function () {
     });
 
     it("Click Connect button Ansible Lightspeed webview", async function () {
-      console.log("[Test] Switching to webview frame...");
       await explorerView.switchToFrame(5000);
       const connectButton = await explorerView.findWebElement(
         By.id("lightspeed-explorer-connect"),
       );
       expect(connectButton).not.to.be.undefined;
       if (connectButton) {
-        console.log("[Test] Clicking Connect button...");
         await connectButton.click();
       }
-      console.log("[Test] Switching back from webview frame...");
       await explorerView.switchBack();
     });
 
     it("Click Allow to use Lightspeed", async function () {
-      console.log("[Test] Looking for initial auth dialog...");
       const { dialog, message } = await getModalDialogAndMessage(true);
-      console.log(`[Test] Got dialog with message: "${message}"`);
       expect(message).equals(
         "The extension 'Ansible' wants to sign in using Ansible Lightspeed.",
       );
-      console.log("[Test] Clicking Allow button...");
       await dialog.pushButton("Allow");
-      console.log("[Test] Allow button clicked, OAuth flow should start");
     });
 
     it("Verify a modal dialog pops up", async function () {
-      console.log("[Test] Waiting for OAuth callback dialog...");
       const { dialog, message } = await getModalDialogAndMessage();
-      console.log(`[Test] Got callback dialog with message: "${message}"`);
       expect(dialog).not.to.be.undefined;
       expect(message).not.to.be.undefined;
       modalDialog = dialog;
