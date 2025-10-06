@@ -46,6 +46,25 @@ describe(__filename, function () {
         process.env.TEST_LIGHTSPEED_URL,
       );
 
+      // Set "UI Test" option for mock server to enable OAuth callback
+      console.log("[Setup] Configuring mock server");
+      try {
+        await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(["--ui-test"]),
+        });
+        console.log("[Setup] Mock server configured successfully");
+      } catch (error) {
+        console.error(
+          "Failed to set ui-test option for lightspeed mock server",
+          error,
+        );
+        expect.fail(
+          "Failed to set ui-test option for lightspeed mock server",
+        );
+      }
+
       viewControl = (await new ActivityBar().getViewControl(
         "Ansible",
       )) as ViewControl;
