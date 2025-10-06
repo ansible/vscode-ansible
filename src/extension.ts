@@ -29,7 +29,6 @@ import {
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
 import { McpServerManager } from "./utils/mcpServerManager";
-import { AnsibleMcpServerProvider } from "./features/mcpServerProvider";
 import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
