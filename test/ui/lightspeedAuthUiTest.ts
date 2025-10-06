@@ -69,31 +69,38 @@ describe(__filename, function () {
     });
 
     it("Click Connect button Ansible Lightspeed webview", async function () {
+      console.log("[Test] Switching to webview frame...");
       await explorerView.switchToFrame(5000);
       const connectButton = await explorerView.findWebElement(
         By.id("lightspeed-explorer-connect"),
       );
       expect(connectButton).not.to.be.undefined;
       if (connectButton) {
+        console.log("[Test] Clicking Connect button...");
         await connectButton.click();
       }
+      console.log("[Test] Switching back from webview frame...");
       await explorerView.switchBack();
     });
 
     it("Click Allow to use Lightspeed", async function () {
-      // Click Allow to use Lightspeed
+      console.log("[Test] Looking for initial auth dialog...");
       const { dialog, message } = await getModalDialogAndMessage(true);
+      console.log(`[Test] Got dialog with message: "${message}"`);
       expect(message).equals(
         "The extension 'Ansible' wants to sign in using Ansible Lightspeed.",
       );
+      console.log("[Test] Clicking Allow button...");
       await dialog.pushButton("Allow");
+      console.log("[Test] Allow button clicked, OAuth flow should start");
     });
 
     it("Verify a modal dialog pops up", async function () {
+      console.log("[Test] Waiting for OAuth callback dialog...");
       const { dialog, message } = await getModalDialogAndMessage();
-      expect(dialog, "Dialog should not be undefined").not.to.be.undefined;
-      expect(message, "Dialog message should not be undefined").not.to.be
-        .undefined;
+      console.log(`[Test] Got callback dialog with message: "${message}"`);
+      expect(dialog).not.to.be.undefined;
+      expect(message).not.to.be.undefined;
       modalDialog = dialog;
       dialogMessage = message;
     });
