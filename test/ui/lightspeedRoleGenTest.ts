@@ -132,12 +132,15 @@ describe("Role generation feature works", function () {
     await collectionNameTextField.sendKeys("community.dummy");
     await collectionNameTextField.click();
 
-    await (
-      await webView.findWebElement(
-        By.xpath("//vscode-button[contains(text(), 'Save files')]"),
-      )
-    ).click();
+    const saveButton = await webView.findWebElement(
+      By.xpath("//vscode-button[contains(text(), 'Save files')]"),
+    );
+    console.log("[RoleGen] Clicking 'Save files' button...");
+    await saveButton.click();
 
+    console.log(
+      "[RoleGen] Waiting for role generation to complete and link to appear...",
+    );
     const link = await waitForCondition({
       condition: async () => {
         return await webView.findWebElement(
@@ -149,6 +152,7 @@ describe("Role generation feature works", function () {
       message: "Timed out waiting for install_nginx link",
     });
 
+    console.log("[RoleGen] Clicking link to open generated files...");
     await link.click();
 
     const driver = webView.getDriver();
@@ -157,6 +161,7 @@ describe("Role generation feature works", function () {
     const editorView = new EditorView();
 
     const titles = await editorView.getOpenEditorTitles();
+    console.log(`[RoleGen] Opened editor titles: ${JSON.stringify(titles)}`);
     expect(titles[0].includes("- name"));
     expect(titles[1].includes("install_nginx_packages:"));
     await workbenchExecuteCommand("View: Close All Editor Groups");

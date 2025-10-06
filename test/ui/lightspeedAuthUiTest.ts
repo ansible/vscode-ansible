@@ -46,6 +46,20 @@ describe(__filename, function () {
         process.env.TEST_LIGHTSPEED_URL,
       );
 
+      try {
+        await fetch(`${process.env.TEST_LIGHTSPEED_URL}/__debug__/options`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(["--ui-test"]),
+        });
+      } catch (error) {
+        console.error(
+          "Failed to set ui-test option for lightspeed mock server",
+          error,
+        );
+        expect.fail("Failed to set ui-test option for lightspeed mock server");
+      }
+
       viewControl = (await new ActivityBar().getViewControl(
         "Ansible",
       )) as ViewControl;
@@ -81,7 +95,6 @@ describe(__filename, function () {
     });
 
     it("Click Allow to use Lightspeed", async function () {
-      // Click Allow to use Lightspeed
       const { dialog, message } = await getModalDialogAndMessage(true);
       expect(message).equals(
         "The extension 'Ansible' wants to sign in using Ansible Lightspeed.",
@@ -139,12 +152,13 @@ describe(__filename, function () {
       const actions = (await activityBar.getGlobalAction(
         "Accounts",
       )) as ActionsControl;
-      expect(actions).not.to.be.undefined;
+      expect(actions, "Accounts action should not be undefined").not.to.be
+        .undefined;
       await actions.click();
       const menus = await workbench.findElements(By.className("context-view"));
-      expect(menus.length).greaterThan(0);
+      expect(menus.length, "Context menu should be visible").greaterThan(0);
       const menu = new ContextMenu(workbench);
-      expect(menu).not.to.be.undefined;
+      expect(menu, "Context menu should not be undefined").not.to.be.undefined;
       if (menu) {
         await menu.select(
           "EXTERNAL_USERNAME (licensed) (Ansible Lightspeed)",

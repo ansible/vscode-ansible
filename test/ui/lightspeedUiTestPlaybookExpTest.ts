@@ -57,6 +57,9 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   const webView = await getWebviewByLocator(
     By.xpath("//div[contains(@class, 'explanation') ]"),
   );
+
+  expect(webView, "webView should not be undefined").not.to.be.undefined;
+
   const thumbsUpButton = await webView.findWebElement(
     By.xpath("//vscode-button[@id='thumbsup-button']"),
   );
@@ -83,13 +86,13 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     buttonToClick === "thumbsup" ? thumbsUpButton : thumbsDownButton;
   await button.click();
 
-  waitForCondition({
+  await waitForCondition({
     condition: async () => {
-      const thumbsUpButtonEnabled = await thumbsUpButton.isEnabled();
-      const thumbsDownButtonEnabled = await thumbsDownButton.isEnabled();
-      return !thumbsUpButtonEnabled && !thumbsDownButtonEnabled;
+      const thumbsUpDisabled = await thumbsUpButton.getAttribute("disabled");
+      const thumbsDownDisabled =
+        await thumbsDownButton.getAttribute("disabled");
+      return thumbsUpDisabled === "true" && thumbsDownDisabled === "true";
     },
-    message: "Timed out waiting for thumbs up/down buttons to be disabled",
   });
 
   await webView.switchBack();
@@ -189,7 +192,7 @@ describe(__filename, function () {
       // Issuing the Lightspeed feedback command should not open a new tab
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
 
-      waitForCondition({
+      await waitForCondition({
         condition: async () => {
           const titles = await editorView.getOpenEditorTitles();
           return titles.length === 1;
