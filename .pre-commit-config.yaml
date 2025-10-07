@@ -26,7 +26,7 @@ repos:
       - id: ruff-check
         alias: ruff
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.2.4"
+    rev: "v2.2.5"
     hooks:
       - id: biome-check
         name: biome
@@ -165,7 +165,7 @@ repos:
             packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
           )$
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v0.6.19
+    rev: v0.6.24
     hooks:
       - id: tombi-format
         alias: toml
