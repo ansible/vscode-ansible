@@ -215,21 +215,21 @@ export async function openSettings() {
 }
 
 export async function dismissNotifications(workbench: Workbench) {
-  let notifications = await workbench.getNotifications();
-  let failedAttempts = 0;
-  const maxFailedAttempts = 10;
-
-  while (notifications.length > 0 && failedAttempts < maxFailedAttempts) {
-    try {
-      await notifications[0].dismiss();
-    } catch (error) {
-      console.log(
-        `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      failedAttempts++;
+  try {
+    const notifications = await workbench.getNotifications();
+    for (const notification of notifications) {
+      try {
+        await notification.dismiss();
+      } catch (error) {
+        console.log(
+          `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
     }
-    // Re-query for updated list
-    notifications = await workbench.getNotifications();
+  } catch (error) {
+    console.log(
+      `Failed to get notifications: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
