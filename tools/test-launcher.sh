@@ -191,13 +191,42 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 start_server
             fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            timeout --preserve-status 120s npm exec -- extest run-tests "${COVERAGE_ARG}" \
-                --mocha_config test/ui/.mocharc.js \
-                -s out/test-resources \
-                -e out/ext \
-                --code_settings out/settings.json \
-                -c "${CODE_VERSION}" \
-                "${test_file}" || echo "${TEST_ID}" >> out/log/.failed
+            timeout --preserve-status 120s bash -c "
+                npm exec -- extest run-tests '${COVERAGE_ARG}' \
+                    --mocha_config test/ui/.mocharc.js \
+                    -s out/test-resources \
+                    -e out/ext \
+                    --code_settings out/settings.json \
+                    -c '${CODE_VERSION}' \
+                    '${test_file}' 2>&1 | tee 'out/log/ui/${TEST_ID}.log'
+            " &
+            
+            TEST_PID=$!
+            # Remove job from job control to suppress termination messages
+            disown %1 2>/dev/null || true
+            (
+                while kill -0 "$TEST_PID" 2>/dev/null; do
+                    if grep -q '[0-9]\+ passing\|[0-9]\+ failing' "out/log/ui/${TEST_ID}.log" 2>/dev/null; then
+                        sleep 5  
+                        if kill -0 "$TEST_PID" 2>/dev/null; then
+                            # Kill the whole process group to get extest too
+                            kill -TERM -"$TEST_PID" 2>/dev/null || kill "$TEST_PID" 2>/dev/null
+                        fi
+                        break
+                    fi
+                    sleep 2
+                done
+            ) &
+            
+            wait "$TEST_PID" || {
+                log_content=$(cat "out/log/ui/${TEST_ID}.log" 2>/dev/null || echo "")
+                if [[ $log_content =~ [0-9]+\ passing ]] && [[ ! $log_content =~ [1-9][0-9]*\ failing ]]; then
+                    :
+                else
+                    echo "${TEST_ID}" >> out/log/.failed
+                fi
+            }
+            rm -f "out/log/ui/${TEST_ID}.log"
             if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
                 mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${TEST_ID}-cobertura-coverage.xml"
             fi
