@@ -90,7 +90,7 @@ function retry_command() {
     local attempt=1
     shift 2
     local command=("$@")
-    
+
     while [ $attempt -le "$max_attempts" ]; do
         if "${command[@]}"; then
             return 0
