@@ -19,14 +19,14 @@ exclude: >
 minimum_pre_commit_version: 4.0.0 # Related to https://github.com/ekalinin/nodeenv/issues/369
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.12.11"
+    rev: "v0.13.3"
     hooks:
       - id: ruff-format
         alias: ruff
       - id: ruff-check
         alias: ruff
   - repo: https://github.com/biomejs/pre-commit
-    rev: "v2.2.4"
+    rev: "v2.2.5"
     hooks:
       - id: biome-check
         name: biome
@@ -165,7 +165,7 @@ repos:
             packages/ansible-language-server/test/fixtures/diagnostics/invalid_yaml.yml
           )$
   - repo: https://github.com/tombi-toml/tombi-pre-commit
-    rev: v0.6.19
+    rev: v0.6.24
     hooks:
       - id: tombi-format
         alias: toml
@@ -177,7 +177,7 @@ repos:
       - id: markdownlint
         args: ["--fix"]
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.22.0
+    rev: v9.23.0
     hooks:
       - id: commitlint
         stages: [commit-msg]

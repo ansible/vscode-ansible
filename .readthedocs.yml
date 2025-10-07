@@ -40,7 +40,9 @@ build:
   jobs:
     build:
       html:
+        # NODE_OPTIONS must be kept in sync with one inside .env file
         - >
+          NODE_OPTIONS=--max-old-space-size=8192
           UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH
           PATH=~/.local/bin:$PATH
           CI=1
@@ -54,6 +56,7 @@ build:
       - ~/.local/bin/mise install -v
       - ~/.local/bin/mise exec -- uv venv "${READTHEDOCS_VIRTUALENV_PATH}"
       - ~/.local/bin/mise exec -- task --version
+
     install:
       # Custom docs dependencies installation, based on uv.lock
       - >

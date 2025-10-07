@@ -215,9 +215,21 @@ export async function openSettings() {
 }
 
 export async function dismissNotifications(workbench: Workbench) {
-  const notifications = await workbench.getNotifications();
-  for (const n of notifications) {
-    await n.dismiss();
+  try {
+    const notifications = await workbench.getNotifications();
+    for (const notification of notifications) {
+      try {
+        await notification.dismiss();
+      } catch (error) {
+        console.log(
+          `Failed to dismiss notification: ${error instanceof Error ? error.message : String(error)}`,
+        );
+      }
+    }
+  } catch (error) {
+    console.log(
+      `Failed to get notifications: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
 }
 
