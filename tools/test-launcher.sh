@@ -200,14 +200,14 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                     -c '${CODE_VERSION}' \
                     '${test_file}' 2>&1 | tee 'out/log/ui/${TEST_ID}.log'
             " &
-            
+
             TEST_PID=$!
             # Remove job from job control to suppress termination messages
             disown %1 2>/dev/null || true
             (
                 while kill -0 "$TEST_PID" 2>/dev/null; do
                     if grep -q '[0-9]\+ passing\|[0-9]\+ failing' "out/log/ui/${TEST_ID}.log" 2>/dev/null; then
-                        sleep 5  
+                        sleep 5
                         if kill -0 "$TEST_PID" 2>/dev/null; then
                             # Kill the whole process group to get extest too
                             kill -TERM -"$TEST_PID" 2>/dev/null || kill "$TEST_PID" 2>/dev/null
@@ -217,7 +217,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                     sleep 2
                 done
             ) &
-            
+
             wait "$TEST_PID" || {
                 log_content=$(cat "out/log/ui/${TEST_ID}.log" 2>/dev/null || echo "")
                 if [[ $log_content =~ [0-9]+\ passing ]] && [[ ! $log_content =~ [1-9][0-9]*\ failing ]]; then
