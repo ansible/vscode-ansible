@@ -84,6 +84,30 @@ function stop_server() {
     fi
 }
 
+function retry_command() {
+    local max_attempts="${1}"
+    local delay="${2}"
+    local attempt=1
+    shift 2
+    local command=("$@")
+    
+    while [ $attempt -le "$max_attempts" ]; do
+        if "${command[@]}"; then
+            return 0
+        else
+            local exit_code=$?
+            if [ $attempt -lt "$max_attempts" ]; then
+                log warning "Command failed with exit code $exit_code. Retrying in ${delay}s..."
+                sleep "$delay"
+                attempt=$((attempt + 1))
+            else
+                log error "Command failed after $max_attempts attempts"
+                return $exit_code
+            fi
+        fi
+    done
+}
+
 function refresh_settings() {
     local test_path=$1
     local test_id=$2
@@ -124,7 +148,8 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
-npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+
 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
