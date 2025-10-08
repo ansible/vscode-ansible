@@ -851,7 +851,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         vscode.env.openExternal(
           vscode.Uri.parse(
             lightSpeedManager.settingsManager.settings.lightSpeedService.URL +
-            "/trial",
+              "/trial",
           ),
         );
       },

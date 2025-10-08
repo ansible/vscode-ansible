@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import * as fs from "fs";
-import { McpServerManager } from "./mcpServerManager";
 
 export class AnsibleMcpServerProvider {
   private static readonly MCP_SERVER_NAME = "ansible-mcp-server";
@@ -33,7 +32,7 @@ export class AnsibleMcpServerProvider {
       }
 
       // Check if MCP server is available
-      const isAvailable = await McpServerManager.isMcpServerAvailable();
+      const isAvailable = await this.isMcpServerAvailable();
       if (!isAvailable) {
         console.log("MCP server is not available, skipping registration");
         return servers;
@@ -83,7 +82,7 @@ export class AnsibleMcpServerProvider {
   ): Promise<vscode.McpServerDefinition | undefined> {
     try {
       // Validate that the MCP server is still available
-      const isAvailable = await McpServerManager.isMcpServerAvailable();
+      const isAvailable = await this.isMcpServerAvailable();
       if (!isAvailable) {
         const errorMessage =
           "MCP server is not available. Please ensure the server is built by running 'yarn mcp-compile'.";
@@ -106,6 +105,37 @@ export class AnsibleMcpServerProvider {
       console.error(errorMessage);
       vscode.window.showErrorMessage(errorMessage);
       return undefined;
+    }
+  }
+
+  /**
+   * Check if MCP server is currently available
+   */
+  private async isMcpServerAvailable(): Promise<boolean> {
+    try {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceRoot) {
+        return false;
+      }
+
+      const projectRoot = this.findProjectRoot(workspaceRoot);
+      const cliPath = path.join(projectRoot, AnsibleMcpServerProvider.CLI_PATH);
+
+      if (!fs.existsSync(cliPath)) {
+        return false;
+      }
+
+      // Check if the file is accessible
+      try {
+        fs.accessSync(cliPath, fs.constants.F_OK | fs.constants.R_OK);
+        return true;
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    } catch (error) {
+      console.error(`Failed to check MCP server availability: ${error}`);
+      return false;
     }
   }
 
