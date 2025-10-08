@@ -1,6 +1,7 @@
 import type { Disposable, ExtensionContext, WebviewPanel } from "vscode";
 import * as vscode from "vscode";
 import { ViewColumn, window } from "vscode";
+import { getSystemDetails } from "../utils/getSystemDetails";
 
 interface WebviewMessage {
   type: string;
@@ -124,7 +125,6 @@ export class WelcomePagePanel {
     const logoUri = this._panel.webview.asWebviewUri(logoPath).toString();
 
     try {
-      const { getSystemDetails } = await import("../utils/getSystemDetails");
       const systemDetails = await getSystemDetails();
 
       const walkthroughs = this.getWalkthroughs();
