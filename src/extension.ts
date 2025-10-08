@@ -668,7 +668,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
-  // Register MCP server provider for programmatic registration
+  // Register MCP server provider
   const mcpProvider = new AnsibleMcpServerProvider();
   const mcpProviderDisposable = vscode.lm.registerMcpServerDefinitionProvider(
     "ansibleMcpProvider",
@@ -699,7 +699,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           return;
         }
 
-        // Enable the MCP server setting (workspace only)
+        // Enable the MCP server setting
         await vscode.workspace
           .getConfiguration("ansible.mcpServer")
           .update("enabled", true, vscode.ConfigurationTarget.Workspace);
@@ -740,7 +740,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
           return;
         }
 
-        // Disable the MCP server setting (workspace only)
+        // Disable the MCP server setting
         await vscode.workspace
           .getConfiguration("ansible.mcpServer")
           .update("enabled", false, vscode.ConfigurationTarget.Workspace);
@@ -1104,24 +1104,21 @@ export function deactivate(): Thenable<void> | undefined {
   return client.stop();
 }
 
-/**
- * Handle MCP server configuration changes
- */
 const handleMcpServerConfigurationChange = async (
   extSettings: SettingsManager,
   event: vscode.ConfigurationChangeEvent,
   mcpProvider: AnsibleMcpServerProvider,
 ) => {
   try {
-    // Only handle workspace-level changes for MCP server
+    // Check if the change affects our MCP setting
     if (!event.affectsConfiguration("ansible.mcpServer.enabled")) {
       return;
     }
 
-    // Wait a moment for the setting to be updated
+    // Wait for the setting to be updated
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Get the current workspace setting value
+    // Get the current setting value
     const workspaceConfig = vscode.workspace.getConfiguration(
       "ansible.mcpServer",
       vscode.workspace.workspaceFolders?.[0],

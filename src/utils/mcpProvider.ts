@@ -3,7 +3,8 @@ import * as path from "path";
 import * as fs from "fs";
 
 export class AnsibleMcpServerProvider {
-  private static readonly MCP_SERVER_NAME = "ansible-mcp-server";
+  private static readonly MCP_SERVER_NAME =
+    "Ansible Developer Tools MCP Server";
   private static readonly CLI_PATH =
     "packages/ansible-mcp-server/out/server/src/cli.js";
 
