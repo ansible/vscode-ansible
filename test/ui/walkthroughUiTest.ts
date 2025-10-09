@@ -55,28 +55,43 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
+      // Increase overall test timeout for slower CI environments
+      this.timeout(60000);
+
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
 
-      // Wait for the tab to appear AND content to be fully rendered with correct title
+      // Give VS Code time to process the command (especially important on slower CI)
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Wait for the tab to appear first (simpler check)
       const welcomeTab = await waitForCondition({
         condition: async () => {
-          const tab = await editorView.getTabByTitle("Walkthrough: Ansible");
-          if (!tab) {
+          try {
+            return await editorView.getTabByTitle("Walkthrough: Ansible");
+          } catch {
             return false;
           }
+        },
+        message: "Timed out waiting for walkthrough tab to appear",
+        timeout: 30000, // Increased timeout for CI
+      });
 
-          // Verify the walkthrough content is loaded AND has the correct walkthrough title
+      expect(welcomeTab).is.not.undefined;
+
+      // Then wait for content to be fully rendered with correct title
+      await waitForCondition({
+        condition: async () => {
           try {
-            const titleElement = await tab.findElement(
+            const titleElement = await welcomeTab.findElement(
               By.xpath("//div[contains(@class, 'getting-started-category')]"),
             );
             const titleText = await titleElement.getText();
             // Check if element has content and matches the expected walkthrough name
             if (titleText && titleText.includes(`${walkthroughName}`)) {
-              return tab;
+              return true;
             }
           } catch {
             // Element not ready yet or doesn't match
@@ -84,12 +99,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
           }
           return false;
         },
-        message:
-          "Timed out waiting for walkthrough tab to open and content to load",
-        timeout: 20000, // Reasonable timeout for content to fully render
+        message: `Timed out waiting for walkthrough content to load with title: ${walkthroughName}`,
+        timeout: 30000, // Increased timeout for content loading on CI
       });
-
-      expect(welcomeTab).is.not.undefined;
 
       // Wait for and locate one of the steps
       const stepListElement = await waitForCondition({
