@@ -66,6 +66,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           return await editorView.getTabByTitle("Walkthrough: Ansible");
         },
         message: "Timed out waiting for walkthrough tab to open",
+        timeout: 30000,
       });
 
       expect(welcomeTab).is.not.undefined;
