@@ -1,13 +1,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createZenOfAnsibleHandler } from "./handlers.js";
+import {
+  createZenOfAnsibleHandler,
+  createAnsibleLintHandler,
+  createDebugEnvHandler,
+} from "./handlers.js";
 
-export function createAnsibleMcpServer() {
+export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
     name: "ansible-mcp-server",
     version: "0.1.0",
   });
 
+  // Tools
   server.registerTool(
     "zen_of_ansible",
     {
@@ -17,12 +22,29 @@ export function createAnsibleMcpServer() {
     createZenOfAnsibleHandler(),
   );
 
+  server.registerTool(
+    "ansible_lint",
+    {
+      title: "Ansible Lint",
+      description:
+        "Run ansible-lint on Ansible files with human-readable input support for linting.",
+    },
+    createAnsibleLintHandler(workspaceRoot),
+  );
+
+  server.registerTool(
+    "debug_env",
+    {
+      title: "Debug Environment",
+      description: "Show PATH and environment information for debugging.",
+    },
+    createDebugEnvHandler(workspaceRoot),
+  );
   return server;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function runStdio(_workspaceRoot: string) {
-  const server = createAnsibleMcpServer();
+export async function runStdio(workspaceRoot: string) {
+  const server = createAnsibleMcpServer(workspaceRoot);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   await new Promise<void>(() => {

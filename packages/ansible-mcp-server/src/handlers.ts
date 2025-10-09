@@ -33,21 +33,33 @@ export function createZenOfAnsibleHandler() {
 }
 
 export function createAnsibleLintHandler(workspaceRoot: string) {
-  return async ({
-    file,
-    extraArgs = [],
-  }: {
-    file: string;
+  return async (args: {
+    file?: string;
     extraArgs?: string[];
   }): Promise<{
     content: { type: "text"; text: string }[];
     isError?: boolean;
   }> => {
+    const { file, extraArgs = [] } = args;
+
+    if (!file) {
+      return {
+        content: [
+          { type: "text" as const, text: "Error: No file specified\n" },
+          {
+            type: "text" as const,
+            text: "Usage: ansible_lint({ file: 'playbook.yml', extraArgs: ['--skip-list', 'no-changed-when'] })\n",
+          },
+        ],
+        isError: true,
+      };
+    }
+
     const abs = path.resolve(workspaceRoot, file);
     return await new Promise((resolve) => {
       const child = spawn("ansible-lint", [abs, ...extraArgs], {
         cwd: workspaceRoot,
-        env: process.env,
+        env: process.env, // Trust the inherited environment
       });
       let stdout = "";
       let stderr = "";
