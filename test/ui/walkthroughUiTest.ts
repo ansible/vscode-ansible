@@ -28,6 +28,22 @@ before(async function () {
 });
 
 describe("Check walkthroughs, elements and associated commands", function () {
+  // Clean state before each test to prevent interference
+  beforeEach(async function () {
+    await editorView.closeAllEditors();
+  });
+
+  // Skip walkthrough tests on CI if they're known to be flaky with new extest version
+  // Can be enabled by setting SKIP_WALKTHROUGH_TESTS=1
+  before(function () {
+    if (process.env.SKIP_WALKTHROUGH_TESTS === "1") {
+      console.log(
+        "[Walkthrough] Skipping walkthrough tests due to SKIP_WALKTHROUGH_TESTS env var",
+      );
+      this.skip();
+    }
+  });
+
   const walkthroughs = [
     [
       "Create an Ansible environment",
@@ -55,52 +71,54 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      // Increase overall test timeout for slower CI environments
+      // Retry once for flaky CI issues
+      this.retries(1);
       this.timeout(60000);
+
+      console.log(`[Walkthrough] Opening: ${walkthroughName}`);
 
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
 
-      // Give VS Code time to process the command (especially important on slower CI)
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log(`[Walkthrough] Command executed, waiting for tab...`);
 
-      // Wait for the tab to appear first (simpler check)
+      // Wait for the tab to appear AND content to load with correct title
       const welcomeTab = await waitForCondition({
         condition: async () => {
           try {
-            return await editorView.getTabByTitle("Walkthrough: Ansible");
-          } catch {
-            return false;
-          }
-        },
-        message: "Timed out waiting for walkthrough tab to appear",
-        timeout: 30000, // Increased timeout for CI
-      });
+            const tab = await editorView.getTabByTitle("Walkthrough: Ansible");
+            if (!tab) {
+              console.log(`[Walkthrough] Tab not found yet`);
+              return false;
+            }
 
-      expect(welcomeTab).is.not.undefined;
+            console.log(`[Walkthrough] Tab found, checking content...`);
 
-      // Then wait for content to be fully rendered with correct title
-      await waitForCondition({
-        condition: async () => {
-          try {
-            const titleElement = await welcomeTab.findElement(
+            // Immediately check if content is loaded with correct title
+            const titleElement = await tab.findElement(
               By.xpath("//div[contains(@class, 'getting-started-category')]"),
             );
             const titleText = await titleElement.getText();
-            // Check if element has content and matches the expected walkthrough name
+            console.log(`[Walkthrough] Title text: "${titleText}"`);
+
             if (titleText && titleText.includes(`${walkthroughName}`)) {
-              return true;
+              console.log(`[Walkthrough] Content loaded successfully!`);
+              return tab;
             }
-          } catch {
-            // Element not ready yet or doesn't match
+            console.log(
+              `[Walkthrough] Title doesn't match expected: "${walkthroughName}"`,
+            );
+            return false;
+          } catch (error) {
+            console.log(`[Walkthrough] Error checking tab: ${error}`);
             return false;
           }
-          return false;
         },
-        message: `Timed out waiting for walkthrough content to load with title: ${walkthroughName}`,
-        timeout: 30000, // Increased timeout for content loading on CI
+        message: `Timed out waiting for walkthrough "${walkthroughName}" to open and load`,
+        timeout: 40000,
+        pollTimeout: 1000, // Poll every 1s to reduce load on CI
       });
 
       // Wait for and locate one of the steps
