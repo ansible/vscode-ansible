@@ -86,7 +86,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     buttonToClick === "thumbsup" ? thumbsUpButton : thumbsDownButton;
   await button.click();
 
-  waitForCondition({
+  await waitForCondition({
     condition: async () => {
       const thumbsUpDisabled = await thumbsUpButton.getAttribute("disabled");
       const thumbsDownDisabled =
