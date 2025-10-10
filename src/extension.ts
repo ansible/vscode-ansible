@@ -727,7 +727,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
 
   // disable MCP server
   context.subscriptions.push(
-    vscode.commands.registerCommand("ansible.mcpServer.disabled", async () => {
+    vscode.commands.registerCommand("ansible.mcpServer.disable", async () => {
       try {
         // Check if MCP server is already disabled
         const mcpConfig =

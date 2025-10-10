@@ -207,7 +207,7 @@
         "title": "Enable Ansible Development Tools MCP Server"
       },
       {
-        "command": "ansible.mcpServer.disabled",
+        "command": "ansible.mcpServer.disable",
         "title": "Disable Ansible Development Tools MCP Server"
       }
     ],
