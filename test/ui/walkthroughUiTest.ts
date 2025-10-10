@@ -16,9 +16,23 @@ let editorView: EditorView;
 const openUntitledFile = async () => {
   return await waitForCondition({
     condition: async () => {
-      return await new EditorView().openEditor("Untitled-1");
+      try {
+        const editorView = new EditorView();
+        const titles = await editorView.getOpenEditorTitles();
+
+        // Find any untitled document
+        const untitledTitle = titles.find((title) =>
+          title.startsWith("Untitled"),
+        );
+        if (untitledTitle) {
+          return await editorView.openEditor(untitledTitle);
+        }
+        return false;
+      } catch {
+        return false;
+      }
     },
-    message: "Timed out waiting for Untitled-1 file to open",
+    message: "Timed out waiting for untitled file to open",
   });
 };
 
