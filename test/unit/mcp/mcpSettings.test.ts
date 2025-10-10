@@ -1,5 +1,3 @@
-require("assert");
-
 import { assert } from "chai";
 
 describe("MCP Server Setting Tests", function () {

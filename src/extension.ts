@@ -682,6 +682,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
     },
   );
   context.subscriptions.push(mcpProviderDisposable);
+  context.subscriptions.push(mcpProvider);
 
   // enable MCP server
   context.subscriptions.push(
