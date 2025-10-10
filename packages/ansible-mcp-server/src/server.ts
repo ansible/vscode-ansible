@@ -36,7 +36,8 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     "debug_env",
     {
       title: "Debug Environment",
-      description: "Show PATH and environment information for debugging.",
+      description:
+        "Displays PATH, virtual environment, and workspace information for debugging.",
     },
     createDebugEnvHandler(workspaceRoot),
   );

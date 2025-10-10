@@ -59,7 +59,7 @@ export function createAnsibleLintHandler(workspaceRoot: string) {
     return await new Promise((resolve) => {
       const child = spawn("ansible-lint", [abs, ...extraArgs], {
         cwd: workspaceRoot,
-        env: process.env, // Trust the inherited environment
+        env: process.env,
       });
       let stdout = "";
       let stderr = "";
