@@ -12,7 +12,6 @@ import {
 import {
   checkDependencies,
   formatDependencyError,
-  COMMON_DEPENDENCIES,
   type Dependency,
 } from "./dependencyChecker.js";
 
