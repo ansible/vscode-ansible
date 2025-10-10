@@ -102,7 +102,7 @@ export async function expectNotification(
       "Timed out waiting for button to be located",
     );
     await VSBrowser.instance.driver.wait(
-      until.elementIsEnabled(button),
+      until.elementIsEnabled(button as any),
       5000,
       "Timed out waiting for button to be clickable",
     );
