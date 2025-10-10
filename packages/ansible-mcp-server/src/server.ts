@@ -44,7 +44,7 @@ export function createAnsibleMcpServer() {
     return originalRegisterTool(name, config, handler);
   };
 
-  // Register tools (tools without dependencies can pass empty array)
+  // Register core tools
   registerToolWithDeps(
     "zen_of_ansible",
     {
@@ -73,24 +73,15 @@ export function createAnsibleMcpServer() {
     async (request: any) => {
       const toolName = request.params.name;
 
-      // Log tool calls for debugging
-      console.error(
-        `[MCP Server] Tool call received: ${toolName} (registered: ${registeredTools.has(toolName)})`,
-      );
-
       if (!registeredTools.has(toolName)) {
         const availableTools = Array.from(registeredTools).join(", ");
         const errorMessage = `Tool '${toolName}' not found. Available tools: ${availableTools}`;
-        console.error(`[MCP Server] Returning error: ${errorMessage}`);
         throw new McpError(ErrorCode.MethodNotFound, errorMessage);
       }
 
       // Check dependencies before executing tool
       const dependencies = toolDependencies.get(toolName) || [];
       if (dependencies.length > 0) {
-        console.error(
-          `[MCP Server] Checking ${dependencies.length} dependencies for ${toolName}`,
-        );
         const depCheck = await checkDependencies(dependencies);
         if (!depCheck.satisfied) {
           const errorMessage = formatDependencyError(
@@ -98,12 +89,8 @@ export function createAnsibleMcpServer() {
             depCheck.missingDependencies,
             depCheck.versionMismatches,
           );
-          console.error(
-            `[MCP Server] Dependency check failed: ${errorMessage}`,
-          );
 
-          // Return as content so it's visible in chat
-          // Don't use isError flag as it causes Claude to show generic message
+          // Return error as content so it's visible in the chat
           return {
             content: [
               {
@@ -113,17 +100,11 @@ export function createAnsibleMcpServer() {
             ],
           };
         }
-        console.error(
-          `[MCP Server] All dependencies satisfied for ${toolName}`,
-        );
       }
 
-      // If tool exists, let the default handler process it
-      // We need to get the handler for this tool
+      // Execute the tool handler
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handlers = (server as any)._registeredTools;
-
-      // _registeredTools is an object, not a Map
       if (handlers && handlers[toolName]?.callback) {
         return await handlers[toolName].callback(
           request.params.arguments || {},
