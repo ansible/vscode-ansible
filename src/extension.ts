@@ -28,6 +28,7 @@ import {
   getConflictingExtensions,
   showUninstallConflictsNotification,
 } from "./extensionConflicts";
+import { AnsibleMcpServerProvider } from "./utils/mcpProvider";
 import { languageAssociation } from "./features/fileAssociation";
 import { MetadataManager } from "./features/ansibleMetaData";
 import { updateConfigurationChanges } from "./utils/settings";
@@ -366,7 +367,16 @@ export async function activate(context: ExtensionContext): Promise<void> {
   );
 
   context.subscriptions.push(
-    workspace.onDidChangeConfiguration(async () => {
+    workspace.onDidChangeConfiguration(async (event) => {
+      // Check if MCP server setting changed
+      if (event.affectsConfiguration("ansible.mcpServer.enabled")) {
+        await handleMcpServerConfigurationChange(
+          extSettings,
+          event,
+          mcpProvider,
+        );
+      }
+
       await updateConfigurationChanges(
         metaData,
         pythonInterpreterManager,
@@ -658,13 +668,34 @@ export async function activate(context: ExtensionContext): Promise<void> {
     }),
   );
 
+  // Register MCP server provider
+  const mcpProvider = new AnsibleMcpServerProvider();
+  const mcpProviderDisposable = vscode.lm.registerMcpServerDefinitionProvider(
+    "ansibleMcpProvider",
+    {
+      onDidChangeMcpServerDefinitions:
+        mcpProvider.onDidChangeMcpServerDefinitions,
+      provideMcpServerDefinitions:
+        mcpProvider.provideMcpServerDefinitions.bind(mcpProvider),
+      resolveMcpServerDefinition:
+        mcpProvider.resolveMcpServerDefinition.bind(mcpProvider),
+    },
+  );
+  context.subscriptions.push(mcpProviderDisposable);
+  context.subscriptions.push(mcpProvider);
+
   // enable MCP server
   context.subscriptions.push(
     vscode.commands.registerCommand("ansible.mcpServer.enabled", async () => {
       try {
-        if (extSettings.settings.mcpServer.enabled) {
+        // Check if MCP server is already enabled
+        const mcpConfig =
+          vscode.workspace.getConfiguration("ansible.mcpServer");
+        const isEnabled = mcpConfig.get("enabled", false);
+
+        if (isEnabled) {
           vscode.window.showInformationMessage(
-            "Ansible MCP Server is already enabled.",
+            "Ansible MCP Server is already enabled and available.",
           );
           return;
         }
@@ -677,12 +708,11 @@ export async function activate(context: ExtensionContext): Promise<void> {
         // Reinitialize settings to pick up the change
         await extSettings.reinitialize();
 
-        // Start the MCP server
-        await startMcpServer(extSettings);
+        // Refresh the MCP provider to register the server
+        mcpProvider.refresh();
 
-        // Show success message
         vscode.window.showInformationMessage(
-          "Ansible MCP Server has been enabled and started successfully.",
+          "Ansible MCP Server has been enabled successfully and is now available for AI assistants.",
         );
       } catch (error) {
         const errorMessage =
@@ -691,6 +721,47 @@ export async function activate(context: ExtensionContext): Promise<void> {
           `Failed to enable MCP Server: ${errorMessage}`,
         );
         console.error("Error enabling MCP Server:", error);
+      }
+    }),
+  );
+
+  // disable MCP server
+  context.subscriptions.push(
+    vscode.commands.registerCommand("ansible.mcpServer.disable", async () => {
+      try {
+        // Check if MCP server is already disabled
+        const mcpConfig =
+          vscode.workspace.getConfiguration("ansible.mcpServer");
+        const isEnabled = mcpConfig.get("enabled", false);
+
+        if (!isEnabled) {
+          vscode.window.showInformationMessage(
+            "Ansible MCP Server is already disabled.",
+          );
+          return;
+        }
+
+        // Disable the MCP server setting
+        await vscode.workspace
+          .getConfiguration("ansible.mcpServer")
+          .update("enabled", false, vscode.ConfigurationTarget.Workspace);
+
+        // Reinitialize settings to pick up the change
+        await extSettings.reinitialize();
+
+        // Refresh the MCP provider to unregister the server
+        mcpProvider.refresh();
+
+        vscode.window.showInformationMessage(
+          "Ansible MCP Server has been disabled.",
+        );
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(
+          `Failed to disable MCP Server: ${errorMessage}`,
+        );
+        console.error("Error disabling MCP Server:", error);
       }
     }),
   );
@@ -1034,27 +1105,56 @@ export function deactivate(): Thenable<void> | undefined {
   return client.stop();
 }
 
-const startMcpServer = async (extSettings: SettingsManager) => {
-  if (!extSettings.settings.mcpServer.enabled) {
-    console.log("MCP server is disabled");
-    return;
-  }
-
+const handleMcpServerConfigurationChange = async (
+  extSettings: SettingsManager,
+  event: vscode.ConfigurationChangeEvent,
+  mcpProvider: AnsibleMcpServerProvider,
+) => {
   try {
-    console.log("Starting Ansible MCP server...");
-
-    console.log("MCP server startup logic to be implemented");
-
-    return true;
-  } catch (err) {
-    let errorMessage: string;
-    if (err instanceof Error) {
-      errorMessage = err.message;
-    } else {
-      errorMessage = String(err);
+    // Check if the change affects our MCP setting
+    if (!event.affectsConfiguration("ansible.mcpServer.enabled")) {
+      return;
     }
-    console.error(`MCP server initialization failed with ${errorMessage}`);
-    throw err;
+
+    // Wait for the setting to be updated
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Get the current setting value
+    const workspaceConfig = vscode.workspace.getConfiguration(
+      "ansible.mcpServer",
+      vscode.workspace.workspaceFolders?.[0],
+    );
+    const currentSetting = workspaceConfig.get("enabled");
+
+    if (currentSetting) {
+      // MCP server was enabled - refresh the provider to register the server
+      console.log("MCP server enabled, refreshing provider");
+      mcpProvider.refresh();
+
+      // Show success message
+      vscode.window.showInformationMessage(
+        "Ansible MCP Server has been enabled successfully and is now available for AI assistants.",
+      );
+    } else {
+      // MCP server was disabled - refresh the provider to unregister the server
+      console.log("MCP server disabled, refreshing provider");
+      mcpProvider.refresh();
+
+      // Show success message
+      vscode.window.showInformationMessage(
+        "Ansible MCP Server has been disabled.",
+      );
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(
+      `Failed to handle MCP server configuration change: ${errorMessage}`,
+    );
+
+    // Show error to user
+    vscode.window.showErrorMessage(
+      `Failed to update MCP server configuration: ${errorMessage}`,
+    );
   }
 };
 

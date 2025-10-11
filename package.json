@@ -205,6 +205,10 @@
       {
         "command": "ansible.mcpServer.enabled",
         "title": "Enable Ansible Development Tools MCP Server"
+      },
+      {
+        "command": "ansible.mcpServer.disable",
+        "title": "Disable Ansible Development Tools MCP Server"
       }
     ],
     "configuration": [
@@ -1119,7 +1123,7 @@
     "test-ui": "yarn run test-ui-current && yarn run test-ui-oldest",
     "test-ui-current": "./tools/test-launcher.sh",
     "test-ui-oldest": "CODE_VERSION='min' ./tools/test-launcher.sh",
-    "unit-tests": "sh -c \"c8 --config test/unit/.c8rc mocha --recursive test/unit/lightspeed ${MOCHA_OPTS:-}\"",
+    "unit-tests": "sh -c \"c8 --config test/unit/.c8rc mocha --recursive test/unit/lightspeed test/unit/mcp ${MOCHA_OPTS:-}\"",
     "vite-build": "vue-tsc --noEmit && vite build",
     "vite-dev": "vite build && vue-tsc --noEmit && vite",
     "vite-preview": "vite preview",
