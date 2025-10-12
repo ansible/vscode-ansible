@@ -42,6 +42,14 @@ before(async function () {
 });
 
 describe("Check walkthroughs, elements and associated commands", function () {
+  beforeEach(async function () {
+    // Close all editors to ensure clean state between tests
+    try {
+      await editorView.closeAllEditors();
+    } catch {
+      // Ignore errors if no editors are open
+    }
+  });
   const walkthroughs = [
     [
       "Create an Ansible environment",
@@ -72,7 +80,23 @@ describe("Check walkthroughs, elements and associated commands", function () {
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await commandInput.setText(`${walkthroughName}`);
+
+      await waitForCondition({
+        condition: async () => {
+          try {
+            await commandInput.setText(`${walkthroughName}`);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        message: "Input not ready",
+        timeout: 5000,
+      });
+
       await commandInput.confirm();
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Select the editor window
       const welcomeTab = await waitForCondition({
@@ -80,7 +104,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           return await editorView.getTabByTitle("Walkthrough: Ansible");
         },
         message: "Timed out waiting for walkthrough tab to open",
-        timeout: 30000,
+        timeout: 20000, // Longer timeout for slower CI environments
       });
 
       expect(welcomeTab).is.not.undefined;
@@ -98,9 +122,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
       // Locate one of the steps
       const fullStepText = await welcomeTab
-        .findElement(
-          By.xpath("//div[contains(@class, 'step-list-container') ]"),
-        )
+        .findElement(By.xpath("//div[contains(@class, 'step-list-container')]"))
         .getText();
 
       const stepText = fullStepText.split("\n")[0];
