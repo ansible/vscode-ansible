@@ -82,9 +82,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
         this.skip();
         return;
       }
-      
+
       this.retries(3); // Essential for flaky UI automation in CI
-      
+
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
 
