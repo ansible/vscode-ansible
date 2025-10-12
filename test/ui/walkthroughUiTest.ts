@@ -77,14 +77,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      // Skip when code coverage is enabled - the walkthrough picker doesn't work reliably
-      if (process.env.COVERAGE) {
-        this.skip();
-        return;
-      }
-      
       this.retries(3); // Essential for flaky UI automation in CI
-      
+      this.timeout(60000); // Longer timeout for CI (default is 30s)
+
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
 
@@ -99,6 +94,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           }
         },
         message: "Input not ready",
+        timeout: 10000, // Increased for CI
       });
 
       await commandInput.confirm();
