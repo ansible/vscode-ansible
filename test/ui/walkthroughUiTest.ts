@@ -78,7 +78,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
       this.retries(3); // Essential for flaky UI automation in CI
-      this.timeout(60000); // Longer timeout for CI (default is 30s)
 
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
