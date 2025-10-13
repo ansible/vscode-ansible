@@ -71,13 +71,17 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
+      this.timeout(60000);
       console.log(`\n--- Testing walkthrough: "${walkthroughName}" ---`);
 
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
-      console.log("Walkthrough command confirmed");
+      console.log("Walkthrough command confirmed, waiting for tab...");
+
+      // Give the walkthrough time to load
+      await new Promise((resolve) => setTimeout(resolve, 3000));
 
       // Select the editor window
       const welcomeTab = await waitForCondition({
