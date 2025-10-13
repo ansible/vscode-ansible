@@ -3,7 +3,7 @@ import { createAnsibleMcpServer } from "../src/server.js";
 
 describe("MCP Server Error Handling", () => {
   it("should provide helpful error message with available tools when requesting non-existent tool", async () => {
-    const server = createAnsibleMcpServer();
+    const server = createAnsibleMcpServer("/test/workspace");
 
     // Try to call the tools/call handler directly
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,7 +34,7 @@ describe("MCP Server Error Handling", () => {
   });
 
   it("should provide helpful error message listing all available tools", async () => {
-    const server = createAnsibleMcpServer();
+    const server = createAnsibleMcpServer("/test/workspace");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const requestHandler = (server.server as any)._requestHandlers?.get(
@@ -63,7 +63,7 @@ describe("MCP Server Error Handling", () => {
   });
 
   it("should successfully call existing tools", async () => {
-    const server = createAnsibleMcpServer();
+    const server = createAnsibleMcpServer("/test/workspace");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const requestHandler = (server.server as any)._requestHandlers?.get(
@@ -87,7 +87,7 @@ describe("MCP Server Error Handling", () => {
   });
 
   it("should handle empty tool name gracefully", async () => {
-    const server = createAnsibleMcpServer();
+    const server = createAnsibleMcpServer("/test/workspace");
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const requestHandler = (server.server as any)._requestHandlers?.get(

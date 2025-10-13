@@ -9,16 +9,14 @@ import {
 import {
   createZenOfAnsibleHandler,
   createListToolsHandler,
+  createAnsibleLintHandler,
+  createDebugEnvHandler,
 } from "./handlers.js";
 import {
   checkDependencies,
   formatDependencyError,
   type Dependency,
 } from "./dependencyChecker.js";
-  createZenOfAnsibleHandler,
-  createAnsibleLintHandler,
-  createDebugEnvHandler,
-} from "./handlers.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
@@ -51,8 +49,6 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
 
   // Register core tools
   registerToolWithDeps(
-  // Tools
-  server.registerTool(
     "zen_of_ansible",
     {
       title: "The Zen of Ansible",
@@ -70,6 +66,33 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         "Shows all available Ansible MCP tools. Use this to discover what tools you can use.",
     },
     createListToolsHandler(() => Array.from(registeredTools)),
+    [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ansible_lint",
+    {
+      title: "Ansible Lint",
+      description:
+        "Run ansible-lint on Ansible files with human-readable input support for linting.",
+      inputSchema: {
+        playbookContent: z
+          .string()
+          .describe("The full YAML content of the Ansible playbook to lint."),
+      },
+    },
+    createAnsibleLintHandler(),
+    [], // TODO: Add ansible-lint dependencies when ready
+  );
+
+  registerToolWithDeps(
+    "debug_env",
+    {
+      title: "Debug Environment",
+      description:
+        "Displays PATH, virtual environment, and workspace information for debugging.",
+    },
+    createDebugEnvHandler(workspaceRoot),
     [], // No dependencies
   );
 
@@ -125,35 +148,11 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     },
   );
 
-  server.registerTool(
-    "ansible_lint",
-    {
-      title: "Ansible Lint",
-      description:
-        "Run ansible-lint on Ansible files with human-readable input support for linting.",
-      inputSchema: {
-        playbookContent: z
-          .string()
-          .describe("The full YAML content of the Ansible playbook to lint."),
-      },
-    },
-    createAnsibleLintHandler(),
-  );
-
-  server.registerTool(
-    "debug_env",
-    {
-      title: "Debug Environment",
-      description:
-        "Displays PATH, virtual environment, and workspace information for debugging.",
-    },
-    createDebugEnvHandler(workspaceRoot),
-  );
   return server;
 }
 
-export async function runStdio(workspaceRoot: string) {
-  const server = createAnsibleMcpServer(workspaceRoot);
+export async function runStdio(_workspaceRoot: string) {
+  const server = createAnsibleMcpServer(_workspaceRoot);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   await new Promise<void>(() => {

@@ -5,7 +5,7 @@ import { ZEN_OF_ANSIBLE } from "../src/constants.js";
  * Test wrapper that provides test-friendly methods for the MCP server
  */
 export function createTestServer(workspaceRoot: string) {
-  // Create the server but don't use it directly in tests - we simulate the behavior
+  // Create the actual server instance with workspaceRoot
   void createAnsibleMcpServer(workspaceRoot);
 
   return {
