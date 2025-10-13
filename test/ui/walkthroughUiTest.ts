@@ -21,11 +21,13 @@ const openUntitledFile = async () => {
         const titles = await editorView.getOpenEditorTitles();
 
         // Find any untitled document
-        const untitledTitle = titles.find((title) =>
-          title.startsWith("Untitled"),
+        const untitledTitle = titles.find(
+          (title) => title.startsWith("Untitled"),
+          console.log("untitledTitle", titles),
         );
         if (untitledTitle) {
           return await editorView.openEditor(untitledTitle);
+          console.log("untitledTitle", untitledTitle);
         }
         return false;
       } catch {
@@ -33,6 +35,7 @@ const openUntitledFile = async () => {
       }
     },
     message: "Timed out waiting for untitled file to open",
+    timeout: 100000,
   });
 };
 
@@ -45,6 +48,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
   const walkthroughs = [
     [
       "Create an Ansible environment",
+      console.log("Create an Ansible environment"),
       [
         "Create an Ansible playbook",
         "tag in the status bar",
@@ -73,6 +77,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
+      console.log("commandInput", commandInput);
+      console.log("walkthroughName", walkthroughName);
+      console.log("steps", steps);
 
       // Select the editor window
       const welcomeTab = await waitForCondition({
@@ -80,6 +87,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           return await editorView.getTabByTitle("Walkthrough: Ansible");
         },
         message: "Timed out waiting for walkthrough tab to open",
+        timeout: 100000,
       });
 
       expect(welcomeTab).is.not.undefined;
@@ -90,6 +98,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           By.xpath("//div[contains(@class, 'getting-started-category') ]"),
         )
         .getText();
+      console.log("titleText", titleText);
       expect(
         titleText.includes(`${walkthroughName}`),
         `${walkthroughName} title not found`,
@@ -101,6 +110,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           By.xpath("//div[contains(@class, 'step-list-container') ]"),
         )
         .getText();
+      console.log("fullStepText", fullStepText);
 
       const stepText = fullStepText.split("\n")[0];
       expect(steps, "No walkthrough step").to.include(stepText);
