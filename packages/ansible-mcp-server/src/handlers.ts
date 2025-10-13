@@ -33,15 +33,13 @@ export function createZenOfAnsibleHandler() {
 }
 
 export function createAnsibleLintHandler() {
-  return async (args: {
-    content?: string;
-    [x: string]: any;
-  }) => {
-    const content = args.playbookContent;
+  return async (args: { playbookContent: string }) => {
     try {
-      const lintingResult = await runAnsibleLint(content);
+      const lintingResult = await runAnsibleLint(args.playbookContent);
 
-      const formattedResult = formatLintingResult(lintingResult);
+      // Ensure the result is an array before formatting
+      const resultArray = Array.isArray(lintingResult) ? lintingResult : [];
+      const formattedResult = formatLintingResult(resultArray);
       return {
         content: [{ type: "text" as const, text: formattedResult }],
       };
