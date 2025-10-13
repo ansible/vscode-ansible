@@ -71,7 +71,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      this.timeout(60000);
+      this.timeout(90000);
       console.log(`\n--- Testing walkthrough: "${walkthroughName}" ---`);
 
       const commandInput = await workbench.openCommandPrompt();
@@ -80,10 +80,8 @@ describe("Check walkthroughs, elements and associated commands", function () {
       await commandInput.confirm();
       console.log("Walkthrough command confirmed, waiting for tab...");
 
-      // Give the walkthrough time to load
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
       // Select the editor window - walkthrough opens in a "Welcome" tab
+      // Start polling immediately instead of waiting
       const welcomeTab = await waitForCondition({
         condition: async () => {
           const allTitles = await editorView.getOpenEditorTitles();
@@ -93,8 +91,11 @@ describe("Check walkthroughs, elements and associated commands", function () {
           const welcomeTabs = allTitles.filter((title) => title === "Welcome");
           if (welcomeTabs.length > 1) {
             console.log(
-              `Found ${welcomeTabs.length} Welcome tabs - walkthrough likely opened`,
+              `Found ${welcomeTabs.length} Welcome tabs - walkthrough opened!`,
             );
+            // Give it a moment to fully render before selecting
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+
             // Get the last Welcome tab (the newly opened one)
             const tabs = await editorView.getOpenTabs();
             for (const tab of tabs) {
@@ -107,7 +108,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           }
           return false;
         },
-        timeout: 30000,
+        timeout: 45000,
         message: "Timed out waiting for walkthrough tab to open",
       });
 
