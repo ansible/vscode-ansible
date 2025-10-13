@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
+import { runAnsibleLint, formatLintingResult } from "./ansibleLint.js";
 
 export function createDebugEnvHandler(workspaceRoot: string) {
   return async () => {
@@ -32,51 +32,33 @@ export function createZenOfAnsibleHandler() {
   };
 }
 
-export function createAnsibleLintHandler(workspaceRoot: string) {
-  return async (args: { [x: string]: any }, context?: any) => {
-    // For now, let's use a default file for testing
-    const file = "playbooks/play1.yml";
-    const extraArgs: string[] = [];
+export function createAnsibleLintHandler() {
+  return async (args: {
+    content?: string;
+    [x: string]: any;
+  }) => {
+    const content = args.playbookContent;
+    try {
+      const lintingResult = await runAnsibleLint(content);
 
-    // TODO: Remove this workaround once MCP SDK issue is fixed
-    // The proper solution would be to extract file from args.file
-    const abs = path.resolve(workspaceRoot, file);
-    return await new Promise<{
-      content: { type: "text"; text: string }[];
-      isError?: boolean;
-    }>((resolve) => {
-      const child = spawn("ansible-lint", [abs, ...extraArgs], {
-        cwd: workspaceRoot,
-        env: process.env,
-      });
-      let stdout = "";
-      let stderr = "";
-
-      child.on("error", (err) => {
-        resolve({
-          content: [
-            { type: "text" as const, text: `Error: ${err.message}\n` },
-            {
-              type: "text" as const,
-              text: "Ensure 'ansible-lint' is installed and on PATH",
-            },
-          ],
-          isError: true,
-        });
-      });
-
-      child.stdout?.on("data", (d) => (stdout += d.toString()));
-      child.stderr?.on("data", (d) => (stderr += d.toString()));
-      child.on("close", (code) => {
-        resolve({
-          content: [
-            { type: "text" as const, text: `exitCode: ${code}\n` },
-            { type: "text" as const, text: stdout || "" },
-            { type: "text" as const, text: stderr || "" },
-          ],
-        });
-      });
-    });
+      const formattedResult = formatLintingResult(lintingResult);
+      return {
+        content: [{ type: "text" as const, text: formattedResult }],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          { type: "text" as const, text: `Error: ${errorMessage}\n` },
+          {
+            type: "text" as const,
+            text: "Ensure 'ansible-lint' is installed and on PATH\n",
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }
 

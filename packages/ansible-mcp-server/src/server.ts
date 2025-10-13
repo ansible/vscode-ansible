@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   createZenOfAnsibleHandler,
@@ -28,8 +29,13 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       title: "Ansible Lint",
       description:
         "Run ansible-lint on Ansible files with human-readable input support for linting.",
+      inputSchema: {
+        playbookContent: z
+          .string()
+          .describe("The full YAML content of the Ansible playbook to lint."),
+      },
     },
-    createAnsibleLintHandler(workspaceRoot),
+    createAnsibleLintHandler(),
   );
 
   server.registerTool(

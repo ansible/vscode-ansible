@@ -74,10 +74,8 @@ describe("MCP Handlers", () => {
   });
 
   describe("ansible_lint handler", () => {
-    const workspaceRoot = "/test/workspace";
-
     it("should handle file input without options", async () => {
-      const handler = createAnsibleLintHandler(workspaceRoot);
+      const handler = createAnsibleLintHandler();
       const result = await handler({ file: "playbook.yml" });
 
       // This will fail in test environment since ansible-lint isn't available
@@ -87,7 +85,7 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle file input with options", async () => {
-      const handler = createAnsibleLintHandler(workspaceRoot);
+      const handler = createAnsibleLintHandler();
       const result = await handler({
         file: "playbook.yml",
         extraArgs: ["--skip-list", "no-changed-when"],
@@ -98,7 +96,7 @@ describe("MCP Handlers", () => {
     });
 
     it("should handle file input with multiple options", async () => {
-      const handler = createAnsibleLintHandler(workspaceRoot);
+      const handler = createAnsibleLintHandler();
       const result = await handler({
         file: "playbook.yml",
         extraArgs: [
