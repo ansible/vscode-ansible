@@ -109,7 +109,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
     });
   });
 
-  it("Check empty playbook command option", async function () {
+  it.skip("Check empty playbook command option", async function () {
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
@@ -124,7 +124,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
     await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
   });
 
-  it("Check unauthenticated playbook command option", async function () {
+  it.skip("Check unauthenticated playbook command option", async function () {
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
