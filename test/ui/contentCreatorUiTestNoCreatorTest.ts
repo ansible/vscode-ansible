@@ -12,9 +12,7 @@ config.truncateThreshold = 0;
 
 async function openCreateWebview(command: string, formId: string) {
   await workbenchExecuteCommand(command);
-  return await getWebviewByLocator(
-    By.xpath(`//form[@id='${formId}']`),
-  );
+  return await getWebviewByLocator(By.xpath(`//form[@id='${formId}']`));
 }
 
 async function checkAndInteractWithField(
