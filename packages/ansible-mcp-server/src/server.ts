@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
   CallToolRequestSchema,
@@ -14,8 +15,12 @@ import {
   formatDependencyError,
   type Dependency,
 } from "./dependencyChecker.js";
+  createZenOfAnsibleHandler,
+  createAnsibleLintHandler,
+  createDebugEnvHandler,
+} from "./handlers.js";
 
-export function createAnsibleMcpServer() {
+export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
     name: "ansible-mcp-server",
     version: "0.1.0",
@@ -46,6 +51,8 @@ export function createAnsibleMcpServer() {
 
   // Register core tools
   registerToolWithDeps(
+  // Tools
+  server.registerTool(
     "zen_of_ansible",
     {
       title: "The Zen of Ansible",
@@ -118,12 +125,35 @@ export function createAnsibleMcpServer() {
     },
   );
 
+  server.registerTool(
+    "ansible_lint",
+    {
+      title: "Ansible Lint",
+      description:
+        "Run ansible-lint on Ansible files with human-readable input support for linting.",
+      inputSchema: {
+        playbookContent: z
+          .string()
+          .describe("The full YAML content of the Ansible playbook to lint."),
+      },
+    },
+    createAnsibleLintHandler(),
+  );
+
+  server.registerTool(
+    "debug_env",
+    {
+      title: "Debug Environment",
+      description:
+        "Displays PATH, virtual environment, and workspace information for debugging.",
+    },
+    createDebugEnvHandler(workspaceRoot),
+  );
   return server;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function runStdio(_workspaceRoot: string) {
-  const server = createAnsibleMcpServer();
+export async function runStdio(workspaceRoot: string) {
+  const server = createAnsibleMcpServer(workspaceRoot);
   const transport = new StdioServerTransport();
   await server.connect(transport);
   await new Promise<void>(() => {
