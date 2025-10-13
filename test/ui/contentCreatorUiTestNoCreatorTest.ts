@@ -10,11 +10,9 @@ import os from "os";
 
 config.truncateThreshold = 0;
 
-async function openCreateWebview(command: string) {
+async function openCreateWebview(command: string, formId: string) {
   await workbenchExecuteCommand(command);
-  return await getWebviewByLocator(
-    By.xpath("//vscode-textfield[@id='path-url']"),
-  );
+  return await getWebviewByLocator(By.xpath(`//form[@id='${formId}']`));
 }
 
 async function checkAndInteractWithField(
@@ -58,6 +56,7 @@ describe(__filename, function () {
     it("Check create-devfile webview elements", async function () {
       const devfileWebview = await openCreateWebview(
         "Ansible: Create a Devfile",
+        "devfile-form",
       );
 
       const descriptionText = await (
@@ -96,6 +95,7 @@ describe(__filename, function () {
     it("Check create-devcontainer webview elements", async function () {
       const devcontainerWebview = await openCreateWebview(
         "Ansible: Create a Devcontainer",
+        "devcontainer-form",
       );
 
       const descriptionText = await (
