@@ -1,13 +1,12 @@
 import { config, expect } from "chai";
 import {
-  ActivityBar,
   By,
   EditorView,
   ModalDialog,
   until,
   Workbench,
 } from "vscode-extension-tester";
-import { waitForCondition, workbenchExecuteCommand } from "./uiTestHelper";
+import { waitForCondition } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
