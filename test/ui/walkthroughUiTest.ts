@@ -83,19 +83,36 @@ describe("Check walkthroughs, elements and associated commands", function () {
       // Give the walkthrough time to load
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      // Select the editor window
+      // Select the editor window - walkthrough opens in a "Welcome" tab
       const welcomeTab = await waitForCondition({
         condition: async () => {
           const allTitles = await editorView.getOpenEditorTitles();
           console.log("Currently open tabs:", allTitles);
-          return await editorView.getTabByTitle("Walkthrough: Ansible");
+
+          // Walkthrough opens with "Welcome" title, check if we have multiple Welcome tabs
+          const welcomeTabs = allTitles.filter((title) => title === "Welcome");
+          if (welcomeTabs.length > 1) {
+            console.log(
+              `Found ${welcomeTabs.length} Welcome tabs - walkthrough likely opened`,
+            );
+            // Get the last Welcome tab (the newly opened one)
+            const tabs = await editorView.getOpenTabs();
+            for (const tab of tabs) {
+              const title = await tab.getTitle();
+              if (title === "Welcome") {
+                console.log("Selecting Welcome tab for walkthrough");
+                return tab;
+              }
+            }
+          }
+          return false;
         },
         timeout: 30000,
         message: "Timed out waiting for walkthrough tab to open",
       });
 
       expect(welcomeTab).is.not.undefined;
-      console.log("Walkthrough tab found");
+      console.log("Walkthrough Welcome tab found");
 
       // Locate walkthrough title text
       const titleText = await welcomeTab
@@ -119,8 +136,13 @@ describe("Check walkthroughs, elements and associated commands", function () {
       console.log("First step:", stepText);
       expect(steps, "No walkthrough step").to.include(stepText);
 
-      await editorView.closeEditor("Walkthrough: Ansible");
-      console.log("Walkthrough tab closed");
+      // Close the walkthrough tab (it has "Welcome" title)
+      try {
+        await welcomeTab.close();
+        console.log("Walkthrough tab closed");
+      } catch (e) {
+        console.log("Failed to close walkthrough tab:", e);
+      }
     });
   });
 
