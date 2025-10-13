@@ -44,7 +44,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
       message: "Timed out waiting for Lightspeed status bar item to appear",
       timeout: 15000,
     });
-    
+
     expect(lightspeedStatusBarItem).not.to.be.undefined;
   });
 
