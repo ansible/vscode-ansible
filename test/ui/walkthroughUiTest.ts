@@ -19,53 +19,28 @@ const openUntitledFile = async () => {
       try {
         const editorView = new EditorView();
         const titles = await editorView.getOpenEditorTitles();
-        console.log("untitledTitle search, all titles:", titles);
+        console.log("Searching for untitled file, all open titles:", titles);
 
         // Find any untitled document
         const untitledTitle = titles.find((title) =>
           title.startsWith("Untitled"),
         );
         if (untitledTitle) {
-          console.log("Found untitledTitle:", untitledTitle);
+          console.log("Found untitled file:", untitledTitle);
           return await editorView.openEditor(untitledTitle);
         }
         return false;
-      } catch (error) {
-        console.log("Error in openUntitledFile:", error);
+      } catch {
         return false;
       }
     },
     message: "Timed out waiting for untitled file to open",
-    timeout: 15000,
   });
 };
 
 before(async function () {
   workbench = new Workbench();
   editorView = new EditorView();
-});
-
-afterEach(async function () {
-  // Clean up after each test to prevent state pollution
-  try {
-    console.log("Cleaning up: closing all editors...");
-    await workbench.executeCommand("View: Close All Editor Groups");
-
-    // Handle any "Don't Save" modal dialogs that might appear
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    try {
-      const dialogBox = new ModalDialog();
-      await dialogBox.pushButton(`Don't Save`);
-      console.log("Dismissed 'Don't Save' dialog");
-      await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
-    } catch {
-      // No dialog present, that's fine
-    }
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  } catch (error) {
-    console.log(`Failed to close editor groups: ${error}`);
-  }
 });
 
 describe("Check walkthroughs, elements and associated commands", function () {
@@ -94,53 +69,29 @@ describe("Check walkthroughs, elements and associated commands", function () {
     ],
   ];
 
-  walkthroughs.forEach(([walkthroughName, steps], index) => {
+  walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      // Set Mocha timeout to 2 minutes for these slow UI tests
-      this.timeout(120000);
-
-      console.log(
-        `\n=== Testing walkthrough #${index + 1}: "${walkthroughName}" ===`,
-      );
+      console.log(`\n--- Testing walkthrough: "${walkthroughName}" ---`);
 
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
-      console.log("Command confirmed for:", walkthroughName);
-
-      // Wait a bit for the command to execute
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log("Walkthrough command confirmed");
 
       // Select the editor window
-      console.log("Waiting for walkthrough tab to appear...");
       const welcomeTab = await waitForCondition({
         condition: async () => {
-          try {
-            // Get fresh instance to avoid stale references
-            const ev = new EditorView();
-            const allTitles = await ev.getOpenEditorTitles();
-            console.log("Current open tabs:", allTitles);
-
-            const tab = await ev.getTabByTitle("Walkthrough: Ansible");
-            if (tab) {
-              console.log("Found Walkthrough tab!");
-            }
-            return tab;
-          } catch (error) {
-            console.log(
-              "Error getting tab:",
-              error instanceof Error ? error.message : String(error),
-            );
-            return false;
-          }
+          const allTitles = await editorView.getOpenEditorTitles();
+          console.log("Currently open tabs:", allTitles);
+          return await editorView.getTabByTitle("Walkthrough: Ansible");
         },
-        message: `Timed out waiting for walkthrough tab to open for "${walkthroughName}"`,
         timeout: 30000,
-        pollTimeout: 1000,
+        message: "Timed out waiting for walkthrough tab to open",
       });
 
       expect(welcomeTab).is.not.undefined;
+      console.log("Walkthrough tab found");
 
       // Locate walkthrough title text
       const titleText = await welcomeTab
@@ -148,7 +99,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           By.xpath("//div[contains(@class, 'getting-started-category') ]"),
         )
         .getText();
-      console.log("Walkthrough title found:", titleText);
+      console.log("Walkthrough title:", titleText);
       expect(
         titleText.includes(`${walkthroughName}`),
         `${walkthroughName} title not found`,
@@ -160,50 +111,53 @@ describe("Check walkthroughs, elements and associated commands", function () {
           By.xpath("//div[contains(@class, 'step-list-container') ]"),
         )
         .getText();
-      console.log("First step text:", fullStepText.split("\n")[0]);
-
       const stepText = fullStepText.split("\n")[0];
+      console.log("First step:", stepText);
       expect(steps, "No walkthrough step").to.include(stepText);
 
-      // Close the walkthrough tab
       await editorView.closeEditor("Walkthrough: Ansible");
-      console.log("Walkthrough tab closed\n");
+      console.log("Walkthrough tab closed");
     });
   });
 
   it("Check empty playbook command option", async function () {
     this.timeout(60000);
-
-    console.log("\n=== Testing empty playbook command ===");
+    console.log("\n--- Testing empty playbook command ---");
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
     const startingText = await newFileEditor.getText();
+    console.log("Playbook content starts with:", startingText.substring(0, 10));
     expect(
       startingText.startsWith("---"),
       "The playbook file should start with ---",
     ).to.be.true;
-    console.log("Empty playbook created successfully");
-
-    // Cleanup is handled by afterEach hook
+    await workbench.executeCommand("View: Close All Editor Groups");
+    const dialogBox = new ModalDialog();
+    await dialogBox.pushButton(`Don't Save`);
+    await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
+    console.log("Empty playbook test completed");
   });
 
   it("Check unauthenticated playbook command option", async function () {
     this.timeout(60000);
 
-    console.log("\n=== Testing unauthenticated playbook command ===");
+    console.log("\n--- Testing unauthenticated playbook command ---");
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
 
     const newFileEditor = await openUntitledFile();
     const startingText = await newFileEditor.getText();
+    console.log("Playbook content starts with:", startingText.substring(0, 10));
     expect(
       startingText.startsWith("---"),
       "The playbook file should start with ---",
     ).to.be.true;
-    console.log("Unauthenticated playbook created successfully");
-
-    // Cleanup is handled by afterEach hook
+    await workbench.executeCommand("View: Close All Editor Groups");
+    const dialogBox = new ModalDialog();
+    await dialogBox.pushButton(`Don't Save`);
+    await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
+    console.log("Unauthenticated playbook test completed");
   });
 });
