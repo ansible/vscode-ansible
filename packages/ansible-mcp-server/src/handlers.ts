@@ -87,3 +87,18 @@ export function createAnsibleFixPromptHandler() {
     ],
   });
 }
+
+export function createListToolsHandler(getToolNames: () => string[]) {
+  return async () => {
+    const toolNames = getToolNames();
+    const toolList = toolNames.join("\n- ");
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `Available Ansible MCP Tools:\n\n- ${toolList}\n\nUse any of these tools by asking me to use them by name.`,
+        },
+      ],
+    };
+  };
+}
