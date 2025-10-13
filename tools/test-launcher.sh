@@ -224,5 +224,5 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
     mkdir -p out/junit/e2e
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
-    npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura
+    npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcov
 fi

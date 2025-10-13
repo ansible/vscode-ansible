@@ -17,7 +17,7 @@
     "test{,s}/**"
   ],
   "exclude-after-remap": true,
-  "reporter": ["cobertura", "text"],
+  "reporter": ["cobertura", "lcov", "text"],
   "reports-dir": "./out/coverage/unit",
   "temp-directory": "./out/tmp/.c8-tmp-unit"
 }
