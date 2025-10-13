@@ -42,14 +42,6 @@ before(async function () {
 });
 
 describe("Check walkthroughs, elements and associated commands", function () {
-  beforeEach(async function () {
-    // Close all editors to ensure clean state between tests
-    try {
-      await editorView.closeAllEditors();
-    } catch {
-      // Ignore errors if no editors are open
-    }
-  });
   const walkthroughs = [
     [
       "Create an Ansible environment",
@@ -77,37 +69,17 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      this.retries(3); // Essential for flaky UI automation in CI
-
       const commandInput = await workbench.openCommandPrompt();
       await workbench.executeCommand("Welcome: Open Walkthrough");
-
-      // Wait longer for the quick pick to be ready (especially in CI)
-      await waitForCondition({
-        condition: async () => {
-          try {
-            await commandInput.setText(`${walkthroughName}`);
-            return true;
-          } catch {
-            return false;
-          }
-        },
-        message: "Input not ready",
-        timeout: 10000, // Increased for CI
-      });
-
+      await commandInput.setText(`${walkthroughName}`);
       await commandInput.confirm();
 
-      // Wait longer for the command to process in CI
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Select the editor window with much longer timeout for CI
+      // Select the editor window
       const welcomeTab = await waitForCondition({
         condition: async () => {
           return await editorView.getTabByTitle("Walkthrough: Ansible");
         },
         message: "Timed out waiting for walkthrough tab to open",
-        timeout: 30000, // Increased for slower CI environments
       });
 
       expect(welcomeTab).is.not.undefined;
@@ -125,7 +97,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
       // Locate one of the steps
       const fullStepText = await welcomeTab
-        .findElement(By.xpath("//div[contains(@class, 'step-list-container')]"))
+        .findElement(
+          By.xpath("//div[contains(@class, 'step-list-container') ]"),
+        )
         .getText();
 
       const stepText = fullStepText.split("\n")[0];
@@ -136,7 +110,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check empty playbook command option", async function () {
-    this.retries(2); // Essential for flaky UI automation in CI
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
@@ -152,7 +125,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check unauthenticated playbook command option", async function () {
-    this.retries(2); // Essential for flaky UI automation in CI
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
