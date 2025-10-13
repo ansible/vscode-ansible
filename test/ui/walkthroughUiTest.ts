@@ -69,9 +69,11 @@ describe("Check walkthroughs, elements and associated commands", function () {
     ],
   ];
 
-  walkthroughs.forEach(([walkthroughName, steps]) => {
+  walkthroughs.forEach(([walkthroughName, steps], index) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      this.timeout(90000);
+      // First test gets extra time since VS Code walkthrough system needs to initialize
+      const isFirstTest = index === 0;
+      this.timeout(isFirstTest ? 120000 : 90000);
       console.log(`\n--- Testing walkthrough: "${walkthroughName}" ---`);
 
       const commandInput = await workbench.openCommandPrompt();
@@ -94,9 +96,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
               `Found ${welcomeTabs.length} Welcome tabs - walkthrough opened!`,
             );
             // Give it a moment to fully render before selecting
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // Get the last Welcome tab (the newly opened one)
+            // Get the Welcome tabs and find one with walkthrough content
             const tabs = await editorView.getOpenTabs();
             for (const tab of tabs) {
               const title = await tab.getTitle();
@@ -108,7 +110,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
           }
           return false;
         },
-        timeout: 45000,
+        timeout: isFirstTest ? 75000 : 45000,
         message: "Timed out waiting for walkthrough tab to open",
       });
 
@@ -137,13 +139,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
       console.log("First step:", stepText);
       expect(steps, "No walkthrough step").to.include(stepText);
 
-      // Close the walkthrough tab (it has "Welcome" title)
-      try {
-        await welcomeTab.close();
-        console.log("Walkthrough tab closed");
-      } catch (e) {
-        console.log("Failed to close walkthrough tab:", e);
-      }
+      console.log("Walkthrough test completed successfully");
     });
   });
 
