@@ -1,12 +1,13 @@
 import { config, expect } from "chai";
 import {
+  ActivityBar,
   By,
   EditorView,
   ModalDialog,
   until,
   Workbench,
 } from "vscode-extension-tester";
-import { waitForCondition } from "./uiTestHelper";
+import { waitForCondition, workbenchExecuteCommand } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -76,42 +77,86 @@ describe("Check walkthroughs, elements and associated commands", function () {
       this.timeout(isFirstTest ? 120000 : 90000);
       console.log(`\n--- Testing walkthrough: "${walkthroughName}" ---`);
 
-      const commandInput = await workbench.openCommandPrompt();
+      // Execute the walkthrough command which will open a picker
       await workbench.executeCommand("Welcome: Open Walkthrough");
-      await commandInput.setText(`${walkthroughName}`);
-      await commandInput.confirm();
+
+      // Wait for the walkthrough picker to appear and stabilize
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      // Type the walkthrough name to filter the list
+      const driver = workbench.getDriver();
+      const activeElement = await driver.switchTo().activeElement();
+      await activeElement.sendKeys(String(walkthroughName));
+
+      // Wait for filtering to complete
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Press Enter to select the filtered walkthrough
+      await activeElement.sendKeys("\n");
       console.log("Walkthrough command confirmed, waiting for tab...");
 
-      // Select the editor window - walkthrough opens in a "Welcome" tab
-      // Start polling immediately instead of waiting
+      // Select the editor window - walkthrough opens in a tab with title like "Walkthrough: Ansible"
+      // Wait for the walkthrough tab to appear
       const welcomeTab = await waitForCondition({
         condition: async () => {
-          const allTitles = await editorView.getOpenEditorTitles();
-          console.log("Currently open tabs:", allTitles);
+          try {
+            const allTitles = await editorView.getOpenEditorTitles();
+            console.log("Currently open tabs:", allTitles);
 
-          // Walkthrough opens with "Welcome" title, check if we have multiple Welcome tabs
-          const welcomeTabs = allTitles.filter((title) => title === "Welcome");
-          if (welcomeTabs.length > 1) {
-            console.log(
-              `Found ${welcomeTabs.length} Welcome tabs - walkthrough opened!`,
+            // Look for any tab that starts with "Walkthrough:" or is "Welcome"
+            const walkthroughTitle = allTitles.find(
+              (title) =>
+                title.startsWith("Walkthrough:") || title === "Welcome",
             );
-            // Give it a moment to fully render before selecting
-            await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            // Get the Welcome tabs and find one with walkthrough content
-            const tabs = await editorView.getOpenTabs();
-            for (const tab of tabs) {
-              const title = await tab.getTitle();
-              if (title === "Welcome") {
-                console.log("Selecting Welcome tab for walkthrough");
-                return tab;
+            if (walkthroughTitle) {
+              console.log(
+                `Found walkthrough tab: "${walkthroughTitle}", checking for content...`,
+              );
+
+              // Get the walkthrough tab
+              const tabs = await editorView.getOpenTabs();
+              for (const tab of tabs) {
+                const title = await tab.getTitle();
+                if (title === walkthroughTitle) {
+                  console.log(
+                    `Checking if "${title}" tab has walkthrough content...`,
+                  );
+
+                  // Check if this tab contains the walkthrough content
+                  try {
+                    const elements = await tab.findElements(
+                      By.xpath(
+                        "//div[contains(@class, 'getting-started-category')]",
+                      ),
+                    );
+
+                    if (elements.length > 0) {
+                      console.log(
+                        `Found walkthrough content in "${title}" tab!`,
+                      );
+                      // Give it a moment to fully render
+                      await new Promise((resolve) => setTimeout(resolve, 1000));
+                      return tab;
+                    } else {
+                      console.log(
+                        `"${title}" tab exists but no walkthrough content yet`,
+                      );
+                    }
+                  } catch (e) {
+                    console.log("Error checking for walkthrough content:", e);
+                  }
+                }
               }
             }
+            return false;
+          } catch (e) {
+            console.log("Error in walkthrough detection:", e);
+            return false;
           }
-          return false;
         },
         timeout: isFirstTest ? 75000 : 45000,
-        message: "Timed out waiting for walkthrough tab to open",
+        message: "Timed out waiting for walkthrough content to load",
       });
 
       expect(welcomeTab).is.not.undefined;
