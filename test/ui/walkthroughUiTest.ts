@@ -134,7 +134,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
             return false;
           }
         },
-        timeout: isFirstTest ? 75000 : 45000,
+        timeout: 6000,
         message: "Timed out waiting for walkthrough content to load",
       });
 
@@ -163,7 +163,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check empty playbook command option", async function () {
-    this.timeout(10000);
+    this.timeout(6000);
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
@@ -179,7 +179,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check unauthenticated playbook command option", async function () {
-    this.timeout(60000);
+    this.timeout(6000);
 
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
