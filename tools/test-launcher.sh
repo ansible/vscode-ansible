@@ -180,6 +180,7 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
     find out/client/test/ui/ -name "${UI_TARGET}" -print0 | while IFS= read -r -d '' test_file; do
         basename="${test_file##*/}"
         TEST_ID="ui-${basename%.*}"
+        TEST_JUNIT_FILE="./out/junit/ui/${TEST_ID}-test-results.xml"
         export TEST_ID
         {
             log notice "Testing ${test_file}"
@@ -191,13 +192,19 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 start_server
             fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            timeout --preserve-status 120s npm exec -- extest run-tests "${COVERAGE_ARG}" \
+            timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \
                 -e out/ext \
                 --code_settings out/settings.json \
                 -c "${CODE_VERSION}" \
-                "${test_file}" || echo "${TEST_ID}" >> out/log/.failed
+                "${test_file}" || {
+                    if [[ -f $TEST_JUNIT_FILE ]] && ! grep -o 'failures="[1-9][0-9]*"' "$TEST_JUNIT_FILE"; then
+                        log warning "Apparently extest got stuck closing after running test ${TEST_ID} but reported success."
+                    else
+                        echo "${TEST_ID}" >> out/log/.failed;
+                    fi
+                }
             if [[ -f ./out/coverage/ui/cobertura-coverage.xml ]]; then
                 mv ./out/coverage/ui/cobertura-coverage.xml "./out/coverage/ui/${TEST_ID}-cobertura-coverage.xml"
             fi
@@ -224,5 +231,5 @@ if [[ "${TEST_TYPE}" == "e2e" ]]; then
     mkdir -p out/junit/e2e
     cp -f test/testFixtures/settings.json out/userdata/User/settings.json
     # no not try to use junit reporter here as it gives an internal error, but it works well when setup as the sole mocha reporter inside .vscode-test.mjs file
-    npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura
+    npm exec -- vscode-test --coverage --coverage-output ./out/coverage/e2e --coverage-reporter text --coverage-reporter cobertura --coverage-reporter lcov
 fi
