@@ -19,8 +19,6 @@ const openUntitledFile = async () => {
       try {
         const editorView = new EditorView();
         const titles = await editorView.getOpenEditorTitles();
-
-        // Find any untitled document
         const untitledTitle = titles.find((title) =>
           title.startsWith("Untitled"),
         );
@@ -67,49 +65,33 @@ describe("Check walkthroughs, elements and associated commands", function () {
     ],
   ];
 
-  walkthroughs.forEach(([walkthroughName, steps], index) => {
+  walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      // First test gets extra time since VS Code walkthrough system needs to initialize
-      const isFirstTest = index === 0;
       this.timeout(10000);
 
-      // Execute the walkthrough command which will open a picker
       await workbench.executeCommand("Welcome: Open Walkthrough");
-
-      // Wait for the walkthrough picker to appear and stabilize
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Type the walkthrough name to filter the list
       const driver = workbench.getDriver();
       const activeElement = await driver.switchTo().activeElement();
       await activeElement.sendKeys(String(walkthroughName));
-
-      // Wait for filtering to complete
       await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Press Enter to select the filtered walkthrough
       await activeElement.sendKeys("\n");
 
-      // Select the editor window - walkthrough opens in a tab with title like "Walkthrough: Ansible"
-      // Wait for the walkthrough tab to appear
       const welcomeTab = await waitForCondition({
         condition: async () => {
           try {
             const allTitles = await editorView.getOpenEditorTitles();
-
-            // Look for any tab that starts with "Walkthrough:" or is "Welcome"
             const walkthroughTitle = allTitles.find(
               (title) =>
                 title.startsWith("Walkthrough:") || title === "Welcome",
             );
 
             if (walkthroughTitle) {
-              // Get the walkthrough tab
               const tabs = await editorView.getOpenTabs();
               for (const tab of tabs) {
                 const title = await tab.getTitle();
                 if (title === walkthroughTitle) {
-                  // Check if this tab contains the walkthrough content
                   try {
                     const elements = await tab.findElements(
                       By.xpath(
@@ -118,19 +100,17 @@ describe("Check walkthroughs, elements and associated commands", function () {
                     );
 
                     if (elements.length > 0) {
-                      // Give it a moment to fully render
                       await new Promise((resolve) => setTimeout(resolve, 1000));
                       return tab;
                     }
-                  } catch (e) {
-                    console.log("Error checking for walkthrough content:", e);
+                  } catch {
+                    continue;
                   }
                 }
               }
             }
             return false;
-          } catch (e) {
-            console.log("Error in walkthrough detection:", e);
+          } catch {
             return false;
           }
         },
@@ -140,7 +120,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
       expect(welcomeTab).is.not.undefined;
 
-      // Locate walkthrough title text
       const titleText = await welcomeTab
         .findElement(
           By.xpath("//div[contains(@class, 'getting-started-category') ]"),
@@ -151,7 +130,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
         `${walkthroughName} title not found`,
       ).to.be.true;
 
-      // Locate one of the steps
       const fullStepText = await welcomeTab
         .findElement(
           By.xpath("//div[contains(@class, 'step-list-container') ]"),
