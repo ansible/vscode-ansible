@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { createZenOfAnsibleHandler } from "../src/handlers.js";
+import {
+  createZenOfAnsibleHandler,
+  createDebugEnvHandler,
+} from "../src/handlers.js";
 import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
 describe("MCP Handlers", () => {
@@ -66,6 +69,61 @@ describe("MCP Handlers", () => {
       expect(text).toContain("Readability counts");
       expect(text).toContain("Declarative is better than imperative");
       expect(text).toContain("YAML");
+    });
+  });
+
+  // describe("ansible_lint handler", () => {
+  //   it("should handle file input without options", async () => {
+  //     const handler = createAnsibleLintHandler();
+  //     const result = await handler({ file: "playbook.yml" });
+
+  //     // This will fail in test environment since ansible-lint isn't available
+  //     // but we can test the structure
+  //     expect(result.content).toBeDefined();
+  //     expect(result.content.length).toBeGreaterThan(0);
+  //   });
+
+  //   it("should handle file input with options", async () => {
+  //     const handler = createAnsibleLintHandler();
+  //     const result = await handler({
+  //       file: "playbook.yml",
+  //       extraArgs: ["--skip-list", "no-changed-when"],
+  //     });
+
+  //     expect(result.content).toBeDefined();
+  //     expect(result.content.length).toBeGreaterThan(0);
+  //   });
+
+  //   it("should handle file input with multiple options", async () => {
+  //     const handler = createAnsibleLintHandler();
+  //     const result = await handler({
+  //       file: "playbook.yml",
+  //       extraArgs: [
+  //         "--skip-list",
+  //         "no-changed-when",
+  //         "--exclude",
+  //         "roles/legacy/",
+  //       ],
+  //     });
+
+  //     expect(result.content).toBeDefined();
+  //     expect(result.content.length).toBeGreaterThan(0);
+  //   });
+  // });
+
+  describe("debug_env handler", () => {
+    const workspaceRoot = "/test/workspace";
+
+    it("should return environment information", async () => {
+      const handler = createDebugEnvHandler(workspaceRoot);
+      const result = await handler();
+
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBeGreaterThan(0);
+      expect(result.content[0].text).toContain("PATH:");
+      expect(result.content[1].text).toContain("VIRTUAL_ENV:");
+      expect(result.content[2].text).toContain("CWD:");
+      expect(result.content[3].text).toContain("Workspace Root:");
     });
   });
 });

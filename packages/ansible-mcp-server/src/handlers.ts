@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
+import { runAnsibleLint, formatLintingResult } from "./ansibleLint.js";
 
 export function createDebugEnvHandler(workspaceRoot: string) {
   return async () => {
@@ -32,51 +32,31 @@ export function createZenOfAnsibleHandler() {
   };
 }
 
-export function createAnsibleLintHandler(workspaceRoot: string) {
-  return async ({
-    file,
-    extraArgs = [],
-  }: {
-    file: string;
-    extraArgs?: string[];
-  }): Promise<{
-    content: { type: "text"; text: string }[];
-    isError?: boolean;
-  }> => {
-    const abs = path.resolve(workspaceRoot, file);
-    return await new Promise((resolve) => {
-      const child = spawn("ansible-lint", [abs, ...extraArgs], {
-        cwd: workspaceRoot,
-        env: process.env,
-      });
-      let stdout = "";
-      let stderr = "";
+export function createAnsibleLintHandler() {
+  return async (args: { playbookContent: string }) => {
+    try {
+      const lintingResult = await runAnsibleLint(args.playbookContent);
 
-      child.on("error", (err) => {
-        resolve({
-          content: [
-            { type: "text" as const, text: `Error: ${err.message}\n` },
-            {
-              type: "text" as const,
-              text: "Ensure 'ansible-lint' is installed and on PATH",
-            },
-          ],
-          isError: true,
-        });
-      });
-
-      child.stdout?.on("data", (d) => (stdout += d.toString()));
-      child.stderr?.on("data", (d) => (stderr += d.toString()));
-      child.on("close", (code) => {
-        resolve({
-          content: [
-            { type: "text" as const, text: `exitCode: ${code}\n` },
-            { type: "text" as const, text: stdout || "" },
-            { type: "text" as const, text: stderr || "" },
-          ],
-        });
-      });
-    });
+      // Ensure the result is an array before formatting
+      const resultArray = Array.isArray(lintingResult) ? lintingResult : [];
+      const formattedResult = formatLintingResult(resultArray);
+      return {
+        content: [{ type: "text" as const, text: formattedResult }],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          { type: "text" as const, text: `Error: ${errorMessage}\n` },
+          {
+            type: "text" as const,
+            text: "Ensure 'ansible-lint' is installed and on PATH\n",
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }
 
@@ -106,4 +86,19 @@ export function createAnsibleFixPromptHandler() {
       },
     ],
   });
+}
+
+export function createListToolsHandler(getToolNames: () => string[]) {
+  return async () => {
+    const toolNames = getToolNames();
+    const toolList = toolNames.join("\n- ");
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: `Available Ansible MCP Tools:\n\n- ${toolList}\n\nUse any of these tools by asking me to use them by name.`,
+        },
+      ],
+    };
+  };
 }
