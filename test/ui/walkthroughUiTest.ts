@@ -71,7 +71,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
       // First test gets extra time since VS Code walkthrough system needs to initialize
       const isFirstTest = index === 0;
-      this.timeout(isFirstTest ? 120000 : 90000);
+      this.timeout(10000);
 
       // Execute the walkthrough command which will open a picker
       await workbench.executeCommand("Welcome: Open Walkthrough");
@@ -163,7 +163,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check empty playbook command option", async function () {
-    this.timeout(60000);
+    this.timeout(10000);
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
