@@ -163,7 +163,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check empty playbook command option", async function () {
-    this.timeout(6000);
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
@@ -179,8 +178,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
   });
 
   it("Check unauthenticated playbook command option", async function () {
-    this.timeout(6000);
-
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
