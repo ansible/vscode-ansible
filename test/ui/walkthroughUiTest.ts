@@ -19,14 +19,12 @@ const openUntitledFile = async () => {
       try {
         const editorView = new EditorView();
         const titles = await editorView.getOpenEditorTitles();
-        console.log("Searching for untitled file, all open titles:", titles);
 
         // Find any untitled document
         const untitledTitle = titles.find((title) =>
           title.startsWith("Untitled"),
         );
         if (untitledTitle) {
-          console.log("Found untitled file:", untitledTitle);
           return await editorView.openEditor(untitledTitle);
         }
         return false;
@@ -74,7 +72,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
       // First test gets extra time since VS Code walkthrough system needs to initialize
       const isFirstTest = index === 0;
       this.timeout(isFirstTest ? 120000 : 90000);
-      console.log(`\n--- Testing walkthrough: "${walkthroughName}" ---`);
 
       // Execute the walkthrough command which will open a picker
       await workbench.executeCommand("Welcome: Open Walkthrough");
@@ -92,7 +89,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
       // Press Enter to select the filtered walkthrough
       await activeElement.sendKeys("\n");
-      console.log("Walkthrough command confirmed, waiting for tab...");
 
       // Select the editor window - walkthrough opens in a tab with title like "Walkthrough: Ansible"
       // Wait for the walkthrough tab to appear
@@ -100,7 +96,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
         condition: async () => {
           try {
             const allTitles = await editorView.getOpenEditorTitles();
-            console.log("Currently open tabs:", allTitles);
 
             // Look for any tab that starts with "Walkthrough:" or is "Welcome"
             const walkthroughTitle = allTitles.find(
@@ -109,19 +104,11 @@ describe("Check walkthroughs, elements and associated commands", function () {
             );
 
             if (walkthroughTitle) {
-              console.log(
-                `Found walkthrough tab: "${walkthroughTitle}", checking for content...`,
-              );
-
               // Get the walkthrough tab
               const tabs = await editorView.getOpenTabs();
               for (const tab of tabs) {
                 const title = await tab.getTitle();
                 if (title === walkthroughTitle) {
-                  console.log(
-                    `Checking if "${title}" tab has walkthrough content...`,
-                  );
-
                   // Check if this tab contains the walkthrough content
                   try {
                     const elements = await tab.findElements(
@@ -131,16 +118,9 @@ describe("Check walkthroughs, elements and associated commands", function () {
                     );
 
                     if (elements.length > 0) {
-                      console.log(
-                        `Found walkthrough content in "${title}" tab!`,
-                      );
                       // Give it a moment to fully render
                       await new Promise((resolve) => setTimeout(resolve, 1000));
                       return tab;
-                    } else {
-                      console.log(
-                        `"${title}" tab exists but no walkthrough content yet`,
-                      );
                     }
                   } catch (e) {
                     console.log("Error checking for walkthrough content:", e);
@@ -159,7 +139,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
       });
 
       expect(welcomeTab).is.not.undefined;
-      console.log("Walkthrough Welcome tab found");
 
       // Locate walkthrough title text
       const titleText = await welcomeTab
@@ -167,7 +146,6 @@ describe("Check walkthroughs, elements and associated commands", function () {
           By.xpath("//div[contains(@class, 'getting-started-category') ]"),
         )
         .getText();
-      console.log("Walkthrough title:", titleText);
       expect(
         titleText.includes(`${walkthroughName}`),
         `${walkthroughName} title not found`,
@@ -180,21 +158,16 @@ describe("Check walkthroughs, elements and associated commands", function () {
         )
         .getText();
       const stepText = fullStepText.split("\n")[0];
-      console.log("First step:", stepText);
       expect(steps, "No walkthrough step").to.include(stepText);
-
-      console.log("Walkthrough test completed successfully");
     });
   });
 
   it("Check empty playbook command option", async function () {
     this.timeout(60000);
-    console.log("\n--- Testing empty playbook command ---");
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
     const startingText = await newFileEditor.getText();
-    console.log("Playbook content starts with:", startingText.substring(0, 10));
     expect(
       startingText.startsWith("---"),
       "The playbook file should start with ---",
@@ -203,20 +176,17 @@ describe("Check walkthroughs, elements and associated commands", function () {
     const dialogBox = new ModalDialog();
     await dialogBox.pushButton(`Don't Save`);
     await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
-    console.log("Empty playbook test completed");
   });
 
   it("Check unauthenticated playbook command option", async function () {
     this.timeout(60000);
 
-    console.log("\n--- Testing unauthenticated playbook command ---");
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );
 
     const newFileEditor = await openUntitledFile();
     const startingText = await newFileEditor.getText();
-    console.log("Playbook content starts with:", startingText.substring(0, 10));
     expect(
       startingText.startsWith("---"),
       "The playbook file should start with ---",
@@ -225,6 +195,5 @@ describe("Check walkthroughs, elements and associated commands", function () {
     const dialogBox = new ModalDialog();
     await dialogBox.pushButton(`Don't Save`);
     await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
-    console.log("Unauthenticated playbook test completed");
   });
 });
