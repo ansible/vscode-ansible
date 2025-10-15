@@ -19,8 +19,6 @@ const openUntitledFile = async () => {
       try {
         const editorView = new EditorView();
         const titles = await editorView.getOpenEditorTitles();
-
-        // Find any untitled document
         const untitledTitle = titles.find((title) =>
           title.startsWith("Untitled"),
         );
@@ -69,22 +67,59 @@ describe("Check walkthroughs, elements and associated commands", function () {
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
     it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      const commandInput = await workbench.openCommandPrompt();
-      await workbench.executeCommand("Welcome: Open Walkthrough");
-      await commandInput.setText(`${walkthroughName}`);
-      await commandInput.confirm();
+      this.timeout(10000);
 
-      // Select the editor window
+      await workbench.executeCommand("Welcome: Open Walkthrough");
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      const driver = workbench.getDriver();
+      const activeElement = await driver.switchTo().activeElement();
+      await activeElement.sendKeys(String(walkthroughName));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await activeElement.sendKeys("\n");
+
       const welcomeTab = await waitForCondition({
         condition: async () => {
-          return await editorView.getTabByTitle("Walkthrough: Ansible");
+          try {
+            const allTitles = await editorView.getOpenEditorTitles();
+            const walkthroughTitle = allTitles.find(
+              (title) =>
+                title.startsWith("Walkthrough:") || title === "Welcome",
+            );
+
+            if (walkthroughTitle) {
+              const tabs = await editorView.getOpenTabs();
+              for (const tab of tabs) {
+                const title = await tab.getTitle();
+                if (title === walkthroughTitle) {
+                  try {
+                    const elements = await tab.findElements(
+                      By.xpath(
+                        "//div[contains(@class, 'getting-started-category')]",
+                      ),
+                    );
+
+                    if (elements.length > 0) {
+                      await new Promise((resolve) => setTimeout(resolve, 1000));
+                      return tab;
+                    }
+                  } catch {
+                    continue;
+                  }
+                }
+              }
+            }
+            return false;
+          } catch {
+            return false;
+          }
         },
-        message: "Timed out waiting for walkthrough tab to open",
+        timeout: 6000,
+        message: "Timed out waiting for walkthrough content to load",
       });
 
       expect(welcomeTab).is.not.undefined;
 
-      // Locate walkthrough title text
       const titleText = await welcomeTab
         .findElement(
           By.xpath("//div[contains(@class, 'getting-started-category') ]"),
@@ -95,21 +130,17 @@ describe("Check walkthroughs, elements and associated commands", function () {
         `${walkthroughName} title not found`,
       ).to.be.true;
 
-      // Locate one of the steps
       const fullStepText = await welcomeTab
         .findElement(
           By.xpath("//div[contains(@class, 'step-list-container') ]"),
         )
         .getText();
-
       const stepText = fullStepText.split("\n")[0];
       expect(steps, "No walkthrough step").to.include(stepText);
-
-      await editorView.closeEditor("Walkthrough: Ansible");
     });
   });
 
-  it.skip("Check empty playbook command option", async function () {
+  it("Check empty playbook command option", async function () {
     await workbench.executeCommand("Ansible: Create an empty Ansible playbook");
 
     const newFileEditor = await openUntitledFile();
@@ -124,7 +155,7 @@ describe("Check walkthroughs, elements and associated commands", function () {
     await dialogBox.getDriver().wait(until.stalenessOf(dialogBox), 2000);
   });
 
-  it.skip("Check unauthenticated playbook command option", async function () {
+  it("Check unauthenticated playbook command option", async function () {
     await workbench.executeCommand(
       "Ansible: Create an empty playbook or with Lightspeed (if authenticated)",
     );

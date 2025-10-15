@@ -26,14 +26,25 @@ describe("presence of lightspeed element in the status bar and the explorer view
     const editorView = new EditorView();
     await editorView.openEditor(file);
 
-    // The following lines replaced the original code that was using StatusBar.getItem() API.
-    const lightspeedStatusBarItem = await statusBar.findElement(
-      By.xpath(
-        "//div[contains(@class, 'statusbar-item') and " +
-          "not (contains(@class, 'has-background-color')) and " +
-          ".//a/text()='Lightspeed (Not logged in)']",
-      ),
-    );
+    // Wait for the Lightspeed status bar item to appear
+    const lightspeedStatusBarItem = await waitForCondition({
+      condition: async () => {
+        try {
+          return await statusBar.findElement(
+            By.xpath(
+              "//div[contains(@class, 'statusbar-item') and " +
+                "not (contains(@class, 'has-background-color')) and " +
+                ".//a/text()='Lightspeed (Not logged in)']",
+            ),
+          );
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for Lightspeed status bar item to appear",
+      timeout: 6000,
+    });
+
     expect(lightspeedStatusBarItem).not.to.be.undefined;
   });
 
