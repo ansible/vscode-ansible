@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       is-pr: ${{ steps.check.outputs.is-pr }}
+      is-valid-command: ${{ steps.parse.outputs.is-valid-command }}
       command: ${{ steps.parse.outputs.command }}
       os: ${{ steps.parse.outputs.os }}
     steps:
@@ -30,29 +31,37 @@ jobs:
         if: steps.check.outputs.is-pr == 'true'
         run: |
           COMMENT="${{ github.event.comment.body }}"
+          echo "Original comment: $COMMENT"
           COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
+          echo "Lowercase comment: $COMMENT_LOWER"
           
           if echo "$COMMENT_LOWER" | grep -qE "\brun macos test\b"; then
+            echo "Matched: run macos test"
             echo "is-valid-command=true" >> $GITHUB_OUTPUT
             echo "command=test" >> $GITHUB_OUTPUT
             echo "os=macos" >> $GITHUB_OUTPUT
           elif echo "$COMMENT_LOWER" | grep -qE "\brun linux test\b"; then
+            echo "Matched: run linux test"
             echo "is-valid-command=true" >> $GITHUB_OUTPUT
             echo "command=test" >> $GITHUB_OUTPUT
             echo "os=linux" >> $GITHUB_OUTPUT
           elif echo "$COMMENT_LOWER" | grep -qE "\brun test\b"; then
+            echo "Matched: run test"
             echo "is-valid-command=true" >> $GITHUB_OUTPUT
             echo "command=test" >> $GITHUB_OUTPUT
             echo "os=all" >> $GITHUB_OUTPUT
           elif echo "$COMMENT_LOWER" | grep -qE "\brun unit test\b"; then
+            echo "Matched: run unit test"
             echo "is-valid-command=true" >> $GITHUB_OUTPUT
             echo "command=unit" >> $GITHUB_OUTPUT
             echo "os=all" >> $GITHUB_OUTPUT
           elif echo "$COMMENT_LOWER" | grep -qE "\brun lint\b"; then
+            echo "Matched: run lint"
             echo "is-valid-command=true" >> $GITHUB_OUTPUT
             echo "command=lint" >> $GITHUB_OUTPUT
             echo "os=linux" >> $GITHUB_OUTPUT
           else
+            echo "No match found"
             echo "is-valid-command=false" >> $GITHUB_OUTPUT
             echo "command=" >> $GITHUB_OUTPUT
             echo "os=" >> $GITHUB_OUTPUT
