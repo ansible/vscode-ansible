@@ -1,0 +1,215 @@
+name: PR Comment Trigger
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+concurrency:
+  group: pr-comment-${{ github.event.issue.number }}-${{ github.event.comment.id }}
+  cancel-in-progress: false
+
+jobs:
+  check-comment:
+    runs-on: ubuntu-latest
+    outputs:
+      is-pr: ${{ steps.check.outputs.is-pr }}
+      command: ${{ steps.parse.outputs.command }}
+      os: ${{ steps.parse.outputs.os }}
+    steps:
+      - name: Check if comment is on a PR
+        id: check
+        run: |
+          if [[ "${{ github.event.issue.pull_request.url }}" != "" ]]; then
+            echo "is-pr=true" >> $GITHUB_OUTPUT
+          else
+            echo "is-pr=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Parse comment for commands
+        id: parse
+        if: steps.check.outputs.is-pr == 'true'
+        run: |
+          COMMENT="${{ github.event.comment.body }}"
+          COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
+          
+          if echo "$COMMENT_LOWER" | grep -qE "\brun macos test\b"; then
+            echo "is-valid-command=true" >> $GITHUB_OUTPUT
+            echo "command=test" >> $GITHUB_OUTPUT
+            echo "os=macos" >> $GITHUB_OUTPUT
+          elif echo "$COMMENT_LOWER" | grep -qE "\brun linux test\b"; then
+            echo "is-valid-command=true" >> $GITHUB_OUTPUT
+            echo "command=test" >> $GITHUB_OUTPUT
+            echo "os=linux" >> $GITHUB_OUTPUT
+          elif echo "$COMMENT_LOWER" | grep -qE "\brun test\b"; then
+            echo "is-valid-command=true" >> $GITHUB_OUTPUT
+            echo "command=test" >> $GITHUB_OUTPUT
+            echo "os=all" >> $GITHUB_OUTPUT
+          elif echo "$COMMENT_LOWER" | grep -qE "\brun unit test\b"; then
+            echo "is-valid-command=true" >> $GITHUB_OUTPUT
+            echo "command=unit" >> $GITHUB_OUTPUT
+            echo "os=all" >> $GITHUB_OUTPUT
+          elif echo "$COMMENT_LOWER" | grep -qE "\brun lint\b"; then
+            echo "is-valid-command=true" >> $GITHUB_OUTPUT
+            echo "command=lint" >> $GITHUB_OUTPUT
+            echo "os=linux" >> $GITHUB_OUTPUT
+          else
+            echo "is-valid-command=false" >> $GITHUB_OUTPUT
+            echo "command=" >> $GITHUB_OUTPUT
+            echo "os=" >> $GITHUB_OUTPUT
+          fi
+
+  respond-to-comment:
+    needs: check-comment
+    if: needs.check-comment.outputs.is-pr == 'true' && needs.check-comment.outputs.is-valid-command == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Respond to comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const command = '${{ needs.check-comment.outputs.command }}';
+            const os = '${{ needs.check-comment.outputs.os }}';
+            
+            let response = `🚀 **Test triggered!**\n\n`;
+            response += `**Command:** \`${command}\`\n`;
+            response += `**Target OS:** ${os}\n\n`;
+            response += `I'll start running the tests now. You can monitor the progress in the [Actions tab](https://github.com/${{ github.repository }}/actions).\n`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: response
+            });
+
+  run-tests:
+    needs: [check-comment, respond-to-comment]
+    if: needs.check-comment.outputs.is-pr == 'true' && needs.check-comment.outputs.is-valid-command == 'true'
+    strategy:
+      matrix:
+        include:
+          - name: test (macos)
+            task-name: test
+            os: macos-13-large
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
+            condition: ${{ needs.check-comment.outputs.os == 'macos' || needs.check-comment.outputs.os == 'all' }}
+          
+          - name: test (linux)
+            task-name: test
+            os: ubuntu-24.04
+            condition: ${{ needs.check-comment.outputs.os == 'linux' || needs.check-comment.outputs.os == 'all' }}
+          
+          - name: lint
+            task-name: lint
+            os: ubuntu-24.04
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
+            condition: ${{ needs.check-comment.outputs.command == 'lint' }}
+          
+          - name: unit (macos)
+            task-name: unit
+            os: macos-13-large
+            env:
+              SKIP_PODMAN: 1
+              SKIP_DOCKER: 1
+            condition: ${{ needs.check-comment.outputs.command == 'unit' && (needs.check-comment.outputs.os == 'macos' || needs.check-comment.outputs.os == 'all') }}
+          
+          - name: unit (linux)
+            task-name: unit
+            os: ubuntu-24.04
+            condition: ${{ needs.check-comment.outputs.command == 'unit' && (needs.check-comment.outputs.os == 'linux' || needs.check-comment.outputs.os == 'all') }}
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
+    continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
+    
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v3.0.0
+        with:
+          experimental: true
+          reshim: true
+
+      - name: Corepack enable
+        run: corepack enable
+
+      - name: Setup task
+        uses: arduino/setup-task@v2.0.0
+        with:
+          version: 3.37.2
+
+      - name: Setup python
+        uses: actions/setup-python@v6.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Install ansible-dev-tools
+        run: pip install ansible-dev-tools
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          npm exec -- yarn install
+
+      - name: task setup
+        timeout-minutes: 25
+        run: task setup
+
+      - name: configure podman
+        if: ${{ matrix.name == 'test (linux)' }}
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          mkdir -p ~/.config/containers
+          cat <<EOT >> ~/.config/containers/containers.conf
+          [engine]
+          cgroup_manager="cgroupfs"
+          EOT
+          podman info
+
+      - name: task ${{ matrix.task-name }}
+        run: task ${{ matrix.task-name }}
+
+      - name: task als
+        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        run: task als
+
+  post-results:
+    needs: [check-comment, run-tests]
+    if: always() && needs.check-comment.outputs.is-pr == 'true' && needs.check-comment.outputs.is-valid-command == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post test results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const command = '${{ needs.check-comment.outputs.command }}';
+            const os = '${{ needs.check-comment.outputs.os }}';
+            
+            let status = '✅ **Tests completed successfully!**';
+            if ('${{ needs.run-tests.result }}' === 'failure') {
+              status = '❌ **Some tests failed.**';
+            } else if ('${{ needs.run-tests.result }}' === 'cancelled') {
+              status = '⏹️ **Tests were cancelled.**';
+            }
+            
+            let response = `${status}\n\n`;
+            response += `**Command:** \`${command}\`\n`;
+            response += `**Target OS:** ${os}\n\n`;
+            response += `**Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: response
+            });
