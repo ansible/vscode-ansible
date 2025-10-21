@@ -34,7 +34,7 @@ jobs:
           echo "Original comment: $COMMENT"
           COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
           echo "Lowercase comment: $COMMENT_LOWER"
-          
+
           if echo "$COMMENT_LOWER" | grep -qE "\brun macos test\b"; then
             echo "Matched: run macos test"
             echo "is-valid-command=true" >> $GITHUB_OUTPUT
