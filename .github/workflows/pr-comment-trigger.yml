@@ -78,12 +78,12 @@ jobs:
           script: |
             const command = '${{ needs.check-comment.outputs.command }}';
             const os = '${{ needs.check-comment.outputs.os }}';
-            
+
             let response = `🚀 **Test triggered!**\n\n`;
             response += `**Command:** \`${command}\`\n`;
             response += `**Target OS:** ${os}\n\n`;
             response += `I'll start running the tests now. You can monitor the progress in the [Actions tab](https://github.com/${{ github.repository }}/actions).\n`;
-            
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -104,12 +104,12 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
             condition: ${{ needs.check-comment.outputs.os == 'macos' || needs.check-comment.outputs.os == 'all' }}
-          
+
           - name: test (linux)
             task-name: test
             os: ubuntu-24.04
             condition: ${{ needs.check-comment.outputs.os == 'linux' || needs.check-comment.outputs.os == 'all' }}
-          
+
           - name: lint
             task-name: lint
             os: ubuntu-24.04
@@ -117,7 +117,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
             condition: ${{ needs.check-comment.outputs.command == 'lint' }}
-          
+
           - name: unit (macos)
             task-name: unit
             os: macos-13-large
@@ -125,7 +125,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
             condition: ${{ needs.check-comment.outputs.command == 'unit' && (needs.check-comment.outputs.os == 'macos' || needs.check-comment.outputs.os == 'all') }}
-          
+
           - name: unit (linux)
             task-name: unit
             os: ubuntu-24.04
@@ -134,7 +134,7 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
     continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
-    
+
     permissions:
       contents: read
       pull-requests: write
@@ -203,19 +203,19 @@ jobs:
           script: |
             const command = '${{ needs.check-comment.outputs.command }}';
             const os = '${{ needs.check-comment.outputs.os }}';
-            
+
             let status = '✅ **Tests completed successfully!**';
             if ('${{ needs.run-tests.result }}' === 'failure') {
               status = '❌ **Some tests failed.**';
             } else if ('${{ needs.run-tests.result }}' === 'cancelled') {
               status = '⏹️ **Tests were cancelled.**';
             }
-            
+
             let response = `${status}\n\n`;
             response += `**Command:** \`${command}\`\n`;
             response += `**Target OS:** ${os}\n\n`;
             response += `**Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-            
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
