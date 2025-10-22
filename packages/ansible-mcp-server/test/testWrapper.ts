@@ -15,7 +15,7 @@ export function createTestServer(workspaceRoot: string) {
       // Get the registered tools from the server
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const registeredTools = (server as any)._registeredTools;
-      
+
       if (!registeredTools || !registeredTools[name]) {
         throw new Error(`Unknown tool: ${name}`);
       }

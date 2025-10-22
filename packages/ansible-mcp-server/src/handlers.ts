@@ -115,7 +115,7 @@ export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
     try {
       const envInfo = await getEnvironmentInfo(workspaceRoot);
       const formattedInfo = formatEnvironmentInfo(envInfo);
-      
+
       return {
         content: [
           {
@@ -149,7 +149,7 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
   }) => {
     try {
       const result = await setupDevelopmentEnvironment(workspaceRoot, args);
-      
+
       return {
         content: [
           {
@@ -178,7 +178,7 @@ export function createADECheckADTHandler() {
   return async () => {
     try {
       const result = await checkAndInstallADT();
-      
+
       return {
         content: [
           {

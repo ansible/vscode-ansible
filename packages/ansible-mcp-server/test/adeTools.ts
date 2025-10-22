@@ -106,7 +106,7 @@ describe("ADE Tools", () => {
   describe("checkADTInstalled", () => {
     it("should return true when ADT is installed", async () => {
       const mockChild = {
-        stdout: { 
+        stdout: {
           on: vi.fn((event, callback) => {
             if (event === "data") {
               // Mock pip list output with ansible-dev-tools
@@ -194,7 +194,7 @@ describe("ADE Tools", () => {
       });
 
       const result = await getEnvironmentInfo("/test/workspace");
-      
+
       expect(result.workspacePath).toBe("/test/workspace");
       expect(result.pythonVersion).toBe("Python 3.11.0");
       expect(result.ansibleVersion).toBe("ansible [core 2.15.0]");
@@ -308,7 +308,7 @@ describe("ADE Tools", () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         if (command === "pip" && args?.includes("list")) {
           return {
-            stdout: { 
+            stdout: {
               on: vi.fn((event, callback) => {
                 if (event === "data") {
                   // Mock pip list output with ansible-dev-tools
@@ -397,7 +397,7 @@ describe("ADE Tools", () => {
       };
 
       const formatted = formatEnvironmentInfo(envInfo);
-      
+
       expect(formatted).toContain("🔍 Environment Information");
       expect(formatted).toContain("📁 Workspace: /test/workspace");
       expect(formatted).toContain("🐍 Python: Python 3.11.0");
@@ -423,7 +423,7 @@ describe("ADE Tools", () => {
       };
 
       const formatted = formatEnvironmentInfo(envInfo);
-      
+
       expect(formatted).toContain("🔧 Virtual Environment: Not set");
       expect(formatted).toContain("• Ansible: Not installed");
       expect(formatted).toContain("• Ansible Lint: Not installed");
