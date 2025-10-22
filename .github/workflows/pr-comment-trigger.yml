@@ -40,7 +40,7 @@ jobs:
         run: |
           COMMENT_BODY="${{ github.event.comment.body }}"
           echo "Comment body: $COMMENT_BODY"
-          
+
           # Check for test trigger commands
           if echo "$COMMENT_BODY" | grep -qiE "^\s*(/test|/run-tests|/retest)\s*$"; then
             echo "should-trigger=true" >> $GITHUB_OUTPUT
@@ -78,10 +78,10 @@ jobs:
         run: |
           gh pr comment ${{ needs.check-comment.outputs.pr-number }} \
             --body "🚀 **Test Triggered by @${{ github.event.comment.user.login }}**
-          
+
           **Test Type:** ${{ needs.check-comment.outputs.test-type }}
           **Triggered by:** \`${{ github.event.comment.body }}\`
-          
+
           Tests are now running... ⏳"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,18 +100,18 @@ jobs:
         run: |
           echo "Waiting for workflow to start..."
           sleep 10
-          
+
           # Get the latest workflow run
           RUN_ID=$(gh run list --workflow=ci.yaml --limit=1 --json databaseId --jq '.[0].databaseId')
           echo "Workflow run ID: $RUN_ID"
-          
+
           # Add a follow-up comment with the workflow run link
           gh pr comment ${{ needs.check-comment.outputs.pr-number }} \
             --body "📋 **Test Run Started**
-          
+
           **Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)
           **Test Type:** ${{ needs.check-comment.outputs.test-type }}
-          
+
           You can monitor the progress by clicking the link above."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
