@@ -23,6 +23,18 @@ on:
         description: "Publish a pre-release"
         required: false
         default: "false"
+      test_type:
+        description: "Type of tests to run (all, unit, ui, e2e, als)"
+        required: false
+        default: "all"
+      triggered_by:
+        description: "What triggered this run"
+        required: false
+        default: "manual"
+      pr_number:
+        description: "PR number if triggered by comment"
+        required: false
+        default: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
@@ -263,22 +275,22 @@ jobs:
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task unit
-        if: contains(matrix.name, 'test')
+        if: contains(matrix.name, 'test') && (github.event_name != 'workflow_dispatch' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'unit')
         run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && (github.event_name != 'workflow_dispatch' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'ui') }}
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && (github.event_name != 'workflow_dispatch' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'e2e') }}
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && (github.event_name != 'workflow_dispatch' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'als') }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
@@ -498,6 +510,28 @@ jobs:
         uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # release/v1 branch
         with:
           jobs: ${{ toJSON(needs) }}
+
+      - name: Post test results to PR
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number != ''
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            STATUS="✅ **PASSED**"
+            EMOJI="🎉"
+          else
+            STATUS="❌ **FAILED**"
+            EMOJI="😞"
+          fi
+          
+          gh pr comment ${{ github.event.inputs.pr_number }} \
+            --body "$EMOJI **Test Results**
+          
+          **Status:** $STATUS
+          **Test Type:** ${{ github.event.inputs.test_type }}
+          **Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          
+          Tests completed!"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'

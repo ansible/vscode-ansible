@@ -1,224 +1,117 @@
-name: PR Comment Trigger
+# cspell:ignore oidc
+name: PR Comment Trigger Tests
 
+# Trigger on issue comments in pull requests
 on:
   issue_comment:
-    types: [created, edited]
+    types: [created]
 
+# Only run on pull request comments
 concurrency:
-  group: pr-comment-${{ github.event.issue.number }}-${{ github.event.comment.id }}
-  cancel-in-progress: false
+  group: pr-comment-trigger-${{ github.event.issue.number }}-${{ github.event.comment.id }}
+  cancel-in-progress: true
 
 jobs:
+  # Check if the comment is a test trigger command
   check-comment:
     runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && github.event.action == 'created'
     outputs:
-      is-pr: ${{ steps.check.outputs.is-pr }}
-      is-valid-command: ${{ steps.parse.outputs.is-valid-command }}
-      command: ${{ steps.parse.outputs.command }}
-      os: ${{ steps.parse.outputs.os }}
+      should-trigger: ${{ steps.check.outputs.should-trigger }}
+      test-type: ${{ steps.check.outputs.test-type }}
+      pr-number: ${{ github.event.issue.number }}
+      pr-head-sha: ${{ steps.get-pr.outputs.head-sha }}
     steps:
-      - name: Check if comment is on a PR
-        id: check
-        run: |
-          if [[ "${{ github.event.issue.pull_request.url }}" != "" ]]; then
-            echo "is-pr=true" >> $GITHUB_OUTPUT
-          else
-            echo "is-pr=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Parse comment for commands
-        id: parse
-        if: steps.check.outputs.is-pr == 'true'
-        run: |
-          COMMENT="${{ github.event.comment.body }}"
-          echo "Original comment: $COMMENT"
-          COMMENT_LOWER=$(echo "$COMMENT" | tr '[:upper:]' '[:lower:]')
-          echo "Lowercase comment: $COMMENT_LOWER"
-
-          if echo "$COMMENT_LOWER" | grep -qE "\brun macos test\b"; then
-            echo "Matched: run macos test"
-            echo "is-valid-command=true" >> $GITHUB_OUTPUT
-            echo "command=test" >> $GITHUB_OUTPUT
-            echo "os=macos" >> $GITHUB_OUTPUT
-          elif echo "$COMMENT_LOWER" | grep -qE "\brun linux test\b"; then
-            echo "Matched: run linux test"
-            echo "is-valid-command=true" >> $GITHUB_OUTPUT
-            echo "command=test" >> $GITHUB_OUTPUT
-            echo "os=linux" >> $GITHUB_OUTPUT
-          elif echo "$COMMENT_LOWER" | grep -qE "\brun test\b"; then
-            echo "Matched: run test"
-            echo "is-valid-command=true" >> $GITHUB_OUTPUT
-            echo "command=test" >> $GITHUB_OUTPUT
-            echo "os=all" >> $GITHUB_OUTPUT
-          elif echo "$COMMENT_LOWER" | grep -qE "\brun unit test\b"; then
-            echo "Matched: run unit test"
-            echo "is-valid-command=true" >> $GITHUB_OUTPUT
-            echo "command=unit" >> $GITHUB_OUTPUT
-            echo "os=all" >> $GITHUB_OUTPUT
-          elif echo "$COMMENT_LOWER" | grep -qE "\brun lint\b"; then
-            echo "Matched: run lint"
-            echo "is-valid-command=true" >> $GITHUB_OUTPUT
-            echo "command=lint" >> $GITHUB_OUTPUT
-            echo "os=linux" >> $GITHUB_OUTPUT
-          else
-            echo "No match found"
-            echo "is-valid-command=false" >> $GITHUB_OUTPUT
-            echo "command=" >> $GITHUB_OUTPUT
-            echo "os=" >> $GITHUB_OUTPUT
-          fi
-
-  respond-to-comment:
-    needs: check-comment
-    if: needs.check-comment.outputs.is-pr == 'true' && needs.check-comment.outputs.is-valid-command == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Respond to comment
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const command = '${{ needs.check-comment.outputs.command }}';
-            const os = '${{ needs.check-comment.outputs.os }}';
-
-            let response = `🚀 **Test triggered!**\n\n`;
-            response += `**Command:** \`${command}\`\n`;
-            response += `**Target OS:** ${os}\n\n`;
-            response += `I'll start running the tests now. You can monitor the progress in the [Actions tab](https://github.com/${{ github.repository }}/actions).\n`;
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: response
-            });
-
-  run-tests:
-    needs: [check-comment, respond-to-comment]
-    if: needs.check-comment.outputs.is-pr == 'true' && needs.check-comment.outputs.is-valid-command == 'true'
-    strategy:
-      matrix:
-        include:
-          - name: test (macos)
-            task-name: test
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            condition: ${{ needs.check-comment.outputs.os == 'macos' || needs.check-comment.outputs.os == 'all' }}
-
-          - name: test (linux)
-            task-name: test
-            os: ubuntu-24.04
-            condition: ${{ needs.check-comment.outputs.os == 'linux' || needs.check-comment.outputs.os == 'all' }}
-
-          - name: lint
-            task-name: lint
-            os: ubuntu-24.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            condition: ${{ needs.check-comment.outputs.command == 'lint' }}
-
-          - name: unit (macos)
-            task-name: unit
-            os: macos-13-large
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-            condition: ${{ needs.check-comment.outputs.command == 'unit' && (needs.check-comment.outputs.os == 'macos' || needs.check-comment.outputs.os == 'all') }}
-
-          - name: unit (linux)
-            task-name: unit
-            os: ubuntu-24.04
-            condition: ${{ needs.check-comment.outputs.command == 'unit' && (needs.check-comment.outputs.os == 'linux' || needs.check-comment.outputs.os == 'all') }}
-
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
-    continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
-
-    permissions:
-      contents: read
-      pull-requests: write
-
-    steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
 
-      - uses: jdx/mise-action@v3.0.0
-        with:
-          experimental: true
-          reshim: true
-
-      - name: Corepack enable
-        run: corepack enable
-
-      - name: Setup task
-        uses: arduino/setup-task@v2.0.0
-        with:
-          version: 3.37.2
-
-      - name: Setup python
-        uses: actions/setup-python@v6.0.0
-        with:
-          python-version: "3.13"
-
-      - name: Install ansible-dev-tools
-        run: pip install ansible-dev-tools
-
-      - name: Install dependencies
+      - name: Get PR details
+        id: get-pr
         run: |
-          corepack enable
-          npm exec -- yarn install
+          PR_DATA=$(gh pr view ${{ github.event.issue.number }} --json headRefOid)
+          echo "head-sha=$(echo $PR_DATA | jq -r '.headRefOid')" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: task setup
-        timeout-minutes: 25
-        run: task setup
-
-      - name: configure podman
-        if: ${{ matrix.name == 'test (linux)' }}
+      - name: Check comment content
+        id: check
         run: |
-          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
-          mkdir -p ~/.config/containers
-          cat <<EOT >> ~/.config/containers/containers.conf
-          [engine]
-          cgroup_manager="cgroupfs"
-          EOT
-          podman info
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          echo "Comment body: $COMMENT_BODY"
+          
+          # Check for test trigger commands
+          if echo "$COMMENT_BODY" | grep -qiE "^\s*(/test|/run-tests|/retest)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=all" >> $GITHUB_OUTPUT
+            echo "✅ Triggering all tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-unit|/run-unit-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=unit" >> $GITHUB_OUTPUT
+            echo "✅ Triggering unit tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-ui|/run-ui-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=ui" >> $GITHUB_OUTPUT
+            echo "✅ Triggering UI tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-e2e|/run-e2e-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=e2e" >> $GITHUB_OUTPUT
+            echo "✅ Triggering E2E tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-als|/run-als-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=als" >> $GITHUB_OUTPUT
+            echo "✅ Triggering ALS tests"
+          else
+            echo "should-trigger=false" >> $GITHUB_OUTPUT
+            echo "test-type=none" >> $GITHUB_OUTPUT
+            echo "❌ No valid test command found"
+          fi
 
-      - name: task ${{ matrix.task-name }}
-        run: task ${{ matrix.task-name }}
-
-      - name: task als
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
-        run: task als
-
-  post-results:
-    needs: [check-comment, run-tests]
-    if: always() && needs.check-comment.outputs.is-pr == 'true' && needs.check-comment.outputs.is-valid-command == 'true'
+  # Trigger the actual test run
+  trigger-tests:
+    needs: check-comment
+    if: needs.check-comment.outputs.should-trigger == 'true'
     runs-on: ubuntu-latest
     steps:
-      - name: Post test results
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const command = '${{ needs.check-comment.outputs.command }}';
-            const os = '${{ needs.check-comment.outputs.os }}';
+      - name: Add comment to PR
+        run: |
+          gh pr comment ${{ needs.check-comment.outputs.pr-number }} \
+            --body "🚀 **Test Triggered by @${{ github.event.comment.user.login }}**
+          
+          **Test Type:** ${{ needs.check-comment.outputs.test-type }}
+          **Triggered by:** \`${{ github.event.comment.body }}\`
+          
+          Tests are now running... ⏳"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            let status = '✅ **Tests completed successfully!**';
-            if ('${{ needs.run-tests.result }}' === 'failure') {
-              status = '❌ **Some tests failed.**';
-            } else if ('${{ needs.run-tests.result }}' === 'cancelled') {
-              status = '⏹️ **Tests were cancelled.**';
-            }
+      - name: Trigger workflow dispatch
+        run: |
+          gh workflow run ci.yaml \
+            --ref ${{ needs.check-comment.outputs.pr-head-sha }} \
+            --field test_type="${{ needs.check-comment.outputs.test-type }}" \
+            --field triggered_by="pr_comment" \
+            --field pr_number="${{ needs.check-comment.outputs.pr-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-            let response = `${status}\n\n`;
-            response += `**Command:** \`${command}\`\n`;
-            response += `**Target OS:** ${os}\n\n`;
-            response += `**Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})\n`;
-
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: response
-            });
+      - name: Wait for workflow to start
+        run: |
+          echo "Waiting for workflow to start..."
+          sleep 10
+          
+          # Get the latest workflow run
+          RUN_ID=$(gh run list --workflow=ci.yaml --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Workflow run ID: $RUN_ID"
+          
+          # Add a follow-up comment with the workflow run link
+          gh pr comment ${{ needs.check-comment.outputs.pr-number }} \
+            --body "📋 **Test Run Started**
+          
+          **Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)
+          **Test Type:** ${{ needs.check-comment.outputs.test-type }}
+          
+          You can monitor the progress by clicking the link above."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
