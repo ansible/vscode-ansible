@@ -42,6 +42,7 @@ describe("ADE Tools", () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(spawn).mockReturnValue(mockChild as any);
 
       const result = await executeCommand("python", ["--version"]);
@@ -59,6 +60,7 @@ describe("ADE Tools", () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(spawn).mockReturnValue(mockChild as any);
 
       const result = await executeCommand("invalid-command");
@@ -79,6 +81,7 @@ describe("ADE Tools", () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(spawn).mockReturnValue(mockChild as any);
 
       const result = await checkADEInstalled();
@@ -96,6 +99,7 @@ describe("ADE Tools", () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(spawn).mockReturnValue(mockChild as any);
 
       const result = await checkADEInstalled();
@@ -106,16 +110,18 @@ describe("ADE Tools", () => {
   describe("checkADTInstalled", () => {
     it("should return true when ADT is installed", async () => {
       const mockChild = {
-        stdout: { 
+        stdout: {
           on: vi.fn((event, callback) => {
             if (event === "data") {
               // Mock pip list output with ansible-dev-tools
-              callback(JSON.stringify([
-                { name: "ansible-dev-tools", version: "1.0.0" },
-                { name: "other-package", version: "2.0.0" }
-              ]));
+              callback(
+                JSON.stringify([
+                  { name: "ansible-dev-tools", version: "1.0.0" },
+                  { name: "other-package", version: "2.0.0" },
+                ]),
+              );
             }
-          })
+          }),
         },
         stderr: { on: vi.fn() },
         on: vi.fn((event, callback) => {
@@ -125,6 +131,7 @@ describe("ADE Tools", () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(spawn).mockReturnValue(mockChild as any);
 
       const result = await checkADTInstalled();
@@ -142,6 +149,7 @@ describe("ADE Tools", () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(spawn).mockReturnValue(mockChild as any);
 
       const result = await checkADTInstalled();
@@ -190,11 +198,12 @@ describe("ADE Tools", () => {
           });
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return mockChild as any;
       });
 
       const result = await getEnvironmentInfo("/test/workspace");
-      
+
       expect(result.workspacePath).toBe("/test/workspace");
       expect(result.pythonVersion).toBe("Python 3.11.0");
       expect(result.ansibleVersion).toBe("ansible [core 2.15.0]");
@@ -220,13 +229,18 @@ describe("ADE Tools", () => {
 
         if (command === "ansible-dev-tools") {
           // ADT is available
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return mockChild as any;
         }
 
         if (command === "python3") {
           mockChild.stdout.on = vi.fn((event, callback) => {
             if (event === "data") {
-              setTimeout(() => callback("Virtual environment created successfully"), 5);
+              setTimeout(
+                () => callback("Virtual environment created successfully"),
+                5,
+              );
             }
           });
         }
@@ -234,7 +248,10 @@ describe("ADE Tools", () => {
         if (command === "ansible-galaxy") {
           mockChild.stdout.on = vi.fn((event, callback) => {
             if (event === "data") {
-              setTimeout(() => callback("Collection installed successfully"), 5);
+              setTimeout(
+                () => callback("Collection installed successfully"),
+                5,
+              );
             }
           });
         }
@@ -242,11 +259,15 @@ describe("ADE Tools", () => {
         if (command === "pip") {
           mockChild.stdout.on = vi.fn((event, callback) => {
             if (event === "data") {
-              setTimeout(() => callback("Requirements installed successfully"), 5);
+              setTimeout(
+                () => callback("Requirements installed successfully"),
+                5,
+              );
             }
           });
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return mockChild as any;
       });
 
@@ -258,7 +279,9 @@ describe("ADE Tools", () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.output).toContain("Virtual environment created successfully");
+      expect(result.output).toContain(
+        "Virtual environment created successfully",
+      );
     });
 
     it("should install ADT and setup environment when ADT is not available", async () => {
@@ -283,23 +306,31 @@ describe("ADE Tools", () => {
                 setTimeout(() => callback(1), 10);
               }
             }),
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any;
         }
 
         if (command === "python3") {
           mockChild.stdout.on = vi.fn((event, callback) => {
             if (event === "data") {
-              setTimeout(() => callback("Virtual environment created successfully"), 5);
+              setTimeout(
+                () => callback("Virtual environment created successfully"),
+                5,
+              );
             }
           });
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return mockChild as any;
       });
 
       const result = await setupDevelopmentEnvironment("/test/workspace");
       expect(result.success).toBe(true);
-      expect(result.output).toContain("Virtual environment created successfully");
+      expect(result.output).toContain(
+        "Virtual environment created successfully",
+      );
     });
   });
 
@@ -308,16 +339,18 @@ describe("ADE Tools", () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         if (command === "pip" && args?.includes("list")) {
           return {
-            stdout: { 
+            stdout: {
               on: vi.fn((event, callback) => {
                 if (event === "data") {
                   // Mock pip list output with ansible-dev-tools
-                  callback(JSON.stringify([
-                    { name: "ansible-dev-tools", version: "1.0.0" },
-                    { name: "other-package", version: "2.0.0" }
-                  ]));
+                  callback(
+                    JSON.stringify([
+                      { name: "ansible-dev-tools", version: "1.0.0" },
+                      { name: "other-package", version: "2.0.0" },
+                    ]),
+                  );
                 }
-              })
+              }),
             },
             stderr: { on: vi.fn() },
             on: vi.fn((event, callback) => {
@@ -325,6 +358,8 @@ describe("ADE Tools", () => {
                 setTimeout(() => callback(0), 10);
               }
             }),
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any;
         }
         return {
@@ -335,12 +370,15 @@ describe("ADE Tools", () => {
               setTimeout(() => callback(1), 10);
             }
           }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       });
 
       const result = await checkAndInstallADT();
       expect(result.success).toBe(true);
-      expect(result.output).toContain("ADT (ansible-dev-tools) is already installed");
+      expect(result.output).toContain(
+        "ADT (ansible-dev-tools) is already installed",
+      );
     });
 
     it("should install ADT when not available", async () => {
@@ -354,6 +392,8 @@ describe("ADE Tools", () => {
                 setTimeout(() => callback(1), 10);
               }
             }),
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any;
         } else if (command === "pip") {
           return {
@@ -364,6 +404,8 @@ describe("ADE Tools", () => {
                 setTimeout(() => callback(0), 10);
               }
             }),
+
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any;
         }
         return {
@@ -374,12 +416,15 @@ describe("ADE Tools", () => {
               setTimeout(() => callback(1), 10);
             }
           }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } as any;
       });
 
       const result = await checkAndInstallADT();
       expect(result.success).toBe(true);
-      expect(result.output).toContain("ADT (ansible-dev-tools) installed successfully");
+      expect(result.output).toContain(
+        "ADT (ansible-dev-tools) installed successfully",
+      );
     });
   });
 
@@ -397,7 +442,7 @@ describe("ADE Tools", () => {
       };
 
       const formatted = formatEnvironmentInfo(envInfo);
-      
+
       expect(formatted).toContain("🔍 Environment Information");
       expect(formatted).toContain("📁 Workspace: /test/workspace");
       expect(formatted).toContain("🐍 Python: Python 3.11.0");
@@ -423,7 +468,7 @@ describe("ADE Tools", () => {
       };
 
       const formatted = formatEnvironmentInfo(envInfo);
-      
+
       expect(formatted).toContain("🔧 Virtual Environment: Not set");
       expect(formatted).toContain("• Ansible: Not installed");
       expect(formatted).toContain("• Ansible Lint: Not installed");

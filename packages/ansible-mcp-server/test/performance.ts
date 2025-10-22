@@ -163,7 +163,7 @@ describe("Ansible MCP Server Performance", () => {
       const duration = endTime - startTime;
 
       expect(tools).toHaveLength(7);
-      expect(tools.map(t => t.name)).toContain("zen_of_ansible");
+      expect(tools.map((t) => t.name)).toContain("zen_of_ansible");
       expect(duration).toBeLessThan(10); // Should be nearly instantaneous
     });
 

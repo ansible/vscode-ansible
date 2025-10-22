@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createAnsibleMcpServer } from "../src/server.js";
 import { createTestServer } from "./testWrapper.js";
 
 describe("ADE Tools Integration", () => {
@@ -12,13 +11,15 @@ describe("ADE Tools Integration", () => {
   describe("ade_environment_info tool", () => {
     it("should be registered and callable", async () => {
       const result = await server.callTool("ade_environment_info", {});
-      
+
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
       expect(result.content.length).toBeGreaterThan(0);
-      
-      const textContent = result.content.find((c: any) => c.type === "text");
+
+      const textContent = result.content.find(
+        (c: { type: string }) => c.type === "text",
+      );
       expect(textContent).toBeDefined();
       expect(textContent?.text).toContain("🔍 Environment Information");
     });
@@ -34,7 +35,7 @@ describe("ADE Tools Integration", () => {
   describe("ade_setup_environment tool", () => {
     it("should be registered and callable with no arguments", async () => {
       const result = await server.callTool("ade_setup_environment", {});
-      
+
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
@@ -50,7 +51,7 @@ describe("ADE Tools Integration", () => {
       };
 
       const result = await server.callTool("ade_setup_environment", args);
-      
+
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
@@ -63,7 +64,7 @@ describe("ADE Tools Integration", () => {
       };
 
       const result = await server.callTool("ade_setup_environment", args);
-      
+
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
     });
@@ -72,13 +73,15 @@ describe("ADE Tools Integration", () => {
   describe("ade_check_adt tool", () => {
     it("should be registered and callable", async () => {
       const result = await server.callTool("ade_check_adt", {});
-      
+
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
       expect(Array.isArray(result.content)).toBe(true);
       expect(result.content.length).toBeGreaterThan(0);
-      
-      const textContent = result.content.find((c: any) => c.type === "text");
+
+      const textContent = result.content.find(
+        (c: { type: string }) => c.type === "text",
+      );
       expect(textContent).toBeDefined();
     });
   });
@@ -86,11 +89,13 @@ describe("ADE Tools Integration", () => {
   describe("Tool registration", () => {
     it("should include ADE tools in available tools list", async () => {
       const result = await server.callTool("list_available_tools", {});
-      
+
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
-      
-      const textContent = result.content.find((c: any) => c.type === "text");
+
+      const textContent = result.content.find(
+        (c: { type: string }) => c.type === "text",
+      );
       expect(textContent).toBeDefined();
       expect(textContent?.text).toContain("ade_environment_info");
       expect(textContent?.text).toContain("ade_setup_environment");
@@ -103,8 +108,10 @@ describe("ADE Tools Integration", () => {
       try {
         await server.callTool("invalid_ade_tool", {});
         expect.fail("Expected an error to be thrown");
-      } catch (error: any) {
-        expect(error.message).toContain("Unknown tool: invalid_ade_tool");
+      } catch (error: unknown) {
+        expect((error as Error).message).toContain(
+          "Unknown tool: invalid_ade_tool",
+        );
       }
     });
 
@@ -114,7 +121,7 @@ describe("ADE Tools Integration", () => {
         envName: 123, // Should be string
         collections: "not-an-array", // Should be array
       });
-      
+
       // The tool should still be callable, but may handle invalid args gracefully
       expect(result).toBeDefined();
     });
@@ -123,8 +130,10 @@ describe("ADE Tools Integration", () => {
   describe("Human-readable input support", () => {
     it("should support human-readable descriptions in tool descriptions", async () => {
       const result = await server.callTool("list_available_tools", {});
-      
-      const textContent = result.content.find((c: any) => c.type === "text");
+
+      const textContent = result.content.find(
+        (c: { type: string }) => c.type === "text",
+      );
       expect(textContent?.text).toContain("ade_environment_info");
       expect(textContent?.text).toContain("ade_setup_environment");
       expect(textContent?.text).toContain("ade_check_adt");

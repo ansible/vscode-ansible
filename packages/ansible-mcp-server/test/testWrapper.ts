@@ -1,5 +1,4 @@
 import { createAnsibleMcpServer } from "../src/server.js";
-import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
 /**
  * Test wrapper that provides test-friendly methods for the MCP server
@@ -10,12 +9,12 @@ export function createTestServer(workspaceRoot: string) {
 
   return {
     // Test helper methods that simulate MCP server behavior
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     async callTool(name: string, args: Record<string, unknown>) {
       // Get the registered tools from the server
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const registeredTools = (server as any)._registeredTools;
-      
+
       if (!registeredTools || !registeredTools[name]) {
         throw new Error(`Unknown tool: ${name}`);
       }
@@ -35,7 +34,9 @@ export function createTestServer(workspaceRoot: string) {
     listTools: () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const registeredTools = (server as any)._registeredTools;
-      return registeredTools ? Object.keys(registeredTools).map(name => ({ name })) : [];
+      return registeredTools
+        ? Object.keys(registeredTools).map((name) => ({ name }))
+        : [];
     },
     listResources: () => [],
     listPrompts: () => [],

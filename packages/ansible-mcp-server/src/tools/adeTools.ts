@@ -1,9 +1,6 @@
 import { spawn } from "node:child_process";
-import { promisify } from "node:util";
 import fs from "node:fs/promises";
 import path from "node:path";
-
-const execAsync = promisify(spawn);
 
 export interface ADEEnvironmentInfo {
   virtualEnv: string | null;
@@ -50,7 +47,7 @@ export async function executeCommand(
       stderr += data.toString();
     });
 
-    return new Promise((resolve) => {
+    return await new Promise((resolve) => {
       child.on("close", (code) => {
         resolve({
           success: code === 0,
@@ -96,7 +93,9 @@ export async function checkADTInstalled(): Promise<boolean> {
   if (result.success) {
     try {
       const packages = JSON.parse(result.output);
-      return packages.some((pkg: any) => pkg.name === "ansible-dev-tools");
+      return packages.some(
+        (pkg: { name: string }) => pkg.name === "ansible-dev-tools",
+      );
     } catch {
       return false;
     }
@@ -107,7 +106,9 @@ export async function checkADTInstalled(): Promise<boolean> {
 /**
  * Get comprehensive environment information
  */
-export async function getEnvironmentInfo(workspaceRoot: string): Promise<ADEEnvironmentInfo> {
+export async function getEnvironmentInfo(
+  workspaceRoot: string,
+): Promise<ADEEnvironmentInfo> {
   const [adeInstalled, adtInstalled] = await Promise.all([
     checkADEInstalled(),
     checkADTInstalled(),
@@ -132,18 +133,27 @@ export async function getEnvironmentInfo(workspaceRoot: string): Promise<ADEEnvi
 
   // Get Python version
   const pythonResult = await executeCommand("python3", ["--version"]);
-  const pythonVersion = pythonResult.success ? pythonResult.output.trim() : "Unknown";
+  const pythonVersion = pythonResult.success
+    ? pythonResult.output.trim()
+    : "Unknown";
 
   // Get Ansible version
   const ansibleResult = await executeCommand("ansible", ["--version"]);
-  const ansibleVersion = ansibleResult.success ? ansibleResult.output.split("\n")[0] : null;
+  const ansibleVersion = ansibleResult.success
+    ? ansibleResult.output.split("\n")[0]
+    : null;
 
   // Get ansible-lint version
   const ansibleLintResult = await executeCommand("ansible-lint", ["--version"]);
-  const ansibleLintVersion = ansibleLintResult.success ? ansibleLintResult.output.trim() : null;
+  const ansibleLintVersion = ansibleLintResult.success
+    ? ansibleLintResult.output.trim()
+    : null;
 
   // Get installed collections
-  const collectionsResult = await executeCommand("ansible-galaxy", ["collection", "list"]);
+  const collectionsResult = await executeCommand("ansible-galaxy", [
+    "collection",
+    "list",
+  ]);
   const installedCollections = collectionsResult.success
     ? collectionsResult.output
         .split("\n")
@@ -171,11 +181,13 @@ export async function createVirtualEnvironment(
   envName?: string,
   pythonVersion?: string,
 ): Promise<ADECommandResult> {
-  const venvPath = envName ? path.join(workspaceRoot, envName) : path.join(workspaceRoot, "venv");
+  const venvPath = envName
+    ? path.join(workspaceRoot, envName)
+    : path.join(workspaceRoot, "venv");
   const pythonCmd = pythonVersion ? `python${pythonVersion}` : "python3";
-  
+
   const args = ["-m", "venv", venvPath];
-  
+
   return await executeCommand(pythonCmd, args, workspaceRoot);
 }
 
@@ -190,7 +202,7 @@ export async function executeInVirtualEnvironment(
 ): Promise<ADECommandResult> {
   const activationScript = path.join(venvPath, "bin", "activate");
   const fullCommand = `source ${activationScript} && ${command} ${args.join(" ")}`;
-  
+
   return await executeCommand("bash", ["-c", fullCommand], cwd);
 }
 
@@ -200,10 +212,9 @@ export async function executeInVirtualEnvironment(
 export async function installCollections(
   workspaceRoot: string,
   collections: string[],
-  editable: boolean = true,
 ): Promise<ADECommandResult> {
   const args = ["collection", "install"];
-  
+
   // Note: ansible-galaxy doesn't support --editable flag
   // For editable installs, we would need to use pip install -e
   // For now, just install normally
@@ -220,14 +231,18 @@ export async function installRequirements(
   requirementsFile?: string,
 ): Promise<ADECommandResult> {
   const args = ["install", "-r"];
-  
+
   if (requirementsFile) {
     args.push(requirementsFile);
   } else {
     // Look for common requirements files
-    const commonFiles = ["requirements.txt", "requirements.yml", "test-requirements.txt"];
+    const commonFiles = [
+      "requirements.txt",
+      "requirements.yml",
+      "test-requirements.txt",
+    ];
     let foundFile = null;
-    
+
     for (const file of commonFiles) {
       try {
         await fs.access(path.join(workspaceRoot, file));
@@ -237,14 +252,15 @@ export async function installRequirements(
         // File doesn't exist, continue
       }
     }
-    
+
     if (foundFile) {
       args.push(foundFile);
     } else {
       return {
         success: false,
         output: "",
-        error: "No requirements file found. Please specify a requirements file or ensure requirements.txt exists.",
+        error:
+          "No requirements file found. Please specify a requirements file or ensure requirements.txt exists.",
       };
     }
   }
@@ -257,28 +273,39 @@ export async function installRequirements(
  */
 export async function cleanupConflictingPackages(): Promise<ADECommandResult> {
   const results: string[] = [];
-  
+
   // Check for old ansible package that conflicts with ansible-core
   const checkResult = await executeCommand("pip", ["list", "--format=json"]);
   if (checkResult.success) {
     try {
       const packages = JSON.parse(checkResult.output);
-      const oldAnsible = packages.find((pkg: any) => pkg.name === "ansible" && pkg.version.startsWith("2."));
-      
+      const oldAnsible = packages.find(
+        (pkg: { name: string; version: string }) =>
+          pkg.name === "ansible" && pkg.version.startsWith("2."),
+      );
+
       if (oldAnsible) {
-        results.push(`Found conflicting ansible package (${oldAnsible.version}), removing...`);
-        const removeResult = await executeCommand("pip", ["uninstall", "ansible", "-y"]);
+        results.push(
+          `Found conflicting ansible package (${oldAnsible.version}), removing...`,
+        );
+        const removeResult = await executeCommand("pip", [
+          "uninstall",
+          "ansible",
+          "-y",
+        ]);
         if (removeResult.success) {
           results.push("✅ Removed conflicting ansible package");
         } else {
-          results.push(`⚠️ Failed to remove ansible package: ${removeResult.error}`);
+          results.push(
+            `⚠️ Failed to remove ansible package: ${removeResult.error}`,
+          );
         }
       }
-    } catch (error) {
+    } catch {
       results.push("⚠️ Could not parse pip list output");
     }
   }
-  
+
   return {
     success: true,
     output: results.join("\n"),
@@ -298,25 +325,35 @@ export async function verifyAnsibleLint(): Promise<ADECommandResult> {
   } else {
     // Try to fix by upgrading ansible-core and reinstalling ansible-lint
     const results: string[] = [];
-    
+
     // First, upgrade ansible-core
     results.push("Upgrading ansible-core...");
-    const upgradeResult = await executeCommand("pip", ["install", "--upgrade", "ansible-core"]);
+    const upgradeResult = await executeCommand("pip", [
+      "install",
+      "--upgrade",
+      "ansible-core",
+    ]);
     if (upgradeResult.success) {
       results.push("✅ ansible-core upgraded");
     } else {
       results.push(`⚠️ Failed to upgrade ansible-core: ${upgradeResult.error}`);
     }
-    
+
     // Reinstall ansible-lint to ensure compatibility
     results.push("Reinstalling ansible-lint...");
-    const reinstallResult = await executeCommand("pip", ["install", "--force-reinstall", "ansible-lint"]);
+    const reinstallResult = await executeCommand("pip", [
+      "install",
+      "--force-reinstall",
+      "ansible-lint",
+    ]);
     if (reinstallResult.success) {
       results.push("✅ ansible-lint reinstalled");
     } else {
-      results.push(`⚠️ Failed to reinstall ansible-lint: ${reinstallResult.error}`);
+      results.push(
+        `⚠️ Failed to reinstall ansible-lint: ${reinstallResult.error}`,
+      );
     }
-    
+
     // Test again
     const testResult = await executeCommand("ansible-lint", ["--version"]);
     if (testResult.success) {
@@ -325,7 +362,7 @@ export async function verifyAnsibleLint(): Promise<ADECommandResult> {
         output: `✅ ansible-lint fixed: ${results.join(", ")}`,
       };
     }
-    
+
     return {
       success: false,
       output: results.join("\n"),
@@ -380,13 +417,15 @@ export async function setupDevelopmentEnvironment(
   }
 
   // Create virtual environment
-  const venvPath = options.envName ? path.join(workspaceRoot, options.envName) : path.join(workspaceRoot, "venv");
+  const venvPath = options.envName
+    ? path.join(workspaceRoot, options.envName)
+    : path.join(workspaceRoot, "venv");
   const venvResult = await createVirtualEnvironment(
     workspaceRoot,
     options.envName,
     options.pythonVersion,
   );
-  
+
   if (!venvResult.success) {
     return venvResult;
   }
@@ -394,12 +433,20 @@ export async function setupDevelopmentEnvironment(
 
   // Install ansible-lint and ansible-core in the virtual environment
   results.push("Installing Ansible tools in virtual environment...");
-  const installAnsibleLint = await executeInVirtualEnvironment(venvPath, "pip", ["install", "ansible-lint", "ansible-core"]);
+  const installAnsibleLint = await executeInVirtualEnvironment(
+    venvPath,
+    "pip",
+    ["install", "ansible-lint", "ansible-core"],
+  );
   if (installAnsibleLint.success) {
-    results.push("✅ ansible-lint and ansible-core installed in virtual environment");
+    results.push(
+      "✅ ansible-lint and ansible-core installed in virtual environment",
+    );
   } else {
     success = false;
-    results.push(`❌ Failed to install Ansible tools: ${installAnsibleLint.error}`);
+    results.push(
+      `❌ Failed to install Ansible tools: ${installAnsibleLint.error}`,
+    );
   }
 
   // Install collections if specified
@@ -407,12 +454,13 @@ export async function setupDevelopmentEnvironment(
     const collectionsResult = await installCollections(
       workspaceRoot,
       options.collections,
-      true,
     );
-    
+
     if (!collectionsResult.success) {
       success = false;
-      results.push(`❌ Failed to install collections: ${collectionsResult.error}`);
+      results.push(
+        `❌ Failed to install collections: ${collectionsResult.error}`,
+      );
     } else {
       results.push("✅ Collections installed successfully");
     }
@@ -424,10 +472,12 @@ export async function setupDevelopmentEnvironment(
       workspaceRoot,
       options.requirementsFile,
     );
-    
+
     if (!requirementsResult.success) {
       success = false;
-      results.push(`❌ Failed to install requirements: ${requirementsResult.error}`);
+      results.push(
+        `❌ Failed to install requirements: ${requirementsResult.error}`,
+      );
     } else {
       results.push("✅ Requirements installed successfully");
     }
@@ -443,12 +493,20 @@ export async function setupDevelopmentEnvironment(
 
   // Final verification - check ansible-lint in the virtual environment
   results.push("Performing final verification...");
-  const finalLintCheck = await executeInVirtualEnvironment(venvPath, "ansible-lint", ["--version"]);
+  const finalLintCheck = await executeInVirtualEnvironment(
+    venvPath,
+    "ansible-lint",
+    ["--version"],
+  );
   if (!finalLintCheck.success) {
     success = false;
-    results.push(`❌ Final verification failed: ansible-lint not working in virtual environment`);
+    results.push(
+      `❌ Final verification failed: ansible-lint not working in virtual environment`,
+    );
   } else {
-    results.push("✅ Final verification passed - ansible-lint is working in virtual environment");
+    results.push(
+      "✅ Final verification passed - ansible-lint is working in virtual environment",
+    );
   }
 
   return {
@@ -463,7 +521,7 @@ export async function setupDevelopmentEnvironment(
  */
 export async function checkAndInstallADT(): Promise<ADECommandResult> {
   const adtInstalled = await checkADTInstalled();
-  
+
   if (adtInstalled) {
     return {
       success: true,
@@ -472,8 +530,11 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   }
 
   // Try to install ADT
-  const installResult = await executeCommand("pip", ["install", "ansible-dev-tools"]);
-  
+  const installResult = await executeCommand("pip", [
+    "install",
+    "ansible-dev-tools",
+  ]);
+
   if (installResult.success) {
     return {
       success: true,
@@ -482,8 +543,11 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
   }
 
   // Try with pipx as fallback
-  const pipxResult = await executeCommand("pipx", ["install", "ansible-dev-tools"]);
-  
+  const pipxResult = await executeCommand("pipx", [
+    "install",
+    "ansible-dev-tools",
+  ]);
+
   if (pipxResult.success) {
     return {
       success: true,
@@ -504,7 +568,7 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
 export function formatEnvironmentInfo(info: ADEEnvironmentInfo): string {
   const sections = [
     "🔍 Environment Information",
-    "=" .repeat(50),
+    "=".repeat(50),
     "",
     `📁 Workspace: ${info.workspacePath}`,
     `🐍 Python: ${info.pythonVersion}`,

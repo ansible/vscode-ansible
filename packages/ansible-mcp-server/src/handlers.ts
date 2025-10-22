@@ -7,7 +7,6 @@ import {
   setupDevelopmentEnvironment,
   checkAndInstallADT,
   formatEnvironmentInfo,
-  type ADEEnvironmentInfo,
 } from "./tools/adeTools.js";
 
 export function createDebugEnvHandler(workspaceRoot: string) {
@@ -115,7 +114,7 @@ export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
     try {
       const envInfo = await getEnvironmentInfo(workspaceRoot);
       const formattedInfo = formatEnvironmentInfo(envInfo);
-      
+
       return {
         content: [
           {
@@ -125,7 +124,8 @@ export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
         ],
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return {
         content: [
           {
@@ -149,7 +149,7 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
   }) => {
     try {
       const result = await setupDevelopmentEnvironment(workspaceRoot, args);
-      
+
       return {
         content: [
           {
@@ -160,7 +160,8 @@ export function createADESetupEnvironmentHandler(workspaceRoot: string) {
         isError: !result.success,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return {
         content: [
           {
@@ -178,7 +179,7 @@ export function createADECheckADTHandler() {
   return async () => {
     try {
       const result = await checkAndInstallADT();
-      
+
       return {
         content: [
           {
@@ -189,7 +190,8 @@ export function createADECheckADTHandler() {
         isError: !result.success,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       return {
         content: [
           {

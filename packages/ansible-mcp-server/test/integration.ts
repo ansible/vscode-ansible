@@ -69,8 +69,8 @@ describe("Ansible MCP Server Integration", () => {
     it("should maintain tool registry integrity", () => {
       const tools = server.listTools();
       expect(tools).toHaveLength(7);
-      expect(tools.map(t => t.name)).toContain("zen_of_ansible");
-      expect(tools.map(t => t.name)).toContain("ade_environment_info");
+      expect(tools.map((t) => t.name)).toContain("zen_of_ansible");
+      expect(tools.map((t) => t.name)).toContain("ade_environment_info");
     });
 
     it("should handle workspace configuration", () => {
@@ -80,8 +80,8 @@ describe("Ansible MCP Server Integration", () => {
       // Should still provide the same tools regardless of workspace
       const tools = customServer.listTools();
       expect(tools).toHaveLength(7);
-      expect(tools.map(t => t.name)).toContain("zen_of_ansible");
-      expect(tools.map(t => t.name)).toContain("ade_environment_info");
+      expect(tools.map((t) => t.name)).toContain("zen_of_ansible");
+      expect(tools.map((t) => t.name)).toContain("ade_environment_info");
     });
   });
 

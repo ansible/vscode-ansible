@@ -132,7 +132,9 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         installRequirements: z
           .boolean()
           .optional()
-          .describe("Whether to install requirements from requirements files (optional)"),
+          .describe(
+            "Whether to install requirements from requirements files (optional)",
+          ),
         requirementsFile: z
           .string()
           .optional()
