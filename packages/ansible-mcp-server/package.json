@@ -51,10 +51,11 @@
     "test": "vitest run",
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run test/server.ts test/integration.ts",
+    "test:integration": "vitest run test/server.ts test/integration.ts test/adeIntegration.ts",
     "test:performance": "vitest run test/performance.ts",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run test/handlers.ts",
+    "test:ade": "vitest run test/adeTools.ts test/adeIntegration.ts",
     "test:watch": "vitest"
   },
   "type": "module",

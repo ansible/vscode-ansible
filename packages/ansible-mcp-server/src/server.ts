@@ -11,6 +11,9 @@ import {
   createListToolsHandler,
   createAnsibleLintHandler,
   createDebugEnvHandler,
+  createADEEnvironmentInfoHandler,
+  createADESetupEnvironmentHandler,
+  createADECheckADTHandler,
 } from "./handlers.js";
 import {
   checkDependencies,
@@ -93,6 +96,61 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         "Displays PATH, virtual environment, and workspace information for debugging.",
     },
     createDebugEnvHandler(workspaceRoot),
+    [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ade_environment_info",
+    {
+      title: "ADE Environment Information",
+      description:
+        "Get comprehensive environment information including Python, Ansible, ADE, ADT status, and installed collections.",
+    },
+    createADEEnvironmentInfoHandler(workspaceRoot),
+    [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ade_setup_environment",
+    {
+      title: "ADE Setup Development Environment",
+      description:
+        "Set up a complete Ansible development environment using ADE. Creates virtual environments, installs collections, and manages dependencies.",
+      inputSchema: {
+        envName: z
+          .string()
+          .optional()
+          .describe("Name for the virtual environment (optional)"),
+        pythonVersion: z
+          .string()
+          .optional()
+          .describe("Python version to use (e.g., '3.11', '3.12') (optional)"),
+        collections: z
+          .array(z.string())
+          .optional()
+          .describe("List of Ansible collections to install (optional)"),
+        installRequirements: z
+          .boolean()
+          .optional()
+          .describe("Whether to install requirements from requirements files (optional)"),
+        requirementsFile: z
+          .string()
+          .optional()
+          .describe("Path to specific requirements file (optional)"),
+      },
+    },
+    createADESetupEnvironmentHandler(workspaceRoot),
+    [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ade_check_adt",
+    {
+      title: "ADE Check and Install ADT",
+      description:
+        "Check if ADT (ansible-dev-tools) is installed and install it if missing. This tool ensures the ADE environment is properly set up.",
+    },
+    createADECheckADTHandler(),
     [], // No dependencies
   );
 

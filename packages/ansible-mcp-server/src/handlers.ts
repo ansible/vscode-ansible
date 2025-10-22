@@ -2,6 +2,13 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 import { runAnsibleLint, formatLintingResult } from "./ansibleLint.js";
+import {
+  getEnvironmentInfo,
+  setupDevelopmentEnvironment,
+  checkAndInstallADT,
+  formatEnvironmentInfo,
+  type ADEEnvironmentInfo,
+} from "./tools/adeTools.js";
 
 export function createDebugEnvHandler(workspaceRoot: string) {
   return async () => {
@@ -100,5 +107,98 @@ export function createListToolsHandler(getToolNames: () => string[]) {
         },
       ],
     };
+  };
+}
+
+export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
+  return async () => {
+    try {
+      const envInfo = await getEnvironmentInfo(workspaceRoot);
+      const formattedInfo = formatEnvironmentInfo(envInfo);
+      
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: formattedInfo,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error getting environment information: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createADESetupEnvironmentHandler(workspaceRoot: string) {
+  return async (args: {
+    envName?: string;
+    pythonVersion?: string;
+    collections?: string[];
+    installRequirements?: boolean;
+    requirementsFile?: string;
+  }) => {
+    try {
+      const result = await setupDevelopmentEnvironment(workspaceRoot, args);
+      
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: result.output,
+          },
+        ],
+        isError: !result.success,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error setting up development environment: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createADECheckADTHandler() {
+  return async () => {
+    try {
+      const result = await checkAndInstallADT();
+      
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: result.output,
+          },
+        ],
+        isError: !result.success,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }
