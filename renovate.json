@@ -2,7 +2,7 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["github>ansible/actions//config/renovate.json"],
   "github-actions": {
-    "branchTopic": "all",
+    "branchTopic": "actions",
     "enabled": true,
     "groupName": "actions dependencies",
     "groupSlug": "actions",
