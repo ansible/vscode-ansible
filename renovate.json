@@ -12,7 +12,8 @@
         "matchPackageNames": [
           "*",
           "!/ansible/team-devtools/",
-          "!/Actions-R-Us/actions-tagger/"
+          "!/Actions-R-Us/actions-tagger/",
+          "!/re-actors/alls-green/"
         ]
       }
     ]
