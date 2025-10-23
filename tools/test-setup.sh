@@ -155,7 +155,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
+    DEBS=(curl file git qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -213,8 +213,6 @@ if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
     log error "Detected LFS pointer files, not real files. Check the git lfs configuration and status."
     exit 3
 fi
-
-log notice "Using $(python3 --version)"
 
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
@@ -306,14 +304,18 @@ fi
 VIRTUAL_ENV=${EXPECTED_VENV}
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     log notice "Creating virtualenv ..."
-    python3 -m venv "${VIRTUAL_ENV}"
+    # ansible-core does not support python 3.14 yet
+    uv venv --python=3.13 "${VIRTUAL_ENV}"
 fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
+log notice "Using $(python3 --version)"
+log notice "Using $(uv run which python3)"
+
 if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
     log warning "Virtualenv broken, trying to recreate it ..."
-    python3 -m venv --clear "${VIRTUAL_ENV}"
+    uv venv --python=3.13 --clear "${VIRTUAL_ENV}"
     # shellcheck disable=SC1091
     . "${VIRTUAL_ENV}/bin/activate"
     if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
@@ -323,9 +325,9 @@ if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
 fi
 log notice "Upgrading pip and uv ..."
 
-python3 -m pip install -q -U pip uv
+uv pip install -q -U pip uv
 # Fail fast if user has broken dependencies
-python3 -m pip check || {
+uv pip check || {
         log error "pip check failed with exit code $?"
         if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
             exit 98

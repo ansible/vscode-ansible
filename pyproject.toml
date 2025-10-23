@@ -1,6 +1,6 @@
 [project]
 name = "vscode-ansible"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.14"
 dynamic = ["version"]
 
 [dependency-groups]
