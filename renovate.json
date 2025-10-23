@@ -18,6 +18,15 @@
       }
     ]
   },
+  "lockFileMaintenance": {
+    "commitMessageAction": "update",
+    "enabled": true,
+    "groupName": "dependencies lockfile",
+    "groupSlug": "lockfile",
+    "rangeStrategy": "replace",
+    "rebaseWhen": "behind-base-branch",
+    "recreateWhen": "always"
+  },
   "minimumReleaseAge": "1 days",
   "prConcurrentLimit": 5
 }
