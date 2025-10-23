@@ -15,6 +15,7 @@ dictionaries:
 enabled: true
 useGitignore: true
 ignorePaths:
+  - ./.cache/
   - .yarn/
   - media
   - package.json

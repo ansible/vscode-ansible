@@ -2,3 +2,6 @@
 # GHA does not allow setting NODE_OPTIONS so unset it here to prevent some
 # GHA noise about it. See: https://github.com/jdx/mise-action/issues/273
 NODE_OPTIONS = false
+
+[settings]
+idiomatic_version_file_enable_tools = ["python"]
