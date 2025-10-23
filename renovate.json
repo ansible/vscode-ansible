@@ -1,4 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>ansible/actions//config/renovate.json"]
+  "extends": ["github>ansible/actions//config/renovate.json"],
+  "github-actions": {
+    "branchTopic": "all",
+    "enabled": true,
+    "groupName": "actions dependencies",
+    "groupSlug": "actions",
+    "labels": ["chore", "dependencies"],
+    "packageRules": [
+      {
+        "matchPackageNames": [
+          "*",
+          "!/ansible/team-devtools/",
+          "!/Actions-R-Us/actions-tagger/",
+          "!/re-actors/alls-green/"
+        ]
+      }
+    ]
+  },
+  "minimumReleaseAge": "1 days",
+  "prConcurrentLimit": 5
 }
