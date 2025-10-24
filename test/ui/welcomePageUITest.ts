@@ -1,261 +1,206 @@
-import { config, expect } from "chai";
+// BEFORE: ansible.lightspeed.enabled: true
+
+import { expect, config } from "chai";
 import {
-  ActivityBar,
   By,
-  SideBarView,
-  ViewControl,
-  ViewSection,
-  WebviewView,
+  VSBrowser,
+  EditorView,
+  WebView,
+  Workbench,
 } from "vscode-extension-tester";
 import {
+  getFixturePath,
   getWebviewByLocator,
   workbenchExecuteCommand,
-  sleep,
   waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
-describe("welcome page is displayed", function () {
-  let view: ViewControl;
-  let sideBar: SideBarView;
-  let webviewView: InstanceType<typeof WebviewView>;
-  let adtSection: ViewSection;
+async function testThumbsButtonInteraction(buttonToClick: string) {
+  const folder = "lightspeed";
+  const filePath = getFixturePath(folder, "playbook_1.yml");
 
-  before(async function () {
-    // Open Ansible Development Tools by clicking the Getting started button on the side bar
-    const activityBar = new ActivityBar();
+  // Open file in the editor
+  await VSBrowser.instance.openResources(filePath);
 
-    // Wait for the Ansible view control to be available
-    await waitForCondition({
-      condition: async () => {
-        try {
-          const ansibleView = await activityBar.getViewControl("Ansible");
-          return ansibleView !== undefined;
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for Ansible view control to be available",
-      timeout: 10000,
-    });
+  // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
+  if (process.platform !== "darwin") {
+    const editorView = new EditorView();
+    const editor = await editorView.openEditor("playbook_1.yml");
+    const contextMenu = await editor.openContextMenu();
 
-    view = (await activityBar.getViewControl("Ansible")) as ViewControl;
-
-    if (!view) {
-      throw new Error("Could not get Ansible view control");
-    }
-
-    // Wait for the view to be ready before opening
-    await waitForCondition({
-      condition: async () => {
-        try {
-          const openedSideBar = await view.openView();
-          return openedSideBar !== undefined;
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for Ansible view to open",
-      timeout: 10000,
-    });
-
-    sideBar = await view.openView();
-
-    if (!sideBar) {
-      throw new Error("Could not open Ansible sidebar view");
-    }
-
-    await workbenchExecuteCommand(
-      "Ansible: Focus on Ansible Development Tools View",
+    const hasExplainRoleMenuItem = await contextMenu.hasItem(
+      "Explain the role with Ansible Lightspeed",
     );
+    expect(
+      hasExplainRoleMenuItem,
+      '"Explain the role with Ansible Lightspeed" should not be present in the context menu',
+    ).not.to.be.true;
 
-    // Wait for the sidebar content to be ready
-    await waitForCondition({
-      condition: async () => {
-        try {
-          const content = await sideBar.getContent();
-          const section = await content.getSection("Ansible Development Tools");
-          return section !== undefined;
-        } catch {
-          return false;
-        }
-      },
-      message:
-        "Timed out waiting for Ansible Development Tools section to be available",
-      timeout: 10000,
-    });
+    const hasExplainPlaybookMenuItem = await contextMenu.hasItem(
+      "Explain the playbook with Ansible Lightspeed",
+    );
+    expect(
+      hasExplainPlaybookMenuItem,
+      '"Explain the playbook with Ansible Lightspeed" should be present in the context menu',
+    ).to.be.true;
 
-    // to get the content part
-    adtSection = await sideBar
-      .getContent()
-      .getSection("Ansible Development Tools");
+    await contextMenu.close();
+  }
 
-    if (!adtSection) {
-      throw new Error("Could not get Ansible Development Tools section");
-    }
+  // Open playbook explanation webview.
+  await workbenchExecuteCommand("Explain the playbook with Ansible Lightspeed");
 
-    await adtSection.expand();
+  await new EditorView().openEditor("Explanation", 1);
+  // Locate the playbook explanation webview
+  const webView = await getWebviewByLocator(
+    By.xpath("//div[contains(@class, 'explanation') ]"),
+  );
+
+  expect(webView, "webView should not be undefined").not.to.be.undefined;
+
+  const thumbsUpButton = await webView.findWebElement(
+    By.xpath("//vscode-button[@id='thumbsup-button']"),
+  );
+  expect(thumbsUpButton, "thumbsUpButton should not be undefined").not.to.be
+    .undefined;
+
+  const thumbsDownButton = await webView.findWebElement(
+    By.xpath("//vscode-button[@id='thumbsdown-button']"),
+  );
+  expect(thumbsDownButton, "thumbsDownButton should not be undefined").not.to.be
+    .undefined;
+
+  expect(
+    await thumbsUpButton.isEnabled(),
+    `Thumbs up button should be enabled now`,
+  ).to.be.true;
+
+  expect(
+    await thumbsDownButton.isEnabled(),
+    `Thumbs down button should be enabled now`,
+  ).to.be.true;
+
+  const button =
+    buttonToClick === "thumbsup" ? thumbsUpButton : thumbsDownButton;
+  await button.click();
+
+  await waitForCondition({
+    condition: async () => {
+      const thumbsUpDisabled = await thumbsUpButton.getAttribute("disabled");
+      const thumbsDownDisabled =
+        await thumbsDownButton.getAttribute("disabled");
+      return thumbsUpDisabled === "true" && thumbsDownDisabled === "true";
+    },
   });
 
-  it("check for title and get started button", async function () {
-    const title = await adtSection.getTitle();
+  await webView.switchBack();
+  await workbenchExecuteCommand("View: Close All Editor Groups");
+}
 
-    await workbenchExecuteCommand(
-      "Ansible: Focus on Ansible Development Tools View",
-    );
-
-    webviewView = new WebviewView();
-    expect(webviewView).not.undefined;
-
-    // Wait for webview to be ready before switching to frame
-    await waitForCondition({
-      condition: async () => {
-        try {
-          await webviewView.switchToFrame(1000);
-          return true;
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for webview to be ready",
-      timeout: 10000,
+describe(__filename, function () {
+  describe("playbook explanation features work", function () {
+    beforeEach(function () {
+      if (!process.env.TEST_LIGHTSPEED_URL) {
+        this.skip();
+      }
     });
 
-    const body = await webviewView.findWebElement(By.xpath("//body"));
-    const welcomeMessage = await body.getText();
-    expect(welcomeMessage).to.contain("LAUNCH");
+    afterEach(async function () {
+      const workbench = new Workbench();
+      workbench.getNotifications().then((notifications) => {
+        notifications.forEach(async (notification) => {
+          await notification.dismiss();
+        });
+      });
+    });
 
-    const getStartedLink = await webviewView.findWebElement(
-      By.xpath(
-        "//a[contains(@title, 'Ansible Development Tools welcome page')]",
-      ),
-    );
+    it("Playbook explanation webview with a playbook with no tasks", async function () {
+      if (!process.env.TEST_LIGHTSPEED_URL) {
+        this.skip();
+      }
 
-    expect(title).not.to.be.undefined;
-    expect(title).to.equals("Ansible Development Tools");
-    expect(getStartedLink).not.to.be.undefined;
+      const folder = "lightspeed";
+      const file = "playbook_5.yml";
+      const filePath = getFixturePath(folder, file);
 
-    if (getStartedLink) {
-      await getStartedLink.click();
-    }
+      // Open file in the editor
+      await VSBrowser.instance.openResources(filePath);
 
-    await getWebviewByLocator(
-      By.xpath("//h1[text()='Ansible Development Tools']"),
-    );
+      // Open playbook explanation webview.
+      await workbenchExecuteCommand(
+        "Explain the playbook with Ansible Lightspeed",
+      );
 
-    webviewView.switchBack();
+      await new EditorView().openEditor("Explanation", 1);
+      // Locate the playbook explanation webview
+      const webView = await getWebviewByLocator(
+        By.xpath("//div[contains(@class, 'explanation') ]"),
+      );
+      // Find the main div element of the webview and verify the expected text is found.
+      const mainDiv = await webView.findWebElement(
+        By.xpath("//div[contains(@class, 'explanation') ]"),
+      );
+      expect(mainDiv, "mainDiv should not be undefined").not.to.be.undefined;
+      const text = await mainDiv.getText();
+      expect(
+        text.includes(
+          "Explaining a playbook with no tasks in the playbook is not supported.",
+        ),
+      ).to.be.true;
+
+      await webView.switchBack();
+      await workbenchExecuteCommand("View: Close All Editor Groups");
+    });
+
+    it("Playbook explanation thumbs up/down button disabled after thumbs up", async function () {
+      if (!process.env.TEST_LIGHTSPEED_URL) {
+        this.skip();
+      }
+      await testThumbsButtonInteraction("thumbsup");
+    });
+
+    it("Playbook explanation thumbs up/down button disabled after thumbs down", async function () {
+      if (!process.env.TEST_LIGHTSPEED_URL) {
+        this.skip();
+      }
+      await testThumbsButtonInteraction("thumbsdown");
+    });
   });
 
-  it("check for header and subtitle", async function () {
-    const welcomePageWebView = await getWebviewByLocator(
-      By.xpath("//h1[text()='Ansible Development Tools']"),
-    );
+  describe("Feedback webview provider works", function () {
+    let editorView: EditorView;
 
-    await waitForCondition({
-      condition: async () => {
-        try {
-          const loadingContainer = await welcomePageWebView.findWebElement(
-            By.className("playbookGenerationContainer"),
-          );
-          const classAttr = await loadingContainer.getAttribute("class");
-          return !classAttr.includes("loading");
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for welcome page to finish loading",
-      timeout: 10000,
+    before(async function () {
+      if (!process.env.TEST_LIGHTSPEED_URL) {
+        return;
+      }
+      await workbenchExecuteCommand("View: Close All Editor Groups");
+      editorView = new EditorView();
+      expect(editorView).not.to.be.undefined;
     });
 
-    const adtHeaderTitle = await welcomePageWebView.findWebElement(
-      By.xpath("//h1[text()='Ansible Development Tools']"),
-    );
-    expect(adtHeaderTitle).not.to.be.undefined;
-    expect(await adtHeaderTitle.getText()).to.equals(
-      "Ansible Development Tools",
-    );
+    it("Open Feedback webview", async function () {
+      // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
+      await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
+      // Locate the playbook explanation webview
+      const webView = (await editorView.openEditor(
+        "Ansible Lightspeed Feedback",
+      )) as WebView;
+      expect(webView, "webView should not be undefined").not.to.be.undefined;
+      // Issuing the Lightspeed feedback command should not open a new tab
+      await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
 
-    const adtSubheader = await welcomePageWebView.findWebElement(
-      By.className("subtitle description"),
-    );
-    expect(adtSubheader).not.to.be.undefined;
-    expect(await adtSubheader.getText()).includes(
-      "Create, test and deploy Ansible content",
-    );
+      await waitForCondition({
+        condition: async () => {
+          const titles = await editorView.getOpenEditorTitles();
+          return titles.length === 1;
+        },
+        message: "Timed out waiting for editor title length to be 1",
+      });
 
-    await welcomePageWebView.switchBack();
-  });
-
-  it("Check if start and walkthrough list section is visible", async function () {
-    const welcomePageWebView = await getWebviewByLocator(
-      By.className("index-list start-container"),
-    );
-
-    await waitForCondition({
-      condition: async () => {
-        try {
-          const loadingContainer = await welcomePageWebView.findWebElement(
-            By.className("playbookGenerationContainer"),
-          );
-          const classAttr = await loadingContainer.getAttribute("class");
-          return !classAttr.includes("loading");
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for welcome page to finish loading",
-      timeout: 10000,
+      await workbenchExecuteCommand("View: Close All Editor Groups");
     });
-
-    const startSection = await welcomePageWebView.findWebElement(
-      By.className("index-list start-container"),
-    );
-
-    expect(startSection).not.to.be.undefined;
-
-    const playbookWithLightspeedOption = await startSection.findElement(
-      By.css("h3"),
-    );
-
-    expect(await playbookWithLightspeedOption.getText()).to.equal(
-      "Playbook with Ansible Lightspeed",
-    );
-
-    // Wait for walkthroughs to load before checking them
-    await waitForCondition({
-      condition: async () => {
-        try {
-          const walkthroughItems = await welcomePageWebView.findWebElements(
-            By.className("walkthrough-item"),
-          );
-          return walkthroughItems.length >= 2;
-        } catch {
-          return false;
-        }
-      },
-      message: "Timed out waiting for walkthrough items to load",
-      timeout: 10000,
-    });
-
-    const walkthroughSection = await getWebviewByLocator(
-      By.className("walkthrough-item"),
-    );
-    const walkthroughItems = await walkthroughSection.findWebElements(
-      By.className("walkthrough-item"),
-    );
-    expect(walkthroughItems.length).to.greaterThanOrEqual(2);
-
-    const firstWalkthrough = await walkthroughSection.findWebElement(
-      By.xpath(
-        "//div[@class='category-title'][contains(text(), 'Create an Ansible environment')]",
-      ),
-    );
-    expect(await firstWalkthrough.getText()).to.equal(
-      "Create an Ansible environment",
-    );
-    await firstWalkthrough.click();
-    await sleep(2000);
-    await welcomePageWebView.switchBack();
   });
 });
