@@ -281,6 +281,11 @@ jobs:
         if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
+      - name: task mcp
+        # https://github.com/ansible/vscode-ansible/issues/1451
+        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        run: task mcp ${{ matrix.env.TASKFILE_ARGS }}
+
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
         uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4.0.22
