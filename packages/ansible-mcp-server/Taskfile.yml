@@ -39,12 +39,11 @@ tasks:
       - npm run lint
     interactive: true
   .test:
-    # Keep the desc empty to hide entry when listing
-    # desc: Run all tests
+    desc: Run all tests
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && npm test"
+      - npm test
     interactive: true
   test:
     desc: Run all tests using node (same version as vscode)
