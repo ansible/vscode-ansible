@@ -59,7 +59,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   );
 
 
-  
+
   expect(webView, "webView should not be undefined").not.to.be.undefined;
 
   const thumbsUpButton = await webView.findWebElement(
