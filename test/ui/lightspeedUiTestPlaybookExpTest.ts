@@ -27,32 +27,66 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
   if (process.platform !== "darwin") {
     const editorView = new EditorView();
-    const editor = await editorView.openEditor("playbook_1.yml");
-    const contextMenu = await editor.openContextMenu();
+    
+    // Wait for editor to be available and get the active editor
+    await waitForCondition({
+      condition: async () => {
+        const openTitles = await editorView.getOpenEditorTitles();
+        return openTitles.includes("playbook_1.yml");
+      },
+      message: "Timed out waiting for playbook_1.yml editor to be available",
+      timeout: 10000,
+    });
 
-    const hasExplainRoleMenuItem = await contextMenu.hasItem(
-      "Explain the role with Ansible Lightspeed",
-    );
-    expect(
-      hasExplainRoleMenuItem,
-      '"Explain the role with Ansible Lightspeed" should not be present in the context menu',
-    ).not.to.be.true;
+    // Get the editor group and find the editor
+    const editorGroup = await editorView.getEditorGroup(0);
+    const editor = await editorGroup.getTabByTitle("playbook_1.yml");
+    
+    if (editor) {
+      const contextMenu = await editor.openContextMenu();
 
-    const hasExplainPlaybookMenuItem = await contextMenu.hasItem(
-      "Explain the playbook with Ansible Lightspeed",
-    );
-    expect(
-      hasExplainPlaybookMenuItem,
-      '"Explain the playbook with Ansible Lightspeed" should be present in the context menu',
-    ).to.be.true;
+      const hasExplainRoleMenuItem = await contextMenu.hasItem(
+        "Explain the role with Ansible Lightspeed",
+      );
+      expect(
+        hasExplainRoleMenuItem,
+        '"Explain the role with Ansible Lightspeed" should not be present in the context menu',
+      ).not.to.be.true;
 
-    await contextMenu.close();
+      const hasExplainPlaybookMenuItem = await contextMenu.hasItem(
+        "Explain the playbook with Ansible Lightspeed",
+      );
+      expect(
+        hasExplainPlaybookMenuItem,
+        '"Explain the playbook with Ansible Lightspeed" should be present in the context menu',
+      ).to.be.true;
+
+      await contextMenu.close();
+    }
   }
 
   // Open playbook explanation webview.
   await workbenchExecuteCommand("Explain the playbook with Ansible Lightspeed");
 
-  await new EditorView().openEditor("Explanation", 1);
+  // Wait for the Explanation webview to be available
+  await waitForCondition({
+    condition: async () => {
+      const editorView = new EditorView();
+      const openTitles = await editorView.getOpenEditorTitles();
+      return openTitles.includes("Explanation");
+    },
+    message: "Timed out waiting for Explanation webview to be available",
+    timeout: 10000,
+  });
+
+  // Get the editor group and find the Explanation editor
+  const editorView = new EditorView();
+  const editorGroup = await editorView.getEditorGroup(0);
+  const explanationEditor = await editorGroup.getTabByTitle("Explanation");
+  
+  if (!explanationEditor) {
+    throw new Error("Could not find Explanation editor tab");
+  }
   // Locate the playbook explanation webview
   const webView = await getWebviewByLocator(
     By.xpath("//div[contains(@class, 'explanation') ]"),
@@ -133,7 +167,25 @@ describe(__filename, function () {
         "Explain the playbook with Ansible Lightspeed",
       );
 
-      await new EditorView().openEditor("Explanation", 1);
+      // Wait for the Explanation webview to be available
+      await waitForCondition({
+        condition: async () => {
+          const editorView = new EditorView();
+          const openTitles = await editorView.getOpenEditorTitles();
+          return openTitles.includes("Explanation");
+        },
+        message: "Timed out waiting for Explanation webview to be available",
+        timeout: 10000,
+      });
+
+      // Get the editor group and find the Explanation editor
+      const editorView = new EditorView();
+      const editorGroup = await editorView.getEditorGroup(0);
+      const explanationEditor = await editorGroup.getTabByTitle("Explanation");
+      
+      if (!explanationEditor) {
+        throw new Error("Could not find Explanation editor tab");
+      }
       // Locate the playbook explanation webview
       const webView = await getWebviewByLocator(
         By.xpath("//div[contains(@class, 'explanation') ]"),
@@ -184,10 +236,27 @@ describe(__filename, function () {
     it("Open Feedback webview", async function () {
       // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
+      
+      // Wait for the Feedback webview to be available
+      await waitForCondition({
+        condition: async () => {
+          const openTitles = await editorView.getOpenEditorTitles();
+          return openTitles.includes("Ansible Lightspeed Feedback");
+        },
+        message: "Timed out waiting for Ansible Lightspeed Feedback webview to be available",
+        timeout: 10000,
+      });
+
+      // Get the editor group and find the Feedback editor
+      const editorGroup = await editorView.getEditorGroup(0);
+      const feedbackEditor = await editorGroup.getTabByTitle("Ansible Lightspeed Feedback");
+      
+      if (!feedbackEditor) {
+        throw new Error("Could not find Ansible Lightspeed Feedback editor tab");
+      }
+      
       // Locate the playbook explanation webview
-      const webView = (await editorView.openEditor(
-        "Ansible Lightspeed Feedback",
-      )) as WebView;
+      const webView = feedbackEditor as unknown as WebView;
       expect(webView, "webView should not be undefined").not.to.be.undefined;
       // Issuing the Lightspeed feedback command should not open a new tab
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");

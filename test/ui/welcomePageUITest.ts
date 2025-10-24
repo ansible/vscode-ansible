@@ -24,18 +24,78 @@ describe("welcome page is displayed", function () {
 
   before(async function () {
     // Open Ansible Development Tools by clicking the Getting started button on the side bar
-    view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+    const activityBar = new ActivityBar();
+
+    // Wait for the Ansible view control to be available
+    await waitForCondition({
+      condition: async () => {
+        try {
+          const ansibleView = await activityBar.getViewControl("Ansible");
+          return ansibleView !== undefined;
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for Ansible view control to be available",
+      timeout: 10000,
+    });
+
+    view = (await activityBar.getViewControl("Ansible")) as ViewControl;
+
+    if (!view) {
+      throw new Error("Could not get Ansible view control");
+    }
+
+    // Wait for the view to be ready before opening
+    await waitForCondition({
+      condition: async () => {
+        try {
+          const openedSideBar = await view.openView();
+          return openedSideBar !== undefined;
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for Ansible view to open",
+      timeout: 10000,
+    });
+
     sideBar = await view.openView();
+
+    if (!sideBar) {
+      throw new Error("Could not open Ansible sidebar view");
+    }
 
     await workbenchExecuteCommand(
       "Ansible: Focus on Ansible Development Tools View",
     );
 
+    // Wait for the sidebar content to be ready
+    await waitForCondition({
+      condition: async () => {
+        try {
+          const content = await sideBar.getContent();
+          const section = await content.getSection("Ansible Development Tools");
+          return section !== undefined;
+        } catch {
+          return false;
+        }
+      },
+      message:
+        "Timed out waiting for Ansible Development Tools section to be available",
+      timeout: 10000,
+    });
+
     // to get the content part
     adtSection = await sideBar
       .getContent()
       .getSection("Ansible Development Tools");
-    adtSection.expand();
+
+    if (!adtSection) {
+      throw new Error("Could not get Ansible Development Tools section");
+    }
+
+    await adtSection.expand();
   });
 
   it("check for title and get started button", async function () {
@@ -47,7 +107,20 @@ describe("welcome page is displayed", function () {
 
     webviewView = new WebviewView();
     expect(webviewView).not.undefined;
-    await webviewView.switchToFrame(1000);
+
+    // Wait for webview to be ready before switching to frame
+    await waitForCondition({
+      condition: async () => {
+        try {
+          await webviewView.switchToFrame(1000);
+          return true;
+        } catch {
+          return false;
+        }
+      },
+      message: "Timed out waiting for webview to be ready",
+      timeout: 10000,
+    });
 
     const body = await webviewView.findWebElement(By.xpath("//body"));
     const welcomeMessage = await body.getText();
