@@ -283,7 +283,7 @@ jobs:
 
       - name: task mcp
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test')
+        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task mcp ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
