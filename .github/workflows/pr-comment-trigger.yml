@@ -5,21 +5,23 @@ name: PR Comment Trigger Tests
 on:
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
 
 # Only run on pull request comments
 concurrency:
-  group: pr-comment-trigger-${{ github.event.issue.number }}-${{ github.event.comment.id }}
+  group: pr-comment-trigger-${{ github.event.issue.number || github.event.pull_request.number }}-${{ github.event.comment.id || github.event.review.id }}
   cancel-in-progress: true
 
 jobs:
   # Check if the comment is a test trigger command
   check-comment:
     runs-on: ubuntu-latest
-    if: github.event.issue.pull_request && github.event.action == 'created'
+    if: (github.event_name == 'issue_comment' && github.event.issue.pull_request) || github.event_name == 'pull_request_review_comment'
     outputs:
       should-trigger: ${{ steps.check.outputs.should-trigger }}
       test-type: ${{ steps.check.outputs.test-type }}
-      pr-number: ${{ github.event.issue.number }}
+      pr-number: ${{ github.event.issue.number || github.event.pull_request.number }}
       pr-head-sha: ${{ steps.get-pr.outputs.head-sha }}
     steps:
       - name: Checkout
@@ -30,7 +32,8 @@ jobs:
       - name: Get PR details
         id: get-pr
         run: |
-          PR_DATA=$(gh pr view ${{ github.event.issue.number }} --json headRefOid)
+          PR_NUMBER=${{ github.event.issue.number || github.event.pull_request.number }}
+          PR_DATA=$(gh pr view $PR_NUMBER --json headRefOid)
           echo "head-sha=$(echo $PR_DATA | jq -r '.headRefOid')" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,11 +41,16 @@ jobs:
       - name: Check comment content
         id: check
         run: |
-          COMMENT_BODY="${{ github.event.comment.body }}"
+          COMMENT_BODY="${{ github.event.comment.body || github.event.review.body }}"
           echo "Comment body: $COMMENT_BODY"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event action: ${{ github.event.action }}"
+          echo "Issue number: ${{ github.event.issue.number }}"
+          echo "PR number: ${{ github.event.pull_request.number }}"
+          echo "Is PR: ${{ github.event.issue.pull_request }}"
 
           # Check for test trigger commands
-          if echo "$COMMENT_BODY" | grep -qiE "^\s*(/test|/run-tests|/retest)\s*$"; then
+          if echo "$COMMENT_BODY" | grep -qiE "^\s*(/test|/run-tests|/retest|run all tests|run tests)\s*$"; then
             echo "should-trigger=true" >> $GITHUB_OUTPUT
             echo "test-type=all" >> $GITHUB_OUTPUT
             echo "✅ Triggering all tests"
