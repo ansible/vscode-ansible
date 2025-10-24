@@ -23,18 +23,6 @@ on:
         description: "Publish a pre-release"
         required: false
         default: "false"
-      test_type:
-        description: "Type of tests to run (all, unit, ui, e2e, als, mcp)"
-        required: false
-        default: "all"
-      triggered_by:
-        description: "What triggered this run"
-        required: false
-        default: "manual"
-      pr_number:
-        description: "PR number if triggered by comment"
-        required: false
-        default: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
