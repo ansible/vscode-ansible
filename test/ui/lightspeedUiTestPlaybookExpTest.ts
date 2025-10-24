@@ -27,7 +27,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
   if (process.platform !== "darwin") {
     const editorView = new EditorView();
-    
+
     // Wait for editor to be available and get the active editor
     await waitForCondition({
       condition: async () => {
@@ -41,7 +41,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     // Get the editor group and find the editor
     const editorGroup = await editorView.getEditorGroup(0);
     const editor = await editorGroup.getTabByTitle("playbook_1.yml");
-    
+
     if (editor) {
       const contextMenu = await editor.openContextMenu();
 
@@ -83,7 +83,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   const editorView = new EditorView();
   const editorGroup = await editorView.getEditorGroup(0);
   const explanationEditor = await editorGroup.getTabByTitle("Explanation");
-  
+
   if (!explanationEditor) {
     throw new Error("Could not find Explanation editor tab");
   }
@@ -182,7 +182,7 @@ describe(__filename, function () {
       const editorView = new EditorView();
       const editorGroup = await editorView.getEditorGroup(0);
       const explanationEditor = await editorGroup.getTabByTitle("Explanation");
-      
+
       if (!explanationEditor) {
         throw new Error("Could not find Explanation editor tab");
       }
@@ -236,7 +236,7 @@ describe(__filename, function () {
     it("Open Feedback webview", async function () {
       // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
-      
+
       // Wait for the Feedback webview to be available
       await waitForCondition({
         condition: async () => {
@@ -250,11 +250,11 @@ describe(__filename, function () {
       // Get the editor group and find the Feedback editor
       const editorGroup = await editorView.getEditorGroup(0);
       const feedbackEditor = await editorGroup.getTabByTitle("Ansible Lightspeed Feedback");
-      
+
       if (!feedbackEditor) {
         throw new Error("Could not find Ansible Lightspeed Feedback editor tab");
       }
-      
+
       // Locate the playbook explanation webview
       const webView = feedbackEditor as unknown as WebView;
       expect(webView, "webView should not be undefined").not.to.be.undefined;
