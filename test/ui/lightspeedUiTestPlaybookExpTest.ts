@@ -321,7 +321,7 @@ describe(__filename, function () {
       // Get the editor group and find the Feedback editor
       const editorGroup = await editorView.getEditorGroup(0);
       const feedbackEditor = await editorGroup.getTabByTitle("Ansible Lightspeed Feedback");
-      
+
       if (!feedbackEditor) {
         throw new Error(
           "Could not find Ansible Lightspeed Feedback editor tab",
