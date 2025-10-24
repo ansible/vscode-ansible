@@ -58,9 +58,8 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     By.xpath("//div[contains(@class, 'explanation') ]"),
   );
 
-
-  
   expect(webView, "webView should not be undefined").not.to.be.undefined;
+  // Find the thumbs up and thumbs down buttons
 
   const thumbsUpButton = await webView.findWebElement(
     By.xpath("//vscode-button[@id='thumbsup-button']"),
