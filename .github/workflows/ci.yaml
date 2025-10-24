@@ -507,7 +507,7 @@ jobs:
         continue-on-error: ${{ github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name }}
 
       - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # release/v1 branch
+        uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
         with:
           jobs: ${{ toJSON(needs) }}
 
