@@ -32,6 +32,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   if (process.platform !== "darwin") {
     const editorView = new EditorView();
 
+
     // Wait for editor to be available and get the active editor
     await waitForCondition({
       condition: async () => {
@@ -65,6 +66,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
     });
 
     const editor = await editorGroup.getTabByTitle("playbook_1.yml");
+
 
     if (editor) {
       const contextMenu = await editor.openContextMenu();
@@ -127,6 +129,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   });
 
   const explanationEditor = await editorGroup.getTabByTitle("Explanation");
+
 
   if (!explanationEditor) {
     throw new Error("Could not find Explanation editor tab");
@@ -317,15 +320,14 @@ describe(__filename, function () {
 
       // Get the editor group and find the Feedback editor
       const editorGroup = await editorView.getEditorGroup(0);
-      const feedbackEditor = await editorGroup.getTabByTitle(
-        "Ansible Lightspeed Feedback",
-      );
-
+      const feedbackEditor = await editorGroup.getTabByTitle("Ansible Lightspeed Feedback");
+      
       if (!feedbackEditor) {
         throw new Error(
           "Could not find Ansible Lightspeed Feedback editor tab",
         );
       }
+
 
       // Locate the playbook explanation webview
       const webView = feedbackEditor as unknown as WebView;
