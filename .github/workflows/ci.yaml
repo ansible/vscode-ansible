@@ -23,6 +23,18 @@ on:
         description: "Publish a pre-release"
         required: false
         default: "false"
+      test_type:
+        description: "Type of tests to run (all, unit, ui, e2e, als, mcp)"
+        required: false
+        default: "all"
+      triggered_by:
+        description: "What triggered this run"
+        required: false
+        default: "manual"
+      pr_number:
+        description: "PR number if triggered by comment"
+        required: false
+        default: ""
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.ref }}-${{ github.event.pull_request.number || github.sha }}
@@ -280,6 +292,11 @@ jobs:
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
+
+      - name: task mcp
+        # https://github.com/ansible/vscode-ansible/issues/1451
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && (github.event_name != 'workflow_dispatch' || github.event.inputs.test_type == 'all' || github.event.inputs.test_type == 'mcp') }}
+        run: task mcp ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}

@@ -5,6 +5,9 @@ includes:
   als:
     taskfile: ./packages/ansible-language-server
     dir: ./packages/ansible-language-server
+  mcp:
+    taskfile: ./packages/ansible-mcp-server
+    dir: ./packages/ansible-mcp-server
 output: prefixed # do not use "group" due to impact on CI
 env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
@@ -158,13 +161,14 @@ tasks:
       - tools
   test:
     # cspell: disable-next-line
-    desc: "Run all tests: unit, ui, e2e, als"
+    desc: "Run all tests: unit, ui, e2e, als, mcp"
     cmds:
       - task: setup
       - task: unit
       - task: ui
       - task: e2e
       - task: als:test
+      - task: mcp:test
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
