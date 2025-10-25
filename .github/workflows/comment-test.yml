@@ -21,11 +21,10 @@ jobs:
           echo "From user: ${{ github.event.comment.user.login }}"
           echo "On PR: ${{ github.event.issue.number }}"
           echo "Event: ${{ github.event_name }}"
-          
+
       - name: Reply to comment
         run: |
           gh pr comment ${{ github.event.issue.number }} \
             --body "👋 I received your comment: \`${{ github.event.comment.body }}\`"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
