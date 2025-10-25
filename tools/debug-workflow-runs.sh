@@ -42,4 +42,3 @@ echo "  gh run view --log"
 echo ""
 echo "To view in browser:"
 echo "  gh run view --web"
-
