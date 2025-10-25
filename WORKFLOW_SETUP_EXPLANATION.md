@@ -35,15 +35,17 @@ After merging, the workflow will work on ALL future PRs.
 
 You can test the `workflow_dispatch` functionality right now:
 
-#### Via GitHub UI:
-1. Go to: https://github.com/ansible/vscode-ansible/actions
+#### Via GitHub UI
+
+1. Go to: <https://github.com/ansible/vscode-ansible/actions>
 2. Click "**ci**" in the left sidebar
 3. Click "**Run workflow**" (green button, top right)
 4. Select branch: `testing-branch-for-comment`
 5. Choose test_type: `all`
 6. Click "**Run workflow**"
 
-#### Via Command Line:
+#### Via Command Line
+
 ```bash
 # Make sure gh CLI is authenticated
 gh auth login
@@ -68,13 +70,14 @@ Once merged to main:
 # On ANY future PR, you can comment:
 /test              # Run all tests
 /test-unit         # Run unit tests only
-/test-ui           # Run UI tests only  
+/test-ui           # Run UI tests only
 /test-e2e          # Run E2E tests only
 /test-als          # Run ALS tests only
 run all tests      # Natural language version
 ```
 
 The bot will:
+
 1. ✅ Respond with confirmation
 2. ✅ Post a link to the running tests
 3. ✅ Post final results (pass/fail)
@@ -82,6 +85,7 @@ The bot will:
 ## Why This Security Rule Exists
 
 GitHub prevents PR workflows from running to protect against:
+
 - Malicious code accessing repository secrets
 - Unauthorized actions in PRs from forks
 - Security vulnerabilities from untrusted code
@@ -104,7 +108,6 @@ git ls-tree origin/main:.github/workflows/ | grep pr-comment
 
 1. ✅ Review PR #2227
 2. ✅ Merge to main
-3. ✅ Create a test PR  
+3. ✅ Create a test PR
 4. ✅ Comment `/test`
 5. 🎉 Celebrate automated testing!
-
