@@ -1,0 +1,31 @@
+# Simple test workflow to verify comment triggers work
+name: Comment Test
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  test-comment:
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request
+    steps:
+      - name: React to comment
+        run: |
+          echo "Comment received: ${{ github.event.comment.body }}"
+          echo "From user: ${{ github.event.comment.user.login }}"
+          echo "On PR: ${{ github.event.issue.number }}"
+          echo "Event: ${{ github.event_name }}"
+          
+      - name: Reply to comment
+        run: |
+          gh pr comment ${{ github.event.issue.number }} \
+            --body "👋 I received your comment: \`${{ github.event.comment.body }}\`"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
