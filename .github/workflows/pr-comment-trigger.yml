@@ -13,6 +13,12 @@ concurrency:
   group: pr-comment-trigger-${{ github.event.issue.number || github.event.pull_request.number }}-${{ github.event.comment.id || github.event.review.id }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+  actions: write
+  issues: write
+
 jobs:
   # Check if the comment is a test trigger command
   check-comment:
