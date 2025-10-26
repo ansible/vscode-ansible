@@ -144,9 +144,9 @@ jobs:
     name: ${{ matrix.name }}
     # Run if: not a comment, or comment was parsed and should run
     if: |
-      (github.event_name != 'issue_comment') || 
+      (github.event_name != 'issue_comment') ||
       (needs.parse-command.outputs.should_run == 'true')
-    needs: 
+    needs:
       - parse-command
     environment: ci
     env:
