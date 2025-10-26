@@ -4,6 +4,8 @@ name: ci
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the main branch
 on:
+  issue_comment:
+    types: [created]
   merge_group:
     branches: ["main", "devel/*"]
   push:
@@ -40,8 +42,96 @@ env:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # Parse comment commands to determine what to run
+  parse-command:
+    name: Parse comment command
+    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
+    runs-on: ubuntu-24.04
+    outputs:
+      should_run: ${{ steps.parse.outputs.should_run }}
+      run_mode: ${{ steps.parse.outputs.run_mode }}
+      pr_ref: ${{ steps.pr-info.outputs.ref }}
+      pr_sha: ${{ steps.pr-info.outputs.sha }}
+      pr_repo: ${{ steps.pr-info.outputs.repo }}
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Get PR information
+        id: pr-info
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('ref', pr.data.head.ref);
+            core.setOutput('sha', pr.data.head.sha);
+            core.setOutput('repo', pr.data.head.repo.full_name);
+            return pr.data;
+
+      - name: Parse comment
+        id: parse
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const comment = context.payload.comment.body.trim();
+            
+            // Check if comment starts with @ci run
+            if (!comment.startsWith('@ci run')) {
+              core.setOutput('should_run', 'false');
+              return;
+            }
+            
+            // Extract mode (everything after '@ci run')
+            const parts = comment.split(/\s+/);
+            const mode = parts.length > 2 ? parts[2] : 'all';
+            
+            core.setOutput('should_run', 'true');
+            core.setOutput('run_mode', mode);
+            
+            // React to comment
+            await github.rest.reactions.createForIssueComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: context.payload.comment.id,
+              content: 'rocket'
+            });
+            
+            // Post comment with what will run
+            const modeDescriptions = {
+              'lint': '🔍 Running linting checks',
+              'docs': '📚 Building documentation',
+              'unit': '🧪 Running unit tests',
+              'ui': '🖥️ Running UI tests',
+              'e2e': '🔄 Running E2E tests',
+              'als': '🔧 Running ALS tests',
+              'test': '✅ Running full test suite (Linux)',
+              'all': '🚀 Running all jobs (full CI)',
+              'macos': '🍎 Running tests on macOS',
+              'wsl': '🪟 Running tests on WSL'
+            };
+            
+            const description = modeDescriptions[mode] || `Running: ${mode}`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `${description}\n\n[View workflow run →](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
+            });
+
   build:
     name: ${{ matrix.name }}
+    # Run if: not a comment, or comment was parsed and should run
+    if: |
+      always() &&
+      ((github.event_name != 'issue_comment') || 
+      (needs.parse-command.result == 'success' && needs.parse-command.outputs.should_run == 'true'))
+    needs: 
+      - parse-command
     environment: ci
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
@@ -50,6 +140,8 @@ jobs:
       # NODE_OPTIONS must be kept in sync with one inside .env file
       NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+      # Store the run mode for conditional steps
+      RUN_MODE: ${{ needs.parse-command.outputs.run_mode || 'all' }}
 
     defaults:
       run:
@@ -107,14 +199,65 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
+      - name: Determine which matrix jobs should run
+        id: should-run-matrix
+        run: |
+          mode="${RUN_MODE}"
+          job_name="${{ matrix.name }}"
+          should_run="false"
+          
+          # If not from comment, run all jobs
+          if [[ "${{ github.event_name }}" != "issue_comment" ]]; then
+            should_run="true"
+          else
+            # Check if this matrix job matches the requested mode
+            case "$mode" in
+              "all")
+                should_run="true"
+                ;;
+              "lint")
+                [[ "$job_name" == "lint" ]] && should_run="true"
+                ;;
+              "docs")
+                [[ "$job_name" == "docs" ]] && should_run="true"
+                ;;
+              "unit")
+                [[ "$job_name" == "test (linux)" ]] && should_run="true"
+                ;;
+              "ui"|"e2e"|"als")
+                [[ "$job_name" == "test (linux)" ]] && should_run="true"
+                ;;
+              "test")
+                [[ "$job_name" == "test (linux)" ]] && should_run="true"
+                ;;
+              "macos")
+                [[ "$job_name" == "test (macos)" ]] && should_run="true"
+                ;;
+              "wsl")
+                [[ "$job_name" == "test (wsl)" ]] && should_run="true"
+                ;;
+            esac
+          fi
+          
+          echo "should_run=$should_run" >> $GITHUB_OUTPUT
+          if [[ "$should_run" == "true" ]]; then
+            echo "✓ Running $job_name for mode: $mode"
+          else
+            echo "⊘ Skipping $job_name (not needed for mode: $mode)"
+          fi
+
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         with:
+          # Use PR ref if triggered by comment, otherwise use default
+          repository: ${{ github.event_name == 'issue_comment' && needs.parse-command.outputs.pr_repo || github.repository }}
+          ref: ${{ github.event_name == 'issue_comment' && needs.parse-command.outputs.pr_sha || github.ref }}
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
-        if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
+        if: steps.should-run-matrix.outputs.should_run == 'true' && contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
         uses: Vampire/setup-wsl@6a8db447be7ed35f2f499c02c6e60ff77ef11278 # v6.0.0
         with:
           distribution: Ubuntu-24.04
@@ -155,14 +298,17 @@ jobs:
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
       - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.0.0
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         with:
           experimental: true
           reshim: true
 
       - name: Corepack enable
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         run: corepack enable
 
       - name: Enable caching
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
@@ -188,23 +334,26 @@ jobs:
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
 
       - name: Setup task
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
         with:
           version: 3.37.2
 
       - name: Setup python
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: "3.13"
 
       - name: Enable caching for pre-commit
-        if: ${{ matrix.name == 'lint' }}
+        if: steps.should-run-matrix.outputs.should_run == 'true' && matrix.name == 'lint'
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: ~/.cache/pre-commit/
           key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         run: |
           if [[ "${{ matrix.name }}" == *"wsl"* ]]; then
             pipx install ansible-dev-tools
@@ -213,6 +362,7 @@ jobs:
           fi
 
       - name: Ensure .env file is automatically loaded (mise)
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         run: |
           set -ex
           mise doctor || true
@@ -228,12 +378,14 @@ jobs:
           [[ "${NODE_OPTIONS:-}" == "$(mise exec -- printenv NODE_OPTIONS)" ]] || { echo "NODE_OPTIONS mismatch between .env and ci.yaml"; exit 97; }
 
       - name: Install dependencies
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         uses: coactions/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # fix/install
         # backstage/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024 # v0.6.17
         with:
           cache-prefix: ${{ runner.os }}-v${{ matrix.node-version }}
 
       - name: task setup
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
         run: task setup
@@ -243,12 +395,13 @@ jobs:
       # - name: Setup tmate session
       #   uses: mxschmitt/action-tmate@v3
       - name: task package
+        if: steps.should-run-matrix.outputs.should_run == 'true'
         id: package
         run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }}
+          task package ${{ env.TASKFILE_ARGS }}
 
       - name: configure podman
-        if: ${{ matrix.name == 'test (linux)' }}
+        if: steps.should-run-matrix.outputs.should_run == 'true' && matrix.name == 'test (linux)'
         run: |
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
           mkdir -p ~/.config/containers
@@ -259,27 +412,42 @@ jobs:
           podman info
 
       - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') }}"
-        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
+        if: steps.should-run-matrix.outputs.should_run == 'true' && !contains(matrix.name, 'test')
+        run: task ${{ matrix.task-name }} ${{ env.TASKFILE_ARGS }}
 
       - name: task unit
-        if: contains(matrix.name, 'test')
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+        if: |
+          steps.should-run-matrix.outputs.should_run == 'true' &&
+          contains(matrix.name, 'test') &&
+          (github.event_name != 'issue_comment' || env.RUN_MODE == 'all' || env.RUN_MODE == 'unit' || env.RUN_MODE == 'test')
+        run: task unit ${{ env.TASKFILE_ARGS }}
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
-        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+        if: |
+          !cancelled() &&
+          steps.should-run-matrix.outputs.should_run == 'true' &&
+          contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') &&
+          (github.event_name != 'issue_comment' || env.RUN_MODE == 'all' || env.RUN_MODE == 'ui' || env.RUN_MODE == 'test')
+        run: task ui ${{ env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
-        run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
+        if: |
+          !cancelled() &&
+          steps.should-run-matrix.outputs.should_run == 'true' &&
+          contains(matrix.name, 'test') &&
+          (github.event_name != 'issue_comment' || env.RUN_MODE == 'all' || env.RUN_MODE == 'e2e' || env.RUN_MODE == 'test')
+        run: task e2e ${{ env.TASKFILE_ARGS }}
 
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
-        run: task als ${{ matrix.env.TASKFILE_ARGS }}
+        if: |
+          !cancelled() &&
+          steps.should-run-matrix.outputs.should_run == 'true' &&
+          contains(matrix.name, 'test') &&
+          (github.event_name != 'issue_comment' || env.RUN_MODE == 'all' || env.RUN_MODE == 'als' || env.RUN_MODE == 'test')
+        run: task als ${{ env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}

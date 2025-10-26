@@ -1,0 +1,131 @@
+# cspell:ignore oidc
+name: PR Comment Trigger Tests (TEST VERSION - Will be removed after testing)
+
+# Trigger on issue comments in pull requests
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+# Only run on pull request comments
+concurrency:
+  group: pr-comment-trigger-${{ github.event.issue.number || github.event.pull_request.number }}-${{ github.event.comment.id || github.event.review.id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: write
+  issues: write
+
+jobs:
+  # Check if the comment is a test trigger command
+  check-comment:
+    runs-on: ubuntu-latest
+    if: (github.event_name == 'issue_comment' && github.event.issue.pull_request) || github.event_name == 'pull_request_review_comment'
+    outputs:
+      should-trigger: ${{ steps.check.outputs.should-trigger }}
+      test-type: ${{ steps.check.outputs.test-type }}
+      pr-number: ${{ github.event.issue.number || github.event.pull_request.number }}
+      pr-head-sha: ${{ steps.get-pr.outputs.head-sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+
+      - name: Get PR details
+        id: get-pr
+        run: |
+          PR_NUMBER=${{ github.event.issue.number || github.event.pull_request.number }}
+          PR_DATA=$(gh pr view $PR_NUMBER --json headRefOid)
+          echo "head-sha=$(echo $PR_DATA | jq -r '.headRefOid')" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check comment content
+        id: check
+        run: |
+          COMMENT_BODY="${{ github.event.comment.body || github.event.review.body }}"
+          echo "Comment body: $COMMENT_BODY"
+          echo "Event name: ${{ github.event_name }}"
+          echo "Event action: ${{ github.event.action }}"
+          echo "Issue number: ${{ github.event.issue.number }}"
+          echo "PR number: ${{ github.event.pull_request.number }}"
+          echo "Is PR: ${{ github.event.issue.pull_request }}"
+
+          # Check for test trigger commands
+          if echo "$COMMENT_BODY" | grep -qiE "^\s*(/test|/run-tests|/retest|run all tests|run tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=all" >> $GITHUB_OUTPUT
+            echo "✅ Triggering all tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-unit|/run-unit-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=unit" >> $GITHUB_OUTPUT
+            echo "✅ Triggering unit tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-ui|/run-ui-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=ui" >> $GITHUB_OUTPUT
+            echo "✅ Triggering UI tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-e2e|/run-e2e-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=e2e" >> $GITHUB_OUTPUT
+            echo "✅ Triggering E2E tests"
+          elif echo "$COMMENT_BODY" | grep -qiE "^\s*(/test-als|/run-als-tests)\s*$"; then
+            echo "should-trigger=true" >> $GITHUB_OUTPUT
+            echo "test-type=als" >> $GITHUB_OUTPUT
+            echo "✅ Triggering ALS tests"
+          else
+            echo "should-trigger=false" >> $GITHUB_OUTPUT
+            echo "test-type=none" >> $GITHUB_OUTPUT
+            echo "❌ No valid test command found"
+          fi
+
+  # Trigger the actual test run
+  trigger-tests:
+    needs: check-comment
+    if: needs.check-comment.outputs.should-trigger == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add comment to PR
+        run: |
+          gh pr comment ${{ needs.check-comment.outputs.pr-number }} \
+            --body "🚀 **Test Triggered by @${{ github.event.comment.user.login }}**
+
+          **Test Type:** ${{ needs.check-comment.outputs.test-type }}
+          **Triggered by:** \`${{ github.event.comment.body }}\`
+
+          Tests are now running... ⏳"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger workflow dispatch
+        run: |
+          gh workflow run ci.yaml \
+            --ref ${{ needs.check-comment.outputs.pr-head-sha }} \
+            --field test_type="${{ needs.check-comment.outputs.test-type }}" \
+            --field triggered_by="pr_comment" \
+            --field pr_number="${{ needs.check-comment.outputs.pr-number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Wait for workflow to start
+        run: |
+          echo "Waiting for workflow to start..."
+          sleep 10
+
+          # Get the latest workflow run
+          RUN_ID=$(gh run list --workflow=ci.yaml --limit=1 --json databaseId --jq '.[0].databaseId')
+          echo "Workflow run ID: $RUN_ID"
+
+          # Add a follow-up comment with the workflow run link
+          gh pr comment ${{ needs.check-comment.outputs.pr-number }} \
+            --body "📋 **Test Run Started**
+
+          **Workflow Run:** [View Details](https://github.com/${{ github.repository }}/actions/runs/$RUN_ID)
+          **Test Type:** ${{ needs.check-comment.outputs.test-type }}
+
+          You can monitor the progress by clicking the link above."
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
