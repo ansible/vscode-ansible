@@ -45,11 +45,10 @@ jobs:
   # Parse comment commands to determine what to run
   parse-command:
     name: Parse comment command
-    if: github.event_name == 'issue_comment' && github.event.issue.pull_request
     runs-on: ubuntu-24.04
     outputs:
-      should_run: ${{ steps.parse.outputs.should_run }}
-      run_mode: ${{ steps.parse.outputs.run_mode }}
+      should_run: ${{ steps.parse.outputs.should_run || steps.defaults.outputs.should_run }}
+      run_mode: ${{ steps.parse.outputs.run_mode || steps.defaults.outputs.run_mode }}
       pr_ref: ${{ steps.pr-info.outputs.ref }}
       pr_sha: ${{ steps.pr-info.outputs.sha }}
       pr_repo: ${{ steps.pr-info.outputs.repo }}
@@ -57,7 +56,17 @@ jobs:
       pull-requests: write
       issues: write
     steps:
+      - name: Check event type
+        id: check-event
+        run: |
+          if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+            echo "is_comment=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_comment=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Get PR information
+        if: steps.check-event.outputs.is_comment == 'true'
         id: pr-info
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
@@ -74,6 +83,7 @@ jobs:
 
       - name: Parse comment
         id: parse
+        if: steps.check-event.outputs.is_comment == 'true'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           script: |
@@ -123,13 +133,19 @@ jobs:
               body: `${description}\n\n[View workflow run →](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`
             });
 
+      - name: Set defaults for non-comment events
+        if: steps.check-event.outputs.is_comment == 'false'
+        id: defaults
+        run: |
+          echo "should_run=false" >> $GITHUB_OUTPUT
+          echo "run_mode=all" >> $GITHUB_OUTPUT
+
   build:
     name: ${{ matrix.name }}
     # Run if: not a comment, or comment was parsed and should run
     if: |
-      always() &&
-      ((github.event_name != 'issue_comment') || 
-      (needs.parse-command.result == 'success' && needs.parse-command.outputs.should_run == 'true'))
+      (github.event_name != 'issue_comment') || 
+      (needs.parse-command.outputs.should_run == 'true')
     needs: 
       - parse-command
     environment: ci
