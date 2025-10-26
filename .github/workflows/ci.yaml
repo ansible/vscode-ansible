@@ -88,20 +88,20 @@ jobs:
         with:
           script: |
             const comment = context.payload.comment.body.trim();
-            
+
             // Check if comment starts with @ci run
             if (!comment.startsWith('@ci run')) {
               core.setOutput('should_run', 'false');
               return;
             }
-            
+
             // Extract mode (everything after '@ci run')
             const parts = comment.split(/\s+/);
             const mode = parts.length > 2 ? parts[2] : 'all';
-            
+
             core.setOutput('should_run', 'true');
             core.setOutput('run_mode', mode);
-            
+
             // React to comment
             await github.rest.reactions.createForIssueComment({
               owner: context.repo.owner,
@@ -109,7 +109,7 @@ jobs:
               comment_id: context.payload.comment.id,
               content: 'rocket'
             });
-            
+
             // Post comment with what will run
             const modeDescriptions = {
               'lint': '🔍 Running linting checks',
@@ -123,9 +123,9 @@ jobs:
               'macos': '🍎 Running tests on macOS',
               'wsl': '🪟 Running tests on WSL'
             };
-            
+
             const description = modeDescriptions[mode] || `Running: ${mode}`;
-            
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -221,7 +221,7 @@ jobs:
           mode="${RUN_MODE}"
           job_name="${{ matrix.name }}"
           should_run="false"
-          
+
           # If not from comment, run all jobs
           if [[ "${{ github.event_name }}" != "issue_comment" ]]; then
             should_run="true"
@@ -254,7 +254,7 @@ jobs:
                 ;;
             esac
           fi
-          
+
           echo "should_run=$should_run" >> $GITHUB_OUTPUT
           if [[ "$should_run" == "true" ]]; then
             echo "✓ Running $job_name for mode: $mode"
