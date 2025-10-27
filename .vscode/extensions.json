@@ -5,7 +5,6 @@
     "DavidAnson.vscode-markdownlint",
     "dbaeumer.vscode-eslint",
     "tombi-toml.tombi",
-    "esbenp.prettier-vscode",
     "hbenl.vscode-mocha-test-adapter",
     "timonwong.shellcheck"
   ],
