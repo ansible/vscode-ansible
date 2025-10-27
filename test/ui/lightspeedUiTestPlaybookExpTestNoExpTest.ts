@@ -11,7 +11,7 @@ import {
 
 config.truncateThreshold = 0;
 
-describe.skip("Verify playbook explanation features when no explanation is returned", function () {
+describe("Verify playbook explanation features when no explanation is returned", function () {
   let editorView: EditorView;
 
   beforeEach(function () {

@@ -116,7 +116,7 @@ describe(__filename, function () {
       });
     });
 
-    it.skip("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
@@ -154,14 +154,14 @@ describe(__filename, function () {
       await workbenchExecuteCommand("View: Close All Editor Groups");
     });
 
-    it.skip("Playbook explanation thumbs up/down button disabled after thumbs up https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it("Playbook explanation thumbs up/down button disabled after thumbs up https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
       await testThumbsButtonInteraction("thumbsup");
     });
 
-    it.skip("Playbook explanation thumbs up/down button disabled after thumbs down https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it("Playbook explanation thumbs up/down button disabled after thumbs down https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
