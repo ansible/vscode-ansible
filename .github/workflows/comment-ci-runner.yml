@@ -1,0 +1,261 @@
+---
+name: comment-ci-runner
+
+# This is a reusable workflow that executes specific CI tasks triggered by PR comments
+
+on:
+  repository_dispatch:
+    types: [comment-ci-runner]
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'The task to run (docs, lint, test, unit, ui, e2e, als)'
+        required: true
+        type: choice
+        options:
+          - docs
+          - lint
+          - test
+          - unit
+          - ui
+          - e2e
+          - als
+      pr_number:
+        description: 'PR number'
+        required: false
+        type: string
+      pr_repo:
+        description: 'PR repository'
+        required: false
+        type: string
+      pr_ref:
+        description: 'PR ref'
+        required: false
+        type: string
+      pr_sha:
+        description: 'PR commit SHA'
+        required: false
+        type: string
+
+concurrency:
+  group: comment-ci-${{ github.event.client_payload.pr_number || github.event.inputs.pr_number || github.sha }}-${{ github.event.client_payload.task || github.event.inputs.task }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+  MISE_ENV: ci
+  PRETTIER_LEGACY_CLI: "1"
+  WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
+  HOSTNAME: gha
+
+jobs:
+  run-task:
+    name: ${{ github.event.client_payload.task || github.event.inputs.task }}
+    environment: ci
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      id-token: write
+      checks: write
+      pull-requests: write
+    
+    env:
+      SKIP_DOCKER: 0
+      SKIP_PODMAN: 0
+      NODE_OPTIONS: --max-old-space-size=8192
+      TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+      TASK: ${{ github.event.client_payload.task || github.event.inputs.task }}
+      PR_NUMBER: ${{ github.event.client_payload.pr_number || github.event.inputs.pr_number }}
+      PR_REPO: ${{ github.event.client_payload.pr_repo || github.event.inputs.pr_repo }}
+      PR_REF: ${{ github.event.client_payload.pr_ref || github.event.inputs.pr_ref }}
+      PR_SHA: ${{ github.event.client_payload.pr_sha || github.event.inputs.pr_sha }}
+
+    steps:
+      - name: Post status comment
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.client_payload?.pr_number || context.payload.inputs?.pr_number;
+            const task = context.payload.client_payload?.task || context.payload.inputs?.task;
+            const prSha = context.payload.client_payload?.pr_sha || context.payload.inputs?.pr_sha;
+            
+            if (prNumber) {
+              github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `🚀 Running task **${task}** on commit ${prSha ? prSha.substring(0, 7) : 'HEAD'}...`
+              });
+            }
+
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0
+          ref: ${{ env.PR_SHA || github.sha }}
+
+      - name: Setup task
+        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
+        with:
+          version: 3.37.2
+
+      - name: Setup Python
+        uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: "3.13"
+
+      - name: Install ansible-dev-tools
+        run: pip install ansible-dev-tools
+
+      - name: Setup mise
+        uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.0.0
+        with:
+          experimental: true
+          reshim: true
+
+      - name: Corepack enable
+        run: corepack enable
+
+      - name: Enable caching
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            .vscode-test
+            .yarn/cache
+            node_modules/.cache/webpack
+            out/ext
+            out/test-resources*/Visual Studio Code.app
+            out/test-resources*/chromedriver*
+            out/test-resources*/driverVersion
+            out/test-resources*/stable.zip
+            ~/.cache/pip
+            ~/.cache/yarn
+          key: comment-ci-${{ env.TASK }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
+
+      - name: Ensure .env file is automatically loaded
+        run: |
+          set -ex
+          mise doctor || true
+          test "${VIRTUAL_ENV:-}" = "${HOME}/.local/share/virtualenvs/vsa" || {
+            echo "VIRTUAL_ENV mismatch"
+            exit 99
+          }
+
+      - name: Install dependencies
+        uses: coactions/actions/yarn-install@b3c1841fd69e1658ac631afafd0fb140a2309024
+        with:
+          cache-prefix: comment-ci-${{ env.TASK }}
+
+      - name: task setup
+        timeout-minutes: 25
+        run: task setup
+        id: setup
+
+      - name: Run task
+        run: |
+          case "${{ env.TASK }}" in
+            docs)
+              task docs ${{ env.TASKFILE_ARGS }}
+              ;;
+            lint)
+              task lint ${{ env.TASKFILE_ARGS }}
+              ;;
+            unit)
+              task unit ${{ env.TASKFILE_ARGS }}
+              ;;
+            ui)
+              # Install xvfb for headless UI tests
+              sudo apt-get update
+              sudo apt-get install -y xvfb
+              export DISPLAY=:99
+              task ui ${{ env.TASKFILE_ARGS }}
+              ;;
+            e2e)
+              # Configure podman for e2e tests
+              sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+              mkdir -p ~/.config/containers
+              cat <<EOT >> ~/.config/containers/containers.conf
+              [engine]
+              cgroup_manager="cgroupfs"
+              EOT
+              podman info
+              task e2e ${{ env.TASKFILE_ARGS }}
+              ;;
+            als)
+              task als:test ${{ env.TASKFILE_ARGS }}
+              ;;
+            test)
+              # Full test suite
+              # Configure podman
+              sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+              mkdir -p ~/.config/containers
+              cat <<EOT >> ~/.config/containers/containers.conf
+              [engine]
+              cgroup_manager="cgroupfs"
+              EOT
+              podman info
+              
+              # Install xvfb for UI tests
+              sudo apt-get update
+              sudo apt-get install -y xvfb
+              export DISPLAY=:99
+              
+              task unit ${{ env.TASKFILE_ARGS }}
+              task ui ${{ env.TASKFILE_ARGS }}
+              task e2e ${{ env.TASKFILE_ARGS }}
+              task als:test ${{ env.TASKFILE_ARGS }}
+              ;;
+            *)
+              echo "Unknown task: ${{ env.TASK }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Post success comment
+        if: success()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.client_payload?.pr_number || context.payload.inputs?.pr_number;
+            const task = context.payload.client_payload?.task || context.payload.inputs?.task;
+            
+            if (prNumber) {
+              github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `✅ Task **${task}** completed successfully!`
+              });
+            }
+
+      - name: Post failure comment
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.client_payload?.pr_number || context.payload.inputs?.pr_number;
+            const task = context.payload.client_payload?.task || context.payload.inputs?.task;
+            
+            if (prNumber) {
+              github.rest.issues.createComment({
+                issue_number: prNumber,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `❌ Task **${task}** failed. Check the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.`
+              });
+            }
+
+      - name: Upload logs
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: logs-comment-ci-${{ env.TASK }}.zip
+          path: |
+            out/log
+            out/junit
+          if-no-files-found: ignore
+          retention-days: 7
+

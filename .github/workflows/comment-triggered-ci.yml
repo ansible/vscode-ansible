@@ -1,0 +1,116 @@
+---
+name: comment-triggered-ci
+
+on:
+  issue_comment:
+    types: [created, edited]
+  pull_request_target:
+    types: [synchronize]
+
+jobs:
+  parse-comment:
+    if: |
+      github.event.comment.body != '' &&
+      startsWith(github.event.comment.body, '@ci run') &&
+      (github.event.comment.author_association == 'MEMBER' ||
+       github.event.comment.author_association == 'OWNER' ||
+       github.event.comment.author_association == 'COLLABORATOR')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Parse comment
+        id: parse
+        run: |
+          comment="${{ github.event.comment.body }}"
+          echo "Comment: $comment"
+          
+          # Extract task from comment
+          # Expected format: @ci run <task>
+          task=$(echo "$comment" | sed -n 's/.*@ci run \([a-z:]*\).*/\1/p' | tr -d '[:space:]')
+          
+          # Whitelist of allowed tasks
+          allowed_tasks="docs|lint|test|unit|ui|e2e|als"
+          
+          if [[ ! "$task" =~ ^($allowed_tasks)$ ]]; then
+            echo "❌ Invalid task: '$task'. Allowed tasks: docs, lint, test, unit, ui, e2e, als"
+            echo "task=" >> $GITHUB_OUTPUT
+            echo "valid=false" >> $GITHUB_OUTPUT
+            echo "error=Invalid task. Allowed tasks are: docs, lint, test, unit, ui, e2e, als" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ Valid task: $task"
+          echo "task=$task" >> $GITHUB_OUTPUT
+          echo "valid=true" >> $GITHUB_OUTPUT
+
+      - name: Get PR information
+        if: steps.parse.outputs.valid == 'true'
+        id: pr_info
+        env:
+          PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
+          PR_REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          PR_REF: ${{ github.event.pull_request.head.ref || github.event.pull_request.head.sha }}
+          PR_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          echo "PR Number: $PR_NUMBER"
+          echo "PR Repo: $PR_REPO"
+          echo "PR Ref: $PR_REF"
+          echo "PR SHA: $PR_SHA"
+          
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "pr_repo=$PR_REPO" >> $GITHUB_OUTPUT
+          echo "pr_ref=$PR_REF" >> $GITHUB_OUTPUT
+          echo "pr_sha=$PR_SHA" >> $GITHUB_OUTPUT
+
+      - name: Post comment acknowledging request
+        if: steps.parse.outputs.valid == 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const task = '${{ steps.parse.outputs.task }}';
+            const actor = '${{ github.actor }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `✅ @${actor} CI run for task **${task}** accepted. Starting workflow...`
+            });
+
+      - name: Trigger reusable workflow
+        if: steps.parse.outputs.valid == 'true'
+        uses: peter-evans/repository-dispatch@9ca82d36f6decc9f0e693d6e2a11e79f21bdd942 # v3.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          event-type: comment-ci-runner
+          client-payload: |
+            {
+              "task": "${{ steps.parse.outputs.task }}",
+              "pr_number": "${{ steps.pr_info.outputs.pr_number }}",
+              "pr_repo": "${{ steps.pr_info.outputs.pr_repo }}",
+              "pr_ref": "${{ steps.pr_info.outputs.pr_ref }}",
+              "pr_sha": "${{ steps.pr_info.outputs.pr_sha }}"
+            }
+
+      - name: Wait for workflow
+        if: steps.parse.outputs.valid == 'true'
+        run: sleep 5  # Give the dispatch time to propagate
+
+      - name: Post comment on error
+        if: steps.parse.outputs.valid != 'true'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const error = '${{ steps.parse.outputs.error }}';
+            const actor = '${{ github.actor }}';
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `❌ @${actor} ${error}`
+            });
+
