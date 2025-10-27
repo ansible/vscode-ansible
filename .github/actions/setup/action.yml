@@ -1,0 +1,38 @@
+name: setup
+description: Runs steps to setup build environment
+
+inputs:
+  job_name:
+    description: The name of the job
+    default: preflight
+runs:
+  using: "composite"
+  steps:
+    - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+      with:
+        experimental: true
+        reshim: true
+
+    - name: Corepack enable
+      run: corepack enable
+      shell: bash
+
+    - name: Runner image version
+      run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}" >> "$GITHUB_ENV"
+      shell: bash
+
+    - name: Enable caching for python
+      # left out due to having their own caching: yarn, node_modules, mise
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.cache/uv
+        key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python_version') }}
+
+    - name: Enable caching for pre-commit
+      if: ${{ inputs.jop_name == 'lint' || inputs.job_name == 'preflight' }}
+      uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: ~/.cache/pre-commit/
+        key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
