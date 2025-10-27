@@ -26,14 +26,14 @@ jobs:
         run: |
           comment="${{ github.event.comment.body }}"
           echo "Comment: $comment"
-          
+
           # Extract task from comment
           # Expected format: @ci run <task>
           task=$(echo "$comment" | sed -n 's/.*@ci run \([a-z:]*\).*/\1/p' | tr -d '[:space:]')
-          
+
           # Whitelist of allowed tasks
           allowed_tasks="docs|lint|test|unit|ui|e2e|als"
-          
+
           if [[ ! "$task" =~ ^($allowed_tasks)$ ]]; then
             echo "❌ Invalid task: '$task'. Allowed tasks: docs, lint, test, unit, ui, e2e, als"
             echo "task=" >> $GITHUB_OUTPUT
@@ -41,7 +41,7 @@ jobs:
             echo "error=Invalid task. Allowed tasks are: docs, lint, test, unit, ui, e2e, als" >> $GITHUB_OUTPUT
             exit 1
           fi
-          
+
           echo "✅ Valid task: $task"
           echo "task=$task" >> $GITHUB_OUTPUT
           echo "valid=true" >> $GITHUB_OUTPUT
@@ -59,7 +59,7 @@ jobs:
           echo "PR Repo: $PR_REPO"
           echo "PR Ref: $PR_REF"
           echo "PR SHA: $PR_SHA"
-          
+
           echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
           echo "pr_repo=$PR_REPO" >> $GITHUB_OUTPUT
           echo "pr_ref=$PR_REF" >> $GITHUB_OUTPUT
@@ -113,4 +113,3 @@ jobs:
               repo: context.repo.repo,
               body: `❌ @${actor} ${error}`
             });
-

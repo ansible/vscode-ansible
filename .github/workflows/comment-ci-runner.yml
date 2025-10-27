@@ -58,7 +58,7 @@ jobs:
       id-token: write
       checks: write
       pull-requests: write
-    
+
     env:
       SKIP_DOCKER: 0
       SKIP_PODMAN: 0
@@ -79,7 +79,7 @@ jobs:
             const prNumber = context.payload.client_payload?.pr_number || context.payload.inputs?.pr_number;
             const task = context.payload.client_payload?.task || context.payload.inputs?.task;
             const prSha = context.payload.client_payload?.pr_sha || context.payload.inputs?.pr_sha;
-            
+
             if (prNumber) {
               github.rest.issues.createComment({
                 issue_number: prNumber,
@@ -195,12 +195,12 @@ jobs:
               cgroup_manager="cgroupfs"
               EOT
               podman info
-              
+
               # Install xvfb for UI tests
               sudo apt-get update
               sudo apt-get install -y xvfb
               export DISPLAY=:99
-              
+
               task unit ${{ env.TASKFILE_ARGS }}
               task ui ${{ env.TASKFILE_ARGS }}
               task e2e ${{ env.TASKFILE_ARGS }}
@@ -220,7 +220,7 @@ jobs:
           script: |
             const prNumber = context.payload.client_payload?.pr_number || context.payload.inputs?.pr_number;
             const task = context.payload.client_payload?.task || context.payload.inputs?.task;
-            
+
             if (prNumber) {
               github.rest.issues.createComment({
                 issue_number: prNumber,
@@ -238,7 +238,7 @@ jobs:
           script: |
             const prNumber = context.payload.client_payload?.pr_number || context.payload.inputs?.pr_number;
             const task = context.payload.client_payload?.task || context.payload.inputs?.task;
-            
+
             if (prNumber) {
               github.rest.issues.createComment({
                 issue_number: prNumber,
@@ -258,4 +258,3 @@ jobs:
             out/junit
           if-no-files-found: ignore
           retention-days: 7
-
