@@ -22,8 +22,11 @@
   "[toml]": {
     "editor.defaultFormatter": "tombi-toml.tombi"
   },
+  "[typescript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true
+  },
   "[yaml]": {
-    // Until https://github.com/ansible/vscode-ansible/pull/388 is addressed.
     "editor.formatOnSave": false
   },
   "editor.codeActionsOnSave": ["source.fixAll.eslint"],
