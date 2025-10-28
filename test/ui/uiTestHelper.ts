@@ -330,7 +330,9 @@ export async function waitForCondition({
 }
 
 // Wrapper around VSBrowser.instance.openResources to add a default wait after opening resources.
-export async function openResources(...args: (string | (() => void | Promise<any>))[]): Promise<void> {
+export async function openResources(
+  ...args: (string | (() => void | Promise<any>))[]
+): Promise<void> {
   args.push(async () => {
     // Wait a bit for the resources to open
     await VSBrowser.instance.driver.sleep(3_000);

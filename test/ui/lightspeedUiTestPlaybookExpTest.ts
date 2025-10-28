@@ -1,12 +1,7 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import {
-  By,
-  EditorView,
-  WebView,
-  Workbench,
-} from "vscode-extension-tester";
+import { By, EditorView, WebView, Workbench } from "vscode-extension-tester";
 import {
   getFixturePath,
   getWebviewByLocator,
