@@ -321,11 +321,9 @@ if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
         exit 99
     fi
 fi
-log notice "Upgrading pip and uv ..."
 
-python3 -m pip install -q -U pip uv
 # Fail fast if user has broken dependencies
-python3 -m pip check || {
+uv pip check || {
         log error "pip check failed with exit code $?"
         if [[ $MACHTYPE == x86_64* && "${OSTYPE:-}" != darwin* ]] ; then
             exit 98
@@ -338,7 +336,8 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # We used the already tested constraints file from community-ansible-dev-tools EE in order
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
-    python3 -m uv sync --active
+    log notice "Running uv sync ..."
+    uv sync --active
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere

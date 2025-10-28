@@ -39,23 +39,17 @@ tasks:
       - npm run lint
     interactive: true
   test:
-    desc: Run all tests
+    desc: Run all tests and coverage report
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - npm test
+      - npm run test:coverage
     interactive: true
   test-watch:
     desc: Run tests in watch mode
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - npm run test:watch
-    interactive: true
-  test-coverage:
-    desc: Run tests with coverage report
-    dir: "{{ .TASKFILE_DIR }}"
-    cmds:
-      - npm run test:coverage
     interactive: true
   package:
     desc: Package MCP server

@@ -38,6 +38,8 @@ repos:
       - id: cspell
         entry: bash
         pass_filenames: false
+        additional_dependencies:
+          - cspell@^9.2.2
         args:
           [
             "-euo",

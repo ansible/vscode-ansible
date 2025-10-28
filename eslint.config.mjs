@@ -21,6 +21,7 @@ export default tseslint.config(
     ignores: [
       "**/.vscode-test/*",
       "**/out/",
+      ".cache/*",
       ".mocharc.js",
       ".vscode-test/*",
       ".venv/*",

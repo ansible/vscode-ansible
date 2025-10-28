@@ -39,7 +39,6 @@ contentmatches
 coreutils
 dedupe
 depcheck
-devel
 devfile
 devspaces
 eslintcache
@@ -102,7 +101,6 @@ tomjs
 tomlsort
 towerhost
 unshallow
-usermod
 uuidv
 virt
 vite

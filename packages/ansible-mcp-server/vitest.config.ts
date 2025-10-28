@@ -8,7 +8,8 @@ export default defineConfig({
     exclude: ["test/fixtures/**", "test/README.md", "test/testWrapper.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reportsDirectory: "../../out/coverage/mcp",
+      reporter: ["cobertura", "text", "json"],
       exclude: [
         "node_modules/",
         "dist/",
@@ -17,6 +18,10 @@ export default defineConfig({
         "**/*.d.ts",
       ],
     },
+    outputFile: {
+      junit: "../../out/junit/mcp/mcp-test-results.xml",
+    },
+    reporters: ["default", "junit"],
     testTimeout: 30000, // 30 seconds for tests that might spawn processes
   },
 });
