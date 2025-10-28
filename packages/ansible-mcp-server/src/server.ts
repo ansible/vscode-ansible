@@ -82,7 +82,9 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         fix: z
           .boolean()
           .optional()
-          .describe("Whether to apply automatic fixes using ansible-lint --fix. If not specified, tool will prompt user for preference."),
+          .describe(
+            "Whether to apply automatic fixes using ansible-lint --fix. If not specified, tool will prompt user for preference.",
+          ),
       },
     },
     createAnsibleLintHandler(),
