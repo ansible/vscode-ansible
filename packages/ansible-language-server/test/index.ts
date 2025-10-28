@@ -51,7 +51,7 @@ try {
 }
 
 try {
-  const result = execSync("./tools/get-image-version", { env: env });
+  const result = execSync("node ./tools/get-image-version.js", { env: env });
   console.info(`EE_VERSION: ${result}`);
   EE_VERSION = result.toString();
 } catch (e) {

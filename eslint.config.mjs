@@ -31,6 +31,7 @@ export default tseslint.config(
       "test/ui/.mocharc.js",
       "webviews/**",
       "**/coverage/**",
+      "tools/**/*.js",
     ],
   },
   {

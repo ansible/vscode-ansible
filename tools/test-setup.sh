@@ -10,7 +10,7 @@ DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
 . "$DIR/_utils.sh"
 
-IMAGE_VERSION=$(./tools/get-image-version)
+IMAGE_VERSION=$(node ./tools/get-image-version.js)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 ERR=0

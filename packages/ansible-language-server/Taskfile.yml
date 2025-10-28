@@ -7,7 +7,7 @@ env:
   DOCKER_CLI_HINTS: "false"
 vars:
   EE_VERSION:
-    sh: ./tools/get-image-version
+    sh: node ./tools/get-image-version.js
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
 tasks:
