@@ -1,8 +1,8 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { VSBrowser, Workbench, EditorView } from "vscode-extension-tester";
-import { getFixturePath, sleep, workbenchExecuteCommand } from "./uiTestHelper";
+import { Workbench, EditorView } from "vscode-extension-tester";
+import { getFixturePath, openResources, sleep, workbenchExecuteCommand } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -30,7 +30,7 @@ describe("playbook generation features work", function () {
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
 
     // Open playbook explanation webview.
     await workbenchExecuteCommand(

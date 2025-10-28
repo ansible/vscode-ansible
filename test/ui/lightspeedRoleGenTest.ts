@@ -6,7 +6,6 @@ import fs from "fs";
 import {
   By,
   EditorView,
-  VSBrowser,
   Workbench,
   Key,
 } from "vscode-extension-tester";
@@ -14,6 +13,7 @@ import {
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  openResources,
   waitForCondition,
 } from "./uiTestHelper";
 
@@ -58,7 +58,7 @@ describe.skip("Role generation feature works", function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
     }
-    await VSBrowser.instance.openResources(
+    await openResources(
       "test/unit/lightspeed/utils/samples/",
     );
     workbench = new Workbench();

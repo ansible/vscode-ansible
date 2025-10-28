@@ -3,7 +3,6 @@
 import { expect, config } from "chai";
 import {
   By,
-  VSBrowser,
   EditorView,
   WebView,
   Key,
@@ -12,6 +11,7 @@ import {
   getFixturePath,
   sleep,
   getWebviewByLocator,
+  openResources,
   workbenchExecuteCommand,
   waitForCondition,
 } from "./uiTestHelper";
@@ -141,7 +141,7 @@ describe("playbook generation features work", function () {
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
 
     // Open playbook explanation webview.
     await workbenchExecuteCommand(
