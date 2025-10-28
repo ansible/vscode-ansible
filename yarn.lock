@@ -3893,7 +3893,7 @@ __metadata:
     primevue: "npm:4.4.1"
     react: "npm:^19.1.0"
     rimraf: "npm:^6.0.1"
-    selenium-webdriver: "npm:^4.36.0"
+    selenium-webdriver: "npm:^4.38.0"
     semver: "npm:^7.7.3"
     sinon: "npm:^21.0.0"
     ts-loader: "npm:^9.5.4"
@@ -9960,7 +9960,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"selenium-webdriver@npm:^4.35.0, selenium-webdriver@npm:^4.36.0":
+"selenium-webdriver@npm:^4.35.0":
   version: 4.36.0
   resolution: "selenium-webdriver@npm:4.36.0"
   dependencies:
@@ -9969,6 +9969,18 @@ __metadata:
     tmp: "npm:^0.2.5"
     ws: "npm:^8.18.3"
   checksum: 10/8cb944c6cc9774bfa5c42ea60826fd477cbe8e2a2c11026acfad4b91eb9cb7e563a45a96634838906fad1f623f4cceee31a0230526d52c5237504901f3ce32bb
+  languageName: node
+  linkType: hard
+
+"selenium-webdriver@npm:^4.38.0":
+  version: 4.38.0
+  resolution: "selenium-webdriver@npm:4.38.0"
+  dependencies:
+    "@bazel/runfiles": "npm:^6.3.1"
+    jszip: "npm:^3.10.1"
+    tmp: "npm:^0.2.5"
+    ws: "npm:^8.18.3"
+  checksum: 10/ce5b4a49e3b5c10e326f02dd443a053c5dff7941b0daa065f6ceecb6c2048f443ea0c2e17625a6f74cda3dc53645e6e8cba3b41d12aec06c8a046870c7eb5e1f
   languageName: node
   linkType: hard
 
