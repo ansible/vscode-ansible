@@ -331,6 +331,7 @@ export async function waitForCondition({
 
 // Wrapper around VSBrowser.instance.openResources to add a default wait after opening resources.
 export async function openResources(
+  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type
   ...args: (string | (() => void | Promise<any>))[]
 ): Promise<void> {
   args.push(async () => {
