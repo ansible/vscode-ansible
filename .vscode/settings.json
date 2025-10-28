@@ -37,7 +37,11 @@
   "files.exclude": {
     ".task": true,
     ".vscode-test": true,
-    ".yarn": true
+    ".yarn": true,
+    "**/out": true
+  },
+  "files.watcherExclude": {
+    "**/out": true
   },
   "mochaExplorer.cwd": "packages/ansible-language-server",
   "redhat.telemetry.enabled": false,

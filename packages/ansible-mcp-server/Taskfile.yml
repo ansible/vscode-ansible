@@ -1,7 +1,7 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
-env: &env
+env:
   # basically the same thing from .env file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"
@@ -32,12 +32,6 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - vitest.config.ts
-  lint:
-    desc: Run linting
-    dir: "{{ .TASKFILE_DIR }}"
-    cmds:
-      - npm run lint
-    interactive: true
   test:
     desc: Run all tests and coverage report
     dir: "{{ .TASKFILE_DIR }}"
