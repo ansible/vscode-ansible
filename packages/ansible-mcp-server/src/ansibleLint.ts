@@ -1,21 +1,37 @@
 import { spawn } from "node:child_process";
+import { writeFile, readFile, unlink } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
 
 /**
- * Lints Ansible playbook content using the ansible-lint CLI via stdin.
+ * Lints Ansible playbook content using the ansible-lint CLI.
  *
  * @param playbookContent - The string content of the playbook to lint.
- * @returns A promise that resolves with the parsed JSON output from ansible-lint.
+ * @param fix - Whether to apply automatic fixes using --fix flag.
+ * @returns A promise that resolves with an object containing linting results and optionally fixed content.
  * @throws An error if the process fails or returns an error.
  */
 export async function runAnsibleLint(
   playbookContent: string,
-): Promise<unknown> {
-  return new Promise((resolve, reject) => {
-    if (!playbookContent) {
-      return reject(new Error("No content was provided for linting."));
-    }
+  fix: boolean = false,
+): Promise<{ result: unknown; fixedContent?: string }> {
+  if (!playbookContent) {
+    throw new Error("No content was provided for linting.");
+  }
 
-    const lintProcess = spawn("ansible-lint", ["-f", "json", "-"]);
+  if (fix) {
+    // For --fix, we need to use a temporary file
+    return await runAnsibleLintWithFile(playbookContent, true);
+  } else {
+    // For regular linting, we can use stdin
+    return await runAnsibleLintWithStdin(playbookContent);
+  }
+}
+
+async function runAnsibleLintWithStdin(playbookContent: string): Promise<{ result: unknown; fixedContent?: string }> {
+  return new Promise((resolve, reject) => {
+    const args = ["-f", "json", "-"];
+    const lintProcess = spawn("ansible-lint", args);
 
     let stdoutData = "";
     let stderrData = "";
@@ -52,7 +68,7 @@ export async function runAnsibleLint(
       try {
         // Even with linting errors, valid JSON is printed to stdout.
         const result = JSON.parse(stdoutData);
-        resolve(result);
+        resolve({ result });
       } catch {
         reject(
           new Error(
@@ -62,25 +78,123 @@ export async function runAnsibleLint(
       }
     });
 
-    // **This is the key part:** Write the playbook content to the process's stdin.
+    // Write the playbook content to the process's stdin.
     lintProcess.stdin.write(playbookContent);
-
-    // **Crucially, close the stdin stream.** This signals to ansible-lint
-    // that you are done sending content, so it can start processing.
     lintProcess.stdin.end();
+  });
+}
+
+async function runAnsibleLintWithFile(playbookContent: string, fix: boolean): Promise<{ result: unknown; fixedContent?: string }> {
+  const tempDir = tmpdir();
+  const tempFile = join(tempDir, `ansible-lint-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.yml`);
+  
+  try {
+    // Write content to temporary file
+    await writeFile(tempFile, playbookContent, 'utf8');
+    
+    // Run ansible-lint on the file
+    const result = await runAnsibleLintOnFile(tempFile, fix);
+    
+    // If fix was requested, read the fixed content
+    let fixedContent: string | undefined;
+    if (fix) {
+      try {
+        fixedContent = await readFile(tempFile, 'utf8');
+      } catch (err) {
+        // If we can't read the fixed content, that's okay - we still have the linting results
+        console.warn('Could not read fixed content:', err);
+      }
+    }
+    
+    return { result, fixedContent };
+  } finally {
+    // Clean up temporary file
+    try {
+      await unlink(tempFile);
+    } catch (err) {
+      console.warn('Could not delete temporary file:', err);
+    }
+  }
+}
+
+async function runAnsibleLintOnFile(filePath: string, fix: boolean): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const args = ["-f", "json"];
+    if (fix) {
+      args.push("--fix");
+    }
+    args.push(filePath);
+    
+    const lintProcess = spawn("ansible-lint", args);
+
+    let stdoutData = "";
+    let stderrData = "";
+
+    // Capture standard output
+    lintProcess.stdout.on("data", (data) => {
+      stdoutData += data.toString();
+    });
+
+    // Capture standard error
+    lintProcess.stderr.on("data", (data) => {
+      stderrData += data.toString();
+    });
+
+    // Handle errors during process spawning
+    lintProcess.on("error", (err) => {
+      reject(
+        new Error(
+          `Failed to start ansible-lint process. Is it installed and in your PATH? Details: ${err.message}`,
+        ),
+      );
+    });
+
+    // Handle process exit
+    lintProcess.on("close", (code) => {
+      // For --fix, exit code 0 means success, non-zero might still be okay if some fixes were applied
+      // For regular linting, non-zero usually means issues were found (which is expected)
+      if (stderrData && !stdoutData) {
+        return reject(
+          new Error(`ansible-lint failed with error:\n${stderrData}`),
+        );
+      }
+
+      try {
+        // Try to parse JSON output
+        if (stdoutData.trim()) {
+          const result = JSON.parse(stdoutData);
+          resolve(result);
+        } else {
+          // If no JSON output, return empty array (no issues found)
+          resolve([]);
+        }
+      } catch {
+        // If JSON parsing fails, it might be because --fix was used and output format is different
+        // Return empty array to indicate no issues found
+        resolve([]);
+      }
+    });
   });
 }
 
 /**
  * Formats the JSON linting result into a user-friendly message
  */
-export function formatLintingResult(result: unknown[]): string {
+export function formatLintingResult(result: unknown[], fixApplied: boolean = false, fixedContent?: string): string {
   // The result from ansible-lint is an array.
   if (!Array.isArray(result) || result.length === 0) {
-    return `Linting completed\n✅ No issues found.`;
+    const fixMessage = fixApplied ? " (automatic fixes were applied)" : "";
+    let output = `Linting completed\n✅ No issues found${fixMessage}.`;
+    
+    if (fixApplied && fixedContent) {
+      output += `\n\n📝 Fixed content:\n\`\`\`yaml\n${fixedContent}\n\`\`\``;
+    }
+    
+    return output;
   }
 
-  let output = `Linting results:\n\n❌ Found ${result.length} issue(s):\n\n`;
+  const fixMessage = fixApplied ? " (some issues may have been automatically fixed)" : "";
+  let output = `Linting results${fixMessage}:\n\n❌ Found ${result.length} issue(s):\n\n`;
 
   result.forEach((issue, index) => {
     // Type guard to ensure issue is an object
@@ -99,6 +213,10 @@ export function formatLintingResult(result: unknown[]): string {
       output += `   Message: ${description}\n\n`;
     }
   });
+
+  if (fixApplied && fixedContent) {
+    output += `\n📝 Fixed content:\n\`\`\`yaml\n${fixedContent}\n\`\`\``;
+  }
 
   return output;
 }

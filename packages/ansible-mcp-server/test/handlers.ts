@@ -1,7 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   createZenOfAnsibleHandler,
   createDebugEnvHandler,
+  createAnsibleLintHandler,
 } from "../src/handlers.js";
 import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
@@ -72,44 +73,48 @@ describe("MCP Handlers", () => {
     });
   });
 
-  // describe("ansible_lint handler", () => {
-  //   it("should handle file input without options", async () => {
-  //     const handler = createAnsibleLintHandler();
-  //     const result = await handler({ file: "playbook.yml" });
+  describe("ansible_lint handler", () => {
+    it("should prompt user when fix parameter is not provided", async () => {
+      const handler = createAnsibleLintHandler();
+      const result = await handler({ playbookContent: "---\n- hosts: localhost" });
 
-  //     // This will fail in test environment since ansible-lint isn't available
-  //     // but we can test the structure
-  //     expect(result.content).toBeDefined();
-  //     expect(result.content.length).toBeGreaterThan(0);
-  //   });
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBe(1);
+      expect(result.content[0].text).toContain("Would you like ansible-lint to apply automatic fixes?");
+      expect(result.content[0].text).toContain("fix: true");
+      expect(result.content[0].text).toContain("fix: false");
+    });
 
-  //   it("should handle file input with options", async () => {
-  //     const handler = createAnsibleLintHandler();
-  //     const result = await handler({
-  //       file: "playbook.yml",
-  //       extraArgs: ["--skip-list", "no-changed-when"],
-  //     });
+    it("should not prompt user when fix parameter is explicitly set to false", async () => {
+      const handler = createAnsibleLintHandler();
+      const result = await handler({ 
+        playbookContent: "---\n- hosts: localhost", 
+        fix: false 
+      });
 
-  //     expect(result.content).toBeDefined();
-  //     expect(result.content.length).toBeGreaterThan(0);
-  //   });
+      // Should not contain the prompt message
+      expect(result.content[0].text).not.toContain("Would you like ansible-lint to apply automatic fixes?");
+      // Should not contain fixed content since fix is false
+      expect(result.content[0].text).not.toContain("📝 Fixed content:");
+      // Should either contain an error (if ansible-lint not available) or linting results
+      expect(result.content).toBeDefined();
+    });
 
-  //   it("should handle file input with multiple options", async () => {
-  //     const handler = createAnsibleLintHandler();
-  //     const result = await handler({
-  //       file: "playbook.yml",
-  //       extraArgs: [
-  //         "--skip-list",
-  //         "no-changed-when",
-  //         "--exclude",
-  //         "roles/legacy/",
-  //       ],
-  //     });
+    it("should not prompt user when fix parameter is explicitly set to true", async () => {
+      const handler = createAnsibleLintHandler();
+      const result = await handler({ 
+        playbookContent: "---\n- hosts: localhost", 
+        fix: true 
+      });
 
-  //     expect(result.content).toBeDefined();
-  //     expect(result.content.length).toBeGreaterThan(0);
-  //   });
-  // });
+      // Should not contain the prompt message
+      expect(result.content[0].text).not.toContain("Would you like ansible-lint to apply automatic fixes?");
+      // Should contain fixed content since fix is true
+      expect(result.content[0].text).toContain("📝 Fixed content:");
+      // Should either contain an error (if ansible-lint not available) or linting results
+      expect(result.content).toBeDefined();
+    });
+  });
 
   describe("debug_env handler", () => {
     const workspaceRoot = "/test/workspace";

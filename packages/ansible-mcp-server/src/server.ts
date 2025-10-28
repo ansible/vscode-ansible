@@ -74,15 +74,19 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Ansible Lint",
       description:
-        "Run ansible-lint on Ansible files with human-readable input support for linting.",
+        "Run ansible-lint on Ansible files with human-readable input support for linting. Optionally apply automatic fixes using --fix flag.",
       inputSchema: {
         playbookContent: z
           .string()
           .describe("The full YAML content of the Ansible playbook to lint."),
+        fix: z
+          .boolean()
+          .optional()
+          .describe("Whether to apply automatic fixes using ansible-lint --fix. If not specified, tool will prompt user for preference."),
       },
     },
     createAnsibleLintHandler(),
-    [], // TODO: Add ansible-lint dependencies when ready
+    [],
   );
 
   registerToolWithDeps(
