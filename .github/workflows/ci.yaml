@@ -416,9 +416,11 @@ jobs:
     needs:
       - build
 
-    permissions: # codecov
-      id-token: write
-      checks: read
+    permissions:
+      checks: read # codecov
+      contents: write # slack report
+      id-token: write # codecov
+      pull-requests: read # slack report
 
     runs-on: ubuntu-24.04
 
@@ -523,8 +525,20 @@ jobs:
 
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
+        id: alls-green
         with:
           jobs: ${{ toJSON(needs) }}
+
+      - name: Send CI failure notification
+        if: failure() && github.ref == 'refs/heads/main'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\" Python tests failed in jobs: test for '${GITHUB_REPOSITORY}' (tox.yml). Check logs: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'\"}" \
+              $SLACK_WEBHOOK_URL
+          fi
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
