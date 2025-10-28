@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestServer } from "./testWrapper";
-import { ZEN_OF_ANSIBLE } from "../src/constants.js";
+import { ZEN_OF_ANSIBLE, TOOL_COUNT } from "../src/constants.js";
 
 describe("Ansible MCP Server", () => {
   let server: ReturnType<typeof createTestServer>;
@@ -61,7 +61,7 @@ describe("Ansible MCP Server", () => {
       expect(toolNames).toContain("ade_environment_info");
       expect(toolNames).toContain("ade_setup_environment");
       expect(toolNames).toContain("adt_check_env");
-      expect(toolNames).toHaveLength(6);
+      expect(toolNames).toHaveLength(TOOL_COUNT);
     });
 
     it("should not register any resources", () => {

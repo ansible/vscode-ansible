@@ -6,18 +6,5 @@ codecov:
 comment: false
 coverage:
   status:
-    patch: true # we want github annotations
-    project:
-      default:
-        # avoid noise from rounding errors, often caused by code reformatting
-        threshold: "0.05"
-ignore:
-  - src/webview/apps/lightspeed/main.ts
-  - src/webview/apps/lightspeed/playbookExplanation/main.ts
-  - src/webview/apps/lightspeed/playbookGeneration/main.ts
-  - src/webview/apps/contentCreator/createDevfilePageApp.ts
-  - src/webview/apps/contentCreator/createExecutionEnvPageApp.ts
-  - src/webview/apps/contentCreator/createDevcontainerPageApp.ts
-  - src/webview/apps/contentCreator/addPluginPageApp.ts
-  - src/webview/apps/welcomePage/welcomePageApp.ts
-  - src/webview/apps/quickLinks/quickLinksApp.ts
+    patch: false
+    project: true

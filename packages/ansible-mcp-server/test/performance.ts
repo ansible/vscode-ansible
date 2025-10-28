@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { createTestServer } from "./testWrapper";
+import { TOOL_COUNT } from "../src/constants.js";
 
 describe("Ansible MCP Server Performance", () => {
   let server: ReturnType<typeof createTestServer>;
@@ -162,7 +163,7 @@ describe("Ansible MCP Server Performance", () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      expect(tools).toHaveLength(6);
+      expect(tools).toHaveLength(TOOL_COUNT);
       expect(tools.map((t) => t.name)).toContain("zen_of_ansible");
       expect(duration).toBeLessThan(10); // Should be nearly instantaneous
     });
@@ -172,7 +173,7 @@ describe("Ansible MCP Server Performance", () => {
 
       for (let i = 0; i < 1000; i++) {
         const tools = server.listTools();
-        expect(tools).toHaveLength(6);
+        expect(tools).toHaveLength(TOOL_COUNT);
       }
 
       const endTime = performance.now();
