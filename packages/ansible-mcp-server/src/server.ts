@@ -76,9 +76,9 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       description:
         "Run ansible-lint on Ansible files with human-readable input support for linting. Optionally apply automatic fixes using --fix flag.",
       inputSchema: {
-        playbookContent: z
+        filePath: z
           .string()
-          .describe("The full YAML content of the Ansible playbook to lint."),
+          .describe("The path to the Ansible playbook file to lint."),
         fix: z
           .boolean()
           .optional()

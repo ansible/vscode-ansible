@@ -1,36 +1,45 @@
 import { spawn } from "node:child_process";
-import { writeFile, readFile, unlink } from "node:fs/promises";
-import { join } from "node:path";
-import { tmpdir } from "node:os";
+import { readFile, access } from "node:fs/promises";
+import { resolve } from "node:path";
 
 /**
- * Lints Ansible playbook content using the ansible-lint CLI.
+ * Lints Ansible playbook file using the ansible-lint CLI.
  *
- * @param playbookContent - The string content of the playbook to lint.
+ * @param filePath - The path to the Ansible playbook file to lint.
  * @param fix - Whether to apply automatic fixes using --fix flag.
  * @returns A promise that resolves with an object containing linting results and optionally fixed content.
  * @throws An error if the process fails or returns an error.
  */
 export async function runAnsibleLint(
-  playbookContent: string,
+  filePath: string,
   fix: boolean = false,
 ): Promise<{ result: unknown; fixedContent?: string }> {
-  if (!playbookContent) {
-    throw new Error("No content was provided for linting.");
+  if (!filePath) {
+    throw new Error("No file path was provided for linting.");
+  }
+
+  // Resolve the file path to absolute path
+  const absolutePath = resolve(filePath);
+
+  // Check if file exists
+  try {
+    await access(absolutePath);
+  } catch {
+    throw new Error(`File not found: ${absolutePath}`);
   }
 
   if (fix) {
-    return await runAnsibleLintWithFix(playbookContent, true);
+    return await runAnsibleLintWithFix(absolutePath, true);
   } else {
-    return await runAnsibleLintWithoutFix(playbookContent);
+    return await runAnsibleLintWithoutFix(absolutePath);
   }
 }
 
 async function runAnsibleLintWithoutFix(
-  playbookContent: string,
+  filePath: string,
 ): Promise<{ result: unknown; fixedContent?: string }> {
   return new Promise((resolve, reject) => {
-    const args = ["-f", "json", "-"];
+    const args = ["-f", "json", filePath];
     const lintProcess = spawn("ansible-lint", args);
 
     let stdoutData = "";
@@ -77,50 +86,28 @@ async function runAnsibleLintWithoutFix(
         );
       }
     });
-
-    // Write the playbook content to the process's stdin.
-    lintProcess.stdin.write(playbookContent);
-    lintProcess.stdin.end();
   });
 }
 
 async function runAnsibleLintWithFix(
-  playbookContent: string,
+  filePath: string,
   fix: boolean,
 ): Promise<{ result: unknown; fixedContent?: string }> {
-  const tempDir = tmpdir();
-  const tempFile = join(
-    tempDir,
-    `ansible-lint-${Date.now()}-${Math.random().toString(36).slice(2, 11)}.yml`,
-  );
+  // Run ansible-lint on the file directly
+  const result = await runAnsibleLintOnFile(filePath, fix);
 
-  try {
-    // Write content to temporary file
-    await writeFile(tempFile, playbookContent, "utf8");
-
-    // Run ansible-lint on the file
-    const result = await runAnsibleLintOnFile(tempFile, fix);
-
-    // If fix was requested, read the fixed content
-    let fixedContent: string | undefined;
-    if (fix) {
-      try {
-        fixedContent = await readFile(tempFile, "utf8");
-      } catch (err) {
-        // If we can't read the fixed content, that's okay - we still have the linting results
-        console.warn("Could not read fixed content:", err);
-      }
-    }
-
-    return { result, fixedContent };
-  } finally {
-    // Clean up temporary file
+  // If fix was requested, read the fixed content from the original file
+  let fixedContent: string | undefined;
+  if (fix) {
     try {
-      await unlink(tempFile);
+      fixedContent = await readFile(filePath, "utf8");
     } catch (err) {
-      console.warn("Could not delete temporary file:", err);
+      // If we can't read the fixed content, that's okay - we still have the linting results
+      console.warn("Could not read fixed content:", err);
     }
   }
+
+  return { result, fixedContent };
 }
 
 async function runAnsibleLintOnFile(
@@ -195,11 +182,13 @@ export function formatLintingResult(
   result: unknown[],
   fixApplied: boolean = false,
   fixedContent?: string,
+  filePath?: string,
 ): string {
   // The result from ansible-lint is an array.
   if (!Array.isArray(result) || result.length === 0) {
     const fixMessage = fixApplied ? " (automatic fixes were applied)" : "";
-    let output = `Linting completed\n✅ No issues found${fixMessage}.`;
+    const fileInfo = filePath ? ` for file: ${filePath}` : "";
+    let output = `Linting completed${fileInfo}\n✅ No issues found${fixMessage}.`;
 
     if (fixApplied && fixedContent) {
       output += `\n\n📝 Fixed content:\n\`\`\`yaml\n${fixedContent}\n\`\`\``;
@@ -211,7 +200,8 @@ export function formatLintingResult(
   const fixMessage = fixApplied
     ? " (some issues may have been automatically fixed)"
     : "";
-  let output = `Linting results${fixMessage}:\n\n❌ Found ${result.length} issue(s):\n\n`;
+  const fileInfo = filePath ? ` for file: ${filePath}` : "";
+  let output = `Linting results${fileInfo}${fixMessage}:\n\n❌ Found ${result.length} issue(s):\n\n`;
 
   result.forEach((issue, index) => {
     // Type guard to ensure issue is an object
@@ -224,7 +214,7 @@ export function formatLintingResult(
       const positions = location?.positions as Record<string, unknown>;
       const begin = positions?.begin as Record<string, unknown>;
       const line = (begin?.line as number) || "N/A";
-      const filename = (location?.path as string) || "stdin";
+      const filename = (location?.path as string) || filePath || "unknown file";
 
       output += `${index + 1}. [${ruleId}] on line ${line} of ${filename}\n`;
       output += `   Message: ${description}\n\n`;

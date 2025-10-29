@@ -33,7 +33,7 @@ export function createZenOfAnsibleHandler() {
 }
 
 export function createAnsibleLintHandler() {
-  return async (args: { playbookContent: string; fix?: boolean }) => {
+  return async (args: { filePath: string; fix?: boolean }) => {
     try {
       // Check if fix parameter is explicitly provided
       const fix = args.fix;
@@ -69,7 +69,7 @@ export function createAnsibleLintHandler() {
       }
 
       const { result: lintingResult, fixedContent } = await runAnsibleLint(
-        args.playbookContent,
+        args.filePath,
         fix,
       );
 
@@ -79,6 +79,7 @@ export function createAnsibleLintHandler() {
         resultArray,
         fix,
         fixedContent,
+        args.filePath,
       );
 
       return {
