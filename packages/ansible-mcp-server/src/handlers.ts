@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
-import { runAnsibleLint, formatLintingResult } from "./ansibleLint.js";
+import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
 
 export function createDebugEnvHandler(workspaceRoot: string) {
   return async () => {
