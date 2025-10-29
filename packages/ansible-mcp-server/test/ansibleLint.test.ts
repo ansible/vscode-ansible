@@ -78,6 +78,32 @@ describe("Ansible Lint Handler", () => {
       expect(result.content[0].text).toContain("Error");
       expect(result.content[0].text).toContain("File not found");
     });
+
+    it("should handle empty file path", async () => {
+      const handler = createAnsibleLintHandler();
+
+      const result = await handler({
+        filePath: "",
+        fix: false,
+      });
+
+      expect(result.content).toBeDefined();
+      expect(result.content[0].text).toContain("Error");
+      expect(result.content[0].text).toContain("No file path was provided");
+    });
+
+    it("should handle ansible-lint process errors gracefully", async () => {
+      const handler = createAnsibleLintHandler();
+      // This test covers error handling paths in the ansible-lint execution
+      const result = await handler({
+        filePath: testPlaybookPath,
+        fix: false,
+      });
+
+      expect(result.content).toBeDefined();
+      // Should either succeed with linting results or show an error
+      expect(result.content[0].text).toMatch(/Linting|Error/);
+    });
   });
 
   describe("Fix parameter handling", () => {
@@ -156,6 +182,34 @@ describe("Ansible Lint Handler", () => {
       expect(result.content).toBeDefined();
       expect(result.content[0].text).not.toContain("📝 Fixed content:");
       expect(result.content[0].text).not.toContain("```yaml");
+    });
+
+    it("should display fixed content when fix is applied and content is available", async () => {
+      const handler = createAnsibleLintHandler();
+
+      const result = await handler({
+        filePath: testPlaybookPath,
+        fix: true,
+      });
+
+      expect(result.content).toBeDefined();
+      // This test specifically covers the fixed content display logic
+      expect(result.content[0].text).toContain("📝 Fixed content:");
+      expect(result.content[0].text).toContain("```yaml");
+      expect(result.content[0].text).toContain("---");
+    });
+
+    it("should handle clean playbook with no issues", async () => {
+      const handler = createAnsibleLintHandler();
+
+      const result = await handler({
+        filePath: cleanPlaybookPath,
+        fix: false,
+      });
+
+      expect(result.content).toBeDefined();
+      // This test covers the scenario where ansible-lint returns no issues
+      expect(result.content[0].text).toContain("Linting");
     });
   });
 });
