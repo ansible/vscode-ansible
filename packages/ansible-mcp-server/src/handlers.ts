@@ -45,7 +45,7 @@ export function createAnsibleLintHandler() {
             {
               type: "text" as const,
               text:
-                "🤔 Would you like ansible-lint to apply automatic fixes?\n\n" +
+                "Would you like ansible-lint to apply automatic fixes?\n\n" +
                 "Please specify:\n" +
                 "- `fix: true` to run with automatic fixes (ansible-lint --fix)\n" +
                 "- `fix: false` to run without fixes (ansible-lint only)\n\n" +
@@ -111,22 +111,6 @@ export function createWorkspaceFileHandler(workspaceRoot: string) {
       contents: [{ uri: uri.href, mimeType: "text/plain", text: data }],
     };
   };
-}
-
-export function createAnsibleFixPromptHandler() {
-  return ({ file, errorSummary }: { file: string; errorSummary: string }) => ({
-    messages: [
-      {
-        role: "user" as const,
-        content: {
-          type: "text" as const,
-          text:
-            `You are an expert in Ansible. Given lint issues in ${file}, suggest minimal edits.\n\n` +
-            `Issues:\n${errorSummary}\n\nReturn corrected YAML and a brief rationale.`,
-        },
-      },
-    ],
-  });
 }
 
 export function createListToolsHandler(getToolNames: () => string[]) {

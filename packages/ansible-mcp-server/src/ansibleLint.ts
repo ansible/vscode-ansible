@@ -20,15 +20,13 @@ export async function runAnsibleLint(
   }
 
   if (fix) {
-    // For --fix, we need to use a temporary file
-    return await runAnsibleLintWithFile(playbookContent, true);
+    return await runAnsibleLintWithFix(playbookContent, true);
   } else {
-    // For regular linting, we can use stdin
-    return await runAnsibleLintWithStdin(playbookContent);
+    return await runAnsibleLintWithoutFix(playbookContent);
   }
 }
 
-async function runAnsibleLintWithStdin(
+async function runAnsibleLintWithoutFix(
   playbookContent: string,
 ): Promise<{ result: unknown; fixedContent?: string }> {
   return new Promise((resolve, reject) => {
@@ -86,7 +84,7 @@ async function runAnsibleLintWithStdin(
   });
 }
 
-async function runAnsibleLintWithFile(
+async function runAnsibleLintWithFix(
   playbookContent: string,
   fix: boolean,
 ): Promise<{ result: unknown; fixedContent?: string }> {
