@@ -1,12 +1,43 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { createAnsibleLintHandler } from "../src/handlers.js";
 import { join } from "node:path";
+import { writeFile, unlink } from "node:fs/promises";
 
 describe("Ansible Lint Handler", () => {
+  const testPlaybookPath = join(__dirname, "test-playbook.yml");
+  const cleanPlaybookPath = join(__dirname, "clean-playbook.yml");
+
+  beforeAll(async () => {
+    // Create test files
+    const testPlaybookContent = `---
+- name: Test playbook with issues
+  hosts: localhost
+  tasks:
+    - name: test task
+      debug:
+        msg: hello`;
+
+    const cleanPlaybookContent = `---
+- name: Test playbook
+  hosts: localhost
+  tasks:
+    - name: Test task
+      ansible.builtin.debug:
+        msg: hello`;
+
+    await writeFile(testPlaybookPath, testPlaybookContent, "utf8");
+    await writeFile(cleanPlaybookPath, cleanPlaybookContent, "utf8");
+  });
+
+  afterAll(async () => {
+    // Clean up test files
+    await unlink(testPlaybookPath);
+    await unlink(cleanPlaybookPath);
+  });
+
   describe("Core linting functionality", () => {
     it("should detect and report linting issues in playbooks", async () => {
       const handler = createAnsibleLintHandler();
-      const testPlaybookPath = join(__dirname, "test-playbook.yml");
 
       const result = await handler({
         filePath: testPlaybookPath,
@@ -21,7 +52,6 @@ describe("Ansible Lint Handler", () => {
 
     it("should report no issues for clean playbooks", async () => {
       const handler = createAnsibleLintHandler();
-      const cleanPlaybookPath = join(__dirname, "clean-playbook.yml");
 
       const result = await handler({
         filePath: cleanPlaybookPath,
@@ -53,7 +83,6 @@ describe("Ansible Lint Handler", () => {
   describe("Fix parameter handling", () => {
     it("should prompt user for fix preference when fix parameter is undefined", async () => {
       const handler = createAnsibleLintHandler();
-      const testPlaybookPath = join(__dirname, "test-playbook.yml");
       const result = await handler({
         filePath: testPlaybookPath,
       });
@@ -69,7 +98,6 @@ describe("Ansible Lint Handler", () => {
 
     it("should run linting without fixes when fix parameter is false", async () => {
       const handler = createAnsibleLintHandler();
-      const testPlaybookPath = join(__dirname, "test-playbook.yml");
       const result = await handler({
         filePath: testPlaybookPath,
         fix: false,
@@ -87,7 +115,6 @@ describe("Ansible Lint Handler", () => {
 
     it("should run linting with automatic fixes when fix parameter is true", async () => {
       const handler = createAnsibleLintHandler();
-      const testPlaybookPath = join(__dirname, "test-playbook.yml");
       const result = await handler({
         filePath: testPlaybookPath,
         fix: true,
@@ -107,7 +134,6 @@ describe("Ansible Lint Handler", () => {
   describe("Fix functionality", () => {
     it("should apply fixes when fix: true is specified", async () => {
       const handler = createAnsibleLintHandler();
-      const testPlaybookPath = join(__dirname, "test-playbook.yml");
 
       const result = await handler({
         filePath: testPlaybookPath,
@@ -121,7 +147,6 @@ describe("Ansible Lint Handler", () => {
 
     it("should not apply fixes when fix: false is specified", async () => {
       const handler = createAnsibleLintHandler();
-      const testPlaybookPath = join(__dirname, "test-playbook.yml");
 
       const result = await handler({
         filePath: testPlaybookPath,
