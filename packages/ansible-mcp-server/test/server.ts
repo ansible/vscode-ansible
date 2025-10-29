@@ -58,11 +58,10 @@ describe("Ansible MCP Server", () => {
       expect(toolNames).toContain("zen_of_ansible");
       expect(toolNames).toContain("list_available_tools");
       expect(toolNames).toContain("ansible_lint");
-      expect(toolNames).toContain("debug_env");
       expect(toolNames).toContain("ade_environment_info");
       expect(toolNames).toContain("ade_setup_environment");
       expect(toolNames).toContain("ade_check_adt");
-      expect(toolNames).toHaveLength(7);
+      expect(toolNames).toHaveLength(6);
     });
 
     it("should not register any resources", () => {

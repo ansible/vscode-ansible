@@ -10,7 +10,6 @@ import {
   createZenOfAnsibleHandler,
   createListToolsHandler,
   createAnsibleLintHandler,
-  createDebugEnvHandler,
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
   createADECheckADTHandler,
@@ -66,7 +65,28 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "List Available Tools",
       description:
-        "Shows all available Ansible MCP tools. Use this to discover what tools you can use.",
+        "Shows all available Ansible MCP tools. Use this to discover what tools you can use. " +
+        "Perfect for exploring capabilities and finding the right tool for your task.",
+      annotations: {
+        keywords: [
+          "list available tools",
+          "show me tools",
+          "what tools are available",
+          "discover ansible tools",
+          "explore ansible capabilities",
+          "ansible tool overview",
+          "help with tool selection",
+          "find ansible tool",
+          "search ansible tools",
+        ],
+        useCases: [
+          "Discover available Ansible MCP tools",
+          "Get overview of Ansible tools",
+          "Find the right Ansible tool for a task",
+          "Explore Ansible tool capabilities",
+          "Get help selecting Ansible tools",
+        ],
+      },
     },
     createListToolsHandler(() => Array.from(registeredTools)),
     [], // No dependencies
@@ -89,22 +109,43 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   );
 
   registerToolWithDeps(
-    "debug_env",
-    {
-      title: "Debug Environment",
-      description:
-        "Displays PATH, virtual environment, and workspace information for debugging.",
-    },
-    createDebugEnvHandler(workspaceRoot),
-    [], // No dependencies
-  );
-
-  registerToolWithDeps(
     "ade_environment_info",
     {
       title: "ADE Environment Information",
       description:
-        "Get comprehensive environment information including Python, Ansible, ADE, ADT status, and installed collections.",
+        "Get comprehensive environment information including Python, Ansible, ADE, ADT status, and installed collections. " +
+        "Use this tool when you need to check environment status, verify installations, inspect versions, " +
+        "or troubleshoot missing dependencies.",
+      annotations: {
+        keywords: [
+          "check environment",
+          "environment status",
+          "environment info",
+          "verify installation",
+          "check versions",
+          "check installed packages",
+          "python version check",
+          "ansible version check",
+          "ade status",
+          "adt status",
+          "list collections",
+          "check dependencies",
+          "troubleshoot environment",
+          "diagnose environment",
+          "inspect environment",
+          "environment diagnostics",
+          "what is installed",
+          "show environment",
+        ],
+        useCases: [
+          "Check if Ansible is installed",
+          "Verify Python version",
+          "List installed Ansible collections",
+          "Check ADE/ADT installation status",
+          "Troubleshoot environment issues",
+          "Get comprehensive environment diagnostics",
+        ],
+      },
     },
     createADEEnvironmentInfoHandler(workspaceRoot),
     [], // No dependencies
@@ -115,7 +156,45 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "ADE Setup Development Environment",
       description:
-        "Set up a complete Ansible development environment using ADE. Creates virtual environments, installs collections, and manages dependencies.",
+        "Set up a complete Ansible development environment using ADE. Creates virtual environments, installs collections, and manages dependencies. " +
+        "Use this tool when you need to setup, install, configure, initialize, or create a development environment. " +
+        "Automatically handles missing Ansible tools, Python environments, virtual environments, collections, and requirements.",
+      annotations: {
+        keywords: [
+          "setup ansible environment",
+          "install ansible tools",
+          "configure development environment",
+          "initialize ansible project",
+          "create ansible environment",
+          "setup dev environment",
+          "create virtual environment",
+          "setup venv",
+          "missing ansible tools",
+          "ansible tools not installed",
+          "install requirements",
+          "install dependencies",
+          "install collections",
+          "install ansible-lint",
+          "install ansible-core",
+          "setup python environment",
+          "install via pip",
+          "install via galaxy",
+          "new ansible project",
+          "fresh ansible setup",
+          "start ansible development",
+          "begin ansible project",
+        ],
+        useCases: [
+          "Set up new Ansible development project",
+          "Install missing Ansible tools and dependencies",
+          "Create Python virtual environment for Ansible",
+          "Install Ansible collections and requirements",
+          "Fix Ansible environment issues",
+          "Initialize complete Ansible development setup",
+          "Install from requirements.txt",
+          "Configure Python environment for Ansible",
+        ],
+      },
       inputSchema: {
         envName: z
           .string()
@@ -150,7 +229,31 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "ADE Check and Install ADT",
       description:
-        "Check if ADT (ansible-dev-tools) is installed and install it if missing. This tool ensures the ADE environment is properly set up.",
+        "Check if ADT (ansible-dev-tools) is installed and install it if missing. This tool ensures the ADE environment is properly set up. " +
+        "Use this tool when you need to verify or install ansible-dev-tools.",
+      annotations: {
+        keywords: [
+          "check adt",
+          "install adt",
+          "ansible-dev-tools",
+          "check ansible-dev-tools",
+          "install ansible-dev-tools",
+          "verify adt",
+          "adt missing",
+          "adt not installed",
+          "ansible dev tools",
+          "ansible development tools",
+          "check development tools",
+          "install development tools",
+        ],
+        useCases: [
+          "Check if ADT (ansible-dev-tools) is installed",
+          "Install ansible-dev-tools package",
+          "Verify ADT installation status",
+          "Fix missing ADT installation",
+          "Ensure ADE development tools are available",
+        ],
+      },
     },
     createADECheckADTHandler(),
     [], // No dependencies

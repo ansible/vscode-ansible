@@ -9,22 +9,6 @@ import {
   formatEnvironmentInfo,
 } from "./tools/adeTools.js";
 
-export function createDebugEnvHandler(workspaceRoot: string) {
-  return async () => {
-    return {
-      content: [
-        { type: "text" as const, text: `PATH: ${process.env.PATH}\n` },
-        {
-          type: "text" as const,
-          text: `VIRTUAL_ENV: ${process.env.VIRTUAL_ENV || "undefined"}\n`,
-        },
-        { type: "text" as const, text: `CWD: ${process.cwd()}\n` },
-        { type: "text" as const, text: `Workspace Root: ${workspaceRoot}\n` },
-      ],
-    };
-  };
-}
-
 export function createZenOfAnsibleHandler() {
   return async () => {
     return {
