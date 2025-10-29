@@ -144,7 +144,9 @@ describe("MCP Server Error Handling", () => {
             expect.fail("Expected an error to be thrown");
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } catch (error: any) {
-            expect(error.message).toContain("Tool 'zen_of_ansible' handler not found");
+            expect(error.message).toContain(
+              "Tool 'zen_of_ansible' handler not found",
+            );
           } finally {
             // Restore the callback
             registeredTools[toolName].callback = originalCallback;
