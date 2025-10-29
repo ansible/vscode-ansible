@@ -9,27 +9,27 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@ansible/ansible-language-server@workspace:packages/ansible-language-server"
   dependencies:
-    "@flatten-js/interval-tree": "npm:^1.1.3"
+    "@flatten-js/interval-tree": "npm:^2.0.0"
     "@types/chai": "npm:^5.2.3"
     "@types/glob": "npm:^9.0.0"
     "@types/ini": "npm:^4.1.1"
     "@types/lodash": "npm:^4.17.20"
     "@types/mocha": "npm:^10.0.10"
-    "@types/node": "npm:^24.0.15"
+    "@types/node": "npm:^24.9.2"
     "@types/uuid": "npm:^11.0.0"
     "@types/vscode": "npm:^1.85.0"
-    antsibull-docs: "npm:^1.1.3"
+    antsibull-docs: "npm:^1.1.4"
     chai: "npm:^6.2.0"
     fuse.js: "npm:^7.1.0"
     glob: "npm:^11.0.3"
     handlebars: "npm:^4.7.8"
-    ini: "npm:^5.0.0"
+    ini: "npm:^6.0.0"
     lodash: "npm:^4.17.21"
     mocha: "npm:^11.7.4"
     mocha-junit-reporter: "npm:^2.2.1"
     rimraf: "npm:^6.0.1"
     ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.3"
     uuid: "npm:^13.0.0"
     vscode-languageserver: "npm:^9.0.1"
     vscode-languageserver-textdocument: "npm:^1.0.12"
@@ -45,12 +45,12 @@ __metadata:
   resolution: "@ansible/ansible-mcp-server@workspace:packages/ansible-mcp-server"
   dependencies:
     "@modelcontextprotocol/sdk": "npm:^1.17.3"
-    "@types/node": "npm:^24.0.15"
+    "@types/node": "npm:^24.9.2"
     "@vitest/coverage-v8": "npm:^4.0.4"
     "@vitest/ui": "npm:^4.0.4"
     rimraf: "npm:^6.0.1"
-    tsx: "npm:^4.20.3"
-    typescript: "npm:^5.8.3"
+    tsx: "npm:^4.20.6"
+    typescript: "npm:^5.9.3"
     vitest: "npm:^4.0.4"
     zod: "npm:3.25.76"
   bin:
@@ -852,10 +852,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@flatten-js/interval-tree@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "@flatten-js/interval-tree@npm:1.1.3"
-  checksum: 10/7690fa1d39cf0711e6fdc7de9f2808c89fca10db67e65f2080cfdf3bde5575220bdc1ff68f05d8b4bad318ce9b3faae7d2a4d56cc82693306a9b931eb2abec6a
+"@flatten-js/interval-tree@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@flatten-js/interval-tree@npm:2.0.0"
+  dependencies:
+    tslib: "npm:^2.8.1"
+  checksum: 10/7650cc0ce071f2f2a1cce3d818d53d939751be48f273c6689dd32fd278d63318233bcfd313afb708fa862732e9aaa64bb778722d82a6300fa6566974fb37a9a0
   languageName: node
   linkType: hard
 
@@ -2506,21 +2508,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^24.0.15":
-  version: 24.0.15
-  resolution: "@types/node@npm:24.0.15"
-  dependencies:
-    undici-types: "npm:~7.8.0"
-  checksum: 10/0c55b7f4b0cd4f47e43e587e54545c4f188521678328411033595a6f49f81ed54ec3729ce5025936c51250e31504a32a7f20b520ed9dd71f3ab1530f809975e9
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^24.7.0":
   version: 24.7.0
   resolution: "@types/node@npm:24.7.0"
   dependencies:
     undici-types: "npm:~7.14.0"
   checksum: 10/db0b77e9b132906cdf0350661df660c970e924093ccaa781472d61bc5c448f3d15514b15f55b4df6827254a041aad2418339fe00d45ef10687557ffc0f026d47
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^24.9.2":
+  version: 24.9.2
+  resolution: "@types/node@npm:24.9.2"
+  dependencies:
+    undici-types: "npm:~7.16.0"
+  checksum: 10/3e76ad89cca317c0886deedab0245b6b2a04ef6c47362bd3918020296f3e9630334795af9cee8c6633eae774c85d848ff2e6bed5a7c3133fc94968364fc3ee36
   languageName: node
   linkType: hard
 
@@ -2700,12 +2702,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/yargs@npm:^17.0.33":
-  version: 17.0.33
-  resolution: "@types/yargs@npm:17.0.33"
+"@types/yargs@npm:^17.0.34":
+  version: 17.0.34
+  resolution: "@types/yargs@npm:17.0.34"
   dependencies:
     "@types/yargs-parser": "npm:*"
-  checksum: 10/16f6681bf4d99fb671bf56029141ed01db2862e3db9df7fc92d8bea494359ac96a1b4b1c35a836d1e95e665fb18ad753ab2015fc0db663454e8fd4e5d5e2ef91
+  checksum: 10/8e7907479e649e9115dcca94cb059dfe2322992ac5d29120f759564c078abfc13673a31f7ad86a3a5c9de7f241a4e3d70042ba38b794fd1601e44f9a1bc5cefd
   languageName: node
   linkType: hard
 
@@ -3853,7 +3855,7 @@ __metadata:
     "@types/uuid": "npm:^11.0.0"
     "@types/vscode": "npm:^1.85.0"
     "@types/vscode-webview": "npm:^1.57.5"
-    "@types/yargs": "npm:^17.0.33"
+    "@types/yargs": "npm:^17.0.34"
     "@typescript-eslint/eslint-plugin": "npm:^8.46.2"
     "@typescript-eslint/parser": "npm:^8.46.2"
     "@vitejs/plugin-vue": "npm:^6.0.1"
@@ -3876,22 +3878,22 @@ __metadata:
     express: "npm:^5.1.0"
     find-process: "npm:^2.0.0"
     glob: "npm:^11.0.3"
-    globals: "npm:^16.3.0"
+    globals: "npm:^16.4.0"
     highlight.js: "npm:^11.11.1"
-    ini: "npm:^5.0.0"
+    ini: "npm:^6.0.0"
     jsdom: "npm:^27.0.1"
     lodash: "npm:^4.17.21"
-    marked: "npm:^16.1.1"
+    marked: "npm:^16.4.1"
     minimatch: "npm:^10.0.3"
     mocha: "npm:^11.7.4"
     mocha-junit-reporter: "npm:^2.2.1"
     mocha-multi-reporters: "npm:^1.5.1"
     morgan: "npm:^1.10.1"
-    npm-check-updates: "npm:^19.1.1"
+    npm-check-updates: "npm:^19.1.2"
     ovsx: "npm:^0.10.6"
     prettier: "npm:^3.6.2"
     primevue: "npm:4.4.1"
-    react: "npm:^19.1.0"
+    react: "npm:^19.2.0"
     rimraf: "npm:^6.0.1"
     selenium-webdriver: "npm:^4.36.0"
     semver: "npm:^7.7.3"
@@ -3899,7 +3901,7 @@ __metadata:
     ts-loader: "npm:^9.5.4"
     ts-node: "npm:^10.9.2"
     tsx: "npm:^4.20.6"
-    typescript: "npm:^5.8.3"
+    typescript: "npm:^5.9.3"
     typescript-eslint: "npm:^8.46.2"
     uuid: "npm:^13.0.0"
     vite: "npm:^7.1.12"
@@ -3925,10 +3927,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"antsibull-docs@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "antsibull-docs@npm:1.1.3"
-  checksum: 10/0a71e6b5dc0ec237c43416e7ef9c6e79e384a9438ffab5bde2fce06474e0004c7b8bf335645c74cdd0931621dc03f0264a62bee6ae406b68ca6392e436ae4c4e
+"antsibull-docs@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "antsibull-docs@npm:1.1.4"
+  checksum: 10/3f136c226ad4001e9729065e915e744935235e1ae878b40cb69fabeb99c72064fe76d9694b83a9b5f5b94cc7fcaaf0c67b67187b6540372e3d24c5587499a5b4
   languageName: node
   linkType: hard
 
@@ -6632,10 +6634,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^16.3.0":
-  version: 16.3.0
-  resolution: "globals@npm:16.3.0"
-  checksum: 10/accb0939d993a1c461df8d961ce9911a9a96120929e0a61057ae8e75b7df0a8bf8089da0f4e3a476db0211156416fbd26e222a56f74b389a140b34481c0a72b0
+"globals@npm:^16.4.0":
+  version: 16.4.0
+  resolution: "globals@npm:16.4.0"
+  checksum: 10/1627a9f42fb4c82d7af6a0c8b6cd616e00110908304d5f1ddcdf325998f3aed45a4b29d8a1e47870f328817805263e31e4f1673f00022b9c2b210552767921cf
   languageName: node
   linkType: hard
 
@@ -7008,10 +7010,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ini@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "ini@npm:5.0.0"
-  checksum: 10/76e5567b46504b2b12650878ba6277204500a6ead3fe69eef419ee570456b364b39c040ee545846053f6d8a15797a82fc6d9efe06e392b9b6093935f4a2f2c30
+"ini@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "ini@npm:6.0.0"
+  checksum: 10/e87d8cde86d091ddb104580d42dfdc8306593627269990ca0f5176ccc60c936268bad56856398fef924cdf0af33b1a9c21e84f85914820037e003ee45443cc85
   languageName: node
   linkType: hard
 
@@ -8034,12 +8036,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^16.1.1":
-  version: 16.1.1
-  resolution: "marked@npm:16.1.1"
+"marked@npm:^16.4.1":
+  version: 16.4.1
+  resolution: "marked@npm:16.4.1"
   bin:
     marked: bin/marked.js
-  checksum: 10/9f4d2d8f862e1d874f03f1b8614fbf859ae788b4a1b4174be83a65c8ea5ecabf0c991c455dcb6b650e7106fb5b65a94865b9de45667bb2471ca2272e1798971d
+  checksum: 10/b5f475dbe297162dc988b7f345b559d03248fde1023822b9f2a68f50cbca0981c78c42f380c3aa5e133b5f5c069a2c6cd683413c12c83710e983a7bc46cdf4a2
   languageName: node
   linkType: hard
 
@@ -8686,13 +8688,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"npm-check-updates@npm:^19.1.1":
-  version: 19.1.1
-  resolution: "npm-check-updates@npm:19.1.1"
+"npm-check-updates@npm:^19.1.2":
+  version: 19.1.2
+  resolution: "npm-check-updates@npm:19.1.2"
   bin:
     ncu: build/cli.js
     npm-check-updates: build/cli.js
-  checksum: 10/f53bc5d90f336dbd508766e3db6c9a2b0f0990839ecb62c3201c94ca220132316ebc6af706238a5977a777492bfd2c0e9159d3df1e3a4f33f964ccaeaf96a358
+  checksum: 10/906e0fb50922b93659b8496a25209f8d73d4161ecb50e7f803ac96366ec51a12914face9c9e4aae95b66cef0384385a1ecfbfbe2e17f8cd85a97b93701a491bb
   languageName: node
   linkType: hard
 
@@ -9488,10 +9490,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:^19.1.0":
-  version: 19.1.0
-  resolution: "react@npm:19.1.0"
-  checksum: 10/d0180689826fd9de87e839c365f6f361c561daea397d61d724687cae88f432a307d1c0f53a0ee95ddbe3352c10dac41d7ff1ad85530fb24951b27a39e5398db4
+"react@npm:^19.2.0":
+  version: 19.2.0
+  resolution: "react@npm:19.2.0"
+  checksum: 10/e13bcdb8e994c3cfa922743cb75ca8deb60531bf02f584d2d8dab940a8132ce8a2e6ef16f8ed7f372b4072e7a7eeff589b2812dabbedfa73e6e46201dac8a9d0
   languageName: node
   linkType: hard
 
@@ -11050,26 +11052,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.2.0, tslib@npm:^2.4.0, tslib@npm:^2.4.1, tslib@npm:^2.6.2":
+"tslib@npm:^2.2.0, tslib@npm:^2.4.0, tslib@npm:^2.4.1, tslib@npm:^2.6.2, tslib@npm:^2.8.1":
   version: 2.8.1
   resolution: "tslib@npm:2.8.1"
   checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
-  languageName: node
-  linkType: hard
-
-"tsx@npm:^4.20.3":
-  version: 4.20.3
-  resolution: "tsx@npm:4.20.3"
-  dependencies:
-    esbuild: "npm:~0.25.0"
-    fsevents: "npm:~2.3.3"
-    get-tsconfig: "npm:^4.7.5"
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  bin:
-    tsx: dist/cli.mjs
-  checksum: 10/62f40d06a41deebd51690b086f4387d842a826542639b6a26fd6cf09158c6b44956ca9d9088146330ab0622587b2329981cc3584b89025040f3aa100c50ac13c
   languageName: node
   linkType: hard
 
@@ -11186,23 +11172,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:^5.8.3":
-  version: 5.8.3
-  resolution: "typescript@npm:5.8.3"
+"typescript@npm:^5.9.3":
+  version: 5.9.3
+  resolution: "typescript@npm:5.9.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/65c40944c51b513b0172c6710ee62e951b70af6f75d5a5da745cb7fab132c09ae27ffdf7838996e3ed603bb015dadd099006658046941bd0ba30340cc563ae92
+  checksum: 10/c089d9d3da2729fd4ac517f9b0e0485914c4b3c26f80dc0cffcb5de1719a17951e92425d55db59515c1a7ddab65808466debb864d0d56dcf43f27007d0709594
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A^5.8.3#optional!builtin<compat/typescript>":
-  version: 5.8.3
-  resolution: "typescript@patch:typescript@npm%3A5.8.3#optional!builtin<compat/typescript>::version=5.8.3&hash=5786d5"
+"typescript@patch:typescript@npm%3A^5.9.3#optional!builtin<compat/typescript>":
+  version: 5.9.3
+  resolution: "typescript@patch:typescript@npm%3A5.9.3#optional!builtin<compat/typescript>::version=5.9.3&hash=5786d5"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10/b9b1e73dabac5dc730c041325dbd9c99467c1b0d239f1b74ec3b90d831384af3e2ba973946232df670519147eb51a2c20f6f96163cea2b359f03de1e2091cc4f
+  checksum: 10/696e1b017bc2635f4e0c94eb4435357701008e2f272f553d06e35b494b8ddc60aa221145e286c28ace0c89ee32827a28c2040e3a69bdc108b1a5dc8fb40b72e3
   languageName: node
   linkType: hard
 
@@ -11254,6 +11240,13 @@ __metadata:
   version: 7.14.0
   resolution: "undici-types@npm:7.14.0"
   checksum: 10/0f8709b21437697af35801e33bddbe9992e0cf1771959c41850b1946f63822b825e03ce99f44bf19e4f5c3ccc5166e0be59f541565c36ce86163dc2c5870bc62
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.16.0":
+  version: 7.16.0
+  resolution: "undici-types@npm:7.16.0"
+  checksum: 10/db43439f69c2d94cc29f75cbfe9de86df87061d6b0c577ebe9bb3255f49b22c50162a7d7eb413b0458b6510b8ca299ac7cff38c3a29fbd31af9f504bcf7fbc0d
   languageName: node
   linkType: hard
 

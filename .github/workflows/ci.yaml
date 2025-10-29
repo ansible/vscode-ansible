@@ -56,8 +56,6 @@ jobs:
         shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
-    # see https://github.com/containers/podman/issues/13609
-    continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
     permissions:
@@ -162,22 +160,31 @@ jobs:
       - name: Corepack enable
         run: corepack enable
 
-      - name: Enable caching
+      - name: Runner image version
+        run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}" >> "$GITHUB_ENV"
+
+      - name: Enable caching for python
+        # left out due to having their own caching: yarn, node_modules, mise
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+          key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python_version') }}
+
+      - name: Enable caching for vscode resources
+        if: "${{ contains(matrix.name, 'test') }}"
+        # left out due to having their own caching: yarn, node_modules, mise
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             .vscode-test
-            .yarn/cache
-            node_modules/.cache/webpack
             out/ext
-            out/test-resources*/Visual Studio Code.app
             out/test-resources*/chromedriver*
             out/test-resources*/driverVersion
             out/test-resources*/stable.zip
-            ~/.cache/pip
-            ~/.cache/yarn
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
-
+            out/test-resources*/manifest.json
+          key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
       # - name: Enable caching for podman-machine
       #   if: "contains(matrix.os, 'macos')"
       #   uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
@@ -416,9 +423,11 @@ jobs:
     needs:
       - build
 
-    permissions: # codecov
-      id-token: write
-      checks: read
+    permissions:
+      checks: read # codecov
+      contents: write # slack report
+      id-token: write # codecov
+      pull-requests: read # slack report
 
     runs-on: ubuntu-24.04
 
@@ -523,8 +532,20 @@ jobs:
 
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
+        id: alls-green
         with:
           jobs: ${{ toJSON(needs) }}
+
+      - name: Send CI failure notification
+        if: failure() && github.ref == 'refs/heads/main'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\" Python tests failed in jobs: test for '${GITHUB_REPOSITORY}' (tox.yml). Check logs: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'\"}" \
+              $SLACK_WEBHOOK_URL
+          fi
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
