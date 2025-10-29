@@ -21,7 +21,14 @@ export interface ADECommandResult {
 }
 
 /**
- * Execute a command and return the result
+ * Execute a command using child_process.spawn and return the result.
+ *
+ * @param command - The command to execute.
+ * @param args - Optional array of command arguments.
+ * @param cwd - Optional working directory for the command.
+ * @param env - Optional environment variables to merge with process.env.
+ * @returns A promise that resolves with an object containing command execution results including success status, output, error, and exit code.
+ * @throws No direct throws, but returns error information in the result object if the process fails.
  */
 export async function executeCommand(
   command: string,
@@ -79,7 +86,9 @@ export async function executeCommand(
 }
 
 /**
- * Check if ADE tool is available
+ * Check if ADE (Ansible Development Environment) tool is available in the system.
+ *
+ * @returns A promise that resolves to true if ADE is installed and accessible, false otherwise.
  */
 export async function checkADEInstalled(): Promise<boolean> {
   const result = await executeCommand("ade", ["--version"]);
@@ -87,7 +96,9 @@ export async function checkADEInstalled(): Promise<boolean> {
 }
 
 /**
- * Check if ADT (ansible-dev-tools) is available
+ * Check if ADT (ansible-dev-tools) package is installed using pip.
+ *
+ * @returns A promise that resolves to true if ansible-dev-tools is installed, false otherwise.
  */
 export async function checkADTInstalled(): Promise<boolean> {
   // Check if ansible-dev-tools package is installed
@@ -106,7 +117,10 @@ export async function checkADTInstalled(): Promise<boolean> {
 }
 
 /**
- * Get comprehensive environment information
+ * Get comprehensive environment information including Python version, Ansible tools, virtual environments, and installed collections.
+ *
+ * @param workspaceRoot - The root directory of the workspace to scan for virtual environments and configurations.
+ * @returns A promise that resolves with an ADEEnvironmentInfo object containing environment details.
  */
 export async function getEnvironmentInfo(
   workspaceRoot: string,
@@ -176,7 +190,13 @@ export async function getEnvironmentInfo(
 }
 
 /**
- * Create a virtual environment using Python venv
+ * Create a virtual environment using Python's venv module.
+ *
+ * @param workspaceRoot - The root directory where the virtual environment will be created.
+ * @param envName - Optional custom name for the virtual environment directory. Defaults to "venv".
+ * @param pythonVersion - Optional Python version (e.g., "3.11"). Defaults to "python3".
+ * @returns A promise that resolves with an ADECommandResult containing the creation status and output.
+ * @throws No direct throws, but returns error information in the result if the virtual environment creation fails.
  */
 export async function createVirtualEnvironment(
   workspaceRoot: string,
@@ -194,7 +214,14 @@ export async function createVirtualEnvironment(
 }
 
 /**
- * Execute command within a virtual environment
+ * Execute a command within a virtual environment by sourcing the activation script.
+ *
+ * @param venvPath - The path to the virtual environment directory.
+ * @param command - The command to execute within the virtual environment.
+ * @param args - Optional array of command arguments.
+ * @param cwd - Optional working directory for the command.
+ * @returns A promise that resolves with an ADECommandResult containing the execution status and output.
+ * @throws No direct throws, but returns error information in the result if the command execution fails.
  */
 export async function executeInVirtualEnvironment(
   venvPath: string,
@@ -209,7 +236,12 @@ export async function executeInVirtualEnvironment(
 }
 
 /**
- * Install collections using ansible-galaxy
+ * Install Ansible collections using ansible-galaxy collection install command.
+ *
+ * @param workspaceRoot - The root directory of the workspace where collections will be installed.
+ * @param collections - Array of collection names or namespace.collection identifiers to install.
+ * @returns A promise that resolves with an ADECommandResult containing the installation status and output.
+ * @throws No direct throws, but returns error information in the result if the collection installation fails.
  */
 export async function installCollections(
   workspaceRoot: string,
@@ -226,7 +258,12 @@ export async function installCollections(
 }
 
 /**
- * Install requirements using pip
+ * Install Python packages from a requirements file using pip.
+ *
+ * @param workspaceRoot - The root directory to search for requirements files if not specified.
+ * @param requirementsFile - Optional path to a specific requirements file. If not provided, searches for common files (requirements.txt, requirements.yml, test-requirements.txt).
+ * @returns A promise that resolves with an ADECommandResult containing the installation status and output.
+ * @throws No direct throws, but returns error information in the result if no requirements file is found or installation fails.
  */
 export async function installRequirements(
   workspaceRoot: string,
@@ -272,10 +309,14 @@ export async function installRequirements(
 }
 
 /**
- * Clean up conflicting Ansible packages
+ * Check for conflicting Ansible packages and provide diagnostic suggestions.
+ * Detects old ansible v2.x packages that conflict with ansible-core.
+ *
+ * @returns A promise that resolves with an ADECommandResult containing diagnostic information and suggestions. Returns success: false if conflicts are detected.
  */
-export async function cleanupConflictingPackages(): Promise<ADECommandResult> {
+export async function checkConflictingPackages(): Promise<ADECommandResult> {
   const results: string[] = [];
+  let hasConflict = false;
 
   // Check for old ansible package that conflicts with ansible-core
   const checkResult = await executeCommand("pip", ["list", "--format=json"]);
@@ -288,94 +329,118 @@ export async function cleanupConflictingPackages(): Promise<ADECommandResult> {
       );
 
       if (oldAnsible) {
+        hasConflict = true;
         results.push(
-          `Found conflicting ansible package (${oldAnsible.version}), removing...`,
+          `⚠️ Found conflicting ansible package (${oldAnsible.version})`,
         );
-        const removeResult = await executeCommand("pip", [
-          "uninstall",
-          "ansible",
-          "-y",
-        ]);
-        if (removeResult.success) {
-          results.push("✅ Removed conflicting ansible package");
-        } else {
-          results.push(
-            `⚠️ Failed to remove ansible package: ${removeResult.error}`,
-          );
-        }
+        results.push("");
+        results.push(
+          "The 'ansible' package (v2.x) conflicts with 'ansible-core'.",
+        );
+        results.push("To resolve this issue, you can:");
+        results.push("");
+        results.push("  Option 1 (pip):");
+        results.push("    pip uninstall ansible");
+        results.push("");
+        results.push("  Option 2 (if using a virtual environment):");
+        results.push(
+          "    Create a fresh virtual environment and install only ansible-core",
+        );
+        results.push("");
+        results.push("  Option 3 (if managing packages via requirements.txt):");
+        results.push("    Remove 'ansible' from your requirements file");
+      } else {
+        results.push("✅ No conflicting packages detected");
       }
     } catch {
       results.push("⚠️ Could not parse pip list output");
+      results.push("Unable to check for conflicting packages");
     }
+  } else {
+    results.push("⚠️ Could not check for conflicting packages");
+    results.push("Please ensure 'pip' is available and try again");
   }
 
   return {
-    success: true,
+    success: !hasConflict,
     output: results.join("\n"),
+    error: hasConflict
+      ? "Conflicting packages detected - see suggestions above"
+      : undefined,
   };
 }
 
 /**
- * Verify that ansible-lint is working properly
+ * Check if ansible-lint is working properly and diagnose issues.
+ * Provides diagnostic information and suggestions when ansible-lint is not functioning correctly.
+ *
+ * @returns A promise that resolves with an ADECommandResult containing the status check results and diagnostic suggestions if issues are found.
  */
-export async function verifyAnsibleLint(): Promise<ADECommandResult> {
+export async function checkAnsibleLint(): Promise<ADECommandResult> {
   const result = await executeCommand("ansible-lint", ["--version"]);
   if (result.success) {
     return {
       success: true,
-      output: "✅ ansible-lint is working properly",
+      output: `✅ ansible-lint is working properly\nVersion: ${result.output.trim()}`,
     };
   } else {
-    // Try to fix by upgrading ansible-core and reinstalling ansible-lint
+    // Diagnose the issue and provide suggestions
     const results: string[] = [];
+    results.push("❌ ansible-lint is not working properly");
+    results.push("");
+    results.push(`Error: ${result.error || "ansible-lint command failed"}`);
+    results.push("");
+    results.push("Possible causes and solutions:");
+    results.push("");
+    results.push("1. ansible-lint is not installed:");
+    results.push("   Solution: pip install ansible-lint");
+    results.push("   Or use pipx: pipx install ansible-lint");
+    results.push("");
+    results.push("2. Version compatibility issues with ansible-core:");
+    results.push("   Check your ansible-core version:");
+    results.push("     ansible --version");
+    results.push("   Solution options:");
+    results.push(
+      "     - Upgrade ansible-core: pip install --upgrade ansible-core",
+    );
+    results.push(
+      "     - Reinstall ansible-lint: pip install --force-reinstall ansible-lint",
+    );
+    results.push("");
+    results.push("3. PATH issues:");
+    results.push(
+      "   Ensure ansible-lint is in your PATH or activate your virtual environment",
+    );
+    results.push("");
+    results.push("4. Virtual environment issues:");
+    results.push("   If using a virtual environment, ensure it's activated");
+    results.push("   and ansible-lint is installed within it");
 
-    // First, upgrade ansible-core
-    results.push("Upgrading ansible-core...");
-    const upgradeResult = await executeCommand("pip", [
-      "install",
-      "--upgrade",
-      "ansible-core",
-    ]);
-    if (upgradeResult.success) {
-      results.push("✅ ansible-core upgraded");
-    } else {
-      results.push(`⚠️ Failed to upgrade ansible-core: ${upgradeResult.error}`);
-    }
-
-    // Reinstall ansible-lint to ensure compatibility
-    results.push("Reinstalling ansible-lint...");
-    const reinstallResult = await executeCommand("pip", [
-      "install",
-      "--force-reinstall",
-      "ansible-lint",
-    ]);
-    if (reinstallResult.success) {
-      results.push("✅ ansible-lint reinstalled");
-    } else {
+    // Check if ansible-core is available to provide more specific guidance
+    const ansibleCheck = await executeCommand("ansible", ["--version"]);
+    if (!ansibleCheck.success) {
+      results.push("");
       results.push(
-        `⚠️ Failed to reinstall ansible-lint: ${reinstallResult.error}`,
+        "⚠️ Note: ansible-core also appears to be missing or not working",
       );
-    }
-
-    // Test again
-    const testResult = await executeCommand("ansible-lint", ["--version"]);
-    if (testResult.success) {
-      return {
-        success: true,
-        output: `✅ ansible-lint fixed: ${results.join(", ")}`,
-      };
+      results.push("   Consider installing: pip install ansible-core");
     }
 
     return {
       success: false,
       output: results.join("\n"),
-      error: `ansible-lint is still not working: ${result.error}`,
+      error: "ansible-lint is not working - see diagnostic information above",
     };
   }
 }
 
 /**
- * Setup complete development environment
+ * Setup a complete Ansible development environment including ADT installation, package conflict checks, virtual environment creation, and tool installation.
+ *
+ * @param workspaceRoot - The root directory of the workspace where the development environment will be set up.
+ * @param options - Configuration options for environment setup. Properties: envName (optional, defaults to "venv"), pythonVersion (optional, e.g., "3.11"), collections (optional array), installRequirements (boolean), requirementsFile (optional path).
+ * @returns A promise that resolves with an ADECommandResult containing setup status and detailed output of all operations performed.
+ * @throws No direct throws, but returns error information in the result if setup operations fail.
  */
 export async function setupDevelopmentEnvironment(
   workspaceRoot: string,
@@ -404,21 +469,31 @@ export async function setupDevelopmentEnvironment(
     results.push(adtInstallResult.output);
   }
 
-  // Clean up conflicting packages
+  // Check for conflicting packages
   results.push("Checking for conflicting packages...");
-  const cleanupResult = await cleanupConflictingPackages();
-  results.push(cleanupResult.output);
+  const conflictCheckResult = await checkConflictingPackages();
+  results.push(conflictCheckResult.output);
+  if (!conflictCheckResult.success) {
+    results.push("");
+    results.push(
+      "⚠️ Please resolve package conflicts before proceeding with setup",
+    );
+  }
 
-  // Verify ansible-lint is working
-  results.push("Verifying ansible-lint functionality...");
-  const lintVerifyResult = await verifyAnsibleLint();
-  if (!lintVerifyResult.success) {
+  // Check ansible-lint status
+  results.push("Checking ansible-lint status...");
+  const lintCheckResult = await checkAnsibleLint();
+  if (!lintCheckResult.success) {
     /* v8 ignore next */
     success = false;
-    results.push(`❌ ${lintVerifyResult.error}`);
+    results.push(lintCheckResult.output);
+    results.push("");
+    results.push(
+      "⚠️ ansible-lint issues detected. See suggestions above to resolve.",
+    );
   } else {
     /* v8 ignore next */
-    results.push(lintVerifyResult.output);
+    results.push(lintCheckResult.output);
   }
 
   // Create virtual environment
@@ -526,7 +601,10 @@ export async function setupDevelopmentEnvironment(
 }
 
 /**
- * Check and install missing ADT packages
+ * Check if ADT (ansible-dev-tools) is installed and attempt to install it if missing.
+ * Tries pip first, then falls back to pipx if pip installation fails.
+ *
+ * @returns A promise that resolves with an ADECommandResult containing installation status and output. Returns success: true if already installed or successfully installed.
  */
 export async function checkAndInstallADT(): Promise<ADECommandResult> {
   const adtInstalled = await checkADTInstalled();
@@ -572,7 +650,10 @@ export async function checkAndInstallADT(): Promise<ADECommandResult> {
 }
 
 /**
- * Format environment information for console output
+ * Format environment information into a human-readable string for console output.
+ *
+ * @param info - The ADEEnvironmentInfo object containing all environment details to format.
+ * @returns A formatted string with sections for workspace, Python version, virtual environment, Ansible tools, development tools, and installed collections.
  */
 export function formatEnvironmentInfo(info: ADEEnvironmentInfo): string {
   const sections = [

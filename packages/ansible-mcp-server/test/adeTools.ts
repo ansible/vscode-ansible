@@ -26,8 +26,8 @@ import {
   executeInVirtualEnvironment,
   installCollections,
   installRequirements,
-  cleanupConflictingPackages,
-  verifyAnsibleLint,
+  checkConflictingPackages,
+  checkAnsibleLint,
   type ADEEnvironmentInfo,
 } from "../src/tools/adeTools.js";
 import * as fs from "node:fs/promises";
@@ -1130,8 +1130,8 @@ describe("ADE Tools", () => {
     });
   });
 
-  describe("cleanupConflictingPackages", () => {
-    it("should not remove anything when no conflicting packages", async () => {
+  describe("checkConflictingPackages", () => {
+    it("should report no conflicts when none detected", async () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         const mockChild = {
           stdout: {
@@ -1164,12 +1164,12 @@ describe("ADE Tools", () => {
         return mockChild;
       });
 
-      const result = await cleanupConflictingPackages();
+      const result = await checkConflictingPackages();
       expect(result.success).toBe(true);
-      expect(result.output).not.toContain("Removed");
+      expect(result.output).toContain("No conflicting packages detected");
     });
 
-    it("should remove conflicting ansible 2.x package", async () => {
+    it("should detect conflicting ansible 2.x package and suggest solutions", async () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         const mockChild = {
           stdout: {
@@ -1200,13 +1200,15 @@ describe("ADE Tools", () => {
         return mockChild;
       });
 
-      const result = await cleanupConflictingPackages();
-      expect(result.success).toBe(true);
+      const result = await checkConflictingPackages();
+      expect(result.success).toBe(false); // Should fail when conflict detected
       expect(result.output).toContain("Found conflicting ansible package");
-      expect(result.output).toContain("Removed conflicting ansible package");
+      expect(result.output).toContain("Option 1 (pip):");
+      expect(result.output).toContain("pip uninstall ansible");
+      expect(result.output).not.toContain("Removed"); // Should not remove anything
     });
 
-    it("should handle removal failure gracefully", async () => {
+    it("should handle pip list failure gracefully", async () => {
       vi.mocked(spawn).mockImplementation((command, args) => {
         const mockChild = {
           stdout: {
@@ -1226,21 +1228,11 @@ describe("ADE Tools", () => {
               }
             }),
           },
-          stderr: {
-            on: vi.fn((event, callback) => {
-              if (
-                event === "data" &&
-                command === "pip" &&
-                args?.includes("uninstall")
-              ) {
-                setTimeout(() => callback("uninstall error"), 5);
-              }
-            }),
-          },
+          stderr: { on: vi.fn() },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // Uninstall fails
-              if (command === "pip" && args?.includes("uninstall")) {
+              // pip list fails
+              if (command === "pip" && args?.includes("list")) {
                 setTimeout(() => callback(1), 10);
               } else {
                 setTimeout(() => callback(0), 10);
@@ -1252,9 +1244,11 @@ describe("ADE Tools", () => {
         return mockChild;
       });
 
-      const result = await cleanupConflictingPackages();
+      const result = await checkConflictingPackages();
       expect(result.success).toBe(true);
-      expect(result.output).toContain("Failed to remove ansible package");
+      expect(result.output).toContain(
+        "Could not check for conflicting packages",
+      );
     });
 
     it("should handle JSON parse errors", async () => {
@@ -1282,9 +1276,12 @@ describe("ADE Tools", () => {
         return mockChild;
       });
 
-      const result = await cleanupConflictingPackages();
+      const result = await checkConflictingPackages();
       expect(result.success).toBe(true);
       expect(result.output).toContain("Could not parse pip list output");
+      expect(result.output).toContain(
+        "Unable to check for conflicting packages",
+      );
     });
 
     it("should handle pip list failure", async () => {
@@ -1306,13 +1303,15 @@ describe("ADE Tools", () => {
         return mockChild;
       });
 
-      const result = await cleanupConflictingPackages();
+      const result = await checkConflictingPackages();
       expect(result.success).toBe(true);
-      expect(result.output).toBe("");
+      expect(result.output).toContain(
+        "Could not check for conflicting packages",
+      );
     });
   });
 
-  describe("verifyAnsibleLint", () => {
+  describe("checkAnsibleLint", () => {
     it("should return success when ansible-lint is working", async () => {
       const mockChild = {
         stdout: { on: vi.fn() },
@@ -1327,201 +1326,62 @@ describe("ADE Tools", () => {
 
       vi.mocked(spawn).mockReturnValue(mockChild);
 
-      const result = await verifyAnsibleLint();
+      const result = await checkAnsibleLint();
       expect(result.success).toBe(true);
       expect(result.output).toContain("ansible-lint is working properly");
+      expect(result.output).toContain("Version:");
     });
 
-    it("should fix ansible-lint when not working", async () => {
-      let ansibleLintCallCount = 0;
-      vi.mocked(spawn).mockImplementation((command, args) => {
-        const mockChild = {
-          stdout: { on: vi.fn() },
-          stderr: { on: vi.fn() },
-          on: vi.fn((event, callback) => {
-            if (event === "close") {
-              // First ansible-lint check fails, upgrades succeed, second check succeeds
-              if (command === "ansible-lint" && args?.includes("--version")) {
-                ansibleLintCallCount++;
-                setTimeout(
-                  () => callback(ansibleLintCallCount === 1 ? 1 : 0),
-                  10,
-                );
-              } else {
-                setTimeout(() => callback(0), 10);
-              }
-            }
-          }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        return mockChild;
-      });
-
-      const result = await verifyAnsibleLint();
-      expect(result.success).toBe(true);
-      expect(result.output).toContain("ansible-lint fixed");
-    });
-
-    it("should handle upgrade failure", async () => {
-      vi.mocked(spawn).mockImplementation((command, args) => {
-        const mockChild = {
-          stdout: { on: vi.fn() },
-          stderr: {
-            on: vi.fn((event, callback) => {
-              if (event === "data") {
-                setTimeout(() => callback("upgrade error"), 5);
-              }
-            }),
-          },
-          on: vi.fn((event, callback) => {
-            if (event === "close") {
-              // ansible-lint fails, upgrade fails
-              if (command === "ansible-lint") {
-                setTimeout(() => callback(1), 10);
-              } else if (command === "pip" && args?.includes("--upgrade")) {
-                setTimeout(() => callback(1), 10);
-              } else {
-                setTimeout(() => callback(0), 10);
-              }
-            }
-          }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        return mockChild;
-      });
-
-      const result = await verifyAnsibleLint();
-      expect(result.success).toBe(false);
-      expect(result.output).toContain("Failed to upgrade ansible-core");
-    });
-
-    it("should handle reinstall failure", async () => {
-      vi.mocked(spawn).mockImplementation((command, args) => {
-        const mockChild = {
-          stdout: { on: vi.fn() },
-          stderr: {
-            on: vi.fn((event, callback) => {
-              if (event === "data") {
-                setTimeout(() => callback("reinstall error"), 5);
-              }
-            }),
-          },
-          on: vi.fn((event, callback) => {
-            if (event === "close") {
-              // ansible-lint fails, upgrade succeeds, reinstall fails
-              if (command === "ansible-lint") {
-                setTimeout(() => callback(1), 10);
-              } else if (
-                command === "pip" &&
-                args?.includes("--force-reinstall")
-              ) {
-                setTimeout(() => callback(1), 10);
-              } else {
-                setTimeout(() => callback(0), 10);
-              }
-            }
-          }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        return mockChild;
-      });
-
-      const result = await verifyAnsibleLint();
-      expect(result.success).toBe(false);
-      expect(result.output).toContain("Failed to reinstall ansible-lint");
-    });
-
-    it("should handle upgrade failure but continue", async () => {
-      vi.mocked(spawn).mockImplementation((command, args) => {
-        const mockChild = {
-          stdout: { on: vi.fn() },
-          stderr: {
-            on: vi.fn((event, callback) => {
-              if (event === "data") {
-                setTimeout(() => callback("upgrade error"), 5);
-              }
-            }),
-          },
-          on: vi.fn((event, callback) => {
-            if (event === "close") {
-              // ansible-lint fails, upgrade fails but continues
-              if (command === "ansible-lint") {
-                setTimeout(() => callback(1), 10);
-              } else if (command === "pip" && args?.includes("--upgrade")) {
-                setTimeout(() => callback(1), 10);
-              } else if (
-                command === "pip" &&
-                args?.includes("--force-reinstall")
-              ) {
-                setTimeout(() => callback(0), 10);
-              } else {
-                setTimeout(() => callback(0), 10);
-              }
-            }
-          }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        return mockChild;
-      });
-
-      const result = await verifyAnsibleLint();
-      // Should attempt reinstall even if upgrade fails
-      expect(result.output).toContain("Failed to upgrade ansible-core");
-      expect(result.output).toContain("Reinstalling ansible-lint");
-    });
-
-    it("should handle reinstall failure but continue", async () => {
-      vi.mocked(spawn).mockImplementation((command, args) => {
-        const mockChild = {
-          stdout: { on: vi.fn() },
-          stderr: {
-            on: vi.fn((event, callback) => {
-              if (event === "data") {
-                setTimeout(() => callback("reinstall error"), 5);
-              }
-            }),
-          },
-          on: vi.fn((event, callback) => {
-            if (event === "close") {
-              // ansible-lint fails, upgrade succeeds, reinstall fails but continues
-              if (command === "ansible-lint") {
-                setTimeout(() => callback(1), 10);
-              } else if (
-                command === "pip" &&
-                args?.includes("--force-reinstall")
-              ) {
-                setTimeout(() => callback(1), 10);
-              } else {
-                setTimeout(() => callback(0), 10);
-              }
-            }
-          }),
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any;
-        return mockChild;
-      });
-
-      const result = await verifyAnsibleLint();
-      // Should attempt test even if reinstall fails
-      expect(result.output).toContain("Failed to reinstall ansible-lint");
-      expect(result.success).toBe(false);
-    });
-
-    it("should return failure when ansible-lint still not working after fix", async () => {
+    it("should diagnose ansible-lint issues and suggest solutions", async () => {
       vi.mocked(spawn).mockImplementation((command) => {
         const mockChild = {
           stdout: { on: vi.fn() },
           stderr: {
             on: vi.fn((event, callback) => {
               if (event === "data" && command === "ansible-lint") {
-                setTimeout(() => callback("still broken"), 5);
+                setTimeout(() => callback("command not found"), 5);
               }
             }),
           },
           on: vi.fn((event, callback) => {
             if (event === "close") {
-              // ansible-lint always fails
+              // ansible-lint fails, ansible check succeeds
               if (command === "ansible-lint") {
+                setTimeout(() => callback(1), 10);
+              } else if (command === "ansible") {
+                setTimeout(() => callback(0), 10);
+              } else {
+                setTimeout(() => callback(0), 10);
+              }
+            }
+          }),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any;
+        return mockChild;
+      });
+
+      const result = await checkAnsibleLint();
+      expect(result.success).toBe(false);
+      expect(result.output).toContain("ansible-lint is not working properly");
+      expect(result.output).toContain("Possible causes and solutions:");
+      expect(result.output).toContain("pip install ansible-lint");
+    });
+
+    it("should diagnose when ansible-core is also missing", async () => {
+      vi.mocked(spawn).mockImplementation((command) => {
+        const mockChild = {
+          stdout: { on: vi.fn() },
+          stderr: {
+            on: vi.fn((event, callback) => {
+              if (event === "data") {
+                setTimeout(() => callback("command not found"), 5);
+              }
+            }),
+          },
+          on: vi.fn((event, callback) => {
+            if (event === "close") {
+              // Both ansible-lint and ansible fail
+              if (command === "ansible-lint" || command === "ansible") {
                 setTimeout(() => callback(1), 10);
               } else {
                 setTimeout(() => callback(0), 10);
@@ -1533,9 +1393,13 @@ describe("ADE Tools", () => {
         return mockChild;
       });
 
-      const result = await verifyAnsibleLint();
+      const result = await checkAnsibleLint();
       expect(result.success).toBe(false);
-      expect(result.error).toContain("ansible-lint is still not working");
+      expect(result.output).toContain("ansible-lint is not working properly");
+      expect(result.output).toContain(
+        "ansible-core also appears to be missing",
+      );
+      expect(result.output).toContain("pip install ansible-core");
     });
   });
 
