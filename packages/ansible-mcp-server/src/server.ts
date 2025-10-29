@@ -12,7 +12,7 @@ import {
   createAnsibleLintHandler,
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
-  createADECheckADTHandler,
+  createADTCheckEnvHandler,
 } from "./handlers.js";
 import {
   checkDependencies,
@@ -261,7 +261,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         ],
       },
     },
-    createADECheckADTHandler(),
+    createADTCheckEnvHandler(),
     [], // No dependencies
   );
 

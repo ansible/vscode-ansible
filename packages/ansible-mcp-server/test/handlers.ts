@@ -3,7 +3,7 @@ import {
   createZenOfAnsibleHandler,
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
-  createADECheckADTHandler,
+  createADTCheckEnvHandler,
 } from "../src/handlers.js";
 import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
@@ -222,7 +222,7 @@ describe("MCP Handlers", () => {
     });
   });
 
-  describe("ADE Check ADT Handler", () => {
+  describe("ADT Check Env Handler", () => {
     beforeEach(() => {
       vi.clearAllMocks();
     });
@@ -236,7 +236,7 @@ describe("MCP Handlers", () => {
         error: undefined,
       });
 
-      const handler = createADECheckADTHandler();
+      const handler = createADTCheckEnvHandler();
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -254,7 +254,7 @@ describe("MCP Handlers", () => {
         error: "Installation failed",
       });
 
-      const handler = createADECheckADTHandler();
+      const handler = createADTCheckEnvHandler();
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -270,7 +270,7 @@ describe("MCP Handlers", () => {
         new Error("Check exception"),
       );
 
-      const handler = createADECheckADTHandler();
+      const handler = createADTCheckEnvHandler();
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
@@ -286,7 +286,7 @@ describe("MCP Handlers", () => {
 
       vi.mocked(checkAndInstallADT).mockRejectedValue("String exception");
 
-      const handler = createADECheckADTHandler();
+      const handler = createADTCheckEnvHandler();
       const result = await handler();
 
       expect(result.content).toHaveLength(1);
