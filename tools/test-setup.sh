@@ -214,8 +214,6 @@ if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
     exit 3
 fi
 
-log notice "Using $(python3 --version)"
-
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
@@ -304,16 +302,27 @@ if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
      log warning "Detected another virtualenv active ($VIRTUAL_ENV) than expected one, switching it to ${EXPECTED_VENV}"
 fi
 VIRTUAL_ENV=${EXPECTED_VENV}
+if [[ -d "${VIRTUAL_ENV}" ]]; then
+    uv sync || {
+        log warning "Removing broken venv from ${VIRTUAL_ENV} ..."
+        rm -rf "${VIRTUAL_ENV}"
+    }
+fi
 if [[ ! -d "${VIRTUAL_ENV}" ]]; then
     log notice "Creating virtualenv ..."
-    python3 -m venv "${VIRTUAL_ENV}"
+    # ansible-core does not support python 3.14 yet
+    which uv
+    "$SHELL" -c "uv venv '${VIRTUAL_ENV}'"
 fi
 # shellcheck disable=SC1091
 . "${VIRTUAL_ENV}/bin/activate"
 
+log notice "Using $(python3 --version)"
+log notice "Using $(uv run which python3)"
+
 if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
     log warning "Virtualenv broken, trying to recreate it ..."
-    python3 -m venv --clear "${VIRTUAL_ENV}"
+    uv venv --clear "${VIRTUAL_ENV}"
     # shellcheck disable=SC1091
     . "${VIRTUAL_ENV}/bin/activate"
     if [[ "$(which python3)" != ${VIRTUAL_ENV}/bin/python3 ]]; then
