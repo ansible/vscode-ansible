@@ -225,12 +225,13 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   );
 
   registerToolWithDeps(
-    "ade_check_adt",
+    "adt_check_env",
     {
-      title: "ADE Check and Install ADT",
+      title: "ADT Check and Install Development Tools",
       description:
-        "Check if ADT (ansible-dev-tools) is installed and install it if missing. This tool ensures the ADE environment is properly set up. " +
-        "Use this tool when you need to verify or install ansible-dev-tools.",
+        "Check if ADT (ansible-dev-tools) is installed and install it if missing. " +
+        "ADT provides essential Ansible development tools including ansible-lint, ansible-navigator, and ansible-builder. " +
+        "Use this tool to ensure your Ansible development environment has all the necessary tools configured.",
       annotations: {
         keywords: [
           "check adt",
@@ -245,13 +246,18 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           "ansible development tools",
           "check development tools",
           "install development tools",
+          "ansible-lint missing",
+          "ansible-navigator missing",
+          "ansible-builder missing",
+          "install ansible tools",
         ],
         useCases: [
           "Check if ADT (ansible-dev-tools) is installed",
           "Install ansible-dev-tools package",
           "Verify ADT installation status",
           "Fix missing ADT installation",
-          "Ensure ADE development tools are available",
+          "Ensure Ansible development tools are available",
+          "Install missing ansible-lint, ansible-navigator, or ansible-builder",
         ],
       },
     },

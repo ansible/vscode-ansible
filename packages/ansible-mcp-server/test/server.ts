@@ -60,7 +60,7 @@ describe("Ansible MCP Server", () => {
       expect(toolNames).toContain("ansible_lint");
       expect(toolNames).toContain("ade_environment_info");
       expect(toolNames).toContain("ade_setup_environment");
-      expect(toolNames).toContain("ade_check_adt");
+      expect(toolNames).toContain("adt_check_env");
       expect(toolNames).toHaveLength(6);
     });
 

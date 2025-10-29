@@ -70,9 +70,9 @@ describe("ADE Tools Integration", () => {
     });
   });
 
-  describe("ade_check_adt tool", () => {
+  describe("adt_check_env tool", () => {
     it("should be registered and callable", async () => {
-      const result = await server.callTool("ade_check_adt", {});
+      const result = await server.callTool("adt_check_env", {});
 
       expect(result).toBeDefined();
       expect(result.content).toBeDefined();
@@ -99,7 +99,7 @@ describe("ADE Tools Integration", () => {
       expect(textContent).toBeDefined();
       expect(textContent?.text).toContain("ade_environment_info");
       expect(textContent?.text).toContain("ade_setup_environment");
-      expect(textContent?.text).toContain("ade_check_adt");
+      expect(textContent?.text).toContain("adt_check_env");
     });
   });
 
@@ -136,7 +136,7 @@ describe("ADE Tools Integration", () => {
       );
       expect(textContent?.text).toContain("ade_environment_info");
       expect(textContent?.text).toContain("ade_setup_environment");
-      expect(textContent?.text).toContain("ade_check_adt");
+      expect(textContent?.text).toContain("adt_check_env");
     });
   });
 });
