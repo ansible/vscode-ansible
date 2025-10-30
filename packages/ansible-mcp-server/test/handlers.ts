@@ -72,45 +72,6 @@ describe("MCP Handlers", () => {
     });
   });
 
-  // describe("ansible_lint handler", () => {
-  //   it("should handle file input without options", async () => {
-  //     const handler = createAnsibleLintHandler();
-  //     const result = await handler({ file: "playbook.yml" });
-
-  //     // This will fail in test environment since ansible-lint isn't available
-  //     // but we can test the structure
-  //     expect(result.content).toBeDefined();
-  //     expect(result.content.length).toBeGreaterThan(0);
-  //   });
-
-  //   it("should handle file input with options", async () => {
-  //     const handler = createAnsibleLintHandler();
-  //     const result = await handler({
-  //       file: "playbook.yml",
-  //       extraArgs: ["--skip-list", "no-changed-when"],
-  //     });
-
-  //     expect(result.content).toBeDefined();
-  //     expect(result.content.length).toBeGreaterThan(0);
-  //   });
-
-  //   it("should handle file input with multiple options", async () => {
-  //     const handler = createAnsibleLintHandler();
-  //     const result = await handler({
-  //       file: "playbook.yml",
-  //       extraArgs: [
-  //         "--skip-list",
-  //         "no-changed-when",
-  //         "--exclude",
-  //         "roles/legacy/",
-  //       ],
-  //     });
-
-  //     expect(result.content).toBeDefined();
-  //     expect(result.content.length).toBeGreaterThan(0);
-  //   });
-  // });
-
   describe("debug_env handler", () => {
     const workspaceRoot = "/test/workspace";
 
