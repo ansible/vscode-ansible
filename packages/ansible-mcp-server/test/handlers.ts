@@ -4,6 +4,7 @@ import {
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
+  createDebugEnvHandler,
 } from "../src/handlers.js";
 import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
@@ -336,4 +337,20 @@ describe("MCP Handlers", () => {
   //     expect(result.content.length).toBeGreaterThan(0);
   //   });
   // });
+
+  describe("debug_env handler", () => {
+    const workspaceRoot = "/test/workspace";
+
+    it("should return environment information", async () => {
+      const handler = createDebugEnvHandler(workspaceRoot);
+      const result = await handler();
+
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBeGreaterThan(0);
+      expect(result.content[0].text).toContain("PATH:");
+      expect(result.content[1].text).toContain("VIRTUAL_ENV:");
+      expect(result.content[2].text).toContain("CWD:");
+      expect(result.content[3].text).toContain("Workspace Root:");
+    });
+  });
 });
