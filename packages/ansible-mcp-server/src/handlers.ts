@@ -2,22 +2,12 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
-
-export function createDebugEnvHandler(workspaceRoot: string) {
-  return async () => {
-    return {
-      content: [
-        { type: "text" as const, text: `PATH: ${process.env.PATH}\n` },
-        {
-          type: "text" as const,
-          text: `VIRTUAL_ENV: ${process.env.VIRTUAL_ENV || "undefined"}\n`,
-        },
-        { type: "text" as const, text: `CWD: ${process.cwd()}\n` },
-        { type: "text" as const, text: `Workspace Root: ${workspaceRoot}\n` },
-      ],
-    };
-  };
-}
+import {
+  getEnvironmentInfo,
+  setupDevelopmentEnvironment,
+  checkAndInstallADT,
+  formatEnvironmentInfo,
+} from "./tools/adeTools.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {
@@ -126,5 +116,101 @@ export function createListToolsHandler(getToolNames: () => string[]) {
         },
       ],
     };
+  };
+}
+
+export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
+  return async () => {
+    try {
+      const envInfo = await getEnvironmentInfo(workspaceRoot);
+      const formattedInfo = formatEnvironmentInfo(envInfo);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: formattedInfo,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error getting environment information: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createADESetupEnvironmentHandler(workspaceRoot: string) {
+  return async (args: {
+    envName?: string;
+    pythonVersion?: string;
+    collections?: string[];
+    installRequirements?: boolean;
+    requirementsFile?: string;
+  }) => {
+    try {
+      const result = await setupDevelopmentEnvironment(workspaceRoot, args);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: result.output,
+          },
+        ],
+        isError: !result.success,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error setting up development environment: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createADTCheckEnvHandler() {
+  return async () => {
+    try {
+      const result = await checkAndInstallADT();
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: result.output,
+          },
+        ],
+        isError: !result.success,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }

@@ -53,9 +53,15 @@ describe("Ansible MCP Server", () => {
       expect(server.version).toBe("0.1.0");
     });
 
-    it("should register only the zen_of_ansible tool", () => {
+    it("should register all expected tools", () => {
       const toolNames = server.listTools().map((tool) => tool.name);
-      expect(toolNames).toEqual(["zen_of_ansible"]);
+      expect(toolNames).toContain("zen_of_ansible");
+      expect(toolNames).toContain("list_available_tools");
+      expect(toolNames).toContain("ansible_lint");
+      expect(toolNames).toContain("ade_environment_info");
+      expect(toolNames).toContain("ade_setup_environment");
+      expect(toolNames).toContain("adt_check_env");
+      expect(toolNames).toHaveLength(6);
     });
 
     it("should not register any resources", () => {
