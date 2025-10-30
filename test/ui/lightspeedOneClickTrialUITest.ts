@@ -10,7 +10,6 @@ import {
   SideBarView,
   ViewControl,
   ViewSection,
-  VSBrowser,
   until,
   WebviewView,
   Workbench,
@@ -20,6 +19,7 @@ import {
   getFixturePath,
   getModalDialogAndMessage,
   getWebviewByLocator,
+  openResources,
   sleep,
   waitForCondition,
   workbenchExecuteCommand,
@@ -217,7 +217,7 @@ describe("One Click Trial feature", function () {
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
 
     // Open playbook explanation webview.
     await workbench.executeCommand(
@@ -234,7 +234,7 @@ describe("One Click Trial feature", function () {
     const folder = "lightspeed";
     const file = "playbook_3.yml";
     const filePath = getFixturePath(folder, file);
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
 
     const editorView = new EditorView();
     const tab = await editorView.getTabByTitle(file);

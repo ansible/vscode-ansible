@@ -1,10 +1,11 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { By, StatusBar, VSBrowser, EditorView } from "vscode-extension-tester";
+import { By, StatusBar, EditorView } from "vscode-extension-tester";
 import {
   getFixturePath,
   updateSettings,
+  openResources,
   openSettings,
   waitForCondition,
 } from "./uiTestHelper";
@@ -18,7 +19,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
 
   before(async function () {
     // open file in the editor
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
   });
 
   it("Ansible Lightspeed status bar item present when lightspeed suggestions are enabled (with normal color)", async function () {
