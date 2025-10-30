@@ -102,11 +102,9 @@ async function runAnsibleLintWithFix(
     try {
       fixedContent = await readFile(filePath, "utf8");
     } catch (err) {
-      // If we can't read the fixed content, that's okay - we still have the linting results
       console.warn("Could not read fixed content:", err);
     }
   }
-
   return { result, fixedContent };
 }
 
@@ -223,6 +221,7 @@ export function formatLintingResult(
 
   if (fixApplied && fixedContent) {
     output += `\n📝 Fixed content:\n\`\`\`yaml\n${fixedContent}\n\`\`\``;
+    output += `\n\n**Next step**: These are the fixes ansible-lint was able to apply. You can now ask your agent to help optimize the playbook further if needed.`;
   }
 
   return output;
