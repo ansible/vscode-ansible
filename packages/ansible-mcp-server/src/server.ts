@@ -19,6 +19,7 @@ import {
   formatDependencyError,
   type Dependency,
 } from "./dependencyChecker.js";
+import { createInitHandler } from "./tools/creator.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
@@ -287,6 +288,26 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     },
     createADTCheckEnvHandler(),
     [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ansible_create_playbook",
+    {
+      title: "Create Playbook",
+      description: "Create a new Ansible playbook.",
+    },
+    createInitHandler("playbook"),
+    [],
+  );
+
+  registerToolWithDeps(
+    "ansible_create_collection",
+    {
+      title: "Create Collection",
+      description: "Create a new Ansible collection.",
+    },
+    createInitHandler("collection"),
+    [],
   );
 
   // Add custom error handling for tool calls using the underlying server

@@ -234,6 +234,19 @@ export const COMMON_DEPENDENCIES = {
       return match ? match[1] : null;
     },
   },
+  ansibleCreator: {
+    name: "ansible-creator",
+    command: "ansible-creator",
+    installCommand: "pip install ansible-creator",
+    description: "Ansible project scaffolding tool",
+    minVersion: "25.9.1",
+    versionCommand: "ansible-creator --version",
+    versionParser: (output: string) => {
+      // Extract version from "ansible-creator 0.1.0" or similar
+      const match = output.match(/ansible-creator.*?(\d+\.\d+\.\d+)/);
+      return match ? match[1] : null;
+    },
+  },
   python: {
     name: "python3",
     command: "python3",
