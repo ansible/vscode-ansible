@@ -4,7 +4,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -euo pipefail
+set -euox pipefail
 
 DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
@@ -70,7 +70,7 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
 fi
 
-if [[ "${OSTYPE:-}" != darwin* ]]; then
+if [[ "${OSTYPE:-}" != darwin* && ! -f /.dockerenv ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         if [[ "${READTHEDOCS:-}" != "True" ]]; then
@@ -155,7 +155,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
+    # DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
+    DEBS=(curl file git)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -178,11 +179,11 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     if [[ "${INSTALL}" -eq 1 ]]; then
         log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
-        sudo apt-get update -qq -o=Dpkg::Use-Pty=0
+        timed sudo apt-get update -qq -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
-        sudo apt-get remove -y ansible pipx || true
+        timed sudo apt-get remove -qq -y ansible pipx || true
         # install all required packages
-        sudo apt-get -qq install -y \
+        timed sudo apt-get -qq install -y \
             --no-install-recommends \
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
@@ -192,7 +193,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
-            sudo apt-get remove -y "$DEB"
+            sudo apt-get -qq remove -y "$DEB"
     done
 fi
 
@@ -303,7 +304,8 @@ if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
 fi
 VIRTUAL_ENV=${EXPECTED_VENV}
 if [[ -d "${VIRTUAL_ENV}" ]]; then
-    uv sync || {
+    log notice "Running uv sync ..."
+    timed uv sync --no-progress -q || {
         log warning "Removing broken venv from ${VIRTUAL_ENV} ..."
         rm -rf "${VIRTUAL_ENV}"
     }
@@ -346,7 +348,7 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
     log notice "Running uv sync ..."
-    uv sync --active
+    uv sync --no-progress -q --active
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere

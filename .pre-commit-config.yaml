@@ -59,8 +59,6 @@ repos:
     rev: v0.11.0.1
     hooks:
       - id: shellcheck
-        # https://github.com/shellcheck-py/shellcheck-py/issues/132
-        language_version: python3.12
         args:
           - --color=always
           - -e
