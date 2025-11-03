@@ -61,8 +61,8 @@ tasks:
   install:
     cmds:
       - task: setup
-      - uv sync --active
-      - npx --yes yarn install
+      - uv sync --no-progress -q --active
+      - npx --yes yarn install --silent
     generates:
       - node_modules/.yarn-state.yml
     sources:
@@ -228,3 +228,7 @@ tasks:
       - task: install
       - ./tools/release.sh
     interactive: true
+  image:
+    desc: Build container image used for building the extension
+    cmds:
+      - ./tools/container-build.sh

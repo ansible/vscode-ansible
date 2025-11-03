@@ -6,14 +6,13 @@
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
-    "@types/node": "^24.0.15",
-    "@vitest/coverage-v8": "^3.0.0",
-    "@vitest/ui": "^3.0.0",
-    "eslint": "^9.31.0",
+    "@types/node": "^24.9.2",
+    "@vitest/coverage-v8": "^4.0.4",
+    "@vitest/ui": "^4.0.4",
     "rimraf": "^6.0.1",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "vitest": "^3.0.0"
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.4"
   },
   "engines": {
     "node": ">=20.0"
@@ -46,12 +45,12 @@
     "clean": "rimraf out/server && rimraf lib",
     "compile": "tsc -p .",
     "dev:stdio": "tsx src/cli.ts --stdio",
-    "lint": "eslint .",
     "prepack": "npm run compile",
     "test": "vitest run",
+    "test:ade": "vitest run test/adeTools.ts test/adeIntegration.ts",
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run test/server.ts test/integration.ts",
+    "test:integration": "vitest run test/server.ts test/integration.ts test/adeIntegration.ts",
     "test:performance": "vitest run test/performance.ts",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run test/handlers.ts",

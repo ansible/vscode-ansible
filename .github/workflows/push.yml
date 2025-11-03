@@ -8,5 +8,6 @@ on:
       - "stable/**"
 
 jobs:
-  ack:
+  push:
     uses: ansible/team-devtools/.github/workflows/push.yml@main
+    secrets: inherit

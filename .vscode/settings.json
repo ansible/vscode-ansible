@@ -2,6 +2,13 @@
   "[html]": {
     "editor.defaultFormatter": "dbaeumer.vscode-eslint"
   },
+  "[javascript]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true
+  },
   "[json]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
@@ -23,21 +30,30 @@
     "editor.defaultFormatter": "tombi-toml.tombi"
   },
   "[typescript]": {
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    },
     "editor.defaultFormatter": "dbaeumer.vscode-eslint",
     "editor.formatOnSave": true
   },
   "[yaml]": {
     "editor.formatOnSave": false
   },
-  "editor.codeActionsOnSave": ["source.fixAll.eslint"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.fixAll.eslint": "explicit"
+  },
   "editor.formatOnSave": true,
   "eslint.useESLintClass": true,
   "explorer.fileNesting.enabled": true,
-
   "files.exclude": {
     ".task": true,
     ".vscode-test": true,
-    ".yarn": true
+    ".yarn": true,
+    "**/out": true
+  },
+  "files.watcherExclude": {
+    "**/out": true
   },
   "mochaExplorer.cwd": "packages/ansible-language-server",
   "redhat.telemetry.enabled": false,

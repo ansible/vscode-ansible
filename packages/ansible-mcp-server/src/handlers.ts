@@ -1,23 +1,13 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
-import { runAnsibleLint, formatLintingResult } from "./ansibleLint.js";
-
-export function createDebugEnvHandler(workspaceRoot: string) {
-  return async () => {
-    return {
-      content: [
-        { type: "text" as const, text: `PATH: ${process.env.PATH}\n` },
-        {
-          type: "text" as const,
-          text: `VIRTUAL_ENV: ${process.env.VIRTUAL_ENV || "undefined"}\n`,
-        },
-        { type: "text" as const, text: `CWD: ${process.cwd()}\n` },
-        { type: "text" as const, text: `Workspace Root: ${workspaceRoot}\n` },
-      ],
-    };
-  };
-}
+import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
+import {
+  getEnvironmentInfo,
+  setupDevelopmentEnvironment,
+  checkAndInstallADT,
+  formatEnvironmentInfo,
+} from "./tools/adeTools.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {
@@ -33,13 +23,55 @@ export function createZenOfAnsibleHandler() {
 }
 
 export function createAnsibleLintHandler() {
-  return async (args: { playbookContent: string }) => {
+  return async (args: { filePath: string; fix?: boolean }) => {
     try {
-      const lintingResult = await runAnsibleLint(args.playbookContent);
+      // Check if fix parameter is explicitly provided
+      const fix = args.fix;
+
+      // If fix is not specified, prompt the user for their preference
+      if (fix === undefined) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                "Would you like ansible-lint to apply automatic fixes?\n\n" +
+                "Please specify:\n" +
+                "- `fix: true` to run with automatic fixes (ansible-lint --fix)\n" +
+                "- `fix: false` to run without fixes (ansible-lint only)\n\n" +
+                "The --fix flag can automatically fix issues like:\n" +
+                "- command-instead-of-shell\n" +
+                "- deprecated-local-action\n" +
+                "- fqcn (Fully Qualified Collection Names)\n" +
+                "- jinja formatting\n" +
+                "- key-order\n" +
+                "- name formatting\n" +
+                "- no-free-form\n" +
+                "- no-jinja-when\n" +
+                "- no-log-password\n" +
+                "- partial-become\n" +
+                "- yaml formatting\n\n" +
+                "When using fix: true, the tool will show you the fixed content after applying automatic fixes.\n\n" +
+                "Please re-run the tool with your preference.",
+            },
+          ],
+        };
+      }
+
+      const { result: lintingResult, fixedContent } = await runAnsibleLint(
+        args.filePath,
+        fix,
+      );
 
       // Ensure the result is an array before formatting
       const resultArray = Array.isArray(lintingResult) ? lintingResult : [];
-      const formattedResult = formatLintingResult(resultArray);
+      const formattedResult = formatLintingResult(
+        resultArray,
+        fix,
+        fixedContent,
+        args.filePath,
+      );
+
       return {
         content: [{ type: "text" as const, text: formattedResult }],
       };
@@ -72,22 +104,6 @@ export function createWorkspaceFileHandler(workspaceRoot: string) {
   };
 }
 
-export function createAnsibleFixPromptHandler() {
-  return ({ file, errorSummary }: { file: string; errorSummary: string }) => ({
-    messages: [
-      {
-        role: "user" as const,
-        content: {
-          type: "text" as const,
-          text:
-            `You are an expert in Ansible. Given lint issues in ${file}, suggest minimal edits.\n\n` +
-            `Issues:\n${errorSummary}\n\nReturn corrected YAML and a brief rationale.`,
-        },
-      },
-    ],
-  });
-}
-
 export function createListToolsHandler(getToolNames: () => string[]) {
   return async () => {
     const toolNames = getToolNames();
@@ -100,5 +116,101 @@ export function createListToolsHandler(getToolNames: () => string[]) {
         },
       ],
     };
+  };
+}
+
+export function createADEEnvironmentInfoHandler(workspaceRoot: string) {
+  return async () => {
+    try {
+      const envInfo = await getEnvironmentInfo(workspaceRoot);
+      const formattedInfo = formatEnvironmentInfo(envInfo);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: formattedInfo,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error getting environment information: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createADESetupEnvironmentHandler(workspaceRoot: string) {
+  return async (args: {
+    envName?: string;
+    pythonVersion?: string;
+    collections?: string[];
+    installRequirements?: boolean;
+    requirementsFile?: string;
+  }) => {
+    try {
+      const result = await setupDevelopmentEnvironment(workspaceRoot, args);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: result.output,
+          },
+        ],
+        isError: !result.success,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error setting up development environment: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createADTCheckEnvHandler() {
+  return async () => {
+    try {
+      const result = await checkAndInstallADT();
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: result.output,
+          },
+        ],
+        isError: !result.success,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }
