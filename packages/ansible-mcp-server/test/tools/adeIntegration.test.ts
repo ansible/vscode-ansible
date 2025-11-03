@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { createTestServer } from "./testWrapper.js";
+import { createTestServer } from "../testWrapper.js";
 
 describe("ADE Tools Integration", () => {
   let server: ReturnType<typeof createTestServer>;

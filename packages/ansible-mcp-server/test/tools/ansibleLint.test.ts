@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createAnsibleLintHandler } from "../src/handlers.js";
+import { createAnsibleLintHandler } from "../../src/handlers.js";
 import { join } from "node:path";
 import { writeFile, unlink } from "node:fs/promises";
 

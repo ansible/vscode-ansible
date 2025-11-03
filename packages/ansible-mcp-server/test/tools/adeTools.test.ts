@@ -29,7 +29,7 @@ import {
   checkConflictingPackages,
   checkAnsibleLint,
   type ADEEnvironmentInfo,
-} from "../src/tools/adeTools.js";
+} from "../../src/tools/adeTools.js";
 import * as fs from "node:fs/promises";
 
 describe("ADE Tools", () => {
