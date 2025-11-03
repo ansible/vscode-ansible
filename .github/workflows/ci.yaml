@@ -37,18 +37,89 @@ env:
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
+  # NODE_OPTIONS must be kept in sync with one inside .env file
+  NODE_OPTIONS: --max-old-space-size=8192
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/jdx/mise:latest
+      env:
+        MISE_TRUSTED_CONFIG_PATHS: /
+    continue-on-error: false
+    outputs:
+      commit_context: ${{ steps.extract_context.outputs.context }}
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
+
+      - name: task setup
+        timeout-minutes: 1 # expected under 10s for container builds
+        run: |
+          set -ex
+          pwd
+          git config --global --add safe.directory '*'
+          mise install
+          mise list
+          mise cfg
+          mise exec -- which python3
+          mise exec -- printenv NODE_OPTIONS || true
+          task setup
+
+      - name: Extract commit context from conventional commit
+        id: extract_context
+        shell: bash
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -e
+          # Use PR title if available, otherwise use commit message
+          if [[ -n "$PR_TITLE" ]]; then
+            MESSAGE="$PR_TITLE"
+            echo "Using PR title: $MESSAGE"
+          else
+            MESSAGE=$(git log -1 --pretty=%s)
+            echo "Using commit message: $MESSAGE"
+          fi
+
+          # Extract context/scope from conventional commit format: type(scope): message
+          # Matches patterns like: feat(mcp):, fix(ui):, chore(build):, etc.
+          if [[ "$MESSAGE" =~ ^[a-z]+\(([a-z0-9/-]+)\): ]]; then
+            CONTEXT="${BASH_REMATCH[1]}"
+            echo "Extracted context: $CONTEXT"
+            echo "context=$CONTEXT" >> "$GITHUB_OUTPUT"
+          else
+            echo "No context found in message"
+            echo "context=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: task build
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task build
+
+      - name: Run context-specific command
+        if: steps.extract_context.outputs.context != '' && steps.extract_context.outputs.context != 'build'
+        run: |
+          task ${{ steps.extract_context.outputs.context }}"
+
+      - name: task lint
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task lint
+
   build:
     name: ${{ matrix.name }}
+    needs: preflight
     environment: ci
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
       IS_WSL: ${{ contains(matrix.name, 'wsl') && 1 || 0 }}
-      # NODE_OPTIONS must be kept in sync with one inside .env file
-      NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
     defaults:
@@ -110,6 +181,11 @@ jobs:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
 
+      - name: Run setup steps (composite action)
+        uses: ./.github/actions/setup
+        with:
+          job_name: ${{ matrix.name }}
+
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
         if: contains(matrix.name, 'wsl') && (matrix.runs-on || '') != 'self-hosted'
@@ -152,26 +228,6 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
-        with:
-          experimental: true
-          reshim: true
-
-      - name: Corepack enable
-        run: corepack enable
-
-      - name: Runner image version
-        run: echo "IMAGE_OS_VERSION=${ImageOS}-${ImageVersion}" >> "$GITHUB_ENV"
-
-      - name: Enable caching for python
-        # left out due to having their own caching: yarn, node_modules, mise
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: |
-            ~/.cache/pip
-            ~/.cache/uv
-          key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python_version') }}
-
       - name: Enable caching for vscode resources
         if: "${{ contains(matrix.name, 'test') }}"
         # left out due to having their own caching: yarn, node_modules, mise
@@ -203,13 +259,6 @@ jobs:
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
           python-version: "3.13"
-
-      - name: Enable caching for pre-commit
-        if: ${{ matrix.name == 'lint' }}
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ~/.cache/pre-commit/
-          key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
       - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
         run: |
@@ -418,8 +467,6 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
 
   check: # This job does nothing and is only used for the branch protection
-    if: always()
-
     needs:
       - build
 
