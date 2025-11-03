@@ -8,6 +8,10 @@ import {
   checkAndInstallADT,
   formatEnvironmentInfo,
 } from "./tools/adeTools.js";
+import {
+  generateExecutionEnvironment,
+  formatExecutionEnvResult,
+} from "./tools/executionEnv.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {
@@ -207,6 +211,76 @@ export function createADTCheckEnvHandler() {
           {
             type: "text" as const,
             text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createDefineAndBuildExecutionEnvHandler(
+  workspaceRoot: string,
+) {
+  return async (args: {
+    baseImage: string;
+    tag: string;
+    destinationPath?: string;
+    collections?: string[];
+    systemPackages?: string[];
+    pythonPackages?: string[];
+  }) => {
+    try {
+      // Validate required inputs
+      if (!args.baseImage || !args.tag) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                "Error: 'baseImage' and 'tag' are required fields.\n\n" +
+                "**Please provide the following critical information:**\n" +
+                "- **baseImage**: The base container image (e.g., 'quay.io/fedora/fedora-minimal:41', 'quay.io/centos/centos:stream10')\n" +
+                "- **tag**: The tag/name for the resulting image (e.g., 'my-ee:latest')\n\n" +
+                "**Optional fields:**\n" +
+                "- **collections**: Array of Ansible collection names (e.g., ['amazon.aws', 'ansible.utils'])\n" +
+                "- **systemPackages**: Array of system packages (e.g., ['git', 'vim'])\n" +
+                "- **pythonPackages**: Array of Python packages (e.g., ['boto3', 'requests'])\n" +
+                "- **destinationPath**: Directory path for the file (defaults to workspace root)\n\n" +
+                "**Note:** The tool will use the execution environment schema and sample file to generate a compliant EE file.",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // Generate execution environment file
+      const result = await generateExecutionEnvironment(args, workspaceRoot);
+
+      // Format result for display
+      const formattedOutput = formatExecutionEnvResult(result);
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: formattedOutput,
+          },
+        ],
+        isError: false,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error creating execution environment: ${errorMessage}\n\n` +
+              "Please ensure:\n" +
+              "- Valid base image name is provided\n" +
+              "- Destination path is writable (if specified)\n" +
+              "- All inputs are properly formatted",
           },
         ],
         isError: true,
