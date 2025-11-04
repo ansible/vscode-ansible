@@ -10,6 +10,7 @@ import {
   createZenOfAnsibleHandler,
   createListToolsHandler,
   createAnsibleLintHandler,
+  createAnsibleNavigatorHandler,
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
@@ -130,6 +131,46 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       },
     },
     createAnsibleLintHandler(),
+    [],
+  );
+
+  registerToolWithDeps(
+    "ansible_navigator",
+    {
+      title: "Ansible Navigator",
+      description:
+        "Run ansible-navigator on Ansible files. Files passed to the tool run with `ansible-navigator run <>`. Debug output is passed back from MCP server in the event of failure to triage the issue.",
+      inputSchema: {
+        filePath: z
+          .string()
+          .describe(
+            "The path to the Ansible file to run with ansible-navigator.",
+          ),
+        mode: z
+          .string()
+          .optional()
+          .describe(
+            "Output mode for ansible-navigator: 'stdout' (default), 'stdout-minimal', or 'interactive'. If not specified, tool will prompt user for preference.",
+          ),
+      },
+      annotations: {
+        keywords: [
+          "ansible-navigator",
+          "navigator",
+          "run",
+          "playbook-execution",
+          "ansible-execution",
+          "ansible-run",
+        ],
+        useCases: [
+          "Run Ansible playbooks using ansible-navigator",
+          "Execute Ansible files with ansible-navigator",
+          "Debug Ansible playbook execution issues",
+          "Test Ansible playbook execution",
+        ],
+      },
+    },
+    createAnsibleNavigatorHandler(),
     [],
   );
 

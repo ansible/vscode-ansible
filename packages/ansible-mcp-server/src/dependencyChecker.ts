@@ -234,6 +234,19 @@ export const COMMON_DEPENDENCIES = {
       return match ? match[1] : null;
     },
   },
+  ansibleNavigator: {
+    name: "ansible-navigator",
+    command: "ansible-navigator",
+    installCommand: "pip install ansible-navigator",
+    description: "Ansible Navigator CLI tool",
+    minVersion: "1.0.0",
+    versionCommand: "ansible-navigator --version",
+    versionParser: (output: string) => {
+      // Extract version from "ansible-navigator 4.0.0" or similar
+      const match = output.match(/ansible-navigator.*?(\d+\.\d+\.\d+)/);
+      return match ? match[1] : null;
+    },
+  },
   ansibleCreator: {
     name: "ansible-creator",
     command: "ansible-creator",
