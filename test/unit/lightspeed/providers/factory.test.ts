@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { assert } from "chai";
 
 // Test the provider factory in isolation
@@ -10,7 +11,7 @@ describe("LLMProviderFactory", () => {
         "../../../../src/features/lightspeed/providers/factory.js"
       );
       LLMProviderFactory = module.LLMProviderFactory;
-    } catch (error) {
+    } catch {
       console.log("Could not import LLMProviderFactory, skipping tests");
       return;
     }
