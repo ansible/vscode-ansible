@@ -43,7 +43,7 @@ async function writeRoleInWorkspace() {
             fileEntries = response.data;
             roleLocation.value = response.roleLocation || '';
         }
-        
+
         return fileEntries;
     }).catch((error: any) => {
         console.error('[SavedFiles] Error writing files:', error);
