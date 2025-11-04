@@ -3,11 +3,11 @@ import fs from "fs";
 import {
   Workbench,
   BottomBarPanel,
-  VSBrowser,
   SettingsEditor,
 } from "vscode-extension-tester";
 import {
   getFixturePath,
+  openResources,
   updateSettings,
   sleep,
   waitForCondition,
@@ -34,7 +34,7 @@ describe(__filename, function () {
         "--syntax-check",
       );
 
-      await VSBrowser.instance.openResources(playbookFile);
+      await openResources(playbookFile);
 
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
@@ -48,7 +48,7 @@ describe(__filename, function () {
     it("Execute ansible-playbook command without arg", async function () {
       const settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
-      await VSBrowser.instance.openResources(playbookFile);
+      await openResources(playbookFile);
 
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
@@ -87,7 +87,7 @@ describe(__filename, function () {
           "podman",
         );
 
-        await VSBrowser.instance.openResources(playbookFile);
+        await openResources(playbookFile);
 
         await workbench.executeCommand(
           "Run playbook via `ansible-navigator run`",
@@ -116,7 +116,7 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         false,
       );
-      await VSBrowser.instance.openResources(playbookFile);
+      await openResources(playbookFile);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run``",
       );

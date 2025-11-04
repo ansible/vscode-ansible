@@ -4,14 +4,13 @@ import { expect, config } from "chai";
 import {
   By,
   StatusBar,
-  VSBrowser,
   EditorView,
   ViewControl,
   ActivityBar,
   SideBarView,
   ViewSection,
 } from "vscode-extension-tester";
-import { getFixturePath } from "./uiTestHelper";
+import { getFixturePath, openResources } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -30,7 +29,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
     editorView = new EditorView();
 
     // open file in the editor
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
   });
 
   it("Ansible Lightspeed status bar item absent when settings not enabled", async function () {
