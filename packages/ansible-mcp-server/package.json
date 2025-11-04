@@ -2,7 +2,7 @@
   "bin": "out/server/src/cli.js",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3",
-    "zod": "3.25.76"
+    "zod": "4.1.12"
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
@@ -35,7 +35,7 @@
   "main": "./out/server/src/server.js",
   "name": "@ansible/ansible-mcp-server",
   "overrides": {
-    "zod": "3.25.76"
+    "zod": "4.1.12"
   },
   "publishConfig": {
     "access": "public"
