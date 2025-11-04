@@ -762,6 +762,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@google/generative-ai@npm:^0.24.1":
+  version: 0.24.1
+  resolution: "@google/generative-ai@npm:0.24.1"
+  checksum: 10/992a82e2d4a58d6eb0545254fe05e2da074c08560a9d51fb29c6f2a44db8c66ba44d87bc04e61b3676f5adc9ab94e527f171ee1395edf4ccbead3472fd8efff8
+  languageName: node
+  linkType: hard
+
 "@highlightjs/vue-plugin@npm:2.1.0":
   version: 2.1.0
   resolution: "@highlightjs/vue-plugin@npm:2.1.0"
@@ -1338,7 +1345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@primeuix/styled@npm:^0.7.3, @primeuix/styled@npm:^0.7.4":
+"@primeuix/styled@npm:^0.7.3":
   version: 0.7.4
   resolution: "@primeuix/styled@npm:0.7.4"
   dependencies:
@@ -1372,25 +1379,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@primevue/core@npm:4.4.1":
-  version: 4.4.1
-  resolution: "@primevue/core@npm:4.4.1"
+"@primevue/core@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@primevue/core@npm:4.4.0"
   dependencies:
-    "@primeuix/styled": "npm:^0.7.4"
+    "@primeuix/styled": "npm:^0.7.3"
     "@primeuix/utils": "npm:^0.6.1"
   peerDependencies:
     vue: ^3.5.0
-  checksum: 10/1488158a8e4837f89db1231c50941162949c32655b86218f5a83c62e640e4a9a7a5647d530818fd81b1c96380ab78f4a52bac9beb8f9e1643100ebf24541f033
+  checksum: 10/14f878c60ad8ae7490571a1b591b3856d74578a17183b3e1b64eac6ba129566da97a5583bfc8b682728b6427d8469133de81b179f70c0f6eaf5112ce4df15564
   languageName: node
   linkType: hard
 
-"@primevue/icons@npm:4.4.1":
-  version: 4.4.1
-  resolution: "@primevue/icons@npm:4.4.1"
+"@primevue/icons@npm:4.4.0":
+  version: 4.4.0
+  resolution: "@primevue/icons@npm:4.4.0"
   dependencies:
     "@primeuix/utils": "npm:^0.6.1"
-    "@primevue/core": "npm:4.4.1"
-  checksum: 10/15b238bb6877165912638857aefffba33b16d9f25e3fdbb42a69602f06ce13c5bbdf8cea935866cff17f77365ca9b8b2883178360f2880b1817528949f920676
+    "@primevue/core": "npm:4.4.0"
+  checksum: 10/523a1edcc0bf7747d7437e2b4d192c180b0dc2d0da2f177d8d80a9aaa64d4c77d40b7424a8b91d9a8fd25127295505a94c079c86836022f450f758dd058c36d5
   languageName: node
   linkType: hard
 
@@ -2044,6 +2051,13 @@ __metadata:
   version: 2.0.6
   resolution: "@types/istanbul-lib-coverage@npm:2.0.6"
   checksum: 10/3feac423fd3e5449485afac999dcfcb3d44a37c830af898b689fadc65d26526460bedb889db278e0d4d815a670331796494d073a10ee6e3a6526301fe7415778
+  languageName: node
+  linkType: hard
+
+"@types/js-yaml@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10/a0ce595db8a987904badd21fc50f9f444cb73069f4b95a76cc222e0a17b3ff180669059c763ec314bc4c3ce284379177a9da80e83c5f650c6c1310cafbfaa8e6
   languageName: node
   linkType: hard
 
@@ -3339,6 +3353,7 @@ __metadata:
     "@ansible/ansible-language-server": "workspace:^"
     "@ansible/ansible-mcp-server": "workspace:^"
     "@eslint/js": "npm:^9.38.0"
+    "@google/generative-ai": "npm:^0.24.1"
     "@highlightjs/vue-plugin": "npm:2.1.0"
     "@html-eslint/eslint-plugin": "npm:^0.48.0"
     "@primeuix/themes": "npm:^1.2.5"
@@ -3349,6 +3364,7 @@ __metadata:
     "@types/express": "npm:^5.0.5"
     "@types/glob": "npm:^9.0.0"
     "@types/ini": "npm:^4.1.1"
+    "@types/js-yaml": "npm:^4.0.9"
     "@types/jsdom": "npm:^27.0.0"
     "@types/lodash": "npm:^4.17.20"
     "@types/minimatch": "npm:^6.0.0"
@@ -3370,7 +3386,8 @@ __metadata:
     "@vscode/test-electron": "npm:^2.5.2"
     "@vscode/vsce": "npm:^3.6.2"
     "@vscode/webview-ui-toolkit": "npm:^1.4.0"
-    chai: "npm:^6.2.0"
+    c8: "npm:^10.1.3"
+    chai: "npm:^6.0.0"
     cypress-multi-reporters: "npm:^2.0.5"
     depcheck: "npm:^1.4.7"
     eslint: "npm:^9.38.0"
@@ -3396,13 +3413,14 @@ __metadata:
     mocha-multi-reporters: "npm:^1.5.1"
     morgan: "npm:^1.10.1"
     npm-check-updates: "npm:^19.1.2"
+    openai: "npm:^6.5.0"
     ovsx: "npm:^0.10.6"
     prettier: "npm:^3.6.2"
-    primevue: "npm:4.4.1"
+    primevue: "npm:4.4.0"
     react: "npm:^19.2.0"
     rimraf: "npm:^6.0.1"
     selenium-webdriver: "npm:^4.36.0"
-    semver: "npm:^7.7.3"
+    semver: "npm:^7.7.2"
     sinon: "npm:^21.0.0"
     ts-loader: "npm:^9.5.4"
     ts-node: "npm:^10.9.2"
@@ -3968,6 +3986,13 @@ __metadata:
   version: 1.0.30001754
   resolution: "caniuse-lite@npm:1.0.30001754"
   checksum: 10/6061032b8e799913f6db01ad190bc6885369c0be7853fbe542a36f0d114f193fac6e812d73657526b4d5a6b7add8c56bb629913237f9097b6e6438dcac703965
+  languageName: node
+  linkType: hard
+
+"chai@npm:^6.0.0":
+  version: 6.2.0
+  resolution: "chai@npm:6.2.0"
+  checksum: 10/199422854e253d8711ea3f220365c6a850c450abf68b31131d2a0f703cbfc5cb48e6c81567e0adbe80e83cdcae6dba82d069a41a77c16bdf6703329c5c3447ef
   languageName: node
   linkType: hard
 
@@ -8246,6 +8271,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"openai@npm:^6.5.0":
+  version: 6.8.0
+  resolution: "openai@npm:6.8.0"
+  peerDependencies:
+    ws: ^8.18.0
+    zod: ^3.25 || ^4.0
+  peerDependenciesMeta:
+    ws:
+      optional: true
+    zod:
+      optional: true
+  bin:
+    openai: bin/cli
+  checksum: 10/209f4ca59424edfca63f50be40d0dc72394666d2211c3f88c7ada7f537001b3db25aad8e9f9645d6b8cc237d2c8f4a529599c0fafb8e4d89e4e9cddc13c18ab4
+  languageName: node
+  linkType: hard
+
 "optionator@npm:^0.9.3":
   version: 0.9.4
   resolution: "optionator@npm:0.9.4"
@@ -8732,16 +8774,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"primevue@npm:4.4.1":
-  version: 4.4.1
-  resolution: "primevue@npm:4.4.1"
+"primevue@npm:4.4.0":
+  version: 4.4.0
+  resolution: "primevue@npm:4.4.0"
   dependencies:
-    "@primeuix/styled": "npm:^0.7.4"
+    "@primeuix/styled": "npm:^0.7.3"
     "@primeuix/styles": "npm:^1.2.5"
     "@primeuix/utils": "npm:^0.6.1"
-    "@primevue/core": "npm:4.4.1"
-    "@primevue/icons": "npm:4.4.1"
-  checksum: 10/4d57e24a5ae68f2c4568779653e564c4d02761d2981f2e834c55148b629c6b9d6f446b3d13e3f82792940e6062f6211359dabff7de9a4d9c260a28d93d8f3cd9
+    "@primevue/core": "npm:4.4.0"
+    "@primevue/icons": "npm:4.4.0"
+  checksum: 10/1793608cf18358387db06aab68421f49acb3f8fb6f6143173ec50c966a68094500f60fdb502d92e68d57c2ddff8f4666ef151277474f51638c54462ea0b1107d
   languageName: node
   linkType: hard
 
@@ -9349,7 +9391,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.6.3, semver@npm:^7.7.2, semver@npm:^7.7.3":
+"semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.5.2, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.6.3, semver@npm:^7.7.2":
   version: 7.7.3
   resolution: "semver@npm:7.7.3"
   bin:

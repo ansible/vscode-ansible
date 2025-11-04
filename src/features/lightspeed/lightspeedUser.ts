@@ -87,13 +87,16 @@ export class LightspeedUser {
   }
 
   private logAuthProviderDebugHints() {
+    const provider = this._settingsManager.settings.lightSpeedService.provider;
     const lightspeedUri = getBaseUri(this._settingsManager);
     this._logger.info(
-      `[ansible-lightspeed-user] Initializing LightspeedUser for Lightspeed URI ${lightspeedUri} and extension host ${this._extensionHost}`,
+      `[ansible-lightspeed-user] Initializing LightspeedUser with provider: ${provider}, URI: ${lightspeedUri || "(none)"}, extension host: ${this._extensionHost}`,
     );
-    this._logger.info(
-      `[ansible-lightspeed-user] Red Hat authentication extension is${vscode.extensions.getExtension("redhat.vscode-redhat-account") ? "" : " not"} installed.`,
-    );
+    if (provider === "wca") {
+      this._logger.info(
+        `[ansible-lightspeed-user] Red Hat authentication extension is${vscode.extensions.getExtension("redhat.vscode-redhat-account") ? "" : " not"} installed.`,
+      );
+    }
   }
 
   public static isLightspeedUserAuthProviderType(providerId: string) {
@@ -414,6 +417,12 @@ export class LightspeedUser {
     if (!this._settingsManager.settings.lightSpeedService.enabled) {
       return undefined;
     }
+
+    // Skip user details check for LLM providers (only needed for WCA)
+    const provider = this._settingsManager.settings.lightSpeedService.provider;
+    if (provider && provider !== "wca") {
+      return undefined;
+    }
     if (
       this._userDetails &&
       (!useProviderType || useProviderType === this._userType)
@@ -484,6 +493,17 @@ export class LightspeedUser {
     if (process.env.TEST_LIGHTSPEED_ACCESS_TOKEN) {
       this._logger.info("[ansible-lightspeed-user] Test access token returned");
       return process.env.TEST_LIGHTSPEED_ACCESS_TOKEN;
+    }
+
+    // Check if using LLM provider (not WCA)
+    const provider = this._settingsManager.settings.lightSpeedService.provider;
+    if (provider && provider !== "wca") {
+      // For LLM providers, skip OAuth session check
+      // API key validation will be handled by the provider itself
+      this._logger.debug(
+        `[ansible-lightspeed-user] Using LLM provider "${provider}", skipping OAuth session check`,
+      );
+      return undefined;
     }
 
     if (!this._session) {

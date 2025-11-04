@@ -219,8 +219,10 @@ export async function enableLightspeedSettings(): Promise<void> {
 export async function disableLightspeedSettings(): Promise<void> {
   await updateSettings("lightspeed.enabled", false);
   await updateSettings("lightspeed.suggestions.enabled", false);
-  await updateSettings("lightspeed.URL", "");
+  await updateSettings("lightspeed.apiEndpoint", "");
+  await updateSettings("lightspeed.provider", "wca");
 }
+
 
 export async function _setInlineSuggestionsWaitWindow(
   t: number,

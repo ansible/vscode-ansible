@@ -209,6 +209,22 @@
       {
         "command": "ansible.mcpServer.disable",
         "title": "Disable Ansible Development Tools MCP Server"
+      },
+      {
+        "command": "ansible.lightspeed.testProviderConnection",
+        "title": "Ansible Lightspeed: Test Provider Connection"
+      },
+      {
+        "command": "ansible.lightspeed.configureLlmProvider",
+        "title": "Ansible Lightspeed: Configure LLM Provider"
+      },
+      {
+        "command": "ansible.lightspeed.showProviderStatus",
+        "title": "Ansible Lightspeed: Show Provider Status"
+      },
+      {
+        "command": "ansible.lightspeed.switchProvider",
+        "title": "Ansible Lightspeed: Switch Provider"
       }
     ],
     "configuration": [
@@ -422,32 +438,70 @@
             "scope": "resource",
             "type": "boolean"
           },
-          "ansible.lightspeed.modelIdOverride": {
-            "markdownDescription": "Model ID to override your organization's default model. This setting is only applicable to commercial users with an Ansible Lightspeed seat assignment.",
+          "ansible.lightspeed.provider": {
+            "default": "wca",
+            "enum": [
+              "wca",
+              "openai",
+              "google",
+              "custom"
+            ],
+            "enumDescriptions": [
+              "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+              "OpenAI - Direct access to OpenAI models (use your OpenAI API key)",
+              "Google Gemini - Direct access to Google Gemini models (use your Google API key)",
+              "Custom - Configure a custom OpenAI-compatible API"
+            ],
+            "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
+            "order": 1,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.modelName": {
+            "markdownDescription": "Model name/ID to use. **Optional for OpenAI/Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only). For Custom: Required model identifier.",
+            "order": 2,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.apiKey": {
+            "markdownDescription": "API key for LLM providers (OpenAI, Google, Custom). Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
+            "order": 3,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.apiEndpoint": {
+            "default": "",
+            "markdownDescription": "API endpoint URL. **Only configurable for WCA and Custom providers.** For OpenAI and Google, the endpoint is automatically set and cannot be changed. If you need a custom endpoint for these providers, use the 'Custom' provider option instead. Default for WCA: https://c.ai.ansible.redhat.com",
             "order": 4,
             "scope": "resource",
             "type": "string"
           },
+          "ansible.lightspeed.timeout": {
+            "default": 30000,
+            "markdownDescription": "Request timeout in milliseconds for API calls.",
+            "order": 5,
+            "scope": "resource",
+            "type": "number"
+          },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
-            "markdownDescription": "Enable Ansible Lightspeed with watsonx Code Assistant inline suggestions.",
-            "order": 2,
+            "markdownDescription": "Enable inline suggestions. Note: Currently only supported with WCA provider.",
+            "order": 6,
             "scope": "resource",
             "type": "boolean"
           },
           "ansible.lightspeed.suggestions.waitWindow": {
             "default": 0,
-            "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request to Ansible Lightspeed with watsonx Code Assistant.",
-            "order": 3,
+            "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request.",
+            "order": 7,
             "scope": "resource",
             "type": "number"
           },
-          "ansible.lightspeed.URL": {
-            "default": "https://c.ai.ansible.redhat.com",
-            "markdownDescription": "URL for Ansible Lightspeed.",
-            "order": 1,
+          "ansible.lightspeed.customHeaders": {
+            "markdownDescription": "Custom HTTP headers for LLM providers (JSON object). Example: {\"Custom-Header\": \"value\"}. Not used for WCA.",
+            "order": 8,
             "scope": "resource",
-            "type": "string"
+            "type": "object"
           }
         },
         "title": "Ansible Lightspeed"
@@ -742,7 +796,7 @@
         {
           "icon": "$(comment-discussion)",
           "id": "lightspeed-feedback-webview",
-          "name": "Ansible Lightspeed Feedback",
+          "name": "Ansible Lightspeed WCA Provider Feedback",
           "type": "webview",
           "when": "config.ansible.lightspeed.enabled"
         }
@@ -989,6 +1043,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@ansible/ansible-mcp-server": "workspace:^",
+    "@google/generative-ai": "^0.24.1",
     "@highlightjs/vue-plugin": "2.1.0",
     "@primeuix/themes": "^1.2.5",
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
@@ -1002,8 +1057,9 @@
     "ini": "^6.0.0",
     "marked": "^17.0.0",
     "minimatch": "^10.0.3",
-    "primevue": "4.4.1",
-    "semver": "^7.7.3",
+    "openai": "^6.5.0",
+    "primevue": "4.4.0",
+    "semver": "^7.7.2",
     "uuid": "^13.0.0",
     "vite": "^7.1.12",
     "vscode-languageclient": "^9.0.1",
@@ -1019,6 +1075,7 @@
     "@types/chai": "^5.2.3",
     "@types/express": "^5.0.5",
     "@types/glob": "^9.0.0",
+    "@types/js-yaml": "^4.0.9",
     "@types/jsdom": "^27.0.0",
     "@types/lodash": "^4.17.20",
     "@types/minimatch": "^6.0.0",
@@ -1037,7 +1094,8 @@
     "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.2",
-    "chai": "^6.2.0",
+    "c8": "^10.1.3",
+    "chai": "^6.0.0",
     "cypress-multi-reporters": "^2.0.5",
     "depcheck": "^1.4.7",
     "eslint": "^9.38.0",
@@ -1115,6 +1173,7 @@
     "als-compile": "yarn workspace @ansible/ansible-language-server compile",
     "clean": "rimraf out/client out/server out/mcp out/tsconfig.tsbuildinfo out/syntaxHighlighter coverage .nyc_output",
     "compile": "tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap",
+    "compile-full": "rimraf out && tsc -b && tsc -p ./packages/ansible-language-server/tsconfig.json --outDir ./out/server --sourceMap && vue-tsc --noEmit && vite build && node --max-old-space-size=8192 node_modules/webpack/bin/webpack.js --mode development --config ./webpack.config.ts",
     "coverage-all": "MOCK_LIGHTSPEED_API=1 TEST_TYPE=e2e COVERAGE=1 ./tools/test-launcher.sh",
     "coverage-ui-current": "COVERAGE=1 ./tools/test-launcher.sh",
     "coverage-ui-oldest": "COVERAGE=1 CODE_VERSION='min' ./tools/test-launcher.sh",

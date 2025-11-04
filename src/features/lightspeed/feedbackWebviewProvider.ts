@@ -46,7 +46,7 @@ export class LightspeedFeedbackWebviewProvider {
       // If a webview panel does not already exist create and show a new one
       const panel = window.createWebviewPanel(
         "ansibleLightSpeedFeedback",
-        "Ansible Lightspeed Feedback",
+        "Ansible Lightspeed WCA Provider Feedback",
         ViewColumn.One,
         {
           // Enable JavaScript in the webview

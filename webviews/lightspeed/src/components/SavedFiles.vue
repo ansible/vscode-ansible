@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { vscodeApi } from '../utils';
 import { GenerationListEntry } from '../../../../src/interfaces/lightspeed';
 
@@ -6,7 +7,13 @@ import SavedFilesEntry from './SavedFilesEntry.vue';
 
 interface IWriteRoleInWorkspaceOutputEntry {
     longPath: string,
+    absolutePath?: string,
     command: string,
+}
+
+interface IWriteRoleInWorkspaceResponse {
+    data: IWriteRoleInWorkspaceOutputEntry[],
+    roleLocation?: string,
 }
 
 
@@ -17,13 +24,30 @@ const props = defineProps<{
 }>();
 
 
+const roleLocation = ref<string>('');
+
 async function writeRoleInWorkspace() {
-    return vscodeApi.postAndReceive('writeRoleInWorkspace', {
+    const payload = {
         files: props.files.map((i) => [i.path, i.content, i.file_type]),
         collectionName: props.collectionName,
         roleName: props.roleName
-    }).then((data: any) => {
-        return data as IWriteRoleInWorkspaceOutputEntry[];
+    };
+
+    return vscodeApi.postAndReceive('writeRoleInWorkspace', payload).then((response: any) => {
+        // Handle response structure (could be array or object with data property)
+        let fileEntries: IWriteRoleInWorkspaceOutputEntry[] = [];
+
+        if (Array.isArray(response)) {
+            fileEntries = response;
+        } else if (response && response.data) {
+            fileEntries = response.data;
+            roleLocation.value = response.roleLocation || '';
+        }
+        
+        return fileEntries;
+    }).catch((error: any) => {
+        console.error('[SavedFiles] Error writing files:', error);
+        return [];
     });
 }
 
@@ -31,11 +55,19 @@ const savedFiles = await writeRoleInWorkspace();
 </script>
 
 <template>
-    <strong>Saved files:</strong>
-    <ul id="roleFileResultFileList"></ul>
-    <ul>
-        <SavedFilesEntry v-for="file in savedFiles" :longPath="file.longPath" :command="file.command" />
-    </ul>
+    <div>
+        <strong>Saved files:</strong>
+        <ul id="roleFileResultFileList"></ul>
+        <ul>
+            <SavedFilesEntry v-for="file in savedFiles" :longPath="file.longPath" :command="file.command" />
+        </ul>
+        <div v-if="roleLocation" style="margin-top: 1em; padding: 0.5em; background-color: var(--vscode-editorWidget-background); border: 1px solid var(--vscode-editorWidget-border);">
+            <strong>Role created at:</strong>
+            <div style="margin-top: 0.5em; font-family: monospace; font-size: 0.9em;">
+                {{ roleLocation }}
+            </div>
+        </div>
+    </div>
 </template>
 
 <style scoped></style>
