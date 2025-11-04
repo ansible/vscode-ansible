@@ -103,7 +103,7 @@ jobs:
           task build
 
       - name: Run context-specific command
-        if: steps.extract_context.outputs.context != '' && steps.extract_context.outputs.context != 'build'
+        if: steps.extract_context.outputs.context != '' && steps.extract_context.outputs.context != 'build' && steps.extract_context.outputs.context != 'deps'
         run: |
           task ${{ steps.extract_context.outputs.context }}"
 
