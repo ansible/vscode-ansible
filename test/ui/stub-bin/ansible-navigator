@@ -1,0 +1,15 @@
+#!/bin/sh
+# Stub ansible-navigator for UI tests - simulates real navigator TUI output
+echo ""
+echo " Play [play_0]                                                                  "
+echo ""
+echo "  task_0  Gathering Facts                                                       "
+echo ""
+echo " Result [task_0]                                                                "
+echo "   ok: [localhost]"
+echo ""
+echo " Complete [play_0]                                                              "
+echo "   localhost: ok=1  changed=0  unreachable=0  failed=0  skipped=0  rescued=0   "
+echo ""
+exit 0
+

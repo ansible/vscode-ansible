@@ -18,14 +18,17 @@ module.exports = {
   // to appear on unexpected long tests, not on an expected duration.
   slow: 25000,
   reporter: "mocha-multi-reporters",
-  reporterEnabled: "spec,mocha-junit-reporter",
-  "reporter-options": `configFile=${__filename}`,
-  mochaJunitReporterReporterOptions: {
-    attachments: true,
-    includePending: true,
-    mochaFile: `./out/junit/unit/${process.env.TEST_ID ?? "unit"}-test-results.xml`,
-    outputs: true,
-    suiteTitle: "ui",
-    suiteTitleSeparatedBy: "::",
+  reporterOptions: {
+    reporterEnabled: process.env.CI
+      ? "spec,mocha-junit-reporter"  // CI: Use spec for full logs
+      : "./test/minimal-reporter,mocha-junit-reporter",  // Local: Use minimal reporter
+    mochaJunitReporterReporterOptions: {
+      attachments: true,
+      includePending: true,
+      mochaFile: `./out/junit/unit/${process.env.TEST_ID ?? "unit"}-test-results.xml`,
+      outputs: true,
+      suiteTitle: "unit",
+      suiteTitleSeparatedBy: "::",
+    },
   },
 };

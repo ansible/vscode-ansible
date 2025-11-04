@@ -1,8 +1,9 @@
 {
-  "ansible.ansible.path": "ansible",
+  "ansible.ansible.path": "test/ui/stub-bin/ansible-playbook",
   "ansible.ansible.reuseTerminal": false,
   "ansible.ansible.useFullyQualifiedCollectionNames": true,
-  "ansible.ansibleNavigator.path": "ansible-navigator",
+  "ansible.ansibleNavigator.path": "test/ui/stub-bin/ansible-navigator",
+  "ansible.test.dryRun": true,
   "ansible.executionEnvironment.containerEngine": "docker",
   "ansible.executionEnvironment.containerOptions": "",
   "ansible.executionEnvironment.enabled": false,

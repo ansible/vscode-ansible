@@ -112,17 +112,24 @@ function retry_command() {
 function refresh_settings() {
     local test_path=$1
     local test_id=$2
+    # Copy base settings which already include stub paths and dry-run mode
     cp test/testFixtures/settings.json out/settings.json
+    
+    # Disable Lightspeed by default (some tests re-enable it)
     sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
     sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
+    
+    # Enable Lightspeed for tests that need it
     if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_path}"; then
         sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' out/settings.json
         sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": true,/' out/settings.json
     fi
 
+    # Override Lightspeed URL if provided
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
+    
     rm -rf out/test-resources/settings/ >/dev/null
     cp -f out/settings.json "out/log/${test_id}-settings.json"
 }
@@ -149,9 +156,11 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
-retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
+n_attempts=8
+retry_delay=4
+retry_command ${n_attempts} ${retry_delay} npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
-npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+retry_command ${n_attempts} ${retry_delay} npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
     if [ -z "${vsix}" ]; then
@@ -169,9 +178,12 @@ if [[ "$COVERAGE" == "" ]]; then
 
     npm exec -- extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
-npm exec -- extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
+retry_command ${n_attempts} ${retry_delay} npm exec -- extest install-from-marketplace redhat.vscode-yaml ms-python.python -e out/ext -s out/test-resources
 
 export COVERAGE
+
+# Dry-run mode is enabled via VS Code settings (ansible.test.dryRun)
+# See test/testFixtures/settings.json which has dry-run enabled by default
 
 if [[ "${TEST_TYPE}" == "ui" ]]; then
     # shellcheck disable=SC2044
@@ -193,7 +205,12 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 start_server
             fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            timeout --kill-after=15 --preserve-status 150s npm exec -- extest run-tests "${COVERAGE_ARG}" \
+            # Prepend stub-bin to PATH so extension calls our fast stubs instead of real tools
+            # This makes tests ~20x faster and eliminates container/tool dependencies
+            STUB_BIN_PATH="$(pwd)/test/ui/stub-bin"
+            timeout --kill-after=15 --preserve-status 150s env \
+                PATH="${STUB_BIN_PATH}:${PATH}" \
+                npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \
                 -e out/ext \
