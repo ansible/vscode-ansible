@@ -65,6 +65,11 @@ vscodeApi.on('generatePlaybook', (data: any) => {
   page.value++;
 });
 
+vscodeApi.on('errorMessage', (data: string) => {
+  loadingNewResponse.value = false; // Stop loading spinner
+  errorMessages.value = [data]; // Show error in ErrorBox
+});
+
 // Reset some stats before the page transition
 watch(page, (toPage, fromPage) => {
   errorMessages.value = [];
