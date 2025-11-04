@@ -28,7 +28,7 @@ idiomatic_version_file_enable_tools = ["python"]
 [tools]
 gh = "latest"
 # do not add tools unsupported on windows such: gh, yarn
-node = "22.20.0"
+node = "24.11.0"
 python = "3.13"
 task = "latest"
 uv = "latest"
