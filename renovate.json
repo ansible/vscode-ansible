@@ -39,6 +39,23 @@
   "minimumReleaseAge": "1 days",
   "packageRules": [
     {
+      "description": "Disable updates to requires-python field",
+      "enabled": false,
+      "matchDepTypes": ["requires-python"],
+      "matchManagers": ["pep621"]
+    },
+    {
+      "description": "Disable updates to .python-version file",
+      "enabled": false,
+      "matchFileNames": [".python-version"]
+    },
+    {
+      "description": "Disable updates to Python version in mise config",
+      "enabled": false,
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["python", "python/cpython", "nodejs"]
+    },
+    {
       "branchTopic": "npm-dev",
       "commitMessageTopic": "npm dev",
       "groupSlug": "npm-dev",
@@ -56,23 +73,6 @@
     {
       "matchPackageNames": ["*"],
       "minimumReleaseAge": "2 days"
-    },
-    {
-      "description": "Disable updates to requires-python field",
-      "enabled": false,
-      "matchDepTypes": ["requires-python"],
-      "matchManagers": ["pep621"]
-    },
-    {
-      "description": "Disable updates to .python_version file",
-      "enabled": false,
-      "matchFileNames": [".python_version"]
-    },
-    {
-      "description": "Disable updates to Python version in mise config",
-      "enabled": false,
-      "matchManagers": ["mise"],
-      "matchPackageNames": ["python", "node"]
     },
     {
       "branchTopic": "npm-lock",
