@@ -158,6 +158,11 @@ fi
 
 n_attempts=8
 retry_delay=4
+
+# Clear any potentially corrupted cached VS Code downloads before starting
+log notice "Clearing VS Code download cache to prevent corruption issues..."
+rm -vf .vscode-test/ out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
+
 retry_command ${n_attempts} ${retry_delay} npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
 retry_command ${n_attempts} ${retry_delay} npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
