@@ -67,7 +67,7 @@ export async function runAnsibleNavigator(
       if (code !== 0) {
         const debugInfo = stderrData || stdoutData;
         const errorMessage = `ansible-navigator exited with code ${code}`;
-        
+
         // Include debug output in the error message for triage
         const fullError = debugInfo
           ? `${errorMessage}\n\nDebug output:\n${debugInfo}`
@@ -107,4 +107,3 @@ export function formatNavigatorResult(
 
   return formattedOutput;
 }
-

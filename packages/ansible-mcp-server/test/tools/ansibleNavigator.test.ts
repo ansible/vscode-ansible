@@ -100,7 +100,7 @@ describe("Ansible Navigator Handler", () => {
   describe("Error handling and debug output", () => {
     it("should include debug output in error response when ansible-navigator fails", async () => {
       const handler = createAnsibleNavigatorHandler();
-      
+
       // This test validates that debug output is included in error messages
       // The actual behavior depends on whether ansible-navigator is installed
       const result = await handler({
@@ -108,7 +108,7 @@ describe("Ansible Navigator Handler", () => {
       });
 
       expect(result.content).toBeDefined();
-      
+
       // If ansible-navigator is not available, error should contain debug info
       if (result.isError) {
         expect(result.content[0].text).toContain("Error");
@@ -122,7 +122,7 @@ describe("Ansible Navigator Handler", () => {
 
     it("should handle ansible-navigator process errors gracefully", async () => {
       const handler = createAnsibleNavigatorHandler();
-      
+
       const result = await handler({
         filePath: testPlaybookPath,
       });
@@ -163,4 +163,3 @@ describe("Ansible Navigator Handler", () => {
     });
   });
 });
-
