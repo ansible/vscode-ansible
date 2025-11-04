@@ -9,7 +9,6 @@ import {
   InputBox,
   ModalDialog,
   SideBarView,
-  VSBrowser,
   ViewControl,
   ViewSection,
   WebView,
@@ -20,6 +19,7 @@ import {
   getFixturePath,
   getModalDialogAndMessage,
   getWebviewByLocator,
+  openResources,
   sleep,
   workbenchExecuteCommand,
 } from "./uiTestHelper";
@@ -206,7 +206,7 @@ describe("Lightspeed Explorer features", function () {
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
-    await VSBrowser.instance.openResources(filePath);
+    await openResources(filePath);
 
     await explorerView.switchToFrame(2000);
 
