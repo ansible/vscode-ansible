@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { assert } from "chai";
 
 // Test the provider manager in isolation using dynamic imports
@@ -12,7 +13,7 @@ describe("ProviderManager", () => {
         "../../../src/features/lightspeed/providerManager.js"
       );
       ProviderManager = module.ProviderManager;
-    } catch (error) {
+    } catch {
       console.log("Could not import ProviderManager, skipping tests");
       return;
     }
