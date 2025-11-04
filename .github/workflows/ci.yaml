@@ -103,14 +103,26 @@ jobs:
           task build
 
       - name: Run context-specific command
-        if: steps.extract_context.outputs.context != '' && steps.extract_context.outputs.context != 'build' && steps.extract_context.outputs.context != 'deps'
+        if: >-
+          steps.extract_context.outputs.context != '' &&
+          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
         run: |
           task ${{ steps.extract_context.outputs.context }}"
 
       - name: task lint
-        timeout-minutes: 2 # expected under 1 minutes
+        timeout-minutes: 2
         run: |
           task lint
+
+      - name: task docs
+        timeout-minutes: 1
+        run: |
+          task lint
+
+      - name: task package
+        timeout-minutes: 2
+        run: |
+          task package
 
   build:
     name: ${{ matrix.name }}
@@ -144,20 +156,10 @@ jobs:
         os:
           - ubuntu-24.04
         task-name:
-          - docs
+          - test (linux)
         name:
-          - docs
+          - test
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-24.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-
-          - name: test (linux)
-            task-name: test
-
           - name: test (macos)
             task-name: test
             os: macos-13-large
@@ -486,7 +488,7 @@ jobs:
 
       - name: Merge logs into a single archive
         if: ${{ !failure() }}
-        uses: actions/upload-artifact/merge@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact/merge@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: logs.zip
           pattern: logs-*.zip
@@ -494,7 +496,7 @@ jobs:
           delete-merged: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           path: .
 
@@ -590,7 +592,7 @@ jobs:
         run: |
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
             curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\" Python tests failed in jobs: test for '${GITHUB_REPOSITORY}' (tox.yml). Check logs: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'\"}" \
+              --data "{\"text\":\" Main branch tests failed on `${GITHUB_REPOSITORY}`. Check [logs](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})\"}" \
               $SLACK_WEBHOOK_URL
           fi
 
@@ -611,16 +613,16 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+      - uses: jdx/mise-action@be3be2260bc02bc3fbf94c5e2fed8b7964baf074 # v3.4.0
 
       - name: Download the artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
         if: github.ref_type == 'tag'
         with:
           files: "*.vsix"
@@ -650,11 +652,11 @@ jobs:
       - check
     steps:
       - name: Download the artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+      - uses: jdx/mise-action@be3be2260bc02bc3fbf94c5e2fed8b7964baf074 # v3.4.0
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:
