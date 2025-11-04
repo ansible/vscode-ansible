@@ -1055,6 +1055,7 @@
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "highlight.js": "^11.11.1",
     "ini": "^6.0.0",
+    "js-yaml": "^4.1.0",
     "marked": "^16.4.1",
     "minimatch": "^10.0.3",
     "openai": "^6.5.0",
