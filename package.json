@@ -431,12 +431,37 @@
       },
       {
         "properties": {
+          "ansible.lightspeed.apiEndpoint": {
+            "default": "",
+            "markdownDescription": "API endpoint URL. **Only configurable for WCA and Custom providers.** For OpenAI and Google, the endpoint is automatically set and cannot be changed. If you need a custom endpoint for these providers, use the 'Custom' provider option instead. Default for WCA: https://c.ai.ansible.redhat.com",
+            "order": 4,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.apiKey": {
+            "markdownDescription": "API key for LLM providers (OpenAI, Google, Custom). Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
+            "order": 3,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.customHeaders": {
+            "markdownDescription": "Custom HTTP headers for LLM providers (JSON object). Example: {\"Custom-Header\": \"value\"}. Not used for WCA.",
+            "order": 8,
+            "scope": "resource",
+            "type": "object"
+          },
           "ansible.lightspeed.enabled": {
             "default": true,
             "markdownDescription": "Enable Ansible Lightspeed.",
             "order": 0,
             "scope": "resource",
             "type": "boolean"
+          },
+          "ansible.lightspeed.modelName": {
+            "markdownDescription": "Model name/ID to use. **Optional for OpenAI/Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only). For Custom: Required model identifier.",
+            "order": 2,
+            "scope": "resource",
+            "type": "string"
           },
           "ansible.lightspeed.provider": {
             "default": "wca",
@@ -457,32 +482,6 @@
             "scope": "resource",
             "type": "string"
           },
-          "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for OpenAI/Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only). For Custom: Required model identifier.",
-            "order": 2,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.apiKey": {
-            "markdownDescription": "API key for LLM providers (OpenAI, Google, Custom). Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
-            "order": 3,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.apiEndpoint": {
-            "default": "",
-            "markdownDescription": "API endpoint URL. **Only configurable for WCA and Custom providers.** For OpenAI and Google, the endpoint is automatically set and cannot be changed. If you need a custom endpoint for these providers, use the 'Custom' provider option instead. Default for WCA: https://c.ai.ansible.redhat.com",
-            "order": 4,
-            "scope": "resource",
-            "type": "string"
-          },
-          "ansible.lightspeed.timeout": {
-            "default": 30000,
-            "markdownDescription": "Request timeout in milliseconds for API calls.",
-            "order": 5,
-            "scope": "resource",
-            "type": "number"
-          },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
             "markdownDescription": "Enable inline suggestions. Note: Currently only supported with WCA provider.",
@@ -497,11 +496,12 @@
             "scope": "resource",
             "type": "number"
           },
-          "ansible.lightspeed.customHeaders": {
-            "markdownDescription": "Custom HTTP headers for LLM providers (JSON object). Example: {\"Custom-Header\": \"value\"}. Not used for WCA.",
-            "order": 8,
+          "ansible.lightspeed.timeout": {
+            "default": 30000,
+            "markdownDescription": "Request timeout in milliseconds for API calls.",
+            "order": 5,
             "scope": "resource",
-            "type": "object"
+            "type": "number"
           }
         },
         "title": "Ansible Lightspeed"
