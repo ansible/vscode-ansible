@@ -1,10 +1,10 @@
 /**
  * Integration tests for Runner - Verifies REAL execution with stub binaries
- * 
+ *
  * DIFFERENCE from unit tests:
  * - Unit tests: Mock everything, test logic only
  * - Integration tests: Use REAL file system, REAL executables (stubs), REAL child processes
- * 
+ *
  * These tests answer: "Can ansible-navigator actually be run from the extension?"
  * Answer: YES - if the executable is in PATH, it WILL run.
  */
@@ -348,5 +348,3 @@ echo "TEST_VAR=$TEST_VAR"
     });
   });
 });
-
-

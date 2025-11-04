@@ -1,9 +1,9 @@
 /**
  * Minimal Mocha Reporter
- * 
+ *
  * Shows only test suite names (file level) during execution.
  * Only expands to show individual test cases when they fail.
- * 
+ *
  * Output example:
  *   ✓ terminalUiTest (4 tests, 10.2s)
  *   ✓ settingsUiTest (1 test, 5.1s)
@@ -37,7 +37,7 @@ class MinimalReporter {
       })
       .on(EVENT_SUITE_BEGIN, (suite) => {
         if (suite.root) return;
-        
+
         // Only track top-level suites (test files)
         if (!suite.parent || suite.parent.root) {
           this._currentSuite = {
@@ -74,7 +74,7 @@ class MinimalReporter {
       })
       .on(EVENT_SUITE_END, (suite) => {
         if (suite.root) return;
-        
+
         // Only report top-level suites
         if (this._suites.has(suite)) {
           const suiteData = this._suites.get(suite);
@@ -108,15 +108,15 @@ class MinimalReporter {
   reportSuite(suiteData, duration) {
     const total = suiteData.passed + suiteData.failed + suiteData.pending;
     const durationSec = (duration / 1000).toFixed(1);
-    
+
     if (suiteData.failed > 0) {
       // Failed - show details
       console.log(`  \x1b[31m✗\x1b[0m ${suiteData.title} (${suiteData.passed}/${total} tests passed, ${durationSec}s)`);
-      
+
       // Show each failure
       suiteData.failures.forEach(({ test, err }) => {
         console.log(`    \x1b[31m✗\x1b[0m ${test.title}`);
-        
+
         // Show error message (first line only)
         const errorMsg = err.message.split('\n')[0];
         console.log(`      \x1b[90m${errorMsg}\x1b[0m`);
@@ -134,7 +134,7 @@ class MinimalReporter {
 
   epilogue(stats) {
     console.log('');
-    
+
     // Summary
     const fmt = (n, word) => {
       return n + ' ' + (n === 1 ? word : word + 's');
@@ -143,18 +143,17 @@ class MinimalReporter {
     if (stats.passes > 0) {
       console.log(`  \x1b[32m${fmt(stats.passes, 'passing')}\x1b[0m \x1b[90m(${(stats.duration / 1000).toFixed(1)}s)\x1b[0m`);
     }
-    
+
     if (stats.pending > 0) {
       console.log(`  \x1b[36m${fmt(stats.pending, 'pending')}\x1b[0m`);
     }
-    
+
     if (stats.failures > 0) {
       console.log(`  \x1b[31m${fmt(stats.failures, 'failing')}\x1b[0m`);
     }
-    
+
     console.log('');
   }
 }
 
 module.exports = MinimalReporter;
-

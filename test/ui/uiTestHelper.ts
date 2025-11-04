@@ -33,7 +33,7 @@ export async function sleep(ms: number): Promise<void> {
  * Update settings by directly modifying settings.json file
  * Much faster than Settings UI but requires opening/closing the file to trigger reload
  * Reduces per-setting time from ~10s to ~2s
- * 
+ *
  * Can accept either a single setting or multiple settings as an object for batching
  */
 export async function updateSettingsProgrammatically(
@@ -43,13 +43,13 @@ export async function updateSettingsProgrammatically(
   const fs = await import("fs");
   const path = await import("path");
   const workbench = new Workbench();
-  
+
   // Path to the test instance's settings.json
   const settingsPath = path.resolve(
     __dirname,
     "..", "..", "..", "..", "out", "test-resources", "settings", "User", "settings.json"
   );
-  
+
   try {
     // Read current settings
     let settingsObj: any = {};
@@ -62,7 +62,7 @@ export async function updateSettingsProgrammatically(
         settingsObj = {};
       }
     }
-    
+
     // Update settings - handle both single and batch modes
     if (typeof setting === "string") {
       settingsObj[setting] = value;
@@ -70,19 +70,19 @@ export async function updateSettingsProgrammatically(
       // Batch mode: setting is an object of key-value pairs
       Object.assign(settingsObj, setting);
     }
-    
+
     // Write back
     fs.writeFileSync(settingsPath, JSON.stringify(settingsObj, null, 2), "utf8");
-    
+
     // Trigger reload by opening and immediately closing the settings file
     // This is much faster than full window reload or Settings UI
     await workbench.executeCommand("Preferences: Open User Settings (JSON)");
     await sleep(200);
-    
+
     // Close the settings editor immediately using Escape or close command
     await workbench.executeCommand("View: Close Editor");
     await sleep(100);
-    
+
   } catch (error) {
     console.error(`Failed to update setting ${setting}:`, error);
     throw error;

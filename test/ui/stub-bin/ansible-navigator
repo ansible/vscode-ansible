@@ -12,4 +12,3 @@ echo " Complete [play_0]                                                        
 echo "   localhost: ok=1  changed=0  unreachable=0  failed=0  skipped=0  rescued=0   "
 echo ""
 exit 0
-

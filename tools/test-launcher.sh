@@ -114,11 +114,11 @@ function refresh_settings() {
     local test_id=$2
     # Copy base settings which already include stub paths and dry-run mode
     cp test/testFixtures/settings.json out/settings.json
-    
+
     # Disable Lightspeed by default (some tests re-enable it)
     sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": false,/' out/settings.json
     sed -i.bak 's/"ansible.lightspeed.suggestions.enabled": .*/"ansible.lightspeed.suggestions.enabled": false,/' out/settings.json
-    
+
     # Enable Lightspeed for tests that need it
     if grep "// BEFORE: ansible.lightspeed.enabled: true" "${test_path}"; then
         sed -i.bak 's/"ansible.lightspeed.enabled": .*/"ansible.lightspeed.enabled": true,/' out/settings.json
@@ -129,7 +129,7 @@ function refresh_settings() {
     if [ "${TEST_LIGHTSPEED_URL}" != "" ]; then
         sed -i.bak "s,https://c.ai.ansible.redhat.com,$TEST_LIGHTSPEED_URL," out/settings.json
     fi
-    
+
     rm -rf out/test-resources/settings/ >/dev/null
     cp -f out/settings.json "out/log/${test_id}-settings.json"
 }

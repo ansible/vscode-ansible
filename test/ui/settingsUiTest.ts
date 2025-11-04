@@ -6,10 +6,10 @@ config.truncateThreshold = 0;
 
 /**
  * Settings UI Validation Test
- * 
+ *
  * This test validates that our package.json contributions are correct
  * and that settings are accessible through VS Code's Settings UI.
- * 
+ *
  * We only need ONE test for this because:
  * - Settings UI is VS Code's responsibility
  * - We just verify our contributions exist
@@ -99,4 +99,3 @@ describe("Settings UI Validation", function () {
     expect(currentValue).to.equal("--check");
   });
 });
-

@@ -70,7 +70,7 @@ describe(__filename, function () {
     it("Execute ansible-playbook command without arg", async function () {
       // Update settings via file modification + quick reload (much faster than UI)
       await updateSettingsProgrammatically("ansible.playbook.arguments", " ");
-      
+
       await VSBrowser.instance.openResources(playbookFile);
       await sleep(150);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -108,7 +108,7 @@ describe(__filename, function () {
         await workbench.executeCommand(
           "Run playbook via `ansible-navigator run`",
         );
-      
+
         const terminalView = await new BottomBarPanel().openTerminalView();
         let text = "";
         await waitForCondition({
