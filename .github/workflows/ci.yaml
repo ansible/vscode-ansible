@@ -109,8 +109,13 @@ jobs:
         run: |
           task ${{ steps.extract_context.outputs.context }}"
 
-      - name: task lint
+      - name: task package
         timeout-minutes: 2
+        run: |
+          task package
+
+      - name: task lint
+        timeout-minutes: 3
         run: |
           task lint
 
@@ -118,11 +123,6 @@ jobs:
         timeout-minutes: 1
         run: |
           task lint
-
-      - name: task package
-        timeout-minutes: 2
-        run: |
-          task package
 
   build:
     name: ${{ matrix.name }}
