@@ -173,7 +173,7 @@ describe("LLMProviderFactory", () => {
         assert.fail("Should have thrown an error");
       } catch (error) {
         assert.instanceOf(error, Error);
-        assert.include((error as Error).message, "Unsupported provider type");
+        assert.include(error.message, "Unsupported provider type");
       }
     });
   });
