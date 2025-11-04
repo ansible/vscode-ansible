@@ -1070,7 +1070,7 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.2",
-    "vscode-extension-tester": "^8.18.0",
+    "vscode-extension-tester": "^8.19.0",
     "warnings-to-errors-webpack-plugin": "^2.3.0",
     "webpack": "^5.102.1",
     "webpack-cli": "^6.0.1",
