@@ -103,14 +103,26 @@ jobs:
           task build
 
       - name: Run context-specific command
-        if: steps.extract_context.outputs.context != '' && steps.extract_context.outputs.context != 'build' && steps.extract_context.outputs.context != 'deps'
+        if: >-
+          steps.extract_context.outputs.context != '' &&
+          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
         run: |
           task ${{ steps.extract_context.outputs.context }}"
 
       - name: task lint
-        timeout-minutes: 2 # expected under 1 minutes
+        timeout-minutes: 2
         run: |
           task lint
+
+      - name: task docs
+        timeout-minutes: 1
+        run: |
+          task lint
+
+      - name: task package
+        timeout-minutes: 2
+        run: |
+          task package
 
   build:
     name: ${{ matrix.name }}
@@ -144,20 +156,10 @@ jobs:
         os:
           - ubuntu-24.04
         task-name:
-          - docs
+          - test (linux)
         name:
-          - docs
+          - test
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-24.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-
-          - name: test (linux)
-            task-name: test
-
           - name: test (macos)
             task-name: test
             os: macos-13-large
@@ -590,7 +592,7 @@ jobs:
         run: |
           if [ -n "$SLACK_WEBHOOK_URL" ]; then
             curl -X POST -H 'Content-type: application/json' \
-              --data "{\"text\":\" Python tests failed in jobs: test for '${GITHUB_REPOSITORY}' (tox.yml). Check logs: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}'\"}" \
+              --data "{\"text\":\" Main branch tests failed on `${GITHUB_REPOSITORY}`. Check [logs](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})\"}" \
               $SLACK_WEBHOOK_URL
           fi
 
