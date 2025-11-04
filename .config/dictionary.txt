@@ -36,6 +36,7 @@ codeclimate
 codespell
 contentmatch
 contentmatches
+contentmatching
 coreutils
 dedupe
 depcheck
