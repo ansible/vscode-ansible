@@ -28,7 +28,7 @@ runs:
         path: |
           ~/.cache/pip
           ~/.cache/uv
-        key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python_version') }}
+        key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python-version') }}
 
     - name: Enable caching for pre-commit
       if: ${{ inputs.jop_name == 'lint' || inputs.job_name == 'preflight' }}

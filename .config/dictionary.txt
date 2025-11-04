@@ -37,6 +37,7 @@ codespell
 contentmatch
 contentmatches
 coreutils
+cpython
 dedupe
 depcheck
 devfile
