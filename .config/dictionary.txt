@@ -37,6 +37,7 @@ codeclimate
 codespell
 contentmatch
 contentmatches
+contentmatching
 coreutils
 cpython
 dedupe
