@@ -10,7 +10,6 @@ FQCNs
 Fqcn
 Fqcns
 Infiles
-interactable
 KUBEDOCK
 Konflux
 LIGHTSPEED
@@ -53,6 +52,7 @@ highlightjs
 hostsvars
 hostvars
 icontent
+interactable
 johndoe
 konflux
 lextudio
