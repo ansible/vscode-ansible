@@ -16,6 +16,8 @@ one video on this page. -->
 [![GitHub Repo stars](https://img.shields.io/github/stars/ansible/vscode-ansible?style=flat)](https://github.com/ansible/vscode-ansible)
 ![Codecov](https://img.shields.io/codecov/c/github/ansible/vscode-ansible?token=TmpTe2lSNW&style=flat&color=007ec6)
 
+Test.
+
 The Ansible extension for Visual Studio Code streamlines Ansible development by
 providing an integrated, feature-rich environment tailored for automation
 workflows. It offers features such as syntax highlighting, linting, intelligent
