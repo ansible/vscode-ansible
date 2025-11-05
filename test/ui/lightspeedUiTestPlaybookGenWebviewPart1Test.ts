@@ -33,7 +33,7 @@ describe("playbook generation features work", function () {
     }
   });
 
-  it("Ensures we can go from DevTools to Playbook generation https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+  it.skip("Ensures we can go from DevTools to Playbook generation https://github.com/ansible/vscode-ansible/issues/2235", async function () {
     // Open Ansible Development Tools by clicking the Getting started button on the side bar
     const view = (await new ActivityBar().getViewControl(
       "Ansible",

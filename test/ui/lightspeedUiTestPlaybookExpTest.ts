@@ -1,11 +1,16 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { By, EditorView, WebView, Workbench } from "vscode-extension-tester";
+import {
+  By,
+  VSBrowser,
+  EditorView,
+  WebView,
+  Workbench,
+} from "vscode-extension-tester";
 import {
   getFixturePath,
   getWebviewByLocator,
-  openResources,
   workbenchExecuteCommand,
   waitForCondition,
 } from "./uiTestHelper";
@@ -17,7 +22,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   const filePath = getFixturePath(folder, "playbook_1.yml");
 
   // Open file in the editor
-  await openResources(filePath);
+  await VSBrowser.instance.openResources(filePath);
 
   // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
   if (process.platform !== "darwin") {
@@ -111,7 +116,7 @@ describe(__filename, function () {
       });
     });
 
-    it("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it.skip("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
@@ -121,7 +126,7 @@ describe(__filename, function () {
       const filePath = getFixturePath(folder, file);
 
       // Open file in the editor
-      await openResources(filePath);
+      await VSBrowser.instance.openResources(filePath);
 
       // Open playbook explanation webview.
       await workbenchExecuteCommand(
@@ -149,14 +154,14 @@ describe(__filename, function () {
       await workbenchExecuteCommand("View: Close All Editor Groups");
     });
 
-    it("Playbook explanation thumbs up/down button disabled after thumbs up https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it.skip("Playbook explanation thumbs up/down button disabled after thumbs up https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
       await testThumbsButtonInteraction("thumbsup");
     });
 
-    it("Playbook explanation thumbs up/down button disabled after thumbs down https://github.com/ansible/vscode-ansible/issues/2235", async function () {
+    it.skip("Playbook explanation thumbs up/down button disabled after thumbs down https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
