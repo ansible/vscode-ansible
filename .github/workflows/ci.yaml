@@ -158,7 +158,7 @@ jobs:
         task-name:
           - test (linux)
         name:
-          - test
+          - test (linux)
         include:
           - name: test (macos)
             task-name: test
