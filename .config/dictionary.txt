@@ -10,6 +10,7 @@ FQCNs
 Fqcn
 Fqcns
 Infiles
+interactable
 KUBEDOCK
 LIGHTSPEED
 Lightspeed
