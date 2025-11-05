@@ -1,35 +1,43 @@
 import { createAnsibleMcpServer } from "../src/server.js";
-import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
 /**
  * Test wrapper that provides test-friendly methods for the MCP server
  */
 export function createTestServer(workspaceRoot: string) {
   // Create the actual server instance with workspaceRoot
-  void createAnsibleMcpServer(workspaceRoot);
+  const server = createAnsibleMcpServer(workspaceRoot);
 
   return {
     // Test helper methods that simulate MCP server behavior
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    async callTool(name: string, _args: Record<string, unknown>) {
-      if (name === "zen_of_ansible") {
-        return {
-          content: [
-            {
-              type: "text",
-              text: ZEN_OF_ANSIBLE,
-            },
-          ],
-        };
+
+    async callTool(name: string, args: Record<string, unknown>) {
+      // Get the registered tools from the server
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const registeredTools = (server as any)._registeredTools;
+
+      if (!registeredTools || !registeredTools[name]) {
+        throw new Error(`Unknown tool: ${name}`);
       }
 
-      throw new Error(`Unknown tool: ${name}`);
+      // Call the tool handler
+      const handler = registeredTools[name].callback;
+      if (handler) {
+        return await handler(args);
+      }
+
+      throw new Error(`Tool handler not found for: ${name}`);
     },
 
     // Server metadata for tests
     name: "ansible-mcp-server",
     version: "0.1.0",
-    listTools: () => [{ name: "zen_of_ansible" }],
+    listTools: () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const registeredTools = (server as any)._registeredTools;
+      return registeredTools
+        ? Object.keys(registeredTools).map((name) => ({ name }))
+        : [];
+    },
     listResources: () => [],
     listPrompts: () => [],
   };

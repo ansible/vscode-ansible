@@ -1,13 +1,14 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { By, VSBrowser, EditorView, Workbench } from "vscode-extension-tester";
+import { By, EditorView, Workbench } from "vscode-extension-tester";
 import * as path from "path";
 import {
   getFixturePath,
   getWebviewByLocator,
   workbenchExecuteCommand,
   dismissNotifications,
+  openResources,
   waitForCondition,
 } from "./uiTestHelper";
 
@@ -18,7 +19,7 @@ async function testThumbsButtonInteraction(buttonToClick: string) {
   const filePath = getFixturePath(folder, "main.yml");
 
   // Open file in the editor
-  await VSBrowser.instance.openResources(filePath);
+  await openResources(filePath);
 
   // This won't work on MacOS, see: https://github.com/redhat-developer/vscode-extension-tester/issues/1875
   if (process.platform !== "darwin") {

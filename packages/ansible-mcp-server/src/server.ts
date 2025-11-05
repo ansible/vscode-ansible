@@ -10,13 +10,16 @@ import {
   createZenOfAnsibleHandler,
   createListToolsHandler,
   createAnsibleLintHandler,
-  createDebugEnvHandler,
+  createADEEnvironmentInfoHandler,
+  createADESetupEnvironmentHandler,
+  createADTCheckEnvHandler,
 } from "./handlers.js";
 import {
   checkDependencies,
   formatDependencyError,
   type Dependency,
 } from "./dependencyChecker.js";
+import { createInitHandler } from "./tools/creator.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
@@ -63,7 +66,28 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "List Available Tools",
       description:
-        "Shows all available Ansible MCP tools. Use this to discover what tools you can use.",
+        "Shows all available Ansible MCP tools. Use this to discover what tools you can use. " +
+        "Perfect for exploring capabilities and finding the right tool for your task.",
+      annotations: {
+        keywords: [
+          "list available tools",
+          "show me tools",
+          "what tools are available",
+          "discover ansible tools",
+          "explore ansible capabilities",
+          "ansible tool overview",
+          "help with tool selection",
+          "find ansible tool",
+          "search ansible tools",
+        ],
+        useCases: [
+          "Discover available Ansible MCP tools",
+          "Get overview of Ansible tools",
+          "Find the right Ansible tool for a task",
+          "Explore Ansible tool capabilities",
+          "Get help selecting Ansible tools",
+        ],
+      },
     },
     createListToolsHandler(() => Array.from(registeredTools)),
     [], // No dependencies
@@ -74,26 +98,216 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Ansible Lint",
       description:
-        "Run ansible-lint on Ansible files with human-readable input support for linting.",
+        "Run ansible-lint on Ansible files with human-readable input support for linting. Optionally apply automatic fixes using --fix flag.",
       inputSchema: {
-        playbookContent: z
+        filePath: z
           .string()
-          .describe("The full YAML content of the Ansible playbook to lint."),
+          .describe("The path to the Ansible playbook file to lint."),
+        fix: z
+          .boolean()
+          .optional()
+          .describe(
+            "Whether to apply automatic fixes using ansible-lint --fix. If not specified, tool will prompt user for preference.",
+          ),
+      },
+      annotations: {
+        keywords: [
+          "ansible-lint",
+          "linting",
+          "code-quality",
+          "yaml-validation",
+          "playbook-validation",
+          "ansible-best-practices",
+          "automated-fixes",
+        ],
+        useCases: [
+          "Validate Ansible playbook syntax and best practices",
+          "Check YAML formatting and structure",
+          "Detect common Ansible anti-patterns",
+          "Automatically fix linting issues",
+          "Debug playbook configuration problems",
+        ],
       },
     },
     createAnsibleLintHandler(),
-    [], // TODO: Add ansible-lint dependencies when ready
+    [],
   );
 
   registerToolWithDeps(
-    "debug_env",
+    "ade_environment_info",
     {
-      title: "Debug Environment",
+      title: "ADE Environment Information",
       description:
-        "Displays PATH, virtual environment, and workspace information for debugging.",
+        "Get comprehensive environment information including Python, Ansible, ADE, ADT status, and installed collections. " +
+        "Use this tool when you need to check environment status, verify installations, inspect versions, " +
+        "or troubleshoot missing dependencies.",
+      annotations: {
+        keywords: [
+          "check environment",
+          "environment status",
+          "environment info",
+          "verify installation",
+          "check versions",
+          "check installed packages",
+          "python version check",
+          "ansible version check",
+          "ade status",
+          "adt status",
+          "list collections",
+          "check dependencies",
+          "troubleshoot environment",
+          "diagnose environment",
+          "inspect environment",
+          "environment diagnostics",
+          "what is installed",
+          "show environment",
+        ],
+        useCases: [
+          "Check if Ansible is installed",
+          "Verify Python version",
+          "List installed Ansible collections",
+          "Check ADE/ADT installation status",
+          "Troubleshoot environment issues",
+          "Get comprehensive environment diagnostics",
+        ],
+      },
     },
-    createDebugEnvHandler(workspaceRoot),
+    createADEEnvironmentInfoHandler(workspaceRoot),
     [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ade_setup_environment",
+    {
+      title: "ADE Setup Development Environment",
+      description:
+        "Set up a complete Ansible development environment using ADE. Creates virtual environments, installs collections, and manages dependencies. " +
+        "Use this tool when you need to setup, install, configure, initialize, or create a development environment. " +
+        "Automatically handles missing Ansible tools, Python environments, virtual environments, collections, and requirements.",
+      annotations: {
+        keywords: [
+          "setup ansible environment",
+          "install ansible tools",
+          "configure development environment",
+          "initialize ansible project",
+          "create ansible environment",
+          "setup dev environment",
+          "create virtual environment",
+          "setup venv",
+          "missing ansible tools",
+          "ansible tools not installed",
+          "install requirements",
+          "install dependencies",
+          "install collections",
+          "install ansible-lint",
+          "install ansible-core",
+          "setup python environment",
+          "install via pip",
+          "install via galaxy",
+          "new ansible project",
+          "fresh ansible setup",
+          "start ansible development",
+          "begin ansible project",
+        ],
+        useCases: [
+          "Set up new Ansible development project",
+          "Install missing Ansible tools and dependencies",
+          "Create Python virtual environment for Ansible",
+          "Install Ansible collections and requirements",
+          "Fix Ansible environment issues",
+          "Initialize complete Ansible development setup",
+          "Install from requirements.txt",
+          "Configure Python environment for Ansible",
+        ],
+      },
+      inputSchema: {
+        envName: z
+          .string()
+          .optional()
+          .describe("Name for the virtual environment (optional)"),
+        pythonVersion: z
+          .string()
+          .optional()
+          .describe("Python version to use (e.g., '3.11', '3.12') (optional)"),
+        collections: z
+          .array(z.string())
+          .optional()
+          .describe("List of Ansible collections to install (optional)"),
+        installRequirements: z
+          .boolean()
+          .optional()
+          .describe(
+            "Whether to install requirements from requirements files (optional)",
+          ),
+        requirementsFile: z
+          .string()
+          .optional()
+          .describe("Path to specific requirements file (optional)"),
+      },
+    },
+    createADESetupEnvironmentHandler(workspaceRoot),
+    [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "adt_check_env",
+    {
+      title: "ADT Check and Install Development Tools",
+      description:
+        "Check if ADT (ansible-dev-tools) is installed and install it if missing. " +
+        "ADT provides essential Ansible development tools including ansible-lint, ansible-navigator, and ansible-builder. " +
+        "Use this tool to ensure your Ansible development environment has all the necessary tools configured.",
+      annotations: {
+        keywords: [
+          "check adt",
+          "install adt",
+          "ansible-dev-tools",
+          "check ansible-dev-tools",
+          "install ansible-dev-tools",
+          "verify adt",
+          "adt missing",
+          "adt not installed",
+          "ansible dev tools",
+          "ansible development tools",
+          "check development tools",
+          "install development tools",
+          "ansible-lint missing",
+          "ansible-navigator missing",
+          "ansible-builder missing",
+          "install ansible tools",
+        ],
+        useCases: [
+          "Check if ADT (ansible-dev-tools) is installed",
+          "Install ansible-dev-tools package",
+          "Verify ADT installation status",
+          "Fix missing ADT installation",
+          "Ensure Ansible development tools are available",
+          "Install missing ansible-lint, ansible-navigator, or ansible-builder",
+        ],
+      },
+    },
+    createADTCheckEnvHandler(),
+    [], // No dependencies
+  );
+
+  registerToolWithDeps(
+    "ansible_create_playbook",
+    {
+      title: "Create Playbook",
+      description: "Create a new Ansible playbook.",
+    },
+    createInitHandler("playbook"),
+    [],
+  );
+
+  registerToolWithDeps(
+    "ansible_create_collection",
+    {
+      title: "Create Collection",
+      description: "Create a new Ansible collection.",
+    },
+    createInitHandler("collection"),
+    [],
   );
 
   // Add custom error handling for tool calls using the underlying server

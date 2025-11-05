@@ -1,50 +1,3 @@
-# Node modules - will be installed during build
-node_modules
-
-# Build outputs - will be generated during build
-out
-coverage
-.nyc_output
-*.vsix
-*.tgz
-
-# Test and development files
-.vscode-test
-test-resources
-test-resources-oldest
-.pytest_cache
-.python-version
-.venv
-.cache
-.task
-.idea
-.eslintcache
-xunit.xml
-
-# OS files
-.DS_Store
-*.pyc
-**/*.egg-info
-
-# Documentation build
-site
-
-# Git directory
-.git
-.github
-
-# CI/CD logs (not needed in container)
-konflux-log.log
-ansible-navigator.log
-
-# Examples and test fixtures (not needed in production container)
-examples
-test
-
-# Development config
-.vscode
-.idea
-
 # Keep these files - they are REQUIRED for the build
 !.yarnrc.yml
 !.yarn/
@@ -52,3 +5,8 @@ test
 !package.json
 !packages
 
+!.pre-commit-config.yaml
+!.python-version
+!.config/mise*.*
+!pyproject.toml
+!uv.lock

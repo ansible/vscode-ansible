@@ -98,6 +98,7 @@ function retry_command() {
             local exit_code=$?
             if [ $attempt -lt "$max_attempts" ]; then
                 log warning "Command failed with exit code $exit_code. Retrying in ${delay}s..."
+                rm -vf .vscode-test/ out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
                 sleep "$delay"
                 attempt=$((attempt + 1))
             else

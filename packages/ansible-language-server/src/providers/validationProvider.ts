@@ -1,4 +1,4 @@
-import IntervalTree from "@flatten-js/interval-tree";
+import { IntervalTree, IntervalBase } from "@flatten-js/interval-tree";
 import {
   Connection,
   Diagnostic,
@@ -143,7 +143,7 @@ export function getYamlValidation(textDocument: TextDocument): Diagnostic[] {
       }
     });
   });
-  rangeTree.forEach((range, diag) => {
+  rangeTree.forEach((_range: IntervalBase, diag: Diagnostic) => {
     diagnostics.push(diag);
   });
 

@@ -24,3 +24,5 @@ export const ZEN_OF_ANSIBLE = [
   "19. Friction should be eliminated whenever possible.",
   "20. Automation is a journey that never ends.",
 ].join("\n");
+
+export const TOOL_COUNT = 8;

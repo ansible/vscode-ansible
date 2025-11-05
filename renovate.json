@@ -3,21 +3,19 @@
   "automerge": true,
   "automergeStrategy": "squash",
   "commitMessageAction": "update",
-  "commitMessageExtra": "",
-  "commitMessageTopic": "dependencies",
   "configMigration": true,
   "dependencyDashboard": true,
   "dependencyDashboardAutoclose": true,
   "extends": [
     "config:recommended",
     ":semanticCommitTypeAll(chore)",
-    ":enablePreCommit",
     "schedule:automergeEarlyMondays"
   ],
   "github-actions": {
-    "branchTopic": "actions",
+    "branchTopic": "build",
+    "commitMessageTopic": "github actions",
     "enabled": true,
-    "groupName": "actions dependencies",
+    "groupName": "github actions",
     "groupSlug": "actions",
     "labels": ["chore", "dependencies"],
     "packageRules": [
@@ -33,10 +31,7 @@
   },
   "labels": ["chore", "dependencies"],
   "lockFileMaintenance": {
-    "commitMessageAction": "update",
     "enabled": true,
-    "groupName": "dependencies lockfile",
-    "groupSlug": "lockfile",
     "rangeStrategy": "replace",
     "rebaseWhen": "behind-base-branch",
     "recreateWhen": "always"
@@ -44,27 +39,72 @@
   "minimumReleaseAge": "1 days",
   "packageRules": [
     {
-      "branchTopic": "all",
-      "groupName": "all dependencies",
-      "groupSlug": "all",
+      "description": "Disable updates to requires-python field",
+      "enabled": false,
+      "matchDepTypes": ["requires-python"],
+      "matchManagers": ["pep621"]
+    },
+    {
+      "description": "Disable updates to .python-version file",
+      "enabled": false,
+      "matchFileNames": [".python-version"]
+    },
+    {
+      "description": "Disable updates to Python version in mise config",
+      "enabled": false,
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["python", "python/cpython", "nodejs"]
+    },
+    {
+      "branchTopic": "npm-dev",
+      "commitMessageTopic": "npm dev",
+      "groupSlug": "npm-dev",
+      "matchDepTypes": ["devDependencies"],
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch", "major"]
+    },
+    {
+      "branchTopic": "npm",
+      "commitMessageTopic": "npm",
+      "matchDepTypes": ["dependencies"],
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["minor", "patch", "major"]
+    },
+    {
       "matchPackageNames": ["*"],
       "minimumReleaseAge": "2 days"
+    },
+    {
+      "branchTopic": "npm-lock",
+      "commitMessageTopic": "npm lockfile",
+      "description": "Separate lockfile maintenance for npm",
+      "groupName": "npm lockfile",
+      "groupSlug": "npm-lockfile",
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["lockFileMaintenance"]
+    },
+    {
+      "branchTopic": "pep621",
+      "commitMessageTopic": "pep621 lockfile",
+      "description": "Separate lockfile maintenance for Python",
+      "groupName": "python lockfile",
+      "groupSlug": "python-lockfile",
+      "matchManagers": ["pep621"],
+      "matchUpdateTypes": ["lockFileMaintenance"]
     }
   ],
   "pin": {
-    "branchTopic": "all",
-    "groupName": "all dependencies",
-    "groupSlug": "all"
+    "groupName": "all dependencies"
   },
   "pinDigest": {
-    "branchTopic": "all",
-    "groupName": "all dependencies",
-    "groupSlug": "all"
+    "groupName": "all dependencies"
   },
   "prConcurrentLimit": 5,
+  "pre-commit": {
+    "branchTopic": "pre-commit"
+  },
   "rangeStrategy": "replace",
   "recreateWhen": "always",
-  "schedule": ["before 4am on monday"],
   "separateMajorMinor": false,
   "separateMinorPatch": false,
   "timezone": "UTC"

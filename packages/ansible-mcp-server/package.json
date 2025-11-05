@@ -2,16 +2,16 @@
   "bin": "out/server/src/cli.js",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.17.3",
-    "zod": "3.25.76"
+    "zod": "4.1.12"
   },
   "description": "Ansible Development Tools MCP server with linting, workspace access, and expert prompts",
   "devDependencies": {
-    "@types/node": "^24.0.15",
+    "@types/node": "^24.9.2",
     "@vitest/coverage-v8": "^4.0.4",
     "@vitest/ui": "^4.0.4",
     "rimraf": "^6.0.1",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.4"
   },
   "engines": {
@@ -35,7 +35,7 @@
   "main": "./out/server/src/server.js",
   "name": "@ansible/ansible-mcp-server",
   "overrides": {
-    "zod": "3.25.76"
+    "zod": "4.1.12"
   },
   "publishConfig": {
     "access": "public"
@@ -47,9 +47,10 @@
     "dev:stdio": "tsx src/cli.ts --stdio",
     "prepack": "npm run compile",
     "test": "vitest run",
+    "test:ade": "vitest run test/adeTools.ts test/adeIntegration.ts",
     "test:ci": "vitest run --coverage --reporter=verbose",
     "test:coverage": "vitest run --coverage",
-    "test:integration": "vitest run test/server.ts test/integration.ts",
+    "test:integration": "vitest run test/server.ts test/integration.ts test/adeIntegration.ts",
     "test:performance": "vitest run test/performance.ts",
     "test:ui": "vitest --ui",
     "test:unit": "vitest run test/handlers.ts",
