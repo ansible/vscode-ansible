@@ -10,7 +10,6 @@ FQCNs
 Fqcn
 Fqcns
 Infiles
-interactable
 KUBEDOCK
 LIGHTSPEED
 Lightspeed
@@ -52,6 +51,7 @@ highlightjs
 hostsvars
 hostvars
 icontent
+interactable
 johndoe
 lextudio
 libgbm
