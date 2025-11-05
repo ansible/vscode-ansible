@@ -12,6 +12,7 @@ Fqcns
 Infiles
 interactable
 KUBEDOCK
+Konflux
 LIGHTSPEED
 Lightspeed
 Lightspeed's
@@ -53,6 +54,7 @@ hostsvars
 hostvars
 icontent
 johndoe
+konflux
 lextudio
 libgbm
 libonig

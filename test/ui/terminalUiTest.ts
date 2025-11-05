@@ -17,14 +17,14 @@ config.truncateThreshold = 0;
 // UI tests using stub executables for ansible-playbook and ansible-navigator
 // Stubs execute in <100ms - test time is VS Code UI automation overhead
 describe(__filename, function () {
-    let workbench: Workbench;
-    const folder = "terminal";
-    const file = "playbook.yml";
-    const playbookFile = getFixturePath(folder, file);
+  let workbench: Workbench;
+  const folder = "terminal";
+  const file = "playbook.yml";
+  const playbookFile = getFixturePath(folder, file);
 
-    before(async function () {
-      workbench = new Workbench();
-    });
+  before(async function () {
+    workbench = new Workbench();
+  });
 
   afterEach(async function () {
     try {
@@ -103,22 +103,22 @@ describe(__filename, function () {
         "ansible.executionEnvironment.containerEngine": "podman",
       });
 
-        await VSBrowser.instance.openResources(playbookFile);
+      await VSBrowser.instance.openResources(playbookFile);
       await sleep(150);
-        await workbench.executeCommand(
-          "Run playbook via `ansible-navigator run`",
-        );
+      await workbench.executeCommand(
+        "Run playbook via `ansible-navigator run`",
+      );
 
-        const terminalView = await new BottomBarPanel().openTerminalView();
-        let text = "";
-        await waitForCondition({
-          condition: async () => {
-            text = await terminalView.getText();
+      const terminalView = await new BottomBarPanel().openTerminalView();
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
           return text.includes("Play [play_") && text.includes("Complete [play_");
-          },
+        },
         message: `Timed out waiting for navigator execution. Output: ${text}`,
         timeout: 3000,
-        });
+      });
 
       // Verify navigator actually executed with TUI output
       expect(text).contains("Play [play_0]");
@@ -126,7 +126,7 @@ describe(__filename, function () {
       expect(text).contains("Result [task_0]");
       expect(text).contains("Complete [play_0]");
       expect(text).contains("ok=1");
-        await terminalView.killTerminal();
+      await terminalView.killTerminal();
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
@@ -166,12 +166,12 @@ describe(__filename, function () {
       try {
         // Cleanup: Reset settings programmatically
         await updateSettingsProgrammatically(
-        "ansible.executionEnvironment.containerEngine",
-        "docker",
-      );
+          "ansible.executionEnvironment.containerEngine",
+          "docker",
+        );
       } catch {
         // Ignore cleanup errors
-        }
+      }
     });
   });
 });
