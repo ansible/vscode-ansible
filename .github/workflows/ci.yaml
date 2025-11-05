@@ -107,7 +107,7 @@ jobs:
           steps.extract_context.outputs.context != '' &&
           !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
         run: |
-          task ${{ steps.extract_context.outputs.context }}"
+          task ${{ steps.extract_context.outputs.context }}
 
       - name: task lint
         timeout-minutes: 2
@@ -117,7 +117,7 @@ jobs:
       - name: task docs
         timeout-minutes: 1
         run: |
-          task lint
+          task docs
 
       - name: task package
         timeout-minutes: 2
