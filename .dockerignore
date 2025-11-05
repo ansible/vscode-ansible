@@ -1,6 +1,9 @@
-*
-!.pre-commit-config.yaml
-!.python-version
-!.config/mise*.*
-!pyproject.toml
-!uv.lock
+# Used by both Containerfile and vscode-ansible.Containerfile
+*.vsix
+.cache/
+.ruff_cache/
+.trunk/
+.vscode-test/
+node_modules/
+out/
+site
