@@ -1,0 +1,33 @@
+FROM node:lts-slim
+
+WORKDIR /usr/src/app
+
+RUN corepack enable
+
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip unzip git git-lfs && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY . .
+
+# Debug: List files to verify COPY worked correctly
+RUN echo "=== DEBUG: Contents of /usr/src/app ===" && \
+    ls -la && \
+    echo "=== DEBUG: Checking for package.json ===" && \
+    cat package.json | head -20 && \
+    echo "=== DEBUG: Checking for yarn.lock ===" && \
+    ls -lh yarn.lock && \
+    echo "=== DEBUG: Checking workspace packages ===" && \
+    ls -la packages/ || echo "No packages directory found"
+
+RUN yarn install --immutable
+
+# Debug: Verify installation
+RUN echo "=== DEBUG: After yarn install ===" && \
+    ls -la && \
+    echo "=== DEBUG: node_modules exists? ===" && \
+    ls -ld node_modules || echo "No node_modules" && \
+    echo "=== DEBUG: Checking if npm is available ===" && \
+    which npm && npm --version
+
+RUN npm run package

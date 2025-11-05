@@ -10,8 +10,7 @@ RUN apt-get update && \
 
 COPY . .
 
-RUN corepack prepare
-
 RUN yarn install --immutable
 
 RUN npm run package
+

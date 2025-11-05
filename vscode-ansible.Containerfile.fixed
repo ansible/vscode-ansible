@@ -1,0 +1,33 @@
+FROM node:lts-slim
+
+WORKDIR /usr/src/app
+
+# Enable corepack to use the correct yarn version from package.json
+RUN corepack enable
+
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip unzip git git-lfs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy yarn configuration files first
+COPY .yarnrc.yml ./
+COPY .yarn ./.yarn
+
+# Copy package.json and yarn.lock for dependency installation
+COPY package.json yarn.lock ./
+
+# Prepare yarn - this will use the version specified in packageManager field
+RUN corepack prepare
+
+# Copy workspace package.json files (for monorepo)
+COPY packages ./packages
+
+# Install dependencies using the correct yarn version
+RUN yarn install --immutable
+
+# Copy the rest of the application
+COPY . .
+
+# Run the package script
+RUN yarn run package
+
