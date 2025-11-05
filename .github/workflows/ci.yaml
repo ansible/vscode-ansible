@@ -126,7 +126,7 @@ jobs:
 
   build:
     name: ${{ matrix.name }}
-    needs: preflight
+
     environment: ci
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
