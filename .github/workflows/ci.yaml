@@ -110,7 +110,7 @@ jobs:
           task ${{ steps.extract_context.outputs.context }}
 
       - name: task lint
-        timeout-minutes: 2
+        timeout-minutes: 4
         run: |
           task lint
 
