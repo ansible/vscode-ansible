@@ -4,7 +4,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -euox pipefail
+set -euo pipefail
 
 DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
@@ -18,6 +18,12 @@ PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
+
+if command -v sudo >/dev/null 2>&1; then
+    SUDO=""
+else
+    SUDO=sudo
+fi
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
@@ -72,12 +78,12 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
 fi
 
-if [[ -f /.dockerenv || ! -z "${container:-}" ]]; then
-    log notice "Running inside a container, skipping setup as we will assume container was build with tools inside."
-    exit 0
-fi
+# if [[ -f /.dockerenv || ! -z "${container:-}" || "${SKIP_UI:-}" == "1" ]]; then
+#     log notice "Running inside a container, skipping setup as we will assume container was build with tools inside."
+#     exit 0
+# fi
 
-if [[ "${OSTYPE:-}" != darwin* && ! -f /.dockerenv && -z "${container:-}" ]]; then
+if [[ "${OSTYPE:-}" != darwin* && ! -f /.dockerenv && -z "${container:-}" && "${SKIP_UI:-}" != "1" ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         if [[ "${READTHEDOCS:-}" != "True" ]]; then
@@ -117,8 +123,7 @@ if [[ -f "/etc/redhat-release" ]]; then
     RPMS=()
     command -v xvfb-run >/dev/null 2>&1 || RPMS+=(xorg-x11-server-Xvfb)
     if [[ ${#RPMS[@]} -ne 0 ]]; then
-        log warning "We need sudo to install some packages: ${RPMS[*]}"
-        sudo dnf install -y "${RPMS[@]}"
+        $SUDO dnf install -y "${RPMS[@]}"
     fi
 fi
 
@@ -179,24 +184,18 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     command -v npm >/dev/null 2>&1 || {
         DEBS+=(npm)
     }
-    command -v git-lfs >/dev/null 2>&1 || {
-        # curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-        DEBS+=(git-lfs)
-        INSTALL=1
-    }
 
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
     if [[ "${INSTALL}" -eq 1 ]]; then
-        log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
-        timed sudo apt-get update -qq -o=Dpkg::Use-Pty=0
+        timed $SUDO apt-get update -qq -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
-        timed sudo apt-get remove -qq -y ansible pipx || true
+        timed $SUDO apt-get remove -qq -y ansible pipx || true
         # install all required packages
-        timed sudo apt-get -qq install -y \
+        timed $SUDO apt-get -qq install -y \
             --no-install-recommends \
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
@@ -206,7 +205,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
-            sudo apt-get -qq remove -y "$DEB"
+            $SUDO apt-get -qq remove -y "$DEB"
     done
 fi
 
@@ -217,6 +216,7 @@ git lfs status >/dev/null || {
 
 # Pull Git LFS files to ensure media files are available for packaging
 log notice "Pulling Git LFS files..."
+git lfs install
 git lfs pull || {
     log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
     exit 3
@@ -260,7 +260,7 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
 fi
 
 # User specific environment
-if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]] && [[ "${SKIP_UI:-}" != "1" ]]; then
     # shellcheck disable=SC2088
     log warning "~/.local/bin was not found in PATH, attempting to add it."
     PATH="${HOME}/.local/bin:${PATH}"
@@ -290,13 +290,13 @@ if [[ "${READTHEDOCS:-}" != "True" ]]; then
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
         if [[ -f "/usr/bin/apt-get" ]]; then
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install gh
+            $SUDO dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        $SUDO chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | $SUDO tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        $SUDO apt-get update
+        $SUDO apt-get install gh
         else
-            command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
+            command -v dnf >/dev/null 2>&1 && $SUDO dnf install -y gh
         fi
         gh --version || log warning "gh cli not found and it might be needed for some commands."
     }
@@ -305,8 +305,8 @@ fi
 # on WSL we want to avoid using Windows's npm (broken)
 if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
     log notice "Installing npm ... ($WSL)"
-    curl -sL https://deb.nodesource.com/setup_16.x | sudo bash
-    sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
+    curl -sL https://deb.nodesource.com/setup_16.x | $SUDO bash
+    $SUDO apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         nodejs gcc g++ make python3-dev
 fi
 
