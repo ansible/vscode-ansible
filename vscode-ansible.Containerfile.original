@@ -13,4 +13,3 @@ COPY . .
 RUN yarn install --immutable
 
 RUN npm run package
-

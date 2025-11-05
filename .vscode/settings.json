@@ -29,6 +29,8 @@
   "[yaml]": {
     "editor.formatOnSave": false
   },
+  "ansible.lightspeed.enabled": true,
+  "ansible.python.interpreterPath": "/home/ali/code/vscode-ansible-main/.venv/bin/python",
   "editor.codeActionsOnSave": ["source.fixAll.eslint"],
   "editor.formatOnSave": true,
   "eslint.useESLintClass": true,
@@ -47,7 +49,5 @@
   "redhat.telemetry.enabled": false,
   "search.exclude": {
     ".vscode-test": true
-  },
-  "ansible.lightspeed.enabled": true,
-  "ansible.python.interpreterPath": "/home/ali/code/vscode-ansible-main/.venv/bin/python"
+  }
 }

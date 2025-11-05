@@ -111,4 +111,3 @@ Instead of:
 ! Corepack is about to download yarn-1.22.22.tgz  ❌
 info No lockfile found.                            ❌
 ```
-

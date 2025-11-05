@@ -30,4 +30,3 @@ COPY . .
 
 # Run the package script
 RUN yarn run package
-

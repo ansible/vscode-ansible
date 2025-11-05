@@ -219,4 +219,3 @@ If the build still fails after applying this fix:
 - `package.json` - Specifies yarn@4.10.3 as packageManager
 - `.yarnrc.yml` - Yarn 4 configuration
 - `.yarn/` - Yarn 4 plugins and releases directory
-
