@@ -219,9 +219,7 @@ export function createADTCheckEnvHandler() {
   };
 }
 
-export function createDefineAndBuildExecutionEnvHandler(
-  workspaceRoot: string,
-) {
+export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
   return async (args: {
     baseImage: string;
     tag: string;
@@ -276,7 +274,8 @@ export function createDefineAndBuildExecutionEnvHandler(
         content: [
           {
             type: "text" as const,
-            text: `Error creating execution environment: ${errorMessage}\n\n` +
+            text:
+              `Error creating execution environment: ${errorMessage}\n\n` +
               "Please ensure:\n" +
               "- Valid base image name is provided\n" +
               "- Destination path is writable (if specified)\n" +

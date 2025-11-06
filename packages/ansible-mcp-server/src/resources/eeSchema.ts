@@ -11,9 +11,15 @@ const __dirname = path.dirname(__filename);
 // Schema file packaged with the extension
 // In compiled output, files are in out/server/src/resources/data/
 // In source, files are in src/resources/data/
-const SCHEMA_FILE = path.join(__dirname, "data/execution-environment-schema.json");
+const SCHEMA_FILE = path.join(
+  __dirname,
+  "data/execution-environment-schema.json",
+);
 // Sample EE file packaged with the extension
-export const SAMPLE_EE_FILE = path.join(__dirname, "data/execution-environment-sample.yml");
+export const SAMPLE_EE_FILE = path.join(
+  __dirname,
+  "data/execution-environment-sample.yml",
+);
 
 export interface ExecutionEnvironmentSchema {
   $defs: {
@@ -37,12 +43,14 @@ export async function getExecutionEnvironmentSchema(): Promise<ExecutionEnvironm
   try {
     const schemaContent = await fs.readFile(SCHEMA_FILE, "utf8");
     const schema = JSON.parse(schemaContent) as ExecutionEnvironmentSchema;
-    
+
     // Validate that it has the expected structure
     if (!schema.$defs?.v3 || !schema.oneOf) {
-      throw new Error("Schema file is missing required structure ($defs.v3 or oneOf)");
+      throw new Error(
+        "Schema file is missing required structure ($defs.v3 or oneOf)",
+      );
     }
-    
+
     return schema;
   } catch (error) {
     throw new Error(
@@ -68,7 +76,9 @@ export async function getSampleExecutionEnvironment(): Promise<string> {
 /**
  * Get the v3 schema definition specifically
  */
-export async function getV3SchemaDefinition(): Promise<ExecutionEnvironmentSchema["$defs"]["v3"]> {
+export async function getV3SchemaDefinition(): Promise<
+  ExecutionEnvironmentSchema["$defs"]["v3"]
+> {
   const schema = await getExecutionEnvironmentSchema();
   return schema.$defs.v3;
 }

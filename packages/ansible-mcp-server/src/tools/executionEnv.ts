@@ -33,15 +33,15 @@ async function validateAgainstSchema(
 ): Promise<{ valid: boolean; errors: string[] }> {
   try {
     const schema = await getExecutionEnvironmentSchema();
-    
+
     // Create AJV validator with formats support
-    const ajv = new Ajv({ 
-      allErrors: true, 
+    const ajv = new Ajv({
+      allErrors: true,
       strict: false,
       validateSchema: false, // Don't validate the schema itself
     });
     ajvFormats(ajv);
-    
+
     // First, add the full schema with $defs to AJV's schema store
     // This allows AJV to resolve $ref references like "#/$defs/TYPE_StringOrListOfStrings"
     const fullSchemaWithDefs = {
@@ -49,19 +49,19 @@ async function validateAgainstSchema(
       $id: "#", // Root ID for reference resolution
       ...schema, // Include the full schema with $defs
     };
-    
+
     // Add the schema to AJV's store so $ref references can be resolved
     ajv.addSchema(fullSchemaWithDefs, "#");
-    
+
     // Now compile just the v3 schema definition - AJV will resolve $refs from the stored schema
     const v3Schema = {
       $schema: "http://json-schema.org/draft-07/schema",
       ...schema.$defs.v3,
     };
-    
+
     const validate = ajv.compile(v3Schema);
     const valid = validate(eeData);
-    
+
     if (!valid && validate.errors) {
       const errors = validate.errors.map(
         (err) =>
@@ -69,7 +69,7 @@ async function validateAgainstSchema(
       );
       return { valid: false, errors };
     }
-    
+
     return { valid: true, errors: [] };
   } catch (error) {
     // If validation fails due to schema issues, log but don't fail generation
@@ -91,7 +91,7 @@ async function buildEEStructureFromSchema(
 ): Promise<Record<string, unknown>> {
   // Get the v3 schema to understand the structure
   const v3Schema = await getV3SchemaDefinition();
-  
+
   // Start with required fields from schema
   const eeData: Record<string, unknown> = {
     version: 3,
@@ -168,7 +168,7 @@ async function buildEEStructureFromSchema(
   return eeData;
 }
 
-// Generates an execution environment YAML file based on user inputs 
+// Generates an execution environment YAML file based on user inputs
 // following the v3 schema format and validating against the schema
 export async function generateExecutionEnvironment(
   inputs: ExecutionEnvInputs,
@@ -191,7 +191,7 @@ export async function generateExecutionEnvironment(
 
   // Validate against the schema
   const validation = await validateAgainstSchema(eeData);
-  
+
   if (!validation.valid) {
     console.warn("Schema validation errors:", validation.errors);
   }
@@ -227,9 +227,7 @@ export async function generateExecutionEnvironment(
 }
 
 // Formats the result message for the LLM with instructions
-export function formatExecutionEnvResult(
-  result: ExecutionEnvResult,
-): string {
+export function formatExecutionEnvResult(result: ExecutionEnvResult): string {
   let output = `✅ ${result.message}\n\n`;
 
   // Show validation warnings if any
