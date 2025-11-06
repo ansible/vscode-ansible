@@ -37,3 +37,4 @@ test/unit/lightspeed/utils/samples/collections/ansible_collections/community/bro
 .eslintcache
 xunit.xml
 **/*.egg-info
+examples/collections/ansible_collections/my_namespace/my_collection/roles/
