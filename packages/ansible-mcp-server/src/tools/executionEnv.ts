@@ -38,20 +38,11 @@ async function validateAgainstSchema(
     });
     ajvFormats(ajv);
 
-    // First, add the full schema with $defs to AJV's schema store
-    // This allows AJV to resolve $ref references like "#/$defs/TYPE_StringOrListOfStrings"
-    const fullSchemaWithDefs = {
-      $schema: "http://json-schema.org/draft-07/schema",
-      $id: "#", // Root ID for reference resolution
-      ...schema, // Include the full schema with $defs
-    };
-
-    // Add the schema to AJV's store so $ref references can be resolved
-    ajv.addSchema(fullSchemaWithDefs, "#");
-
-    // Now compile just the v3 schema definition - AJV will resolve $refs from the stored schema
+    // Compile the v3 schema with $defs included so AJV can resolve $ref references
+    // The v3 schema references "#/$defs/TYPE_StringOrListOfStrings" which needs $defs to be available
     const v3Schema = {
       $schema: "http://json-schema.org/draft-07/schema",
+      $defs: schema.$defs, // Include $defs so references like "#/$defs/TYPE_StringOrListOfStrings" can be resolved
       ...schema.$defs.v3,
     };
 
@@ -81,30 +72,26 @@ async function validateAgainstSchema(
   }
 }
 
-// Builds the EE file based on the schema definition
+// Builds the EE file based on the schema definition, matching the sample structure
+// Order: version, images, dependencies, additional_build_steps, options
 async function buildEEStructureFromSchema(
   inputs: ExecutionEnvInputs,
 ): Promise<Record<string, unknown>> {
-  // Start with required fields from schema
-  const eeData: Record<string, unknown> = {
-    version: 3,
-    dependencies: {},
+  // Build dependencies in the order matching the sample file:
+  // python_interpreter, ansible_core, ansible_runner, system, python, galaxy
+  const dependencies: Record<string, unknown> = {};
+
+  // Add python_interpreter first (matching sample structure)
+  dependencies.python_interpreter = {
+    package_system: "python3",
+    python_path: "/usr/bin/python3",
   };
 
-  // Build dependencies according to schema structure
-  const dependencies: Record<string, unknown> = {
-    ansible_core: { package_pip: "ansible-core" },
-    ansible_runner: { package_pip: "ansible-runner" },
-  };
+  // Add ansible_core and ansible_runner (required)
+  dependencies.ansible_core = { package_pip: "ansible-core" };
+  dependencies.ansible_runner = { package_pip: "ansible-runner" };
 
-  // Add collections if provided
-  if (inputs.collections && inputs.collections.length > 0) {
-    dependencies.galaxy = {
-      collections: inputs.collections.map((col) => ({ name: col.trim() })),
-    };
-  }
-
-  // Add system packages if provided
+  // Add system packages if provided (before python and galaxy)
   if (inputs.systemPackages && inputs.systemPackages.length > 0) {
     const systemPkgs = inputs.systemPackages
       .map((pkg) => pkg.trim())
@@ -114,7 +101,7 @@ async function buildEEStructureFromSchema(
     }
   }
 
-  // Add Python packages if provided
+  // Add Python packages if provided (before galaxy)
   if (inputs.pythonPackages && inputs.pythonPackages.length > 0) {
     const pythonPkgs = inputs.pythonPackages
       .map((pkg) => pkg.trim())
@@ -124,45 +111,50 @@ async function buildEEStructureFromSchema(
     }
   }
 
-  eeData.dependencies = dependencies;
+  // Add collections if provided (last in dependencies, matching sample)
+  if (inputs.collections && inputs.collections.length > 0) {
+    dependencies.galaxy = {
+      collections: inputs.collections.map((col) => ({ name: col.trim() })),
+    };
+  }
 
-  // Build images section (schema requires base_image with name)
+  // Build the EE data structure in the order matching the sample:
+  // version, images, dependencies, additional_build_steps, options
+  const eeData: Record<string, unknown> = {
+    version: 3,
+  };
+
+  // Add images section (second, matching sample)
   eeData.images = {
     base_image: {
       name: inputs.baseImage,
     },
   };
 
-  // Build options section (schema allows tags array)
+  // Add dependencies (third, matching sample)
+  eeData.dependencies = dependencies;
+
+  // Build options section (will be added last)
   const options: Record<string, unknown> = {
     tags: [inputs.tag],
   };
 
-  // Handle special cases for base images
+  // Add additional_build_steps before options (matching sample order)
   const baseImageLower = inputs.baseImage.toLowerCase();
   if (baseImageLower.includes("fedora")) {
-    options.package_manager_path = "/usr/bin/dnf5";
-  } else if (
-    baseImageLower.includes("rhel") ||
-    baseImageLower.includes("redhat")
-  ) {
-    options.package_manager_path = "/usr/bin/microdnf";
-  }
-
-  eeData.options = options;
-
-  // Add build steps for Fedora if needed (schema allows additional_build_steps)
-  if (baseImageLower.includes("fedora")) {
     eeData.additional_build_steps = {
-      prepend_base: ["RUN $PKGMGR -y -q install python3-devel"],
+      append_base: ["RUN $PYCMD -m pip install -U pip"],
     };
   }
+
+  // Add options last (matching sample)
+  eeData.options = options;
 
   return eeData;
 }
 
 // Generates an execution environment YAML file based on user inputs
-// following the v3 schema format and validating against the schema
+// following the schema format and validating against the schema
 export async function generateExecutionEnvironment(
   inputs: ExecutionEnvInputs,
   workspaceRoot: string,
@@ -189,11 +181,29 @@ export async function generateExecutionEnvironment(
     console.warn("Schema validation errors:", validation.errors);
   }
 
-  // Convert to YAML
-  const yamlContent = yaml.stringify(eeData, {
+  // Convert to YAML with formatting to match sample structure
+  let yamlContent = yaml.stringify(eeData, {
     indent: 2,
     lineWidth: 0,
+    defaultStringType: "PLAIN",
+    defaultKeyType: "PLAIN",
+    // Add document separator to match sample
+    directives: true,
   });
+
+  // Post-process to add blank lines between top-level sections to match sample structure
+  // The sample has: ---, version, blank line, images, blank line, dependencies, blank line, additional_build_steps, blank line, options
+  if (!yamlContent.startsWith("---")) {
+    yamlContent = "---\n" + yamlContent;
+  }
+
+  // Ensure blank lines between top-level sections (matching sample structure)
+  yamlContent = yamlContent
+    .replace(/^version: 3\n/, "version: 3\n\n") // Blank line after version
+    .replace(/\nimages:\n/g, "\n\nimages:\n") // Blank line before images
+    .replace(/\n\ndependencies:\n/g, "\n\ndependencies:\n") // Blank line before dependencies
+    .replace(/\n\nadditional_build_steps:\n/g, "\n\nadditional_build_steps:\n") // Blank line before additional_build_steps
+    .replace(/\n\noptions:\n/g, "\n\noptions:\n"); // Blank line before options
 
   // Write file
   const filePath = path.join(destinationPath, "execution-environment.yml");

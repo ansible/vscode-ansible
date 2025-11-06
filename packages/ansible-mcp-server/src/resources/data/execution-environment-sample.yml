@@ -3,30 +3,36 @@ version: 3
 
 images:
   base_image:
-    name: quay.io/fedora/fedora-minimal:41
+    name: quay.io/fedora/fedora:41
 
 dependencies:
+  python_interpreter:
+    package_system: python3
+    python_path: /usr/bin/python3
+
   ansible_core:
     package_pip: ansible-core
+
   ansible_runner:
     package_pip: ansible-runner
-  galaxy:
-    collections:
-      - name: amazon.aws
-      - name: ansible.utils
-      - name: ansible.posix
+
+  system:
+    - openssh-clients
+    - sshpass
+
   python:
     - boto3
     - requests
-  system:
-    - git
-    - vim
+
+  galaxy:
+    collections:
+      - name: ansible.posix
+      - name: ansible.utils
+
+additional_build_steps:
+  append_base:
+    - RUN $PYCMD -m pip install -U pip
 
 options:
   tags:
-    - my-ee:latest
-  package_manager_path: /usr/bin/dnf5
-
-additional_build_steps:
-  prepend_base:
-    - RUN $PKGMGR -y -q install python3-devel
+    - ansible_sample_ee

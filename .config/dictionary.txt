@@ -21,6 +21,7 @@ Modelines
 Npmjs
 OPTSTRING
 PKGMGR
+PYCMD
 PYTHONBREAKPOINT
 RHSSO
 TASKFILE
@@ -90,6 +91,7 @@ servernum
 shiki
 showformat
 sonarcloud
+sshpass
 suboption
 suboptions
 sysninja
