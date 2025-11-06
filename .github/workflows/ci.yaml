@@ -45,10 +45,12 @@ jobs:
   preflight:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/jdx/mise:latest
+      image: ghcr.io/ansible/ext-builder:latest
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MISE_TRUSTED_CONFIG_PATHS: /
+        SKIP_PODMAN: 1
+        SKIP_DOCKER: 1
     continue-on-error: false
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
@@ -69,6 +71,7 @@ jobs:
           mise cfg
           mise exec -- which python3
           mise exec -- printenv NODE_OPTIONS || true
+          mise exec -- npm config set engine-strict false
           task setup
 
       - name: Extract commit context from conventional commit
@@ -98,10 +101,10 @@ jobs:
             echo "context=" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: task build
-        timeout-minutes: 2 # expected under 1 minutes
+      - name: task package
+        timeout-minutes: 3
         run: |
-          task build
+          task package
 
       - name: Run context-specific command
         if: >-
@@ -120,10 +123,13 @@ jobs:
         run: |
           task docs
 
-      - name: task package
-        timeout-minutes: 2
+      - name: Cancel workflow on preflight failure
+        if: failure()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          task package
+          echo "Preflight failed - cancelling workflow"
+          gh api repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/cancel -X POST
 
   build:
     name: ${{ matrix.name }}
@@ -472,6 +478,7 @@ jobs:
   check: # This job does nothing and is only used for the branch protection
     needs:
       - build
+      - preflight
 
     permissions:
       checks: read # codecov
