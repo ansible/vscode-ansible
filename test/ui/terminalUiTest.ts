@@ -35,12 +35,13 @@ describe(__filename, function () {
 
   before(async function () {
     workbench = new Workbench();
+    // Open Settings once and reuse for all tests
+    settingsEditor = await workbench.openSettings();
   });
 
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
       // Set playbook arguments via Settings UI (tests Settings integration)
-      settingsEditor = await workbench.openSettings();
       await updateSettings(
         settingsEditor,
         "ansible.playbook.arguments",
@@ -72,7 +73,6 @@ describe(__filename, function () {
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
       // Clear playbook arguments
-      settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
 
       await VSBrowser.instance.openResources(playbookFile);
@@ -101,7 +101,6 @@ describe(__filename, function () {
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
       // Enable EE mode with podman
-      settingsEditor = await workbench.openSettings();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
@@ -140,7 +139,6 @@ describe(__filename, function () {
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
       // Disable EE mode
-      settingsEditor = await workbench.openSettings();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
