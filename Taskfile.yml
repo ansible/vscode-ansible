@@ -47,7 +47,6 @@ tasks:
       - tools/test-setup.sh
     generates:
       - out/log/manifest-*.yml
-      - "{{.PYTHON3}}"
     run: once
     interactive: true
   clean:
@@ -61,8 +60,8 @@ tasks:
   install:
     cmds:
       - task: setup
-      - uv sync --active
-      - npx --yes yarn install
+      - uv sync --no-progress -q --active
+      - yarn install --immutable --silent
     generates:
       - node_modules/.yarn-state.yml
     sources:
@@ -228,3 +227,11 @@ tasks:
       - task: install
       - ./tools/release.sh
     interactive: true
+  image:
+    desc: Build container image used for building the extension
+    cmds:
+      - ./tools/container-build.sh
+  image-konflux:
+    desc: Build container image used for building the extension for Konflux CI
+    cmds:
+      - podman build --build-arg GITHUB_TOKEN -f vscode-ansible.Containerfile --format=docker

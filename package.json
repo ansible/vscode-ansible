@@ -1034,7 +1034,7 @@
     "@types/yargs": "^17.0.34",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
-    "@vscode/test-cli": "^0.0.11",
+    "@vscode/test-cli": "^0.0.12",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.2",
     "chai": "^6.2.0",

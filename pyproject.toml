@@ -1,3 +1,4 @@
+# cspell:ignore tombi
 [project]
 name = "vscode-ansible"
 requires-python = ">=3.11,<3.14"
@@ -19,6 +20,11 @@ dev = [
   "typing-inspect>=0.8.0,<0.10.0",
   "uv>=0.4.29",
 ]
+lint = [
+  "codespell[toml]>=2.4.1",
+  "ruff>=0.14.3",
+  "tombi>=0.6.40",
+]
 
 [tool.codespell]
 builtin = "clear,rare,code"
@@ -26,7 +32,7 @@ check-filenames = true
 check-hidden = true
 ignore-words-list = ["als", "ro", "stdio", "isPlay", "afterAll"]
 ignore-words = ".config/dictionary.txt"
-skip = ".cache,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,.yarn,dictionary.txt,settings.md,.eslintcache,.venv"
+skip = ".cache,.yarn,out,node_modules,.mypy_cache,.ruff_cache,site,codicon.css,yarn.lock,package-lock.json,.vscode-test,.git,dictionary.txt,settings.md,.eslintcache,.venv,media"
 
 # We have no python tests in this project, but we keep this config to prevent
 # vscode python extension from showing errors while trying to collect tests.

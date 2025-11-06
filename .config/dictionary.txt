@@ -11,6 +11,7 @@ Fqcn
 Fqcns
 Infiles
 KUBEDOCK
+Konflux
 LIGHTSPEED
 Lightspeed
 Lightspeed's
@@ -38,6 +39,7 @@ codespell
 contentmatch
 contentmatches
 coreutils
+cpython
 dedupe
 depcheck
 devfile
@@ -52,6 +54,7 @@ hostsvars
 hostvars
 icontent
 johndoe
+konflux
 lextudio
 libgbm
 libonig

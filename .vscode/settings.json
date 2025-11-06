@@ -10,7 +10,8 @@
     "editor.formatOnSave": true
   },
   "[json]": {
-    "editor.defaultFormatter": "biomejs.biome"
+    "editor.defaultFormatter": "biomejs.biome",
+    "editor.formatOnSave": true
   },
   "[markdown]": {
     "editor.defaultFormatter": "biomejs.biome"

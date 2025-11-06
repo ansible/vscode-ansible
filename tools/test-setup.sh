@@ -10,12 +10,20 @@ DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
 . "$DIR/_utils.sh"
 
+# inside containers ARCH might not be set
+ARCH=${ARCH:-$(uname -m)}
 IMAGE_VERSION=$(./tools/get-image-version)
 IMAGE=ghcr.io/ansible/community-ansible-dev-tools:${IMAGE_VERSION}
 PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
+
+if command -v sudo >/dev/null 2>&1; then
+    SUDO=""
+else
+    SUDO=sudo
+fi
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
@@ -70,7 +78,12 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
 fi
 
-if [[ "${OSTYPE:-}" != darwin* ]]; then
+# if [[ -f /.dockerenv || ! -z "${container:-}" || "${SKIP_UI:-}" == "1" ]]; then
+#     log notice "Running inside a container, skipping setup as we will assume container was build with tools inside."
+#     exit 0
+# fi
+
+if [[ "${OSTYPE:-}" != darwin* && ! -f /.dockerenv && -z "${container:-}" && "${SKIP_UI:-}" != "1" ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         if [[ "${READTHEDOCS:-}" != "True" ]]; then
@@ -110,8 +123,7 @@ if [[ -f "/etc/redhat-release" ]]; then
     RPMS=()
     command -v xvfb-run >/dev/null 2>&1 || RPMS+=(xorg-x11-server-Xvfb)
     if [[ ${#RPMS[@]} -ne 0 ]]; then
-        log warning "We need sudo to install some packages: ${RPMS[*]}"
-        sudo dnf install -y "${RPMS[@]}"
+        $SUDO dnf install -y "${RPMS[@]}"
     fi
 fi
 
@@ -135,14 +147,20 @@ fi
 if [[ "${OSTYPE:-}" == darwin* ]]; then
     OS_VERSION="macos-$(sw_vers --productVersion)"
 else
-    OS_VERSION="$(lsb_release --id --short 2> /dev/null)-$(lsb_release --release --short 2> /dev/null)"
-    OS_VERSION="${OS_VERSION,,}"
-    if [[ "$WSL" -eq 1 ]]; then
-        OS_VERSION=$($(find_powershell) -Command 'Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -property Caption, BuildNumber' | grep "Microsoft " | \
-        tr -d '\r' | \
-        sed 's/^Microsoft //I' | \
-        tr '[:upper:]' '[:lower:]' | \
-        sed 's/[ -]\+/-/g')-wsl-$OS_VERSION
+   if command -v lsb_release >/dev/null 2>&1; then
+        OS_VERSION="$(lsb_release --id --short 2> /dev/null)-$(lsb_release --release --short 2> /dev/null)"
+        OS_VERSION="${OS_VERSION,,}"
+        if [[ "$WSL" -eq 1 ]]; then
+            OS_VERSION=$($(find_powershell) -Command 'Get-CimInstance -ClassName Win32_OperatingSystem | Select-Object -property Caption, BuildNumber' | grep "Microsoft " | \
+            tr -d '\r' | \
+            sed 's/^Microsoft //I' | \
+            tr '[:upper:]' '[:lower:]' | \
+            sed 's/[ -]\+/-/g')-wsl-$OS_VERSION
+        fi
+    else # when inside a container this would be needed
+        # shellcheck disable=SC1091
+        . /etc/os-release
+        OS_VERSION="${ID}-${VERSION_ID}"
     fi
 fi
 log notice "Platform: $OS_VERSION"
@@ -155,7 +173,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     INSTALL=0
     # qemu-user-static is required by podman on arm64
     # python3-dev is needed for headers as some packages might need to compile
-    DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
+    # DEBS=(curl file git python3-dev python3-venv python3-pip qemu-user-static xvfb x11-xserver-utils libgbm-dev libssh-dev libonig-dev)
+    DEBS=(curl file git)
     # add nodejs to DEBS only if node is not already installed because
     # GHA has newer versions preinstalled and installing the rpm would
     # basically downgrade it
@@ -165,24 +184,18 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     command -v npm >/dev/null 2>&1 || {
         DEBS+=(npm)
     }
-    command -v git-lfs >/dev/null 2>&1 || {
-        # curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-        DEBS+=(git-lfs)
-        INSTALL=1
-    }
 
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
     if [[ "${INSTALL}" -eq 1 ]]; then
-        log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
-        sudo apt-get update -qq -o=Dpkg::Use-Pty=0
+        timed $SUDO apt-get update -qq -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
-        sudo apt-get remove -y ansible pipx || true
+        timed $SUDO apt-get remove -qq -y ansible pipx || true
         # install all required packages
-        sudo apt-get -qq install -y \
+        timed $SUDO apt-get -qq install -y \
             --no-install-recommends \
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
@@ -192,7 +205,7 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
-            sudo apt-get remove -y "$DEB"
+            $SUDO apt-get -qq remove -y "$DEB"
     done
 fi
 
@@ -203,6 +216,7 @@ git lfs status >/dev/null || {
 
 # Pull Git LFS files to ensure media files are available for packaging
 log notice "Pulling Git LFS files..."
+git lfs install
 git lfs pull || {
     log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
     exit 3
@@ -246,7 +260,7 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
 fi
 
 # User specific environment
-if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]] && [[ "${SKIP_UI:-}" != "1" ]]; then
     # shellcheck disable=SC2088
     log warning "~/.local/bin was not found in PATH, attempting to add it."
     PATH="${HOME}/.local/bin:${PATH}"
@@ -276,13 +290,13 @@ if [[ "${READTHEDOCS:-}" != "True" ]]; then
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
         if [[ -f "/usr/bin/apt-get" ]]; then
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install gh
+            $SUDO dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        $SUDO chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | $SUDO tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        $SUDO apt-get update
+        $SUDO apt-get install gh
         else
-            command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
+            command -v dnf >/dev/null 2>&1 && $SUDO dnf install -y gh
         fi
         gh --version || log warning "gh cli not found and it might be needed for some commands."
     }
@@ -291,8 +305,8 @@ fi
 # on WSL we want to avoid using Windows's npm (broken)
 if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
     log notice "Installing npm ... ($WSL)"
-    curl -sL https://deb.nodesource.com/setup_16.x | sudo bash
-    sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
+    curl -sL https://deb.nodesource.com/setup_16.x | $SUDO bash
+    $SUDO apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         nodejs gcc g++ make python3-dev
 fi
 
@@ -303,7 +317,8 @@ if [[ -d "${VIRTUAL_ENV:-}" && "${VIRTUAL_ENV:-}" != "${EXPECTED_VENV}" ]]; then
 fi
 VIRTUAL_ENV=${EXPECTED_VENV}
 if [[ -d "${VIRTUAL_ENV}" ]]; then
-    uv sync || {
+    log notice "Running uv sync ..."
+    timed uv sync --no-progress -q || {
         log warning "Removing broken venv from ${VIRTUAL_ENV} ..."
         rm -rf "${VIRTUAL_ENV}"
     }
@@ -346,7 +361,7 @@ if [[ $(uname || true) != MINGW* ]]; then # if we are not on pure Windows
     # to avoid surprises. This ensures venv and community-ansible-dev-tools EE have exactly same
     # versions.
     log notice "Running uv sync ..."
-    uv sync --active
+    uv sync --no-progress -q --active
 fi
 
 # GHA failsafe only: ensure ansible and ansible-lint cannot be found anywhere

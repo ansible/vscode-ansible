@@ -1,1 +1,3 @@
-.gitignore
+node_modules
+packages/ansible-mcp-server/node_modules
+docs/als/settings.md
