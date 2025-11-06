@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import {
   BaseLLMProvider,
   ChatRequestParams,
@@ -35,7 +35,7 @@ export class GoogleProvider extends BaseLLMProvider {
   readonly name = "google";
   readonly displayName = "Google Gemini";
 
-  private client: GoogleGenerativeAI;
+  private client: GoogleGenAI;
   private modelName: string;
   private logger = getLightspeedLogger();
 
@@ -47,14 +47,16 @@ export class GoogleProvider extends BaseLLMProvider {
       `[Google Provider] Initializing with model: ${this.modelName}`,
     );
 
-    this.client = new GoogleGenerativeAI(config.apiKey);
+    this.client = new GoogleGenAI({ apiKey: config.apiKey });
   }
 
   async validateConfig(): Promise<boolean> {
     try {
-      const model = this.client.getGenerativeModel({ model: this.modelName });
       // Try a minimal generation to validate
-      await model.generateContent("test");
+      await this.client.models.generateContent({
+        model: this.modelName,
+        contents: "test",
+      });
       return true;
     } catch (error) {
       this.logger.error(`[Google Provider] Config validation failed: ${error}`);
@@ -106,15 +108,16 @@ export class GoogleProvider extends BaseLLMProvider {
 
       // For inline completion, use a minimal system instruction to guide the model
       // to generate only valid Ansible YAML without explanations
-      const model = this.client.getGenerativeModel({
+      const result = await this.client.models.generateContent({
         model: this.modelName,
-        systemInstruction:
-          "You are an Ansible code completion assistant. Generate ONLY valid Ansible YAML task content to continue from where the input ends. Do not include explanations, markdown formatting, or complete playbooks. Only output the task YAML continuation.",
+        contents: params.prompt,
+        config: {
+          systemInstruction:
+            "You are an Ansible code completion assistant. Generate ONLY valid Ansible YAML task content to continue from where the input ends. Do not include explanations, markdown formatting, or complete playbooks. Only output the task YAML continuation.",
+        },
       });
 
-      const result = await model.generateContent(params.prompt);
-      const response = result.response;
-      const text = response.text();
+      const text = result.text || "";
 
       this.logger.info(
         `[Google Provider] Raw response length: ${text.length} chars`,
@@ -186,14 +189,15 @@ export class GoogleProvider extends BaseLLMProvider {
         `[Google Provider] Using system prompt: ${isExplanation ? "EXPLANATION" : "CHAT"}`,
       );
 
-      const model = this.client.getGenerativeModel({
+      const result = await this.client.models.generateContent({
         model: this.modelName,
-        systemInstruction: systemInstruction,
+        contents: enhancedMessage,
+        config: {
+          systemInstruction: systemInstruction,
+        },
       });
 
-      const result = await model.generateContent(enhancedMessage);
-      const response = result.response;
-      const message = response.text();
+      const message = result.text || "";
 
       // Log full response
       this.logger.info(`[Google Provider] ========== CHAT RESPONSE ==========`);
@@ -251,15 +255,6 @@ export class GoogleProvider extends BaseLLMProvider {
         this.logger.info(`[Google Provider] User outline: ${params.outline}`);
       }
 
-      const model = this.client.getGenerativeModel({
-        model: this.modelName,
-        systemInstruction: ANSIBLE_SYSTEM_PROMPT_PLAYBOOK,
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 4000,
-        },
-      });
-
       const enhancedPrompt = this.applyAnsibleContext(playbookPrompt, {
         ansibleFileType: "playbook",
       });
@@ -268,9 +263,17 @@ export class GoogleProvider extends BaseLLMProvider {
         `[Google Provider] Enhanced prompt (full):\n${enhancedPrompt}`,
       );
 
-      const result = await model.generateContent(enhancedPrompt);
-      const response = result.response;
-      const content = response.text();
+      const result = await this.client.models.generateContent({
+        model: this.modelName,
+        contents: enhancedPrompt,
+        config: {
+          systemInstruction: ANSIBLE_SYSTEM_PROMPT_PLAYBOOK,
+          temperature: 0.3,
+          maxOutputTokens: 4000,
+        },
+      });
+
+      const content = result.text || "";
       const cleanedContent = this.cleanAnsibleOutput(content);
 
       // Log full response
@@ -345,22 +348,19 @@ export class GoogleProvider extends BaseLLMProvider {
         `[Google Provider] Request - User prompt (full):\n${this.applyAnsibleContext(rolePrompt, { ansibleFileType: "tasks" })}`,
       );
 
-      const model = this.client.getGenerativeModel({
+      const result = await this.client.models.generateContent({
         model: this.modelName,
-        systemInstruction: ANSIBLE_SYSTEM_PROMPT_ROLE,
-        generationConfig: {
+        contents: this.applyAnsibleContext(rolePrompt, {
+          ansibleFileType: "tasks",
+        }),
+        config: {
+          systemInstruction: ANSIBLE_SYSTEM_PROMPT_ROLE,
           temperature: 0.3,
           maxOutputTokens: 4000,
         },
       });
 
-      const result = await model.generateContent(
-        this.applyAnsibleContext(rolePrompt, {
-          ansibleFileType: "tasks",
-        }),
-      );
-      const response = result.response;
-      const content = response.text();
+      const content = result.text || "";
       const cleanedContent = this.cleanAnsibleOutput(content);
 
       this.logger.info(
