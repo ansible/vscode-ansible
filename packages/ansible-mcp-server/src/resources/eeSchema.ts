@@ -72,13 +72,3 @@ export async function getSampleExecutionEnvironment(): Promise<string> {
     );
   }
 }
-
-/**
- * Get the v3 schema definition specifically
- */
-export async function getV3SchemaDefinition(): Promise<
-  ExecutionEnvironmentSchema["$defs"]["v3"]
-> {
-  const schema = await getExecutionEnvironmentSchema();
-  return schema.$defs.v3;
-}

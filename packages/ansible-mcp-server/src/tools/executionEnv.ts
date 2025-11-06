@@ -3,11 +3,7 @@ import path from "node:path";
 import * as yaml from "yaml";
 import Ajv from "ajv";
 import ajvFormats from "ajv-formats";
-import {
-  getExecutionEnvironmentSchema,
-  getV3SchemaDefinition,
-  type ExecutionEnvironmentSchema,
-} from "../resources/eeSchema.js";
+import { getExecutionEnvironmentSchema } from "../resources/eeSchema.js";
 
 export interface ExecutionEnvInputs {
   baseImage: string;
@@ -89,9 +85,6 @@ async function validateAgainstSchema(
 async function buildEEStructureFromSchema(
   inputs: ExecutionEnvInputs,
 ): Promise<Record<string, unknown>> {
-  // Get the v3 schema to understand the structure
-  const v3Schema = await getV3SchemaDefinition();
-
   // Start with required fields from schema
   const eeData: Record<string, unknown> = {
     version: 3,
