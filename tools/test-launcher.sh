@@ -210,11 +210,9 @@ if [[ "${TEST_TYPE}" == "ui" ]]; then
                 start_server
             fi
             refresh_settings "${test_file}" "${TEST_ID}"
-            # Prepend stub-bin to PATH so extension calls our fast stubs instead of real tools
-            # This makes tests ~20x faster and eliminates container/tool dependencies
-            STUB_BIN_PATH="$(pwd)/test/ui/stub-bin"
-            timeout --kill-after=15 --preserve-status 150s env \
-                PATH="${STUB_BIN_PATH}:${PATH}" \
+            # Tests run in dry-run mode (ansible.test.dryRun=true in settings)
+            # Extension echoes commands instead of executing them - no stubs needed!
+            timeout --kill-after=15 --preserve-status 150s \
                 npm exec -- extest run-tests "${COVERAGE_ARG}" \
                 --mocha_config test/ui/.mocharc.js \
                 -s out/test-resources \

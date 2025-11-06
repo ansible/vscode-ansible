@@ -29,66 +29,6 @@ export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/**
- * Update settings by directly modifying settings.json file
- * Much faster than Settings UI but requires opening/closing the file to trigger reload
- * Reduces per-setting time from ~10s to ~2s
- *
- * Can accept either a single setting or multiple settings as an object for batching
- */
-export async function updateSettingsProgrammatically(
-  setting: string | Record<string, any>,
-  value?: any,
-): Promise<void> {
-  const fs = await import("fs");
-  const path = await import("path");
-  const workbench = new Workbench();
-
-  // Path to the test instance's settings.json
-  const settingsPath = path.resolve(
-    __dirname,
-    "..", "..", "..", "..", "out", "test-resources", "settings", "User", "settings.json"
-  );
-
-  try {
-    // Read current settings
-    let settingsObj: any = {};
-    if (fs.existsSync(settingsPath)) {
-      const settingsContent = fs.readFileSync(settingsPath, "utf8");
-      try {
-        settingsObj = JSON.parse(settingsContent);
-      } catch (parseError) {
-        console.warn(`Failed to parse settings.json:`, parseError);
-        settingsObj = {};
-      }
-    }
-
-    // Update settings - handle both single and batch modes
-    if (typeof setting === "string") {
-      settingsObj[setting] = value;
-    } else {
-      // Batch mode: setting is an object of key-value pairs
-      Object.assign(settingsObj, setting);
-    }
-
-    // Write back
-    fs.writeFileSync(settingsPath, JSON.stringify(settingsObj, null, 2), "utf8");
-
-    // Trigger reload by opening and immediately closing the settings file
-    // This is much faster than full window reload or Settings UI
-    await workbench.executeCommand("Preferences: Open User Settings (JSON)");
-    await sleep(200);
-
-    // Close the settings editor immediately using Escape or close command
-    await workbench.executeCommand("View: Close Editor");
-    await sleep(100);
-
-  } catch (error) {
-    console.error(`Failed to update setting ${setting}:`, error);
-    throw error;
-  }
-}
-
 export async function updateSettings(
   settingsEditor: SettingsEditor,
   setting: string,
@@ -101,6 +41,7 @@ export async function updateSettings(
   const categories = settingArray;
 
   if (!title) return;
+
   // Robustly wait for the setting to appear and be interactable
   await waitForCondition({
     condition: async () => {
@@ -118,8 +59,9 @@ export async function updateSettings(
         return false;
       }
     },
-    timeout: 5000,
-    pollTimeout: 200,
+    message: `Failed to update setting ${setting} to ${value}`,
+    timeout: 10000,
+    pollTimeout: 500,
   });
 }
 

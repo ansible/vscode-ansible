@@ -14,9 +14,7 @@ module.exports = {
   slow: 25000,
   reporter: "mocha-multi-reporters",
   reporterOptions: {
-    reporterEnabled: process.env.CI
-      ? "spec,mocha-junit-reporter"  // CI: Use spec for full logs
-      : "../test/minimal-reporter,mocha-junit-reporter",  // Local: Use minimal reporter
+    reporterEnabled: "spec,mocha-junit-reporter",  // Always use spec reporter
     mochaJunitReporterReporterOptions: {
       attachments: true,
       includePending: true,
