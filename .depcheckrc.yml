@@ -6,6 +6,7 @@ ignores:
   - "@types/vscode"  # determined by (package.json).engines.vscode
   - "@vscode/test-electron" # used by @vscode/test-cli
   - "@vscode/vsce"
+  - c8 # used in unit-tests script
   - cypress-multi-reporters
   - depcheck
   - electron

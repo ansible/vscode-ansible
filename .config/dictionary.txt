@@ -37,6 +37,7 @@ codeclimate
 codespell
 contentmatch
 contentmatches
+contentmatching
 coreutils
 cpython
 dedupe
@@ -60,6 +61,7 @@ libonig
 libssh
 lightspeed
 lineinfile
+llmprovider
 maxlength
 microdnf
 mocharc

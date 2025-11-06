@@ -42,11 +42,13 @@ export interface UserResponse {
 // Settings appear on VS Code Settings UI
 export interface LightSpeedServiceSettings {
   enabled: boolean;
-  URL: string;
+  provider: string; // 'wca' | 'openai' | 'google' | 'custom'
+  apiEndpoint: string;
+  modelName: string | undefined;
+  apiKey: string; // Only used for third-party providers
+  timeout: number; // Default 30 seconds
+  customHeaders: Record<string, string>; // Only used for third-party providers
   suggestions: { enabled: boolean; waitWindow: number };
-  model: string | undefined;
-  playbookGenerationCustomPrompt: string | undefined;
-  playbookExplanationCustomPrompt: string | undefined;
 }
 
 export interface McpServerSettings {
