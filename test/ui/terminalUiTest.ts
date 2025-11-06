@@ -10,11 +10,11 @@ config.truncateThreshold = 0;
 
 /**
  * Terminal UI Tests - Dry-Run Mode
- * 
+ *
  * These tests verify that the extension correctly constructs and sends commands
  * to the terminal. With dry-run mode enabled (ansible.test.dryRun: true), the
  * extension echoes commands instead of executing them.
- * 
+ *
  * This makes tests:
  * - Fast (no real ansible execution)
  * - Reliable (no external dependencies)
@@ -36,7 +36,7 @@ describe(__filename, function () {
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
-      
+
       let text = "";
       await waitForCondition({
         condition: async () => {
@@ -69,7 +69,7 @@ describe(__filename, function () {
       await workbench.executeCommand("Run playbook via `ansible-navigator run`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
-      
+
       let text = "";
       await waitForCondition({
         condition: async () => {
