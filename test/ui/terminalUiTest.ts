@@ -36,34 +36,19 @@ describe(__filename, function () {
 
   before(async function () {
     workbench = new Workbench();
-    // Initialize BottomBarPanel once
     bottomBarPanel = new BottomBarPanel();
-    // Open settings once
     settingsEditor = await workbench.openSettings();
   });
 
-  // Helper to ensure settings editor is still valid, refresh if needed
-  async function ensureSettings(): Promise<void> {
-    try {
-      // Try to use the existing settings editor
-      await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
-    } catch {
-      // Settings became stale, reopen
-      console.log("Settings editor stale, reopening...");
-      settingsEditor = await workbench.openSettings();
-    }
-  }
-
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
-      // Ensure settings editor is valid
-      await ensureSettings();
       // Set configuration via settings UI
       await updateSettings(
         settingsEditor,
         "ansible.playbook.arguments",
         "--syntax-check",
       );
+      await sleep(30); // Wait for config to propagate
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
@@ -88,8 +73,6 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
-      // Ensure settings editor is valid
-      await ensureSettings();
       // Clear configuration via settings UI
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
       await sleep(30); // Wait for config to propagate
@@ -118,8 +101,6 @@ describe(__filename, function () {
 
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
-      // Ensure settings editor is valid
-      await ensureSettings();
       // Set configuration via settings UI
       await updateSettings(
         settingsEditor,
@@ -158,18 +139,16 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
-      // Ensure settings editor is valid
-      await ensureSettings();
       // Set configuration via settings UI
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         false,
       );
-      await sleep(30); // Wait for config to propagate
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
+      await sleep(35); // Wait for file to open
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
