@@ -5,7 +5,7 @@ import {
   VSBrowser,
   EditorView,
 } from "vscode-extension-tester";
-import { getFixturePath, updateSettings, sleep } from "./uiTestHelper";
+import { getFixturePath, updateSettings } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -84,7 +84,6 @@ describe(__filename, function () {
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
-      await sleep(30); // Allow settings to propagate
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
@@ -107,7 +106,6 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         false,
       );
-      await sleep(35); // Allow settings to propagate
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
