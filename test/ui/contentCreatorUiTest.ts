@@ -262,11 +262,14 @@ describe("Content Creator UI Tests", function () {
     async function testWebViewElements(command: string, editorTitle: string) {
       await workbenchExecuteCommand(command);
 
+      // Use shared editorView instance with waitForCondition
       await waitForCondition({
         condition: async () => {
-          return await new EditorView().openEditor(editorTitle);
+          return await editorView.openEditor(editorTitle);
         },
         message: `Timed out waiting for ${editorTitle} to open`,
+        timeout: 5000, // Optimized timeout
+        pollTimeout: 100,
       });
 
       const webview = await getWebviewByLocator(
@@ -326,9 +329,6 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("Ansible playbook and collection project scaffolding at default path", function () {
-    let createButton: WebElement;
-    let editorView: EditorView;
-
     async function testWebViewElements(
       command: string,
       editorTitle: string,
@@ -337,25 +337,16 @@ describe("Content Creator UI Tests", function () {
     ) {
       await workbenchExecuteCommand(command);
 
-      await new EditorView().openEditor(editorTitle);
+      // Use shared editorView instance
+      await editorView.openEditor(editorTitle);
       const textFieldTag = "vscode-textfield";
       const webview = await getWebviewByLocator(
         By.xpath(`//${textFieldTag}[@id='namespace-name']`),
       );
 
-      const namespaceTextField = await webview.findWebElement(
-        By.xpath(`//${textFieldTag}[@id='namespace-name']`),
-      );
-      expect(namespaceTextField, "namespaceTextField should not be undefined")
-        .not.to.be.undefined;
-      await namespaceTextField.sendKeys(namespaceName);
-
-      const collectionTextField = await webview.findWebElement(
-        By.xpath(`//${textFieldTag}[@id='collection-name']`),
-      );
-      expect(collectionTextField, "collectionTextField should not be undefined")
-        .not.to.be.undefined;
-      await collectionTextField.sendKeys(collectionName);
+      // Use checkAndInteractWithField helper for consistent field interaction
+      await checkAndInteractWithField(webview, "namespace-name", namespaceName);
+      await checkAndInteractWithField(webview, "collection-name", collectionName);
 
       const overwriteCheckbox = await webview.findWebElement(
         By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
@@ -363,17 +354,6 @@ describe("Content Creator UI Tests", function () {
       expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
         .to.be.undefined;
       await overwriteCheckbox.click();
-
-      createButton = await webview.findWebElement(
-        By.xpath("//vscode-button[@id='create-button']"),
-      );
-      expect(createButton, "createButton should not be undefined").not.to.be
-        .undefined;
-
-      expect(
-        await createButton.isEnabled(),
-        "Create button should be enabled now",
-      ).to.be.true;
 
       // If on the collection page, look for the editable checkbox
       if (editorTitle.includes("collection")) {
@@ -385,7 +365,8 @@ describe("Content Creator UI Tests", function () {
         await editableCheckbox.click();
       }
 
-      await createButton.click();
+      // Use clickButtonAndCheckEnabled helper
+      await clickButtonAndCheckEnabled(webview, "create-button");
       await webview.switchBack();
       // Editors cleaned up in afterEach hook
     }
@@ -410,9 +391,6 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("collection plugins scaffolding", function () {
-    let createButton: WebElement;
-    let editorView: EditorView;
-
     // Safely finds the absolute path of the executable from system PATH without using shell commands.
     function findExecutable(command: string): string | null {
       const systemPaths = (process.env.PATH || "").split(path.delimiter);
@@ -480,25 +458,21 @@ describe("Content Creator UI Tests", function () {
 
       console.log(`Waiting for editor "${editorTitle}" to open...`);
 
-      try {
-        await waitForCondition({
-          condition: async () => {
-            try {
-              const result = await new EditorView().openEditor(editorTitle);
-              console.log(`Successfully opened editor with default parameters`);
-              return result;
-            } catch {
-              return false;
-            }
-          },
-          message: `Timed out waiting for ${editorTitle} to open.`,
-          timeout: 20000, // Longer timeout
-        });
-      } catch (error) {
-        console.log(
-          `Default approach failed after timeout: ${(error as Error).message}`,
-        );
-      }
+      // Use shared editorView instance with optimized timeout
+      await waitForCondition({
+        condition: async () => {
+          try {
+            const result = await editorView.openEditor(editorTitle);
+            console.log(`Successfully opened editor with default parameters`);
+            return result;
+          } catch {
+            return false;
+          }
+        },
+        message: `Timed out waiting for ${editorTitle} to open.`,
+        timeout: 10000, // Optimized from 20000ms
+        pollTimeout: 200,
+      });
 
       console.log(
         `Editor "${editorTitle}" opened successfully, getting webview...`,
@@ -555,7 +529,7 @@ describe("Content Creator UI Tests", function () {
       );
       await overwriteCheckbox.click();
 
-      createButton = await webview.findWebElement(
+      const createButton = await webview.findWebElement(
         By.xpath("//vscode-button[@id='create-button']"),
       );
       expect(createButton, "createButton should not be undefined").not.to.be
@@ -653,16 +627,17 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("role scaffolding in an existing collection", function () {
-    let editorView: EditorView;
-
     async function testWebViewElements(command: string, editorTitle: string) {
       await workbenchExecuteCommand(command);
 
+      // Use shared editorView instance with optimized timeout
       await waitForCondition({
         condition: async () => {
-          return await new EditorView().openEditor(editorTitle);
+          return await editorView.openEditor(editorTitle);
         },
         message: `Timed out waiting for ${editorTitle} to open`,
+        timeout: 5000, // Optimized timeout
+        pollTimeout: 100,
       });
       const webview = await getWebviewByLocator(
         By.xpath("//vscode-textfield[@id='path-url']"),
