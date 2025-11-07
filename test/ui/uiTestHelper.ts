@@ -60,8 +60,8 @@ export async function updateSettings(
       }
     },
     message: `Failed to update setting ${setting} to ${value}`,
-    timeout: 5000, // Reduced from 10000ms since Settings is already open
-    pollTimeout: 300, // Reduced from 500ms for faster polling
+    timeout: 5000, // Balanced timeout - Settings already open
+    pollTimeout: 300, // Balanced polling
   });
 }
 

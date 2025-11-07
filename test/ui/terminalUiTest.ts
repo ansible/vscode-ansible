@@ -35,21 +35,33 @@ describe(__filename, function () {
 
   before(async function () {
     workbench = new Workbench();
-    // Open Settings once and reuse for all tests
+    // Open Settings once for all tests
     settingsEditor = await workbench.openSettings();
   });
 
+  // Helper to refresh settings editor if it becomes stale
+  async function ensureSettingsReady() {
+    try {
+      // Test if settings editor is still responsive
+      await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
+    } catch {
+      // Settings became stale, reopen
+      settingsEditor = await workbench.openSettings();
+    }
+  }
+
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
-      // Set playbook arguments via Settings UI (tests Settings integration)
+      // Set playbook arguments (Settings already open)
+      await ensureSettingsReady();
       await updateSettings(
         settingsEditor,
         "ansible.playbook.arguments",
         "--syntax-check",
       );
+      await sleep(30); // Wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
@@ -72,11 +84,12 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
-      // Clear playbook arguments
+      // Clear playbook arguments (Settings already open)
+      await ensureSettingsReady();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
+      await sleep(35); // Wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
@@ -100,12 +113,14 @@ describe(__filename, function () {
 
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
-      // Enable EE mode with podman
+      // Enable EE mode with podman (Settings already open)
+      await ensureSettingsReady();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         true,
       );
+      await sleep(35);
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.containerEngine",
@@ -113,7 +128,6 @@ describe(__filename, function () {
       );
 
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
@@ -138,15 +152,16 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
-      // Disable EE mode
+      // Disable EE mode (Settings already open)
+      await ensureSettingsReady();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         false,
       );
+      await sleep(30); // Wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
@@ -160,7 +175,7 @@ describe(__filename, function () {
           return text.includes("ansible-navigator") && text.includes("run");
         },
         message: `Expected ansible-navigator without EE flags. Got: ${text}`,
-        timeout: 10000,
+        timeout: 1000,
       });
 
       // Verify NO EE mode flags
