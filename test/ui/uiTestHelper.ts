@@ -60,8 +60,8 @@ export async function updateSettings(
       }
     },
     message: `Failed to update setting ${setting} to ${value}`,
-    timeout: 2000, // Settings already open - 2s is sufficient
     pollTimeout: 100, // Fast polling for quick response
+    timeout: 2500, // Balanced timeout - enough time for UI in CI
   });
 }
 

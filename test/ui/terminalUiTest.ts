@@ -1,11 +1,6 @@
 import { expect, config } from "chai";
-import {
-  Workbench,
-  BottomBarPanel,
-  VSBrowser,
-  EditorView,
-} from "vscode-extension-tester";
-import { getFixturePath, updateSettings } from "./uiTestHelper";
+import { Workbench, BottomBarPanel, VSBrowser } from "vscode-extension-tester";
+import { getFixturePath, updateSettings, sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -31,12 +26,9 @@ describe(__filename, function () {
   before(async function () {
     workbench = new Workbench();
     bottomBarPanel = new BottomBarPanel();
-  });
 
-  beforeEach(async function () {
-    // Clear cache by closing all editors before each test
-    const editorView = new EditorView();
-    await editorView.closeAllEditors();
+    // Open playbook file once - reused across all tests
+    await VSBrowser.instance.openResources(playbookFile);
   });
 
   describe("execution of playbook using ansible-playbook command", function () {
@@ -47,7 +39,6 @@ describe(__filename, function () {
         "ansible.playbook.arguments",
         "--syntax-check",
       );
-
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
@@ -61,7 +52,7 @@ describe(__filename, function () {
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
       const settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
-
+      await sleep(30); // Allow settings UI to stabilize
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
@@ -81,12 +72,12 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         true,
       );
+      await sleep(35); // Allow settings UI to stabilize
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
-
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
@@ -108,7 +99,9 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         false,
       );
+      await sleep(35); // Allow settings UI to stabilize
 
+      // Reopen playbook to make it the active file after settings
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
