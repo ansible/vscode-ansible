@@ -1,6 +1,6 @@
 import { expect, config } from "chai";
 import { Workbench, BottomBarPanel, VSBrowser } from "vscode-extension-tester";
-import { getFixturePath, updateSettings, sleep } from "./uiTestHelper";
+import { getFixturePath, updateSettings } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
