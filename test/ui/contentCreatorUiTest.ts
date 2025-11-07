@@ -73,10 +73,14 @@ async function waitForAnsibleCreatorReady(): Promise<void> {
   });
 }
 
-async function openCreateWebview(command: string, webviewId: string) {
+// REAL OPTIMIZATION: Use shared editorView instead of creating new instance
+async function openCreateWebview(
+  command: string,
+  webviewId: string,
+  sharedEditorView: EditorView,
+) {
   await workbenchExecuteCommand(command);
-  const editorView = new EditorView();
-  await editorView.openEditor(webviewId);
+  await sharedEditorView.openEditor(webviewId);
   return await getWebviewByLocator(
     By.xpath("//vscode-textfield[@id='path-url']"),
   );
@@ -150,21 +154,21 @@ async function findAndClickCheckbox(
 }
 
 describe("Content Creator UI Tests", function () {
+  // Shared instances used across all tests
   let editorView: EditorView;
   let workbench: Workbench;
 
   before(async function () {
     // Initialize shared instances
     workbench = new Workbench();
+    editorView = new EditorView();
+
     // Install ansible-creator
     await workbenchExecuteCommand("Install Ansible Content Creator");
 
     // REAL OPTIMIZATION: Wait until ansible-creator is actually ready
     // (instead of blind sleep) - exits as soon as ready, not after fixed time!
     await waitForAnsibleCreatorReady();
-
-    // Create shared EditorView instance
-    editorView = new EditorView();
   });
 
   afterEach(async function () {
@@ -195,6 +199,7 @@ describe("Content Creator UI Tests", function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
         "Create Execution Environment",
+        editorView,
       );
 
       const descriptionText = await (
@@ -443,7 +448,7 @@ describe("Content Creator UI Tests", function () {
           safePath,
           "--no-ansi",
         ],
-        (error, stdout, stderr) => {
+        (error, _stdout, stderr) => {
           if (error) {
             console.error(
               "Failed to scaffold collection:",
@@ -451,8 +456,7 @@ describe("Content Creator UI Tests", function () {
             );
             return;
           }
-          console.log("Collection scaffolded at:", safePath);
-          console.log(stdout);
+          // Collection scaffolded successfully
         },
       );
     }
@@ -471,34 +475,25 @@ describe("Content Creator UI Tests", function () {
         Lookup: 2,
       } as { [key: string]: number };
 
-      console.log(`Executing command: ${command}`);
       await workbenchExecuteCommand(command);
-
-      console.log(`Waiting for editor "${editorTitle}" to open...`);
 
       // Use shared editorView instance with optimized timeout
       await waitForCondition({
         condition: async () => {
           try {
-            const result = await editorView.openEditor(editorTitle);
-            console.log(`Successfully opened editor with default parameters`);
-            return result;
+            return await editorView.openEditor(editorTitle);
           } catch {
             return false;
           }
         },
         message: `Timed out waiting for ${editorTitle} to open.`,
-        timeout: 10000, // Optimized from 20000ms
+        timeout: 10000, // Plugin scaffolding needs longer timeout
         pollTimeout: 200,
       });
 
-      console.log(
-        `Editor "${editorTitle}" opened successfully, getting webview...`,
-      );
       const webview = await getWebviewByLocator(
         By.xpath("//vscode-textfield[@id='path-url']"),
       );
-      console.log(`Webview obtained successfully for "${editorTitle}"`);
 
       const collectionPathUrlTextField = await webview.findWebElement(
         By.xpath("//vscode-textfield[@id='path-url']"),
@@ -574,7 +569,6 @@ describe("Content Creator UI Tests", function () {
           "Open Plugin button should be enabled",
         ).to.be.true;
         // Plugin file existence already verified by waitForCondition above
-        console.log("Plugin file exists at:", pluginPath);
         expect(fs.existsSync(pluginPath)).to.be.true;
       }
       await webview.switchBack();
