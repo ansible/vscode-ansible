@@ -4,7 +4,6 @@ import {
   BottomBarPanel,
   VSBrowser,
   SettingsEditor,
-  EditorView,
 } from "vscode-extension-tester";
 import {
   getFixturePath,
@@ -39,42 +38,27 @@ describe(__filename, function () {
     workbench = new Workbench();
     // Initialize BottomBarPanel once
     bottomBarPanel = new BottomBarPanel();
+    // Open settings once
+    settingsEditor = await workbench.openSettings();
   });
 
-  afterEach(async function () {
-    // Clean up after each test to prevent UI state accumulation
+  // Helper to ensure settings editor is still valid, refresh if needed
+  async function ensureSettings(): Promise<void> {
     try {
-      const editorView = new EditorView();
-      await editorView.closeAllEditors();
-    } catch (error) {
-      console.log("Cleanup warning:", error);
-      // Don't fail the test if cleanup has issues
+      // Try to use the existing settings editor
+      await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
+    } catch {
+      // Settings became stale, reopen
+      console.log("Settings editor stale, reopening...");
+      settingsEditor = await workbench.openSettings();
     }
-  });
-
-  // Helper to get fresh settings editor for each test
-  async function getFreshSettings(): Promise<SettingsEditor> {
-    // Close all editors to clean UI state
-    const editorView = new EditorView();
-    await editorView.closeAllEditors();
-
-    // Open settings with retry logic
-    for (let i = 0; i < 3; i++) {
-      try {
-        const editor = await workbench.openSettings();
-        return editor;
-      } catch (error) {
-        console.log(`Attempt ${i + 1} to open settings failed:`, error);
-        if (i === 2) throw error;
-      }
-    }
-    throw new Error("Failed to open settings after 3 attempts");
   }
 
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
-      // Get fresh settings editor for this test
-      settingsEditor = await getFreshSettings();
+      // Ensure settings editor is valid
+      await ensureSettings();
+      // Set configuration via settings UI
       await updateSettings(
         settingsEditor,
         "ansible.playbook.arguments",
@@ -104,9 +88,11 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
-      // Get fresh settings editor for this test
-      settingsEditor = await getFreshSettings();
+      // Ensure settings editor is valid
+      await ensureSettings();
+      // Clear configuration via settings UI
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
+      await sleep(30); // Wait for config to propagate
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
@@ -132,8 +118,9 @@ describe(__filename, function () {
 
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
-      // Get fresh settings editor for this test
-      settingsEditor = await getFreshSettings();
+      // Ensure settings editor is valid
+      await ensureSettings();
+      // Set configuration via settings UI
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
@@ -144,6 +131,7 @@ describe(__filename, function () {
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
+      await sleep(30); // Wait for config to propagate
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
@@ -170,17 +158,18 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
-      // Get fresh settings editor for this test
-      settingsEditor = await getFreshSettings();
+      // Ensure settings editor is valid
+      await ensureSettings();
+      // Set configuration via settings UI
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         false,
       );
+      await sleep(30); // Wait for config to propagate
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(30); // Wait for file to open
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
