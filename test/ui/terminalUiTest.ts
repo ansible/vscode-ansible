@@ -145,10 +145,10 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         false,
       );
+      await sleep(30); // Wait for config to propagate
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(35); // Wait for file to open
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
