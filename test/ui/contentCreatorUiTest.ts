@@ -28,19 +28,8 @@ async function waitForNotification(
   workbench: Workbench,
   expectedMessage: string | RegExp,
 ): Promise<void> {
-  // FIX: Dismiss any old notifications first to avoid false positives
-  try {
-    const oldNotifications = await workbench.getNotifications();
-    for (const notification of oldNotifications) {
-      try {
-        await notification.dismiss();
-      } catch {
-        // Ignore if already dismissed
-      }
-    }
-  } catch {
-    // Ignore errors getting old notifications
-  }
+  // FIX: Don't dismiss notifications here - let the command create them first!
+  // The afterEach cleanup will handle dismissing lingering notifications.
 
   await waitForCondition({
     condition: async () => {
