@@ -23,12 +23,14 @@ config.truncateThreshold = 0;
  */
 describe(__filename, function () {
   let workbench: Workbench;
+  let bottomBarPanel: BottomBarPanel;
   const folder = "terminal";
   const file = "playbook.yml";
   const playbookFile = getFixturePath(folder, file);
 
   before(async function () {
     workbench = new Workbench();
+    bottomBarPanel = new BottomBarPanel();
   });
 
   beforeEach(async function () {
@@ -49,7 +51,7 @@ describe(__filename, function () {
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
-      const terminalView = await new BottomBarPanel().openTerminalView();
+      const terminalView = await bottomBarPanel.openTerminalView();
       const text = await terminalView.getText();
 
       expect(text).to.contain("ansible-playbook");
@@ -63,7 +65,7 @@ describe(__filename, function () {
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
-      const terminalView = await new BottomBarPanel().openTerminalView();
+      const terminalView = await bottomBarPanel.openTerminalView();
       const text = await terminalView.getText();
 
       expect(text).to.contain("ansible-playbook");
@@ -90,7 +92,7 @@ describe(__filename, function () {
         "Run playbook via `ansible-navigator run`",
       );
 
-      const terminalView = await new BottomBarPanel().openTerminalView();
+      const terminalView = await bottomBarPanel.openTerminalView();
       const text = await terminalView.getText();
 
       expect(text).to.contain("ansible-navigator");
@@ -112,7 +114,7 @@ describe(__filename, function () {
         "Run playbook via `ansible-navigator run`",
       );
 
-      const terminalView = await new BottomBarPanel().openTerminalView();
+      const terminalView = await bottomBarPanel.openTerminalView();
       const text = await terminalView.getText();
 
       expect(text).to.contain("ansible-navigator");
