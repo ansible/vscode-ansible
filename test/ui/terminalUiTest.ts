@@ -52,7 +52,6 @@ describe(__filename, function () {
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
       const settingsEditor = await workbench.openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
-      await sleep(30); // Allow settings UI to stabilize
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
@@ -72,7 +71,6 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         true,
       );
-      await sleep(35); // Allow settings UI to stabilize
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.containerEngine",
@@ -99,7 +97,6 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         false,
       );
-      await sleep(35); // Allow settings UI to stabilize
 
       // Reopen playbook to make it the active file after settings
       await VSBrowser.instance.openResources(playbookFile);
