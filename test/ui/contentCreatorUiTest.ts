@@ -43,6 +43,8 @@ async function checkAndInteractWithField(
       );
     },
     message: `Timed out waiting for text field with id ${fieldId}`,
+    timeout: 5000,  // Reduced from default 10000ms
+    pollTimeout: 100,
   });
   expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
 
@@ -61,6 +63,8 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
       );
     },
     message: `Timed out waiting for button with id ${buttonId}`,
+    timeout: 5000,  // Reduced from default 10000ms
+    pollTimeout: 100,
   });
   expect(button, `${buttonId} should not be undefined`).not.to.be.undefined;
   expect(await button.isEnabled(), `${buttonId} should be enabled`).to.be.true;
@@ -68,12 +72,24 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
 }
 
 describe("Content Creator UI Tests", function () {
+  let editorView: EditorView;
+
   before(async function () {
     // Install ansible-creator
     await workbenchExecuteCommand("Install Ansible Content Creator");
     // This sleep is hard to get rid of because the installation takes time
     // need to look at ways to determine when the installation is ready
     await sleep(2000);
+    
+    // Create shared EditorView instance
+    editorView = new EditorView();
+  });
+
+  afterEach(async function () {
+    // Clean up editors after each test
+    if (editorView) {
+      await editorView.closeAllEditors();
+    }
   });
 
   describe("ee-project-scaffolding-at-default-path", function () {
@@ -173,10 +189,7 @@ describe("Content Creator UI Tests", function () {
       await clickButtonAndCheckEnabled(eeWebview, "clear-button");
 
       await eeWebview.switchBack();
-      const editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
+      // Editors cleaned up in afterEach hook
     });
     it("Executes the build command from the right-click menu", async function () {
       const workbench = new Workbench();
@@ -246,8 +259,6 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("Ansible playbook and collection project scaffolding at provided path", function () {
-    let editorView: EditorView;
-
     async function testWebViewElements(command: string, editorTitle: string) {
       await workbenchExecuteCommand(command);
 
@@ -296,10 +307,7 @@ describe("Content Creator UI Tests", function () {
       await clickButtonAndCheckEnabled(webview, "create-button");
       await webview.switchBack();
 
-      editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
+      // Editors cleaned up in afterEach hook
     }
 
     it("Check create-ansible-project webview elements", async function () {
@@ -379,10 +387,7 @@ describe("Content Creator UI Tests", function () {
 
       await createButton.click();
       await webview.switchBack();
-      editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
+      // Editors cleaned up in afterEach hook
     }
 
     it("Check create-ansible-project webview elements", async function () {
@@ -564,9 +569,20 @@ describe("Content Creator UI Tests", function () {
       if (verifyPath) {
         await scaffoldCollection(collectionPath);
         await createButton.click();
-        // This sleep is hard to get rid of because scaffold collection takes time
-        // need to look at ways to determine when the collection is ready
-        await sleep(5000);
+        
+        // Wait for plugin file to exist (more reliable than fixed sleep)
+        const pluginPath = path.join(
+          collectionPath,
+          "plugins",
+          "filter",
+          "sample_filter.py",
+        );
+        await waitForCondition({
+          condition: async () => fs.existsSync(pluginPath),
+          message: "Timed out waiting for plugin file to be created",
+          timeout: 10000,  // 10s max, but usually finishes in 2-3s
+          pollTimeout: 200,
+        });
 
         const openPluginButton = await webview.findWebElement(
           By.xpath("//vscode-button[@id='open-folder-button']"),
@@ -576,21 +592,12 @@ describe("Content Creator UI Tests", function () {
           await openPluginButton.isEnabled(),
           "Open Plugin button should be enabled",
         ).to.be.true;
-        // Verify if plugin file exists
-        const pluginPath = path.join(
-          collectionPath,
-          "plugins",
-          "filter",
-          "sample_filter.py",
-        );
-        console.log("Checking if plugin file exists at:", pluginPath);
+        // Plugin file existence already verified by waitForCondition above
+        console.log("Plugin file exists at:", pluginPath);
         expect(fs.existsSync(pluginPath)).to.be.true;
       }
       await webview.switchBack();
-      editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
+      // Editors cleaned up in afterEach hook
     }
 
     it("Check add-plugin webview elements for lookup plugin", async function () {
@@ -679,10 +686,7 @@ describe("Content Creator UI Tests", function () {
       await clickButtonAndCheckEnabled(webview, "create-button");
       await webview.switchBack();
 
-      editorView = new EditorView();
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
+      // Editors cleaned up in afterEach hook
     }
 
     it("Check create-ansible-project webview elements", async function () {
