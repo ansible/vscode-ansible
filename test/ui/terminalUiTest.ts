@@ -46,7 +46,6 @@ describe(__filename, function () {
     try {
       const editorView = new EditorView();
       await editorView.closeAllEditors();
-      await sleep(30);
     } catch (error) {
       console.log("Cleanup warning:", error);
       // Don't fail the test if cleanup has issues
@@ -58,18 +57,15 @@ describe(__filename, function () {
     // Close all editors to clean UI state
     const editorView = new EditorView();
     await editorView.closeAllEditors();
-    await sleep(30); // Wait for UI to stabilize
 
     // Open settings with retry logic
     for (let i = 0; i < 3; i++) {
       try {
         const editor = await workbench.openSettings();
-        await sleep(30); // Wait for settings to fully load
         return editor;
       } catch (error) {
         console.log(`Attempt ${i + 1} to open settings failed:`, error);
         if (i === 2) throw error;
-        await sleep(50); // Longer wait before retry
       }
     }
     throw new Error("Failed to open settings after 3 attempts");
@@ -87,7 +83,6 @@ describe(__filename, function () {
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(30); // Wait for file to open
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await bottomBarPanel.openTerminalView();
@@ -115,7 +110,6 @@ describe(__filename, function () {
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(30); // Wait for file to open
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await bottomBarPanel.openTerminalView();
@@ -153,7 +147,6 @@ describe(__filename, function () {
 
       // Open playbook file and execute command
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(30); // Wait for file to open
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
