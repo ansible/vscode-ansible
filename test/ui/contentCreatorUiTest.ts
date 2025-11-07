@@ -80,7 +80,7 @@ describe("Content Creator UI Tests", function () {
     // This sleep is hard to get rid of because the installation takes time
     // need to look at ways to determine when the installation is ready
     await sleep(2000);
-    
+
     // Create shared EditorView instance
     editorView = new EditorView();
   });
@@ -569,7 +569,7 @@ describe("Content Creator UI Tests", function () {
       if (verifyPath) {
         await scaffoldCollection(collectionPath);
         await createButton.click();
-        
+
         // Wait for plugin file to exist (more reliable than fixed sleep)
         const pluginPath = path.join(
           collectionPath,
