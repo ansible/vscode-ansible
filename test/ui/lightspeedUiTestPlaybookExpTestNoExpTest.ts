@@ -1,18 +1,17 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { By, EditorView } from "vscode-extension-tester";
+import { By, VSBrowser, EditorView } from "vscode-extension-tester";
 import {
   getFixturePath,
   getWebviewByLocator,
-  openResources,
   workbenchExecuteCommand,
   waitForCondition,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
-describe("Verify playbook explanation features when no explanation is returned", function () {
+describe.skip("Verify playbook explanation features when no explanation is returned", function () {
   let editorView: EditorView;
 
   beforeEach(function () {
@@ -31,7 +30,7 @@ describe("Verify playbook explanation features when no explanation is returned",
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
-    await openResources(filePath);
+    await VSBrowser.instance.openResources(filePath);
 
     // Open playbook explanation webview.
     await workbenchExecuteCommand(

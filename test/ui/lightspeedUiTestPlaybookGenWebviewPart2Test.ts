@@ -1,12 +1,17 @@
 // BEFORE: ansible.lightspeed.enabled: true
 
 import { expect, config } from "chai";
-import { By, EditorView, WebView, Key } from "vscode-extension-tester";
+import {
+  By,
+  VSBrowser,
+  EditorView,
+  WebView,
+  Key,
+} from "vscode-extension-tester";
 import {
   getFixturePath,
   sleep,
   getWebviewByLocator,
-  openResources,
   workbenchExecuteCommand,
   waitForCondition,
 } from "./uiTestHelper";
@@ -136,7 +141,7 @@ describe("playbook generation features work", function () {
     const filePath = getFixturePath(folder, file);
 
     // Open file in the editor
-    await openResources(filePath);
+    await VSBrowser.instance.openResources(filePath);
 
     // Open playbook explanation webview.
     await workbenchExecuteCommand(

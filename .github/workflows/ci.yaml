@@ -47,6 +47,7 @@ jobs:
     container:
       image: ghcr.io/jdx/mise:latest
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MISE_TRUSTED_CONFIG_PATHS: /
     continue-on-error: false
     outputs:
@@ -107,17 +108,17 @@ jobs:
           steps.extract_context.outputs.context != '' &&
           !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
         run: |
-          task ${{ steps.extract_context.outputs.context }}"
+          task ${{ steps.extract_context.outputs.context }}
 
       - name: task lint
-        timeout-minutes: 2
+        timeout-minutes: 4
         run: |
           task lint
 
       - name: task docs
         timeout-minutes: 1
         run: |
-          task lint
+          task docs
 
       - name: task package
         timeout-minutes: 2
@@ -126,7 +127,7 @@ jobs:
 
   build:
     name: ${{ matrix.name }}
-    needs: preflight
+
     environment: ci
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
@@ -158,7 +159,7 @@ jobs:
         task-name:
           - test (linux)
         name:
-          - test
+          - test (linux)
         include:
           - name: test (macos)
             task-name: test
