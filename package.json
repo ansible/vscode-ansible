@@ -1000,7 +1000,7 @@
     "@vscode/webview-ui-toolkit": "^1.4.0",
     "highlight.js": "^11.11.1",
     "ini": "^6.0.0",
-    "marked": "^16.4.1",
+    "marked": "^17.0.0",
     "minimatch": "^10.0.3",
     "primevue": "4.4.1",
     "semver": "^7.7.3",

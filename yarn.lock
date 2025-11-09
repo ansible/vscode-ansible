@@ -3876,7 +3876,7 @@ __metadata:
     ini: "npm:^6.0.0"
     jsdom: "npm:^27.0.1"
     lodash: "npm:^4.17.21"
-    marked: "npm:^16.4.1"
+    marked: "npm:^17.0.0"
     minimatch: "npm:^10.0.3"
     mocha: "npm:^11.7.4"
     mocha-junit-reporter: "npm:^2.2.1"
@@ -7977,12 +7977,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"marked@npm:^16.4.1":
-  version: 16.4.1
-  resolution: "marked@npm:16.4.1"
+"marked@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "marked@npm:17.0.0"
   bin:
     marked: bin/marked.js
-  checksum: 10/b5f475dbe297162dc988b7f345b559d03248fde1023822b9f2a68f50cbca0981c78c42f380c3aa5e133b5f5c069a2c6cd683413c12c83710e983a7bc46cdf4a2
+  checksum: 10/5544d27547851986c4e994a3f5739ea30bfe2616a9e1d5d5c8ced0fd561b5e971b3c7ee62b4fea1ea530e9886b89102d5c3b3bf962756494ced021f1accd6854
   languageName: node
   linkType: hard
 
