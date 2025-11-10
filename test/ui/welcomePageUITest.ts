@@ -24,7 +24,22 @@ describe("welcome page is displayed", function () {
 
   before(async function () {
     // Open Ansible Development Tools by clicking the Getting started button on the side bar
-    view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+    // Wait for the Ansible view to be available in the Activity Bar
+    await waitForCondition({
+      condition: async () => {
+        try {
+          view = (await new ActivityBar().getViewControl(
+            "Ansible",
+          )) as ViewControl;
+          return view !== undefined;
+        } catch {
+          return false;
+        }
+      },
+      message: "Ansible view not found in Activity Bar",
+      timeout: 10000,
+    });
+
     sideBar = await view.openView();
 
     await workbenchExecuteCommand(
@@ -35,7 +50,7 @@ describe("welcome page is displayed", function () {
     adtSection = await sideBar
       .getContent()
       .getSection("Ansible Development Tools");
-    adtSection.expand();
+    await adtSection.expand();
   });
 
   it("check for title and get started button", async function () {

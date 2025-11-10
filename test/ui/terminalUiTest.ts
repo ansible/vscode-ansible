@@ -58,7 +58,6 @@ describe(__filename, function () {
         "ansible.playbook.arguments",
         "--syntax-check",
       );
-      await sleep(35); // Brief wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
