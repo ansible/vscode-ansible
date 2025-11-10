@@ -25,7 +25,7 @@ module.exports = {
     includePending: true,
     mochaFile: `./out/junit/unit/${process.env.TEST_ID ?? "unit"}-test-results.xml`,
     outputs: true,
-    suiteTitle: "unit",
+    suiteTitle: "ui",
     suiteTitleSeparatedBy: "::",
   },
 };
