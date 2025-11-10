@@ -1,6 +1,16 @@
 import { expect, config } from "chai";
-import { Workbench, BottomBarPanel, VSBrowser } from "vscode-extension-tester";
-import { getFixturePath, updateSettings } from "./uiTestHelper";
+import {
+  Workbench,
+  BottomBarPanel,
+  VSBrowser,
+  SettingsEditor,
+} from "vscode-extension-tester";
+import {
+  getFixturePath,
+  waitForCondition,
+  sleep,
+  updateSettings,
+} from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -18,97 +28,155 @@ config.truncateThreshold = 0;
  */
 describe(__filename, function () {
   let workbench: Workbench;
-  let bottomBarPanel: BottomBarPanel;
+  let settingsEditor: SettingsEditor;
   const folder = "terminal";
   const file = "playbook.yml";
   const playbookFile = getFixturePath(folder, file);
 
   before(async function () {
     workbench = new Workbench();
-    bottomBarPanel = new BottomBarPanel();
-
-    // Open playbook file once - reused across all tests
-    await VSBrowser.instance.openResources(playbookFile);
+    // Open Settings once - reused across tests with freshness check
+    settingsEditor = await workbench.openSettings();
   });
+
+  // Helper to ensure settings editor is still responsive
+  async function ensureSettingsReady() {
+    try {
+      // Quick check if settings editor is still responsive
+      await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
+    } catch {
+      // Settings became stale, reopen
+      settingsEditor = await workbench.openSettings();
+    }
+  }
 
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
-      const settingsEditor = await workbench.openSettings();
+      await ensureSettingsReady();
       await updateSettings(
         settingsEditor,
         "ansible.playbook.arguments",
         "--syntax-check",
       );
+      await sleep(100); // Brief wait for setting to apply
+
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
-      const terminalView = await bottomBarPanel.openTerminalView();
-      const text = await terminalView.getText();
+      const terminalView = await new BottomBarPanel().openTerminalView();
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return (
+            text.includes("ansible-playbook") && text.includes("--syntax-check")
+          );
+        },
+        message: `Expected ansible-playbook with --syntax-check. Got: ${text}`,
+        timeout: 8000,
+      });
 
       expect(text).to.contain("ansible-playbook");
       expect(text).to.contain("--syntax-check");
+      await terminalView.killTerminal();
     });
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
-      const settingsEditor = await workbench.openSettings();
+      await ensureSettingsReady();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
+      await sleep(100); // Brief wait for setting to apply
+
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
 
-      const terminalView = await bottomBarPanel.openTerminalView();
-      const text = await terminalView.getText();
+      const terminalView = await new BottomBarPanel().openTerminalView();
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return text.includes("ansible-playbook") && text.includes(file);
+        },
+        message: `Expected ansible-playbook without arguments. Got: ${text}`,
+        timeout: 8000,
+      });
 
       expect(text).to.contain("ansible-playbook");
       expect(text).not.to.contain("--syntax-check");
+      await terminalView.killTerminal();
     });
   });
 
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
-      const settingsEditor = await workbench.openSettings();
+      await ensureSettingsReady();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         true,
       );
+      await sleep(50); // Small delay between updates
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
+      await sleep(100); // Brief wait for settings to apply
+
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
 
-      const terminalView = await bottomBarPanel.openTerminalView();
-      const text = await terminalView.getText();
+      const terminalView = await new BottomBarPanel().openTerminalView();
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return text.includes("ansible-navigator") && text.includes("--ee");
+        },
+        message: `Expected ansible-navigator with EE flags. Got: ${text}`,
+        timeout: 8000,
+      });
 
       expect(text).to.contain("ansible-navigator");
       expect(text).to.contain("--ee");
       expect(text).to.contain("--ce");
       expect(text).to.contain("podman");
+      await terminalView.killTerminal();
     });
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
-      const settingsEditor = await workbench.openSettings();
+      await ensureSettingsReady();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         false,
       );
+      await sleep(100); // Brief wait for setting to apply
 
-      // Reopen playbook to make it the active file after settings
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
         "Run playbook via `ansible-navigator run`",
       );
 
-      const terminalView = await bottomBarPanel.openTerminalView();
-      const text = await terminalView.getText();
+      const terminalView = await new BottomBarPanel().openTerminalView();
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return text.includes("ansible-navigator") && text.includes("run");
+        },
+        message: `Expected ansible-navigator without EE flags. Got: ${text}`,
+        timeout: 8000,
+      });
 
       expect(text).to.contain("ansible-navigator");
       expect(text).not.to.contain("--ee");
+      await terminalView.killTerminal();
     });
   });
 });
