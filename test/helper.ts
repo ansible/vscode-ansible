@@ -26,24 +26,13 @@ const LIGHTSPEED_INLINE_SUGGESTION_AFTER_COMMIT_WAIT_TIME =
   LIGHTSPEED_ACCESS_TOKEN === "dummy" ? 200 : 2000;
 const LIGHTSPEED_INLINE_SUGGESTION_AFTER_TRIGGER_WAIT_TIME = 100;
 const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
-
-// Track if extension is already activated to avoid redundant activations
-let extensionActivated = false;
-let extensionActivation: any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
 /**
- * Activates the redhat.ansible extension (reuses activation if already done)
+ * Activates the redhat.ansible extension
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-
-  // Only activate the extension once per test run
-  if (!extensionActivated) {
-    console.log("Activating extension for the first time...");
-    extensionActivation = await extension?.activate();
-    extensionActivated = true;
-  }
+  const activation = await extension?.activate();
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
@@ -54,7 +43,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
     });
 
     await reinitializeAnsibleExtension();
-    return extensionActivation;
+    return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
   }
@@ -62,21 +51,11 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  // Reduced from 2000ms to 1000ms for faster tests
-  // The extension is already activated, so we only need to wait for language mode switch
-  await sleep(extensionActivated ? 1000 : 2000);
+  await sleep(2000); //  Wait for server activation
 }
 
 export async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-/**
- * Reset extension activation state (useful for test suite isolation)
- */
-export function resetExtensionActivation(): void {
-  extensionActivated = false;
-  extensionActivation = undefined;
 }
 
 export const getDocPath = (p: string): string => {
@@ -655,9 +634,6 @@ export async function waitForDiagnosisCompletion(
       started = true;
     } else if (started && processes.length === 0) {
       done = true;
-      // Add small buffer for filesystem sync when process completes
-      await sleep(200);
-      break; // Exit immediately when done
     }
     await sleep(interval);
     elapsed += interval;

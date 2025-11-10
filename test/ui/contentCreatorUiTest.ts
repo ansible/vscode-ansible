@@ -1,12 +1,14 @@
 import {
   By,
   EditorView,
-  VSBrowser,
   WebView,
+  WebElement,
   Workbench,
+  InputBox,
 } from "vscode-extension-tester";
 import {
   getWebviewByLocator,
+  sleep,
   waitForCondition,
   workbenchExecuteCommand,
 } from "./uiTestHelper";
@@ -14,73 +16,16 @@ import { config, expect } from "chai";
 import path from "path";
 import fs from "fs";
 import { execFile } from "child_process";
-import { promisify } from "util";
 import os from "os";
-
-const execFileAsync = promisify(execFile);
 
 config.truncateThreshold = 0;
 
 const homeDir = os.homedir();
 
-// REAL OPTIMIZATION: Reusable notification checker (eliminates duplicate code)
-async function waitForNotification(
-  workbench: Workbench,
-  expectedMessage: string | RegExp,
-): Promise<void> {
-  // FIX: Don't dismiss notifications here - let the command create them first!
-  // The afterEach cleanup will handle dismissing lingering notifications.
-
-  await waitForCondition({
-    condition: async () => {
-      const notifications = await workbench.getNotifications();
-      for (const notification of notifications) {
-        const message = await notification.getMessage();
-        const matches =
-          typeof expectedMessage === "string"
-            ? message === expectedMessage
-            : message.match(expectedMessage);
-        if (matches) {
-          return notification;
-        }
-      }
-      return false;
-    },
-    message: `Timed out waiting for notification: ${expectedMessage}`,
-    timeout: 10000,
-    pollTimeout: 200,
-  });
-}
-
-// REAL OPTIMIZATION: Check if ansible-creator is actually installed and ready
-async function waitForAnsibleCreatorReady(): Promise<void> {
-  await waitForCondition({
-    condition: async () => {
-      try {
-        const { stdout, stderr } = await execFileAsync("ansible-creator", [
-          "--version",
-        ]);
-        // Check both stdout and stderr (some versions output to stderr)
-        const output = (stdout + stderr).trim();
-        return output.length > 0;
-      } catch {
-        return false; // Not ready yet
-      }
-    },
-    message: "ansible-creator installation timed out or failed",
-    timeout: 30000, // Max 30s for installation (generous for CI)
-    pollTimeout: 500, // Check every 500ms
-  });
-}
-
-// REAL OPTIMIZATION: Use shared editorView instead of creating new instance
-async function openCreateWebview(
-  command: string,
-  webviewId: string,
-  sharedEditorView: EditorView,
-) {
+async function openCreateWebview(command: string, webviewId: string) {
   await workbenchExecuteCommand(command);
-  await sharedEditorView.openEditor(webviewId);
+  const editorView = new EditorView();
+  await editorView.openEditor(webviewId);
   return await getWebviewByLocator(
     By.xpath("//vscode-textfield[@id='path-url']"),
   );
@@ -98,8 +43,6 @@ async function checkAndInteractWithField(
       );
     },
     message: `Timed out waiting for text field with id ${fieldId}`,
-    timeout: 5000, // Reduced from default 10000ms
-    pollTimeout: 100,
   });
   expect(textField, `${fieldId} should not be undefined`).not.to.be.undefined;
 
@@ -118,80 +61,19 @@ async function clickButtonAndCheckEnabled(webview: WebView, buttonId: string) {
       );
     },
     message: `Timed out waiting for button with id ${buttonId}`,
-    timeout: 5000, // Reduced from default 10000ms
-    pollTimeout: 100,
   });
   expect(button, `${buttonId} should not be undefined`).not.to.be.undefined;
   expect(await button.isEnabled(), `${buttonId} should be enabled`).to.be.true;
   await button.click();
 }
 
-// REAL OPTIMIZATION: Reusable checkbox finder and clicker
-async function findAndClickCheckbox(
-  webview: WebView,
-  checkboxId: string,
-  scrollIntoView: boolean = false,
-): Promise<void> {
-  const checkbox = await waitForCondition({
-    condition: async () => {
-      return await webview.findWebElement(
-        By.xpath(`//vscode-checkbox[@id='${checkboxId}']`),
-      );
-    },
-    message: `Timed out waiting for checkbox with id ${checkboxId}`,
-    timeout: 5000,
-    pollTimeout: 100,
-  });
-  expect(checkbox, `${checkboxId} should not be undefined`).not.to.be.undefined;
-
-  // Scroll into view if needed (fixes ElementClickInterceptedError on Mac OS)
-  if (scrollIntoView) {
-    const driver = webview.getDriver();
-    await driver.executeScript("arguments[0].scrollIntoView(true);", checkbox);
-  }
-
-  await checkbox.click();
-}
-
 describe("Content Creator UI Tests", function () {
-  // Shared instances used across all tests
-  let editorView: EditorView;
-  let workbench: Workbench;
-
   before(async function () {
-    // Initialize shared instances
-    workbench = new Workbench();
-    editorView = new EditorView();
-
     // Install ansible-creator
     await workbenchExecuteCommand("Install Ansible Content Creator");
-
-    // REAL OPTIMIZATION: Wait until ansible-creator is actually ready
-    // (instead of blind sleep) - exits as soon as ready, not after fixed time!
-    await waitForAnsibleCreatorReady();
-  });
-
-  afterEach(async function () {
-    // FIX: Ensure clean state between tests
-    try {
-      // Close all editors
-      if (editorView) {
-        await editorView.closeAllEditors();
-      }
-
-      // Dismiss any lingering notifications
-      const notifications = await workbench.getNotifications();
-      for (const notification of notifications) {
-        try {
-          await notification.dismiss();
-        } catch {
-          // Ignore if notification already gone
-        }
-      }
-    } catch (error) {
-      // Log but don't fail the test
-      console.log("Cleanup warning:", error);
-    }
+    // This sleep is hard to get rid of because the installation takes time
+    // need to look at ways to determine when the installation is ready
+    await sleep(2000);
   });
 
   describe("ee-project-scaffolding-at-default-path", function () {
@@ -199,7 +81,6 @@ describe("Content Creator UI Tests", function () {
       const eeWebview = await openCreateWebview(
         "Ansible: Create an Execution Environment file",
         "Create Execution Environment",
-        editorView,
       );
 
       const descriptionText = await (
@@ -250,59 +131,131 @@ describe("Content Creator UI Tests", function () {
         "requests, numpy",
       );
 
-      // OPTIMIZATION: Use helper for consistent checkbox interaction
-      await findAndClickCheckbox(eeWebview, "createContext-checkbox");
-      await findAndClickCheckbox(eeWebview, "buildImage-checkbox");
-      await findAndClickCheckbox(eeWebview, "initEE-checkbox");
-      await findAndClickCheckbox(eeWebview, "overwrite-checkbox");
+      const initEEProjectCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='initEE-checkbox']"),
+          );
+        },
+        message: "Timed out waiting for EE project checkbox",
+      });
+
+      const overwriteCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+          );
+        },
+        message: `Timed out waiting for overwrite checkbox`,
+      });
+      const buildImageCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='buildImage-checkbox']"),
+          );
+        },
+        message: `Timed out waiting for overwrite checkbox`,
+      });
+      const createContextCheckbox = await waitForCondition({
+        condition: async () => {
+          return await eeWebview.findWebElement(
+            By.xpath("//vscode-checkbox[@id='createContext-checkbox']"),
+          );
+        },
+        message: `Timed out waiting for overwrite checkbox`,
+      });
+      await createContextCheckbox.click();
+      await buildImageCheckbox.click();
+      await initEEProjectCheckbox.click();
+      await overwriteCheckbox.click();
       await clickButtonAndCheckEnabled(eeWebview, "create-button");
       await clickButtonAndCheckEnabled(eeWebview, "clear-logs-button");
       await clickButtonAndCheckEnabled(eeWebview, "clear-button");
 
       await eeWebview.switchBack();
-      // Editors cleaned up in afterEach hook
+      const editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
     });
     it("Executes the build command from the right-click menu", async function () {
-      // OPTIMIZATION: Use shared workbench instance instead of creating new one
-
-      // Test 1: No file open
+      const workbench = new Workbench();
+      // Test with no file open in editor
       await workbenchExecuteCommand("Build Ansible execution environment");
-      await waitForNotification(
-        workbench,
-        "No file selected and no active file found!",
-      );
 
-      // Test 2: Wrong file type open
+      await waitForCondition({
+        condition: async () => {
+          const notifications = await workbench.getNotifications();
+          for (const notification of notifications) {
+            const message = await notification.getMessage();
+            if (message === "No file selected and no active file found!") {
+              return notification;
+            }
+          }
+          return false;
+        },
+        message: `Timed out waiting for notification with message: "No file selected and no active file found!"`,
+      });
+
+      // Test with a file open but not the execution-environment.yml file
       await workbenchExecuteCommand("File: New Untitled Text file");
       await workbenchExecuteCommand("Build Ansible execution environment");
-      await waitForNotification(
-        workbench,
-        "Active file is not an execution environment file!",
-      );
 
-      // Test 3: Correct execution-environment.yml file
+      await waitForCondition({
+        condition: async () => {
+          const notifications = await workbench.getNotifications();
+          for (const notification of notifications) {
+            const message = await notification.getMessage();
+            if (
+              message === "Active file is not an execution environment file!"
+            ) {
+              return notification;
+            }
+          }
+          return false;
+        },
+        message: `Timed out waiting for notification with message: "Active file is not an execution environment file!"`,
+      });
+
+      // Test with the execution-environment.yml file
       const eeFilePath = path.join(os.homedir(), "execution-environment.yml");
       fs.writeFileSync(eeFilePath, "ver: 4", "utf8");
 
-      // OPTIMIZATION: Use VSBrowser.instance.openResources (faster than manual InputBox)
-      await VSBrowser.instance.openResources(eeFilePath);
+      await workbenchExecuteCommand("Go to File...");
+      const inputBox = await InputBox.create();
+      await inputBox.setText(
+        path.join(os.homedir(), "execution-environment.yml"),
+      );
+      await inputBox.confirm();
       await workbenchExecuteCommand("Build Ansible execution environment");
-      await waitForNotification(workbench, /^Build (successful|failed)/);
+
+      await waitForCondition({
+        condition: async () => {
+          const notifications = await workbench.getNotifications();
+          for (const notification of notifications) {
+            const message = await notification.getMessage();
+            if (message.match(/^Build (successful|failed)/)) {
+              return notification;
+            }
+          }
+          return false;
+        },
+        message: `Timed out waiting for notification with message: "Build successful" or "Build failed"`,
+      });
     });
   });
 
   describe("Ansible playbook and collection project scaffolding at provided path", function () {
+    let editorView: EditorView;
+
     async function testWebViewElements(command: string, editorTitle: string) {
       await workbenchExecuteCommand(command);
 
-      // Use shared editorView instance with waitForCondition
       await waitForCondition({
         condition: async () => {
-          return await editorView.openEditor(editorTitle);
+          return await new EditorView().openEditor(editorTitle);
         },
         message: `Timed out waiting for ${editorTitle} to open`,
-        timeout: 5000, // Optimized timeout
-        pollTimeout: 100,
       });
 
       const webview = await getWebviewByLocator(
@@ -320,9 +273,10 @@ describe("Content Creator UI Tests", function () {
         "test_collection_name",
       );
       await checkAndInteractWithField(webview, "path-url", path.join(homeDir));
-
-      // OPTIMIZATION: Use helper for checkbox interaction
-      await findAndClickCheckbox(webview, "log-to-file-checkbox");
+      const logToFileCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='log-to-file-checkbox']"),
+      );
+      await logToFileCheckbox.click();
 
       await checkAndInteractWithField(
         webview,
@@ -332,13 +286,20 @@ describe("Content Creator UI Tests", function () {
 
       await clickButtonAndCheckEnabled(webview, "create-button");
 
-      // OPTIMIZATION: Use helper for checkbox interaction
-      await findAndClickCheckbox(webview, "overwrite-checkbox");
+      const overwriteCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+      );
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
+      await overwriteCheckbox.click();
 
       await clickButtonAndCheckEnabled(webview, "create-button");
       await webview.switchBack();
 
-      // Editors cleaned up in afterEach hook
+      editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
     }
 
     it("Check create-ansible-project webview elements", async function () {
@@ -357,6 +318,9 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("Ansible playbook and collection project scaffolding at default path", function () {
+    let createButton: WebElement;
+    let editorView: EditorView;
+
     async function testWebViewElements(
       command: string,
       editorTitle: string,
@@ -365,33 +329,60 @@ describe("Content Creator UI Tests", function () {
     ) {
       await workbenchExecuteCommand(command);
 
-      // Use shared editorView instance
-      await editorView.openEditor(editorTitle);
+      await new EditorView().openEditor(editorTitle);
       const textFieldTag = "vscode-textfield";
       const webview = await getWebviewByLocator(
         By.xpath(`//${textFieldTag}[@id='namespace-name']`),
       );
 
-      // Use checkAndInteractWithField helper for consistent field interaction
-      await checkAndInteractWithField(webview, "namespace-name", namespaceName);
-      await checkAndInteractWithField(
-        webview,
-        "collection-name",
-        collectionName,
+      const namespaceTextField = await webview.findWebElement(
+        By.xpath(`//${textFieldTag}[@id='namespace-name']`),
       );
+      expect(namespaceTextField, "namespaceTextField should not be undefined")
+        .not.to.be.undefined;
+      await namespaceTextField.sendKeys(namespaceName);
 
-      // OPTIMIZATION: Use helper for checkbox interaction
-      await findAndClickCheckbox(webview, "overwrite-checkbox");
+      const collectionTextField = await webview.findWebElement(
+        By.xpath(`//${textFieldTag}[@id='collection-name']`),
+      );
+      expect(collectionTextField, "collectionTextField should not be undefined")
+        .not.to.be.undefined;
+      await collectionTextField.sendKeys(collectionName);
+
+      const overwriteCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+      );
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
+      await overwriteCheckbox.click();
+
+      createButton = await webview.findWebElement(
+        By.xpath("//vscode-button[@id='create-button']"),
+      );
+      expect(createButton, "createButton should not be undefined").not.to.be
+        .undefined;
+
+      expect(
+        await createButton.isEnabled(),
+        "Create button should be enabled now",
+      ).to.be.true;
 
       // If on the collection page, look for the editable checkbox
       if (editorTitle.includes("collection")) {
-        await findAndClickCheckbox(webview, "editable-mode-checkbox");
+        const editableCheckbox = await webview.findWebElement(
+          By.xpath("//vscode-checkbox[@id='editable-mode-checkbox']"),
+        );
+        expect(editableCheckbox, "editableCheckbox should not be undefined").not
+          .to.be.undefined;
+        await editableCheckbox.click();
       }
 
-      // Use clickButtonAndCheckEnabled helper
-      await clickButtonAndCheckEnabled(webview, "create-button");
+      await createButton.click();
       await webview.switchBack();
-      // Editors cleaned up in afterEach hook
+      editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
     }
 
     it("Check create-ansible-project webview elements", async function () {
@@ -414,6 +405,9 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("collection plugins scaffolding", function () {
+    let createButton: WebElement;
+    let editorView: EditorView;
+
     // Safely finds the absolute path of the executable from system PATH without using shell commands.
     function findExecutable(command: string): string | null {
       const systemPaths = (process.env.PATH || "").split(path.delimiter);
@@ -448,7 +442,7 @@ describe("Content Creator UI Tests", function () {
           safePath,
           "--no-ansi",
         ],
-        (error, _stdout, stderr) => {
+        (error, stdout, stderr) => {
           if (error) {
             console.error(
               "Failed to scaffold collection:",
@@ -456,7 +450,8 @@ describe("Content Creator UI Tests", function () {
             );
             return;
           }
-          // Collection scaffolded successfully
+          console.log("Collection scaffolded at:", safePath);
+          console.log(stdout);
         },
       );
     }
@@ -475,25 +470,38 @@ describe("Content Creator UI Tests", function () {
         Lookup: 2,
       } as { [key: string]: number };
 
+      console.log(`Executing command: ${command}`);
       await workbenchExecuteCommand(command);
 
-      // Use shared editorView instance with optimized timeout
-      await waitForCondition({
-        condition: async () => {
-          try {
-            return await editorView.openEditor(editorTitle);
-          } catch {
-            return false;
-          }
-        },
-        message: `Timed out waiting for ${editorTitle} to open.`,
-        timeout: 10000, // Plugin scaffolding needs longer timeout
-        pollTimeout: 200,
-      });
+      console.log(`Waiting for editor "${editorTitle}" to open...`);
 
+      try {
+        await waitForCondition({
+          condition: async () => {
+            try {
+              const result = await new EditorView().openEditor(editorTitle);
+              console.log(`Successfully opened editor with default parameters`);
+              return result;
+            } catch {
+              return false;
+            }
+          },
+          message: `Timed out waiting for ${editorTitle} to open.`,
+          timeout: 20000, // Longer timeout
+        });
+      } catch (error) {
+        console.log(
+          `Default approach failed after timeout: ${(error as Error).message}`,
+        );
+      }
+
+      console.log(
+        `Editor "${editorTitle}" opened successfully, getting webview...`,
+      );
       const webview = await getWebviewByLocator(
         By.xpath("//vscode-textfield[@id='path-url']"),
       );
+      console.log(`Webview obtained successfully for "${editorTitle}"`);
 
       const collectionPathUrlTextField = await webview.findWebElement(
         By.xpath("//vscode-textfield[@id='path-url']"),
@@ -527,11 +535,22 @@ describe("Content Creator UI Tests", function () {
         index,
       );
       await pluginTypeDropdown.sendKeys(pluginType);
+      const overwriteCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+      );
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
 
-      // OPTIMIZATION: Use helper with scroll (fixes ElementClickInterceptedError on Mac OS)
-      await findAndClickCheckbox(webview, "overwrite-checkbox", true);
+      // Added `scrolling into view` before clicking overwriteCheckbox
+      // to fix ElementClickInterceptedError on Mac OS runner.
+      const driver = webview.getDriver();
+      await driver.executeScript(
+        "arguments[0].scrollIntoView(true);",
+        overwriteCheckbox,
+      );
+      await overwriteCheckbox.click();
 
-      const createButton = await webview.findWebElement(
+      createButton = await webview.findWebElement(
         By.xpath("//vscode-button[@id='create-button']"),
       );
       expect(createButton, "createButton should not be undefined").not.to.be
@@ -545,20 +564,9 @@ describe("Content Creator UI Tests", function () {
       if (verifyPath) {
         await scaffoldCollection(collectionPath);
         await createButton.click();
-
-        // Wait for plugin file to exist (more reliable than fixed sleep)
-        const pluginPath = path.join(
-          collectionPath,
-          "plugins",
-          "filter",
-          "sample_filter.py",
-        );
-        await waitForCondition({
-          condition: async () => fs.existsSync(pluginPath),
-          message: "Timed out waiting for plugin file to be created",
-          timeout: 10000, // 10s max, but usually finishes in 2-3s
-          pollTimeout: 200,
-        });
+        // This sleep is hard to get rid of because scaffold collection takes time
+        // need to look at ways to determine when the collection is ready
+        await sleep(5000);
 
         const openPluginButton = await webview.findWebElement(
           By.xpath("//vscode-button[@id='open-folder-button']"),
@@ -568,11 +576,21 @@ describe("Content Creator UI Tests", function () {
           await openPluginButton.isEnabled(),
           "Open Plugin button should be enabled",
         ).to.be.true;
-        // Plugin file existence already verified by waitForCondition above
+        // Verify if plugin file exists
+        const pluginPath = path.join(
+          collectionPath,
+          "plugins",
+          "filter",
+          "sample_filter.py",
+        );
+        console.log("Checking if plugin file exists at:", pluginPath);
         expect(fs.existsSync(pluginPath)).to.be.true;
       }
       await webview.switchBack();
-      // Editors cleaned up in afterEach hook
+      editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
     }
 
     it("Check add-plugin webview elements for lookup plugin", async function () {
@@ -628,17 +646,16 @@ describe("Content Creator UI Tests", function () {
   });
 
   describe("role scaffolding in an existing collection", function () {
+    let editorView: EditorView;
+
     async function testWebViewElements(command: string, editorTitle: string) {
       await workbenchExecuteCommand(command);
 
-      // Use shared editorView instance with optimized timeout
       await waitForCondition({
         condition: async () => {
-          return await editorView.openEditor(editorTitle);
+          return await new EditorView().openEditor(editorTitle);
         },
         message: `Timed out waiting for ${editorTitle} to open`,
-        timeout: 5000, // Optimized timeout
-        pollTimeout: 100,
       });
       const webview = await getWebviewByLocator(
         By.xpath("//vscode-textfield[@id='path-url']"),
@@ -653,13 +670,19 @@ describe("Content Creator UI Tests", function () {
 
       await clickButtonAndCheckEnabled(webview, "create-button");
 
-      // OPTIMIZATION: Use helper for checkbox interaction
-      await findAndClickCheckbox(webview, "overwrite-checkbox");
-
+      const overwriteCheckbox = await webview.findWebElement(
+        By.xpath("//vscode-checkbox[@id='overwrite-checkbox']"),
+      );
+      expect(overwriteCheckbox, "overwriteCheckbox should not be undefined").not
+        .to.be.undefined;
+      await overwriteCheckbox.click();
       await clickButtonAndCheckEnabled(webview, "create-button");
       await webview.switchBack();
 
-      // Editors cleaned up in afterEach hook
+      editorView = new EditorView();
+      if (editorView) {
+        await editorView.closeAllEditors();
+      }
     }
 
     it("Check create-ansible-project webview elements", async function () {
