@@ -101,7 +101,7 @@ describe(__filename, function () {
             return text.includes("Play ");
           },
           message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-          timeout: 20000,
+          timeout: 25000, // macos-15-large seems to take longer
         });
 
         // assert with just "Play " rather than "Play name" due to CI output formatting issues
