@@ -135,7 +135,7 @@ describe(__filename, function () {
       await waitForCondition({
         condition: async () => {
           text = await terminalView.getText();
-          return text.includes("Play ");
+          return text.includes("Play ") && text.includes("--ee");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
         timeout: 25000, // macos-15-large seems to take longer
