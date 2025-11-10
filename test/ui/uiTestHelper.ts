@@ -42,7 +42,7 @@ export async function updateSettings(
 
   if (!title) return;
 
-  // Robustly wait for the setting to appear and be interactable
+  // Find and update setting with reduced timeout (fail fast if not found)
   await waitForCondition({
     condition: async () => {
       try {
@@ -60,8 +60,8 @@ export async function updateSettings(
       }
     },
     message: `Failed to update setting ${setting} to ${value}`,
-    timeout: 3000, // Conservative timeout with ~1200ms CI buffer for reliability
-    pollTimeout: 100, // Fast polling for quick response
+    timeout: 5000, // Reduced from 3000ms - fail faster
+    pollTimeout: 50, // Faster polling from 100ms
   });
 }
 

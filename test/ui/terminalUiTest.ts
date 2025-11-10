@@ -1,16 +1,6 @@
 import { expect, config } from "chai";
-import {
-  Workbench,
-  BottomBarPanel,
-  VSBrowser,
-  SettingsEditor,
-} from "vscode-extension-tester";
-import {
-  getFixturePath,
-  waitForCondition,
-  sleep,
-  updateSettings,
-} from "./uiTestHelper";
+import { Workbench, BottomBarPanel, VSBrowser } from "vscode-extension-tester";
+import { getFixturePath, waitForCondition, sleep } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -28,36 +18,45 @@ config.truncateThreshold = 0;
  */
 describe(__filename, function () {
   let workbench: Workbench;
-  let settingsEditor: SettingsEditor;
   const folder = "terminal";
   const file = "playbook.yml";
   const playbookFile = getFixturePath(folder, file);
 
   before(async function () {
     workbench = new Workbench();
-    // Open Settings once - reused across tests with freshness check
-    settingsEditor = await workbench.openSettings();
   });
 
-  // Helper to ensure settings editor is still responsive
-  async function ensureSettingsReady() {
-    try {
-      // Quick check if settings editor is still responsive
-      await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
-    } catch {
-      // Settings became stale, reopen
-      settingsEditor = await workbench.openSettings();
-    }
+  /**
+   * Updates settings by modifying settings.json directly.
+   * This is MUCH faster than using the Settings UI (~100ms vs ~10-15s).
+   */
+  async function updateSettingFast(setting: string, value: any) {
+    const driver = VSBrowser.instance.driver;
+
+    await driver.executeScript(
+      async (settingKey: string, settingValue: any) => {
+        // Use VS Code's internal API to update configuration
+        const vscode = await import("vscode");
+        const config = vscode.workspace.getConfiguration();
+        await config.update(
+          settingKey,
+          settingValue,
+          vscode.ConfigurationTarget.Global,
+        );
+      },
+      setting,
+      value,
+    );
+
+    // Brief wait for setting to be applied
+    await sleep(50);
   }
 
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
-      await ensureSettingsReady();
-      await updateSettings(
-        settingsEditor,
-        "ansible.playbook.arguments",
-        "--syntax-check",
-      );
+      this.timeout(10000); // Should be fast now (~3-5s expected)
+
+      await updateSettingFast("ansible.playbook.arguments", "--syntax-check");
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -82,8 +81,9 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
-      await ensureSettingsReady();
-      await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
+      this.timeout(10000); // Should be fast now (~3-5s expected)
+
+      await updateSettingFast("ansible.playbook.arguments", " ");
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -108,18 +108,14 @@ describe(__filename, function () {
 
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
-      await ensureSettingsReady();
-      await updateSettings(
-        settingsEditor,
-        "ansible.executionEnvironment.enabled",
-        true,
-      );
-      await updateSettings(
-        settingsEditor,
+      this.timeout(10000); // Should be fast now (~3-5s expected)
+
+      // Update both settings - now fast!
+      await updateSettingFast("ansible.executionEnvironment.enabled", true);
+      await updateSettingFast(
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
-      await sleep(35); // Brief wait for settings to apply
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
@@ -135,7 +131,7 @@ describe(__filename, function () {
           return text.includes("Play ") && text.includes("--ee");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 25000, // macos-15-large seems to take longer
+        timeout: 15000,
       });
 
       expect(text).to.contain("ansible-navigator");
@@ -146,13 +142,9 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
-      await ensureSettingsReady();
-      await updateSettings(
-        settingsEditor,
-        "ansible.executionEnvironment.enabled",
-        false,
-      );
-      await sleep(35); // Brief wait for setting to apply
+      this.timeout(10000); // Should be fast now (~3-5s expected)
+
+      await updateSettingFast("ansible.executionEnvironment.enabled", false);
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
