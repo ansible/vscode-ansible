@@ -58,7 +58,7 @@ describe(__filename, function () {
         "ansible.playbook.arguments",
         "--syntax-check",
       );
-      await sleep(100); // Brief wait for setting to apply
+      await sleep(35); // Brief wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -85,7 +85,6 @@ describe(__filename, function () {
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
       await ensureSettingsReady();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
-      await sleep(100); // Brief wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -116,13 +115,12 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         true,
       );
-      await sleep(50); // Small delay between updates
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
-      await sleep(100); // Brief wait for settings to apply
+      await sleep(35); // Brief wait for settings to apply
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
@@ -155,7 +153,7 @@ describe(__filename, function () {
         "ansible.executionEnvironment.enabled",
         false,
       );
-      await sleep(100); // Brief wait for setting to apply
+      await sleep(35); // Brief wait for setting to apply
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
