@@ -1101,7 +1101,7 @@
   "license": "MIT",
   "main": "./out/vitebuild/extension/extension.js",
   "name": "ansible",
-  "packageManager": "yarn@4.10.3",
+  "packageManager": "yarn@4.11.0",
   "publisher": "redhat",
   "qna": false,
   "repository": {
