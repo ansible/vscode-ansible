@@ -54,9 +54,11 @@ tasks:
       - src/**/*.*
       - tsconfig.json
     generates:
-      - "out/server/**/*.*"
+      - "*.tgz"
     cmds:
       - task: build
+      - rm -f {{ .TASKFILE_DIR }}/*.tgz
+      - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   clean:
     desc: Clean build artifacts
