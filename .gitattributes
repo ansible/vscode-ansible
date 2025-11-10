@@ -1,7 +1,9 @@
 # Set default behavior to automatically normalize line endings.
 * text=auto eol=lf
-*.mp4 !text !filter !merge !diff
-*.webp !text !filter !merge !diff
-*.webm !text !filter !merge !diff
-*.gif !text !filter !merge !diff
-*.png !text !filter !merge !diff
+
+# Binary files - no text normalization
+*.mp4 binary
+*.webp binary
+*.webm binary
+*.gif binary
+*.png binary

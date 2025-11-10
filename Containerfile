@@ -8,7 +8,6 @@ LABEL org.opencontainers.image.licenses="GPL-3.0"
 LABEL org.opencontainers.image.description="Internal builder for vscode-ansible repository."
 ENV CI=1
 ENV DEBIAN_FRONTEND=noninteractive
-ENV SKIP_LFS=1
 ENV SKIP_PODMAN=1
 ENV SKIP_DOCKER=1
 ENV MISE_TRUSTED_CONFIG_PATHS=/
@@ -30,7 +29,6 @@ DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0 && apt-g
 curl \
 file \
 git \
-git-lfs \
 golang-github-go-enry-go-oniguruma-dev \
 libasound2 \
 libatk-bridge2.0-0 \
