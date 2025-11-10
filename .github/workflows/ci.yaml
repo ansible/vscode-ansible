@@ -45,7 +45,7 @@ jobs:
   preflight:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/jdx/mise:latest
+      image: ghcr.io/ansible/ext-builder:latest
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MISE_TRUSTED_CONFIG_PATHS: /
@@ -163,7 +163,7 @@ jobs:
         include:
           - name: test (macos)
             task-name: test
-            os: macos-13-large
+            os: macos-15-large
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1

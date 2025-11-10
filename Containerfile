@@ -20,7 +20,13 @@ WORKDIR /context
 # install ansible-dev-tools specific packages and dependencies while avoiding
 # adding multiple layers to the image.
 # cspell:disable
-RUN --mount=type=cache,target=/var/cache/apt/archives/,sharing=locked --mount=type=cache,target=/var/lib/apt/lists/,sharing=locked DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0 && apt-get install -qq -y -o=Dpkg::Use-Pty=0 --no-install-recommends \
+RUN \
+--mount=type=bind,target=. \
+--mount=type=cache,target=/root/.local/share/mise,sharing=locked \
+--mount=type=cache,target=/root/.cache/mise,sharing=locked \
+--mount=type=cache,target=/var/cache/apt/archives/,sharing=locked \
+--mount=type=cache,target=/var/lib/apt/lists/,sharing=locked \
+DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0 && apt-get install -qq -y -o=Dpkg::Use-Pty=0 --no-install-recommends \
 curl \
 file \
 git \
@@ -50,11 +56,7 @@ libxrandr2 \
 libxshmfence1 \
 lsof \
 sudo \
-xvfb
-RUN --mount=type=bind,target=. \
---mount=type=cache,target=/root/.local/share/mise,sharing=locked \
---mount=type=cache,target=/root/.cache/mise,sharing=locked \
-ls -la /context && \
+xvfb && \
 mkdir -p /root/.local/bin && \
 mise install && \
 mise list && \

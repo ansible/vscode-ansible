@@ -135,10 +135,10 @@ describe(__filename, function () {
       await waitForCondition({
         condition: async () => {
           text = await terminalView.getText();
-          return text.includes("ansible-navigator") && text.includes("--ee");
+          return text.includes("Play ");
         },
-        message: `Expected ansible-navigator with EE flags. Got: ${text}`,
-        timeout: 8000,
+        message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
+        timeout: 25000, // macos-15-large seems to take longer
       });
 
       expect(text).to.contain("ansible-navigator");

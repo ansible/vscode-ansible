@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script is used to build the container image for the vscode-ansible repository.
-# cspell:ignore hardlinks
+# cspell:ignore hardlinks unsquashed
 # cspell:disable-next-line
 set -euo pipefail
 
@@ -26,8 +26,10 @@ while [[ $# -gt 0 ]]; do
 done
 
 log notice "Building container image..."
-docker build --output type=docker,name=$IMAGE_TAG,compression=gzip --build-arg GITHUB_TOKEN="${GITHUB_TOKEN:-}" -f Containerfile -t $IMAGE_TAG .
-docker image ls $IMAGE_TAG
+docker build --build-arg GITHUB_TOKEN="${GITHUB_TOKEN:-}" -f Containerfile -t $IMAGE_TAG-unsquashed .
+
+log notice "Squashing image..."
+uvx docker-squash -t $IMAGE_TAG $IMAGE_TAG-unsquashed
 
 log notice "Preparing code for container build testing..."
 set -x
