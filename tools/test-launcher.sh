@@ -179,7 +179,6 @@ if [[ "$COVERAGE" == "" ]]; then
         yarn package
         vsix=$(find . -maxdepth 1 -name '*.vsix')
     fi
-    yarn compile
 
     npm exec -- extest install-vsix -f "${vsix}" -e out/ext -s out/test-resources
 fi
