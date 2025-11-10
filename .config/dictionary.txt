@@ -52,7 +52,6 @@ highlightjs
 hostsvars
 hostvars
 icontent
-interactable
 johndoe
 konflux
 lextudio
