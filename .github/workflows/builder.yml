@@ -5,8 +5,9 @@ on:
       - main
       - "releases/**"
       - "stable/**"
-    paths: &paths
+    paths:
       - .config/mise*.toml
+      - .dockerignore
       - .pre-commit-config.yaml
       - .python-version
       - Containerfile
@@ -17,7 +18,16 @@ on:
   pull_request:
     types: [synchronize, opened, reopened]
     branches: ["main", "devel/*"]
-    paths: *paths
+    paths:
+      - .config/mise*.toml
+      - .dockerignore
+      - .pre-commit-config.yaml
+      - .python-version
+      - Containerfile
+      - package*.json
+      - pyproject.toml
+      - tools/builder.sh
+      - uv.lock
 jobs:
   builder-image:
     runs-on: ubuntu-24.04
@@ -30,6 +40,9 @@ jobs:
         with:
           lfs: true
           fetch-depth: 0
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
