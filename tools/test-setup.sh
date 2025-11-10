@@ -98,7 +98,6 @@ if [[ "${OSTYPE:-}" == darwin* ]]; then
 brew "coreutils"
 brew "libssh"
 brew "gh"
-brew "git-lfs"
 EOS
     # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
@@ -207,31 +206,6 @@ if [[ -f "/usr/bin/apt-get" ]]; then
             "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
             $SUDO apt-get -qq remove -y "$DEB"
     done
-fi
-
-set -x
-pwd
-ls -la
-if [[ "${SKIP_LFS:-}" != "1" ]]; then
-   git lfs status >/dev/null || {
-        log error "Please install and configure git lfs to be able to build the project."
-        exit 3
-    }
-
-    # Pull Git LFS files to ensure media files are available for packaging
-    log notice "Pulling Git LFS files..."
-    git lfs install --skip-smudge
-    git lfs pull || {
-        log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
-        exit 3
-    }
-    log notice "Git LFS files pulled successfully."
-
-    if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
-        log error "Detected LFS pointer files, not real files. Check the git lfs configuration and status."
-        exit 3
-    fi
-
 fi
 
 # Ensure that git is configured properly to allow unattended commits, something
