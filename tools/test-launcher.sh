@@ -166,7 +166,7 @@ retry_command 3 2 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s ou
 if [[ "$OSTYPE" != "darwin"* ]]; then
     CONTAINER_ENGINE=${CONTAINER_ENGINE:-podman}
     ANSIBLE_IMAGE="ghcr.io/ansible/community-ansible-dev-tools:latest"
-    
+
     log notice "Pre-pulling container image for ansible-navigator tests..."
     if command -v "$CONTAINER_ENGINE" &> /dev/null; then
         if $CONTAINER_ENGINE pull "$ANSIBLE_IMAGE" 2>&1 | tee /dev/stderr; then
