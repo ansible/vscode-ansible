@@ -18,26 +18,35 @@ config.truncateThreshold = 0;
  */
 describe(__filename, function () {
   let workbench: Workbench;
+  let settingsEditorOpen = false;
   const folder = "terminal";
   const file = "playbook.yml";
   const playbookFile = getFixturePath(folder, file);
 
   before(async function () {
     workbench = new Workbench();
+    
+    // Open settings.json ONCE for all tests
+    await workbench.executeCommand("Preferences: Open User Settings (JSON)");
+    await sleep(500); // Wait for editor to fully load
+    settingsEditorOpen = true;
+  });
+
+  after(async function () {
+    // Close settings editor after all tests
+    if (settingsEditorOpen) {
+      await workbench.executeCommand("View: Close Editor");
+    }
   });
 
   /**
-   * Updates settings by editing settings.json through Monaco editor.
-   * This is MUCH faster than searching through Settings UI (~1-2s vs ~10-15s).
+   * Updates settings by editing the ALREADY OPEN settings.json through Monaco editor.
+   * This is MUCH faster than searching through Settings UI (~100ms vs ~10-15s).
    */
   async function updateSettingFast(setting: string, value: any) {
-    // Open settings.json editor
-    await workbench.executeCommand("Preferences: Open User Settings (JSON)");
-    await sleep(300); // Wait for editor to open
-
     const driver = VSBrowser.instance.driver;
 
-    // Use Monaco editor API to update the setting
+    // Use Monaco editor API to update the setting (editor already open!)
     await driver.executeScript(
       (settingKey: string, settingValue: any) => {
         // Access Monaco editor (available in VS Code webview)
@@ -46,7 +55,7 @@ describe(__filename, function () {
           throw new Error("Monaco editor not available");
         }
 
-        // Get the active text editor
+        // Get the active text editor (should be settings.json)
         const editors = monaco.editor.getEditors();
         if (!editors || editors.length === 0) {
           throw new Error("No active editor found");
@@ -76,13 +85,11 @@ describe(__filename, function () {
       value,
     );
 
-    // Save and close
+    // Save (but DON'T close - reuse for next setting!)
     await workbench.executeCommand("File: Save");
-    await sleep(100); // Wait for save to complete
-    await workbench.executeCommand("View: Close Editor");
-
-    // Small delay for VS Code to apply the setting
-    await sleep(100);
+    
+    // Wait for VS Code to apply the setting
+    await sleep(150);
   }
 
   describe("execution of playbook using ansible-playbook command", function () {
