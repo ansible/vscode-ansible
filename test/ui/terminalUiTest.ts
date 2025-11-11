@@ -191,7 +191,7 @@ describe(__filename, function () {
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 10000,
+        timeout: 25000, // macos-15-large seems to take longer
         pollTimeout: 300,
       });
 
