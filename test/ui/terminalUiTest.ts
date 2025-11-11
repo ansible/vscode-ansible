@@ -24,6 +24,8 @@ describe(__filename, function () {
     const playbookFile = getFixturePath(folder, file);
 
     it("Execute ansible-playbook command with arg", async function () {
+      this.timeout(35000); // 35 seconds
+
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
@@ -34,10 +36,9 @@ describe(__filename, function () {
       );
 
       await new EditorView().closeAllEditors();
-      await sleep(200);
+      await sleep(500);
 
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(100);
 
       await workbenchExecuteCommand("Run playbook via `ansible-playbook`");
 
@@ -58,6 +59,8 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-playbook command without arg", async function () {
+      this.timeout(35000); // 35 seconds
+
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
@@ -102,6 +105,9 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
+      // Increase test timeout - even with pre-pulled image, settings + execution can take time
+      this.timeout(45000); // 45 seconds total for the entire test
+
       if (process.platform !== "darwin") {
         // Close any existing settings editor to start fresh
         await VSBrowser.instance.driver.switchTo().defaultContent();
@@ -127,10 +133,9 @@ describe(__filename, function () {
 
         // Close settings to free up resources
         await new EditorView().closeAllEditors();
-        await sleep(100);
+        await sleep(500);
 
         await VSBrowser.instance.openResources(playbookFile);
-        await sleep(100);
 
         await workbenchExecuteCommand(
           "Run playbook via `ansible-navigator run`",
@@ -138,7 +143,7 @@ describe(__filename, function () {
 
         // Open terminal and wait for it to be ready
         const terminalView = await new BottomBarPanel().openTerminalView();
-        await sleep(100); // Ensure terminal is capturing output
+        await sleep(1000); // Ensure terminal is ready and capturing output
 
         let text = "";
         let lastTextLength = 0;
@@ -176,6 +181,9 @@ describe(__filename, function () {
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
+      // Set reasonable timeout for this test too
+      this.timeout(40000); // 40 seconds
+
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
@@ -186,10 +194,9 @@ describe(__filename, function () {
       );
 
       await new EditorView().closeAllEditors();
-      await sleep(100);
+      await sleep(500);
 
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(100);
 
       await workbenchExecuteCommand(
         "Run playbook via `ansible-navigator run``",
