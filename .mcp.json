@@ -1,0 +1,10 @@
+{
+  "git": {
+    "commitMessageFooter": ""
+  },
+  "permissions": {
+    "allow": ["Bash(git commit:*)", "Bash(git config:*)", "Bash(cat:*)"],
+    "ask": [],
+    "deny": []
+  }
+}

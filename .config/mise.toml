@@ -28,7 +28,6 @@ lockfile = true
 
 [tools]
 gh = "latest"
-git-lfs = "latest"
 # do not add tools unsupported on windows such: gh, yarn
 node = "22.20.0"
 python = "3.13"

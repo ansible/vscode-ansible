@@ -38,7 +38,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
         with:
-          lfs: true
           fetch-depth: 0
 
       - name: Install the latest version of uv
