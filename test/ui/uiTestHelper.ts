@@ -65,6 +65,26 @@ export async function updateSettings(
   });
 }
 
+/**
+ * Safely kill a terminal, handling ElementNotInteractableError
+ */
+export async function safeKillTerminal(terminalView: any): Promise<void> {
+  try {
+    await terminalView.killTerminal();
+  } catch (error) {
+    // If killTerminal fails, try alternative cleanup
+    console.warn(`Failed to kill terminal cleanly: ${error}`);
+    try {
+      // Give UI time to settle
+      await sleep(500);
+      await terminalView.killTerminal();
+    } catch (retryError) {
+      // Last resort - just log and continue
+      console.error(`Could not kill terminal after retry: ${retryError}`);
+    }
+  }
+}
+
 // In the redirection occurs in the login flow, getting message from a modal dialog
 // may throw NoSuchElementError. This function is for dealing with those errors.
 export async function getModalDialogAndMessage(details = false): Promise<{

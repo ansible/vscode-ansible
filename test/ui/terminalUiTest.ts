@@ -1,6 +1,16 @@
 import { expect, config } from "chai";
-import { Workbench, BottomBarPanel, VSBrowser } from "vscode-extension-tester";
-import { getFixturePath, waitForCondition, sleep } from "./uiTestHelper";
+import {
+  Workbench,
+  BottomBarPanel,
+  VSBrowser,
+  SettingsEditor,
+} from "vscode-extension-tester";
+import {
+  getFixturePath,
+  waitForCondition,
+  updateSettings,
+  safeKillTerminal,
+} from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -15,88 +25,64 @@ config.truncateThreshold = 0;
  *
  * With dry-run mode enabled, commands are echoed instead of executed,
  * making tests fast and reliable.
+ *
+ * NOTE: Settings UI interaction is slow (~10-15s per setting in CI).
+ * This is a known limitation of vscode-extension-tester.
+ * The dry-run optimization saves ~30s per test, which is the main speedup.
  */
 describe(__filename, function () {
   let workbench: Workbench;
-  let settingsEditorOpen = false;
+  let settingsEditor: SettingsEditor;
   const folder = "terminal";
   const file = "playbook.yml";
   const playbookFile = getFixturePath(folder, file);
 
   before(async function () {
+    this.timeout(15000); // Give more time for Settings UI to load
     workbench = new Workbench();
 
-    // Open settings.json ONCE for all tests
-    await workbench.executeCommand("Preferences: Open User Settings (JSON)");
-    await sleep(500); // Wait for editor to fully load
-    settingsEditorOpen = true;
-  });
-
-  after(async function () {
-    // Close settings editor after all tests
-    if (settingsEditorOpen) {
-      await workbench.executeCommand("View: Close Editor");
+    // Open Settings with retry logic
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        settingsEditor = await workbench.openSettings();
+        // Verify it's actually open by trying to find a setting
+        await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
+        break; // Success!
+      } catch (error) {
+        retries--;
+        if (retries === 0) {
+          throw new Error(
+            `Failed to open Settings UI after 3 attempts: ${error}`,
+          );
+        }
+        // Wait a bit before retry
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
     }
   });
 
-  /**
-   * Updates settings by editing the ALREADY OPEN settings.json through Monaco editor.
-   * This is MUCH faster than searching through Settings UI (~100ms vs ~10-15s).
-   */
-  async function updateSettingFast(setting: string, value: any) {
-    const driver = VSBrowser.instance.driver;
-
-    // Use Monaco editor API to update the setting (editor already open!)
-    await driver.executeScript(
-      (settingKey: string, settingValue: any) => {
-        // Access Monaco editor (available in VS Code webview)
-        const monaco = (window as any).monaco;
-        if (!monaco) {
-          throw new Error("Monaco editor not available");
-        }
-
-        // Get the active text editor (should be settings.json)
-        const editors = monaco.editor.getEditors();
-        if (!editors || editors.length === 0) {
-          throw new Error("No active editor found");
-        }
-
-        const editor = editors[0];
-        const model = editor.getModel();
-
-        // Get current content
-        const content = model.getValue();
-
-        // Parse JSON
-        let settings: any;
-        try {
-          settings = JSON.parse(content || "{}");
-        } catch {
-          settings = {};
-        }
-
-        // Update the setting
-        settings[settingKey] = settingValue;
-
-        // Write back formatted JSON
-        model.setValue(JSON.stringify(settings, null, 2));
-      },
-      setting,
-      value,
-    );
-
-    // Save (but DON'T close - reuse for next setting!)
-    await workbench.executeCommand("File: Save");
-
-    // Wait for VS Code to apply the setting
-    await sleep(150);
+  // Helper to ensure settings editor is still responsive
+  async function ensureSettingsReady() {
+    try {
+      // Quick check if settings editor is still responsive
+      await settingsEditor.findSetting("Arguments", "Ansible", "Playbook");
+    } catch {
+      // Settings became stale, reopen
+      settingsEditor = await workbench.openSettings();
+    }
   }
 
   describe("execution of playbook using ansible-playbook command", function () {
     it("Execute ansible-playbook command WITH arguments", async function () {
-      this.timeout(10000); // Should be fast now (~3-5s expected)
+      this.timeout(35000); // Settings UI is slow in CI (~20s total)
 
-      await updateSettingFast("ansible.playbook.arguments", "--syntax-check");
+      await ensureSettingsReady();
+      await updateSettings(
+        settingsEditor,
+        "ansible.playbook.arguments",
+        "--syntax-check",
+      );
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -117,13 +103,14 @@ describe(__filename, function () {
 
       expect(text).to.contain("ansible-playbook");
       expect(text).to.contain("--syntax-check");
-      await terminalView.killTerminal();
+      await safeKillTerminal(terminalView);
     });
 
     it("Execute ansible-playbook command WITHOUT arguments", async function () {
-      this.timeout(10000); // Should be fast now (~3-5s expected)
+      this.timeout(35000); // Settings UI is slow in CI (~20s total)
 
-      await updateSettingFast("ansible.playbook.arguments", " ");
+      await ensureSettingsReady();
+      await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand("Run playbook via `ansible-playbook`");
@@ -142,17 +129,22 @@ describe(__filename, function () {
 
       expect(text).to.contain("ansible-playbook");
       expect(text).not.to.contain("--syntax-check");
-      await terminalView.killTerminal();
+      await safeKillTerminal(terminalView);
     });
   });
 
   describe("execution of playbook using ansible-navigator command", function () {
     it("Execute ansible-navigator WITH EE mode", async function () {
-      this.timeout(10000); // Should be fast now (~3-5s expected)
+      this.timeout(50000); // 2 settings + command = ~35-40s in CI
 
-      // Update both settings - now fast!
-      await updateSettingFast("ansible.executionEnvironment.enabled", true);
-      await updateSettingFast(
+      await ensureSettingsReady();
+      await updateSettings(
+        settingsEditor,
+        "ansible.executionEnvironment.enabled",
+        true,
+      );
+      await updateSettings(
+        settingsEditor,
         "ansible.executionEnvironment.containerEngine",
         "podman",
       );
@@ -178,13 +170,18 @@ describe(__filename, function () {
       expect(text).to.contain("--ee");
       expect(text).to.contain("--ce");
       expect(text).to.contain("podman");
-      await terminalView.killTerminal();
+      await safeKillTerminal(terminalView);
     });
 
     it("Execute ansible-navigator WITHOUT EE mode", async function () {
-      this.timeout(10000); // Should be fast now (~3-5s expected)
+      this.timeout(35000); // Settings UI is slow in CI (~20s total)
 
-      await updateSettingFast("ansible.executionEnvironment.enabled", false);
+      await ensureSettingsReady();
+      await updateSettings(
+        settingsEditor,
+        "ansible.executionEnvironment.enabled",
+        false,
+      );
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbench.executeCommand(
@@ -205,7 +202,7 @@ describe(__filename, function () {
 
       expect(text).to.contain("ansible-navigator");
       expect(text).not.to.contain("--ee");
-      await terminalView.killTerminal();
+      await safeKillTerminal(terminalView);
     });
   });
 });
