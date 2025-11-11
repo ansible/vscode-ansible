@@ -181,6 +181,7 @@ describe(__filename, function () {
       );
 
       const terminalView = await new BottomBarPanel().openTerminalView();
+      await sleep(500);
 
       let text = "";
       // Without containers, ansible-navigator should run quickly
