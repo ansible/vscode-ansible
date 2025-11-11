@@ -101,10 +101,13 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
+      // Container operations require more time even with pre-pulled images
+      this.timeout(10000);
+
       if (process.platform !== "darwin") {
         // Close any existing settings editor to start fresh
         await VSBrowser.instance.driver.switchTo().defaultContent();
-        await sleep(200); // Let UI stabilize after context switch
+        await sleep(100); // Let UI stabilize after context switch
 
         settingsEditor = await openSettings();
 
