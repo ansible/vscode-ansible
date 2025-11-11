@@ -24,8 +24,6 @@ describe(__filename, function () {
     const playbookFile = getFixturePath(folder, file);
 
     it("Execute ansible-playbook command with arg", async function () {
-      this.timeout(35000); // 35 seconds
-
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
@@ -36,7 +34,7 @@ describe(__filename, function () {
       );
 
       await new EditorView().closeAllEditors();
-      await sleep(500);
+      await sleep(200);
 
       await VSBrowser.instance.openResources(playbookFile);
 
@@ -51,7 +49,8 @@ describe(__filename, function () {
           return text.includes("ansible-playbook");
         },
         message: "Timed out waiting for ansible-playbook command",
-        timeout: 8000,
+        timeout: 5000,
+        pollTimeout: 200,
       });
 
       expect(text).contains("ansible-playbook --syntax-check");
@@ -59,21 +58,18 @@ describe(__filename, function () {
     });
 
     it("Execute ansible-playbook command without arg", async function () {
-      this.timeout(35000); // 35 seconds
-
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
 
       await new EditorView().closeAllEditors();
-      await sleep(100);
+      await sleep(200);
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbenchExecuteCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
-      await sleep(100);
 
       let text = "";
       await waitForCondition({
@@ -82,7 +78,8 @@ describe(__filename, function () {
           return text.includes("ansible-playbook");
         },
         message: "Timed out waiting for ansible-playbook command",
-        timeout: 8000,
+        timeout: 5000,
+        pollTimeout: 200,
       });
 
       expect(text).contains("ansible-playbook ");
@@ -105,9 +102,6 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
-      // Increase test timeout - even with pre-pulled image, settings + execution can take time
-      this.timeout(45000); // 45 seconds total for the entire test
-
       if (process.platform !== "darwin") {
         // Close any existing settings editor to start fresh
         await VSBrowser.instance.driver.switchTo().defaultContent();
@@ -133,7 +127,7 @@ describe(__filename, function () {
 
         // Close settings to free up resources
         await new EditorView().closeAllEditors();
-        await sleep(500);
+        await sleep(200);
 
         await VSBrowser.instance.openResources(playbookFile);
 
@@ -143,32 +137,19 @@ describe(__filename, function () {
 
         // Open terminal and wait for it to be ready
         const terminalView = await new BottomBarPanel().openTerminalView();
-        await sleep(1000); // Ensure terminal is ready and capturing output
+        await sleep(500);
 
         let text = "";
-        let lastTextLength = 0;
 
-        // Poll more frequently and check for output changes
+        // Poll for output - image is pre-pulled so should be fast
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
-            const currentLength = text.length;
-
-            // Check if we have the expected output
-            if (text.includes("Play ") || text.includes("PLAY [")) {
-              return true;
-            }
-
-            // If text is growing, command is running - give it more time
-            if (currentLength > lastTextLength) {
-              lastTextLength = currentLength;
-            }
-
-            return false;
+            return text.includes("Play ") || text.includes("PLAY [");
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 15000, // Reduced from 25s since image is pre-pulled
-          pollTimeout: 500, // Poll every 500ms instead of default 200ms
+          timeout: 10000,
+          pollTimeout: 300,
         });
 
         // Verify we got the expected output
@@ -181,9 +162,6 @@ describe(__filename, function () {
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
-      // Set reasonable timeout for this test too
-      this.timeout(40000); // 40 seconds
-
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
@@ -194,7 +172,7 @@ describe(__filename, function () {
       );
 
       await new EditorView().closeAllEditors();
-      await sleep(500);
+      await sleep(200);
 
       await VSBrowser.instance.openResources(playbookFile);
 
@@ -212,8 +190,8 @@ describe(__filename, function () {
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 15000, // Reduced from 25s
-        pollTimeout: 500,
+        timeout: 10000,
+        pollTimeout: 300,
       });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
