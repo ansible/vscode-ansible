@@ -107,7 +107,6 @@ describe(__filename, function () {
       if (process.platform !== "darwin") {
         // Close any existing settings editor to start fresh
         await VSBrowser.instance.driver.switchTo().defaultContent();
-        await sleep(100); // Let UI stabilize after context switch
 
         settingsEditor = await openSettings();
 
@@ -142,15 +141,15 @@ describe(__filename, function () {
 
         let text = "";
 
-        // Poll for output - image is pre-pulled but container startup still takes time
+        // Poll for output - must be fast to fit within 10s test timeout
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
             return text.includes("Play ") || text.includes("PLAY [");
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 25000, // Container startup can take 15-20s in CI
-          pollTimeout: 200,
+          timeout: 3000, // Aggressive timeout - image should be pre-pulled
+          pollTimeout: 150,
         });
 
         // Verify we got the expected output
@@ -163,8 +162,10 @@ describe(__filename, function () {
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
+      // ansible-navigator operations can be slow in CI
+      this.timeout(10000);
+
       await VSBrowser.instance.driver.switchTo().defaultContent();
-      await sleep(100); // Let UI stabilize after context switch
 
       settingsEditor = await openSettings();
       await updateSettings(
@@ -191,8 +192,8 @@ describe(__filename, function () {
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 25000, // macos-15-large seems to take longer
-        pollTimeout: 200,
+        timeout: 3000, // No containers, should be fast
+        pollTimeout: 150,
       });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
@@ -205,6 +206,8 @@ describe(__filename, function () {
     });
 
     after(async function () {
+      this.timeout(15000); // Allow time for cleanup operations
+
       const folder = "terminal";
       const fixtureFolder = getFixturePath(folder) + "/";
       settingsEditor = await openSettings();
