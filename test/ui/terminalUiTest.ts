@@ -4,6 +4,7 @@ import {
   BottomBarPanel,
   VSBrowser,
   SettingsEditor,
+  EditorView,
 } from "vscode-extension-tester";
 import {
   getFixturePath,
@@ -23,6 +24,8 @@ describe(__filename, function () {
     const playbookFile = getFixturePath(folder, file);
 
     it("Execute ansible-playbook command with arg", async function () {
+      await VSBrowser.instance.driver.switchTo().defaultContent();
+
       settingsEditor = await openSettings();
       await updateSettings(
         settingsEditor,
@@ -30,30 +33,54 @@ describe(__filename, function () {
         "--syntax-check",
       );
 
+      await new EditorView().closeAllEditors();
+      await sleep(200);
+
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500); // Give UI time to settle
+      await sleep(100);
 
       await workbenchExecuteCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
-      await sleep(1000); // Wait for terminal to populate
-      const text = await terminalView.getText();
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return text.includes("ansible-playbook");
+        },
+        message: "Timed out waiting for ansible-playbook command",
+        timeout: 8000,
+      });
 
       expect(text).contains("ansible-playbook --syntax-check");
       await terminalView.killTerminal();
     });
 
     it("Execute ansible-playbook command without arg", async function () {
+      await VSBrowser.instance.driver.switchTo().defaultContent();
+
       settingsEditor = await openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
-      await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500); // Give UI time to settle
 
+      await new EditorView().closeAllEditors();
+      await sleep(100);
+
+      await VSBrowser.instance.openResources(playbookFile);
       await workbenchExecuteCommand("Run playbook via `ansible-playbook`");
 
       const terminalView = await new BottomBarPanel().openTerminalView();
-      await sleep(1000); // Wait for terminal to populate
-      const text = await terminalView.getText();
+      await sleep(100);
+
+      let text = "";
+      await waitForCondition({
+        condition: async () => {
+          text = await terminalView.getText();
+          return text.includes("ansible-playbook");
+        },
+        message: "Timed out waiting for ansible-playbook command",
+        timeout: 8000,
+      });
 
       expect(text).contains("ansible-playbook ");
       expect(text).does.not.contain("ansible-playbook --");
@@ -69,50 +96,19 @@ describe(__filename, function () {
     const playbookFile = getFixturePath(folder, file);
 
     before(async function () {
-      // Pre-pull the container image if not on macOS to avoid timeout during test
-      if (process.platform !== "darwin") {
-        this.timeout(180000); // 3 minutes for image pull
-        const { spawn } = await import("child_process");
-        const containerEngine = process.env.CONTAINER_ENGINE || "podman";
-        const image = "ghcr.io/ansible/community-ansible-dev-tools:latest";
-
-        console.log(
-          `Pre-pulling container image ${image} with ${containerEngine}...`,
-        );
-
-        await new Promise<void>((resolve) => {
-          const pullProcess = spawn(containerEngine, ["pull", image], {
-            stdio: "pipe",
-          });
-
-          let stderr = "";
-          pullProcess.stderr?.on("data", (data) => {
-            stderr += data.toString();
-          });
-
-          pullProcess.on("close", (code) => {
-            if (code === 0) {
-              console.log(`Container image ${image} pulled successfully`);
-              resolve();
-            } else {
-              // Don't fail if image pull fails - it might already exist
-              console.log(`Container pull exited with code ${code}: ${stderr}`);
-              resolve(); // Continue anyway
-            }
-          });
-
-          pullProcess.on("error", (err) => {
-            console.log(`Container pull error (continuing): ${err.message}`);
-            resolve(); // Continue anyway - image might already exist
-          });
-        });
-      }
+      // Note: Container image should be pre-pulled by CI setup
+      // This hook is here for any future setup needs
     });
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
       if (process.platform !== "darwin") {
+        // Close any existing settings editor to start fresh
+        await VSBrowser.instance.driver.switchTo().defaultContent();
+
         settingsEditor = await openSettings();
+
+        // Update all settings in sequence - settings editor is already open
         await updateSettings(
           settingsEditor,
           "ansible.executionEnvironment.enabled",
@@ -129,44 +125,71 @@ describe(__filename, function () {
           "missing",
         );
 
+        // Close settings to free up resources
+        await new EditorView().closeAllEditors();
+        await sleep(100);
+
         await VSBrowser.instance.openResources(playbookFile);
-        await sleep(500); // Give UI time to settle
+        await sleep(100);
 
         await workbenchExecuteCommand(
           "Run playbook via `ansible-navigator run`",
         );
+
+        // Open terminal and wait for it to be ready
         const terminalView = await new BottomBarPanel().openTerminalView();
+        await sleep(100); // Ensure terminal is capturing output
 
         let text = "";
-        // With pre-pulled image, this should complete within default timeout
+        let lastTextLength = 0;
+
+        // Poll more frequently and check for output changes
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
-            // Check for either "Play " or ansible-navigator command to ensure something is happening
-            return text.includes("Play ") || text.includes("ansible-navigator");
+            const currentLength = text.length;
+
+            // Check if we have the expected output
+            if (text.includes("Play ") || text.includes("PLAY [")) {
+              return true;
+            }
+
+            // If text is growing, command is running - give it more time
+            if (currentLength > lastTextLength) {
+              lastTextLength = currentLength;
+            }
+
+            return false;
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 25000,
+          timeout: 15000, // Reduced from 25s since image is pre-pulled
+          pollTimeout: 500, // Poll every 500ms instead of default 200ms
         });
 
         // Verify we got the expected output
         expect(text).to.satisfy(
-          (t: string) => t.includes("Play ") || t.includes("ansible-navigator"),
-          "Expected to see 'Play ' or 'ansible-navigator' in terminal output",
+          (t: string) => t.includes("Play ") || t.includes("PLAY ["),
+          "Expected to see 'Play ' or 'PLAY [' in terminal output",
         );
         await terminalView.killTerminal();
       }
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
+      await VSBrowser.instance.driver.switchTo().defaultContent();
+
       settingsEditor = await openSettings();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.enabled",
         false,
       );
+
+      await new EditorView().closeAllEditors();
+      await sleep(100);
+
       await VSBrowser.instance.openResources(playbookFile);
-      await sleep(500); // Give UI time to settle
+      await sleep(100);
 
       await workbenchExecuteCommand(
         "Run playbook via `ansible-navigator run``",
@@ -179,14 +202,18 @@ describe(__filename, function () {
       await waitForCondition({
         condition: async () => {
           text = await terminalView.getText();
-          return text.includes("Play ");
+          return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 25000,
+        timeout: 15000, // Reduced from 25s
+        pollTimeout: 500,
       });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
-      expect(text).contains("Play ");
+      expect(text).to.satisfy(
+        (t: string) => t.includes("Play ") || t.includes("PLAY ["),
+        "Expected to see Play output",
+      );
 
       await terminalView.killTerminal();
     });

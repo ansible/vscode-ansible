@@ -1,6 +1,5 @@
 import { expect, config } from "chai";
 import {
-  ActivityBar,
   By,
   SideBarView,
   ViewControl,

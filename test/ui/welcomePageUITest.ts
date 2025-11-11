@@ -1,6 +1,5 @@
 import { config, expect } from "chai";
 import {
-  ActivityBar,
   By,
   SideBarView,
   ViewControl,
@@ -63,7 +62,9 @@ describe("welcome page is displayed", function () {
           }
           return false;
         } catch (error) {
-          console.log(`Waiting for Ansible Development Tools section: ${error}`);
+          console.log(
+            `Waiting for Ansible Development Tools section: ${error}`,
+          );
           return false;
         }
       },

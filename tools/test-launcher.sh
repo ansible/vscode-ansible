@@ -161,6 +161,23 @@ retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test
 
 log notice "Downloading ChromeDriver..."
 retry_command 3 2 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+
+# Pre-pull ansible-navigator container image for UI tests (non-macOS only)
+if [[ "$OSTYPE" != "darwin"* ]]; then
+    CONTAINER_ENGINE=${CONTAINER_ENGINE:-podman}
+    ANSIBLE_IMAGE="ghcr.io/ansible/community-ansible-dev-tools:latest"
+    
+    log notice "Pre-pulling container image for ansible-navigator tests..."
+    if command -v "$CONTAINER_ENGINE" &> /dev/null; then
+        if $CONTAINER_ENGINE pull "$ANSIBLE_IMAGE" 2>&1 | tee /dev/stderr; then
+            log notice "Container image pulled successfully"
+        else
+            log warning "Failed to pull container image, tests may be slower"
+        fi
+    else
+        log warning "$CONTAINER_ENGINE not found, skipping container image pre-pull"
+    fi
+fi
 if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
     if [ -z "${vsix}" ]; then

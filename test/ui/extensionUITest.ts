@@ -22,11 +22,11 @@ describe("base assets are available after installation", function () {
     view = await waitForCondition({
       condition: async () => {
         try {
-          const activityBar = new ActivityBar();
-          const extensionsView = await activityBar.getViewControl("Extensions");
-          if (extensionsView) {
-            return extensionsView as ViewControl;
-          }
+        const activityBar = new ActivityBar();
+        const extensionsView = await activityBar.getViewControl("Extensions");
+        if (extensionsView) {
+          return extensionsView;
+        }
           return false;
         } catch (error) {
           console.log(`Waiting for Extensions view: ${error}`);

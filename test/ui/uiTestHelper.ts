@@ -260,7 +260,7 @@ export async function getAnsibleViewControl(): Promise<ViewControl> {
         const activityBar = new ActivityBar();
         const ansibleView = await activityBar.getViewControl("Ansible");
         if (ansibleView) {
-          return ansibleView as ViewControl;
+          return ansibleView;
         }
         return false;
       } catch (error) {

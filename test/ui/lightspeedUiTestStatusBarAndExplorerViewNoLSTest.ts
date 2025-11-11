@@ -7,7 +7,6 @@ import {
   VSBrowser,
   EditorView,
   ViewControl,
-  ActivityBar,
   SideBarView,
   ViewSection,
 } from "vscode-extension-tester";
