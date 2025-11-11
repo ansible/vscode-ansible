@@ -52,15 +52,12 @@ export async function updateSettings(
         }
         return false;
       } catch (error) {
-        console.log(
-          `Waiting for setting ${title} to be available: ${error instanceof Error ? error.message : String(error)}`,
-        );
         return false;
       }
     },
     message: `Timed out waiting for setting ${title} to be available`,
-    timeout: 10000,
-    pollTimeout: 500,
+    timeout: 3000, // Aggressive 3s timeout
+    pollTimeout: 200, // Poll faster
   });
 
   await settingInUI.setValue(value);

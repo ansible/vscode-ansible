@@ -12,7 +12,6 @@ import {
   waitForCondition,
   openSettings,
   workbenchExecuteCommand,
-  sleep,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -34,7 +33,6 @@ describe(__filename, function () {
       );
 
       await new EditorView().closeAllEditors();
-      await sleep(200);
 
       await VSBrowser.instance.openResources(playbookFile);
 
@@ -49,8 +47,8 @@ describe(__filename, function () {
           return text.includes("ansible-playbook");
         },
         message: "Timed out waiting for ansible-playbook command",
-        timeout: 5000,
-        pollTimeout: 200,
+        timeout: 3000, // Very fast for local command
+        pollTimeout: 150,
       });
 
       expect(text).contains("ansible-playbook --syntax-check");
@@ -64,7 +62,6 @@ describe(__filename, function () {
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
 
       await new EditorView().closeAllEditors();
-      await sleep(200);
 
       await VSBrowser.instance.openResources(playbookFile);
       await workbenchExecuteCommand("Run playbook via `ansible-playbook`");
@@ -78,8 +75,8 @@ describe(__filename, function () {
           return text.includes("ansible-playbook");
         },
         message: "Timed out waiting for ansible-playbook command",
-        timeout: 5000,
-        pollTimeout: 200,
+        timeout: 3000, // Very fast for local command
+        pollTimeout: 150,
       });
 
       expect(text).contains("ansible-playbook ");
@@ -127,7 +124,6 @@ describe(__filename, function () {
 
         // Close settings to free up resources
         await new EditorView().closeAllEditors();
-        await sleep(200);
 
         await VSBrowser.instance.openResources(playbookFile);
 
@@ -137,7 +133,6 @@ describe(__filename, function () {
 
         // Open terminal and wait for it to be ready
         const terminalView = await new BottomBarPanel().openTerminalView();
-        await sleep(500);
 
         let text = "";
 
@@ -148,8 +143,8 @@ describe(__filename, function () {
             return text.includes("Play ") || text.includes("PLAY [");
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 10000,
-          pollTimeout: 300,
+          timeout: 6000, // Aggressive 6s timeout
+          pollTimeout: 200,
         });
 
         // Verify we got the expected output
@@ -172,7 +167,6 @@ describe(__filename, function () {
       );
 
       await new EditorView().closeAllEditors();
-      await sleep(200);
 
       await VSBrowser.instance.openResources(playbookFile);
 
@@ -181,7 +175,6 @@ describe(__filename, function () {
       );
 
       const terminalView = await new BottomBarPanel().openTerminalView();
-      await sleep(500);
 
       let text = "";
       // Without containers, ansible-navigator should run quickly
@@ -191,8 +184,8 @@ describe(__filename, function () {
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 25000, // macos-15-large seems to take longer
-        pollTimeout: 300,
+        timeout: 6000, // Aggressive 6s timeout
+        pollTimeout: 200,
       });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
