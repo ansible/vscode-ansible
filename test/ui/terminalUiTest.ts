@@ -25,7 +25,7 @@ describe(__filename, function () {
 
   before(async function () {
     workbench = new Workbench();
-    
+
     // Open settings.json ONCE for all tests
     await workbench.executeCommand("Preferences: Open User Settings (JSON)");
     await sleep(500); // Wait for editor to fully load
@@ -87,7 +87,7 @@ describe(__filename, function () {
 
     // Save (but DON'T close - reuse for next setting!)
     await workbench.executeCommand("File: Save");
-    
+
     // Wait for VS Code to apply the setting
     await sleep(150);
   }
