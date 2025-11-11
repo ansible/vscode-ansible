@@ -42,7 +42,27 @@ export async function updateSettings(
 
   if (!title) return;
 
-  const settingInUI = await settingsEditor.findSetting(title, ...categories);
+  // Wait for the setting to be available and ready
+  const settingInUI = await waitForCondition({
+    condition: async () => {
+      try {
+        const setting = await settingsEditor.findSetting(title, ...categories);
+        if (setting) {
+          return setting;
+        }
+        return false;
+      } catch (error) {
+        console.log(
+          `Waiting for setting ${title} to be available: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return false;
+      }
+    },
+    message: `Timed out waiting for setting ${title} to be available`,
+    timeout: 10000,
+    pollTimeout: 500,
+  });
+
   await settingInUI.setValue(value);
 }
 
@@ -233,13 +253,35 @@ export async function dismissNotifications(workbench: Workbench) {
   }
 }
 
+export async function getAnsibleViewControl(): Promise<ViewControl> {
+  return await waitForCondition({
+    condition: async () => {
+      try {
+        const activityBar = new ActivityBar();
+        const ansibleView = await activityBar.getViewControl("Ansible");
+        if (ansibleView) {
+          return ansibleView as ViewControl;
+        }
+        return false;
+      } catch (error) {
+        console.log(
+          `Waiting for Ansible view to be available: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return false;
+      }
+    },
+    message:
+      "Timed out waiting for Ansible view to be available in Activity Bar",
+    timeout: 20000,
+    pollTimeout: 500,
+  });
+}
+
 export async function connectLightspeed() {
   const explorerView = new WebviewView();
   let modalDialog: ModalDialog;
   let dialogMessage: string;
-  const view = (await new ActivityBar().getViewControl(
-    "Ansible",
-  )) as ViewControl;
+  const view = await getAnsibleViewControl();
   const sideBar = await view.openView();
   const adtView = await sideBar
     .getContent()

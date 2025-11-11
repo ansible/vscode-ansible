@@ -22,6 +22,7 @@ import {
   getWebviewByLocator,
   sleep,
   workbenchExecuteCommand,
+  getAnsibleViewControl,
 } from "./uiTestHelper";
 import { WizardGenerationActionType } from "../../src/definitions/lightspeed";
 import { PlaybookGenerationActionEvent } from "../../src/interfaces/lightspeed";
@@ -71,7 +72,7 @@ describe("Lightspeed Explorer features", function () {
   });
 
   it("Focus on Ansible Lightspeed View", async function () {
-    view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+    view = await getAnsibleViewControl();
     sideBar = await view.openView();
 
     adtView = await sideBar

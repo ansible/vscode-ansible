@@ -11,7 +11,7 @@ import {
   SideBarView,
   ViewSection,
 } from "vscode-extension-tester";
-import { getFixturePath } from "./uiTestHelper";
+import { getFixturePath, getAnsibleViewControl } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
 
@@ -47,9 +47,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
   });
 
   it("Lightspeed webviews not present when settings not enabled", async function () {
-    viewControl = (await new ActivityBar().getViewControl(
-      "Ansible",
-    )) as ViewControl;
+    viewControl = await getAnsibleViewControl();
     sideBar = await viewControl.openView();
 
     adtView = await sideBar

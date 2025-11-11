@@ -98,7 +98,10 @@ function retry_command() {
             local exit_code=$?
             if [ $attempt -lt "$max_attempts" ]; then
                 log warning "Command failed with exit code $exit_code. Retrying in ${delay}s..."
+                # Clean up corrupted/partial downloads and unpacked directories
+                log notice "Cleaning up potentially corrupted VS Code cache..."
                 rm -vf .vscode-test/ out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
+                rm -rfv out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
                 sleep "$delay"
                 attempt=$((attempt + 1))
             else
@@ -149,9 +152,15 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
+# Clean up any corrupted VS Code cache from previous failed runs
+log notice "Cleaning up VS Code cache before download..."
+rm -rf .vscode-test/ out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
+rm -f out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
+
 retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
-npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+log notice "Downloading ChromeDriver..."
+retry_command 3 2 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
 if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
     if [ -z "${vsix}" ]; then
