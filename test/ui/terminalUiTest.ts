@@ -139,14 +139,14 @@ describe(__filename, function () {
 
         let text = "";
 
-        // Poll for output - image is pre-pulled so should be fast
+        // Poll for output - image is pre-pulled but container startup still takes time
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
             return text.includes("Play ") || text.includes("PLAY [");
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 6000, // Aggressive 6s timeout
+          timeout: 25000, // Container startup can take 15-20s in CI
           pollTimeout: 200,
         });
 
