@@ -12,6 +12,7 @@ import {
   waitForCondition,
   openSettings,
   workbenchExecuteCommand,
+  sleep,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -57,6 +58,7 @@ describe(__filename, function () {
 
     it("Execute ansible-playbook command without arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
+      await sleep(100); // Let UI stabilize after context switch
 
       settingsEditor = await openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
@@ -102,6 +104,7 @@ describe(__filename, function () {
       if (process.platform !== "darwin") {
         // Close any existing settings editor to start fresh
         await VSBrowser.instance.driver.switchTo().defaultContent();
+        await sleep(200); // Let UI stabilize after context switch
 
         settingsEditor = await openSettings();
 
@@ -158,6 +161,7 @@ describe(__filename, function () {
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
+      await sleep(100); // Let UI stabilize after context switch
 
       settingsEditor = await openSettings();
       await updateSettings(
