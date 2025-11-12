@@ -99,8 +99,8 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
-      // Optimized: settings (~5s) + container startup (~10s) = ~15s
-      this.timeout(20000);
+      // CI requires more time: settings (10s) + container startup (15s) + execution (5s)
+      this.timeout(40000);
 
       if (process.platform !== "darwin") {
         // Ensure clean state
@@ -139,7 +139,7 @@ describe(__filename, function () {
 
         let text = "";
 
-        // Poll for output - container startup should be fast with pre-pulled image
+        // Poll for output - container startup in CI can take time even with pre-pulled image
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
@@ -160,8 +160,8 @@ describe(__filename, function () {
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
-      // Optimized: settings (~3s) + execution (~8s) = ~11s
-      this.timeout(15000);
+      // CI needs more time: settings (10s) + execution (12s)
+      this.timeout(30000);
 
       // Ensure clean state
       await VSBrowser.instance.driver.switchTo().defaultContent();
@@ -187,15 +187,15 @@ describe(__filename, function () {
       const terminalView = await new BottomBarPanel().openTerminalView();
 
       let text = "";
-      // Without containers, should be faster
+      // Without containers, but CI still needs time
       await waitForCondition({
         condition: async () => {
           text = await terminalView.getText();
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 8000, // Faster without containers
-        pollTimeout: 150,
+        timeout: 15000, // CI can be slow even without containers
+        pollTimeout: 200,
       });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
@@ -208,7 +208,7 @@ describe(__filename, function () {
     });
 
     after(async function () {
-      this.timeout(10000); // Optimized cleanup timeout
+      this.timeout(20000); // CI cleanup needs more time
 
       const folder = "terminal";
       const fixtureFolder = getFixturePath(folder) + "/";

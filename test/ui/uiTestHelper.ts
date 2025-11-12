@@ -57,8 +57,8 @@ export async function updateSettings(
       }
     },
     message: `Timed out waiting for setting ${title} (categories: ${categories.join(", ")}) to be available`,
-    timeout: 3000, // Faster timeout
-    pollTimeout: 100, // Poll more frequently
+    timeout: 5000, // CI needs more time for settings UI
+    pollTimeout: 150,
   });
 
   await settingInUI.setValue(value);
@@ -222,7 +222,7 @@ export async function openSettings() {
     try {
       const settings = await workbench.openSettings();
       // Wait briefly for settings to fully render
-      await sleep(150);
+      await sleep(100);
       return settings;
     } catch (e) {
       console.log(`openSettings: i=${i} exception ${e}`);
@@ -230,7 +230,7 @@ export async function openSettings() {
         throw e;
       }
       // Wait before retry
-      await sleep(150);
+      await sleep(100);
     }
   }
 
