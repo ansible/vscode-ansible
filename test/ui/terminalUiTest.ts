@@ -99,8 +99,8 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
-      // CI timeout: settings (3×8s=24s) + container startup (30s) = ~55s
-      this.timeout(30000);
+      // CI timeout: settings (3×8.5s=25.5s) + container startup (30s) = ~56s + buffer
+      this.timeout(60000);
 
       if (process.platform !== "darwin") {
         // Ensure clean state
@@ -160,8 +160,8 @@ describe(__filename, function () {
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
-      // CI needs more time: settings (10s) + execution (12s)
-      this.timeout(30000);
+      // CI timeout: settings (8.5s) + execution (20s) = ~29s + buffer
+      this.timeout(35000);
 
       // Ensure clean state
       await VSBrowser.instance.driver.switchTo().defaultContent();
@@ -187,14 +187,14 @@ describe(__filename, function () {
       const terminalView = await new BottomBarPanel().openTerminalView();
 
       let text = "";
-      // Without containers, but CI still needs time
+      // Without containers, but CI is still slow
       await waitForCondition({
         condition: async () => {
           text = await terminalView.getText();
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 15000, // CI can be slow even without containers
+        timeout: 20000, // CI without containers
         pollTimeout: 200,
       });
 
@@ -208,8 +208,7 @@ describe(__filename, function () {
     });
 
     after(async function () {
-      this.timeout(20000); // CI cleanup needs more time
-      this.timeout(30000); // CI cleanup is slow: 2 settings × 10s each + buffer
+      this.timeout(25000); // CI cleanup: 2 settings × 8.5s each = ~17s + buffer
 
       const folder = "terminal";
       const fixtureFolder = getFixturePath(folder) + "/";

@@ -221,20 +221,20 @@ export async function openSettings() {
   for (let i = 0; i < 5; i++) {
     try {
       const settings = await workbench.openSettings();
-      // Wait briefly for settings to fully render
-      await sleep(100);
+      // Wait for settings to fully render - CI needs more time
+      await sleep(500);
       return settings;
     } catch (e) {
       console.log(`openSettings: i=${i} exception ${e}`);
       if (i > 3) {
         throw e;
       }
-      // Wait before retry
-      await sleep(100);
+      // Wait longer before retry in CI
+      await sleep(1000);
     }
   }
 
-  throw new Error("Something bad happened");
+  throw new Error("Failed to open settings after 5 attempts");
 }
 
 export async function dismissNotifications(workbench: Workbench) {
