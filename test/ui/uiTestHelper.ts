@@ -52,12 +52,13 @@ export async function updateSettings(
         }
         return false;
       } catch (error) {
+        console.log(`Waiting for setting ${title}: ${error}`);
         return false;
       }
     },
-    message: `Timed out waiting for setting ${title} to be available`,
-    timeout: 3000, // Aggressive 3s timeout
-    pollTimeout: 200, // Poll faster
+    message: `Timed out waiting for setting ${title} (categories: ${categories.join(", ")}) to be available`,
+    timeout: 6000, // Fresh settings editor should be more stable
+    pollTimeout: 200,
   });
 
   await settingInUI.setValue(value);
@@ -219,12 +220,17 @@ export async function openSettings() {
 
   for (let i = 0; i < 5; i++) {
     try {
-      return await workbench.openSettings();
+      const settings = await workbench.openSettings();
+      // Wait briefly for settings to fully render
+      await sleep(150);
+      return settings;
     } catch (e) {
       console.log(`openSettings: i=${i} exception ${e}`);
       if (i > 3) {
         throw e;
       }
+      // Wait before retry
+      await sleep(150);
     }
   }
 
