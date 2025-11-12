@@ -51,14 +51,14 @@ export async function updateSettings(
           return setting;
         }
         return false;
-      } catch (error) {
-        console.log(`Waiting for setting ${title}: ${error}`);
+      } catch {
+        // Suppress logs for faster execution
         return false;
       }
     },
     message: `Timed out waiting for setting ${title} (categories: ${categories.join(", ")}) to be available`,
-    timeout: 6000, // Fresh settings editor should be more stable
-    pollTimeout: 200,
+    timeout: 3000, // Faster timeout
+    pollTimeout: 100, // Poll more frequently
   });
 
   await settingInUI.setValue(value);

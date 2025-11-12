@@ -12,7 +12,6 @@ import {
   waitForCondition,
   openSettings,
   workbenchExecuteCommand,
-  sleep,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -58,7 +57,6 @@ describe(__filename, function () {
 
     it("Execute ansible-playbook command without arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
-      await sleep(100); // Let UI stabilize after context switch
 
       settingsEditor = await openSettings();
       await updateSettings(settingsEditor, "ansible.playbook.arguments", " ");
@@ -101,7 +99,7 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
-      // Timeout accounts for: 3x settings operations (30s) + container startup (20s)
+      // Optimized: settings (~5s) + container startup (~10s) = ~15s
       this.timeout(20000);
 
       if (process.platform !== "darwin") {
@@ -109,26 +107,18 @@ describe(__filename, function () {
         await VSBrowser.instance.driver.switchTo().defaultContent();
         await new EditorView().closeAllEditors();
 
-        // Open settings fresh
+        // Open settings once and update all settings sequentially
         settingsEditor = await openSettings();
         await updateSettings(
           settingsEditor,
           "ansible.executionEnvironment.enabled",
           true,
         );
-
-        // Reopen settings to avoid stale elements
-        await new EditorView().closeAllEditors();
-        settingsEditor = await openSettings();
         await updateSettings(
           settingsEditor,
           "ansible.executionEnvironment.containerEngine",
           "podman",
         );
-
-        // Reopen settings again
-        await new EditorView().closeAllEditors();
-        settingsEditor = await openSettings();
         await updateSettings(
           settingsEditor,
           "ansible.executionEnvironment.pull.policy",
@@ -149,15 +139,15 @@ describe(__filename, function () {
 
         let text = "";
 
-        // Poll for output - container startup can be slow even with pre-pulled images
+        // Poll for output - container startup should be fast with pre-pulled image
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
             return text.includes("Play ") || text.includes("PLAY [");
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 20000, // Allow time for container startup in CI
-          pollTimeout: 200,
+          timeout: 10000, // Pre-pulled image makes this faster
+          pollTimeout: 150,
         });
 
         // Verify we got the expected output
@@ -170,14 +160,14 @@ describe(__filename, function () {
     });
 
     it("Execute playbook with ansible-navigator without EE mode", async function () {
-      // Timeout accounts for: settings operations (10s) + ansible-navigator execution (15s)
-      this.timeout(35000);
+      // Optimized: settings (~3s) + execution (~8s) = ~11s
+      this.timeout(15000);
 
       // Ensure clean state
       await VSBrowser.instance.driver.switchTo().defaultContent();
       await new EditorView().closeAllEditors();
 
-      // Open fresh settings
+      // Open settings and update
       settingsEditor = await openSettings();
       await updateSettings(
         settingsEditor,
@@ -197,15 +187,15 @@ describe(__filename, function () {
       const terminalView = await new BottomBarPanel().openTerminalView();
 
       let text = "";
-      // Without containers, ansible-navigator runs locally but CI can be slow
+      // Without containers, should be faster
       await waitForCondition({
         condition: async () => {
           text = await terminalView.getText();
           return text.includes("Play ") || text.includes("PLAY [");
         },
         message: `Timed out waiting for 'Play ' to appear on terminal. Last output: ${text}`,
-        timeout: 15000, // Allow time for ansible-navigator startup in CI
-        pollTimeout: 200,
+        timeout: 8000, // Faster without containers
+        pollTimeout: 150,
       });
 
       // assert with just "Play " rather than "Play name" due to CI output formatting issues
@@ -218,7 +208,7 @@ describe(__filename, function () {
     });
 
     after(async function () {
-      this.timeout(20000); // Allow time for cleanup settings operations
+      this.timeout(10000); // Optimized cleanup timeout
 
       const folder = "terminal";
       const fixtureFolder = getFixturePath(folder) + "/";
@@ -226,17 +216,13 @@ describe(__filename, function () {
       // Ensure clean state
       await new EditorView().closeAllEditors();
 
-      // Update first setting
+      // Update both settings sequentially
       settingsEditor = await openSettings();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.containerEngine",
         "docker",
       );
-
-      // Reopen for second setting to avoid stale elements
-      await new EditorView().closeAllEditors();
-      settingsEditor = await openSettings();
       await updateSettings(
         settingsEditor,
         "ansible.executionEnvironment.pull.policy",
