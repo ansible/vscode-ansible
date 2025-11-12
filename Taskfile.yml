@@ -227,10 +227,10 @@ tasks:
       - task: install
       - ./tools/release.sh
     interactive: true
-  image:
+  builder:
     desc: Build container image used for building the extension
     cmds:
-      - ./tools/container-build.sh
+      - ./tools/builder.sh
   image-konflux:
     desc: Build container image used for building the extension for Konflux CI
     cmds:
