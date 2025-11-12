@@ -103,6 +103,11 @@ jobs:
         run: |
           task build
 
+      - name: task package
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task als:package
+
       - name: Run context-specific command
         if: >-
           steps.extract_context.outputs.context != '' &&
@@ -125,6 +130,14 @@ jobs:
         run: |
           task package
 
+      - name: Archive vsix build artifacts
+        if: ${{ !failure() }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
+        with:
+          name: build-artifacts
+          path: |
+            *.vsix
+            packages/*/*.tgz
   build:
     name: ${{ matrix.name }}
 

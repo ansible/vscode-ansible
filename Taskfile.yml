@@ -84,13 +84,16 @@ tasks:
       - npm exec -- tsc -p ./
     sources:
       - Taskfile.yml
-      - node_modules/**/*
       - package.json
       - src/**/*
       - test/**/*
       - tsconfig.json
       - webpack.config.ts
       - yarn.lock.json
+    generates:
+      - out/client/**/*
+      - out/server/**/*
+      - packages/*/out/**/*
   code:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
@@ -105,12 +108,12 @@ tasks:
       VSCODE_VERSION:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
-      - uv sync --upgrade
+      - task: "deps:python"
       - task: install
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
-      - yarn ncu -u --workspaces -i
+      - task: "deps:node"
       # disabled because it does not work recursively
       # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
@@ -118,13 +121,24 @@ tasks:
       - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - task: shared:install
-      # check deps
-      - yarn dlx depcheck
       - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
     interactive: true
+  "deps:node":
+    desc: Update node dependencies
+    cmds:
+      - yarn ncu -u --workspaces -i
+      # check deps
+      - yarn dlx depcheck
+  "deps:python":
+    desc: Update python dependencies
+    cmds:
+      - uv sync --upgrade
+      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
+      - task: lint
+      - task: build
   docs:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
@@ -205,13 +219,17 @@ tasks:
       - tools/helper
       - src/**/*
       - test/**/*
+      - packages/*/src/**/*
+      - packages/*/test/**/*
       - media/**/*
     generates:
       - "*.vsix"
+      - "packages/*/*.tgz"
     cmds:
       - task: build
       # while not a real dependency, we want to build both all the time:
       - task: als:package
+      - task: mcp:package
       - ./tools/helper --package
       - defer: { task: finish }
     silent: true
