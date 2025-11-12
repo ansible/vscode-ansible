@@ -99,8 +99,8 @@ describe(__filename, function () {
 
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
-      // CI requires more time: settings (10s) + container startup (15s) + execution (5s)
-      this.timeout(40000);
+      // CI timeout: settings (3×8s=24s) + container startup (30s) = ~55s
+      this.timeout(30000);
 
       if (process.platform !== "darwin") {
         // Ensure clean state
@@ -139,15 +139,15 @@ describe(__filename, function () {
 
         let text = "";
 
-        // Poll for output - container startup in CI can take time even with pre-pulled image
+        // Poll for output - container startup in CI can be slow
         await waitForCondition({
           condition: async () => {
             text = await terminalView.getText();
             return text.includes("Play ") || text.includes("PLAY [");
           },
           message: `Timed out waiting for ansible-navigator output. Last terminal content: ${text}`,
-          timeout: 10000, // Pre-pulled image makes this faster
-          pollTimeout: 150,
+          timeout: 30000, // CI container startup
+          pollTimeout: 200,
         });
 
         // Verify we got the expected output
@@ -209,6 +209,7 @@ describe(__filename, function () {
 
     after(async function () {
       this.timeout(20000); // CI cleanup needs more time
+      this.timeout(30000); // CI cleanup is slow: 2 settings × 10s each + buffer
 
       const folder = "terminal";
       const fixtureFolder = getFixturePath(folder) + "/";

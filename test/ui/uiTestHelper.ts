@@ -57,8 +57,8 @@ export async function updateSettings(
       }
     },
     message: `Timed out waiting for setting ${title} (categories: ${categories.join(", ")}) to be available`,
-    timeout: 5000, // CI needs more time for settings UI
-    pollTimeout: 150,
+    timeout: 8000, // CI settings UI can be slow
+    pollTimeout: 200,
   });
 
   await settingInUI.setValue(value);
