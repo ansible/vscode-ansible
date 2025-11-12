@@ -102,7 +102,7 @@ describe(__filename, function () {
     // Skip this test on macOS due to CI container settings
     it("Execute playbook with ansible-navigator EE mode", async function () {
       // Timeout accounts for: 3x settings operations (30s) + container startup (20s)
-      this.timeout(60000);
+      this.timeout(15000);
 
       if (process.platform !== "darwin") {
         // Ensure clean state
@@ -218,7 +218,7 @@ describe(__filename, function () {
     });
 
     after(async function () {
-      this.timeout(20000); // Allow time for cleanup settings operationsclear
+      this.timeout(20000); // Allow time for cleanup settings operations
 
       const folder = "terminal";
       const fixtureFolder = getFixturePath(folder) + "/";
