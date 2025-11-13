@@ -19,6 +19,24 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
     });
 
     describe("Diagnostic test with ansible-lint", function () {
+      before(async function () {
+        await updateSettings("validation.lint.enabled", true);
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        // Give language server time to process document close and settings change
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        clearActivationCache(); // Clear cache after editors closed
+      });
+
+      after(async function () {
+        await updateSettings("validation.lint.enabled", true); // Keep enabled for other tests
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
+      });
+
       it("should complain about no task names", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
