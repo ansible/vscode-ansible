@@ -10,7 +10,7 @@ WORKDIR /usr/src/app
 # install ansible-dev-tools specific packages and dependencies while avoiding
 # adding multiple layers to the image.
 # cspell:disable-next-line
-RUN apt-get update && apt-get install -q -y golang-github-go-enry-go-oniguruma-dev sudo curl git-lfs
+RUN apt-get update && apt-get install -q -y golang-github-go-enry-go-oniguruma-dev sudo curl
 COPY . .
 RUN --mount=type=cache,target=/root/.local/share/mise,sharing=locked \
 --mount=type=cache,target=/root/.cache/mise,sharing=locked \

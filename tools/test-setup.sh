@@ -98,7 +98,6 @@ if [[ "${OSTYPE:-}" == darwin* ]]; then
 brew "coreutils"
 brew "libssh"
 brew "gh"
-brew "git-lfs"
 EOS
     # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
@@ -209,25 +208,6 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     done
 fi
 
-git lfs status >/dev/null || {
-    log error "Please install and configure git lfs to be able to build the project."
-    exit 3
-}
-
-# Pull Git LFS files to ensure media files are available for packaging
-log notice "Pulling Git LFS files..."
-git lfs install
-git lfs pull || {
-    log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
-    exit 3
-}
-log notice "Git LFS files pulled successfully."
-
-if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
-    log error "Detected LFS pointer files, not real files. Check the git lfs configuration and status."
-    exit 3
-fi
-
 # Ensure that git is configured properly to allow unattended commits, something
 # that is needed by some tasks, like devel or deps.
 git config user.email >/dev/null 2>&1 || GIT_NOT_CONFIGURED=1
@@ -238,8 +218,8 @@ if [[ "${GIT_NOT_CONFIGURED:-}" == "1" ]]; then
         log error "git config user.email or user.name are not configured."
         exit 40
     else
-        git config user.email ansible-devtools@redhat.com
-        git config user.name "Ansible DevTools"
+        git config --global user.email ansible-devtools@redhat.com
+        git config --global user.name "Ansible DevTools"
     fi
 fi
 
@@ -445,46 +425,48 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
-log notice "Podman checks..."
-# macos specific
-if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
-    command -v podman >/dev/null 2>&1 || {
-        log notice "Installing podman..."
-        HOMEBREW_NO_ENV_HINTS=1 timed brew install podman
-    }
-    log notice "Configuring podman machine ($MACHTYPE)..."
-    podman machine ls --noheading | grep '\*' >/dev/null || {
-        log warning "Podman machine not found, creating and starting one ($MACHTYPE)..."
-        timed podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
-    }
-    podman machine ls --noheading
-    log notice "Checking status of podman machine ($MACHTYPE)..."
-    is_podman_running || {
-        log warning "Podman machine not running, trying to start it..."
-        # do not use full path as it varies based on architecture
-        # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
-        # MACHTYPE can look like x86_64 or x86_64-apple-darwin20.6.0
-        if [[ $MACHTYPE == x86_64* ]] ; then
-            log notice "Running on x86_64 architecture"
-        else
-            qemu-system-aarch64 -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
-        fi
-        podman machine start
-        # Waiting for machine to become available
-        n=0
-        until [ "$n" -ge 9 ]; do
-            log warning "Still waiting for podman machine to become available $((n * 15))s ..."
-            is_podman_running && break
-            n=$((n+1))
-            sleep 15
-        done
-        is_podman_running
+if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
+    log notice "Podman checks..."
+    # macos specific
+    if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
+        command -v podman >/dev/null 2>&1 || {
+            log notice "Installing podman..."
+            HOMEBREW_NO_ENV_HINTS=1 timed brew install podman
         }
-    # validation is done later
-    podman info >out/podman.log 2>&1
-    podman run hello-world >out/podman.log 2>&1
-    du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
-    podman machine inspect >out/podman.log 2>&1
+        log notice "Configuring podman machine ($MACHTYPE)..."
+        podman machine ls --noheading | grep '\*' >/dev/null || {
+            log warning "Podman machine not found, creating and starting one ($MACHTYPE)..."
+            timed podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
+        }
+        podman machine ls --noheading
+        log notice "Checking status of podman machine ($MACHTYPE)..."
+        is_podman_running || {
+            log warning "Podman machine not running, trying to start it..."
+            # do not use full path as it varies based on architecture
+            # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
+            # MACHTYPE can look like x86_64 or x86_64-apple-darwin20.6.0
+            if [[ $MACHTYPE == x86_64* ]] ; then
+                log notice "Running on x86_64 architecture"
+            else
+                qemu-system-aarch64 -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+            fi
+            podman machine start
+            # Waiting for machine to become available
+            n=0
+            until [ "$n" -ge 9 ]; do
+                log warning "Still waiting for podman machine to become available $((n * 15))s ..."
+                is_podman_running && break
+                n=$((n+1))
+                sleep 15
+            done
+            is_podman_running
+            }
+        # validation is done later
+        podman info >out/podman.log 2>&1
+        podman run hello-world >out/podman.log 2>&1
+        du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
+        podman machine inspect >out/podman.log 2>&1
+    fi
 fi
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"

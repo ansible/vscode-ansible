@@ -45,7 +45,7 @@ jobs:
   preflight:
     runs-on: ubuntu-24.04
     container:
-      image: ghcr.io/jdx/mise:latest
+      image: ghcr.io/ansible/ext-builder:latest
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MISE_TRUSTED_CONFIG_PATHS: /
@@ -163,7 +163,7 @@ jobs:
         include:
           - name: test (macos)
             task-name: test
-            os: macos-13-large
+            os: macos-15-large
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -623,7 +623,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
         if: github.ref_type == 'tag'
         with:
           files: "*.vsix"
