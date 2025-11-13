@@ -1,6 +1,5 @@
 import { expect, config } from "chai";
 import {
-  ActivityBar,
   By,
   SideBarView,
   ViewControl,
@@ -11,6 +10,7 @@ import {
   updateSettings,
   getWebviewByLocator,
   openSettings,
+  getAnsibleViewControl,
 } from "./uiTestHelper";
 
 config.truncateThreshold = 0;
@@ -22,9 +22,10 @@ describe("presence of lightspeed login button in the activity bar", function () 
   let webviewView: WebView;
 
   before(async function () {
+    this.timeout(30000); // Increase timeout for extension loading
     const settingsEditor = await openSettings();
     await updateSettings(settingsEditor, "ansible.lightspeed.enabled", true);
-    view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+    view = await getAnsibleViewControl();
     sideBar = await view.openView();
 
     await sideBar.getContent().getSection("Ansible Lightspeed");

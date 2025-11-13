@@ -42,7 +42,25 @@ export async function updateSettings(
 
   if (!title) return;
 
-  const settingInUI = await settingsEditor.findSetting(title, ...categories);
+  // Wait for the setting to be available and ready
+  const settingInUI = await waitForCondition({
+    condition: async () => {
+      try {
+        const setting = await settingsEditor.findSetting(title, ...categories);
+        if (setting) {
+          return setting;
+        }
+        return false;
+      } catch {
+        // Suppress logs for faster execution
+        return false;
+      }
+    },
+    message: `Timed out waiting for setting ${title} (categories: ${categories.join(", ")}) to be available`,
+    timeout: 8000, // CI settings UI can be slow
+    pollTimeout: 200,
+  });
+
   await settingInUI.setValue(value);
 }
 
@@ -202,16 +220,21 @@ export async function openSettings() {
 
   for (let i = 0; i < 5; i++) {
     try {
-      return await workbench.openSettings();
+      const settings = await workbench.openSettings();
+      // Wait for settings to fully render - CI needs more time
+      await sleep(500);
+      return settings;
     } catch (e) {
       console.log(`openSettings: i=${i} exception ${e}`);
       if (i > 3) {
         throw e;
       }
+      // Wait longer before retry in CI
+      await sleep(1000);
     }
   }
 
-  throw new Error("Something bad happened");
+  throw new Error("Failed to open settings after 5 attempts");
 }
 
 export async function dismissNotifications(workbench: Workbench) {
@@ -233,13 +256,35 @@ export async function dismissNotifications(workbench: Workbench) {
   }
 }
 
+export async function getAnsibleViewControl(): Promise<ViewControl> {
+  return await waitForCondition({
+    condition: async () => {
+      try {
+        const activityBar = new ActivityBar();
+        const ansibleView = await activityBar.getViewControl("Ansible");
+        if (ansibleView) {
+          return ansibleView;
+        }
+        return false;
+      } catch (error) {
+        console.log(
+          `Waiting for Ansible view to be available: ${error instanceof Error ? error.message : String(error)}`,
+        );
+        return false;
+      }
+    },
+    message:
+      "Timed out waiting for Ansible view to be available in Activity Bar",
+    timeout: 20000,
+    pollTimeout: 500,
+  });
+}
+
 export async function connectLightspeed() {
   const explorerView = new WebviewView();
   let modalDialog: ModalDialog;
   let dialogMessage: string;
-  const view = (await new ActivityBar().getViewControl(
-    "Ansible",
-  )) as ViewControl;
+  const view = await getAnsibleViewControl();
   const sideBar = await view.openView();
   const adtView = await sideBar
     .getContent()
