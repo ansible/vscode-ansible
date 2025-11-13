@@ -64,7 +64,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
           "workbench.action.closeAllEditors",
         );
         // Give language server time to process document close and settings change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         clearActivationCache(); // Clear cache after editors closed
       });
 
@@ -111,7 +111,7 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
           "workbench.action.closeAllEditors",
         );
         // Give language server time to process document close and settings change
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
         clearActivationCache(); // Clear cache after editors closed
       });
 
