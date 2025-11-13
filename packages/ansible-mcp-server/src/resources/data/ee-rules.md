@@ -65,7 +65,7 @@ This ensures pip is upgraded to the latest version in Fedora-based images.
 
 ## Collection Handling
 
-### Mandatory Collections
+### Required Collections
 
 The `ansible.utils` collection must always be included in the `galaxy.collections` list, even if not explicitly provided by the user.
 

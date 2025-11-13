@@ -71,6 +71,10 @@ jobs:
           mise exec -- printenv NODE_OPTIONS || true
           task setup
 
+      - name: Install ansible-dev-tools
+        run: |
+          pip install ansible-dev-tools
+
       - name: Extract commit context from conventional commit
         id: extract_context
         shell: bash
