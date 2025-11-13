@@ -3,6 +3,10 @@ import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
 import {
+  runAnsibleNavigator,
+  formatNavigatorResult,
+} from "./tools/ansibleNavigator.js";
+import {
   getEnvironmentInfo,
   setupDevelopmentEnvironment,
   checkAndInstallADT,
@@ -207,6 +211,67 @@ export function createADTCheckEnvHandler() {
           {
             type: "text" as const,
             text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createAnsibleNavigatorHandler() {
+  return async (args: { filePath: string; mode?: string }) => {
+    try {
+      // Check if mode parameter is explicitly provided
+      const mode = args.mode;
+
+      // If mode is not specified, prompt the user for their preference
+      if (mode === undefined) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                "Would you like to specify an output mode for ansible-navigator?\n\n" +
+                "Please specify:\n" +
+                '- `mode: "stdout"` to run with standard output mode (default, recommended for MCP)\n' +
+                '- `mode: "stdout-minimal"` to run with minimal output mode\n' +
+                '- `mode: "interactive"` to run in interactive mode (not recommended for MCP)\n\n' +
+                "The mode parameter controls how ansible-navigator formats its output:\n" +
+                "- `stdout`: Full standard output with all details\n" +
+                "- `stdout-minimal`: Minimal output with essential information only\n" +
+                "- `interactive`: Interactive TUI mode (may not work well in MCP context)\n\n" +
+                "If you don't specify a mode, the tool will default to `stdout` mode.\n\n" +
+                "Please re-run the tool with your preference or without the mode parameter to use the default.",
+            },
+          ],
+        };
+      }
+
+      const { output, debugOutput } = await runAnsibleNavigator(
+        args.filePath,
+        mode,
+      );
+
+      const formattedResult = formatNavigatorResult(
+        output,
+        debugOutput,
+        args.filePath,
+      );
+
+      return {
+        content: [{ type: "text" as const, text: formattedResult }],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Include debug output in error response for triage
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error running ansible-navigator: ${errorMessage}\n\nEnsure 'ansible-navigator' is installed and on PATH\n`,
           },
         ],
         isError: true,
