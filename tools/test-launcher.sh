@@ -98,7 +98,10 @@ function retry_command() {
             local exit_code=$?
             if [ $attempt -lt "$max_attempts" ]; then
                 log warning "Command failed with exit code $exit_code. Retrying in ${delay}s..."
+                # Clean up corrupted/partial downloads and unpacked directories
+                log notice "Cleaning up potentially corrupted VS Code cache..."
                 rm -vf .vscode-test/ out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
+                rm -rfv out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
                 sleep "$delay"
                 attempt=$((attempt + 1))
             else
@@ -149,9 +152,32 @@ fi
 
 # Start the mock Lightspeed server and run UI tests with the new VS Code
 
+# Clean up any corrupted VS Code cache from previous failed runs
+log notice "Cleaning up VS Code cache before download..."
+rm -rf .vscode-test/ out/test-resources/VSCode-* out/test-resources/"Visual Studio Code.app" || true
+rm -f out/test-resources/*stable.zip out/test-resources/*.tar.gz || true
+
 retry_command 3 2 npm exec -- extest get-vscode -c "${CODE_VERSION}" -s out/test-resources
 
-npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+log notice "Downloading ChromeDriver..."
+retry_command 3 2 npm exec -- extest get-chromedriver -c "${CODE_VERSION}" -s out/test-resources
+
+# Pre-pull ansible-navigator container image for UI tests (non-macOS only)
+if [[ "$OSTYPE" != "darwin"* ]]; then
+    CONTAINER_ENGINE=${CONTAINER_ENGINE:-podman}
+    ANSIBLE_IMAGE="ghcr.io/ansible/community-ansible-dev-tools:latest"
+
+    log notice "Pre-pulling container image for ansible-navigator tests..."
+    if command -v "$CONTAINER_ENGINE" &> /dev/null; then
+        if $CONTAINER_ENGINE pull "$ANSIBLE_IMAGE" 2>&1 | tee /dev/stderr; then
+            log notice "Container image pulled successfully"
+        else
+            log warning "Failed to pull container image, tests may be slower"
+        fi
+    else
+        log warning "$CONTAINER_ENGINE not found, skipping container image pre-pull"
+    fi
+fi
 if [[ "$COVERAGE" == "" ]]; then
     vsix=$(find . -maxdepth 1 -name '*.vsix')
     if [ -z "${vsix}" ]; then

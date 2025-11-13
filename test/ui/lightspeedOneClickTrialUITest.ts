@@ -23,6 +23,7 @@ import {
   sleep,
   waitForCondition,
   workbenchExecuteCommand,
+  getAnsibleViewControl,
 } from "./uiTestHelper";
 import { Key } from "selenium-webdriver";
 import { expect } from "chai";
@@ -82,7 +83,7 @@ describe("One Click Trial feature", function () {
   });
 
   it("Focus on Ansible Lightspeed View", async function () {
-    view = (await new ActivityBar().getViewControl("Ansible")) as ViewControl;
+    view = await getAnsibleViewControl();
     sideBar = await view.openView();
 
     adtView = await sideBar
