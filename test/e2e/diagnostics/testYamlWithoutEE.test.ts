@@ -6,6 +6,7 @@ import {
   testDiagnostics,
   updateSettings,
   waitForDiagnosisCompletion,
+  clearActivationCache,
 } from "../../helper";
 
 export function testDiagnosticsYAMLWithoutEE(): void {
@@ -80,6 +81,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     describe("yaml-diag-no-ansible-lint", function () {
       before(async function () {
         await updateSettings("validation.lint.enabled", false);
+        clearActivationCache(); // Clear cache when settings change
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
@@ -87,14 +89,13 @@ export function testDiagnosticsYAMLWithoutEE(): void {
 
       after(async function () {
         await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
+        clearActivationCache(); // Clear cache after settings revert
       });
 
       it("should provide diagnostics with YAML validation (with --syntax-check)", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        console.log("Waiting for diagnostics…");
         await waitForDiagnosisCompletion();
-        console.log("Done waiting, checking diagnostics…"); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -151,6 +152,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     describe("yaml-diag-disabled", function () {
       before(async function () {
         await updateSettings("validation.enabled", false);
+        clearActivationCache(); // Clear cache when settings change
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
@@ -158,6 +160,7 @@ export function testDiagnosticsYAMLWithoutEE(): void {
 
       after(async function () {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
+        clearActivationCache(); // Clear cache after settings revert
       });
 
       it("should provide no diagnostics with invalid YAML file", async function () {

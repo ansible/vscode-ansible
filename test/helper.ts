@@ -13,6 +13,17 @@ import { rmSync } from "fs";
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
+// Cache for tracking activated documents to avoid redundant initialization
+const activatedDocuments = new Set<string>();
+let isExtensionActivated = false;
+
+/**
+ * Clear the activation cache. Call this when settings change that affect document processing.
+ */
+export function clearActivationCache(): void {
+  activatedDocuments.clear();
+}
+
 export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
@@ -32,17 +43,41 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-  const activation = await extension?.activate();
+  
+  // Only activate extension once
+  let activation;
+  if (!isExtensionActivated) {
+    activation = await extension?.activate();
+    isExtensionActivated = true;
+  } else {
+    activation = extension?.exports;
+  }
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
-    await waitForDiagnosisCompletion();
+    const docKey = docUri.toString();
+    
+    // Skip reinitialization if document was recently activated
+    const needsFullInit = !activatedDocuments.has(docKey);
+    
+    if (needsFullInit) {
+      await waitForDiagnosisCompletion();
+    }
+    
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
     });
 
-    await reinitializeAnsibleExtension();
+    if (needsFullInit) {
+      await reinitializeAnsibleExtension();
+      activatedDocuments.add(docKey);
+    } else {
+      // Even for cached documents, ensure language is set
+      await vscode.languages.setTextDocumentLanguage(doc, "ansible");
+      await sleep(200); // Brief wait for language mode switch
+    }
+    
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
@@ -51,7 +86,24 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(2000); //  Wait for server activation
+  // Wait for server activation with shorter, adaptive timeout
+  const maxWait = 2000;
+  const checkInterval = 200;
+  let waited = 0;
+  
+  // Check if language server is ready by attempting to get diagnostics
+  while (waited < maxWait) {
+    await sleep(checkInterval);
+    waited += checkInterval;
+    
+    // If we can get diagnostics, the server is likely ready
+    const diagnostics = vscode.languages.getDiagnostics(doc.uri);
+    if (diagnostics !== undefined) {
+      // Server is responding, give it a bit more time to stabilize
+      await sleep(200);
+      break;
+    }
+  }
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -238,14 +290,10 @@ export async function testDiagnostics(
 ): Promise<void> {
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
   if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
-    console.info(
-      `Diagnostics delayed - Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
-    );
     const pollTimeout = 5000;
-    const pollInterval = 500;
+    const pollInterval = 200; // Reduced from 500ms for faster polling
     let elapsed = 0;
 
-    console.info("Polling for diagnostics for up to 5s...\n");
     while (
       elapsed < pollTimeout &&
       actualDiagnostics.length !== expectedDiagnostics.length
@@ -253,9 +301,6 @@ export async function testDiagnostics(
       await sleep(pollInterval);
       elapsed += pollInterval;
       actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-      console.info(
-        `...${elapsed / 1000}s (diagnostics: ${actualDiagnostics.length})\n`,
-      );
     }
   }
 
@@ -621,6 +666,9 @@ export async function waitForDiagnosisCompletion(
   let started = false;
   let done = false;
   let elapsed = 0;
+  let consecutiveZeroChecks = 0;
+  const requiredConsecutiveZeros = 2; // Need 2 consecutive checks with no processes
+  
   // If either ansible-lint or ansible-playbook has started within the
   // specified timeout value (default: 5000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
@@ -630,12 +678,22 @@ export async function waitForDiagnosisCompletion(
     const processes = ansibleProcesses.filter((p) =>
       /ansible-(?:lint|playbook)/.test(p.name),
     );
+    
     if (!started && processes.length > 0) {
       started = true;
+      consecutiveZeroChecks = 0;
     } else if (started && processes.length === 0) {
-      done = true;
+      consecutiveZeroChecks++;
+      if (consecutiveZeroChecks >= requiredConsecutiveZeros) {
+        done = true;
+      }
+    } else if (processes.length > 0) {
+      consecutiveZeroChecks = 0;
     }
-    await sleep(interval);
-    elapsed += interval;
+    
+    if (!done) {
+      await sleep(interval);
+      elapsed += interval;
+    }
   }
 }
