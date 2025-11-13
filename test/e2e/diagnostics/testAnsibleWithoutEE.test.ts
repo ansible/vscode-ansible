@@ -40,7 +40,8 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should complain about no task names", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+        // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
+        await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -58,7 +59,8 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should complain about command syntax-check failed", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+        // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
+        await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, [
           {

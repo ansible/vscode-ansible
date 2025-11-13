@@ -678,13 +678,13 @@ export async function testValidJinjaBrackets(
 export async function waitForDiagnosisCompletion(
   interval = 150,
   timeout = 3000,
+  quickCheckTimeout = 500, // Quick check period to detect if validation is disabled
 ) {
   let started = false;
   let done = false;
   let elapsed = 0;
   let consecutiveZeroChecks = 0;
   const requiredConsecutiveZeros = 2; // Need 2 consecutive checks with no processes
-  const quickCheckTimeout = 500; // Quick check period to detect if validation is disabled
 
   // If either ansible-lint or ansible-playbook has started within the
   // specified timeout value (default: 3000 msecs), we'll wait until
