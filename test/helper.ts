@@ -89,6 +89,14 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 }
 
 async function reinitializeAnsibleExtension(): Promise<void> {
+  // Force language change by setting to yaml first, then ansible
+  // This ensures the language server receives a fresh onDidOpen event
+  // even if the document was previously set to ansible
+  if (doc.languageId === "ansible") {
+    await vscode.languages.setTextDocumentLanguage(doc, "yaml");
+    await sleep(100); // Brief wait for language change to process
+  }
+
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
   // Wait for server activation with adaptive timeout
   const maxWait = 1500;
