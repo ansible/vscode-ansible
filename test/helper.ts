@@ -19,9 +19,13 @@ let isExtensionActivated = false;
 
 /**
  * Clear the activation cache. Call this when settings change that affect document processing.
+ * This ensures documents are fully re-validated with new settings.
  */
 export function clearActivationCache(): void {
   activatedDocuments.clear();
+  // Note: Closing editors happens in the test's before() hook via
+  // vscode.commands.executeCommand("workbench.action.closeAllEditors")
+  // which ensures the language server also clears its cache
 }
 
 export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");

@@ -60,15 +60,18 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
     describe("Diagnostic test with ansible-syntax-check", function () {
       before(async function () {
         await updateSettings("validation.lint.enabled", false);
-        clearActivationCache(); // Clear cache when settings change
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
-        clearActivationCache(); // Clear cache after settings revert
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should return no diagnostics", async function () {
@@ -102,15 +105,18 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
     describe("no diagnostics", function () {
       before(async function () {
         await updateSettings("validation.enabled", false);
-        clearActivationCache(); // Clear cache when settings change
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
-        clearActivationCache(); // Clear cache after settings revert
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should return no diagnostics even when `hosts` key is missing", async function () {

@@ -81,15 +81,18 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     describe("yaml-diag-no-ansible-lint", function () {
       before(async function () {
         await updateSettings("validation.lint.enabled", false);
-        clearActivationCache(); // Clear cache when settings change
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
-        clearActivationCache(); // Clear cache after settings revert
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should provide diagnostics with YAML validation (with --syntax-check)", async function () {
@@ -152,15 +155,18 @@ export function testDiagnosticsYAMLWithoutEE(): void {
     describe("yaml-diag-disabled", function () {
       before(async function () {
         await updateSettings("validation.enabled", false);
-        clearActivationCache(); // Clear cache when settings change
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
-        clearActivationCache(); // Clear cache after settings revert
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should provide no diagnostics with invalid YAML file", async function () {
