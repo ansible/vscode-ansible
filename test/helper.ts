@@ -43,7 +43,7 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-  
+
   // Only activate extension once
   let activation;
   if (!isExtensionActivated) {
@@ -56,14 +56,10 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     const docKey = docUri.toString();
-    
+
     // Skip reinitialization if document was recently activated
     const needsFullInit = !activatedDocuments.has(docKey);
-    
-    if (needsFullInit) {
-      await waitForDiagnosisCompletion();
-    }
-    
+
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
@@ -71,13 +67,17 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
     if (needsFullInit) {
       await reinitializeAnsibleExtension();
+      // Wait for any validation triggered by onDidOpen to complete
+      // This prevents two validation processes from running simultaneously
+      // Uses a shorter timeout (1500ms) to exit faster when validation is disabled
+      await waitForDiagnosisCompletion(150, 1500);
       activatedDocuments.add(docKey);
     } else {
       // Even for cached documents, ensure language is set
       await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-      await sleep(200); // Brief wait for language mode switch
+      await sleep(100); // Minimal wait for language mode switch
     }
-    
+
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
@@ -86,21 +86,22 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 
 async function reinitializeAnsibleExtension(): Promise<void> {
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  // Wait for server activation with shorter, adaptive timeout
-  const maxWait = 2000;
-  const checkInterval = 200;
+  // Wait for server activation with adaptive timeout
+  const maxWait = 1500;
+  const checkInterval = 100;
   let waited = 0;
-  
+
   // Check if language server is ready by attempting to get diagnostics
   while (waited < maxWait) {
     await sleep(checkInterval);
     waited += checkInterval;
-    
+
     // If we can get diagnostics, the server is likely ready
     const diagnostics = vscode.languages.getDiagnostics(doc.uri);
     if (diagnostics !== undefined) {
-      // Server is responding, give it a bit more time to stabilize
-      await sleep(200);
+      // Server is responding, give it time to process onDidOpen event
+      // This ensures any validation triggered by document opening has started
+      await sleep(250);
       break;
     }
   }
@@ -289,9 +290,12 @@ export async function testDiagnostics(
   expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-  if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
-    const pollTimeout = 5000;
-    const pollInterval = 200; // Reduced from 500ms for faster polling
+
+  // Poll until we have the expected number of diagnostics
+  // Since waitForDiagnosisCompletion already waits for processes, this should be quick
+  if (actualDiagnostics.length !== expectedDiagnostics.length) {
+    const pollTimeout = 1500; // Reduced - most diagnostics should be ready by now
+    const pollInterval = 50; // Very fast polling for quick response
     let elapsed = 0;
 
     while (
@@ -660,17 +664,18 @@ export async function testValidJinjaBrackets(
 }
 
 export async function waitForDiagnosisCompletion(
-  interval = 100,
-  timeout = 5000,
+  interval = 150,
+  timeout = 3000,
 ) {
   let started = false;
   let done = false;
   let elapsed = 0;
   let consecutiveZeroChecks = 0;
   const requiredConsecutiveZeros = 2; // Need 2 consecutive checks with no processes
-  
+  const quickCheckTimeout = 500; // Quick check period to detect if validation is disabled
+
   // If either ansible-lint or ansible-playbook has started within the
-  // specified timeout value (default: 5000 msecs), we'll wait until
+  // specified timeout value (default: 3000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {
@@ -678,7 +683,7 @@ export async function waitForDiagnosisCompletion(
     const processes = ansibleProcesses.filter((p) =>
       /ansible-(?:lint|playbook)/.test(p.name),
     );
-    
+
     if (!started && processes.length > 0) {
       started = true;
       consecutiveZeroChecks = 0;
@@ -690,10 +695,21 @@ export async function waitForDiagnosisCompletion(
     } else if (processes.length > 0) {
       consecutiveZeroChecks = 0;
     }
-    
+
+    // Early exit if no process started after quick check period
+    // This handles the case when validation is disabled
+    if (!started && elapsed >= quickCheckTimeout) {
+      break;
+    }
+
     if (!done) {
       await sleep(interval);
       elapsed += interval;
     }
+  }
+
+  // Give language server a brief moment to publish diagnostics after process completes
+  if (started && done) {
+    await sleep(200);
   }
 }
