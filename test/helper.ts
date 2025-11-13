@@ -43,7 +43,7 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-  
+
   // Only activate extension once
   let activation;
   if (!isExtensionActivated) {
@@ -56,14 +56,14 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
     const docKey = docUri.toString();
-    
+
     // Skip reinitialization if document was recently activated
     const needsFullInit = !activatedDocuments.has(docKey);
-    
+
     if (needsFullInit) {
       await waitForDiagnosisCompletion();
     }
-    
+
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
@@ -77,7 +77,7 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
       await vscode.languages.setTextDocumentLanguage(doc, "ansible");
       await sleep(200); // Brief wait for language mode switch
     }
-    
+
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
@@ -90,12 +90,12 @@ async function reinitializeAnsibleExtension(): Promise<void> {
   const maxWait = 2000;
   const checkInterval = 200;
   let waited = 0;
-  
+
   // Check if language server is ready by attempting to get diagnostics
   while (waited < maxWait) {
     await sleep(checkInterval);
     waited += checkInterval;
-    
+
     // If we can get diagnostics, the server is likely ready
     const diagnostics = vscode.languages.getDiagnostics(doc.uri);
     if (diagnostics !== undefined) {
@@ -668,7 +668,7 @@ export async function waitForDiagnosisCompletion(
   let elapsed = 0;
   let consecutiveZeroChecks = 0;
   const requiredConsecutiveZeros = 2; // Need 2 consecutive checks with no processes
-  
+
   // If either ansible-lint or ansible-playbook has started within the
   // specified timeout value (default: 5000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
@@ -678,7 +678,7 @@ export async function waitForDiagnosisCompletion(
     const processes = ansibleProcesses.filter((p) =>
       /ansible-(?:lint|playbook)/.test(p.name),
     );
-    
+
     if (!started && processes.length > 0) {
       started = true;
       consecutiveZeroChecks = 0;
@@ -690,7 +690,7 @@ export async function waitForDiagnosisCompletion(
     } else if (processes.length > 0) {
       consecutiveZeroChecks = 0;
     }
-    
+
     if (!done) {
       await sleep(interval);
       elapsed += interval;
