@@ -11,6 +11,7 @@ import {
 import {
   generateExecutionEnvironment,
   formatExecutionEnvResult,
+  buildEEStructureFromPrompt,
 } from "./tools/executionEnv.js";
 
 export function createZenOfAnsibleHandler() {
@@ -227,6 +228,7 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
     collections?: string[];
     systemPackages?: string[];
     pythonPackages?: string[];
+    generatedYaml?: string;
   }) => {
     try {
       // Validate required inputs
@@ -252,8 +254,31 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
         };
       }
 
-      // Generate execution environment file
-      const result = await generateExecutionEnvironment(args, workspaceRoot);
+      // If generatedYaml is provided, use it to create the file
+      // Otherwise, return a prompt for the client's LLM to generate the YAML
+      if (!args.generatedYaml) {
+        // Return prompt for LLM to generate YAML
+        const { prompt } = await buildEEStructureFromPrompt(args);
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `**Please generate the execution-environment.yml file using the following prompt:**\n\n` +
+                `\`\`\`\n${prompt}\n\`\`\`\n\n` +
+                `**After generating the YAML, call this tool again with the 'generatedYaml' parameter containing the generated YAML content.**`,
+            },
+          ],
+          isError: false,
+        };
+      }
+
+      // Generate execution environment file using LLM-generated YAML
+      const result = await generateExecutionEnvironment(
+        args,
+        workspaceRoot,
+        args.generatedYaml,
+      );
 
       // Format result for display
       const formattedOutput = formatExecutionEnvResult(result);
@@ -279,7 +304,8 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
               "Please ensure:\n" +
               "- Valid base image name is provided\n" +
               "- Destination path is writable (if specified)\n" +
-              "- All inputs are properly formatted",
+              "- All inputs are properly formatted\n" +
+              "- Generated YAML is valid and follows the rules",
           },
         ],
         isError: true,

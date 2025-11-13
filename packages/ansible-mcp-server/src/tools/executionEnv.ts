@@ -3,7 +3,11 @@ import path from "node:path";
 import * as yaml from "yaml";
 import Ajv from "ajv";
 import ajvFormats from "ajv-formats";
-import { getExecutionEnvironmentSchema } from "../resources/eeSchema.js";
+import {
+  getExecutionEnvironmentSchema,
+  getEERules,
+  getSampleExecutionEnvironment,
+} from "../resources/eeSchema.js";
 
 export interface ExecutionEnvInputs {
   baseImage: string;
@@ -72,92 +76,72 @@ async function validateAgainstSchema(
   }
 }
 
-// Builds the EE file based on the schema definition, matching the sample structure
-// Order: version, images, dependencies, additional_build_steps, options
-async function buildEEStructureFromSchema(
+// Generates EE file using MCP client's LLM through prompt-based approach
+// Returns a prompt that the client's LLM will process to generate the YAML
+// The tool handler will then parse the LLM's response and write the file
+export async function buildEEStructureFromPrompt(
   inputs: ExecutionEnvInputs,
-): Promise<Record<string, unknown>> {
-  // Build dependencies in the order matching the sample file:
-  // python_interpreter, ansible_core, ansible_runner, system, python, galaxy
-  const dependencies: Record<string, unknown> = {};
+): Promise<{ prompt: string; generatedYaml?: string }> {
+  // Read the rules file to use as prompt context
+  const rulesContent = await getEERules();
+  const sampleContent = await getSampleExecutionEnvironment();
 
-  // Add python_interpreter first (matching sample structure)
-  dependencies.python_interpreter = {
-    package_system: "python3",
-    python_path: "/usr/bin/python3",
-  };
+  // Construct a prompt that includes rules, sample, and user inputs
+  const prompt = `You are generating an Ansible Execution Environment (EE) definition file.
 
-  // Add ansible_core and ansible_runner (required)
-  dependencies.ansible_core = { package_pip: "ansible-core" };
-  dependencies.ansible_runner = { package_pip: "ansible-runner" };
+RULES AND GUIDELINES:
+${rulesContent}
 
-  // Add system packages if provided (before python and galaxy)
-  if (inputs.systemPackages && inputs.systemPackages.length > 0) {
-    const systemPkgs = inputs.systemPackages
-      .map((pkg) => pkg.trim())
-      .filter((pkg) => pkg !== "");
-    if (systemPkgs.length > 0) {
-      dependencies.system = systemPkgs;
-    }
+SAMPLE EE FILE STRUCTURE:
+${sampleContent}
+
+USER REQUIREMENTS:
+- Base Image: ${inputs.baseImage}
+- Tag: ${inputs.tag}
+${inputs.collections && inputs.collections.length > 0 ? `- Collections: ${inputs.collections.join(", ")}` : ""}
+${inputs.systemPackages && inputs.systemPackages.length > 0 ? `- System Packages: ${inputs.systemPackages.join(", ")}` : ""}
+${inputs.pythonPackages && inputs.pythonPackages.length > 0 ? `- Python Packages: ${inputs.pythonPackages.join(", ")}` : ""}
+
+Generate a valid execution-environment.yml file following ALL rules from the rules file above.
+Pay special attention to:
+1. Mandatory collections must be included
+2. Required dependencies in correct order
+3. Section ordering
+4. Conditional build steps (e.g., Fedora base images)
+5. Proper YAML formatting
+
+Return ONLY valid YAML content that can be parsed. Do not include any markdown code fences, just the raw YAML.`;
+
+  return { prompt };
+}
+
+// Parses LLM-generated YAML content
+function parseLLMGeneratedYAML(generatedYaml: string): Record<string, unknown> {
+  // Remove markdown code fences if present
+  const cleanedYaml = generatedYaml
+    .replace(/^```yaml\n?/i, "")
+    .replace(/^```\n?/i, "")
+    .replace(/\n?```$/i, "")
+    .trim();
+
+  try {
+    const eeData = yaml.parse(cleanedYaml) as Record<string, unknown>;
+    return eeData;
+  } catch (parseError) {
+    throw new Error(
+      `Failed to parse LLM-generated YAML: ${parseError instanceof Error ? parseError.message : String(parseError)}\n\nGenerated content:\n${cleanedYaml}`,
+    );
   }
-
-  // Add Python packages if provided (before galaxy)
-  if (inputs.pythonPackages && inputs.pythonPackages.length > 0) {
-    const pythonPkgs = inputs.pythonPackages
-      .map((pkg) => pkg.trim())
-      .filter((pkg) => pkg !== "");
-    if (pythonPkgs.length > 0) {
-      dependencies.python = pythonPkgs;
-    }
-  }
-
-  // Add collections if provided (last in dependencies, matching sample)
-  if (inputs.collections && inputs.collections.length > 0) {
-    dependencies.galaxy = {
-      collections: inputs.collections.map((col) => ({ name: col.trim() })),
-    };
-  }
-
-  // Build the EE data structure in the order matching the sample:
-  // version, images, dependencies, additional_build_steps, options
-  const eeData: Record<string, unknown> = {
-    version: 3,
-  };
-
-  // Add images section (second, matching sample)
-  eeData.images = {
-    base_image: {
-      name: inputs.baseImage,
-    },
-  };
-
-  // Add dependencies (third, matching sample)
-  eeData.dependencies = dependencies;
-
-  // Build options section (will be added last)
-  const options: Record<string, unknown> = {
-    tags: [inputs.tag],
-  };
-
-  // Add additional_build_steps before options (matching sample order)
-  const baseImageLower = inputs.baseImage.toLowerCase();
-  if (baseImageLower.includes("fedora")) {
-    eeData.additional_build_steps = {
-      append_base: ["RUN $PYCMD -m pip install -U pip"],
-    };
-  }
-
-  // Add options last (matching sample)
-  eeData.options = options;
-
-  return eeData;
 }
 
 // Generates an execution environment YAML file based on user inputs
 // following the schema format and validating against the schema
+// Uses MCP client's LLM to generate the file based on rules
+// The generatedYaml parameter should contain the LLM-generated YAML content
 export async function generateExecutionEnvironment(
   inputs: ExecutionEnvInputs,
   workspaceRoot: string,
+  generatedYaml: string, // LLM-generated YAML content from the client
 ): Promise<ExecutionEnvResult> {
   const destinationPath =
     inputs.destinationPath || workspaceRoot || process.cwd();
@@ -171,8 +155,8 @@ export async function generateExecutionEnvironment(
     );
   }
 
-  // Build the execution environment definition file
-  const eeData = await buildEEStructureFromSchema(inputs);
+  // Parse the LLM-generated YAML
+  const eeData = parseLLMGeneratedYAML(generatedYaml);
 
   // Validate against the schema
   const validation = await validateAgainstSchema(eeData);

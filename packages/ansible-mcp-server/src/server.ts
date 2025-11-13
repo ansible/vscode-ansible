@@ -22,6 +22,7 @@ import {
 } from "./dependencyChecker.js";
 import { createInitHandler } from "./tools/creator.js";
 import {
+  getEERules,
   getExecutionEnvironmentSchema,
   getSampleExecutionEnvironment,
 } from "./resources/eeSchema.js";
@@ -105,6 +106,46 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
               uri: "sample://execution-environment",
               mimeType: "text/plain",
               text: `Error loading sample file: ${errorMessage}`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
+  // Register ee-rules.md file as a resource
+  server.registerResource(
+    "execution-environment-rules",
+    "rules://execution-environment",
+    {
+      title: "Execution Environment Rules",
+      description:
+        "The ee-rules.md file contains rules and guidelines for Ansible execution environment files. " +
+        "Use this as a reference along with the schema to understand how to structure execution environment files. " +
+        "The LLM should use both the schema and this rules file to generate new EE files.",
+      mimeType: "text/markdown",
+    },
+    async () => {
+      try {
+        const rulesContent = await getEERules();
+        return {
+          contents: [
+            {
+              uri: "rules://execution-environment",
+              mimeType: "text/markdown",
+              text: rulesContent,
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        return {
+          contents: [
+            {
+              uri: "rules://execution-environment",
+              mimeType: "text/plain",
+              text: `Error loading rules file: ${errorMessage}`,
             },
           ],
         };
@@ -400,7 +441,8 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Define and Build Execution Environment",
       description:
-        "Create an EE definition file for building Ansible execution environment images with ansible-builder.",
+        "Create an EE definition file for building Ansible execution environment images with ansible-builder." +
+        "Use rules from ee-rules.md and validate against the execution environment schema.",
       inputSchema: {
         baseImage: z
           .string()

@@ -1,0 +1,29 @@
+---
+version: 3
+
+images:
+  base_image:
+    name: quay.io/fedora/fedora-minimal:41
+
+dependencies:
+  python_interpreter:
+    package_system: python3
+    python_path: /usr/bin/python3
+
+  ansible_core:
+    package_pip: ansible-core
+
+  ansible_runner:
+    package_pip: ansible-runner
+
+  galaxy:
+    collections:
+      - ansible.utils
+
+additional_build_steps:
+  append_base:
+    - RUN $PYCMD -m pip install -U pip
+
+options:
+  tags:
+    - sample-ee:latest
