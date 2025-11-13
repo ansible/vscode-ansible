@@ -15,6 +15,7 @@ import {
   getModalDialogAndMessage,
   sleep,
   updateSettings,
+  getAnsibleViewControl,
 } from "./uiTestHelper";
 import { expect } from "chai";
 
@@ -60,9 +61,7 @@ describe(__filename, function () {
         expect.fail("Failed to set ui-test option for lightspeed mock server");
       }
 
-      viewControl = (await new ActivityBar().getViewControl(
-        "Ansible",
-      )) as ViewControl;
+      viewControl = await getAnsibleViewControl();
       sideBar = await viewControl.openView();
 
       adtView = await sideBar
