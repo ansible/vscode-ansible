@@ -230,9 +230,23 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
     pythonPackages?: string[];
     generatedYaml?: string;
   }) => {
+    console.log("[EE Tool Handler] Called with args:", {
+      baseImage: args.baseImage,
+      tag: args.tag,
+      destinationPath: args.destinationPath,
+      collections: args.collections,
+      systemPackages: args.systemPackages,
+      pythonPackages: args.pythonPackages,
+      hasGeneratedYaml: !!args.generatedYaml,
+      generatedYamlLength: args.generatedYaml?.length,
+    });
+
     try {
       // Validate required inputs
       if (!args.baseImage || !args.tag) {
+        console.log(
+          "[EE Tool Handler] Validation failed: missing baseImage or tag",
+        );
         return {
           content: [
             {
@@ -254,11 +268,16 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
         };
       }
 
-      // If generatedYaml is provided, use it to create the file
-      // Otherwise, return a prompt for the client's LLM to generate the YAML
+      // Return a prompt for the client's LLM to generate the YAML
       if (!args.generatedYaml) {
-        // Return prompt for LLM to generate YAML
+        console.log(
+          "[EE Tool Handler] No generatedYaml provided - returning prompt for LLM to generate YAML",
+        );
         const { prompt } = await buildEEStructureFromPrompt(args);
+        console.log(
+          "[EE Tool Handler] Prompt generated, length:",
+          prompt.length,
+        );
         return {
           content: [
             {
@@ -274,16 +293,44 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
       }
 
       // Generate execution environment file using LLM-generated YAML
+      console.log(
+        "[EE Tool Handler] generatedYaml IS provided - proceeding to generate EE file",
+      );
+      console.log(
+        "[EE Tool Handler] Generating EE file with LLM-generated YAML",
+      );
+      console.log(
+        "[EE Tool Handler] generatedYaml length:",
+        args.generatedYaml?.length,
+      );
+      console.log(
+        "[EE Tool Handler] generatedYaml preview (first 200 chars):",
+        args.generatedYaml?.substring(0, 200),
+      );
       const result = await generateExecutionEnvironment(
         args,
         workspaceRoot,
         args.generatedYaml,
       );
 
+      console.log("[EE Tool] File generated successfully:", result.filePath);
+      console.log("[EE Tool] Result object:", {
+        success: result.success,
+        filePath: result.filePath,
+        hasYamlContent: !!result.yamlContent,
+        yamlContentLength: result.yamlContent?.length,
+        validationErrors: result.validationErrors,
+      });
+
       // Format result for display
       const formattedOutput = formatExecutionEnvResult(result);
+      console.log("[EE Tool] Formatted output length:", formattedOutput.length);
+      console.log(
+        "[EE Tool] Formatted output preview (first 500 chars):",
+        formattedOutput.substring(0, 500),
+      );
 
-      return {
+      const response = {
         content: [
           {
             type: "text" as const,
@@ -292,9 +339,21 @@ export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
         ],
         isError: false,
       };
+
+      console.log(
+        "[EE Tool] Returning response with content length:",
+        response.content[0].text.length,
+      );
+      console.log(
+        "[EE Tool] Response content preview (first 500 chars):",
+        response.content[0].text.substring(0, 500),
+      );
+      return response;
     } catch (error) {
+      console.error("[EE Tool Handler] Error occurred:", error);
       const errorMessage =
         error instanceof Error ? error.message : String(error);
+      console.error("[EE Tool Handler] Error message:", errorMessage);
       return {
         content: [
           {

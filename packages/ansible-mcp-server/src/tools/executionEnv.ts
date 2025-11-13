@@ -155,7 +155,7 @@ export async function generateExecutionEnvironment(
     );
   }
 
-  // Parse the LLM-generated YAML
+  // Parse the LLM-generated YAML for validation
   const eeData = parseLLMGeneratedYAML(generatedYaml);
 
   // Validate against the schema
@@ -165,35 +165,19 @@ export async function generateExecutionEnvironment(
     console.warn("Schema validation errors:", validation.errors);
   }
 
-  // Convert to YAML with formatting to match sample structure
-  let yamlContent = yaml.stringify(eeData, {
-    indent: 2,
-    lineWidth: 0,
-    defaultStringType: "PLAIN",
-    defaultKeyType: "PLAIN",
-    // Add document separator to match sample
-    directives: true,
-  });
+  // Use the original LLM-generated YAML (cleaned of code fences)
+  // The LLM is responsible for formatting according to the rules
+  const cleanedYaml = generatedYaml
+    .replace(/^```yaml\n?/i, "")
+    .replace(/^```\n?/i, "")
+    .replace(/\n?```$/i, "")
+    .trim();
 
-  // Post-process to add blank lines between top-level sections to match sample structure
-  // The sample has: ---, version, blank line, images, blank line, dependencies, blank line, additional_build_steps, blank line, options
-  if (!yamlContent.startsWith("---")) {
-    yamlContent = "---\n" + yamlContent;
-  }
-
-  // Ensure blank lines between top-level sections (matching sample structure)
-  yamlContent = yamlContent
-    .replace(/^version: 3\n/, "version: 3\n\n") // Blank line after version
-    .replace(/\nimages:\n/g, "\n\nimages:\n") // Blank line before images
-    .replace(/\n\ndependencies:\n/g, "\n\ndependencies:\n") // Blank line before dependencies
-    .replace(/\n\nadditional_build_steps:\n/g, "\n\nadditional_build_steps:\n") // Blank line before additional_build_steps
-    .replace(/\n\noptions:\n/g, "\n\noptions:\n"); // Blank line before options
-
-  // Write file
+  // Write file with LLM-generated content
   const filePath = path.join(destinationPath, "execution-environment.yml");
 
   try {
-    await fs.writeFile(filePath, yamlContent, "utf8");
+    await fs.writeFile(filePath, cleanedYaml, "utf8");
   } catch (error) {
     throw new Error(
       `Failed to write execution-environment.yml: ${error instanceof Error ? error.message : String(error)}`,
@@ -206,7 +190,7 @@ export async function generateExecutionEnvironment(
   return {
     success: true,
     filePath,
-    yamlContent,
+    yamlContent: cleanedYaml,
     message: `Execution environment file created successfully at ${filePath}`,
     buildCommand,
     validationErrors: validation.valid ? undefined : validation.errors,
@@ -215,6 +199,14 @@ export async function generateExecutionEnvironment(
 
 // Formats the result message for the LLM with instructions
 export function formatExecutionEnvResult(result: ExecutionEnvResult): string {
+  console.log("[formatExecutionEnvResult] Called with result:", {
+    success: result.success,
+    filePath: result.filePath,
+    hasYamlContent: !!result.yamlContent,
+    yamlContentLength: result.yamlContent?.length,
+    validationErrors: result.validationErrors,
+  });
+
   let output = `✅ ${result.message}\n\n`;
 
   // Show validation warnings if any
@@ -241,6 +233,15 @@ export function formatExecutionEnvResult(result: ExecutionEnvResult): string {
   output += `**Additional commands you might want to use:**\n`;
   output += `- Create build context only: \`ansible-builder create --file ${result.filePath} --context ${path.dirname(result.filePath)}/context\`\n`;
   output += `- Build with custom tag: \`ansible-builder build --file ${result.filePath} --context ${path.dirname(result.filePath)}/context --tag your-custom-tag\`\n`;
+
+  console.log(
+    "[formatExecutionEnvResult] Generated output length:",
+    output.length,
+  );
+  console.log(
+    "[formatExecutionEnvResult] Output preview (first 300 chars):",
+    output.substring(0, 300),
+  );
 
   return output;
 }

@@ -15,7 +15,7 @@ const SCHEMA_FILE = path.join(
   __dirname,
   "data/execution-environment-schema.json",
 );
-const RULE_FILE = path.join(__dirname, "data/ee-rules.md");
+const RULES_FILE = path.join(__dirname, "data/ee-rules.md");
 // Sample EE file packaged with the extension
 export const SAMPLE_EE_FILE = path.join(
   __dirname,
@@ -79,7 +79,7 @@ export async function getSampleExecutionEnvironment(): Promise<string> {
  */
 export async function getEERules(): Promise<string> {
   try {
-    const rulesContent = await fs.readFile(RULE_FILE, "utf8");
+    const rulesContent = await fs.readFile(RULES_FILE, "utf8");
     return rulesContent;
   } catch (error) {
     throw new Error(

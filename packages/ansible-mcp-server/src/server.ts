@@ -40,7 +40,7 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Execution Environment Schema",
       description:
-        "JSON schema for Ansible execution environment definition files (v1 and v3). " +
+        "JSON schema for Ansible execution environment definition files. " +
         "This schema validates the structure of execution-environment.yml files used with ansible-builder. " +
         "Use this schema along with the sample EE file to generate compliant EE definition files.",
       mimeType: "application/json",
@@ -441,7 +441,9 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Define and Build Execution Environment",
       description:
-        "Create an EE definition file for building Ansible execution environment images with ansible-builder." +
+        "Create an EE definition file for building Ansible execution environment images with ansible-builder. " +
+        "This tool works in two steps: (1) First call returns a prompt with rules and requirements - generate YAML from this prompt. " +
+        "(2) Second call with the 'generatedYaml' parameter containing the YAML content will create and validate the file. " +
         "Use rules from ee-rules.md and validate against the execution environment schema.",
       inputSchema: {
         baseImage: z
@@ -477,6 +479,12 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           .optional()
           .describe(
             "Optional array of Python packages to install (e.g., ['boto3', 'requests'])",
+          ),
+        generatedYaml: z
+          .string()
+          .optional()
+          .describe(
+            "Internal parameter: LLM-generated YAML content. Use this when calling the tool a second time after generating the YAML from the prompt provided in the first call.",
           ),
       },
       annotations: {

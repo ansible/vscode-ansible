@@ -6,7 +6,7 @@ This file contains the rules and guidelines for building Ansible execution envir
 
 The following collections must always be included in every execution environment file:
 
-- **ansible.utils**: This collection is required for consistent EE functionality.
+- **ansible.utils**: Ansible Collection with utilities to ease the management, manipulation, and validation of data within a playbook. This collection is required for consistent EE functionality.
 
 ## Required Dependencies
 
