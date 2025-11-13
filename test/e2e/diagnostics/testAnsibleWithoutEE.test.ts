@@ -6,6 +6,7 @@ import {
   testDiagnostics,
   updateSettings,
   waitForDiagnosisCompletion,
+  clearActivationCache,
 } from "../../helper";
 
 export function testDiagnosticsAnsibleWithoutEE(): void {
@@ -18,10 +19,29 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
     });
 
     describe("Diagnostic test with ansible-lint", function () {
+      before(async function () {
+        await updateSettings("validation.lint.enabled", true);
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        // Give language server time to process document close and settings change
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        clearActivationCache(); // Clear cache after editors closed
+      });
+
+      after(async function () {
+        await updateSettings("validation.lint.enabled", true); // Keep enabled for other tests
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
+      });
+
       it("should complain about no task names", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+        // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
+        await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -39,7 +59,8 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
       it("should complain about command syntax-check failed", async function () {
         await activate(docUri2);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        await waitForDiagnosisCompletion(); // Wait for the diagnostics to compute on this file
+        // Use longer timeout and quickCheckTimeout for lint tests since ansible-lint may take time to start
+        await waitForDiagnosisCompletion(150, 5000, 3000); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri2, [
           {
@@ -62,10 +83,17 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        // Give language server time to process document close and settings change
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should return no diagnostics", async function () {
@@ -102,10 +130,17 @@ export function testDiagnosticsAnsibleWithoutEE(): void {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        // Give language server time to process document close and settings change
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should return no diagnostics even when `hosts` key is missing", async function () {
