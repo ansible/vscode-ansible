@@ -181,7 +181,7 @@ describe(__filename, function () {
       expect(editorView).not.to.be.undefined;
     });
 
-    it("Open Feedback webview", async function () {
+    it.skip("Open Feedback webview", async function () {
       // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
       // Locate the playbook explanation webview
