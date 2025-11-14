@@ -39,7 +39,7 @@
   "main": "./out/server/src/server.js",
   "name": "@ansible/ansible-mcp-server",
   "overrides": {
-    "zod": "^3.23.8"
+    "zod": "^4.0.0"
   },
   "publishConfig": {
     "access": "public"
