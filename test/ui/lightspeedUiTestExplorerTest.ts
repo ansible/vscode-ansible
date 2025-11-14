@@ -38,7 +38,6 @@ describe("Lightspeed Explorer features", function () {
   let adtView: ViewSection;
   let alfView: ViewSection;
 
-
   before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
       return;
