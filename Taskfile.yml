@@ -110,7 +110,7 @@ tasks:
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
-      - yarn ncu -u --workspaces -i
+      - yarn ncu --upgrade --mergeConfig --peer --workspaces --interactive
       # disabled because it does not work recursively
       # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
