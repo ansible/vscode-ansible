@@ -214,6 +214,9 @@ export async function doCompletion(
                   atEndOfLine: cursorAtEndOfLine,
                   firstElementOfList: cursorAtFirstElementOfList,
                 },
+                insertTextFormat: cursorAtEndOfLine
+                  ? InsertTextFormat.Snippet
+                  : InsertTextFormat.PlainText,
                 textEdit: {
                   ...textEdit,
                   newText: insertText,
