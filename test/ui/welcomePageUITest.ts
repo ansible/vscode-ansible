@@ -75,6 +75,11 @@ describe("welcome page is displayed", function () {
     await adtSection.expand();
   });
 
+  after(async function () {
+    const webview = new WebviewView();
+    await webview.switchBack();
+  });
+
   it("check for title and get started button", async function () {
     const title = await adtSection.getTitle();
 

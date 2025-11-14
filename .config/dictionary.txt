@@ -21,6 +21,7 @@ Modelines
 Npmjs
 OPTSTRING
 PKGMGR
+PYCMD
 PYTHONBREAKPOINT
 RHSSO
 TASKFILE
@@ -30,6 +31,7 @@ Tomasz
 Towncrier
 antsibull
 autofetch
+bindep
 cfgs
 checode
 chromedriver
@@ -89,6 +91,7 @@ servernum
 shiki
 showformat
 sonarcloud
+sshpass
 suboption
 suboptions
 sysninja
