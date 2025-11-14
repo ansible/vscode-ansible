@@ -41,7 +41,7 @@ before(function () {
   }
 });
 
-describe.skip("Role generation feature works", function () {
+describe("Role generation feature works", function () {
   let workbench: Workbench;
 
   before(async function () {

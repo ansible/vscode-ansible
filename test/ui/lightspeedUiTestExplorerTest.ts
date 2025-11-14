@@ -38,10 +38,6 @@ describe("Lightspeed Explorer features", function () {
   let adtView: ViewSection;
   let alfView: ViewSection;
 
-  beforeEach(function () {
-    // See: https://github.com/ansible/vscode-ansible/issues/1988
-    this.skip();
-  });
 
   before(async function () {
     if (!process.env.TEST_LIGHTSPEED_URL) {
