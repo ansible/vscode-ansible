@@ -185,7 +185,7 @@ export async function generateExecutionEnvironment(
   }
 
   // Generate build command
-  const buildCommand = `ansible-builder build --file ${filePath} --context ${destinationPath}/context --tag ${inputs.tag}`;
+  const buildCommand = `ansible-builder build --file ${filePath} --context ${destinationPath}/context --tag ${inputs.tag} -vvv`;
 
   return {
     success: true,
@@ -233,6 +233,12 @@ export function formatExecutionEnvResult(result: ExecutionEnvResult): string {
   output += `**Additional commands you might want to use:**\n`;
   output += `- Create build context only: \`ansible-builder create --file ${result.filePath} --context ${path.dirname(result.filePath)}/context\`\n`;
   output += `- Build with custom tag: \`ansible-builder build --file ${result.filePath} --context ${path.dirname(result.filePath)}/context --tag your-custom-tag\`\n`;
+
+  output += `**AGENT INSTRUCTIONS:**\n`;
+  output += `--Ask the user if the agent should run the command for them\n`;
+  output += `--If yes, run the build command and provide feedback\n`;
+  output += `--When the build completes summarize the image and build results\n`;
+  output += `--If the build fails, fix the issue and re-run the build\n`;
 
   console.log(
     "[formatExecutionEnvResult] Generated output length:",
