@@ -48,7 +48,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
     expect(lightspeedStatusBarItem).not.to.be.undefined;
   });
 
-  it.skip("Ansible Lightspeed status bar item present when lightspeed suggestions are not enabled (with warning color)", async function () {
+  it("Ansible Lightspeed status bar item present when lightspeed suggestions are not enabled (with warning color)", async function () {
     const statusBar = new StatusBar();
     const editorView = new EditorView();
     const settingsEditor = await openSettings();
