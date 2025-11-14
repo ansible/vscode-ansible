@@ -35,12 +35,6 @@ async function cleanUpTmpfile(): Promise<void> {
   }
 }
 
-before(function () {
-  if (process.platform === "darwin") {
-    this.skip();
-  }
-});
-
 describe("Role generation feature works", function () {
   let workbench: Workbench;
 
