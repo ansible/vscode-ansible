@@ -47,6 +47,52 @@ describe("Ansible MCP Server", () => {
     });
   });
 
+  describe("ansible_content_best_practices tool", () => {
+    it("should return best practices content", async () => {
+      const result = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(typeof result.content[0].text).toBe("string");
+      expect(result.content[0].text.length).toBeGreaterThan(0);
+    });
+
+    it("should handle tool call with empty arguments", async () => {
+      const result = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+    });
+
+    it("should handle invalid arguments gracefully", async () => {
+      const result = await server.callTool("ansible_content_best_practices", {
+        invalid: "arg",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+    });
+
+    it("should return consistent results on multiple calls", async () => {
+      const result1 = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+      const result2 = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+
+      expect(result1.content[0].text).toBe(result2.content[0].text);
+    });
+  });
+
   describe("server configuration", () => {
     it("should have correct server metadata", () => {
       expect(server.name).toBe("ansible-mcp-server");
