@@ -56,6 +56,7 @@ describe("Ansible MCP Server", () => {
     it("should register all expected tools", () => {
       const toolNames = server.listTools().map((tool) => tool.name);
       expect(toolNames).toContain("zen_of_ansible");
+      expect(toolNames).toContain("ansible_content_best_practices");
       expect(toolNames).toContain("list_available_tools");
       expect(toolNames).toContain("ansible_lint");
       expect(toolNames).toContain("ade_environment_info");
