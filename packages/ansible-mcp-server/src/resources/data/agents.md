@@ -269,7 +269,7 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Keep roles reusable outside collection
 - [ ] Clear documentation of collection vs role variables
 
-##### Documentation
+##### Collection Documentation
 
 - [ ] Include README in collection root
 - [ ] Document purpose of collection
@@ -474,7 +474,7 @@ A playbook project orchestrates landscapes and types via one or more playbooks, 
 - [ ] Write unit tests for all plugins
 - [ ] Follow Ansible Developer Guide testing standards
 
-##### Documentation
+##### Plugin Documentation
 
 - [ ] Document all plugin types with input parameters, outputs, and examples
 - [ ] Follow Ansible Developer Guide standards
