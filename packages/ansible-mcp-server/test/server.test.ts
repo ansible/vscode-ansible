@@ -114,8 +114,15 @@ describe("Ansible MCP Server", () => {
       expect(toolNames).toHaveLength(TOOL_COUNT);
     });
 
-    it("should not register any resources", () => {
-      expect(server.listResources()).toEqual([]);
+    it("should register expected resources", () => {
+      const resources = server.listResources();
+      const resourceNames = resources.map((r) => r.name);
+
+      expect(resourceNames).toContain("execution-environment-schema");
+      expect(resourceNames).toContain("execution-environment-sample");
+      expect(resourceNames).toContain("execution-environment-rules");
+      expect(resourceNames).toContain("ansible-content-best-practices");
+      expect(resources.length).toBeGreaterThanOrEqual(4);
     });
 
     it("should not register any prompts", () => {
