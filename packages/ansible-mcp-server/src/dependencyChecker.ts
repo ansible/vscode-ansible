@@ -243,7 +243,8 @@ export const COMMON_DEPENDENCIES = {
     versionCommand: "ansible-navigator --version",
     versionParser: (output: string) => {
       // Extract version from "ansible-navigator 4.0.0" or similar
-      const match = output.match(/ansible-navigator.*?(\d+\.\d+\.\d+)/);
+      // Fixed regex to avoid ReDoS: removed .*? backtracking, use \s+ instead
+      const match = output.match(/ansible-navigator\s+(\d+\.\d+\.\d+)/);
       return match ? match[1] : null;
     },
   },

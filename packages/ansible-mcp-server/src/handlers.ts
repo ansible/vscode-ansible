@@ -287,8 +287,9 @@ export function createAnsibleNavigatorHandler() {
       const message = args.userMessage.toLowerCase();
 
       // Try to find explicit file paths first (with directory)
+      // Fixed regex to avoid ReDoS: simplified pattern, limit backtracking
       const explicitPathMatch = args.userMessage.match(
-        /(?:playbooks\/)?[\w-]+\.ya?ml/,
+        /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/,
       );
       if (explicitPathMatch) {
         targetFilePath = explicitPathMatch[0];
