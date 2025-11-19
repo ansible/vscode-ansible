@@ -3404,6 +3404,7 @@ __metadata:
     globals: "npm:^16.4.0"
     highlight.js: "npm:^11.11.1"
     ini: "npm:^6.0.0"
+    js-yaml: "npm:^4.1.0"
     jsdom: "npm:^27.0.1"
     lodash: "npm:^4.17.21"
     marked: "npm:^17.0.0"
