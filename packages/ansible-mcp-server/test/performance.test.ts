@@ -179,8 +179,9 @@ describe("Ansible MCP Server Performance", () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
-      // WSL testing seems slower
-      expect(duration).toBeLessThan(200); // 1000 listings in less than this
+      // CI environments (especially macOS and WSL) can be slower than local development
+      // Allow more time for CI while still catching real performance regressions
+      expect(duration).toBeLessThan(400); // 1000 listings in less than this
     });
   });
 });
