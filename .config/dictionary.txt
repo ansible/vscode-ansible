@@ -77,7 +77,6 @@ mycollection
 mymodule
 mynamespace
 nocolor
-nodenext
 noheading
 norecursedirs
 npmjs
