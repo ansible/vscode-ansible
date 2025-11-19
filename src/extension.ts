@@ -7,7 +7,6 @@ import { AnsibleCommands } from "./definitions/constants";
 import {
   LightSpeedCommands,
   UserAction,
-  OPENAI_API_ENDPOINT,
   GOOGLE_API_ENDPOINT,
   WCA_API_ENDPOINT_DEFAULT,
 } from "./definitions/lightspeed";
@@ -407,9 +406,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
         }
 
         // Auto-set apiEndpoint based on provider type
-        if (provider === "openai") {
-          await config.update("apiEndpoint", OPENAI_API_ENDPOINT, configTarget);
-        } else if (provider === "google") {
+        if (provider === "google") {
           await config.update("apiEndpoint", GOOGLE_API_ENDPOINT, configTarget);
         } else if (provider === "wca") {
           // For WCA, use default if not set; otherwise keep user's value (for on-prem)
@@ -423,7 +420,6 @@ export async function activate(context: ExtensionContext): Promise<void> {
           }
           // If endpoint is already set, keep it (user's custom on-prem WCA deployment)
         }
-        // For 'custom' provider, don't auto-set (user must provide their own endpoint)
 
         await lightSpeedManager.lightspeedExplorerProvider.refreshWebView();
       }

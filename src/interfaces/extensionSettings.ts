@@ -42,7 +42,7 @@ export interface UserResponse {
 // Settings appear on VS Code Settings UI
 export interface LightSpeedServiceSettings {
   enabled: boolean;
-  provider: string; // 'wca' | 'openai' | 'google' | 'custom'
+  provider: string; // 'wca' | 'google'
   apiEndpoint: string;
   modelName: string | undefined;
   apiKey: string; // Only used for third-party providers

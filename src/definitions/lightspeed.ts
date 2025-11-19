@@ -88,13 +88,11 @@ export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
 export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
 
 // LLM Provider API Endpoints (fixed, not user-configurable)
-export const OPENAI_API_ENDPOINT = "https://api.openai.com/v1";
 export const GOOGLE_API_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta";
 export const WCA_API_ENDPOINT_DEFAULT = "https://c.ai.ansible.redhat.com";
 
 // LLM Provider Default Model Names
-export const OPENAI_DEFAULT_MODEL = "gpt-4o";
 export const GOOGLE_DEFAULT_MODEL = "gemini-2.5-flash";
 
 export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";

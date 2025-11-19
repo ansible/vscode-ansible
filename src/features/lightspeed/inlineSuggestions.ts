@@ -172,7 +172,7 @@ function getCompletionState(
   }
 
   // Only check API endpoint for WCA provider
-  // LLM providers (openai, google, etc.) don't use apiEndpoint setting
+  // LLM providers (google) don't use apiEndpoint setting
   if (
     lightSpeedSetting.provider === "wca" &&
     !lightSpeedSetting.apiEndpoint.trim()

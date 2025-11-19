@@ -39,13 +39,11 @@ describe("LLMProviderFactory", () => {
       const providers = factory.getSupportedProviders();
 
       assert.isArray(providers);
-      assert.isAtLeast(providers.length, 4); // wca, openai, google, custom
+      assert.equal(providers.length, 2); // wca, google
 
       const providerTypes = providers.map((p: any) => p.type);
       assert.include(providerTypes, "wca");
-      assert.include(providerTypes, "openai");
       assert.include(providerTypes, "google");
-      assert.include(providerTypes, "custom");
     });
 
     it("should include required provider information", () => {
@@ -90,7 +88,7 @@ describe("LLMProviderFactory", () => {
   });
 
   describe("Configuration validation", () => {
-    it("should validate OpenAI config", () => {
+    it("should validate Google config", () => {
       if (!LLMProviderFactory) {
         return;
       }
@@ -98,35 +96,15 @@ describe("LLMProviderFactory", () => {
       const factory = LLMProviderFactory.getInstance();
       const validConfig = {
         enabled: true,
-        provider: "openai",
-        apiEndpoint: "https://api.openai.com/v1",
-        apiKey: "sk-test-key",
-        modelName: "gpt-4",
+        provider: "google",
+        apiEndpoint: "https://generativelanguage.googleapis.com/v1beta",
+        apiKey: "test-key",
+        modelName: "gemini-2.5-flash",
         timeout: 30000,
         customHeaders: {},
       };
 
-      const result = factory.validateProviderConfig("openai", validConfig);
-      assert.isBoolean(result);
-    });
-
-    it("should validate custom provider config", () => {
-      if (!LLMProviderFactory) {
-        return;
-      }
-
-      const factory = LLMProviderFactory.getInstance();
-      const validConfig = {
-        enabled: true,
-        provider: "custom",
-        apiEndpoint: "https://custom-api.com/v1",
-        apiKey: "custom-key",
-        modelName: "custom-model",
-        timeout: 30000,
-        customHeaders: {},
-      };
-
-      const result = factory.validateProviderConfig("custom", validConfig);
+      const result = factory.validateProviderConfig("google", validConfig);
       assert.isBoolean(result);
     });
 
@@ -138,15 +116,15 @@ describe("LLMProviderFactory", () => {
       const factory = LLMProviderFactory.getInstance();
       const invalidConfig = {
         enabled: true,
-        provider: "openai",
+        provider: "google",
         apiEndpoint: "",
         apiKey: "", // Missing required field
-        modelName: "gpt-4",
+        modelName: "gemini-2.5-flash",
         timeout: 30000,
         customHeaders: {},
       };
 
-      const result = factory.validateProviderConfig("openai", invalidConfig);
+      const result = factory.validateProviderConfig("google", invalidConfig);
       assert.isFalse(result);
     });
   });

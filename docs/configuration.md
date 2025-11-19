@@ -67,25 +67,21 @@ any level (User, Remote, Workspace and/or Folder).
 ### Core Settings
 
 - `ansible.lightspeed.enabled`: Enable/disable Ansible Lightspeed.
-- `ansible.lightspeed.provider`: Select AI provider (`wca`, `openai`, `google`, `custom`).
+- `ansible.lightspeed.provider`: Select AI provider (`wca`, `google`).
   - `wca`: Red Hat Ansible Lightspeed with IBM watsonx Code Assistant (default)
-  - `openai`: Direct OpenAI API access
   - `google`: Google Gemini API access
-  - `custom`: Custom OpenAI-compatible API
 
 - `ansible.lightspeed.apiEndpoint`: API endpoint URL for the selected provider.
   - For WCA: `https://c.ai.ansible.redhat.com` (default)
-  - For OpenAI: `https://api.openai.com/v1`
-  - For Google: `https://generativelanguage.googleapis.com/v1beta`
-  - For Custom: Your custom API endpoint
+  - For Google: `https://generativelanguage.googleapis.com/v1beta` (automatically set)
 
 - `ansible.lightspeed.modelName`: Model name/ID to use.
   - For WCA: Model ID override (optional, for commercial users)
-  - For LLM providers: Required model identifier (e.g., `gpt-4`, `gemini-2.5-flash`)
+  - For Google: Model identifier (e.g., `gemini-2.5-flash`)
 
 - `ansible.lightspeed.apiKey`: API key for LLM providers.
   - Not used for WCA (uses OAuth2 authentication)
-  - Required for `openai`, `google`, and `custom` providers
+  - Required for `google` provider
 
 - `ansible.lightspeed.timeout`: Request timeout in milliseconds (default: 30000).
 
