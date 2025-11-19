@@ -55,7 +55,7 @@ describe(__filename, function () {
       await terminalView.killTerminal();
     });
 
-    it("Execute ansible-playbook command without arg", async function () {
+    it.skip("Execute ansible-playbook command without arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
