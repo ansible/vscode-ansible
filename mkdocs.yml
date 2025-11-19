@@ -40,6 +40,7 @@ nav:
       - Settings: als/settings.md
       - Changelog: als/changelog.md
   - Configuration: configuration.md
+  - LLM Providers: llm-providers.md
   - Developer Guide:
       - development/index.md
       - development/contributing.md
