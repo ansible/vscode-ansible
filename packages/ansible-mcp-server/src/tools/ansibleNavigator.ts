@@ -163,7 +163,7 @@ function checkAnsibleNavigatorAvailable(
  * @throws An error if the process fails or returns an error.
  */
 // Valid mode values for ansible-navigator
-const VALID_MODES = ["stdout", "stdout-minimal", "interactive"];
+const VALID_MODES = ["stdout", "interactive"];
 
 /**
  * Check if a container engine (podman or docker) is available (synchronous)
@@ -207,6 +207,45 @@ function isContainerEngineError(stderr: string, stdout: string): boolean {
     errorText.includes("podman machine") ||
     errorText.includes("ghcr.io/ansible/community-ansible-dev-tools")
   );
+}
+
+/**
+ * Build container engine error message (DRY - Don't Repeat Yourself)
+ */
+function buildContainerErrorMessage(
+  stderrData: string,
+  stdoutData: string,
+  code?: number,
+): string {
+  const containerCheck = checkContainerEngine();
+  let errorMessage = code
+    ? `ansible-navigator exited with code ${code}: Container engine issue detected.\n\n`
+    : `ansible-navigator failed: Container engine required but not available.\n\n`;
+
+  if (stdoutData.trim()) {
+    errorMessage += `Output:\n${stdoutData}\n\n`;
+  }
+  if (stderrData.trim()) {
+    errorMessage += `Error output:\n${stderrData}\n\n`;
+  }
+
+  if (!containerCheck.available) {
+    errorMessage += `**Solution:** Install podman or docker, OR use \`disableExecutionEnvironment: true\` to use local Ansible.`;
+  } else {
+    const isPodmanConnectionError =
+      stderrData.includes("Cannot connect to Podman") ||
+      stderrData.includes("connection refused");
+
+    if (isPodmanConnectionError && containerCheck.engine === "podman") {
+      errorMessage += `**Issue:** Podman VM not running.\n\n`;
+      errorMessage += `**Note:** Tool will auto-retry with local Ansible (execution environment disabled).\n\n`;
+      errorMessage += `**To use Podman:** Run \`podman machine start\``;
+    } else {
+      errorMessage += `**Quick fix:** Use \`disableExecutionEnvironment: true\` to use local Ansible.`;
+    }
+  }
+
+  return errorMessage;
 }
 
 export async function runAnsibleNavigator(
@@ -397,126 +436,19 @@ export async function runAnsibleNavigator(
       clearTimeoutSafely();
 
       // Check for stderr-only errors (real error indicator)
-      // If stderr has content but stdout is empty, it's a real error
       if (stderrData && !stdoutData.trim()) {
-        // Check if this is a container engine error
         if (isContainerEngineError(stderrData, "")) {
-          const containerCheck = checkContainerEngine();
-          let errorMessage = `ansible-navigator failed: Container engine required but not available.\n\n`;
-          errorMessage += `Error output:\n${stderrData}\n\n`;
-
-          if (!containerCheck.available) {
-            errorMessage += `**Solution:**\n`;
-            errorMessage += `ansible-navigator requires a container engine (podman or docker) for execution environments.\n\n`;
-            errorMessage += `Options:\n`;
-            errorMessage += `1. Install podman or docker:\n`;
-            errorMessage += `   - Podman: https://podman.io/getting-started/installation\n`;
-            errorMessage += `   - Docker: https://docs.docker.com/get-docker/\n\n`;
-            errorMessage += `2. Use the \`disableExecutionEnvironment: true\` parameter when calling the tool:\n`;
-            errorMessage += `   This will pass \`--ee false\` to ansible-navigator.\n\n`;
-            errorMessage += `3. Configure ansible-navigator to disable execution environments:\n`;
-            errorMessage += `   Create \`ansible-navigator.yml\` in your workspace with:\n`;
-            errorMessage += `   \`\`\`yaml\n`;
-            errorMessage += `   ansible-navigator:\n`;
-            errorMessage += `     execution-environment:\n`;
-            errorMessage += `       enabled: false\n`;
-            errorMessage += `   \`\`\``;
-          } else {
-            // Check if it's a Podman connection error (VM not running)
-            const isPodmanConnectionError =
-              stderrData.includes("Cannot connect to Podman") ||
-              stderrData.includes("connection refused") ||
-              stderrData.includes("podman system connection") ||
-              stderrData.includes("podman machine");
-
-            if (isPodmanConnectionError && containerCheck.engine === "podman") {
-              errorMessage += `**Issue:** Podman is installed but the Podman VM is not running.\n\n`;
-              errorMessage += `**Note:** We are disabling the execution environment due to this error. `;
-              errorMessage += `The tool will automatically retry with \`disableExecutionEnvironment: true\` to use your local Ansible installation instead of Podman.\n\n`;
-              errorMessage += `**Solutions:**\n`;
-              errorMessage += `1. **Automatic fix (recommended):** The tool will retry with execution environment disabled. `;
-              errorMessage += `This uses your local Ansible installation and avoids Podman entirely.\n\n`;
-              errorMessage += `2. Start the Podman VM (if you need execution environments):\n`;
-              errorMessage += `   Run: \`podman machine start\`\n`;
-              errorMessage += `   Or initialize a new VM: \`podman machine init\` then \`podman machine start\`\n\n`;
-              errorMessage += `3. Check Podman connection:\n`;
-              errorMessage += `   Run: \`podman system connection list\` to verify connections\n`;
-            } else {
-              errorMessage += `Note: ${containerCheck.engine} was detected but ansible-navigator still failed. `;
-              errorMessage += `Check the error output above for details.\n\n`;
-              errorMessage += `**Quick fix:** Try using \`disableExecutionEnvironment: true\` to use local Ansible instead.`;
-            }
-          }
-
-          reject(new Error(errorMessage));
+          reject(new Error(buildContainerErrorMessage(stderrData, "", code ?? undefined)));
           return;
         }
-
-        const errorMessage = `ansible-navigator failed with exit code ${code}`;
-        const fullError = `${errorMessage}\n\nError output:\n${stderrData}`;
-        reject(new Error(fullError));
+        reject(new Error(`ansible-navigator failed with exit code ${code}\n\nError output:\n${stderrData}`));
         return;
       }
 
-      // If process exits with non-zero code, check if it's a playbook execution failure
-      // (which is expected) vs a real error
+      // If process exits with non-zero code, check if it's container engine error vs playbook failure
       if (code !== 0) {
-        // Check if this is a container engine error
         if (isContainerEngineError(stderrData, stdoutData)) {
-          const containerCheck = checkContainerEngine();
-          let errorMessage = `ansible-navigator exited with code ${code}: Container engine issue detected.\n\n`;
-
-          if (stdoutData.trim()) {
-            errorMessage += `Output:\n${stdoutData}\n\n`;
-          }
-          if (stderrData.trim()) {
-            errorMessage += `Error output:\n${stderrData}\n\n`;
-          }
-
-          if (!containerCheck.available) {
-            errorMessage += `**Solution:**\n`;
-            errorMessage += `ansible-navigator requires a container engine (podman or docker) for execution environments.\n\n`;
-            errorMessage += `Options:\n`;
-            errorMessage += `1. Install podman or docker:\n`;
-            errorMessage += `   - Podman: https://podman.io/getting-started/installation\n`;
-            errorMessage += `   - Docker: https://docs.docker.com/get-docker/\n\n`;
-            errorMessage += `2. Use the \`disableExecutionEnvironment: true\` parameter when calling the tool:\n`;
-            errorMessage += `   This will pass \`--ee false\` to ansible-navigator.\n\n`;
-            errorMessage += `3. Configure ansible-navigator to disable execution environments:\n`;
-            errorMessage += `   Create \`ansible-navigator.yml\` in your workspace with:\n`;
-            errorMessage += `   \`\`\`yaml\n`;
-            errorMessage += `   ansible-navigator:\n`;
-            errorMessage += `     execution-environment:\n`;
-            errorMessage += `       enabled: false\n`;
-            errorMessage += `   \`\`\``;
-          } else {
-            // Check if it's a Podman connection error (VM not running)
-            const isPodmanConnectionError =
-              stderrData.includes("Cannot connect to Podman") ||
-              stderrData.includes("connection refused") ||
-              stderrData.includes("podman system connection") ||
-              stderrData.includes("podman machine");
-
-            if (isPodmanConnectionError && containerCheck.engine === "podman") {
-              errorMessage += `**Issue:** Podman is installed but the Podman VM is not running.\n\n`;
-              errorMessage += `**Note:** We are disabling the execution environment due to this error. `;
-              errorMessage += `The tool will automatically retry with \`disableExecutionEnvironment: true\` to use your local Ansible installation instead of Podman.\n\n`;
-              errorMessage += `**Solutions:**\n`;
-              errorMessage += `1. **Automatic fix (recommended):** The tool will retry with execution environment disabled. `;
-              errorMessage += `This uses your local Ansible installation and avoids Podman entirely.\n\n`;
-              errorMessage += `2. Start the Podman VM (if you need execution environments):\n`;
-              errorMessage += `   Run: \`podman machine start\`\n`;
-              errorMessage += `   Or initialize a new VM: \`podman machine init\` then \`podman machine start\`\n\n`;
-              errorMessage += `3. Check Podman connection:\n`;
-              errorMessage += `   Run: \`podman system connection list\` to verify connections\n`;
-            } else {
-              errorMessage += `Note: ${containerCheck.engine} was detected but ansible-navigator still failed. `;
-              errorMessage += `Check the error output above for details.\n\n`;
-              errorMessage += `**Quick fix:** Try using \`disableExecutionEnvironment: true\` to use local Ansible instead.`;
-            }
-          }
-
-          reject(new Error(errorMessage));
+          reject(new Error(buildContainerErrorMessage(stderrData, stdoutData, code ?? undefined)));
           return;
         }
 
