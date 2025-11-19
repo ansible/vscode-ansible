@@ -14,6 +14,7 @@ import {
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
+  createDefineAndBuildExecutionEnvHandler,
 } from "./handlers.js";
 import {
   checkDependencies,
@@ -21,12 +22,137 @@ import {
   type Dependency,
 } from "./dependencyChecker.js";
 import { createInitHandler } from "./tools/creator.js";
+import {
+  getEERules,
+  getExecutionEnvironmentSchema,
+  getSampleExecutionEnvironment,
+} from "./resources/eeSchema.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
     name: "ansible-mcp-server",
     version: "0.1.0",
   });
+
+  // Register execution environment schema as a resource
+  server.registerResource(
+    "execution-environment-schema",
+    "schema://execution-environment",
+    {
+      title: "Execution Environment Schema",
+      description:
+        "JSON schema for Ansible execution environment definition files. " +
+        "This schema validates the structure of execution-environment.yml files used with ansible-builder. " +
+        "Use this schema along with the sample EE file to generate compliant EE definition files.",
+      mimeType: "application/json",
+    },
+    async () => {
+      try {
+        const schema = await getExecutionEnvironmentSchema();
+        return {
+          contents: [
+            {
+              uri: "schema://execution-environment",
+              mimeType: "application/json",
+              text: JSON.stringify(schema, null, 2),
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        return {
+          contents: [
+            {
+              uri: "schema://execution-environment",
+              mimeType: "text/plain",
+              text: `Error loading schema: ${errorMessage}`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
+  // Register sample execution environment file as a resource
+  server.registerResource(
+    "execution-environment-sample",
+    "sample://execution-environment",
+    {
+      title: "Sample Execution Environment File",
+      description:
+        "A sample execution-environment.yml file that demonstrates the v3 schema structure. " +
+        "Use this as a reference along with the schema to understand how to structure execution environment files. " +
+        "The LLM should use both the schema and this sample to generate new EE files.",
+      mimeType: "text/yaml",
+    },
+    async () => {
+      try {
+        const sampleContent = await getSampleExecutionEnvironment();
+        return {
+          contents: [
+            {
+              uri: "sample://execution-environment",
+              mimeType: "text/yaml",
+              text: sampleContent,
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        return {
+          contents: [
+            {
+              uri: "sample://execution-environment",
+              mimeType: "text/plain",
+              text: `Error loading sample file: ${errorMessage}`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
+  // Register ee-rules.md file as a resource
+  server.registerResource(
+    "execution-environment-rules",
+    "rules://execution-environment",
+    {
+      title: "Execution Environment Rules",
+      description:
+        "The ee-rules.md file contains rules and guidelines for Ansible execution environment files. " +
+        "Use this as a reference along with the schema to understand how to structure execution environment files. " +
+        "The LLM should use both the schema and this rules file to generate new EE files.",
+      mimeType: "text/markdown",
+    },
+    async () => {
+      try {
+        const rulesContent = await getEERules();
+        return {
+          contents: [
+            {
+              uri: "rules://execution-environment",
+              mimeType: "text/markdown",
+              text: rulesContent,
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        return {
+          contents: [
+            {
+              uri: "rules://execution-environment",
+              mimeType: "text/plain",
+              text: `Error loading rules file: ${errorMessage}`,
+            },
+          ],
+        };
+      }
+    },
+  );
 
   // Track registered tools for error messages
   const registeredTools = new Set<string>();
@@ -456,6 +582,85 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       description: "Create a new Ansible collection.",
     },
     createInitHandler("collection"),
+    [],
+  );
+
+  registerToolWithDeps(
+    "define_and_build_execution_env",
+    {
+      title: "Define and Build Execution Environment",
+      description:
+        "Create an EE definition file for building Ansible execution environment images with ansible-builder. " +
+        "This tool works in two steps: (1) First call returns a prompt with rules and requirements - generate YAML from this prompt. " +
+        "(2) Second call with the 'generatedYaml' parameter containing the YAML content will create and validate the file. " +
+        "Use rules from ee-rules.md and validate against the execution environment schema.",
+      inputSchema: {
+        baseImage: z
+          .string()
+          .describe(
+            "The base container image to use (e.g., 'quay.io/fedora/fedora-minimal:41' or 'quay.io/centos/centos:stream10')",
+          ),
+        tag: z
+          .string()
+          .describe(
+            "The tag/name for the resulting execution environment image (e.g., 'my-ee:latest')",
+          ),
+        destinationPath: z
+          .string()
+          .optional()
+          .describe(
+            "Optional destination directory path for the execution-environment.yml file. Defaults to workspace root.",
+          ),
+        collections: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Optional array of Ansible collection names to include (e.g., ['amazon.aws', 'ansible.utils'])",
+          ),
+        systemPackages: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Optional array of system packages to install (e.g., ['git', 'vim', 'curl'])",
+          ),
+        pythonPackages: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "Optional array of Python packages to install (e.g., ['boto3', 'requests'])",
+          ),
+        generatedYaml: z
+          .string()
+          .optional()
+          .describe(
+            "Internal parameter: LLM-generated YAML content. Use this when calling the tool a second time after generating the YAML from the prompt provided in the first call.",
+          ),
+      },
+      annotations: {
+        keywords: [
+          "execution environment",
+          "ee",
+          "ansible-builder",
+          "container image",
+          "build ee",
+          "create execution environment",
+          "execution-environment.yml",
+          "define execution environment",
+          "ansible container",
+          "ee file",
+          "ansible builder",
+        ],
+        useCases: [
+          "Create execution environment definition file",
+          "Build Ansible execution environment container images",
+          "Define containerized Ansible runtime",
+          "Generate execution-environment.yml from inputs",
+          "Set up execution environment with collections and dependencies",
+          "Create custom Ansible execution environment",
+        ],
+      },
+    },
+    createDefineAndBuildExecutionEnvHandler(workspaceRoot),
     [],
   );
 
