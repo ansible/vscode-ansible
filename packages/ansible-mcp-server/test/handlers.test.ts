@@ -4,6 +4,7 @@ import {
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
+  createAgentsGuidelinesHandler,
 } from "../src/handlers.js";
 import { ZEN_OF_ANSIBLE } from "../src/constants.js";
 
@@ -13,6 +14,11 @@ vi.mock("../src/tools/adeTools.js", () => ({
   formatEnvironmentInfo: vi.fn(),
   setupDevelopmentEnvironment: vi.fn(),
   checkAndInstallADT: vi.fn(),
+}));
+
+// Mock the agents resource module
+vi.mock("../src/resources/agents.js", () => ({
+  getAgentsGuidelines: vi.fn(),
 }));
 
 describe("MCP Handlers", () => {
@@ -295,6 +301,100 @@ describe("MCP Handlers", () => {
         "Error checking/installing ADT: String exception",
       );
       expect(result.isError).toBe(true);
+    });
+  });
+
+  describe("ansible_content_best_practices handler", () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+    });
+
+    it("should return best practices content successfully", async () => {
+      const { getAgentsGuidelines } = await import(
+        "../src/resources/agents.js"
+      );
+
+      const mockGuidelines =
+        "# Ansible Coding Guidelines for AI Agents\n\n## Best Practices\n\nTest content.";
+      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockGuidelines);
+
+      const handler = createAgentsGuidelinesHandler();
+      const result = await handler();
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe(mockGuidelines);
+      expect(result.isError).toBeUndefined();
+    });
+
+    it("should handle file reading errors gracefully", async () => {
+      const { getAgentsGuidelines } = await import(
+        "../src/resources/agents.js"
+      );
+
+      vi.mocked(getAgentsGuidelines).mockRejectedValue(
+        new Error("File not found"),
+      );
+
+      const handler = createAgentsGuidelinesHandler();
+      const result = await handler();
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe(
+        "Error loading Ansible Content Best Practices: File not found",
+      );
+      expect(result.isError).toBe(true);
+    });
+
+    it("should handle non-Error exceptions", async () => {
+      const { getAgentsGuidelines } = await import(
+        "../src/resources/agents.js"
+      );
+
+      vi.mocked(getAgentsGuidelines).mockRejectedValue("String error");
+
+      const handler = createAgentsGuidelinesHandler();
+      const result = await handler();
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe(
+        "Error loading Ansible Content Best Practices: String error",
+      );
+      expect(result.isError).toBe(true);
+    });
+
+    it("should return consistent results on multiple calls", async () => {
+      const { getAgentsGuidelines } = await import(
+        "../src/resources/agents.js"
+      );
+
+      const mockGuidelines = "# Test Guidelines\n\nContent here.";
+      vi.mocked(getAgentsGuidelines).mockResolvedValue(mockGuidelines);
+
+      const handler = createAgentsGuidelinesHandler();
+      const result1 = await handler();
+      const result2 = await handler();
+
+      expect(result1.content[0].text).toBe(result2.content[0].text);
+      expect(getAgentsGuidelines).toHaveBeenCalledTimes(2);
+    });
+
+    it("should handle empty content", async () => {
+      const { getAgentsGuidelines } = await import(
+        "../src/resources/agents.js"
+      );
+
+      vi.mocked(getAgentsGuidelines).mockResolvedValue("");
+
+      const handler = createAgentsGuidelinesHandler();
+      const result = await handler();
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(result.content[0].text).toBe("");
+      expect(result.isError).toBeUndefined();
     });
   });
 });

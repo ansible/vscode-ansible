@@ -62,7 +62,7 @@ __metadata:
     typescript: "npm:^5.9.3"
     vitest: "npm:^4.0.4"
     yaml: "npm:^2.8.1"
-    zod: "npm:^3.23.8"
+    zod: "npm:^4.0.0"
   bin:
     ansible-mcp-server: out/server/src/cli.js
   languageName: unknown
@@ -2220,12 +2220,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon@npm:^17.0.4":
-  version: 17.0.4
-  resolution: "@types/sinon@npm:17.0.4"
+"@types/sinon@npm:^21.0.0":
+  version: 21.0.0
+  resolution: "@types/sinon@npm:21.0.0"
   dependencies:
     "@types/sinonjs__fake-timers": "npm:*"
-  checksum: 10/286c34e66e3573673ba59a332ac81189e20dd591c5c5360c8ff3ed83a59a60bdb1d4c8f13ab8863a4d5ce636282e4b11c640b87f398663eee152988ca09b1933
+  checksum: 10/3add134347bd2b96c4d136bc41108553d31f2b4ca44c118ae69832d8bd9896d9faec07c08ba933cd25ba8699503303e8743d84fc8f5317c16b5cfb8245d0bc29
   languageName: node
   linkType: hard
 
@@ -3356,7 +3356,7 @@ __metadata:
     "@types/morgan": "npm:^1.9.10"
     "@types/node": "npm:^24.7.0"
     "@types/selenium-webdriver": "npm:^4.35.1"
-    "@types/sinon": "npm:^17.0.4"
+    "@types/sinon": "npm:^21.0.0"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^11.0.0"
     "@types/vscode": "npm:^1.85.0"
@@ -3383,7 +3383,7 @@ __metadata:
     eslint-plugin-tsdoc: "npm:^0.5.0"
     express: "npm:^5.1.0"
     find-process: "npm:^2.0.0"
-    glob: "npm:^11.0.3"
+    glob: "npm:^12.0.0"
     globals: "npm:^16.4.0"
     highlight.js: "npm:^11.11.1"
     ini: "npm:^6.0.0"
@@ -5995,25 +5995,25 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:*, glob@npm:^11.0.0, glob@npm:^11.0.3":
-  version: 11.0.3
-  resolution: "glob@npm:11.0.3"
+"glob@npm:*, glob@npm:^12.0.0":
+  version: 12.0.0
+  resolution: "glob@npm:12.0.0"
   dependencies:
     foreground-child: "npm:^3.3.1"
     jackspeak: "npm:^4.1.1"
-    minimatch: "npm:^10.0.3"
+    minimatch: "npm:^10.1.1"
     minipass: "npm:^7.1.2"
     package-json-from-dist: "npm:^1.0.0"
     path-scurry: "npm:^2.0.0"
   bin:
     glob: dist/esm/bin.mjs
-  checksum: 10/2ae536c1360c0266b523b2bfa6aadc10144a8b7e08869b088e37ac3c27cd30774f82e4bfb291cde796776e878f9e13200c7ff44010eb7054e00f46f649397893
+  checksum: 10/6e21b3f1f1fa635836d45e54bbe50704884cc3e310e0cc011cfb5429db65a030e12936d99b07e66236370efe45dc8c8b26fa5334dbf555d6f8709e0315c77c30
   languageName: node
   linkType: hard
 
 "glob@npm:^10.3.10, glob@npm:^10.4.1, glob@npm:^10.4.5":
-  version: 10.4.5
-  resolution: "glob@npm:10.4.5"
+  version: 10.5.0
+  resolution: "glob@npm:10.5.0"
   dependencies:
     foreground-child: "npm:^3.1.0"
     jackspeak: "npm:^3.1.2"
@@ -6023,7 +6023,23 @@ __metadata:
     path-scurry: "npm:^1.11.1"
   bin:
     glob: dist/esm/bin.mjs
-  checksum: 10/698dfe11828b7efd0514cd11e573eaed26b2dff611f0400907281ce3eab0c1e56143ef9b35adc7c77ecc71fba74717b510c7c223d34ca8a98ec81777b293d4ac
+  checksum: 10/ab3bccfefcc0afaedbd1f480cd0c4a2c0e322eb3f0aa7ceaa31b3f00b825069f17cf0f1fc8b6f256795074b903f37c0ade37ddda6a176aa57f1c2bbfe7240653
+  languageName: node
+  linkType: hard
+
+"glob@npm:^11.0.0, glob@npm:^11.0.3":
+  version: 11.1.0
+  resolution: "glob@npm:11.1.0"
+  dependencies:
+    foreground-child: "npm:^3.3.1"
+    jackspeak: "npm:^4.1.1"
+    minimatch: "npm:^10.1.1"
+    minipass: "npm:^7.1.2"
+    package-json-from-dist: "npm:^1.0.0"
+    path-scurry: "npm:^2.0.0"
+  bin:
+    glob: dist/esm/bin.mjs
+  checksum: 10/da4501819633daff8822c007bb3f93d5c4d2cbc7b15a8e886660f4497dd251a1fb4f53a85fba1e760b31704eff7164aeb2c7a82db10f9f2c362d12c02fe52cf3
   languageName: node
   linkType: hard
 
@@ -6882,14 +6898,14 @@ __metadata:
   linkType: hard
 
 "js-yaml@npm:^3.14.1":
-  version: 3.14.1
-  resolution: "js-yaml@npm:3.14.1"
+  version: 3.14.2
+  resolution: "js-yaml@npm:3.14.2"
   dependencies:
     argparse: "npm:^1.0.7"
     esprima: "npm:^4.0.0"
   bin:
     js-yaml: bin/js-yaml.js
-  checksum: 10/9e22d80b4d0105b9899135365f746d47466ed53ef4223c529b3c0f7a39907743fdbd3c4379f94f1106f02755b5e90b2faaf84801a891135544e1ea475d1a1379
+  checksum: 10/172e0b6007b0bf0fc8d2469c94424f7dd765c64a047d2b790831fecef2204a4054eabf4d911eb73ab8c9a3256ab8ba1ee8d655b789bf24bf059c772acc2075a1
   languageName: node
   linkType: hard
 
@@ -7628,7 +7644,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:*, minimatch@npm:^10.0.3":
+"minimatch@npm:*, minimatch@npm:^10.0.3, minimatch@npm:^10.1.1":
   version: 10.1.1
   resolution: "minimatch@npm:10.1.1"
   dependencies:
@@ -11577,5 +11593,12 @@ __metadata:
   version: 3.25.76
   resolution: "zod@npm:3.25.76"
   checksum: 10/f0c963ec40cd96858451d1690404d603d36507c1fc9682f2dae59ab38b578687d542708a7fdbf645f77926f78c9ed558f57c3d3aa226c285f798df0c4da16995
+  languageName: node
+  linkType: hard
+
+"zod@npm:^4.0.0":
+  version: 4.1.12
+  resolution: "zod@npm:4.1.12"
+  checksum: 10/c5f04e6ac306515c4db6ef73cf7705f521c7a2107c8c8912416a0658d689f361db9bee829b0bf01ef4a22492f1065c5cbcdb523ce532606ac6792fd714f3c326
   languageName: node
   linkType: hard
