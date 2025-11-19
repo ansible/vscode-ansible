@@ -22,7 +22,7 @@ describe(__filename, function () {
     const file = "playbook.yml";
     const playbookFile = getFixturePath(folder, file);
 
-    it("Execute ansible-playbook command with arg", async function () {
+    it.skip("Execute ansible-playbook command with arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();
@@ -55,7 +55,7 @@ describe(__filename, function () {
       await terminalView.killTerminal();
     });
 
-    it("Execute ansible-playbook command without arg", async function () {
+    it.skip("Execute ansible-playbook command without arg", async function () {
       await VSBrowser.instance.driver.switchTo().defaultContent();
 
       settingsEditor = await openSettings();

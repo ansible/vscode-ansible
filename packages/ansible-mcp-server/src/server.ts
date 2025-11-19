@@ -15,6 +15,7 @@ import {
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
   createDefineAndBuildExecutionEnvHandler,
+  createAgentsGuidelinesHandler,
 } from "./handlers.js";
 import {
   checkDependencies,
@@ -27,6 +28,7 @@ import {
   getExecutionEnvironmentSchema,
   getSampleExecutionEnvironment,
 } from "./resources/eeSchema.js";
+import { getAgentsGuidelines } from "./resources/agents.js";
 
 export function createAnsibleMcpServer(workspaceRoot: string) {
   const server = new McpServer({
@@ -154,6 +156,49 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     },
   );
 
+  // Register agents.md file as a resource
+  server.registerResource(
+    "ansible-content-best-practices",
+    "guidelines://ansible-content-best-practices",
+    {
+      title: "Ansible Content Best Practices",
+      description:
+        "Comprehensive best practices and guidelines for writing Ansible content. " +
+        "This document provides standards, best practices, and guidelines for creating maintainable Ansible automation. " +
+        "Use this resource when generating or modifying Ansible playbooks, roles, collections, and other Ansible content. " +
+        "The guidelines cover formatting, naming conventions, project structure, testing strategies, and more. " +
+        "This file is packaged with the extension for offline access. " +
+        "Reference this resource in prompts to provide context for writing Ansible content following best practices.",
+      mimeType: "text/markdown",
+    },
+    async () => {
+      try {
+        const guidelinesContent = await getAgentsGuidelines();
+        return {
+          contents: [
+            {
+              uri: "guidelines://ansible-content-best-practices",
+              mimeType: "text/markdown",
+              text: guidelinesContent,
+            },
+          ],
+        };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        return {
+          contents: [
+            {
+              uri: "guidelines://ansible-content-best-practices",
+              mimeType: "text/plain",
+              text: `Error loading Ansible Content Best Practices: ${errorMessage}`,
+            },
+          ],
+        };
+      }
+    },
+  );
+
   // Track registered tools for error messages
   const registeredTools = new Set<string>();
 
@@ -185,7 +230,51 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       description: "20 aphorisms that describe Ansible's design philosophy.",
     },
     createZenOfAnsibleHandler(),
-    [], // No dependencies
+    [],
+  );
+
+  registerToolWithDeps(
+    "ansible_content_best_practices",
+    {
+      title: "Ansible Content Best Practices",
+      description:
+        "Get best practices and guidelines for writing Ansible content. " +
+        "This tool returns comprehensive guidelines covering standards, best practices, and recommendations for creating maintainable Ansible automation. " +
+        "Use this tool to answer questions like 'What are best practices for writing ansible content?' or 'How do I write a good playbook?'. " +
+        "The tool returns the full guidelines document which can be summarized or referenced. " +
+        "Once the content is in context, you can use it to write playbooks and other Ansible content following best practices.",
+      annotations: {
+        keywords: [
+          "ansible best practices",
+          "ansible content",
+          "what are best practices for writing ansible content",
+          "how do I write a good playbook",
+          "ansible guidelines",
+          "ansible standards",
+          "ansible style guide",
+          "ansible conventions",
+          "ansible formatting",
+          "ansible naming",
+          "ansible project structure",
+          "ansible testing",
+          "ansible development",
+          "write ansible playbook",
+          "ansible automation guidelines",
+          "ansible content guidelines",
+        ],
+        useCases: [
+          "Get best practices for writing Ansible content",
+          "Learn how to write a good Ansible playbook",
+          "Understand Ansible formatting and naming conventions",
+          "Learn Ansible project structure standards",
+          "Reference Ansible testing strategies",
+          "Follow Ansible development best practices",
+          "Get guidelines for creating maintainable Ansible automation",
+        ],
+      },
+    },
+    createAgentsGuidelinesHandler(),
+    [],
   );
 
   registerToolWithDeps(
