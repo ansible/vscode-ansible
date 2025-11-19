@@ -47,6 +47,52 @@ describe("Ansible MCP Server", () => {
     });
   });
 
+  describe("ansible_content_best_practices tool", () => {
+    it("should return best practices content", async () => {
+      const result = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+      expect(typeof result.content[0].text).toBe("string");
+      expect(result.content[0].text.length).toBeGreaterThan(0);
+    });
+
+    it("should handle tool call with empty arguments", async () => {
+      const result = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+    });
+
+    it("should handle invalid arguments gracefully", async () => {
+      const result = await server.callTool("ansible_content_best_practices", {
+        invalid: "arg",
+      });
+
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
+    });
+
+    it("should return consistent results on multiple calls", async () => {
+      const result1 = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+      const result2 = await server.callTool(
+        "ansible_content_best_practices",
+        {},
+      );
+
+      expect(result1.content[0].text).toBe(result2.content[0].text);
+    });
+  });
+
   describe("server configuration", () => {
     it("should have correct server metadata", () => {
       expect(server.name).toBe("ansible-mcp-server");
@@ -56,6 +102,7 @@ describe("Ansible MCP Server", () => {
     it("should register all expected tools", () => {
       const toolNames = server.listTools().map((tool) => tool.name);
       expect(toolNames).toContain("zen_of_ansible");
+      expect(toolNames).toContain("ansible_content_best_practices");
       expect(toolNames).toContain("list_available_tools");
       expect(toolNames).toContain("ansible_lint");
       expect(toolNames).toContain("ade_environment_info");
@@ -67,8 +114,15 @@ describe("Ansible MCP Server", () => {
       expect(toolNames).toHaveLength(TOOL_COUNT);
     });
 
-    it("should not register any resources", () => {
-      expect(server.listResources()).toEqual([]);
+    it("should register expected resources", () => {
+      const resources = server.listResources();
+      const resourceNames = resources.map((r) => r.name);
+
+      expect(resourceNames).toContain("execution-environment-schema");
+      expect(resourceNames).toContain("execution-environment-sample");
+      expect(resourceNames).toContain("execution-environment-rules");
+      expect(resourceNames).toContain("ansible-content-best-practices");
+      expect(resources.length).toBeGreaterThanOrEqual(4);
     });
 
     it("should not register any prompts", () => {

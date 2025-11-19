@@ -13,6 +13,7 @@ import {
   formatExecutionEnvResult,
   buildEEStructureFromPrompt,
 } from "./tools/executionEnv.js";
+import { getAgentsGuidelines } from "./resources/agents.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {
@@ -24,6 +25,34 @@ export function createZenOfAnsibleHandler() {
         },
       ],
     };
+  };
+}
+
+export function createAgentsGuidelinesHandler() {
+  return async () => {
+    try {
+      const guidelines = await getAgentsGuidelines();
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: guidelines,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error loading Ansible Content Best Practices: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }
 
