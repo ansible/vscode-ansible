@@ -40,3 +40,4 @@ xunit.xml
 
 # Ansible Navigator artifacts
 *-artifact-*.json
+ansible-navigator.log
