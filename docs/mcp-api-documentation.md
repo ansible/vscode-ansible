@@ -1,8 +1,8 @@
 # Ansible MCP Server - API Endpoint Documentation
 
-**Version:** 0.1.0  
-**Protocol:** Model Context Protocol (MCP) 1.0  
-**Base URL:** stdio transport (no HTTP endpoint)  
+**Version:** 0.1.0
+**Protocol:** Model Context Protocol (MCP) 1.0
+**Base URL:** stdio transport (no HTTP endpoint)
 **Transport:** stdio, WebSocket (planned)
 
 ## Table of Contents
@@ -157,8 +157,8 @@ The server exposes four read-only resources providing schema and reference data.
 
 ### Resource: Execution Environment Schema
 
-**Resource Name:** `execution-environment-schema`  
-**URI:** `schema://execution-environment`  
+**Resource Name:** `execution-environment-schema`
+**URI:** `schema://execution-environment`
 **MIME Type:** `application/json`
 
 **Description:** JSON schema for validating Ansible execution environment definition files (execution-environment.yml) used with ansible-builder.
@@ -206,8 +206,8 @@ The server exposes four read-only resources providing schema and reference data.
 
 ### Resource: Execution Environment Sample
 
-**Resource Name:** `execution-environment-sample`  
-**URI:** `sample://execution-environment`  
+**Resource Name:** `execution-environment-sample`
+**URI:** `sample://execution-environment`
 **MIME Type:** `text/yaml`
 
 **Description:** Reference implementation of execution-environment.yml demonstrating v3 schema structure.
@@ -226,8 +226,8 @@ The server exposes four read-only resources providing schema and reference data.
 
 ### Resource: Execution Environment Rules
 
-**Resource Name:** `execution-environment-rules`  
-**URI:** `rules://execution-environment`  
+**Resource Name:** `execution-environment-rules`
+**URI:** `rules://execution-environment`
 **MIME Type:** `text/markdown`
 
 **Description:** Rules and guidelines for generating and validating execution environment files (ee-rules.md).
@@ -246,8 +246,8 @@ The server exposes four read-only resources providing schema and reference data.
 
 ### Resource: Ansible Content Best Practices
 
-**Resource Name:** `ansible-content-best-practices`  
-**URI:** `guidelines://ansible-content-best-practices`  
+**Resource Name:** `ansible-content-best-practices`
+**URI:** `guidelines://ansible-content-best-practices`
 **MIME Type:** `text/markdown`
 
 **Description:** Comprehensive best practices and guidelines for writing Ansible content. Provides standards, best practices, and guidelines for creating maintainable Ansible automation including formatting, naming conventions, project structure, testing strategies, and more.
@@ -1495,7 +1495,7 @@ All errors use consistent format:
 
 *Required for execution mode; optional for information mode
 
-⚠️ = Required  
+⚠️ = Required
 ⭕ = Optional
 
 ### Resources
@@ -1509,7 +1509,7 @@ All errors use consistent format:
 
 ---
 
-**API Version:** 0.1.0  
-**Last Updated:** 2025-11-19  
-**Protocol:** MCP 1.0  
+**API Version:** 0.1.0
+**Last Updated:** 2025-11-19
+**Protocol:** MCP 1.0
 **Reference:** https://code.visualstudio.com/api/extension-guides/ai/mcp
