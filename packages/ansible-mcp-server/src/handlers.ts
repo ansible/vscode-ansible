@@ -250,25 +250,28 @@ export function createAnsibleNavigatorHandler() {
               "- **VM/Podman** (default) - Runs in isolated container environment\n" +
               "- **Local Ansible** - Runs directly on your system (use `--ee false`)\n" +
               "- **Virtual Environment** - Runs from specific Python venv\n\n" +
+              "## 🔍 Environment Detection (Default Order)\n" +
+              "When running ansible-navigator, we auto-detect the installation in this order:\n" +
+              "1. **System PATH** - First checks if ansible-navigator is in your PATH (e.g., `/usr/local/bin/ansible-navigator`)\n" +
+              "2. **Virtual Environments** - Then checks common venv locations (`ansible-dev/bin/`, `venv/bin/`, `.venv/bin/`)\n" +
+              "3. **Execution Environment** - By default, uses Podman/Docker EE (auto-retries with `--ee false` if Podman fails)\n\n" +
               "## 🚀 Quick Commands\n" +
               "```bash\n" +
-              "# Interactive mode (default)\n" +
+              "# This MCP tool uses stdout mode by default\n" +
+              "# (MCP tool will run with -m stdout automatically)\n" +
               "ansible-navigator run playbooks/play1.yml\n\n" +
-              "# Direct stdout output (traditional ansible-playbook style)\n" +
-              "ansible-navigator run playbooks/play1.yml -m stdout\n\n" +
+              "# Interactive mode (requires terminal, use when explicitly needed)\n" +
+              "ansible-navigator run playbooks/play1.yml -m interactive\n\n" +
               "# Disable execution environment (run with local Ansible)\n" +
               "ansible-navigator run playbooks/play1.yml --ee false\n\n" +
-              "# Combine stdout mode with local Ansible\n" +
-              "ansible-navigator run playbooks/play1.yml -m stdout --ee false\n\n" +
               "# Use specific Python venv\n" +
-              "source venv/bin/activate && ansible-navigator run playbooks/play1.yml -m stdout\n" +
+              "source venv/bin/activate && ansible-navigator run playbooks/play1.yml\n" +
               "```\n\n" +
               "## 💡 Tips\n" +
-              "- **This tool uses**: stdout mode (direct output, best for chat/scripting)\n" +
+              "- **This tool uses**: stdout mode by default (direct output, best for chat/scripting)\n" +
               "- **For exploration**: Use `-m interactive` (TUI - press ESC to navigate)\n" +
-              "- **Podman/Docker**: Required for execution environment (EE)\n" +
-              "- **If Podman fails**: Use `--ee false` to run with local Ansible\n" +
-              "- **Environment auto-detection**: Checks PATH, then venv, then system\n\n" +
+              "- **Podman/Docker**: Required for execution environment (EE), auto-retries with `--ee false` if not available\n" +
+              "- **Environment selection**: Specify `venv` or `system` to override auto-detection\n\n" +
               "## 🎯 For This Session\n" +
               "Tell me which playbook to run and I'll execute it with your preferred settings!",
           },
