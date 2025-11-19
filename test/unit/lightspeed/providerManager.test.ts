@@ -13,7 +13,7 @@ describe("ProviderManager", () => {
         "../../../src/features/lightspeed/providerManager.js"
       );
       ProviderManager = module.ProviderManager;
-    } catch (error) {
+    } catch {
       console.log("Could not import ProviderManager, skipping tests");
       return;
     }

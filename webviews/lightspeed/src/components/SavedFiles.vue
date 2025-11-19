@@ -27,7 +27,7 @@ const props = defineProps<{
 const roleLocation = ref<string>('');
 
 async function writeRoleInWorkspace() {
-    const payload = {
+    return vscodeApi.postAndReceive('writeRoleInWorkspace', {
         files: props.files.map((i) => [i.path, i.content, i.file_type]),
         collectionName: props.collectionName,
         roleName: props.roleName

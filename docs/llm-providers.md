@@ -93,15 +93,15 @@ Add to your workspace `.vscode/settings.json`:
 
 ## Configuration Settings
 
-| Setting | Description | Default | Applicable To |
-|---------|-------------|---------|---------------|
-| `ansible.lightspeed.enabled` | Enable/disable Ansible Lightspeed | `true` | All providers |
-| `ansible.lightspeed.provider` | Provider selection | `wca` | All providers |
-| `ansible.lightspeed.apiEndpoint` | API endpoint URL | `https://c.ai.ansible.redhat.com` | **WCA only** |
-| `ansible.lightspeed.modelName` | Model name/ID to use | `""` | All providers |
-| `ansible.lightspeed.apiKey` | API key for authentication | `""` | Google only (not WCA) |
-| `ansible.lightspeed.timeout` | Request timeout in milliseconds | `30000` | All providers |
-| `ansible.lightspeed.customHeaders` | Custom HTTP headers (JSON object) | `{}` | Third-party only |
+| Setting                              | Description                         | Default                               | Applicable To           |
+| ------------------------------------ | ----------------------------------- | ------------------------------------- | ----------------------- |
+| `ansible.lightspeed.enabled`         | Enable/disable Ansible Lightspeed   | `true`                                | All providers           |
+| `ansible.lightspeed.provider`        | Provider selection                  | `wca`                                 | All providers           |
+| `ansible.lightspeed.apiEndpoint`     | API endpoint URL                    | `https://c.ai.ansible.redhat.com`     | **WCA only**            |
+| `ansible.lightspeed.modelName`       | Model name/ID to use                | `""`                                  | All providers           |
+| `ansible.lightspeed.apiKey`          | API key for authentication          | `""`                                  | Google only (not WCA)   |
+| `ansible.lightspeed.timeout`         | Request timeout in milliseconds     | `30000`                               | All providers           |
+| `ansible.lightspeed.customHeaders`   | Custom HTTP headers (JSON object)   | `{}`                                  | Third-party only        |
 
 ## Usage
 
@@ -181,12 +181,12 @@ You can easily switch between providers using the dropdown:
 
 ### Common Error Messages
 
-| Error | Solution |
-|-------|----------|
-| "Authentication failed" | Check your API key |
-| "Rate limit exceeded" | Wait and try again, or check your quota |
-| "Request timeout" | Increase timeout setting or check network |
-| "Model not found" | Verify the model name is correct for your provider |
+| Error                     | Solution                                           |
+| ------------------------- | -------------------------------------------------- |
+| "Authentication failed"   | Check your API key                                 |
+| "Rate limit exceeded"     | Wait and try again, or check your quota            |
+| "Request timeout"         | Increase timeout setting or check network          |
+| "Model not found"         | Verify the model name is correct for your provider |
 
 ### Debug Information
 
