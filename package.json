@@ -433,20 +433,20 @@
         "properties": {
           "ansible.lightspeed.apiEndpoint": {
             "default": "",
-            "markdownDescription": "API endpoint URL. **Only configurable for WCA and Custom providers.** For OpenAI and Google, the endpoint is automatically set and cannot be changed. If you need a custom endpoint for these providers, use the 'Custom' provider option instead. Default for WCA: https://c.ai.ansible.redhat.com",
+            "markdownDescription": "API endpoint URL. **Only configurable for WCA provider.** For Google, the endpoint is automatically set and cannot be changed. Default for WCA: https://c.ai.ansible.redhat.com",
             "order": 4,
             "scope": "resource",
             "type": "string"
           },
           "ansible.lightspeed.apiKey": {
-            "markdownDescription": "API key for LLM providers (OpenAI, Google, Custom). Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
+            "markdownDescription": "API key for Google provider. Not used for WCA (uses OAuth2 authentication). **Important**: This will be stored in VS Code settings.",
             "order": 3,
             "scope": "resource",
             "type": "string"
           },
           "ansible.lightspeed.customHeaders": {
             "markdownDescription": "Custom HTTP headers for LLM providers (JSON object). Example: {\"Custom-Header\": \"value\"}. Not used for WCA.",
-            "order": 8,
+            "order": 6,
             "scope": "resource",
             "type": "object"
           },
@@ -457,30 +457,33 @@
             "scope": "resource",
             "type": "boolean"
           },
-          "ansible.lightspeed.modelName": {
-            "markdownDescription": "Model name/ID to use. **Optional for OpenAI/Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only). For Custom: Required model identifier.",
-            "order": 2,
-            "scope": "resource",
-            "type": "string"
-          },
           "ansible.lightspeed.provider": {
             "default": "wca",
             "enum": [
               "wca",
-              "openai",
-              "google",
-              "custom"
+              "google"
             ],
             "enumDescriptions": [
               "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
-              "OpenAI - Direct access to OpenAI models (use your OpenAI API key)",
-              "Google Gemini - Direct access to Google Gemini models (use your Google API key)",
-              "Custom - Configure a custom OpenAI-compatible API"
+              "Google Gemini - Direct access to Google Gemini models (use your Google API key)"
             ],
             "markdownDescription": "Select the AI provider for Ansible Lightspeed suggestions and generation.",
             "order": 1,
             "scope": "resource",
             "type": "string"
+          },
+          "ansible.lightspeed.modelName": {
+            "markdownDescription": "Model name/ID to use. **Optional for Google** (uses smart defaults). For WCA: Model ID to override your organization's default model (commercial users only).",
+            "order": 2,
+            "scope": "resource",
+            "type": "string"
+          },
+          "ansible.lightspeed.timeout": {
+            "default": 30000,
+            "markdownDescription": "Request timeout in milliseconds for API calls.",
+            "order": 5,
+            "scope": "resource",
+            "type": "number"
           },
           "ansible.lightspeed.suggestions.enabled": {
             "default": true,
@@ -493,13 +496,6 @@
             "default": 0,
             "markdownDescription": "Delay (in msecs) prior to sending an inline suggestion request.",
             "order": 7,
-            "scope": "resource",
-            "type": "number"
-          },
-          "ansible.lightspeed.timeout": {
-            "default": 30000,
-            "markdownDescription": "Request timeout in milliseconds for API calls.",
-            "order": 5,
             "scope": "resource",
             "type": "number"
           }

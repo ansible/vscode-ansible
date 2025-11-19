@@ -31,23 +31,8 @@ async function writeRoleInWorkspace() {
         files: props.files.map((i) => [i.path, i.content, i.file_type]),
         collectionName: props.collectionName,
         roleName: props.roleName
-    };
-
-    return vscodeApi.postAndReceive('writeRoleInWorkspace', payload).then((response: any) => {
-        // Handle response structure (could be array or object with data property)
-        let fileEntries: IWriteRoleInWorkspaceOutputEntry[] = [];
-
-        if (Array.isArray(response)) {
-            fileEntries = response;
-        } else if (response && response.data) {
-            fileEntries = response.data;
-            roleLocation.value = response.roleLocation || '';
-        }
-
-        return fileEntries;
-    }).catch((error: any) => {
-        console.error('[SavedFiles] Error writing files:', error);
-        return [];
+    }).then((data: any) => {
+        return data as IWriteRoleInWorkspaceOutputEntry[];
     });
 }
 

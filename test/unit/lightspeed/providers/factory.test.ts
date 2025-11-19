@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 /* eslint-disable @typescript-eslint/no-explicit-any */
+=======
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
 import { assert } from "chai";
 
 // Test the provider factory in isolation
@@ -11,7 +14,11 @@ describe("LLMProviderFactory", () => {
         "../../../../src/features/lightspeed/providers/factory.js"
       );
       LLMProviderFactory = module.LLMProviderFactory;
+<<<<<<< HEAD
     } catch {
+=======
+    } catch (error) {
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
       console.log("Could not import LLMProviderFactory, skipping tests");
       return;
     }
@@ -174,7 +181,11 @@ describe("LLMProviderFactory", () => {
         assert.fail("Should have thrown an error");
       } catch (error) {
         assert.instanceOf(error, Error);
+<<<<<<< HEAD
         assert.include(error.message, "Unsupported provider type");
+=======
+        assert.include((error as Error).message, "Unsupported provider type");
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
       }
     });
   });

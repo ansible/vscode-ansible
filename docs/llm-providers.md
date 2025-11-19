@@ -9,7 +9,11 @@ When using LLM providers, the following Ansible Lightspeed features are availabl
 ✅ **Supported in Phase 1:**
 
 - Playbook Generation
+<<<<<<< HEAD
 - Role Generation
+=======
+- Role Generation  
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
 - Interactive Chat (if provider supports it)
 
 ❌ **Not Supported in Phase 1:**
@@ -151,7 +155,11 @@ Once configured, LLM providers work seamlessly with existing Ansible Lightspeed 
 ### Role Generation
 
 1. Right-click in an Ansible file
+<<<<<<< HEAD
 2. Select "Generate Ansible Role with Lightspeed"
+=======
+2. Select "Generate Ansible Role with Lightspeed"  
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
 3. Enter your requirements
 4. The configured LLM provider will generate the role structure
 

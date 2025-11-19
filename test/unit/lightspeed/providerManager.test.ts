@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 /* eslint-disable @typescript-eslint/no-explicit-any */
+=======
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
 import { assert } from "chai";
 
 // Test the provider manager in isolation using dynamic imports
@@ -13,7 +16,11 @@ describe("ProviderManager", () => {
         "../../../src/features/lightspeed/providerManager.js"
       );
       ProviderManager = module.ProviderManager;
+<<<<<<< HEAD
     } catch {
+=======
+    } catch (error) {
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
       console.log("Could not import ProviderManager, skipping tests");
       return;
     }
@@ -210,3 +217,7 @@ describe("ProviderManager", () => {
     });
   });
 });
+<<<<<<< HEAD
+=======
+
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)

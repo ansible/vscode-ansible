@@ -7,13 +7,21 @@ import * as yaml from "yaml";
 export function generateOutlineFromPlaybook(playbookYaml: string): string {
   try {
     const parsed = yaml.parse(playbookYaml);
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
     if (!parsed || !Array.isArray(parsed)) {
       return "";
     }
 
     const tasks: string[] = [];
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
     // Extract tasks from the playbook
     for (const play of parsed) {
       if (play.tasks && Array.isArray(play.tasks)) {
@@ -23,7 +31,11 @@ export function generateOutlineFromPlaybook(playbookYaml: string): string {
           }
         }
       }
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
       // Also check pre_tasks and post_tasks
       if (play.pre_tasks && Array.isArray(play.pre_tasks)) {
         for (const task of play.pre_tasks) {
@@ -32,7 +44,11 @@ export function generateOutlineFromPlaybook(playbookYaml: string): string {
           }
         }
       }
+<<<<<<< HEAD
 
+=======
+      
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
       if (play.post_tasks && Array.isArray(play.post_tasks)) {
         for (const task of play.post_tasks) {
           if (task.name) {
@@ -56,13 +72,21 @@ export function generateOutlineFromPlaybook(playbookYaml: string): string {
 export function generateOutlineFromRole(roleYaml: string): string {
   try {
     const parsed = yaml.parse(roleYaml);
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
     if (!parsed || !Array.isArray(parsed)) {
       return "";
     }
 
     const tasks: string[] = [];
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
     // Extract task names
     for (const task of parsed) {
       if (task.name) {
@@ -92,3 +116,7 @@ export function parseOutlineToTaskList(outline: string): string[] {
       return line.replace(/^\d+\.\s*/, "");
     });
 }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 84cfad07 (Add LLM provider under lighspeed)
