@@ -38,7 +38,58 @@ export function createTestServer(workspaceRoot: string) {
         ? Object.keys(registeredTools).map((name) => ({ name }))
         : [];
     },
-    listResources: () => [],
+    listResources: () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const registeredResources = (server as any)._registeredResources;
+      if (!registeredResources) {
+        return [];
+      }
+
+      // Resources are stored by URI, each resource has a 'name' property
+      const resources: Array<{ name: string; uri: string }> = [];
+
+      for (const [uri, resource] of Object.entries(registeredResources)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const name = (resource as any)?.name || uri;
+        resources.push({ name, uri });
+      }
+
+      return resources;
+    },
+    async callResource(nameOrUri: string) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const registeredResources = (server as any)._registeredResources;
+      if (!registeredResources) {
+        throw new Error(`Unknown resource: ${nameOrUri}`);
+      }
+
+      // Try to find by URI first
+      let resourceHandler = registeredResources[nameOrUri];
+
+      // If not found by URI, try to find by name
+      if (!resourceHandler) {
+        for (const [, resource] of Object.entries(registeredResources)) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if ((resource as any)?.name === nameOrUri) {
+            resourceHandler = resource;
+            break;
+          }
+        }
+      }
+
+      if (!resourceHandler) {
+        throw new Error(`Unknown resource: ${nameOrUri}`);
+      }
+
+      // Call the resource handler (it's called readCallback in the MCP SDK)
+
+      const handler = resourceHandler.readCallback;
+      if (handler) {
+        return await handler();
+      }
+
+      throw new Error(`Resource handler not found for: ${nameOrUri}`);
+    },
     listPrompts: () => [],
   };
 }

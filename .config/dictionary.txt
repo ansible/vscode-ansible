@@ -1,4 +1,5 @@
 ABRT
+CMDB
 Containerfile
 Customizer
 DEVFILE
@@ -24,12 +25,14 @@ PKGMGR
 PYCMD
 PYTHONBREAKPOINT
 RHSSO
+SSOT
 TASKFILE
 Taskfile
 Testenvs
 Tomasz
 Towncrier
 antsibull
+argspec
 autofetch
 bindep
 cfgs
@@ -45,6 +48,9 @@ dedupe
 depcheck
 devfile
 devspaces
+docsite
+docstrings
+equalto
 eslintcache
 extest
 fqcn
@@ -71,7 +77,6 @@ mycollection
 mymodule
 mynamespace
 nocolor
-nodenext
 noheading
 norecursedirs
 npmjs
@@ -84,6 +89,7 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
+pydoclint
 relogin
 rhsso
 seealso
