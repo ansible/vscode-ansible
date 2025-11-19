@@ -2220,12 +2220,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon@npm:^20.0.0":
-  version: 20.0.0
-  resolution: "@types/sinon@npm:20.0.0"
+"@types/sinon@npm:^21.0.0":
+  version: 21.0.0
+  resolution: "@types/sinon@npm:21.0.0"
   dependencies:
     "@types/sinonjs__fake-timers": "npm:*"
-  checksum: 10/abb8d86e1d44e1b618b555104a654730844dcb7bfb45bd7f0a83252cdcbcd167f4a0da8bac3dfd60621ad855582a8697cd695104b06c2aa497ecc789004660b7
+  checksum: 10/3add134347bd2b96c4d136bc41108553d31f2b4ca44c118ae69832d8bd9896d9faec07c08ba933cd25ba8699503303e8743d84fc8f5317c16b5cfb8245d0bc29
   languageName: node
   linkType: hard
 
@@ -3356,7 +3356,7 @@ __metadata:
     "@types/morgan": "npm:^1.9.10"
     "@types/node": "npm:^24.7.0"
     "@types/selenium-webdriver": "npm:^4.35.1"
-    "@types/sinon": "npm:^20.0.0"
+    "@types/sinon": "npm:^21.0.0"
     "@types/tmp": "npm:^0.2.6"
     "@types/uuid": "npm:^11.0.0"
     "@types/vscode": "npm:^1.85.0"
@@ -3383,7 +3383,7 @@ __metadata:
     eslint-plugin-tsdoc: "npm:^0.5.0"
     express: "npm:^5.1.0"
     find-process: "npm:^2.0.0"
-    glob: "npm:^11.0.3"
+    glob: "npm:^12.0.0"
     globals: "npm:^16.4.0"
     highlight.js: "npm:^11.11.1"
     ini: "npm:^6.0.0"
