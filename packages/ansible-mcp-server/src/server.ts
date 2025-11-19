@@ -282,9 +282,9 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           "The tool will parse it to extract the playbook filename. " +
           "\n" +
           "**EXAMPLES OF CORRECT USAGE:** " +
-          "- User says: 'run play1.yml' → You MUST pass: {\"userMessage\": \"run play1.yml\"} " +
-          "- User says: 'execute deploy playbook' → You MUST pass: {\"userMessage\": \"execute deploy playbook\"} " +
-          "- User says: 'run playbooks/site.yml' → You MUST pass: {\"userMessage\": \"run playbooks/site.yml\"} " +
+          '- User says: \'run play1.yml\' → You MUST pass: {"userMessage": "run play1.yml"} ' +
+          '- User says: \'execute deploy playbook\' → You MUST pass: {"userMessage": "execute deploy playbook"} ' +
+          '- User says: \'run playbooks/site.yml\' → You MUST pass: {"userMessage": "run playbooks/site.yml"} ' +
           "\n" +
           "**DO NOT call this tool with empty userMessage or {}. Always provide the user's message.**",
       },
@@ -354,19 +354,19 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         "**EXECUTION EXAMPLES:** " +
         "```\n" +
         "User: 'run play1.yml'\n" +
-        "→ Call: {\"userMessage\": \"run play1.yml\"}\n" +
+        '→ Call: {"userMessage": "run play1.yml"}\n' +
         "\n" +
         "User: 'run play1 in minimal mode'\n" +
-        "→ Call: {\"userMessage\": \"run play1 in minimal mode\", \"mode\": \"stdout\"}\n" +
+        '→ Call: {"userMessage": "run play1 in minimal mode", "mode": "stdout"}\n' +
         "\n" +
         "User: 'execute deploy playbook'\n" +
-        "→ Call: {\"userMessage\": \"execute deploy playbook\"}\n" +
+        '→ Call: {"userMessage": "execute deploy playbook"}\n' +
         "\n" +
         "User: 'run playbooks/site.yml without Podman'\n" +
-        "→ Call: {\"userMessage\": \"run playbooks/site.yml\", \"disableExecutionEnvironment\": true}\n" +
+        '→ Call: {"userMessage": "run playbooks/site.yml", "disableExecutionEnvironment": true}\n' +
         "\n" +
         "User: 'run using my venv at /custom/path'\n" +
-        "→ Call: {\"userMessage\": \"run playbook\", \"environment\": \"/custom/path\"}\n" +
+        '→ Call: {"userMessage": "run playbook", "environment": "/custom/path"}\n' +
         "```\n" +
         "\n\n" +
         "**IMPORTANT:** Always pass the user's original message in userMessage. The tool extracts the playbook name and handles everything else.",

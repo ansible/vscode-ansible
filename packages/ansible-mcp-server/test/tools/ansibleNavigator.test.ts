@@ -51,7 +51,9 @@ describe("Ansible Navigator Handler", () => {
       expect(result.content.length).toBeGreaterThan(0);
       expect(result.isError).toBe(false);
       // Should return comprehensive guide
-      expect(result.content[0].text).toContain("Ansible Navigator - Features & Usage Guide");
+      expect(result.content[0].text).toContain(
+        "Ansible Navigator - Features & Usage Guide",
+      );
       expect(result.content[0].text).toContain("Output Modes");
       expect(result.content[0].text).toContain("stdout");
       expect(result.content[0].text).toContain("interactive");
@@ -110,7 +112,9 @@ describe("Ansible Navigator Handler", () => {
       });
 
       expect(result.content).toBeDefined();
-      expect(result.content[0].text).toContain("Ansible Navigator - Features & Usage Guide");
+      expect(result.content[0].text).toContain(
+        "Ansible Navigator - Features & Usage Guide",
+      );
       expect(result.isError).toBe(false);
     });
   });

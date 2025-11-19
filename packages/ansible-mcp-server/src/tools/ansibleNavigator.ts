@@ -319,7 +319,10 @@ export async function runAnsibleNavigator(
   // Check if ansible-navigator is available before attempting to run
   // This will check based on the environment preference
   const environmentToUse = environment || "auto";
-  const navCheck = checkAnsibleNavigatorAvailable(workspaceRoot, environmentToUse);
+  const navCheck = checkAnsibleNavigatorAvailable(
+    workspaceRoot,
+    environmentToUse,
+  );
   if (!navCheck.available) {
     const pathEnv = process.env.PATH || "not set";
     let errorMsg = `ansible-navigator is not available in PATH or virtual environments.\n\n`;
@@ -448,7 +451,15 @@ export async function runAnsibleNavigator(
       // If process exits with non-zero code, check if it's container engine error vs playbook failure
       if (code !== 0) {
         if (isContainerEngineError(stderrData, stdoutData)) {
-          reject(new Error(buildContainerErrorMessage(stderrData, stdoutData, code ?? undefined)));
+          reject(
+            new Error(
+              buildContainerErrorMessage(
+                stderrData,
+                stdoutData,
+                code ?? undefined,
+              ),
+            ),
+          );
           return;
         }
 
@@ -504,15 +515,17 @@ export function formatNavigatorResult(
   const fileInfo = filePath ? ` for file: ${filePath}` : "";
 
   // Check if we're using a virtual environment version
-  const isVenvPath = navigatorPath && navigatorPath.includes("/bin/ansible-navigator");
+  const isVenvPath =
+    navigatorPath && navigatorPath.includes("/bin/ansible-navigator");
   const venvPath = isVenvPath ? navigatorPath.split("/bin/")[0] : undefined;
 
   // Determine actual environment used
-  const actualEnvironment = environment && environment !== "auto"
-    ? environment
-    : isVenvPath
-    ? "venv (auto-detected)"
-    : "system (auto-detected)";
+  const actualEnvironment =
+    environment && environment !== "auto"
+      ? environment
+      : isVenvPath
+        ? "venv (auto-detected)"
+        : "system (auto-detected)";
 
   // Determine actual mode used
   const actualMode = mode || "stdout";
