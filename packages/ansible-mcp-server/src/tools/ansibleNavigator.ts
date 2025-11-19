@@ -215,9 +215,9 @@ export async function runAnsibleNavigator(
   workspaceRoot?: string,
   disableExecutionEnvironment?: boolean,
   environment?: string,
-): Promise<{ 
-  output: string; 
-  debugOutput?: string; 
+): Promise<{
+  output: string;
+  debugOutput?: string;
   navigatorPath?: string;
   executionEnvironmentDisabled?: boolean;
 }> {
@@ -308,7 +308,7 @@ export async function runAnsibleNavigator(
     // Add mode if specified (default is stdout for non-interactive execution)
     const modeToUse = normalizedMode || "stdout";
     args.push("--mode", modeToUse);
-    
+
     // Automatically disable execution environment if using venv or explicitly requested
     if (shouldDisableEE) {
       args.push("--ee", "false");
@@ -404,7 +404,7 @@ export async function runAnsibleNavigator(
           const containerCheck = checkContainerEngine();
           let errorMessage = `ansible-navigator failed: Container engine required but not available.\n\n`;
           errorMessage += `Error output:\n${stderrData}\n\n`;
-          
+
           if (!containerCheck.available) {
             errorMessage += `**Solution:**\n`;
             errorMessage += `ansible-navigator requires a container engine (podman or docker) for execution environments.\n\n`;
@@ -423,12 +423,12 @@ export async function runAnsibleNavigator(
             errorMessage += `   \`\`\``;
           } else {
             // Check if it's a Podman connection error (VM not running)
-            const isPodmanConnectionError = 
+            const isPodmanConnectionError =
               stderrData.includes("Cannot connect to Podman") ||
               stderrData.includes("connection refused") ||
               stderrData.includes("podman system connection") ||
               stderrData.includes("podman machine");
-            
+
             if (isPodmanConnectionError && containerCheck.engine === "podman") {
               errorMessage += `**Issue:** Podman is installed but the Podman VM is not running.\n\n`;
               errorMessage += `**Note:** We are disabling the execution environment due to this error. `;
@@ -447,11 +447,11 @@ export async function runAnsibleNavigator(
               errorMessage += `**Quick fix:** Try using \`disableExecutionEnvironment: true\` to use local Ansible instead.`;
             }
           }
-          
+
           reject(new Error(errorMessage));
           return;
         }
-        
+
         const errorMessage = `ansible-navigator failed with exit code ${code}`;
         const fullError = `${errorMessage}\n\nError output:\n${stderrData}`;
         reject(new Error(fullError));
@@ -465,14 +465,14 @@ export async function runAnsibleNavigator(
         if (isContainerEngineError(stderrData, stdoutData)) {
           const containerCheck = checkContainerEngine();
           let errorMessage = `ansible-navigator exited with code ${code}: Container engine issue detected.\n\n`;
-          
+
           if (stdoutData.trim()) {
             errorMessage += `Output:\n${stdoutData}\n\n`;
           }
           if (stderrData.trim()) {
             errorMessage += `Error output:\n${stderrData}\n\n`;
           }
-          
+
           if (!containerCheck.available) {
             errorMessage += `**Solution:**\n`;
             errorMessage += `ansible-navigator requires a container engine (podman or docker) for execution environments.\n\n`;
@@ -491,12 +491,12 @@ export async function runAnsibleNavigator(
             errorMessage += `   \`\`\``;
           } else {
             // Check if it's a Podman connection error (VM not running)
-            const isPodmanConnectionError = 
+            const isPodmanConnectionError =
               stderrData.includes("Cannot connect to Podman") ||
               stderrData.includes("connection refused") ||
               stderrData.includes("podman system connection") ||
               stderrData.includes("podman machine");
-            
+
             if (isPodmanConnectionError && containerCheck.engine === "podman") {
               errorMessage += `**Issue:** Podman is installed but the Podman VM is not running.\n\n`;
               errorMessage += `**Note:** We are disabling the execution environment due to this error. `;
@@ -515,11 +515,11 @@ export async function runAnsibleNavigator(
               errorMessage += `**Quick fix:** Try using \`disableExecutionEnvironment: true\` to use local Ansible instead.`;
             }
           }
-          
+
           reject(new Error(errorMessage));
           return;
         }
-        
+
         // If we have stdout content, it's likely a playbook execution failure
         // (e.g., unreachable hosts, task failures) - this is valid output from ansible-navigator
         // We should return it as output, not reject it as an error
@@ -570,33 +570,33 @@ export function formatNavigatorResult(
   environment?: string,
 ): string {
   const fileInfo = filePath ? ` for file: ${filePath}` : "";
-  
+
   // Check if we're using a virtual environment version
   const isVenvPath = navigatorPath && navigatorPath.includes("/bin/ansible-navigator");
   const venvPath = isVenvPath ? navigatorPath.split("/bin/")[0] : undefined;
-  
+
   // Determine actual environment used
   const actualEnvironment = environment && environment !== "auto"
     ? environment
     : isVenvPath
     ? "venv (auto-detected)"
     : "system (auto-detected)";
-  
+
   // Determine actual mode used
   const actualMode = mode || "stdout";
   const isDefaultMode = !mode || mode === "stdout";
-  
+
   // Determine execution environment status
   const eeDisabled = disableExecutionEnvironment || isVenvPath;
   const eeStatus = eeDisabled
     ? "disabled (using local Ansible)"
     : "enabled (using Podman/Docker)";
-  
+
   let formattedOutput = `ansible-navigator run completed${fileInfo}:\n\n`;
-  
+
   // User-friendly explanation section
   formattedOutput += `✅ **Playbook executed successfully!**\n\n`;
-  
+
   formattedOutput += `**📋 Configuration Used:**\n`;
   formattedOutput += `- **Output Mode:** ${actualMode}${isDefaultMode ? " (default - shows full output)" : ""}\n`;
   formattedOutput += `- **Environment:** ${actualEnvironment}`;
@@ -605,7 +605,7 @@ export function formatNavigatorResult(
   }
   formattedOutput += `\n`;
   formattedOutput += `- **Execution Environment:** ${eeStatus}\n`;
-  
+
   // Explain defaults and what happened
   formattedOutput += `\n**ℹ️  What This Means:**\n`;
   if (isDefaultMode) {
@@ -622,7 +622,7 @@ export function formatNavigatorResult(
   } else {
     formattedOutput += `- Execution environment is disabled, using your local Ansible installation\n`;
   }
-  
+
   formattedOutput += `\n**🔧 Want to customize? Just ask me to:**\n`;
   formattedOutput += `- "Run with minimal output" → Uses stdout-minimal mode\n`;
   formattedOutput += `- "Run in interactive mode" → Uses interactive TUI\n`;
