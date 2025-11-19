@@ -174,8 +174,8 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
         enum: ["stdout", "interactive"],
         default: "stdout",
         description:
-          "Output mode: 'stdout' (direct terminal output, like ansible-playbook) or 'interactive' (default, text-based UI). " +
-          "Only set this if user explicitly asks for a specific mode.",
+          "Output mode: 'stdout' (default for this tool, direct terminal output) or 'interactive' (TUI for exploration). " +
+          "Only specify if user explicitly requests a different mode.",
       },
       environment: {
         type: "string",

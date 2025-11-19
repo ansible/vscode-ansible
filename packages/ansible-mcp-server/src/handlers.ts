@@ -238,8 +238,8 @@ export function createAnsibleNavigatorHandler() {
           text: 
             "# Ansible Navigator - Features & Usage Guide\n\n" +
             "## 📋 Output Modes (specify with `-m` or `--mode`)\n" +
-            "- **stdout** - Direct terminal output (like traditional ansible-playbook)\n" +
-            "- **interactive** (default) - Text-based UI for exploring playbook execution interactively\n\n" +
+            "- **stdout** (used by this tool) - Direct terminal output (like ansible-playbook)\n" +
+            "- **interactive** (ansible-navigator default) - Text-based UI for exploring execution\n\n" +
             "## 🖥️ Execution Environments\n" +
             "- **VM/Podman** (default) - Runs in isolated container environment\n" +
             "- **Local Ansible** - Runs directly on your system (use `--ee false`)\n" +
@@ -258,8 +258,8 @@ export function createAnsibleNavigatorHandler() {
             "source venv/bin/activate && ansible-navigator run playbooks/play1.yml -m stdout\n" +
             "```\n\n" +
             "## 💡 Tips\n" +
-            "- **Default mode**: interactive (TUI - press ESC to navigate)\n" +
-            "- **For CI/CD**: Use `-m stdout` for direct output\n" +
+            "- **This tool uses**: stdout mode (direct output, best for chat/scripting)\n" +
+            "- **For exploration**: Use `-m interactive` (TUI - press ESC to navigate)\n" +
             "- **Podman/Docker**: Required for execution environment (EE)\n" +
             "- **If Podman fails**: Use `--ee false` to run with local Ansible\n" +
             "- **Environment auto-detection**: Checks PATH, then venv, then system\n\n" +
@@ -392,8 +392,7 @@ export function createAnsibleNavigatorHandler() {
       };
     }
 
-      // Use mode from args, defaulting to "stdout" if not provided
-      // Note: This default is documented in the tool description
+      // Use mode from args, defaulting to "stdout" for better UX in chat/scripting contexts
       const mode = args.mode || "stdout";
       
       // Use disableExecutionEnvironment from args, defaulting to false
