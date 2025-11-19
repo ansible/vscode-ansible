@@ -374,17 +374,20 @@ export async function runAnsibleNavigator(
     };
 
     // Set a timeout for the process (5 minutes)
-    const timeout = setTimeout(() => {
-      if (!navProcess.killed) {
-        navProcess.kill();
-      }
-      clearTimeoutSafely();
-      reject(
-        new Error(
-          "ansible-navigator process timed out after 5 minutes. The process was terminated.",
-        ),
-      );
-    }, 5 * 60 * 1000);
+    const timeout = setTimeout(
+      () => {
+        if (!navProcess.killed) {
+          navProcess.kill();
+        }
+        clearTimeoutSafely();
+        reject(
+          new Error(
+            "ansible-navigator process timed out after 5 minutes. The process was terminated.",
+          ),
+        );
+      },
+      5 * 60 * 1000,
+    );
 
     // Capture standard output with size limit
     navProcess.stdout.on("data", (data) => {
@@ -441,10 +444,18 @@ export async function runAnsibleNavigator(
       // Check for stderr-only errors (real error indicator)
       if (stderrData && !stdoutData.trim()) {
         if (isContainerEngineError(stderrData, "")) {
-          reject(new Error(buildContainerErrorMessage(stderrData, "", code ?? undefined)));
+          reject(
+            new Error(
+              buildContainerErrorMessage(stderrData, "", code ?? undefined),
+            ),
+          );
           return;
         }
-        reject(new Error(`ansible-navigator failed with exit code ${code}\n\nError output:\n${stderrData}`));
+        reject(
+          new Error(
+            `ansible-navigator failed with exit code ${code}\n\nError output:\n${stderrData}`,
+          ),
+        );
         return;
       }
 
