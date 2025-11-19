@@ -47,7 +47,7 @@ describe(__filename, function () {
           return text.includes("ansible-playbook");
         },
         message: "Timed out waiting for ansible-playbook command",
-        timeout: 5000,
+        timeout: 15000,
         pollTimeout: 150,
       });
 
@@ -75,7 +75,7 @@ describe(__filename, function () {
           return text.includes("ansible-playbook");
         },
         message: "Timed out waiting for ansible-playbook command",
-        timeout: 3000, // Very fast for local command
+        timeout: 15000, // Increased for CI environments
         pollTimeout: 150,
       });
 
