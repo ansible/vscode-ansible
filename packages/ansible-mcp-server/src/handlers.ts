@@ -240,7 +240,7 @@ export function createAnsibleNavigatorHandler() {
       return {
         content: [{
           type: "text" as const,
-          text: 
+          text:
             "# Ansible Navigator - Features & Usage Guide\n\n" +
             "## 📋 Output Modes (specify with `-m` or `--mode`)\n" +
             "- **stdout** (used by this tool) - Direct terminal output (like ansible-playbook)\n" +
@@ -277,13 +277,13 @@ export function createAnsibleNavigatorHandler() {
 
     // If filePath is directly provided (for tests), use it
     let targetFilePath: string | undefined = args.filePath;
-    
+
     // Otherwise, parse user message to extract filename
     if (!targetFilePath && args.userMessage && workspaceRoot) {
       // Extract potential filenames from user message
       // Look for patterns like: play1, play1.yml, playbooks/play1.yml, deploy, site.yml, etc.
       const message = args.userMessage.toLowerCase();
-      
+
       // Try to find explicit file paths first (with directory)
       const explicitPathMatch = args.userMessage.match(/(?:playbooks\/)?[\w-]+\.ya?ml/);
       if (explicitPathMatch) {
@@ -325,7 +325,7 @@ export function createAnsibleNavigatorHandler() {
 
     // Use mode from args, defaulting to "stdout" for better UX in chat/scripting contexts
     const mode = args.mode || "stdout";
-    
+
     // Use disableExecutionEnvironment from args, defaulting to false
     // If user encounters Podman/Docker errors, they should set this to true
     let disableExecutionEnvironment = args.disableExecutionEnvironment || false;
@@ -365,7 +365,7 @@ export function createAnsibleNavigatorHandler() {
       // Check if this is a container engine error and we haven't already disabled EE
       // Use case-insensitive checks to catch all variations
       const errorMessageLower = errorMessage.toLowerCase();
-      const isContainerEngineError = 
+      const isContainerEngineError =
         errorMessageLower.includes("container engine") ||
         errorMessageLower.includes("podman") ||
         errorMessageLower.includes("docker") ||
@@ -380,7 +380,7 @@ export function createAnsibleNavigatorHandler() {
       if (isContainerEngineError && !disableExecutionEnvironment) {
         // Inform the user we're automatically retrying
         const retryMessage = `⚠️  Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
-        
+
         try {
           // Retry with execution environment disabled
           const { output, debugOutput, navigatorPath, executionEnvironmentDisabled } = await runAnsibleNavigator(
@@ -402,9 +402,9 @@ export function createAnsibleNavigatorHandler() {
           );
 
           return {
-            content: [{ 
-              type: "text" as const, 
-              text: retryMessage + formattedResult 
+            content: [{
+              type: "text" as const,
+              text: retryMessage + formattedResult
             }],
           };
         } catch (retryError) {
