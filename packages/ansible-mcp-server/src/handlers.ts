@@ -303,95 +303,21 @@ export function createAnsibleNavigatorHandler() {
       }
     }
     
-    if (!targetFilePath && !workspaceRoot) {
-      return {
-        content: [{
-          type: "text" as const,
-          text: "❌ **Cannot determine playbook to run.**\n\n" +
-                "Please provide the user's message in the `userMessage` parameter."
-        }],
-        isError: true,
-      };
-    }
-    
-    // If still no target file found, fall back to auto-detection
-    if (!targetFilePath && workspaceRoot) {
-      const fs = await import("fs/promises");
-      const path = await import("path");
-      
-      // Find all YAML files in workspace
-      const findYamlFiles = async (dir: string): Promise<string[]> => {
-        const files: string[] = [];
-        try {
-          const entries = await fs.readdir(dir, { withFileTypes: true });
-          
-          for (const entry of entries) {
-            // Skip node_modules, .git, etc.
-            if (entry.name.startsWith(".") || entry.name === "node_modules") {
-              continue;
-            }
-            
-            const fullPath = path.join(dir, entry.name);
-            const relativePath = path.relative(workspaceRoot, fullPath);
-            
-            if (entry.isDirectory()) {
-              const subFiles = await findYamlFiles(fullPath);
-              files.push(...subFiles);
-            } else if (entry.isFile() && (entry.name.endsWith(".yml") || entry.name.endsWith(".yaml"))) {
-              files.push(relativePath);
-            }
-          }
-        } catch (error) {
-          // Ignore errors (permission denied, etc.)
-        }
-        return files;
-      };
-      
-      const allYamlFiles = await findYamlFiles(workspaceRoot);
-      
-      // Filter to likely playbooks (in playbooks/ directory or contain "playbook" in name)
-      const playbooks = allYamlFiles.filter(file => 
-        file.startsWith("playbooks/") || 
-        file.includes("playbook") ||
-        file.includes("site.yml") ||
-        file.includes("main.yml")
-      );
-      
-      if (playbooks.length === 0) {
-        return {
-          content: [{
-            type: "text" as const,
-            text: "❌ **No playbooks found in workspace.**\n\n" +
-                  "Please specify the playbook file path explicitly using the `filePath` parameter."
-          }],
-          isError: true,
-        };
-      } else if (playbooks.length === 1) {
-        // Auto-select the only playbook found
-        targetFilePath = playbooks[0];
-      } else {
-        // Multiple playbooks - ask user to choose
-        const playbookList = playbooks.map((p, i) => `${i + 1}. ${p}`).join("\n");
-        return {
-          content: [{
-            type: "text" as const,
-            text: 
-              "🔍 **Multiple playbooks found in workspace:**\n\n" +
-              playbookList + "\n\n" +
-              "Please specify which playbook to run by name.\n" +
-              "Example: 'run play1.yml' or 'run playbooks/deploy.yml'"
-          }],
-          isError: false,
-        };
-      }
-    }
-    
+    // If no file path found, ask user to be more specific
     if (!targetFilePath) {
       return {
         content: [{
           type: "text" as const,
-          text: "❌ **No playbook file specified and no workspace provided.**\n\n" +
-                "Please provide the `filePath` parameter."
+          text: 
+            "❌ **Could not determine which playbook to run.**\n\n" +
+            "Please specify the playbook name more clearly. Examples:\n" +
+            "- 'run play1.yml'\n" +
+            "- 'run playbooks/deploy.yml'\n" +
+            "- 'execute site.yml'\n\n" +
+            "Common playbook locations:\n" +
+            "- `playbooks/play1.yml`\n" +
+            "- `playbooks/site.yml`\n" +
+            "- `playbooks/deploy.yml`"
         }],
         isError: true,
       };
