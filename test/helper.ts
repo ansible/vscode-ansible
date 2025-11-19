@@ -13,6 +13,21 @@ import { rmSync } from "fs";
 export let doc: vscode.TextDocument;
 export let editor: vscode.TextEditor;
 
+// Cache for tracking activated documents to avoid redundant initialization
+const activatedDocuments = new Set<string>();
+let isExtensionActivated = false;
+
+/**
+ * Clear the activation cache. Call this when settings change that affect document processing.
+ * This ensures documents are fully re-validated with new settings.
+ */
+export function clearActivationCache(): void {
+  activatedDocuments.clear();
+  // Note: Closing editors happens in the test's before() hook via
+  // vscode.commands.executeCommand("workbench.action.closeAllEditors")
+  // which ensures the language server also clears its cache
+}
+
 export const FIXTURES_BASE_PATH = path.join("test", "testFixtures");
 export const ANSIBLE_COLLECTIONS_FIXTURES_BASE_PATH = path.resolve(
   FIXTURES_BASE_PATH,
@@ -32,17 +47,41 @@ const LIGHTSPEED_INLINE_SUGGESTION_WAIT_WINDOW = 200;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function activate(docUri: vscode.Uri): Promise<any> {
   const extension = vscode.extensions.getExtension("redhat.ansible");
-  const activation = await extension?.activate();
+
+  // Only activate extension once
+  let activation;
+  if (!isExtensionActivated) {
+    activation = await extension?.activate();
+    isExtensionActivated = true;
+  } else {
+    activation = extension?.exports;
+  }
 
   try {
     doc = await vscode.workspace.openTextDocument(docUri);
-    await waitForDiagnosisCompletion();
+    const docKey = docUri.toString();
+
+    // Skip reinitialization if document was recently activated
+    const needsFullInit = !activatedDocuments.has(docKey);
+
     editor = await vscode.window.showTextDocument(doc, {
       preview: true,
       preserveFocus: false,
     });
 
-    await reinitializeAnsibleExtension();
+    if (needsFullInit) {
+      await reinitializeAnsibleExtension();
+      // Wait for any validation triggered by onDidOpen to complete
+      // This prevents two validation processes from running simultaneously
+      // Uses a shorter timeout (1500ms) to exit faster when validation is disabled
+      await waitForDiagnosisCompletion(150, 1500);
+      activatedDocuments.add(docKey);
+    } else {
+      // Even for cached documents, ensure language is set
+      await vscode.languages.setTextDocumentLanguage(doc, "ansible");
+      await sleep(100); // Minimal wait for language mode switch
+    }
+
     return activation;
   } catch (e) {
     console.error("Error from activation -> ", e);
@@ -50,8 +89,34 @@ export async function activate(docUri: vscode.Uri): Promise<any> {
 }
 
 async function reinitializeAnsibleExtension(): Promise<void> {
+  // Force language change by setting to yaml first, then ansible
+  // This ensures the language server receives a fresh onDidOpen event
+  // even if the document was previously set to ansible
+  if (doc.languageId === "ansible") {
+    await vscode.languages.setTextDocumentLanguage(doc, "yaml");
+    await sleep(100); // Brief wait for language change to process
+  }
+
   await vscode.languages.setTextDocumentLanguage(doc, "ansible");
-  await sleep(2000); //  Wait for server activation
+  // Wait for server activation with adaptive timeout
+  const maxWait = 1500;
+  const checkInterval = 100;
+  let waited = 0;
+
+  // Check if language server is ready by attempting to get diagnostics
+  while (waited < maxWait) {
+    await sleep(checkInterval);
+    waited += checkInterval;
+
+    // If we can get diagnostics, the server is likely ready
+    const diagnostics = vscode.languages.getDiagnostics(doc.uri);
+    if (diagnostics !== undefined) {
+      // Server is responding, give it time to process onDidOpen event
+      // This ensures any validation triggered by document opening has started
+      await sleep(250);
+      break;
+    }
+  }
 }
 
 export async function sleep(ms: number): Promise<void> {
@@ -238,15 +303,14 @@ export async function testDiagnostics(
   expectedDiagnostics: vscode.Diagnostic[],
 ): Promise<void> {
   let actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-  if (expectedDiagnostics.length !== 0 && actualDiagnostics.length === 0) {
-    console.info(
-      `Diagnostics delayed - Expected: ${expectedDiagnostics.length}, Actual: ${actualDiagnostics.length}\n`,
-    );
-    const pollTimeout = 5000;
-    const pollInterval = 500;
+
+  // Poll until we have the expected number of diagnostics
+  // Since waitForDiagnosisCompletion already waits for processes, this should be quick
+  if (actualDiagnostics.length !== expectedDiagnostics.length) {
+    const pollTimeout = 1500; // Reduced - most diagnostics should be ready by now
+    const pollInterval = 50; // Very fast polling for quick response
     let elapsed = 0;
 
-    console.info("Polling for diagnostics for up to 5s...\n");
     while (
       elapsed < pollTimeout &&
       actualDiagnostics.length !== expectedDiagnostics.length
@@ -254,9 +318,6 @@ export async function testDiagnostics(
       await sleep(pollInterval);
       elapsed += pollInterval;
       actualDiagnostics = vscode.languages.getDiagnostics(docUri);
-      console.info(
-        `...${elapsed / 1000}s (diagnostics: ${actualDiagnostics.length})\n`,
-      );
     }
   }
 
@@ -616,14 +677,18 @@ export async function testValidJinjaBrackets(
 }
 
 export async function waitForDiagnosisCompletion(
-  interval = 100,
-  timeout = 5000,
+  interval = 150,
+  timeout = 3000,
+  quickCheckTimeout = 500, // Quick check period to detect if validation is disabled
 ) {
   let started = false;
   let done = false;
   let elapsed = 0;
+  let consecutiveZeroChecks = 0;
+  const requiredConsecutiveZeros = 2; // Need 2 consecutive checks with no processes
+
   // If either ansible-lint or ansible-playbook has started within the
-  // specified timeout value (default: 5000 msecs), we'll wait until
+  // specified timeout value (default: 3000 msecs), we'll wait until
   // it completes. Otherwise (e.g. when the validation is disabled),
   // exit after the timeout.
   while (!done && (started || elapsed < timeout)) {
@@ -631,12 +696,33 @@ export async function waitForDiagnosisCompletion(
     const processes = ansibleProcesses.filter((p) =>
       /ansible-(?:lint|playbook)/.test(p.name),
     );
+
     if (!started && processes.length > 0) {
       started = true;
+      consecutiveZeroChecks = 0;
     } else if (started && processes.length === 0) {
-      done = true;
+      consecutiveZeroChecks++;
+      if (consecutiveZeroChecks >= requiredConsecutiveZeros) {
+        done = true;
+      }
+    } else if (processes.length > 0) {
+      consecutiveZeroChecks = 0;
     }
-    await sleep(interval);
-    elapsed += interval;
+
+    // Early exit if no process started after quick check period
+    // This handles the case when validation is disabled
+    if (!started && elapsed >= quickCheckTimeout) {
+      break;
+    }
+
+    if (!done) {
+      await sleep(interval);
+      elapsed += interval;
+    }
+  }
+
+  // Give language server a brief moment to publish diagnostics after process completes
+  if (started && done) {
+    await sleep(200);
   }
 }

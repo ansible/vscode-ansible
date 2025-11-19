@@ -8,7 +8,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+    - uses: jdx/mise-action@9dc7d5dd454262207dea3ab5a06a3df6afc8ff26 # v3.4.1
       with:
         experimental: true
         reshim: true
@@ -28,10 +28,10 @@ runs:
         path: |
           ~/.cache/pip
           ~/.cache/uv
-        key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python_version') }}
+        key: py-${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('uv.lock', '.python-version') }}
 
     - name: Enable caching for pre-commit
-      if: ${{ inputs.jop_name == 'lint' || inputs.job_name == 'preflight' }}
+      if: ${{ inputs.job_name == 'lint' || inputs.job_name == 'preflight' }}
       uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: ~/.cache/pre-commit/

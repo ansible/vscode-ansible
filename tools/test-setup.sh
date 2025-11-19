@@ -4,7 +4,7 @@
 # This tool is used to setup the environment for running the tests. Its name
 # name and location is based on Zuul CI, which can automatically run it.
 # (cspell: disable-next-line)
-set -euox pipefail
+set -euo pipefail
 
 DIR="$(dirname "$(realpath "$0")")"
 # shellcheck source=/dev/null
@@ -18,6 +18,12 @@ PIP_LOG_FILE=out/log/pip.log
 ERR=0
 EE_ANSIBLE_VERSION=null
 EE_ANSIBLE_LINT_VERSION=null
+
+if command -v sudo >/dev/null 2>&1; then
+    SUDO=""
+else
+    SUDO=sudo
+fi
 
 mkdir -p out/log
 # we do not want pip logs from previous runs
@@ -72,12 +78,12 @@ if [[ -z "${HOSTNAME:-}" ]]; then
    log warning "Defined HOSTNAME=${HOSTNAME} as we were not able to found a value already defined.."
 fi
 
-if [[ -f /.dockerenv || ! -z "${container:-}" ]]; then
-    log notice "Running inside a container, skipping setup as we will assume container was build with tools inside."
-    exit 0
-fi
+# if [[ -f /.dockerenv || ! -z "${container:-}" || "${SKIP_UI:-}" == "1" ]]; then
+#     log notice "Running inside a container, skipping setup as we will assume container was build with tools inside."
+#     exit 0
+# fi
 
-if [[ "${OSTYPE:-}" != darwin* && ! -f /.dockerenv && -z "${container:-}" ]]; then
+if [[ "${OSTYPE:-}" != darwin* && ! -f /.dockerenv && -z "${container:-}" && "${SKIP_UI:-}" != "1" ]]; then
     pgrep "dbus-(daemon|broker)" >/dev/null || {
         log error "dbus was not detecting as running and that would interfere with testing (xvfb)."
         if [[ "${READTHEDOCS:-}" != "True" ]]; then
@@ -92,7 +98,6 @@ if [[ "${OSTYPE:-}" == darwin* ]]; then
 brew "coreutils"
 brew "libssh"
 brew "gh"
-brew "git-lfs"
 EOS
     # Using 'brew bundle' due to https://github.com/Homebrew/brew/issues/2491
 fi
@@ -117,8 +122,7 @@ if [[ -f "/etc/redhat-release" ]]; then
     RPMS=()
     command -v xvfb-run >/dev/null 2>&1 || RPMS+=(xorg-x11-server-Xvfb)
     if [[ ${#RPMS[@]} -ne 0 ]]; then
-        log warning "We need sudo to install some packages: ${RPMS[*]}"
-        sudo dnf install -y "${RPMS[@]}"
+        $SUDO dnf install -y "${RPMS[@]}"
     fi
 fi
 
@@ -179,24 +183,18 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     command -v npm >/dev/null 2>&1 || {
         DEBS+=(npm)
     }
-    command -v git-lfs >/dev/null 2>&1 || {
-        # curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | sudo bash
-        DEBS+=(git-lfs)
-        INSTALL=1
-    }
 
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" || true)" != 'installed' ]] && INSTALL=1
     done
     if [[ "${INSTALL}" -eq 1 ]]; then
-        log warning "We need sudo to install some packages: ${DEBS[*]}"
         # mandatory or other apt-get commands fail
-        timed sudo apt-get update -qq -o=Dpkg::Use-Pty=0
+        timed $SUDO apt-get update -qq -o=Dpkg::Use-Pty=0
         # avoid outdated ansible and pipx
-        timed sudo apt-get remove -qq -y ansible pipx || true
+        timed $SUDO apt-get remove -qq -y ansible pipx || true
         # install all required packages
-        timed sudo apt-get -qq install -y \
+        timed $SUDO apt-get -qq install -y \
             --no-install-recommends \
             --no-install-suggests \
             -o=Dpkg::Use-Pty=0 "${DEBS[@]}"
@@ -206,26 +204,8 @@ if [[ -f "/usr/bin/apt-get" ]]; then
     for DEB in "${DEBS[@]}"; do
         [[ "$(dpkg-query --show --showformat='${db:Status-Status}\n' \
             "${DEB}" 2>/dev/null || true)" == 'installed' ]] && \
-            sudo apt-get -qq remove -y "$DEB"
+            $SUDO apt-get -qq remove -y "$DEB"
     done
-fi
-
-git lfs status >/dev/null || {
-    log error "Please install and configure git lfs to be able to build the project."
-    exit 3
-}
-
-# Pull Git LFS files to ensure media files are available for packaging
-log notice "Pulling Git LFS files..."
-git lfs pull || {
-    log error "Failed to pull Git LFS files. Media files may appear as text pointers in the package."
-    exit 3
-}
-log notice "Git LFS files pulled successfully."
-
-if [[ $(file media/walkthroughs/*.mp4 | grep -c "ASCII text") -gt 0 ]]; then
-    log error "Detected LFS pointer files, not real files. Check the git lfs configuration and status."
-    exit 3
 fi
 
 # Ensure that git is configured properly to allow unattended commits, something
@@ -238,8 +218,8 @@ if [[ "${GIT_NOT_CONFIGURED:-}" == "1" ]]; then
         log error "git config user.email or user.name are not configured."
         exit 40
     else
-        git config user.email ansible-devtools@redhat.com
-        git config user.name "Ansible DevTools"
+        git config --global user.email ansible-devtools@redhat.com
+        git config --global user.name "Ansible DevTools"
     fi
 fi
 
@@ -260,7 +240,7 @@ if [[ "${OS:-}" == "darwin" && "${SKIP_PODMAN:-}" != '1' ]]; then
 fi
 
 # User specific environment
-if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]]; then
+if ! [[ "${PATH}" == *"${HOME}/.local/bin"* ]] && [[ "${SKIP_UI:-}" != "1" ]]; then
     # shellcheck disable=SC2088
     log warning "~/.local/bin was not found in PATH, attempting to add it."
     PATH="${HOME}/.local/bin:${PATH}"
@@ -290,13 +270,13 @@ if [[ "${READTHEDOCS:-}" != "True" ]]; then
         # https://github.com/cli/cli/blob/trunk/docs/install_linux.md
         if [[ -f "/usr/bin/apt-get" ]]; then
         curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
-            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-        sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install gh
+            $SUDO dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+        $SUDO chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | $SUDO tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+        $SUDO apt-get update
+        $SUDO apt-get install gh
         else
-            command -v dnf >/dev/null 2>&1 && sudo dnf install -y gh
+            command -v dnf >/dev/null 2>&1 && $SUDO dnf install -y gh
         fi
         gh --version || log warning "gh cli not found and it might be needed for some commands."
     }
@@ -305,8 +285,8 @@ fi
 # on WSL we want to avoid using Windows's npm (broken)
 if [[ "$(command -v npm || true)" == '/mnt/c/Program Files/nodejs/npm' ]]; then
     log notice "Installing npm ... ($WSL)"
-    curl -sL https://deb.nodesource.com/setup_16.x | sudo bash
-    sudo apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
+    curl -sL https://deb.nodesource.com/setup_16.x | $SUDO bash
+    $SUDO apt-get install -y -qq -o=Dpkg::Use-Pty=0 \
         nodejs gcc g++ make python3-dev
 fi
 
@@ -445,46 +425,48 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
-log notice "Podman checks..."
-# macos specific
-if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
-    command -v podman >/dev/null 2>&1 || {
-        log notice "Installing podman..."
-        HOMEBREW_NO_ENV_HINTS=1 timed brew install podman
-    }
-    log notice "Configuring podman machine ($MACHTYPE)..."
-    podman machine ls --noheading | grep '\*' >/dev/null || {
-        log warning "Podman machine not found, creating and starting one ($MACHTYPE)..."
-        timed podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
-    }
-    podman machine ls --noheading
-    log notice "Checking status of podman machine ($MACHTYPE)..."
-    is_podman_running || {
-        log warning "Podman machine not running, trying to start it..."
-        # do not use full path as it varies based on architecture
-        # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
-        # MACHTYPE can look like x86_64 or x86_64-apple-darwin20.6.0
-        if [[ $MACHTYPE == x86_64* ]] ; then
-            log notice "Running on x86_64 architecture"
-        else
-            qemu-system-aarch64 -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
-        fi
-        podman machine start
-        # Waiting for machine to become available
-        n=0
-        until [ "$n" -ge 9 ]; do
-            log warning "Still waiting for podman machine to become available $((n * 15))s ..."
-            is_podman_running && break
-            n=$((n+1))
-            sleep 15
-        done
-        is_podman_running
+if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
+    log notice "Podman checks..."
+    # macos specific
+    if [[ "${OSTYPE:-}" == darwin* && "${SKIP_PODMAN:-}" != '1' ]]; then
+        command -v podman >/dev/null 2>&1 || {
+            log notice "Installing podman..."
+            HOMEBREW_NO_ENV_HINTS=1 timed brew install podman
         }
-    # validation is done later
-    podman info >out/podman.log 2>&1
-    podman run hello-world >out/podman.log 2>&1
-    du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
-    podman machine inspect >out/podman.log 2>&1
+        log notice "Configuring podman machine ($MACHTYPE)..."
+        podman machine ls --noheading | grep '\*' >/dev/null || {
+            log warning "Podman machine not found, creating and starting one ($MACHTYPE)..."
+            timed podman machine init --now || log warning "Ignored init failure due to possible https://github.com/containers/podman/issues/13609 but we will check again later."
+        }
+        podman machine ls --noheading
+        log notice "Checking status of podman machine ($MACHTYPE)..."
+        is_podman_running || {
+            log warning "Podman machine not running, trying to start it..."
+            # do not use full path as it varies based on architecture
+            # https://github.com/containers/podman/issues/10824#issuecomment-1162392833
+            # MACHTYPE can look like x86_64 or x86_64-apple-darwin20.6.0
+            if [[ $MACHTYPE == x86_64* ]] ; then
+                log notice "Running on x86_64 architecture"
+            else
+                qemu-system-aarch64 -machine q35,accel=hvf:tcg -cpu host -display none INVALID_OPTION || true
+            fi
+            podman machine start
+            # Waiting for machine to become available
+            n=0
+            until [ "$n" -ge 9 ]; do
+                log warning "Still waiting for podman machine to become available $((n * 15))s ..."
+                is_podman_running && break
+                n=$((n+1))
+                sleep 15
+            done
+            is_podman_running
+            }
+        # validation is done later
+        podman info >out/podman.log 2>&1
+        podman run hello-world >out/podman.log 2>&1
+        du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
+        podman machine inspect >out/podman.log 2>&1
+    fi
 fi
 # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
 PODMAN_VERSION="$(get_version podman || echo null)"

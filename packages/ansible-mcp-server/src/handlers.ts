@@ -8,6 +8,11 @@ import {
   checkAndInstallADT,
   formatEnvironmentInfo,
 } from "./tools/adeTools.js";
+import {
+  generateExecutionEnvironment,
+  formatExecutionEnvResult,
+  buildEEStructureFromPrompt,
+} from "./tools/executionEnv.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {
@@ -207,6 +212,159 @@ export function createADTCheckEnvHandler() {
           {
             type: "text" as const,
             text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createDefineAndBuildExecutionEnvHandler(workspaceRoot: string) {
+  return async (args: {
+    baseImage: string;
+    tag: string;
+    destinationPath?: string;
+    collections?: string[];
+    systemPackages?: string[];
+    pythonPackages?: string[];
+    generatedYaml?: string;
+  }) => {
+    console.log("[EE Tool Handler] Called with args:", {
+      baseImage: args.baseImage,
+      tag: args.tag,
+      destinationPath: args.destinationPath,
+      collections: args.collections,
+      systemPackages: args.systemPackages,
+      pythonPackages: args.pythonPackages,
+      hasGeneratedYaml: !!args.generatedYaml,
+      generatedYamlLength: args.generatedYaml?.length,
+    });
+
+    try {
+      // Validate required inputs
+      if (!args.baseImage || !args.tag) {
+        console.log(
+          "[EE Tool Handler] Validation failed: missing baseImage or tag",
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                "Error: 'baseImage' and 'tag' are required fields.\n\n" +
+                "**Please provide the following critical information:**\n" +
+                "- **baseImage**: The base container image (e.g., 'quay.io/fedora/fedora-minimal:41', 'quay.io/centos/centos:stream10')\n" +
+                "- **tag**: The tag/name for the resulting image (e.g., 'my-ee:latest')\n\n" +
+                "**Optional fields:**\n" +
+                "- **collections**: Array of Ansible collection names (e.g., ['amazon.aws', 'ansible.utils'])\n" +
+                "- **systemPackages**: Array of system packages (e.g., ['git', 'vim'])\n" +
+                "- **pythonPackages**: Array of Python packages (e.g., ['boto3', 'requests'])\n" +
+                "- **destinationPath**: Directory path for the file (defaults to workspace root)\n\n" +
+                "**Note:** The tool will use the execution environment schema and sample file to generate a compliant EE file.",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // Return a prompt for the client's LLM to generate the YAML
+      if (!args.generatedYaml) {
+        console.log(
+          "[EE Tool Handler] No generatedYaml provided - returning prompt for LLM to generate YAML",
+        );
+        const { prompt } = await buildEEStructureFromPrompt(args);
+        console.log(
+          "[EE Tool Handler] Prompt generated, length:",
+          prompt.length,
+        );
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                `**Please generate the execution-environment.yml file using the following prompt:**\n\n` +
+                `\`\`\`\n${prompt}\n\`\`\`\n\n` +
+                `**After generating the YAML, call this tool again with the 'generatedYaml' parameter containing the generated YAML content.**`,
+            },
+          ],
+          isError: false,
+        };
+      }
+
+      // Generate execution environment file using LLM-generated YAML
+      console.log(
+        "[EE Tool Handler] generatedYaml IS provided - proceeding to generate EE file",
+      );
+      console.log(
+        "[EE Tool Handler] Generating EE file with LLM-generated YAML",
+      );
+      console.log(
+        "[EE Tool Handler] generatedYaml length:",
+        args.generatedYaml?.length,
+      );
+      console.log(
+        "[EE Tool Handler] generatedYaml preview (first 200 chars):",
+        args.generatedYaml?.substring(0, 200),
+      );
+      const result = await generateExecutionEnvironment(
+        args,
+        workspaceRoot,
+        args.generatedYaml,
+      );
+
+      console.log("[EE Tool] File generated successfully:", result.filePath);
+      console.log("[EE Tool] Result object:", {
+        success: result.success,
+        filePath: result.filePath,
+        hasYamlContent: !!result.yamlContent,
+        yamlContentLength: result.yamlContent?.length,
+        validationErrors: result.validationErrors,
+      });
+
+      // Format result for display
+      const formattedOutput = formatExecutionEnvResult(result);
+      console.log("[EE Tool] Formatted output length:", formattedOutput.length);
+      console.log(
+        "[EE Tool] Formatted output preview (first 500 chars):",
+        formattedOutput.substring(0, 500),
+      );
+
+      const response = {
+        content: [
+          {
+            type: "text" as const,
+            text: formattedOutput,
+          },
+        ],
+        isError: false,
+      };
+
+      console.log(
+        "[EE Tool] Returning response with content length:",
+        response.content[0].text.length,
+      );
+      console.log(
+        "[EE Tool] Response content preview (first 500 chars):",
+        response.content[0].text.substring(0, 500),
+      );
+      return response;
+    } catch (error) {
+      console.error("[EE Tool Handler] Error occurred:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error("[EE Tool Handler] Error message:", errorMessage);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text:
+              `Error creating execution environment: ${errorMessage}\n\n` +
+              "Please ensure:\n" +
+              "- Valid base image name is provided\n" +
+              "- Destination path is writable (if specified)\n" +
+              "- All inputs are properly formatted\n" +
+              "- Generated YAML is valid and follows the rules",
           },
         ],
         isError: true,

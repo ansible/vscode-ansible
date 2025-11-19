@@ -3,8 +3,6 @@
   "automerge": true,
   "automergeStrategy": "squash",
   "commitMessageAction": "update",
-  "commitMessageExtra": "",
-  "commitMessageTopic": "dependencies",
   "configMigration": true,
   "dependencyDashboard": true,
   "dependencyDashboardAutoclose": true,
@@ -15,8 +13,9 @@
   ],
   "github-actions": {
     "branchTopic": "build",
+    "commitMessageTopic": "github actions",
     "enabled": true,
-    "groupName": "actions dependencies",
+    "groupName": "github actions",
     "groupSlug": "actions",
     "labels": ["chore", "dependencies"],
     "packageRules": [
@@ -40,12 +39,33 @@
   "minimumReleaseAge": "1 days",
   "packageRules": [
     {
+      "description": "Disable updates to requires-python field",
+      "enabled": false,
+      "matchDepTypes": ["requires-python"],
+      "matchManagers": ["pep621"]
+    },
+    {
+      "description": "Disable updates to .python-version file",
+      "enabled": false,
+      "matchFileNames": [".python-version"]
+    },
+    {
+      "description": "Disable updates to Python version in mise config",
+      "enabled": false,
+      "matchManagers": ["mise"],
+      "matchPackageNames": ["python", "python/cpython", "nodejs"]
+    },
+    {
+      "branchTopic": "npm-dev",
+      "commitMessageTopic": "npm dev",
       "groupSlug": "npm-dev",
       "matchDepTypes": ["devDependencies"],
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch", "major"]
     },
     {
+      "branchTopic": "npm",
+      "commitMessageTopic": "npm",
       "matchDepTypes": ["dependencies"],
       "matchManagers": ["npm"],
       "matchUpdateTypes": ["minor", "patch", "major"]
@@ -55,24 +75,8 @@
       "minimumReleaseAge": "2 days"
     },
     {
-      "description": "Disable updates to requires-python field",
-      "enabled": false,
-      "matchDepTypes": ["requires-python"],
-      "matchManagers": ["pep621"]
-    },
-    {
-      "description": "Disable updates to .python_version file",
-      "enabled": false,
-      "matchFileNames": [".python_version"]
-    },
-    {
-      "description": "Disable updates to Python version in mise config",
-      "enabled": false,
-      "matchManagers": ["mise"],
-      "matchPackageNames": ["python"]
-    },
-    {
-      "commitMessageAction": "update lockfile (npm)",
+      "branchTopic": "npm-lock",
+      "commitMessageTopic": "npm lockfile",
       "description": "Separate lockfile maintenance for npm",
       "groupName": "npm lockfile",
       "groupSlug": "npm-lockfile",
@@ -80,7 +84,8 @@
       "matchUpdateTypes": ["lockFileMaintenance"]
     },
     {
-      "commitMessageAction": "update lockfile (pep621)",
+      "branchTopic": "pep621",
+      "commitMessageTopic": "pep621 lockfile",
       "description": "Separate lockfile maintenance for Python",
       "groupName": "python lockfile",
       "groupSlug": "python-lockfile",
@@ -96,7 +101,7 @@
   },
   "prConcurrentLimit": 5,
   "pre-commit": {
-    "branchTopic": "build"
+    "branchTopic": "pre-commit"
   },
   "rangeStrategy": "replace",
   "recreateWhen": "always",

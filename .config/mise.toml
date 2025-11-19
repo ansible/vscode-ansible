@@ -24,6 +24,7 @@ _.file = { path = ".env", tools = true }
 # Needs to be enabled for hooks to work
 experimental = true
 idiomatic_version_file_enable_tools = ["python"]
+lockfile = true
 
 [tools]
 gh = "latest"

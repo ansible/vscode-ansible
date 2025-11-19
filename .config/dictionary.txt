@@ -11,6 +11,7 @@ Fqcn
 Fqcns
 Infiles
 KUBEDOCK
+Konflux
 LIGHTSPEED
 Lightspeed
 Lightspeed's
@@ -20,6 +21,7 @@ Modelines
 Npmjs
 OPTSTRING
 PKGMGR
+PYCMD
 PYTHONBREAKPOINT
 RHSSO
 TASKFILE
@@ -29,6 +31,7 @@ Tomasz
 Towncrier
 antsibull
 autofetch
+bindep
 cfgs
 checode
 chromedriver
@@ -38,6 +41,7 @@ contentmatch
 contentmatches
 contentmatching
 coreutils
+cpython
 dedupe
 depcheck
 devfile
@@ -52,6 +56,7 @@ hostsvars
 hostvars
 icontent
 johndoe
+konflux
 lextudio
 libgbm
 libonig
@@ -88,6 +93,7 @@ servernum
 shiki
 showformat
 sonarcloud
+sshpass
 suboption
 suboptions
 sysninja

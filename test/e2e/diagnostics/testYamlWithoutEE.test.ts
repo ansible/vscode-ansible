@@ -6,6 +6,7 @@ import {
   testDiagnostics,
   updateSettings,
   waitForDiagnosisCompletion,
+  clearActivationCache,
 } from "../../helper";
 
 export function testDiagnosticsYAMLWithoutEE(): void {
@@ -83,18 +84,23 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        // Give language server time to process document close and settings change
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.lint.enabled", true); // Revert back the setting to default
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should provide diagnostics with YAML validation (with --syntax-check)", async function () {
         await activate(docUri1);
         await vscode.commands.executeCommand("workbench.action.files.save");
-        console.log("Waiting for diagnostics…");
         await waitForDiagnosisCompletion();
-        console.log("Done waiting, checking diagnostics…"); // Wait for the diagnostics to compute on this file
 
         await testDiagnostics(docUri1, [
           {
@@ -154,10 +160,17 @@ export function testDiagnosticsYAMLWithoutEE(): void {
         await vscode.commands.executeCommand(
           "workbench.action.closeAllEditors",
         );
+        // Give language server time to process document close and settings change
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       after(async function () {
         await updateSettings("validation.enabled", true); // Revert back the setting to default
+        await vscode.commands.executeCommand(
+          "workbench.action.closeAllEditors",
+        );
+        clearActivationCache(); // Clear cache after editors closed
       });
 
       it("should provide no diagnostics with invalid YAML file", async function () {
