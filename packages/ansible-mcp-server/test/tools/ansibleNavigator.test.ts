@@ -42,7 +42,7 @@ describe("Ansible Navigator Handler", () => {
   });
 
   describe("Core functionality", () => {
-    it("should run ansible-navigator on a playbook file", async () => {
+    it("should prompt for mode when mode is not specified", async () => {
       const handler = createAnsibleNavigatorHandler();
 
       const result = await handler({
@@ -51,15 +51,33 @@ describe("Ansible Navigator Handler", () => {
 
       expect(result.content).toBeDefined();
       expect(result.content.length).toBeGreaterThan(0);
-      // Should contain output from ansible-navigator
-      expect(result.content[0].text).toContain("ansible-navigator");
+      // Should prompt for mode preference
+      expect(result.content[0].text).toContain(
+        "Would you like to specify an output mode",
+      );
+      expect(result.content[0].text).toContain('mode: "stdout"');
     });
 
-    it("should handle valid playbook files", async () => {
+    it("should run ansible-navigator on a playbook file when mode is provided", async () => {
+      const handler = createAnsibleNavigatorHandler();
+
+      const result = await handler({
+        filePath: testPlaybookPath,
+        mode: "stdout",
+      });
+
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBeGreaterThan(0);
+      // Should contain output from ansible-navigator or error if not available
+      expect(result.content[0].text).toMatch(/ansible-navigator|Error/);
+    });
+
+    it("should handle valid playbook files with mode specified", async () => {
       const handler = createAnsibleNavigatorHandler();
 
       const result = await handler({
         filePath: cleanPlaybookPath,
+        mode: "stdout",
       });
 
       expect(result.content).toBeDefined();
@@ -75,6 +93,7 @@ describe("Ansible Navigator Handler", () => {
 
       const result = await handler({
         filePath: nonExistentFile,
+        mode: "stdout",
       });
 
       expect(result.content).toBeDefined();
@@ -92,8 +111,57 @@ describe("Ansible Navigator Handler", () => {
 
       expect(result.content).toBeDefined();
       expect(result.content[0].text).toContain("Error");
-      expect(result.content[0].text).toContain("No file path was provided");
+      expect(result.content[0].text).toContain("filePath");
+      expect(result.content[0].text).toContain("required");
       expect(result.isError).toBe(true);
+    });
+  });
+
+  describe("Mode parameter handling", () => {
+    it("should prompt user for mode preference when mode parameter is undefined", async () => {
+      const handler = createAnsibleNavigatorHandler();
+      const result = await handler({
+        filePath: testPlaybookPath,
+      });
+
+      expect(result.content).toBeDefined();
+      expect(result.content.length).toBe(1);
+      expect(result.content[0].text).toContain(
+        "Would you like to specify an output mode for ansible-navigator?",
+      );
+      expect(result.content[0].text).toContain('mode: "stdout"');
+      expect(result.content[0].text).toContain('mode: "stdout-minimal"');
+      expect(result.content[0].text).toContain('mode: "interactive"');
+    });
+
+    it("should run with stdout mode when mode is specified as stdout", async () => {
+      const handler = createAnsibleNavigatorHandler();
+      const result = await handler({
+        filePath: testPlaybookPath,
+        mode: "stdout",
+      });
+
+      // Should not contain the prompt message
+      expect(result.content[0].text).not.toContain(
+        "Would you like to specify an output mode",
+      );
+      // Should either contain an error (if ansible-navigator not available) or navigator output
+      expect(result.content).toBeDefined();
+    });
+
+    it("should run with stdout-minimal mode when mode is specified", async () => {
+      const handler = createAnsibleNavigatorHandler();
+      const result = await handler({
+        filePath: testPlaybookPath,
+        mode: "stdout-minimal",
+      });
+
+      // Should not contain the prompt message
+      expect(result.content[0].text).not.toContain(
+        "Would you like to specify an output mode",
+      );
+      // Should either contain an error (if ansible-navigator not available) or navigator output
+      expect(result.content).toBeDefined();
     });
   });
 
@@ -105,6 +173,7 @@ describe("Ansible Navigator Handler", () => {
       // The actual behavior depends on whether ansible-navigator is installed
       const result = await handler({
         filePath: testPlaybookPath,
+        mode: "stdout",
       });
 
       expect(result.content).toBeDefined();
@@ -125,6 +194,7 @@ describe("Ansible Navigator Handler", () => {
 
       const result = await handler({
         filePath: testPlaybookPath,
+        mode: "stdout",
       });
 
       expect(result.content).toBeDefined();
@@ -139,6 +209,7 @@ describe("Ansible Navigator Handler", () => {
 
       const result = await handler({
         filePath: testPlaybookPath,
+        mode: "stdout",
       });
 
       expect(result.content).toBeDefined();
@@ -154,6 +225,7 @@ describe("Ansible Navigator Handler", () => {
 
       const result = await handler({
         filePath: testPlaybookPath,
+        mode: "stdout",
       });
 
       expect(result.content).toBeDefined();
