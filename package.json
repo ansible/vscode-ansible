@@ -1026,7 +1026,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.7.0",
     "@types/selenium-webdriver": "^4.35.1",
-    "@types/sinon": "^17.0.4",
+    "@types/sinon": "^20.0.0",
     "@types/tmp": "^0.2.6",
     "@types/uuid": "^11.0.0",
     "@types/vscode": "^1.85.0",
