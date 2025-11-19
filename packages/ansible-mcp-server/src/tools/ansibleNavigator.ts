@@ -177,7 +177,7 @@ function checkContainerEngine(): {
 } {
   // Hardcoded whitelist to prevent command injection
   const ALLOWED_ENGINES = ["podman", "docker"] as const;
-  
+
   for (const engine of ALLOWED_ENGINES) {
     try {
       // Safe: engine is from hardcoded whitelist, not user input
