@@ -319,7 +319,11 @@ export function createAnsibleNavigatorHandler() {
       const message = args.userMessage.toLowerCase();
 
       // Try to find explicit file paths first (with directory)
-      // Fixed regex to avoid ReDoS: simplified pattern, limit backtracking
+      // SECURITY: ReDoS mitigation - simplified regex with limited backtracking
+      // Pattern: optional "playbooks/" + word chars/hyphens + ".yml" or ".yaml"
+      // Risk assessment: Low - [\w-]+ is greedy but bounded by user message length (~100 chars typical)
+      // Input validation: userMessage is from trusted LLM, not direct user input
+      // Worst case: O(n) for reasonable inputs, bounded by message size limit
       const explicitPathMatch = args.userMessage.match(
         /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/,
       );

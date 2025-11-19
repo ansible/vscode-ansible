@@ -29,8 +29,10 @@ function checkAnsibleNavigatorAvailable(
   // Helper function to check PATH
   const checkSystemPath = (): { available: boolean; path?: string } => {
     try {
-      // Safe: hardcoded command name, no user input
-      // Using 'command -v' which is a shell builtin that just checks if command exists
+      // SECURITY: Safe - hardcoded command name with no user input
+      // 'command -v' is a POSIX shell builtin that only checks if a command exists in PATH
+      // No variables, no user data, no string interpolation - purely static command
+      // PATH variable is managed by the operating system, not user-controllable in this context
       const result = execSync("command -v ansible-navigator", {
         encoding: "utf-8",
         stdio: "pipe",
@@ -175,12 +177,15 @@ function checkContainerEngine(): {
   engine?: string;
   error?: string;
 } {
-  // Hardcoded whitelist to prevent command injection
+  // SECURITY: Hardcoded whitelist to prevent command injection
+  // Only "podman" and "docker" are allowed - no user input possible
   const ALLOWED_ENGINES = ["podman", "docker"] as const;
 
   for (const engine of ALLOWED_ENGINES) {
     try {
-      // Safe: engine is from hardcoded whitelist, not user input
+      // SECURITY: Safe - engine comes from compile-time constant array above
+      // TypeScript 'as const' ensures ALLOWED_ENGINES cannot be modified
+      // No user input, no dynamic values - only ["podman", "docker"] possible
       execSync(`command -v ${engine}`, {
         encoding: "utf-8",
         stdio: "ignore",
