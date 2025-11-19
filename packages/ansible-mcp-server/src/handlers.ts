@@ -302,13 +302,13 @@ export function createAnsibleNavigatorHandler() {
         }
       }
     }
-    
+
     // If no file path found, ask user to be more specific
     if (!targetFilePath) {
       return {
         content: [{
           type: "text" as const,
-          text: 
+          text:
             "❌ **Could not determine which playbook to run.**\n\n" +
             "Please specify the playbook name more clearly. Examples:\n" +
             "- 'run play1.yml'\n" +
