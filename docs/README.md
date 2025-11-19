@@ -387,7 +387,7 @@ ansible-mcp-server --stdio
 
 See **[MCP API Endpoint Documentation](mcp-api-documentation.md)** for technical API reference including:
 - All 11 tool endpoints with complete specifications (across branches)
-- Request/response formats and examples  
+- Request/response formats and examples
 - Security and authentication implementation details
 - All parameters and options
 - 4 resource URIs and schemas (EE schema, sample, rules, best practices)
