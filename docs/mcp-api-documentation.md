@@ -145,7 +145,7 @@ All requests follow the JSON-RPC 2.0 format:
 
 1. **File System Access:** Server has read/write access within `WORKSPACE_ROOT`
 2. **Command Execution:** Tools spawn child processes with user permissions
-3. **No Sandboxing:** Commands run without isolation
+3. **No Sandbox:** Commands run without isolation
 4. **Dependency Validation:** Tools check for required dependencies before execution
 5. **Path Resolution:** All paths resolved to absolute to prevent traversal attacks
 
@@ -724,7 +724,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
   "params": {
     "name": "ansible_create_collection",
     "arguments": {
-      "name": "mycompany.mycollection",
+      "name": "acme.my_collection",
       "path": "/workspace/collections"
     }
   }
