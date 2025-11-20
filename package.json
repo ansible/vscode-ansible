@@ -989,6 +989,7 @@
   "dependencies": {
     "@ansible/ansible-language-server": "workspace:^",
     "@ansible/ansible-mcp-server": "workspace:^",
+    "@google/genai": "^1.29.0",
     "@highlightjs/vue-plugin": "2.1.0",
     "@primeuix/themes": "^1.2.5",
     "@redhat-developer/vscode-redhat-telemetry": "^0.10.2",
