@@ -66,6 +66,7 @@ The Ansible MCP Server is currently available for testing and development. It ru
 │ Tools │ │  APIs   │
 └───────┘ └─────────┘
 ```
+
 ### Usage with AI Assistants
 
 The MCP server integrates with AI assistants that support the Model Context Protocol. When configured, AI assistants can:
