@@ -31,11 +31,13 @@
 ### Transport Protocol
 
 **Current:** stdio (standard input/output)
+
 - No network endpoint
 - Process-based communication
 - Request/response over stdin/stdout
 
 **Planned:** WebSocket
+
 - Network-based communication
 - Token authentication
 - TLS/SSL encryption
@@ -102,12 +104,14 @@ All requests follow the JSON-RPC 2.0 format:
 ### Current Implementation (v0.1.0)
 
 **stdio Transport:**
+
 - **Authentication:** None required (process-based, runs in user context)
 - **Authorization:** Inherits parent process permissions
 - **Encryption:** Not applicable (local IPC)
 - **Scope:** Limited to `WORKSPACE_ROOT` environment variable
 
 **Security Model:**
+
 - Server runs as child process of MCP client
 - Same security context as parent process
 - File operations scoped to workspace directory
@@ -123,14 +127,17 @@ All requests follow the JSON-RPC 2.0 format:
 ### Planned Implementation (WebSocket)
 
 **Authentication:**
+
 - Token-based authentication via `MCP_TOKEN` environment variable
 - Bearer token in HTTP headers or WebSocket handshake
 
 **Authorization:**
+
 - Role-based access control (planned)
 - Tool-level permissions (planned)
 
 **Encryption:**
+
 - TLS/SSL for WebSocket connections
 - Certificate validation
 
@@ -164,6 +171,7 @@ The server exposes four read-only resources providing schema and reference data.
 **Description:** JSON schema for validating Ansible execution environment definition files (execution-environment.yml) used with ansible-builder.
 
 **Schema Structure:**
+
 ```json
 {
   "$schema": "http://json-schema.org/draft-07/schema",
@@ -193,6 +201,7 @@ The server exposes four read-only resources providing schema and reference data.
 ```
 
 **Access:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -213,6 +222,7 @@ The server exposes four read-only resources providing schema and reference data.
 **Description:** Reference implementation of execution-environment.yml demonstrating v3 schema structure.
 
 **Access:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -233,6 +243,7 @@ The server exposes four read-only resources providing schema and reference data.
 **Description:** Rules and guidelines for generating and validating execution environment files (ee-rules.md).
 
 **Access:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -253,6 +264,7 @@ The server exposes four read-only resources providing schema and reference data.
 **Description:** Comprehensive best practices and guidelines for writing Ansible content. Provides standards, best practices, and guidelines for creating maintainable Ansible automation including formatting, naming conventions, project structure, testing strategies, and more.
 
 **Access:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -272,30 +284,35 @@ The server exposes four read-only resources providing schema and reference data.
 
 The server provides 11 tools organized into the following categories:
 
-**A. Information & Documentation**
+#### A. Information & Documentation
+
 - [`zen_of_ansible`](#endpoint-zen_of_ansible) - Ansible design philosophy
 - [`ansible_content_best_practices`](#endpoint-ansible_content_best_practices) - Best practices guidelines
 - [`list_available_tools`](#endpoint-list_available_tools) - List all available tools
 
-**B. Environment Tools**
+#### B. Environment Tools
+
 - [`ade_environment_info`](#endpoint-ade_environment_info) - Get environment information
 - [`ade_setup_environment`](#endpoint-ade_setup_environment) - Setup development environment
 - [`adt_check_env`](#endpoint-adt_check_env) - Check/install Ansible Development Tools
 
-**C. Project Generators**
+#### C. Project Generators
+
 - [`ansible_create_playbook`](#endpoint-ansible_create_playbook) - Create new playbook
 - [`ansible_create_collection`](#endpoint-ansible_create_collection) - Create new collection
 
-**D. Code Quality & Validation**
+#### D. Code Quality & Validation
+
 - [`ansible_lint`](#endpoint-ansible_lint) - Lint Ansible playbooks
 - [`define_and_build_execution_env`](#endpoint-define_and_build_execution_env) - Create execution environment definition
 
-**E. Playbook Execution**
+#### E. Playbook Execution
+
 - [`ansible_navigator`](#endpoint-ansible_navigator) - Execute playbooks with smart features
 
 ---
 
-### A. Information & Documentation
+### Information & Documentation
 
 ---
 
@@ -308,6 +325,7 @@ The server provides 11 tools organized into the following categories:
 **Parameters:** None
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -321,6 +339,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -347,6 +366,7 @@ The server provides 11 tools organized into the following categories:
 **Parameters:** None
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -360,6 +380,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -376,6 +397,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Use Cases:**
+
 - Get best practices for writing Ansible content
 - Learn how to write a good Ansible playbook
 - Understand Ansible formatting and naming conventions
@@ -394,6 +416,7 @@ The server provides 11 tools organized into the following categories:
 **Parameters:** None
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -407,6 +430,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -424,7 +448,7 @@ The server provides 11 tools organized into the following categories:
 
 ---
 
-### B. Environment Tools
+### Environment Tools
 
 ---
 
@@ -437,6 +461,7 @@ The server provides 11 tools organized into the following categories:
 **Parameters:** None (uses `WORKSPACE_ROOT` from environment)
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -450,6 +475,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -466,6 +492,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response Fields:**
+
 - `workspacePath` - Workspace root directory
 - `pythonVersion` - Python version string
 - `virtualEnv` - Virtual environment path and status
@@ -494,6 +521,7 @@ The server provides 11 tools organized into the following categories:
 | `requirementsFile` | string | ⭕ Optional | undefined | Path to specific requirements file |
 
 **Request (Basic):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -507,6 +535,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Request (With Options):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -525,6 +554,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -541,6 +571,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Setup Process:**
+
 1. Check/install ADT (ansible-dev-tools)
 2. Check for conflicting packages
 3. Verify ansible-lint status
@@ -561,6 +592,7 @@ The server provides 11 tools organized into the following categories:
 **Parameters:** None
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -574,6 +606,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response (Already Installed):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -590,6 +623,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response (Installed Successfully):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -606,6 +640,7 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Response (Error):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -623,12 +658,13 @@ The server provides 11 tools organized into the following categories:
 ```
 
 **Installation Methods (in order):**
+
 1. `pip install ansible-dev-tools`
 2. `pipx install ansible-dev-tools` (fallback)
 
 ---
 
-### C. Project Generators
+### Project Generators
 
 ---
 
@@ -649,6 +685,7 @@ The server provides 11 tools organized into the following categories:
 Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -665,6 +702,7 @@ Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -681,6 +719,7 @@ Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
 ```
 
 **Response (Error):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -716,6 +755,7 @@ Executes: `ansible-creator init playbook --no-overwrite <name> [--path <path>]`
 Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]`
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -732,6 +772,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -748,6 +789,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Error):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -766,7 +808,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 
 ---
 
-### D. Code Quality & Validation
+### Code Quality & Validation
 
 ---
 
@@ -784,6 +826,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 | `fix` | boolean | ⭕ Optional | undefined | If `true`, applies automatic fixes using `ansible-lint --fix`. If `undefined`, prompts user for preference. If `false`, runs lint without fixes. |
 
 **Request (Without Fix):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -799,6 +842,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Request (With Fix):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -815,6 +859,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (No Issues):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -831,6 +876,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Issues Found):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -847,6 +893,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Error):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -864,6 +911,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Automatic Fix Capabilities:**
+
 - command-instead-of-shell
 - deprecated-local-action
 - fqcn (Fully Qualified Collection Names)
@@ -899,6 +947,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 **Step 1 - Missing Required Parameters:**
 
 **Request (Missing Parameters):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -912,6 +961,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -931,6 +981,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 **Step 1 - Prompt Generation:**
 
 **Request (Without generatedYaml):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -949,6 +1000,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -967,6 +1019,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 **Step 2 - File Creation:**
 
 **Request (With generatedYaml):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -986,6 +1039,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1002,6 +1056,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Validation Warnings):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1018,6 +1073,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Validation Process:**
+
 1. Parse LLM-generated YAML
 2. Validate against execution-environment JSON schema
 3. Check for mandatory collections
@@ -1026,7 +1082,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 
 ---
 
-### E. Playbook Execution
+### Playbook Execution
 
 ---
 
@@ -1053,6 +1109,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 **1. INFORMATION MODE** (call with `{}`)
 
 **Request:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1066,6 +1123,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1084,6 +1142,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 **2. EXECUTION MODE** (call with `userMessage`)
 
 **Request (Basic):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1099,6 +1158,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Request (With Options):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1117,6 +1177,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Success):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1133,6 +1194,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Error - File Not Found):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1150,6 +1212,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Error - ansible-navigator Not Available):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1167,6 +1230,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Response (Error - Container Engine Issue):**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1184,6 +1248,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 ```
 
 **Smart Features:**
+
 - 🔍 Auto-detects playbook files from user's message
 - 🐳 Handles Podman/Docker errors automatically (retries with --ee false)
 - 🔧 Environment auto-detection (PATH, venv, system)
@@ -1191,6 +1256,7 @@ Executes: `ansible-creator init collection --no-overwrite <name> [--path <path>]
 - 💡 Explains what happened and how to customize settings
 
 **Security:**
+
 - Validates file path is within workspace (prevents directory traversal)
 - Checks file exists and is a regular file (not directory)
 - Whitelisted mode values ("stdout", "interactive")
@@ -1229,6 +1295,7 @@ All errors use consistent format:
 **Error Code:** ErrorCode.MethodNotFound (MCP)
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1247,6 +1314,7 @@ All errors use consistent format:
 #### 2. Missing Dependencies
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1270,6 +1338,7 @@ All errors use consistent format:
 #### 3. Version Mismatch
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1293,6 +1362,7 @@ All errors use consistent format:
 #### 4. File Not Found
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1316,6 +1386,7 @@ All errors use consistent format:
 #### 5. Invalid Arguments
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1339,6 +1410,7 @@ All errors use consistent format:
 #### 6. Command Execution Failure
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1362,6 +1434,7 @@ All errors use consistent format:
 #### 7. Parse Error
 
 **Response:**
+
 ```json
 {
   "jsonrpc": "2.0",
@@ -1444,67 +1517,72 @@ All errors use consistent format:
 ### Common Dependencies
 
 #### ansible
+
 - **Command:** `ansible`
 - **Min Version:** 2.9.0
 - **Install:** `pip install ansible`
 - **Version Check:** `ansible --version`
 
 #### ansible-lint
+
 - **Command:** `ansible-lint`
 - **Min Version:** 6.0.0
 - **Install:** `pip install ansible-lint`
 - **Version Check:** `ansible-lint --version`
 
 #### ansible-creator
+
 - **Command:** `ansible-creator`
 - **Min Version:** 25.9.1
 - **Install:** `pip install ansible-creator`
 - **Version Check:** `ansible-creator --version`
 
 #### ansible-navigator
+
 - **Command:** `ansible-navigator`
 - **Min Version:** None specified
 - **Install:** `pip install ansible-navigator`
 - **Version Check:** `ansible-navigator --version`
 
 #### python3
+
 - **Command:** `python3`
 - **Min Version:** 3.8.0
-- **Install:** https://www.python.org/downloads/
+- **Install:** <https://www.python.org/downloads/>
 - **Version Check:** `python3 --version`
 
 ---
 
 ## API Reference Summary
 
-### Tool Endpoints
+### Tools Summary
 
-| Endpoint | Required Parameters | Optional Parameters | Returns |
-|----------|-------------------|-------------------|---------|
-| `zen_of_ansible` | - | - | Ansible philosophy text |
-| `ansible_content_best_practices` | - | - | Best practices guidelines |
-| `list_available_tools` | - | - | Tool list |
-| `ansible_lint` | `filePath` ⚠️ | `fix` ⭕ | Lint results |
-| `ade_environment_info` | - | - | Environment info |
-| `ade_setup_environment` | - | `envName` ⭕, `pythonVersion` ⭕, `collections` ⭕, `installRequirements` ⭕, `requirementsFile` ⭕ | Setup results |
-| `adt_check_env` | - | - | Installation status |
-| `ansible_create_playbook` | `name` ⚠️ | `path` ⭕ | Creation status |
-| `ansible_create_collection` | `name` ⚠️ | `path` ⭕ | Creation status |
-| `define_and_build_execution_env` | `baseImage` ⚠️, `tag` ⚠️ | `destinationPath` ⭕, `collections` ⭕, `systemPackages` ⭕, `pythonPackages` ⭕, `generatedYaml` ⭕ | Prompt or file creation result |
-| `ansible_navigator` | `userMessage` ⚠️* | `filePath` ⭕, `mode` ⭕, `environment` ⭕, `disableExecutionEnvironment` ⭕ | Playbook execution results or usage guide |
+| Endpoint                          | Required Parameters   | Optional Parameters                                                                                            | Returns                          |
+| --------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `zen_of_ansible`                  | -                     | -                                                                                                              | Ansible philosophy text          |
+| `ansible_content_best_practices`  | -                     | -                                                                                                              | Best practices guidelines        |
+| `list_available_tools`            | -                     | -                                                                                                              | Tool list                        |
+| `ansible_lint`                    | `filePath` ⚠️        | `fix` ⭕                                                                                                       | Lint results                     |
+| `ade_environment_info`            | -                     | -                                                                                                              | Environment info                 |
+| `ade_setup_environment`           | -                     | `envName` ⭕, `pythonVersion` ⭕, `collections` ⭕, `installRequirements` ⭕, `requirementsFile` ⭕            | Setup results                    |
+| `adt_check_env`                   | -                     | -                                                                                                              | Installation status              |
+| `ansible_create_playbook`         | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
+| `ansible_create_collection`       | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
+| `define_and_build_execution_env`  | `baseImage` ⚠️, `tag` ⚠️ | `destinationPath` ⭕, `collections` ⭕, `systemPackages` ⭕, `pythonPackages` ⭕, `generatedYaml` ⭕    | Prompt or file creation result   |
+| `ansible_navigator`               | `userMessage` ⚠️*    | `filePath` ⭕, `mode` ⭕, `environment` ⭕, `disableExecutionEnvironment` ⭕                                    | Playbook execution results or usage guide |
 
 *Required for execution mode; optional for information mode
 
-⚠️ = Required
+⚠️ = Required  
 ⭕ = Optional
 
-### Resources
+### Resources Summary
 
-| Resource | URI | Type |
-|----------|-----|------|
-| EE Schema | `schema://execution-environment` | JSON |
-| EE Sample | `sample://execution-environment` | YAML |
-| EE Rules | `rules://execution-environment` | Markdown |
+| Resource       | URI                                        | Type     |
+| -------------- | ------------------------------------------ | -------- |
+| EE Schema      | `schema://execution-environment`           | JSON     |
+| EE Sample      | `sample://execution-environment`           | YAML     |
+| EE Rules       | `rules://execution-environment`            | Markdown |
 | Best Practices | `guidelines://ansible-content-best-practices` | Markdown |
 
 ---
@@ -1512,4 +1590,4 @@ All errors use consistent format:
 **API Version:** 0.1.0
 **Last Updated:** 2025-11-19
 **Protocol:** MCP 1.0
-**Reference:** https://code.visualstudio.com/api/extension-guides/ai/mcp
+**Reference:** <https://code.visualstudio.com/api/extension-guides/ai/mcp>

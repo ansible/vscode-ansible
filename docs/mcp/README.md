@@ -58,7 +58,7 @@ The MCP server integrates with AI assistants that support the Model Context Prot
 
 ## Architecture
 
-```
+```text
 ┌─────────────────┐
 │  AI Assistant   │
 └────────┬────────┘
@@ -76,27 +76,3 @@ The MCP server integrates with AI assistants that support the Model Context Prot
 │ Tools │ │  APIs   │
 └───────┘ └─────────┘
 ```
-
-## Available Resources
-
-The server exposes read-only resources providing schema and reference data:
-
-- **Execution Environment Schema**: JSON schema for ansible-builder EE definitions
-- **Execution Environment Sample**: Reference implementation examples
-- **Execution Environment Rules**: Guidelines for EE file generation
-- **Ansible Content Best Practices**: Comprehensive development guidelines
-
-## Learn More
-
-- [API Documentation](api.md) - Complete endpoint reference with examples
-- [GitHub Repository](https://github.com/ansible/vscode-ansible/tree/main/packages/ansible-mcp-server)
-- [MCP Protocol Specification](https://modelcontextprotocol.io/)
-
-## Status
-
-**Current Version**: 0.1.0  
-**Status**: Development/Testing  
-**Protocol Version**: MCP 1.0
-
-The Ansible MCP Server is actively being developed. Features and APIs may change as we refine the implementation based on user feedback and MCP protocol updates.
-

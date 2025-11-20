@@ -386,6 +386,7 @@ ansible-mcp-server --stdio
 ### API Documentation
 
 See **[MCP API Endpoint Documentation](mcp/api.md)** for technical API reference including:
+
 - All 11 tool endpoints with complete specifications
 - Request/response formats and examples
 - Security and authentication implementation details
@@ -395,6 +396,7 @@ See **[MCP API Endpoint Documentation](mcp/api.md)** for technical API reference
 - Data type definitions
 
 **Tools included:**
+
 - Core: zen_of_ansible, list_available_tools, ansible_lint, ade_environment_info, ade_setup_environment, adt_check_env, ansible_create_playbook, ansible_create_collection, define_and_build_execution_env
 - Navigator branch: ansible_navigator
 - Agents branch: ansible_content_best_practices
