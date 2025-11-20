@@ -154,7 +154,7 @@ function testFeedbackCompletionAPI(): void {
     });
 
     it("Verify a sentiment feedback contains the model, if set", async function () {
-      lightSpeedManager.settingsManager.settings.lightSpeedService.model =
+      lightSpeedManager.settingsManager.settings.lightSpeedService.modelName =
         "testModel";
       const apiInstance = lightSpeedManager.apiInstance;
       const request = {

@@ -112,7 +112,7 @@ describe(__filename, function () {
 
     it("with a specific model", async function () {
       const cmw = createContentMatchesWebview();
-      cmw.settingsManager.settings.lightSpeedService.model = "the_model";
+      cmw.settingsManager.settings.lightSpeedService.modelName = "the_model";
       cmw.apiInstance.contentMatchesRequest = async (
         inputData: ContentMatchesRequestParams,
       ): Promise<ContentMatchesResponseParams> => {

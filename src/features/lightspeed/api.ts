@@ -76,9 +76,13 @@ export class LightSpeedAPI {
 
       const authToken =
         await this.lightspeedAuthenticatedUser.getLightspeedUserAccessToken();
-      if (authToken === undefined) {
+
+      // Check if WCA provider and auth token is required
+      const provider = this.settingsManager.settings.lightSpeedService.provider;
+      if (provider === "wca" && authToken === undefined) {
         throw new Error("Ansible Lightspeed authentication failed.");
       }
+
       const headers = {
         "Content-Type": "application/json",
       };
@@ -198,7 +202,7 @@ export class LightSpeedAPI {
       await this.lightspeedAuthenticatedUser.orgOptOutTelemetry();
 
     inputData.model =
-      lightSpeedManager.settingsManager.settings.lightSpeedService.model;
+      lightSpeedManager.settingsManager.settings.lightSpeedService.modelName;
 
     if (orgOptOutTelemetry) {
       if (inputData.inlineSuggestion) {
@@ -343,6 +347,14 @@ export class LightSpeedAPI {
 
       const data = await response.json();
 
+      this.logger.info(
+        `[ansible-lightspeed] Playbook generation response: ${JSON.stringify(
+          data,
+          null,
+          2,
+        )}`,
+      );
+
       if (!response.ok) {
         throw new HTTPError(response, response.status, data);
       }
@@ -373,6 +385,14 @@ export class LightSpeedAPI {
       );
 
       const data = await response.json();
+
+      this.logger.info(
+        `[ansible-lightspeed] Role generation response: ${JSON.stringify(
+          data,
+          null,
+          2,
+        )}`,
+      );
 
       // to remove after roleGen GA
       if (data.role && !data.name) {

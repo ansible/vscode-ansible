@@ -19,14 +19,16 @@ import { getCustomRolePaths, getCommonRoles } from "../utils/ansible";
 import { watchRolesDirectory } from "./utils/watchers";
 import { LightSpeedServiceSettings } from "../../interfaces/extensionSettings";
 import { LightspeedUser } from "./lightspeedUser";
-import { Log } from "../../utils/logger";
+import { getLightspeedLogger, Log } from "../../utils/logger";
 import { LightspeedExplorerWebviewViewProvider } from "./explorerWebviewViewProvider";
+import { ProviderManager } from "./providerManager";
 
 export class LightSpeedManager {
   private context;
   public settingsManager: SettingsManager;
   public telemetry: TelemetryManager;
   public apiInstance: LightSpeedAPI;
+  public providerManager: ProviderManager;
   public lightSpeedAuthenticationProvider: LightSpeedAuthenticationProvider;
   public lightspeedAuthenticatedUser: LightspeedUser;
   public lightSpeedActivityTracker: IDocumentTracker;
@@ -49,7 +51,7 @@ export class LightSpeedManager {
     this.telemetry = telemetry;
     this.lightSpeedActivityTracker = {};
     this.currentModelValue = undefined;
-    this.logger = new Log();
+    this.logger = getLightspeedLogger(); // Use singleton logger
     // initiate the OAuth service for Ansible Lightspeed
     this.lightSpeedAuthenticationProvider =
       new LightSpeedAuthenticationProvider(
@@ -75,6 +77,12 @@ export class LightSpeedManager {
       this.context,
       this.logger,
     );
+
+    // Initialize provider manager for third-party LLM support
+    this.providerManager = new ProviderManager(
+      this.settingsManager,
+      this.apiInstance,
+    );
     this.contentMatchesProvider = new ContentMatchesWebview(
       this.context,
       this.settingsManager,
@@ -93,6 +101,7 @@ export class LightSpeedManager {
     this.lightspeedExplorerProvider = new LightspeedExplorerWebviewViewProvider(
       context.extensionUri,
       this.lightspeedAuthenticatedUser,
+      this.settingsManager,
     );
     const lightspeedExplorerDisposable =
       vscode.window.registerWebviewViewProvider(
@@ -140,6 +149,9 @@ export class LightSpeedManager {
 
     // set custom when clause for controlling visibility of views
     this.setCustomWhenClauseContext();
+
+    // Refresh explorer panel when settings change (especially provider)
+    await this.lightspeedExplorerProvider.refreshWebView();
   }
 
   private resetContext(): void {
