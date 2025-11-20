@@ -3,7 +3,6 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import tsParser from "@typescript-eslint/parser";
-import ts from "@typescript-eslint/eslint-plugin";
 import tsdocPlugin from "eslint-plugin-tsdoc";
 import prettierRecommendedConfig from "eslint-plugin-prettier/recommended";
 import pluginChaiFriendly from "eslint-plugin-chai-friendly";
@@ -12,32 +11,42 @@ import path from "path";
 import { fileURLToPath } from "url";
 import html from "@html-eslint/eslint-plugin";
 import mochaPlugin from "eslint-plugin-mocha";
+import { defineConfig } from "eslint/config";
 
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
 
-export default tseslint.config(
+export default defineConfig(
   {
     ignores: [
       "**/.vscode-test/*",
       "**/out/",
+      ".cache/*",
       ".mocharc.js",
-      ".vscode-test/*",
+      ".trunk/*",
       ".venv/*",
+      ".vscode-test/*",
       ".yarn/*",
       "commitlint.config.js",
       "site/*",
       "test/ui/.mocharc.js",
       "webviews/**",
       "**/coverage/**",
+      "media/walkthroughs/**/*.html",
     ],
   },
-  {
-    extends: [
-      eslint.configs.recommended,
-      ...tseslint.configs.strictTypeChecked,
-      prettierRecommendedConfig,
+  eslint.configs.recommended,
+  prettierRecommendedConfig,
+  tseslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked.map((config) => ({
+    ...config,
+    files: [
+      "**/*.{js,ts,tsx}",
+      "packages/**/*.{js,ts,tsx}",
+      "test/**/*.{js,ts,tsx}",
     ],
+  })),
+  {
     files: [
       "**/*.{js,ts,tsx}",
       "packages/**/*.{js,ts,tsx}",
@@ -129,10 +138,12 @@ export default tseslint.config(
     },
   },
   {
-    ...html.configs["flat/recommended"],
     files: ["**/*.html"],
+    plugins: {
+      "@html-eslint": html,
+    },
     rules: {
-      ...html.configs["flat/recommended"].rules, // Must be defined. If not, all recommended rules will be lost
+      ...html.configs["flat/recommended"].rules,
       "@html-eslint/indent": ["error", 2],
     },
   },

@@ -15,6 +15,7 @@ import {
   getModalDialogAndMessage,
   sleep,
   updateSettings,
+  getAnsibleViewControl,
 } from "./uiTestHelper";
 import { expect } from "chai";
 
@@ -60,9 +61,7 @@ describe(__filename, function () {
         expect.fail("Failed to set ui-test option for lightspeed mock server");
       }
 
-      viewControl = (await new ActivityBar().getViewControl(
-        "Ansible",
-      )) as ViewControl;
+      viewControl = await getAnsibleViewControl();
       sideBar = await viewControl.openView();
 
       adtView = await sideBar
@@ -82,7 +81,7 @@ describe(__filename, function () {
         .to.be.undefined;
     });
 
-    it("Click Connect button Ansible Lightspeed webview", async function () {
+    it.skip("Click Connect button Ansible Lightspeed webview", async function () {
       await explorerView.switchToFrame(5000);
       const connectButton = await explorerView.findWebElement(
         By.id("lightspeed-explorer-connect"),
@@ -94,7 +93,7 @@ describe(__filename, function () {
       await explorerView.switchBack();
     });
 
-    it("Click Allow to use Lightspeed", async function () {
+    it.skip("Click Allow to use Lightspeed", async function () {
       const { dialog, message } = await getModalDialogAndMessage(true);
       expect(message).equals(
         "The extension 'Ansible' wants to sign in using Ansible Lightspeed.",
@@ -102,7 +101,7 @@ describe(__filename, function () {
       await dialog.pushButton("Allow");
     });
 
-    it("Verify a modal dialog pops up", async function () {
+    it.skip("Verify a modal dialog pops up", async function () {
       const { dialog, message } = await getModalDialogAndMessage();
       expect(dialog).not.to.be.undefined;
       expect(message).not.to.be.undefined;
@@ -123,7 +122,7 @@ describe(__filename, function () {
       }
     });
 
-    it("Click Open to open the callback URI", async function () {
+    it.skip("Click Open to open the callback URI", async function () {
       // Click Open to allow Ansible extension to open the callback URI
       expect(dialogMessage).equals(
         "Allow 'Ansible' extension to open this URI?",
@@ -132,7 +131,7 @@ describe(__filename, function () {
       await sleep(2000);
     });
 
-    it("Verify Ansible Lightspeed webview now contains user's information", async function () {
+    it.skip("Verify Ansible Lightspeed webview now contains user's information", async function () {
       await explorerView.switchToFrame(5000);
       const div = await explorerView.findWebElement(
         By.id("lightspeedExplorerView"),

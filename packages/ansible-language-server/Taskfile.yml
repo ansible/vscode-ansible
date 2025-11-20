@@ -1,7 +1,7 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
-env: &env
+env:
   # basically the same thing from .env file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"

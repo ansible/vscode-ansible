@@ -52,10 +52,14 @@ export class AnsibleMcpServerProvider {
       const projectRoot = this.findProjectRoot(workspaceRoot);
       const cliPath = path.join(projectRoot, AnsibleMcpServerProvider.CLI_PATH);
 
+      // Use process.execPath which points to the Node.js executable that VS Code is using
+      // This ensures we can find Node.js even if it's not in the system PATH
+      const nodeExecutable = process.execPath;
+
       // Create stdio server definition
       const stdioServer = new vscode.McpStdioServerDefinition(
         AnsibleMcpServerProvider.MCP_SERVER_NAME,
-        "node",
+        nodeExecutable,
         [cliPath, "--stdio"],
         {
           WORKSPACE_ROOT: workspaceRoot,

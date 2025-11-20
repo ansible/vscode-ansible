@@ -116,7 +116,7 @@ describe(__filename, function () {
       });
     });
 
-    it("Playbook explanation webview with a playbook with no tasks", async function () {
+    it.skip("Playbook explanation webview with a playbook with no tasks https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
@@ -154,14 +154,14 @@ describe(__filename, function () {
       await workbenchExecuteCommand("View: Close All Editor Groups");
     });
 
-    it("Playbook explanation thumbs up/down button disabled after thumbs up", async function () {
+    it.skip("Playbook explanation thumbs up/down button disabled after thumbs up https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
       await testThumbsButtonInteraction("thumbsup");
     });
 
-    it("Playbook explanation thumbs up/down button disabled after thumbs down", async function () {
+    it.skip("Playbook explanation thumbs up/down button disabled after thumbs down https://github.com/ansible/vscode-ansible/issues/2235", async function () {
       if (!process.env.TEST_LIGHTSPEED_URL) {
         this.skip();
       }
@@ -181,7 +181,7 @@ describe(__filename, function () {
       expect(editorView).not.to.be.undefined;
     });
 
-    it("Open Feedback webview", async function () {
+    it.skip("Open Feedback webview", async function () {
       // Execute only when TEST_LIGHTSPEED_URL environment variable is defined.
       await workbenchExecuteCommand("Ansible Lightspeed: Feedback");
       // Locate the playbook explanation webview

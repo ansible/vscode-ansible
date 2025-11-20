@@ -37,18 +37,111 @@ env:
   WSLENV: HOSTNAME:CI:FORCE_COLOR:GITHUB_ACTION:GITHUB_ACTION_PATH/p:GITHUB_ACTION_REPOSITORY:GITHUB_WORKFLOW:GITHUB_WORKSPACE/p:GITHUB_PATH/p:GITHUB_ENV/p:VIRTUAL_ENV/p:SKIP_PODMAN:SKIP_DOCKER:NODE_OPTIONS:MISE_ENV
   # We define a hostname because otherwise the variable might not always be accessible on runners.
   HOSTNAME: gha
+  # NODE_OPTIONS must be kept in sync with one inside .env file
+  NODE_OPTIONS: --max-old-space-size=8192
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  preflight:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/ansible/ext-builder:latest
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        MISE_TRUSTED_CONFIG_PATHS: /
+    continue-on-error: false
+    outputs:
+      commit_context: ${{ steps.extract_context.outputs.context }}
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          fetch-depth: 0 # we need tags for dynamic versioning
+          show-progress: false
+
+      - name: task setup
+        timeout-minutes: 1 # expected under 10s for container builds
+        run: |
+          set -ex
+          pwd
+          git config --global --add safe.directory '*'
+          mise install
+          mise list
+          mise cfg
+          mise exec -- which python3
+          mise exec -- printenv NODE_OPTIONS || true
+          task setup
+
+      - name: Install ansible-dev-tools
+        run: |
+          pip install ansible-dev-tools
+
+      - name: Extract commit context from conventional commit
+        id: extract_context
+        shell: bash
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          set -e
+          # Use PR title if available, otherwise use commit message
+          if [[ -n "$PR_TITLE" ]]; then
+            MESSAGE="$PR_TITLE"
+            echo "Using PR title: $MESSAGE"
+          else
+            MESSAGE=$(git log -1 --pretty=%s)
+            echo "Using commit message: $MESSAGE"
+          fi
+
+          # Extract context/scope from conventional commit format: type(scope): message
+          # Matches patterns like: feat(mcp):, fix(ui):, chore(build):, etc.
+          if [[ "$MESSAGE" =~ ^[a-z]+\(([a-z0-9/-]+)\): ]]; then
+            CONTEXT="${BASH_REMATCH[1]}"
+            echo "Extracted context: $CONTEXT"
+            echo "context=$CONTEXT" >> "$GITHUB_OUTPUT"
+          else
+            echo "No context found in message"
+            echo "context=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: task build
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task build
+
+      - name: task package
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task als:package
+
+      - name: Run context-specific command
+        if: >-
+          steps.extract_context.outputs.context != '' &&
+          !contains(fromJSON('["build", "deps", "docs", "lint"]'), steps.extract_context.outputs.context)
+        run: |
+          task ${{ steps.extract_context.outputs.context }}
+
+      - name: task lint
+        timeout-minutes: 4
+        run: |
+          task lint
+
+      - name: task docs
+        timeout-minutes: 1
+        run: |
+          task docs
+
+      - name: task package
+        timeout-minutes: 2
+        run: |
+          task package
+
   build:
     name: ${{ matrix.name }}
+
     environment: ci
     env:
       SKIP_DOCKER: ${{ matrix.env.SKIP_DOCKER || 0 }}
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
       IS_WSL: ${{ contains(matrix.name, 'wsl') && 1 || 0 }}
-      # NODE_OPTIONS must be kept in sync with one inside .env file
-      NODE_OPTIONS: --max-old-space-size=8192
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
 
     defaults:
@@ -56,8 +149,6 @@ jobs:
         shell: ${{ matrix.shell || 'bash'}}
     # The type of runner that the job will run on
     runs-on: ${{ matrix.os || 'ubuntu-24.04' }}
-    # see https://github.com/containers/podman/issues/13609
-    continue-on-error: ${{ contains(matrix.name, 'macos') && true || false }}
     outputs:
       can_release_to_npm: ${{ steps.package.outputs.can_release_to_npm }}
     permissions:
@@ -75,23 +166,13 @@ jobs:
         os:
           - ubuntu-24.04
         task-name:
-          - docs
+          - test (linux)
         name:
-          - docs
+          - test (linux)
         include:
-          - name: lint
-            task-name: lint
-            os: ubuntu-24.04
-            env:
-              SKIP_PODMAN: 1
-              SKIP_DOCKER: 1
-
-          - name: test (linux)
-            task-name: test
-
           - name: test (macos)
             task-name: test
-            os: macos-13-large
+            os: macos-15-large
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -107,10 +188,15 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
+
+      - name: Run setup steps (composite action)
+        uses: ./.github/actions/setup
+        with:
+          job_name: ${{ matrix.name }}
 
       # https://github.com/marketplace/actions/setup-wsl
       - name: Activate WSL
@@ -154,30 +240,19 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.0.0
-        with:
-          experimental: true
-          reshim: true
-
-      - name: Corepack enable
-        run: corepack enable
-
-      - name: Enable caching
+      - name: Enable caching for vscode resources
+        if: "${{ contains(matrix.name, 'test') }}"
+        # left out due to having their own caching: yarn, node_modules, mise
         uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
         with:
           path: |
             .vscode-test
-            .yarn/cache
-            node_modules/.cache/webpack
             out/ext
-            out/test-resources*/Visual Studio Code.app
             out/test-resources*/chromedriver*
             out/test-resources*/driverVersion
             out/test-resources*/stable.zip
-            ~/.cache/pip
-            ~/.cache/yarn
-          key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', 'tools/*.*') }}
-
+            out/test-resources*/manifest.json
+          key: ${{ env.IMAGE_OS_VERSION }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock') }}
       # - name: Enable caching for podman-machine
       #   if: "contains(matrix.os, 'macos')"
       #   uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.0.0
@@ -195,14 +270,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
-          python-version: "3.13"
-
-      - name: Enable caching for pre-commit
-        if: ${{ matrix.name == 'lint' }}
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
-        with:
-          path: ~/.cache/pre-commit/
-          key: pre-commit-4|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+          python-version-file: .python-version
 
       - name: Install ansible-dev-tools (pip for Linux/macOS, pipx for WSL)
         run: |
@@ -261,6 +329,10 @@ jobs:
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
+
+      - name: task mcp
+        if: contains(matrix.name, 'test')
+        run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task unit
         if: contains(matrix.name, 'test')
@@ -338,6 +410,18 @@ jobs:
           flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},als
           use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
 
+      - name: Upload test results to Codecov (mcp)
+        if: ${{ !cancelled() && hashFiles('out/junit/mcp/*.xml') != '' }}
+        uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
+        with:
+          fail_ci_if_error: true
+          directory: out/junit/mcp
+          handle_no_reports_found: true
+          name: ${{ matrix.name }}
+          # unable to use wildcards yet due to https://github.com/codecov/test-results-action/issues/110
+          flags: ${{ steps.setup.outputs.OS_VERSION }},${{ steps.setup.outputs.ARCH }},mcp
+          use_oidc: ${{ github.event_name == 'merge_group' || github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository) }}
+
       - name: Upload test results to Codecov (e2e)
         if: ${{ !cancelled() && hashFiles('out/junit/e2e/*.xml') != '' }}
         uses: codecov/test-results-action@47f89e9acb64b76debcd5ea40642d25a4adced9f # v1.1.1
@@ -395,26 +479,26 @@ jobs:
       #   uses: mxschmitt/action-tmate@v3
 
   check: # This job does nothing and is only used for the branch protection
-    if: always()
-
     needs:
       - build
 
-    permissions: # codecov
-      id-token: write
-      checks: read
+    permissions:
+      checks: read # codecov
+      contents: write # slack report
+      id-token: write # codecov
+      pull-requests: read # slack report
 
     runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
 
       - name: Merge logs into a single archive
         if: ${{ !failure() }}
-        uses: actions/upload-artifact/merge@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact/merge@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: logs.zip
           pattern: logs-*.zip
@@ -422,7 +506,7 @@ jobs:
           delete-merged: true
 
       - name: Download artifacts
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           path: .
 
@@ -433,7 +517,7 @@ jobs:
           find . -name '*"*' -exec rm -r {} \; || true
           find . -name '*:*' -exec rm -r {} \; || true
 
-      - name: Upload als test coverage data [1/4]
+      - name: Upload als test coverage data [1/5]
         if: ${{ always() }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
@@ -444,7 +528,7 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      - name: Upload unit test coverage data [2/4]
+      - name: Upload unit test coverage data [2/5]
         if: ${{ always() }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
@@ -455,7 +539,7 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      - name: Upload ui test coverage data [3/4]
+      - name: Upload ui test coverage data [3/5]
         if: ${{ always() }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
@@ -466,13 +550,24 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
-      - name: Upload e2e test coverage data [4/4]
+      - name: Upload e2e test coverage data [4/5]
         if: ${{ always() }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
         with:
           name: e2e
           files: ./**/coverage/e2e/*cobertura-coverage.xml
           flags: e2e
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+
+      - name: Upload mcp test coverage data [5/5]
+        if: ${{ always() }}
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        with:
+          name: mcp
+          files: ./**/coverage/mcp/*cobertura-coverage.xml
+          flags: mcp
           disable_search: true
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
@@ -495,9 +590,21 @@ jobs:
         continue-on-error: ${{ github.event_name == 'pull_request' && github.repository != github.event.pull_request.head.repo.full_name }}
 
       - name: Decide whether the needed jobs succeeded or failed
-        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # release/v1 branch
+        uses: re-actors/alls-green@release/v1 # that is a branch, not a tag
+        id: alls-green
         with:
           jobs: ${{ toJSON(needs) }}
+
+      - name: Send CI failure notification
+        if: failure() && github.ref == 'refs/heads/main'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.DEVTOOLS_CI_SLACK_URL }}
+        run: |
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -X POST -H 'Content-type: application/json' \
+              --data "{\"text\":\" Main branch tests failed on `${GITHUB_REPOSITORY}`. Check [logs](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})\"}" \
+              $SLACK_WEBHOOK_URL
+          fi
 
   publish:
     if: github.ref_type == 'tag' || github.event.inputs.publish == 'true'
@@ -507,7 +614,7 @@ jobs:
       - check
     steps:
       - name: Checkout Source
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
 
@@ -516,16 +623,16 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+      - uses: jdx/mise-action@9dc7d5dd454262207dea3ab5a06a3df6afc8ff26 # v3.4.1
 
       - name: Download the artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: ansible-extension-build-${{ github.event.number || github.run_id }}.zip
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
         if: github.ref_type == 'tag'
         with:
           files: "*.vsix"
@@ -537,7 +644,7 @@ jobs:
       - name: Setup python
         uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
         with:
-          python-version: "3.13"
+          python-version-file: .python-version
 
       - name: Publish extension to marketplaces
         run: |
@@ -555,11 +662,11 @@ jobs:
       - check
     steps:
       - name: Download the artifact
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
-      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2.0
+      - uses: jdx/mise-action@9dc7d5dd454262207dea3ab5a06a3df6afc8ff26 # v3.4.1
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:

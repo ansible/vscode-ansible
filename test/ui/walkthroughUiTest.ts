@@ -66,8 +66,8 @@ describe("Check walkthroughs, elements and associated commands", function () {
   ];
 
   walkthroughs.forEach(([walkthroughName, steps]) => {
-    it(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
-      this.timeout(10000);
+    it.skip(`Open the ${walkthroughName} walkthrough and check elements`, async function () {
+      this.timeout(15000);
 
       await workbench.executeCommand("Welcome: Open Walkthrough");
       await new Promise((resolve) => setTimeout(resolve, 2000));

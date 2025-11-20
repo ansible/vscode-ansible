@@ -14,6 +14,7 @@ _.python.venv = { create = true, path = "~/.local/share/virtualenvs/vsa", python
   "--system-site-packages",
   "--seed",
 ] }  # pass args to uv venv
+_.file = { path = ".env", tools = true }
 
 # Do not use other hooks than preinstall or postinstall because they will
 # not work without 'mise activate' command, something that we do not use on CI.
@@ -22,11 +23,14 @@ _.python.venv = { create = true, path = "~/.local/share/virtualenvs/vsa", python
 [settings]
 # Needs to be enabled for hooks to work
 experimental = true
+idiomatic_version_file_enable_tools = ["python"]
+lockfile = true
 
 [tools]
+gh = "latest"
 # do not add tools unsupported on windows such: gh, yarn
 node = "22.20.0"
-python = "latest"
+python = "3.13"
 task = "latest"
 uv = "latest"
 yarn = "latest"

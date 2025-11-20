@@ -1,4 +1,5 @@
 ABRT
+CMDB
 Containerfile
 Customizer
 DEVFILE
@@ -11,6 +12,7 @@ Fqcn
 Fqcns
 Infiles
 KUBEDOCK
+Konflux
 LIGHTSPEED
 Lightspeed
 Lightspeed's
@@ -20,15 +22,19 @@ Modelines
 Npmjs
 OPTSTRING
 PKGMGR
+PYCMD
 PYTHONBREAKPOINT
 RHSSO
+SSOT
 TASKFILE
 Taskfile
 Testenvs
 Tomasz
 Towncrier
 antsibull
+argspec
 autofetch
+bindep
 cfgs
 checode
 chromedriver
@@ -37,11 +43,14 @@ codespell
 contentmatch
 contentmatches
 coreutils
+cpython
 dedupe
 depcheck
-devel
 devfile
 devspaces
+docsite
+docstrings
+equalto
 eslintcache
 extest
 fqcn
@@ -52,6 +61,7 @@ hostsvars
 hostvars
 icontent
 johndoe
+konflux
 lextudio
 libgbm
 libonig
@@ -67,7 +77,6 @@ mycollection
 mymodule
 mynamespace
 nocolor
-nodenext
 noheading
 norecursedirs
 npmjs
@@ -80,6 +89,7 @@ primevue
 priyamsahoo
 progressspinner
 projectuser
+pydoclint
 relogin
 rhsso
 seealso
@@ -87,6 +97,7 @@ servernum
 shiki
 showformat
 sonarcloud
+sshpass
 suboption
 suboptions
 sysninja
@@ -102,7 +113,6 @@ tomjs
 tomlsort
 towerhost
 unshallow
-usermod
 uuidv
 virt
 vite

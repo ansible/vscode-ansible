@@ -5,6 +5,9 @@ includes:
   als:
     taskfile: ./packages/ansible-language-server
     dir: ./packages/ansible-language-server
+  mcp:
+    taskfile: ./packages/ansible-mcp-server
+    dir: ./packages/ansible-mcp-server
 output: prefixed # do not use "group" due to impact on CI
 env:
   # keep in mind that these do *not* override shell vars: https://github.com/go-task/task/issues/1733
@@ -44,7 +47,6 @@ tasks:
       - tools/test-setup.sh
     generates:
       - out/log/manifest-*.yml
-      - "{{.PYTHON3}}"
     run: once
     interactive: true
   clean:
@@ -58,8 +60,8 @@ tasks:
   install:
     cmds:
       - task: setup
-      - uv sync --active
-      - npx --yes yarn install
+      - uv sync --no-progress -q --active
+      - yarn install --immutable --silent
     generates:
       - node_modules/.yarn-state.yml
     sources:
@@ -82,13 +84,16 @@ tasks:
       - npm exec -- tsc -p ./
     sources:
       - Taskfile.yml
-      - node_modules/**/*
       - package.json
       - src/**/*
       - test/**/*
       - tsconfig.json
       - webpack.config.ts
       - yarn.lock.json
+    generates:
+      - out/client/**/*
+      - out/server/**/*
+      - packages/*/out/**/*
   code:
     env:
       # https://github.com/microsoft/vscode/issues/82524#issuecomment-1150315756
@@ -103,12 +108,12 @@ tasks:
       VSCODE_VERSION:
         sh: node -p "require('./package.json').engines.vscode"
     cmds:
-      - uv sync --upgrade
+      - task: "deps:python"
       - task: install
       # upgrade yarn itself
       - yarn set version latest
       # bumps some developments dependencies
-      - yarn ncu -u --workspaces -i
+      - task: "deps:node"
       # disabled because it does not work recursively
       # - yarn upgrade-interactive
       # restores a potential update of @types/vscode
@@ -116,13 +121,24 @@ tasks:
       - yarn dedupe
       # running install after upgrade is needed in order to update the lock file
       - task: shared:install
-      # check deps
-      - yarn dlx depcheck
       - bash ./tools/precheck.sh
       - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
       - task: lint
       - task: build
     interactive: true
+  "deps:node":
+    desc: Update node dependencies
+    cmds:
+      - yarn ncu -u --workspaces -i
+      # check deps
+      - yarn dlx depcheck
+  "deps:python":
+    desc: Update python dependencies
+    cmds:
+      - uv sync --upgrade
+      - "{{.VIRTUAL_ENV}}/bin/python3 -m pre_commit autoupdate"
+      - task: lint
+      - task: build
   docs:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the documentation
@@ -158,13 +174,14 @@ tasks:
       - tools
   test:
     # cspell: disable-next-line
-    desc: "Run all tests: unit, ui, e2e, als"
+    desc: "Run all tests: unit, ui, e2e, als, mcp"
     cmds:
       - task: setup
       - task: unit
       - task: ui
       - task: e2e
       - task: als:test
+      - task: mcp:test
       # .vsix file is no longer needed for executing tests.
       # This is just for making sure that the package step works w/o issues.
       - task: package
@@ -202,13 +219,17 @@ tasks:
       - tools/helper
       - src/**/*
       - test/**/*
+      - packages/*/src/**/*
+      - packages/*/test/**/*
       - media/**/*
     generates:
       - "*.vsix"
+      - "packages/*/*.tgz"
     cmds:
       - task: build
       # while not a real dependency, we want to build both all the time:
       - task: als:package
+      - task: mcp:package
       - ./tools/helper --package
       - defer: { task: finish }
     silent: true
@@ -224,3 +245,11 @@ tasks:
       - task: install
       - ./tools/release.sh
     interactive: true
+  builder:
+    desc: Build container image used for building the extension
+    cmds:
+      - ./tools/builder.sh
+  image-konflux:
+    desc: Build container image used for building the extension for Konflux CI
+    cmds:
+      - podman build --build-arg GITHUB_TOKEN -f vscode-ansible.Containerfile --format=docker

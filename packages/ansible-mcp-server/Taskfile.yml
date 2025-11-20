@@ -1,7 +1,7 @@
 ---
 # see https://taskfile.dev/#/
 version: "3"
-env: &env
+env:
   # basically the same thing from .env file:
   # Avoid undesired extra hints from docker when pulling images
   DOCKER_CLI_HINTS: "false"
@@ -32,30 +32,18 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - vitest.config.ts
-  lint:
-    desc: Run linting
-    dir: "{{ .TASKFILE_DIR }}"
-    cmds:
-      - npm run lint
-    interactive: true
   test:
-    desc: Run all tests
+    desc: Run all tests and coverage report
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - task: build
-      - npm test
+      - npm run test:coverage
     interactive: true
   test-watch:
     desc: Run tests in watch mode
     dir: "{{ .TASKFILE_DIR }}"
     cmds:
       - npm run test:watch
-    interactive: true
-  test-coverage:
-    desc: Run tests with coverage report
-    dir: "{{ .TASKFILE_DIR }}"
-    cmds:
-      - npm run test:coverage
     interactive: true
   package:
     desc: Package MCP server
@@ -66,9 +54,11 @@ tasks:
       - src/**/*.*
       - tsconfig.json
     generates:
-      - "out/server/**/*.*"
+      - "*.tgz"
     cmds:
       - task: build
+      - rm -f {{ .TASKFILE_DIR }}/*.tgz
+      - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
   clean:
     desc: Clean build artifacts

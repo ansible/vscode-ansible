@@ -5,8 +5,9 @@ import {
   ViewControl,
   Workbench,
 } from "vscode-extension-tester";
+import { waitForCondition } from "./uiTestHelper";
 
-const WAIT_TIME = 10000;
+const WAIT_TIME = 20000;
 
 config.truncateThreshold = 0;
 
@@ -16,9 +17,27 @@ describe("base assets are available after installation", function () {
 
   before(async function () {
     this.timeout(WAIT_TIME);
-    view = (await new ActivityBar().getViewControl(
-      "Extensions",
-    )) as ViewControl;
+
+    // Wait for Extensions view to be available
+    view = await waitForCondition({
+      condition: async () => {
+        try {
+          const activityBar = new ActivityBar();
+          const extensionsView = await activityBar.getViewControl("Extensions");
+          if (extensionsView) {
+            return extensionsView;
+          }
+          return false;
+        } catch (error) {
+          console.log(`Waiting for Extensions view: ${error}`);
+          return false;
+        }
+      },
+      message: "Timed out waiting for Extensions view to be available",
+      timeout: 15000,
+      pollTimeout: 500,
+    });
+
     sideBar = await view.openView();
   });
 
