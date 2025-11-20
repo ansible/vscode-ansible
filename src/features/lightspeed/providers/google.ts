@@ -319,7 +319,9 @@ export class GoogleProvider extends BaseLLMProvider {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(`[Google Provider] Playbook generation failed: ${error}`);
+      this.logger.error(
+        `[Google Provider] Playbook generation failed: ${error}`,
+      );
       throw this.handleGeminiError(error, "playbook generation");
     }
   }

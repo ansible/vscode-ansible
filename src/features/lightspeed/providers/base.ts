@@ -144,15 +144,14 @@ export abstract class BaseLLMProvider implements LLMProvider {
    * Handle HTTP status code errors with comprehensive error messages
    * This method provides reusable error handling for common HTTP status codes
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   protected handleHttpError(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     error: any,
     operation: string,
     providerName: string = "",
   ): Error {
-    const statusCode =
-      error?.status ||
-      undefined;
+    const statusCode = error?.status || undefined;
 
     // Handle HTTP status codes
     switch (statusCode) {
@@ -186,13 +185,12 @@ export abstract class BaseLLMProvider implements LLMProvider {
           `Gateway timeout - request timed out at the gateway. Please reduce input size or retry the request. Operation: ${operation} and status code: ${statusCode}`,
         );
 
-      default:
-        const errorMessage =
-          error?.message ||
-          "Unknown error";
+      default: {
+        const errorMessage = error?.message || "Unknown error";
         return new Error(
           `${providerName} error: ${errorMessage}. Operation: ${operation}. Status: ${statusCode || "N/A"}`,
         );
+      }
     }
   }
 }
