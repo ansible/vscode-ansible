@@ -1573,7 +1573,7 @@ All errors use consistent format:
 
 *Required for execution mode; optional for information mode
 
-⚠️ = Required  
+⚠️ = Required
 ⭕ = Optional
 
 ### Resources Summary
