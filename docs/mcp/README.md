@@ -94,9 +94,8 @@ The server exposes read-only resources providing schema and reference data:
 
 ## Status
 
-**Current Version**: 0.1.0  
-**Status**: Development/Testing  
+**Current Version**: 0.1.0
+**Status**: Development/Testing
 **Protocol Version**: MCP 1.0
 
 The Ansible MCP Server is actively being developed. Features and APIs may change as we refine the implementation based on user feedback and MCP protocol updates.
-
