@@ -87,6 +87,14 @@ export const LIGHTSPEED_STATUS_BAR_CLICK_HANDLER =
 export const LIGHTSPEED_CLIENT_ID = "Vu2gClkeR5qUJTUGHoFAePmBznd6RZjDdy5FW2wy";
 export const LIGHTSPEED_SERVICE_LOGIN_TIMEOUT = 120000;
 
+// LLM Provider API Endpoints (fixed, not user-configurable)
+export const GOOGLE_API_ENDPOINT =
+  "https://generativelanguage.googleapis.com/v1beta";
+export const WCA_API_ENDPOINT_DEFAULT = "https://c.ai.ansible.redhat.com";
+
+// LLM Provider Default Model Names
+export const GOOGLE_DEFAULT_MODEL = "gemini-2.5-flash";
+
 export type LIGHTSPEED_SUGGESTION_TYPE = "SINGLE-TASK" | "MULTI-TASK";
 
 export type LIGHTSPEED_USER_TYPE = "Licensed" | "Unlicensed" | "Not logged in";

@@ -13,4 +13,6 @@ export async function updateConfigurationChanges(
   await metaData.updateAnsibleInfoInStatusbar();
   await lightSpeedManager.reInitialize();
   await pythonInterpreter.updatePythonInfoInStatusbar();
+  // Refresh LLM provider when settings change (API key, model, etc.)
+  await lightSpeedManager.providerManager.refreshProviders();
 }

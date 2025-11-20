@@ -42,6 +42,7 @@ codeclimate
 codespell
 contentmatch
 contentmatches
+contentmatching
 coreutils
 cpython
 dedupe
@@ -54,6 +55,7 @@ equalto
 eslintcache
 extest
 fqcn
+genai
 githubcli
 haaaad
 highlightjs
@@ -68,6 +70,7 @@ libonig
 libssh
 lightspeed
 lineinfile
+llmprovider
 maxlength
 microdnf
 mocharc
