@@ -3,6 +3,10 @@ import path from "node:path";
 import { ZEN_OF_ANSIBLE } from "./constants.js";
 import { runAnsibleLint, formatLintingResult } from "./tools/ansibleLint.js";
 import {
+  runAnsibleNavigator,
+  formatNavigatorResult,
+} from "./tools/ansibleNavigator.js";
+import {
   getEnvironmentInfo,
   setupDevelopmentEnvironment,
   checkAndInstallADT,
@@ -13,6 +17,7 @@ import {
   formatExecutionEnvResult,
   buildEEStructureFromPrompt,
 } from "./tools/executionEnv.js";
+import { getAgentsGuidelines } from "./resources/agents.js";
 
 export function createZenOfAnsibleHandler() {
   return async () => {
@@ -24,6 +29,34 @@ export function createZenOfAnsibleHandler() {
         },
       ],
     };
+  };
+}
+
+export function createAgentsGuidelinesHandler() {
+  return async () => {
+    try {
+      const guidelines = await getAgentsGuidelines();
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: guidelines,
+          },
+        ],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error loading Ansible Content Best Practices: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
   };
 }
 
@@ -212,6 +245,253 @@ export function createADTCheckEnvHandler() {
           {
             type: "text" as const,
             text: `Error checking/installing ADT: ${errorMessage}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  };
+}
+
+export function createAnsibleNavigatorHandler() {
+  return async (
+    args: {
+      userMessage?: string;
+      filePath?: string; // For direct use (tests, advanced users)
+      mode?: string;
+      environment?: string;
+      disableExecutionEnvironment?: boolean;
+    },
+    workspaceRoot?: string,
+  ) => {
+    // If userMessage is not provided, return helpful information about ansible-navigator features
+    if (!args.userMessage || args.userMessage.trim() === "") {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text:
+              "# Ansible Navigator - Features & Usage Guide\n\n" +
+              "## 📋 Output Modes (specify with `-m` or `--mode`)\n" +
+              "- **stdout** (used by this tool) - Direct terminal output (like ansible-playbook)\n" +
+              "- **interactive** (ansible-navigator default) - Text-based UI for exploring execution\n\n" +
+              "## 🖥️ Execution Environments\n" +
+              "- **VM/Podman** (default) - Runs in isolated container environment\n" +
+              "- **Local Ansible** - Runs directly on your system (use `--ee false`)\n" +
+              "- **Virtual Environment** - Runs from specific Python venv\n\n" +
+              "## 🔍 Environment Detection (Default Order)\n" +
+              "When running ansible-navigator, we auto-detect the installation in this order:\n" +
+              "1. **System PATH** - First checks if ansible-navigator is in your PATH (e.g., `/usr/local/bin/ansible-navigator`)\n" +
+              "2. **Virtual Environments** - Then checks common venv locations (`ansible-dev/bin/`, `venv/bin/`, `.venv/bin/`)\n" +
+              "3. **Execution Environment** - By default, uses Podman/Docker EE (auto-retries with `--ee false` if Podman fails)\n\n" +
+              "## 🚀 Quick Commands\n" +
+              "```bash\n" +
+              "# This MCP tool uses stdout mode by default\n" +
+              "# (MCP tool will run with -m stdout automatically)\n" +
+              "ansible-navigator run playbooks/play1.yml\n\n" +
+              "# Interactive mode (requires terminal, use when explicitly needed)\n" +
+              "ansible-navigator run playbooks/play1.yml -m interactive\n\n" +
+              "# Disable execution environment (run with local Ansible)\n" +
+              "ansible-navigator run playbooks/play1.yml --ee false\n\n" +
+              "# Use specific Python venv\n" +
+              "source venv/bin/activate && ansible-navigator run playbooks/play1.yml\n" +
+              "```\n\n" +
+              "## 💡 Tips\n" +
+              "- **This tool uses**: stdout mode by default (direct output, best for chat/scripting)\n" +
+              "- **For exploration**: Use `-m interactive` (TUI - press ESC to navigate)\n" +
+              "- **Podman/Docker**: Required for execution environment (EE), auto-retries with `--ee false` if not available\n" +
+              "- **Environment selection**: Specify `venv` or `system` to override auto-detection\n\n" +
+              "## 🎯 For This Session\n" +
+              "Tell me which playbook to run and I'll execute it with your preferred settings!",
+          },
+        ],
+        isError: false,
+      };
+    }
+
+    // If filePath is directly provided (for tests), use it
+    let targetFilePath: string | undefined = args.filePath;
+
+    // Otherwise, parse user message to extract filename
+    if (!targetFilePath && args.userMessage && workspaceRoot) {
+      // Extract potential filenames from user message
+      // Look for patterns like: play1, play1.yml, playbooks/play1.yml, deploy, site.yml, etc.
+      const message = args.userMessage.toLowerCase();
+
+      // Try to find explicit file paths first (with directory)
+      // SECURITY: ReDoS mitigation - simplified regex with limited backtracking
+      // Pattern: optional "playbooks/" + word chars/hyphens + ".yml" or ".yaml"
+      // Risk assessment: Low - [\w-]+ is greedy but bounded by user message length (~100 chars typical)
+      // Input validation: userMessage is from trusted LLM, not direct user input
+      // Worst case: O(n) for reasonable inputs, bounded by message size limit
+      const explicitPathMatch = args.userMessage.match(
+        /(?:playbooks\/)?[\w-]+\.(?:yml|yaml)/,
+      );
+      if (explicitPathMatch) {
+        targetFilePath = explicitPathMatch[0];
+        // If it doesn't start with playbooks/ and isn't an absolute path, prepend playbooks/
+        if (
+          !targetFilePath.startsWith("playbooks/") &&
+          !targetFilePath.startsWith("/")
+        ) {
+          targetFilePath = `playbooks/${targetFilePath}`;
+        }
+      } else {
+        // Look for playbook names (without extension)
+        // Common patterns: "run play1", "execute deploy", "start site", etc.
+        const nameMatch = message.match(
+          /(?:run|execute|start|launch)\s+([\w-]+)/,
+        );
+        if (nameMatch) {
+          const playbookName = nameMatch[1];
+          targetFilePath = `playbooks/${playbookName}.yml`;
+        }
+      }
+    }
+
+    // If no file path found, ask user to be more specific
+    if (!targetFilePath) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text:
+              "❌ **Could not determine which playbook to run.**\n\n" +
+              "Please specify the playbook name more clearly. Examples:\n" +
+              "- 'run play1.yml'\n" +
+              "- 'run playbooks/deploy.yml'\n" +
+              "- 'execute site.yml'\n\n" +
+              "Common playbook locations:\n" +
+              "- `playbooks/play1.yml`\n" +
+              "- `playbooks/site.yml`\n" +
+              "- `playbooks/deploy.yml`",
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    // Use mode from args, defaulting to "stdout" for better UX in chat/scripting contexts
+    const mode = args.mode || "stdout";
+
+    // Use disableExecutionEnvironment from args, defaulting to false
+    // If user encounters Podman/Docker errors, they should set this to true
+    const disableExecutionEnvironment =
+      args.disableExecutionEnvironment || false;
+
+    // Normalize filePath (trim whitespace)
+    const normalizedFilePath = targetFilePath;
+
+    // Use environment from args, defaulting to "auto" if not provided
+    const environment = args.environment || "auto";
+
+    try {
+      const {
+        output,
+        debugOutput,
+        navigatorPath,
+        executionEnvironmentDisabled,
+      } = await runAnsibleNavigator(
+        normalizedFilePath,
+        mode,
+        workspaceRoot,
+        disableExecutionEnvironment,
+        environment,
+      );
+
+      const formattedResult = formatNavigatorResult(
+        output,
+        debugOutput,
+        normalizedFilePath,
+        mode,
+        executionEnvironmentDisabled ?? disableExecutionEnvironment,
+        navigatorPath,
+        environment,
+      );
+
+      return {
+        content: [{ type: "text" as const, text: formattedResult }],
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      // Check if this is a container engine error and we haven't already disabled EE
+      // Use case-insensitive checks to catch all variations
+      const errorMessageLower = errorMessage.toLowerCase();
+      const isContainerEngineError =
+        errorMessageLower.includes("container engine") ||
+        errorMessageLower.includes("podman") ||
+        errorMessageLower.includes("docker") ||
+        errorMessageLower.includes("execution environment") ||
+        errorMessageLower.includes("cannot connect to podman") ||
+        errorMessageLower.includes("connection refused") ||
+        errorMessageLower.includes("podman pull") ||
+        errorMessageLower.includes("podman machine") ||
+        errorMessageLower.includes("ghcr.io/ansible");
+
+      // If it's a container engine error and we haven't already disabled EE, automatically retry
+      if (isContainerEngineError && !disableExecutionEnvironment) {
+        // Inform the user we're automatically retrying
+        const retryMessage = `⚠️  Container engine error detected. Automatically retrying with execution environment disabled...\n\n`;
+
+        try {
+          // Retry with execution environment disabled
+          const {
+            output,
+            debugOutput,
+            navigatorPath,
+            executionEnvironmentDisabled,
+          } = await runAnsibleNavigator(
+            normalizedFilePath,
+            mode,
+            workspaceRoot,
+            true, // Force disable execution environment
+            environment,
+          );
+
+          const formattedResult = formatNavigatorResult(
+            output,
+            debugOutput,
+            normalizedFilePath,
+            mode,
+            executionEnvironmentDisabled ?? true,
+            navigatorPath,
+            environment,
+          );
+
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: retryMessage + formattedResult,
+              },
+            ],
+          };
+        } catch (retryError) {
+          // If retry also fails, return both errors
+          const retryErrorMessage =
+            retryError instanceof Error
+              ? retryError.message
+              : String(retryError);
+          return {
+            content: [
+              {
+                type: "text" as const,
+                text: `${retryMessage}Original error: ${errorMessage}\n\nRetry error: ${retryErrorMessage}\n\nPlease check your ansible-navigator installation and configuration.`,
+              },
+            ],
+            isError: true,
+          };
+        }
+      }
+
+      // For non-container-engine errors, or if we already disabled EE, return the error
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Error running ansible-navigator: ${errorMessage}\n\nEnsure 'ansible-navigator' is installed and on PATH\n`,
           },
         ],
         isError: true,
