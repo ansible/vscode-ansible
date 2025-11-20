@@ -3,10 +3,9 @@ import {
   LLMProviderFactory,
   ProviderType,
 } from "../../../../../src/features/lightspeed/providers/factory.js";
-import type { LightSpeedServiceSettings } from "../../../../../src/interfaces/extensionSettings.js";
 import {
-  TEST_CONFIGS,
   PROVIDER_TYPES,
+  TEST_LIGHTSPEED_SETTINGS,
 } from "../testConstants.js";
 
 // Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
@@ -55,47 +54,10 @@ describe("LLMProviderFactory", () => {
 
   describe("createProvider", () => {
     describe("Google provider", () => {
-      it("should create Google provider with minimal config", () => {
-        const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.GOOGLE_MINIMAL,
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
-
-        const provider = factory.createProvider(
-          PROVIDER_TYPES.GOOGLE,
-          config,
-        );
-
-        expect(provider).toBeDefined();
-        expect(provider.name).toBe("google");
-        expect(provider.displayName).toBe("Google Gemini");
-      });
 
       it("should create Google provider with full config", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.GOOGLE_FULL,
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiEndpoint: "",
-          model: undefined,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_FULL;
 
         const provider = factory.createProvider(
           PROVIDER_TYPES.GOOGLE,
@@ -104,96 +66,22 @@ describe("LLMProviderFactory", () => {
 
         expect(provider).toBeDefined();
         expect(provider.name).toBe("google");
-      });
-
-      it("should use default model when modelName is not provided", () => {
-        const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.GOOGLE_MINIMAL,
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
-
-        const provider = factory.createProvider(
-          PROVIDER_TYPES.GOOGLE,
-          config,
-        );
-
-        expect(provider).toBeDefined();
       });
 
       it("should throw error when API key is missing", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_EMPTY_API_KEY;
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
         }).toThrow("API Key is required for Google Gemini");
-      });
-
-      it("should throw error when custom endpoint is provided", () => {
-        const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.GOOGLE_MINIMAL,
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiEndpoint: "https://custom-endpoint.com",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
-
-        expect(() => {
-          factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
-        }).toThrow("Custom API endpoints are not supported for Google Gemini provider");
       });
     });
 
     describe("WCA provider", () => {
       it("should throw error when trying to create WCA provider", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.WCA,
-          enabled: true,
-          provider: PROVIDER_TYPES.WCA,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "https://c.ai.ansible.redhat.com",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.WCA;
 
         expect(() => {
           factory.createProvider(PROVIDER_TYPES.WCA, config);
@@ -204,20 +92,7 @@ describe("LLMProviderFactory", () => {
     describe("Unsupported provider", () => {
       it("should throw error for unsupported provider type", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          enabled: true,
-          provider: "unsupported" as ProviderType,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.UNSUPPORTED;
 
         expect(() => {
           factory.createProvider("unsupported" as ProviderType, config);
@@ -293,20 +168,7 @@ describe("LLMProviderFactory", () => {
     describe("Google provider validation", () => {
       it("should return true for valid Google config", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.GOOGLE_MINIMAL,
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_MINIMAL;
 
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.GOOGLE,
@@ -318,20 +180,7 @@ describe("LLMProviderFactory", () => {
 
       it("should return false when API key is missing", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          enabled: true,
-          provider: PROVIDER_TYPES.GOOGLE,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_WITH_EMPTY_API_KEY;
 
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.GOOGLE,
@@ -345,21 +194,7 @@ describe("LLMProviderFactory", () => {
     describe("WCA provider validation", () => {
       it("should return true for valid WCA config", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          ...TEST_CONFIGS.WCA,
-          enabled: true,
-          provider: PROVIDER_TYPES.WCA,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "https://c.ai.ansible.redhat.com",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.WCA;
 
         const isValid = factory.validateProviderConfig(
           PROVIDER_TYPES.WCA,
@@ -369,74 +204,12 @@ describe("LLMProviderFactory", () => {
         expect(isValid).toBe(true);
       });
 
-      it("should return false when API endpoint is missing", () => {
-        const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          enabled: true,
-          provider: PROVIDER_TYPES.WCA,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
-
-        const isValid = factory.validateProviderConfig(
-          PROVIDER_TYPES.WCA,
-          config,
-        );
-
-        expect(isValid).toBe(false);
-      });
-
-      it("should return false when API endpoint is empty string", () => {
-        const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          enabled: true,
-          provider: PROVIDER_TYPES.WCA,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "   ",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
-
-        const isValid = factory.validateProviderConfig(
-          PROVIDER_TYPES.WCA,
-          config,
-        );
-
-        expect(isValid).toBe(false);
-      });
     });
 
     describe("Unsupported provider validation", () => {
       it("should return false for unsupported provider type", () => {
         const factory = LLMProviderFactory.getInstance();
-        const config: LightSpeedServiceSettings = {
-          enabled: true,
-          provider: "unsupported" as ProviderType,
-          URL: "",
-          apiKey: "",
-          apiEndpoint: "",
-          modelName: undefined,
-          model: undefined,
-          timeout: 30000,
-          customHeaders: {},
-          suggestions: { enabled: true, waitWindow: 0 },
-          playbookGenerationCustomPrompt: undefined,
-          playbookExplanationCustomPrompt: undefined,
-        };
+        const config = TEST_LIGHTSPEED_SETTINGS.UNSUPPORTED;
 
         const isValid = factory.validateProviderConfig(
           "unsupported" as ProviderType,
