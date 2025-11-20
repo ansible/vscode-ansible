@@ -49,6 +49,18 @@ export class GoogleProvider extends BaseLLMProvider {
 
     this.client = new GoogleGenAI({ apiKey: config.apiKey });
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private handleGeminiError(error: any, operation: string): Error {
+    // Log the full error for debugging
+    this.logger.error(
+      `[Google Provider] ${operation} error details: ${JSON.stringify(error, null, 2)}`,
+    );
+    console.log(
+      `[Google Provider] ${operation} error details: ${JSON.stringify(error, null, 2)}`,
+    );
+    // Use the reusable HTTP error handler from base class
+    return this.handleHttpError(error, operation, "Google Gemini");
+  }
 
   async validateConfig(): Promise<boolean> {
     try {
@@ -217,9 +229,7 @@ export class GoogleProvider extends BaseLLMProvider {
       };
     } catch (error) {
       this.logger.error(`[Google Provider] Chat request failed: ${error}`);
-      throw new Error(
-        `Google chat failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      throw this.handleGeminiError(error, "chat generation");
     }
   }
 
@@ -309,12 +319,8 @@ export class GoogleProvider extends BaseLLMProvider {
         model: this.modelName,
       };
     } catch (error) {
-      this.logger.error(
-        `[Google Provider] Playbook generation failed: ${error}`,
-      );
-      throw new Error(
-        `Google playbook generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      this.logger.error(`[Google Provider] Playbook generation failed: ${error}`);
+      throw this.handleGeminiError(error, "playbook generation");
     }
   }
 
@@ -393,9 +399,7 @@ export class GoogleProvider extends BaseLLMProvider {
       };
     } catch (error) {
       this.logger.error(`[Google Provider] Role generation failed: ${error}`);
-      throw new Error(
-        `Google role generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-      );
+      throw this.handleGeminiError(error, "role generation");
     }
   }
 }

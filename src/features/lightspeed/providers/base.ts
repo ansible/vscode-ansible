@@ -141,24 +141,58 @@ export abstract class BaseLLMProvider implements LLMProvider {
   }
 
   /**
-   * Handle provider-specific errors
+   * Handle HTTP status code errors with comprehensive error messages
+   * This method provides reusable error handling for common HTTP status codes
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected handleError(error: any): Error {
-    if (error.name === "AbortError") {
-      return new Error(
-        "Request timeout - please check your connection and try again",
-      );
-    }
+  protected handleHttpError(
+    error: any,
+    operation: string,
+    providerName: string = "",
+  ): Error {
+    const statusCode =
+      error?.status ||
+      undefined;
 
-    if (error.status === 401) {
-      return new Error("Authentication failed - please check your API key");
-    }
+    // Handle HTTP status codes
+    switch (statusCode) {
+      case 400:
+        return new Error(
+          `Bad request - invalid or malformed request parameters. Please verify your request. Operation: ${operation}. Details: ${error?.message || "Unknown error"}`,
+        );
 
-    if (error.status === 429) {
-      return new Error("Rate limit exceeded - please wait and try again");
-    }
+      case 403:
+        return new Error(
+          `Forbidden - ${providerName} API key does not have permission to access this resource. Please check your API key permissions. Operation: ${operation} and status code: ${statusCode}`,
+        );
 
-    return new Error(`Provider error: ${error.message || "Unknown error"}`);
+      case 429:
+        return new Error(
+          `Rate limit exceeded - too many requests or quota exceeded. Please wait and try again later. Operation: ${operation} and status code: ${statusCode}`,
+        );
+
+      case 500:
+        return new Error(
+          `${providerName} encountered an unexpected error. Please retry the request. Operation: ${operation}. Details: ${error?.message || "Unknown error"}`,
+        );
+
+      case 503:
+        return new Error(
+          `Service unavailable - ${providerName} is temporarily unavailable, possibly due to high load. Please wait and try again later. Operation: ${operation} and status code: ${statusCode}`,
+        );
+
+      case 504:
+        return new Error(
+          `Gateway timeout - request timed out at the gateway. Please reduce input size or retry the request. Operation: ${operation} and status code: ${statusCode}`,
+        );
+
+      default:
+        const errorMessage =
+          error?.message ||
+          "Unknown error";
+        return new Error(
+          `${providerName} error: ${errorMessage}. Operation: ${operation}. Status: ${statusCode || "N/A"}`,
+        );
+    }
   }
 }

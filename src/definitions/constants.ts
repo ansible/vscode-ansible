@@ -67,7 +67,7 @@ export const DevcontainerRecommendedExtensions = {
 // Ansible-specific prompts and system instructions for LLM providers
 export const ANSIBLE_SYSTEM_PROMPT_PLAYBOOK = `You are an Ansible expert.
 Your role is to help Ansible developers write playbooks.
-You answer with an Ansible playbook.`;
+You answer with just an Ansible playbook.`;
 
 // For role generation (from backend: langchain/pipelines.py)
 export const ANSIBLE_SYSTEM_PROMPT_ROLE = `You are an ansible expert optimized to generate Ansible roles.
