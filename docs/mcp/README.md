@@ -46,16 +46,6 @@ The Ansible MCP Server is currently available for testing and development. It ru
 - Node.js 18 or higher
 - Ansible development tools (can be auto-installed)
 
-### Usage with AI Assistants
-
-The MCP server integrates with AI assistants that support the Model Context Protocol. When configured, AI assistants can:
-
-- Answer questions about Ansible best practices
-- Help set up development environments
-- Generate and validate Ansible content
-- Lint and fix playbook issues
-- Execute playbooks with intelligent error handling
-
 ## Architecture
 
 ```text
@@ -76,3 +66,12 @@ The MCP server integrates with AI assistants that support the Model Context Prot
 │ Tools │ │  APIs   │
 └───────┘ └─────────┘
 ```
+### Usage with AI Assistants
+
+The MCP server integrates with AI assistants that support the Model Context Protocol. When configured, AI assistants can:
+
+- Answer questions about Ansible best practices
+- Help set up development environments
+- Generate and validate Ansible content
+- Lint and fix playbook issues
+- Execute playbooks with intelligent error handling
