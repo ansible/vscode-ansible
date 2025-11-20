@@ -107,6 +107,11 @@ jobs:
         run: |
           task build
 
+      - name: task package
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task als:package
+
       - name: Run context-specific command
         if: >-
           steps.extract_context.outputs.context != '' &&
