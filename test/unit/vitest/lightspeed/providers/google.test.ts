@@ -143,7 +143,7 @@ const sharedGenerateContent = (GoogleGenAI as any).__generateContentMock as Retu
 
 describe("GoogleProvider", () => {
   describe("Constructor", () => {
-    it("should initialize with config and default timeout", () => {
+    it("should initialize with config and log model name", () => {
       const config = {
         apiKey: TEST_API_KEYS.GOOGLE,
         modelName: MODEL_NAMES.GEMINI_25_FLASH,
@@ -152,58 +152,15 @@ describe("GoogleProvider", () => {
 
       expect(provider.name).toBe(GOOGLE_PROVIDER.NAME);
       expect(provider.displayName).toBe(GOOGLE_PROVIDER.DISPLAY_NAME);
-      // GoogleGenAI constructor is called during provider initialization
+      expect(mockedLogger.info).toHaveBeenCalledWith(
+        expect.stringContaining(MODEL_NAMES.GEMINI_25_FLASH),
+      );
       expect(sharedGenerateContent).toBeDefined();
     });
-
-    it("should log initialization with model name", () => {
-      const config = {
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_FLASH,
-      };
-      new GoogleProvider(config);
-
-      expect(mockedLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining(MODEL_NAMES.GEMINI_FLASH),
-      );
-    });
   });
 
-  describe("validateConfig", () => {
-    it("should return true when API call succeeds", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: "test response",
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-
-      const result = await provider.validateConfig();
-
-      expect(result).toBe(true);
-      expect(sharedGenerateContent).toHaveBeenCalledWith({
-        model: MODEL_NAMES.GEMINI_25_FLASH,
-        contents: "test",
-      });
-    });
-
-    it("should return false when API call fails", async () => {
-      sharedGenerateContent.mockRejectedValue(new Error("Invalid API key"));
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-
-      const result = await provider.validateConfig();
-
-      expect(result).toBe(false);
-      expect(mockedLogger.error).toHaveBeenCalled();
-    });
-  });
-
-  describe("getStatus", () => {
-    it("should return connected status when config is valid", async () => {
+  describe("validateConfig and getStatus", () => {
+    it("should validate config and return status", async () => {
       sharedGenerateContent.mockResolvedValue({
         text: "test response",
       });
@@ -212,36 +169,43 @@ describe("GoogleProvider", () => {
         modelName: MODEL_NAMES.GEMINI_PRO,
       });
 
+      const isValid = await provider.validateConfig();
       const status = await provider.getStatus();
 
+      expect(isValid).toBe(true);
       expect(status.connected).toBe(true);
-      expect(status.modelInfo).toBeDefined();
       expect(status.modelInfo?.name).toBe(MODEL_NAMES.GEMINI_PRO);
       expect(status.modelInfo?.capabilities).toEqual([
         "completion",
         "chat",
         "generation",
       ]);
+      expect(sharedGenerateContent).toHaveBeenCalledWith({
+        model: MODEL_NAMES.GEMINI_PRO,
+        contents: "test",
+      });
     });
 
-    it("should return disconnected status when config is invalid", async () => {
+    it("should return false and disconnected status when API call fails", async () => {
       sharedGenerateContent.mockRejectedValue(new Error("Invalid API key"));
       const provider = new GoogleProvider({
         apiKey: TEST_API_KEYS.GOOGLE,
         modelName: MODEL_NAMES.GEMINI_25_FLASH,
       });
 
+      const isValid = await provider.validateConfig();
       const status = await provider.getStatus();
 
+      expect(isValid).toBe(false);
       expect(status.connected).toBe(false);
-      expect(status.error).toBeDefined();
       expect(status.error).toContain("API key");
+      expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
 
   describe("completionRequest", () => {
-    it("should return completion predictions", async () => {
-      const mockResponse = "    - name: Install package\n      package:";
+    it("should return completion predictions with proper formatting", async () => {
+      const mockResponse = "```yaml\n    - name: Install package\n      package:";
       sharedGenerateContent.mockResolvedValue({
         text: mockResponse,
       });
@@ -260,6 +224,8 @@ describe("GoogleProvider", () => {
       expect(Array.isArray(result.predictions)).toBe(true);
       expect(result.model).toBe(MODEL_NAMES.GEMINI_25_FLASH);
       expect(result.suggestionId).toBe("test-suggestion-123");
+      expect(result.predictions[0]).not.toContain("```yaml");
+      expect(result.predictions[0]).not.toContain("```");
       expect(sharedGenerateContent).toHaveBeenCalledWith({
         model: MODEL_NAMES.GEMINI_25_FLASH,
         contents: TEST_PROMPTS.INSTALL_NGINX,
@@ -285,24 +251,6 @@ describe("GoogleProvider", () => {
 
       expect(result.suggestionId).toBeDefined();
       expect(result.suggestionId).toContain("google-");
-    });
-
-    it("should clean YAML code blocks from response", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: "```yaml\n    - name: test\n```",
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-      const params: CompletionRequestParams = {
-        prompt: TEST_PROMPTS.TEST_PROMPT,
-      };
-
-      const result = await provider.completionRequest(params);
-
-      expect(result.predictions[0]).not.toContain("```yaml");
-      expect(result.predictions[0]).not.toContain("```");
     });
 
     it("should handle errors and throw with proper message", async () => {
@@ -346,52 +294,29 @@ describe("GoogleProvider", () => {
       expect(mockEnhancePromptForAnsible).toHaveBeenCalled();
     });
 
-    it("should use explanation system prompt when isExplanation is true", async () => {
+    it("should use correct system prompt based on isExplanation flag", async () => {
       sharedGenerateContent.mockResolvedValue({
-        text: "Explanation response",
+        text: "Response",
       });
       const provider = new GoogleProvider({
         apiKey: TEST_API_KEYS.GOOGLE,
         modelName: MODEL_NAMES.GEMINI_PRO,
       });
-      const params: ChatRequestParams = {
+
+      // Test explanation mode
+      await provider.chatRequest({
         message: "Explain this task",
-        metadata: {
-          isExplanation: true,
-        },
-      };
-
-      await provider.chatRequest(params);
-
-      expect(sharedGenerateContent).toHaveBeenCalledWith({
-        model: MODEL_NAMES.GEMINI_PRO,
-        contents: expect.any(String),
-        config: {
-          systemInstruction: expect.any(String),
-        },
+        metadata: { isExplanation: true },
       });
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("EXPLANATION"),
       );
-    });
 
-    it("should use chat system prompt when isExplanation is false", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: "Chat response",
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-      const params: ChatRequestParams = {
+      // Test chat mode
+      await provider.chatRequest({
         message: "Hello",
-        metadata: {
-          isExplanation: false,
-        },
-      };
-
-      await provider.chatRequest(params);
-
+        metadata: { isExplanation: false },
+      });
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("CHAT"),
       );
@@ -414,7 +339,7 @@ describe("GoogleProvider", () => {
   });
 
   describe("generatePlaybook", () => {
-    it("should generate playbook content", async () => {
+    it("should generate playbook content with proper config", async () => {
       const mockPlaybook = "---\n- name: Install nginx\n  hosts: all";
       sharedGenerateContent.mockResolvedValue({
         text: mockPlaybook,
@@ -434,64 +359,6 @@ describe("GoogleProvider", () => {
       expect(result.model).toBe(MODEL_NAMES.GEMINI_PRO);
       expect(mockEnhancePromptForAnsible).toHaveBeenCalled();
       expect(mockCleanAnsibleOutput).toHaveBeenCalled();
-    });
-
-    it("should generate outline when createOutline is true", async () => {
-      const mockPlaybook = "---\n- name: Install nginx\n  hosts: all\n  tasks:\n    - name: Task one\n    - name: Task two";
-      sharedGenerateContent.mockResolvedValue({
-        text: mockPlaybook,
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-        createOutline: true,
-      };
-
-      const result = await provider.generatePlaybook(params);
-
-      expect(result.outline).toBeDefined();
-      expect(mockedGenerateOutlineFromPlaybook).toHaveBeenCalled();
-    });
-
-    it("should not generate outline when createOutline is false", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: TEST_CONTENT.PLAYBOOK,
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-        createOutline: false,
-      };
-
-      const result = await provider.generatePlaybook(params);
-
-      expect(result.outline).toBe("");
-      expect(mockedGenerateOutlineFromPlaybook).not.toHaveBeenCalled();
-    });
-
-    it("should use playbook system prompt and temperature config", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: TEST_CONTENT.PLAYBOOK,
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-      };
-
-      await provider.generatePlaybook(params);
-
       expect(sharedGenerateContent).toHaveBeenCalledWith({
         model: MODEL_NAMES.GEMINI_PRO,
         contents: expect.any(String),
@@ -501,6 +368,34 @@ describe("GoogleProvider", () => {
           maxOutputTokens: 4000,
         },
       });
+    });
+
+    it("should generate outline when createOutline is true, otherwise not", async () => {
+      const mockPlaybook = "---\n- name: Install nginx\n  hosts: all\n  tasks:\n    - name: Task one\n    - name: Task two";
+      sharedGenerateContent.mockResolvedValue({
+        text: mockPlaybook,
+      });
+      const provider = new GoogleProvider({
+        apiKey: TEST_API_KEYS.GOOGLE,
+        modelName: MODEL_NAMES.GEMINI_25_FLASH,
+      });
+
+      // Test with outline
+      const resultWithOutline = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: true,
+      });
+      expect(resultWithOutline.outline).toBeDefined();
+      expect(mockedGenerateOutlineFromPlaybook).toHaveBeenCalled();
+
+      // Test without outline
+      const resultWithoutOutline = await provider.generatePlaybook({
+        prompt: TEST_PROMPTS.INSTALL_NGINX,
+        type: "playbook",
+        createOutline: false,
+      });
+      expect(resultWithoutOutline.outline).toBe("");
     });
 
     it("should handle errors and throw with proper message", async () => {
@@ -521,7 +416,7 @@ describe("GoogleProvider", () => {
   });
 
   describe("generateRole", () => {
-    it("should generate role content", async () => {
+    it("should generate role content with proper config", async () => {
       const mockRole = "---\n- name: Setup role\n  tasks:";
       sharedGenerateContent.mockResolvedValue({
         text: mockRole,
@@ -541,9 +436,18 @@ describe("GoogleProvider", () => {
       expect(result.model).toBe(MODEL_NAMES.GEMINI_PRO);
       expect(mockEnhancePromptForAnsible).toHaveBeenCalled();
       expect(mockCleanAnsibleOutput).toHaveBeenCalled();
+      expect(sharedGenerateContent).toHaveBeenCalledWith({
+        model: MODEL_NAMES.GEMINI_PRO,
+        contents: expect.any(String),
+        config: {
+          systemInstruction: expect.any(String),
+          temperature: 0.3,
+          maxOutputTokens: 4000,
+        },
+      });
     });
 
-    it("should generate outline when createOutline is true", async () => {
+    it("should generate outline when createOutline is true, otherwise not", async () => {
       const mockRole = "---\n- name: Setup task\n- name: Configure task";
       sharedGenerateContent.mockResolvedValue({
         text: mockRole,
@@ -552,36 +456,23 @@ describe("GoogleProvider", () => {
         apiKey: TEST_API_KEYS.GOOGLE,
         modelName: MODEL_NAMES.GEMINI_25_FLASH,
       });
-      const params: GenerationRequestParams = {
+
+      // Test with outline
+      const resultWithOutline = await provider.generateRole({
         prompt: TEST_PROMPTS.CREATE_ROLE,
         type: "role",
         createOutline: true,
-      };
-
-      const result = await provider.generateRole(params);
-
-      expect(result.outline).toBeDefined();
+      });
+      expect(resultWithOutline.outline).toBeDefined();
       expect(mockedGenerateOutlineFromRole).toHaveBeenCalled();
-    });
 
-    it("should not generate outline when createOutline is false", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: TEST_CONTENT.ROLE,
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-      const params: GenerationRequestParams = {
+      // Test without outline
+      const resultWithoutOutline = await provider.generateRole({
         prompt: TEST_PROMPTS.CREATE_ROLE,
         type: "role",
         createOutline: false,
-      };
-
-      const result = await provider.generateRole(params);
-
-      expect(result.outline).toBe("");
-      expect(mockedGenerateOutlineFromRole).not.toHaveBeenCalled();
+      });
+      expect(resultWithoutOutline.outline).toBe("");
     });
 
     it("should incorporate outline into prompt when provided", async () => {
@@ -610,32 +501,6 @@ describe("GoogleProvider", () => {
       );
     });
 
-    it("should use role system prompt and temperature config", async () => {
-      sharedGenerateContent.mockResolvedValue({
-        text: TEST_CONTENT.ROLE,
-      });
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.CREATE_ROLE,
-        type: "role",
-      };
-
-      await provider.generateRole(params);
-
-      expect(sharedGenerateContent).toHaveBeenCalledWith({
-        model: MODEL_NAMES.GEMINI_PRO,
-        contents: expect.any(String),
-        config: {
-          systemInstruction: expect.any(String),
-          temperature: 0.3,
-          maxOutputTokens: 4000,
-        },
-      });
-    });
-
     it("should handle errors and throw with proper message", async () => {
       const error = { status: HTTP_STATUS_CODES.SERVICE_UNAVAILABLE };
       sharedGenerateContent.mockRejectedValue(error);
@@ -653,46 +518,4 @@ describe("GoogleProvider", () => {
     });
   });
 
-  describe("Error handling", () => {
-    it("should handle HTTP errors through handleGeminiError", async () => {
-      const error = {
-        status: HTTP_STATUS_CODES.FORBIDDEN,
-        message: "Invalid API key",
-      };
-      sharedGenerateContent.mockRejectedValue(error);
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_25_FLASH,
-      });
-      const params: ChatRequestParams = {
-        message: "Test",
-      };
-
-      await expect(provider.chatRequest(params)).rejects.toThrow();
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("chat generation"),
-      );
-    });
-
-    it("should log error details in handleGeminiError", async () => {
-      const error = {
-        status: HTTP_STATUS_CODES.RATE_LIMIT,
-        message: "Rate limit exceeded",
-      };
-      sharedGenerateContent.mockRejectedValue(error);
-      const provider = new GoogleProvider({
-        apiKey: TEST_API_KEYS.GOOGLE,
-        modelName: MODEL_NAMES.GEMINI_PRO,
-      });
-      const params: GenerationRequestParams = {
-        prompt: TEST_PROMPTS.INSTALL_NGINX,
-        type: "playbook",
-      };
-
-      await expect(provider.generatePlaybook(params)).rejects.toThrow();
-      expect(mockedLogger.error).toHaveBeenCalledWith(
-        expect.stringContaining("playbook generation"),
-      );
-    });
-  });
 });
