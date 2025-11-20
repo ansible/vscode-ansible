@@ -37,3 +37,7 @@ test/unit/lightspeed/utils/samples/collections/ansible_collections/community/bro
 .eslintcache
 xunit.xml
 **/*.egg-info
+
+# Ansible Navigator artifacts
+*-artifact-*.json
+ansible-navigator.log
