@@ -42,9 +42,15 @@ export interface UserResponse {
 // Settings appear on VS Code Settings UI
 export interface LightSpeedServiceSettings {
   enabled: boolean;
+  provider: string; // 'wca' | 'google' | 'custom'
   URL: string;
+  apiEndpoint: string;
+  modelName: string | undefined;
+  model: string | undefined; // Legacy field for backwards compatibility
+  apiKey: string; // For third-party providers like Google
+  timeout: number; // Request timeout in milliseconds
+  customHeaders: Record<string, string>; // Custom headers for third-party providers
   suggestions: { enabled: boolean; waitWindow: number };
-  model: string | undefined;
   playbookGenerationCustomPrompt: string | undefined;
   playbookExplanationCustomPrompt: string | undefined;
 }

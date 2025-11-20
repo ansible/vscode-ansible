@@ -43,14 +43,20 @@ export class SettingsManager {
       },
       lightSpeedService: {
         enabled: lightSpeedSettings.get("enabled", true),
+        provider: lightSpeedSettings.get("provider", "wca"),
         URL: lightSpeedSettings.get("URL", "https://c.ai.ansible.redhat.com"),
+        apiEndpoint: lightSpeedSettings.get("apiEndpoint", ""),
+        modelName: lightSpeedSettings.get("modelName", undefined),
+        model: lightSpeedSettings.get("modelIdOverride", undefined),
+        apiKey: lightSpeedSettings.get("apiKey", ""),
+        timeout: lightSpeedSettings.get("timeout", 30000),
+        customHeaders: lightSpeedSettings.get("customHeaders", {}),
         suggestions: {
           enabled:
             lightSpeedSettings.get("enabled") === true &&
             lightSpeedSettings.get("suggestions.enabled", true),
           waitWindow: lightSpeedSettings.get("suggestions.waitWindow", 0),
         },
-        model: lightSpeedSettings.get("modelIdOverride", undefined),
         playbookGenerationCustomPrompt: lightSpeedSettings.get(
           "playbookGenerationCustomPrompt",
           undefined,
