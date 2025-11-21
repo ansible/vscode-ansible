@@ -162,16 +162,6 @@ export const GOOGLE_PROVIDER = {
   PROVIDER_NAME: "Google Gemini",
 } as const;
 
-// Ansible file types
-export const ANSIBLE_FILE_TYPES = {
-  PLAYBOOK: "playbook",
-  TASKS: "tasks",
-  HANDLERS: "handlers",
-  VARS: "vars",
-  ROLE: "role",
-  INVENTORY: "inventory",
-} as const;
-
 // Ansible test content
 export const ANSIBLE_CONTENT = {
   SINGLE_TASK: "- name: Install nginx\n  ansible.builtin.package:\n    name: nginx\n    state: present",

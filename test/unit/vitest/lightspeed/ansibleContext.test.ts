@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AnsibleContextProcessor } from "../../../../src/features/lightspeed/ansibleContext.js";
 import type { AnsibleContext } from "../../../../src/features/lightspeed/ansibleContext.js";
 import {
-  ANSIBLE_FILE_TYPES,
   ANSIBLE_CONTENT,
   TEST_PROMPTS,
 } from "./testConstants.js";
@@ -17,7 +16,7 @@ describe("AnsibleContextProcessor", () => {
     it("should enhance prompt with system context for playbook", () => {
       const prompt = TEST_PROMPTS.INSTALL_NGINX;
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.PLAYBOOK,
+        fileType: "playbook",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -34,7 +33,7 @@ describe("AnsibleContextProcessor", () => {
     it("should enhance prompt with system context for tasks", () => {
       const prompt = TEST_PROMPTS.CREATE_TASK;
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.TASKS,
+        fileType: "tasks",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -50,7 +49,7 @@ describe("AnsibleContextProcessor", () => {
     it("should enhance prompt with system context for handlers", () => {
       const prompt = "Create a handler";
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.HANDLERS,
+        fileType: "handlers",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -65,7 +64,7 @@ describe("AnsibleContextProcessor", () => {
     it("should enhance prompt with system context for role", () => {
       const prompt = TEST_PROMPTS.CREATE_ROLE;
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.ROLE,
+        fileType: "role",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -80,7 +79,7 @@ describe("AnsibleContextProcessor", () => {
     it("should enhance prompt with system context for vars", () => {
       const prompt = "Define variables";
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.VARS,
+        fileType: "vars",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -95,7 +94,7 @@ describe("AnsibleContextProcessor", () => {
     it("should enhance prompt with system context for inventory", () => {
       const prompt = "Create inventory";
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.INVENTORY,
+        fileType: "inventory",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -123,7 +122,7 @@ describe("AnsibleContextProcessor", () => {
       const prompt = TEST_PROMPTS.INSTALL_NGINX;
       const contextString = "Previous context here";
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.PLAYBOOK,
+        fileType: "playbook",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -139,7 +138,7 @@ describe("AnsibleContextProcessor", () => {
     it("should handle multi-task prompts correctly", () => {
       const prompt = ANSIBLE_CONTENT.MULTI_TASK;
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.TASKS,
+        fileType: "tasks",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -156,7 +155,7 @@ describe("AnsibleContextProcessor", () => {
     it("should format single task prompt correctly", () => {
       const prompt = "Install nginx";
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.TASKS,
+        fileType: "tasks",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -171,7 +170,7 @@ describe("AnsibleContextProcessor", () => {
     it("should handle prompt that already has task structure", () => {
       const prompt = ANSIBLE_CONTENT.SINGLE_TASK;
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.TASKS,
+        fileType: "tasks",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -186,7 +185,7 @@ describe("AnsibleContextProcessor", () => {
     it("should handle empty context string", () => {
       const prompt = TEST_PROMPTS.INSTALL_NGINX;
       const context: AnsibleContext = {
-        fileType: ANSIBLE_FILE_TYPES.PLAYBOOK,
+        fileType: "playbook",
       };
 
       const result = AnsibleContextProcessor.enhancePromptForAnsible(
@@ -467,7 +466,7 @@ describe("AnsibleContextProcessor", () => {
   describe("getTemperatureForFileType", () => {
     it("should return correct temperature for playbook", () => {
       const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        ANSIBLE_FILE_TYPES.PLAYBOOK,
+        "playbook",
       );
 
       expect(temp).toBe(0.1);
@@ -475,7 +474,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct temperature for tasks", () => {
       const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        ANSIBLE_FILE_TYPES.TASKS,
+        "tasks",
       );
 
       expect(temp).toBe(0.1);
@@ -483,7 +482,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct temperature for handlers", () => {
       const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        ANSIBLE_FILE_TYPES.HANDLERS,
+        "handlers",
       );
 
       expect(temp).toBe(0.05);
@@ -491,7 +490,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct temperature for role", () => {
       const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        ANSIBLE_FILE_TYPES.ROLE,
+        "role",
       );
 
       expect(temp).toBe(0.15);
@@ -507,7 +506,7 @@ describe("AnsibleContextProcessor", () => {
   describe("getMaxTokensForFileType", () => {
     it("should return correct max tokens for playbook", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        ANSIBLE_FILE_TYPES.PLAYBOOK,
+        "playbook",
       );
 
       expect(tokens).toBe(2000);
@@ -515,7 +514,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct max tokens for tasks", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        ANSIBLE_FILE_TYPES.TASKS,
+        "tasks",
       );
 
       expect(tokens).toBe(800);
@@ -523,7 +522,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct max tokens for handlers", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        ANSIBLE_FILE_TYPES.HANDLERS,
+        "handlers",
       );
 
       expect(tokens).toBe(400);
@@ -531,7 +530,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct max tokens for vars", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        ANSIBLE_FILE_TYPES.VARS,
+        "vars",
       );
 
       expect(tokens).toBe(600);
@@ -539,7 +538,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct max tokens for role", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        ANSIBLE_FILE_TYPES.ROLE,
+        "role",
       );
 
       expect(tokens).toBe(2500);
@@ -547,7 +546,7 @@ describe("AnsibleContextProcessor", () => {
 
     it("should return correct max tokens for inventory", () => {
       const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        ANSIBLE_FILE_TYPES.INVENTORY,
+        "inventory",
       );
 
       expect(tokens).toBe(1000);
