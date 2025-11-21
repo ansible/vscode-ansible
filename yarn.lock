@@ -28,7 +28,7 @@ __metadata:
     antsibull-docs: "npm:^1.1.4"
     chai: "npm:^6.2.0"
     fuse.js: "npm:^7.1.0"
-    glob: "npm:^12.0.0"
+    glob: "npm:^13.0.0"
     handlebars: "npm:^4.7.8"
     ini: "npm:^6.0.0"
     lodash: "npm:^4.17.21"
@@ -6123,6 +6123,17 @@ __metadata:
   bin:
     glob: dist/esm/bin.mjs
   checksum: 10/da4501819633daff8822c007bb3f93d5c4d2cbc7b15a8e886660f4497dd251a1fb4f53a85fba1e760b31704eff7164aeb2c7a82db10f9f2c362d12c02fe52cf3
+  languageName: node
+  linkType: hard
+
+"glob@npm:^13.0.0":
+  version: 13.0.0
+  resolution: "glob@npm:13.0.0"
+  dependencies:
+    minimatch: "npm:^10.1.1"
+    minipass: "npm:^7.1.2"
+    path-scurry: "npm:^2.0.0"
+  checksum: 10/de390721d29ee1c9ea41e40ec2aa0de2cabafa68022e237dc4297665a5e4d650776f2573191984ea1640aba1bf0ea34eddef2d8cbfbfc2ad24b5fb0af41d8846
   languageName: node
   linkType: hard
 
