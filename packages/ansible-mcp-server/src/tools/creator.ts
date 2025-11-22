@@ -14,13 +14,24 @@ export async function runCreator(
   return new Promise((resolve, reject) => {
     const creatorProcess = spawnSync("ansible-creator", args);
 
-    const stdoutData = creatorProcess.stdout.toString();
-    const stderrData = creatorProcess.stderr.toString();
+    const stdoutData = creatorProcess.stdout?.toString() || "";
+    const stderrData = creatorProcess.stderr?.toString() || "";
 
-    if (creatorProcess.status !== 0 && stderrData) {
+    // Check if the process failed to spawn (command not found, etc.)
+    if (creatorProcess.error) {
       return reject(
         new Error(
-          `ansible-creator exited with code ${creatorProcess.status}:\n${stderrData}`,
+          `Failed to run ansible-creator: ${creatorProcess.error.message}`,
+        ),
+      );
+    }
+
+    // Check if the process exited with a non-zero status code
+    if (creatorProcess.status !== 0) {
+      const errorMessage = stderrData || stdoutData || "Unknown error";
+      return reject(
+        new Error(
+          `ansible-creator exited with code ${creatorProcess.status}:\n${errorMessage}`,
         ),
       );
     }

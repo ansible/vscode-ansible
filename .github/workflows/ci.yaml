@@ -55,7 +55,7 @@ jobs:
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -73,6 +73,10 @@ jobs:
           mise exec -- printenv NODE_OPTIONS || true
           mise exec -- npm config set engine-strict false
           task setup
+
+      - name: Install ansible-dev-tools
+        run: |
+          pip install ansible-dev-tools
 
       - name: Extract commit context from conventional commit
         id: extract_context
@@ -105,6 +109,11 @@ jobs:
         timeout-minutes: 3
         run: |
           task package
+
+      - name: task package
+        timeout-minutes: 2 # expected under 1 minutes
+        run: |
+          task als:package
 
       - name: Run context-specific command
         if: >-
@@ -169,7 +178,7 @@ jobs:
         include:
           - name: test (macos)
             task-name: test
-            os: macos-13-large
+            os: macos-15-large
             env:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
@@ -185,7 +194,7 @@ jobs:
               SKIP_PODMAN: 1
               SKIP_DOCKER: 1
     steps:
-      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0 # we need tags for dynamic versioning
           show-progress: false
@@ -490,7 +499,7 @@ jobs:
 
     steps:
       - name: Checkout Source # needed by codecov uploader
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
 
@@ -612,7 +621,7 @@ jobs:
       - check
     steps:
       - name: Checkout Source
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
           fetch-depth: 0
 
@@ -621,7 +630,7 @@ jobs:
           corepack enable
           npm config set fund false
 
-      - uses: jdx/mise-action@be3be2260bc02bc3fbf94c5e2fed8b7964baf074 # v3.4.0
+      - uses: jdx/mise-action@9dc7d5dd454262207dea3ab5a06a3df6afc8ff26 # v3.4.1
 
       - name: Download the artifact
         uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
@@ -630,7 +639,7 @@ jobs:
 
       - name: Attach vsix to Github release
         # cspell: ignore softprops
-        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
         if: github.ref_type == 'tag'
         with:
           files: "*.vsix"
@@ -664,7 +673,7 @@ jobs:
         with:
           name: "@ansible-ansible-language-server-build-${{ github.event.number || github.run_id }}.tgz"
 
-      - uses: jdx/mise-action@be3be2260bc02bc3fbf94c5e2fed8b7964baf074 # v3.4.0
+      - uses: jdx/mise-action@9dc7d5dd454262207dea3ab5a06a3df6afc8ff26 # v3.4.1
 
       - run: npm publish --access public @ansible-ansible-language-server-*.tgz
         env:
