@@ -3466,7 +3466,7 @@ __metadata:
     eslint-plugin-tsdoc: "npm:^0.5.0"
     express: "npm:^5.1.0"
     find-process: "npm:^2.0.0"
-    glob: "npm:^12.0.0"
+    glob: "npm:^13.0.0"
     globals: "npm:^16.4.0"
     highlight.js: "npm:^11.11.1"
     ini: "npm:^6.0.0"
@@ -6078,7 +6078,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:*, glob@npm:^12.0.0":
+"glob@npm:*":
   version: 12.0.0
   resolution: "glob@npm:12.0.0"
   dependencies:
