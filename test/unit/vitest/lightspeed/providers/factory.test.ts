@@ -3,18 +3,20 @@ import {
   LLMProviderFactory,
   ProviderType,
 } from "../../../../../src/features/lightspeed/providers/factory.js";
-import {
-  PROVIDER_TYPES,
-  TEST_LIGHTSPEED_SETTINGS,
-} from "../testConstants.js";
+import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "../testConstants.js";
 
 // Mock AnsibleContextProcessor for providers that extend BaseLLMProvider
-const mockEnhancePromptForAnsible = vi.fn((prompt: string, context?: string, ansibleContext?: any) => {
-  return `enhanced: ${prompt} with context: ${context || "none"}`;
-});
+const mockEnhancePromptForAnsible = vi.fn(
+  (prompt: string, context?: string) => {
+    return `enhanced: ${prompt} with context: ${context || "none"}`;
+  },
+);
 
 const mockCleanAnsibleOutput = vi.fn((output: string) => {
-  return output.trim().replace(/^```ya?ml\s*/i, "").replace(/```\s*$/, "");
+  return output
+    .trim()
+    .replace(/^```ya?ml\s*/i, "")
+    .replace(/```\s*$/, "");
 });
 
 // Use vi.mock for ES modules - these are hoisted
@@ -29,12 +31,15 @@ vi.mock("../../../../../src/features/lightspeed/ansibleContext", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   mockEnhancePromptForAnsible.mockImplementation(
-    (prompt: string, context?: string, ansibleContext?: any) => {
+    (prompt: string, context?: string) => {
       return `enhanced: ${prompt} with context: ${context || "none"}`;
     },
   );
   mockCleanAnsibleOutput.mockImplementation((output: string) => {
-    return output.trim().replace(/^```ya?ml\s*/i, "").replace(/```\s*$/, "");
+    return output
+      .trim()
+      .replace(/^```ya?ml\s*/i, "")
+      .replace(/```\s*$/, "");
   });
 });
 
@@ -54,15 +59,11 @@ describe("LLMProviderFactory", () => {
 
   describe("createProvider", () => {
     describe("Google provider", () => {
-
       it("should create Google provider with full config", () => {
         const factory = LLMProviderFactory.getInstance();
         const config = TEST_LIGHTSPEED_SETTINGS.GOOGLE_FULL;
 
-        const provider = factory.createProvider(
-          PROVIDER_TYPES.GOOGLE,
-          config,
-        );
+        const provider = factory.createProvider(PROVIDER_TYPES.GOOGLE, config);
 
         expect(provider).toBeDefined();
         expect(provider.name).toBe("google");
@@ -203,7 +204,6 @@ describe("LLMProviderFactory", () => {
 
         expect(isValid).toBe(true);
       });
-
     });
 
     describe("Unsupported provider validation", () => {
@@ -221,4 +221,3 @@ describe("LLMProviderFactory", () => {
     });
   });
 });
-

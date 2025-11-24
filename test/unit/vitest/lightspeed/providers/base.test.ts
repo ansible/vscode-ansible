@@ -1,13 +1,18 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as Module from "module";
 
 // Create mock implementations
-const mockEnhancePromptForAnsible = vi.fn((prompt: string, context?: string) => {
-  return `enhanced: ${prompt} with context: ${context || "none"}`;
-});
+const mockEnhancePromptForAnsible = vi.fn(
+  (prompt: string, context?: string) => {
+    return `enhanced: ${prompt} with context: ${context || "none"}`;
+  },
+);
 
 const mockCleanAnsibleOutput = vi.fn((output: string) => {
-  return output.trim().replace(/^```ya?ml\s*/i, "").replace(/```\s*$/, "");
+  return output
+    .trim()
+    .replace(/^```ya?ml\s*/i, "")
+    .replace(/```\s*$/, "");
 });
 
 const mockAnsibleContextModule = {
@@ -18,10 +23,13 @@ const mockAnsibleContextModule = {
 };
 
 // Store original require as the import uses require()
-const originalRequire = Module.prototype.require;
+const originalRequire = Module.prototype.require.bind(Module.prototype);
 
 // Workaround to patch require() immediately to intercept "../ansibleContext" calls and this must happen before base.js is imported
-Module.prototype.require = function (this: any, id: string) {
+Module.prototype.require = function (
+  this: Module,
+  id: string,
+): ReturnType<typeof originalRequire> {
   // Intercept the require call for "../ansibleContext"
   const normalizedId = id.replace(/\\/g, "/");
   if (
@@ -36,7 +44,7 @@ Module.prototype.require = function (this: any, id: string) {
   }
   // For all other requires, use the original
   return originalRequire.call(this, id);
-} as any;
+};
 
 // Reset mocks before each test
 beforeEach(() => {
@@ -48,7 +56,10 @@ beforeEach(() => {
     },
   );
   mockCleanAnsibleOutput.mockImplementation((output: string) => {
-    return output.trim().replace(/^```ya?ml\s*/i, "").replace(/```\s*$/, "");
+    return output
+      .trim()
+      .replace(/^```ya?ml\s*/i, "")
+      .replace(/```\s*$/, "");
   });
 });
 
@@ -65,7 +76,6 @@ import {
   CompletionResponseParams,
 } from "../../../../../src/interfaces/lightspeed.js";
 import {
-  TEST_API_KEYS,
   TEST_PROVIDER_INFO,
   MODEL_NAMES,
   TEST_RESPONSES,
@@ -113,7 +123,8 @@ class TestProvider extends BaseLLMProvider {
   async chatRequest(params: ChatRequestParams): Promise<ChatResponseParams> {
     return {
       message: TEST_RESPONSES.MESSAGE,
-      conversationId: params.conversationId || TEST_RESPONSES.CONVERSATION_ID_DEFAULT,
+      conversationId:
+        params.conversationId || TEST_RESPONSES.CONVERSATION_ID_DEFAULT,
       model: MODEL_NAMES.TEST_MODEL,
     };
   }
@@ -159,9 +170,8 @@ class TestProvider extends BaseLLMProvider {
     return this.cleanAnsibleOutput(output);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   testHandleHttpError(
-    error: any,
+    error: { status?: number; message?: string },
     operation: string,
     providerName?: string,
   ): Error {
@@ -282,7 +292,10 @@ describe("BaseLLMProvider", () => {
   describe("handleHttpError", () => {
     it("should handle 400 Bad Request", () => {
       const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const error = { status: HTTP_STATUS_CODES.BAD_REQUEST, message: "Invalid request" };
+      const error = {
+        status: HTTP_STATUS_CODES.BAD_REQUEST,
+        message: "Invalid request",
+      };
 
       const result = provider.testHandleHttpError(
         error,
@@ -330,7 +343,10 @@ describe("BaseLLMProvider", () => {
 
     it("should handle 500 Internal Server Error", () => {
       const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const error = { status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, message: "Server error" };
+      const error = {
+        status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        message: "Server error",
+      };
 
       const result = provider.testHandleHttpError(
         error,
@@ -358,7 +374,9 @@ describe("BaseLLMProvider", () => {
       expect(result.message).toContain("Service unavailable");
       expect(result.message).toContain(TEST_PROVIDER_INFO.PROVIDER_NAME);
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
-      expect(result.message).toContain(String(HTTP_STATUS_CODES.SERVICE_UNAVAILABLE));
+      expect(result.message).toContain(
+        String(HTTP_STATUS_CODES.SERVICE_UNAVAILABLE),
+      );
     });
 
     it("should handle 504 Gateway Timeout", () => {
@@ -374,12 +392,17 @@ describe("BaseLLMProvider", () => {
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toContain("Gateway timeout");
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
-      expect(result.message).toContain(String(HTTP_STATUS_CODES.GATEWAY_TIMEOUT));
+      expect(result.message).toContain(
+        String(HTTP_STATUS_CODES.GATEWAY_TIMEOUT),
+      );
     });
 
     it("should handle unknown status codes", () => {
       const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const error = { status: HTTP_STATUS_CODES.TEAPOT, message: "I'm a teapot" };
+      const error = {
+        status: HTTP_STATUS_CODES.TEAPOT,
+        message: "I'm a teapot",
+      };
 
       const result = provider.testHandleHttpError(
         error,
@@ -388,7 +411,9 @@ describe("BaseLLMProvider", () => {
       );
 
       expect(result).toBeInstanceOf(Error);
-      expect(result.message).toContain(`${TEST_PROVIDER_INFO.PROVIDER_NAME} error`);
+      expect(result.message).toContain(
+        `${TEST_PROVIDER_INFO.PROVIDER_NAME} error`,
+      );
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
       expect(result.message).toContain(String(HTTP_STATUS_CODES.TEAPOT));
     });
@@ -404,7 +429,9 @@ describe("BaseLLMProvider", () => {
       );
 
       expect(result).toBeInstanceOf(Error);
-      expect(result.message).toContain(`${TEST_PROVIDER_INFO.PROVIDER_NAME} error`);
+      expect(result.message).toContain(
+        `${TEST_PROVIDER_INFO.PROVIDER_NAME} error`,
+      );
       expect(result.message).toContain("Network error");
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
       expect(result.message).toContain("N/A");
@@ -428,9 +455,15 @@ describe("BaseLLMProvider", () => {
 
     it("should use default provider name when not provided", () => {
       const provider = new TestProvider(TEST_CONFIGS.BASE_TEST);
-      const error = { status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR, message: "Error" };
+      const error = {
+        status: HTTP_STATUS_CODES.INTERNAL_SERVER_ERROR,
+        message: "Error",
+      };
 
-      const result = provider.testHandleHttpError(error, TEST_OPERATIONS.GENERIC);
+      const result = provider.testHandleHttpError(
+        error,
+        TEST_OPERATIONS.GENERIC,
+      );
 
       expect(result).toBeInstanceOf(Error);
       expect(result.message).toContain(TEST_OPERATIONS.GENERIC);
@@ -513,7 +546,9 @@ describe("BaseLLMProvider", () => {
 
       const result = await provider.chatRequest(params);
 
-      expect(result.conversationId).toBe(TEST_RESPONSES.CONVERSATION_ID_DEFAULT);
+      expect(result.conversationId).toBe(
+        TEST_RESPONSES.CONVERSATION_ID_DEFAULT,
+      );
     });
 
     it("should handle playbook generation", async () => {
@@ -571,4 +606,3 @@ describe("BaseLLMProvider", () => {
     });
   });
 });
-

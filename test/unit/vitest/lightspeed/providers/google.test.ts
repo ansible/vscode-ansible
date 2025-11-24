@@ -2,12 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as Module from "module";
 
 // Mock AnsibleContextProcessor
-const mockEnhancePromptForAnsible = vi.fn((prompt: string, context?: string, ansibleContext?: any) => {
-  return `enhanced: ${prompt} with context: ${context || "none"}`;
-});
+const mockEnhancePromptForAnsible = vi.fn(
+  (prompt: string, context?: string) => {
+    return `enhanced: ${prompt} with context: ${context || "none"}`;
+  },
+);
 
 const mockCleanAnsibleOutput = vi.fn((output: string) => {
-  return output.trim().replace(/^```ya?ml\s*/i, "").replace(/```\s*$/, "");
+  return output
+    .trim()
+    .replace(/^```ya?ml\s*/i, "")
+    .replace(/```\s*$/, "");
 });
 
 const mockAnsibleContextModule = {
@@ -18,10 +23,13 @@ const mockAnsibleContextModule = {
 };
 
 // Store original require
-const originalRequire = Module.prototype.require;
+const originalRequire = Module.prototype.require.bind(Module.prototype);
 
 // Patch require() to intercept module imports - must happen before imports
-Module.prototype.require = function (this: any, id: string) {
+Module.prototype.require = function (
+  this: Module,
+  id: string,
+): ReturnType<typeof originalRequire> {
   const normalizedId = id.replace(/\\/g, "/");
   if (
     id === "../ansibleContext" ||
@@ -34,25 +42,25 @@ Module.prototype.require = function (this: any, id: string) {
     return mockAnsibleContextModule;
   }
   return originalRequire.call(this, id);
-} as any;
+};
 
 vi.mock("@google/genai", () => {
   // Create a proper constructor class that can be instantiated with 'new'
   const generateContentMock = vi.fn();
-  
+
   class MockGoogleGenAI {
     models = {
       generateContent: generateContentMock,
     };
-    
-    constructor(_config: { apiKey: string }) {
-      // Constructor can be empty, just needs to be callable with 'new'
-    }
   }
-  
+
   // Export the mock so we can access it in tests
-  (MockGoogleGenAI as any).__generateContentMock = generateContentMock;
-  
+  (
+    MockGoogleGenAI as unknown as {
+      __generateContentMock: typeof generateContentMock;
+    }
+  ).__generateContentMock = generateContentMock;
+
   return {
     GoogleGenAI: MockGoogleGenAI,
   };
@@ -67,48 +75,53 @@ vi.mock("../../../../../src/utils/logger", () => {
     debug: vi.fn(),
     trace: vi.fn(),
   };
-  
+
   return {
     getLightspeedLogger: vi.fn(() => loggerMock),
     __loggerMock: loggerMock, // Export for test access
   };
 });
 
-vi.mock("../../../../../src/features/lightspeed/utils/outlineGenerator", () => ({
-  generateOutlineFromPlaybook: vi.fn((playbook: string) => {
-    return "1. Task one\n2. Task two";
+vi.mock(
+  "../../../../../src/features/lightspeed/utils/outlineGenerator",
+  () => ({
+    generateOutlineFromPlaybook: vi.fn(() => {
+      return "1. Task one\n2. Task two";
+    }),
+    generateOutlineFromRole: vi.fn(() => {
+      return "1. Setup task\n2. Configure task";
+    }),
   }),
-  generateOutlineFromRole: vi.fn((role: string) => {
-    return "1. Setup task\n2. Configure task";
-  }),
-}));
+);
 
 // Reset mocks before each test
 beforeEach(() => {
   vi.clearAllMocks();
   mockEnhancePromptForAnsible.mockImplementation(
-    (prompt: string, context?: string, ansibleContext?: any) => {
+    (prompt: string, context?: string) => {
       return `enhanced: ${prompt} with context: ${context || "none"}`;
     },
   );
   mockCleanAnsibleOutput.mockImplementation((output: string) => {
-    return output.trim().replace(/^```ya?ml\s*/i, "").replace(/```\s*$/, "");
+    return output
+      .trim()
+      .replace(/^```ya?ml\s*/i, "")
+      .replace(/```\s*$/, "");
   });
-  
+
   // Setup shared generateContent mock with default response
   sharedGenerateContent.mockResolvedValue({
     text: "---\n- name: test playbook\n  hosts: all",
   });
-  
+
   mockedGenerateOutlineFromPlaybook.mockReturnValue("1. Task one\n2. Task two");
-  mockedGenerateOutlineFromRole.mockReturnValue("1. Setup task\n2. Configure task");
+  mockedGenerateOutlineFromRole.mockReturnValue(
+    "1. Setup task\n2. Configure task",
+  );
 });
 
 import { GoogleProvider } from "../../../../../src/features/lightspeed/providers/google.js";
-import type {
-  CompletionRequestParams,
-  CompletionResponseParams,
-} from "../../../../../src/interfaces/lightspeed.js";
+import type { CompletionRequestParams } from "../../../../../src/interfaces/lightspeed.js";
 import type {
   ChatRequestParams,
   GenerationRequestParams,
@@ -131,7 +144,9 @@ import {
 } from "../../../../../src/features/lightspeed/utils/outlineGenerator.js";
 
 // Access the actual mocks from the mocked modules using vi.mocked
-const mockedGenerateOutlineFromPlaybook = vi.mocked(generateOutlineFromPlaybook);
+const mockedGenerateOutlineFromPlaybook = vi.mocked(
+  generateOutlineFromPlaybook,
+);
 const mockedGenerateOutlineFromRole = vi.mocked(generateOutlineFromRole);
 
 // Get the logger mock - call getLightspeedLogger to get the mocked instance
@@ -139,7 +154,11 @@ const mockedGetLightspeedLogger = vi.mocked(getLightspeedLogger);
 const mockedLogger = mockedGetLightspeedLogger();
 
 // Get the generateContent mock from the GoogleGenAI mock
-const sharedGenerateContent = (GoogleGenAI as any).__generateContentMock as ReturnType<typeof vi.fn>;
+const sharedGenerateContent = (
+  GoogleGenAI as unknown as {
+    __generateContentMock: ReturnType<typeof vi.fn>;
+  }
+).__generateContentMock;
 
 describe("GoogleProvider", () => {
   describe("Constructor", () => {
@@ -152,6 +171,7 @@ describe("GoogleProvider", () => {
 
       expect(provider.name).toBe(GOOGLE_PROVIDER.NAME);
       expect(provider.displayName).toBe(GOOGLE_PROVIDER.DISPLAY_NAME);
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining(MODEL_NAMES.GEMINI_25_FLASH),
       );
@@ -199,13 +219,15 @@ describe("GoogleProvider", () => {
       expect(isValid).toBe(false);
       expect(status.connected).toBe(false);
       expect(status.error).toContain("API key");
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
 
   describe("completionRequest", () => {
     it("should return completion predictions with proper formatting", async () => {
-      const mockResponse = "```yaml\n    - name: Install package\n      package:";
+      const mockResponse =
+        "```yaml\n    - name: Install package\n      package:";
       sharedGenerateContent.mockResolvedValue({
         text: mockResponse,
       });
@@ -267,6 +289,7 @@ describe("GoogleProvider", () => {
       await expect(provider.completionRequest(params)).rejects.toThrow(
         "Google completion failed",
       );
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -308,6 +331,7 @@ describe("GoogleProvider", () => {
         message: "Explain this task",
         metadata: { isExplanation: true },
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("EXPLANATION"),
       );
@@ -317,6 +341,7 @@ describe("GoogleProvider", () => {
         message: "Hello",
         metadata: { isExplanation: false },
       });
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.info).toHaveBeenCalledWith(
         expect.stringContaining("CHAT"),
       );
@@ -334,6 +359,7 @@ describe("GoogleProvider", () => {
       };
 
       await expect(provider.chatRequest(params)).rejects.toThrow();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -371,7 +397,8 @@ describe("GoogleProvider", () => {
     });
 
     it("should generate outline when createOutline is true, otherwise not", async () => {
-      const mockPlaybook = "---\n- name: Install nginx\n  hosts: all\n  tasks:\n    - name: Task one\n    - name: Task two";
+      const mockPlaybook =
+        "---\n- name: Install nginx\n  hosts: all\n  tasks:\n    - name: Task one\n    - name: Task two";
       sharedGenerateContent.mockResolvedValue({
         text: mockPlaybook,
       });
@@ -411,6 +438,7 @@ describe("GoogleProvider", () => {
       };
 
       await expect(provider.generatePlaybook(params)).rejects.toThrow();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
@@ -514,8 +542,8 @@ describe("GoogleProvider", () => {
       };
 
       await expect(provider.generateRole(params)).rejects.toThrow();
+      // eslint-disable-next-line @typescript-eslint/unbound-method
       expect(mockedLogger.error).toHaveBeenCalled();
     });
   });
-
 });

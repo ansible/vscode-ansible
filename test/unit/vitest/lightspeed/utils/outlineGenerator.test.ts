@@ -8,7 +8,9 @@ import { ANSIBLE_CONTENT } from "../testConstants.js";
 
 describe("outlineGenerator", () => {
   beforeEach(() => {
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {
+      // Intentionally empty - suppresses console.error in tests
+    });
   });
 
   describe("generateOutlineFromPlaybook", () => {
@@ -22,7 +24,9 @@ describe("outlineGenerator", () => {
 
       const result = generateOutlineFromPlaybook(playbook);
 
-      expect(result).toBe("1. Install nginx\n2. Start nginx\n3. Configure nginx");
+      expect(result).toBe(
+        "1. Install nginx\n2. Start nginx\n3. Configure nginx",
+      );
     });
 
     it("should generate outline from playbook with pre_tasks and post_tasks", () => {
@@ -281,7 +285,6 @@ action: debug`;
       expect(result).toEqual(["Task one", "Task two", "Task three"]);
     });
 
-
     it("should return empty array for empty outline", () => {
       const outline = "";
 
@@ -299,4 +302,3 @@ action: debug`;
     });
   });
 });
-

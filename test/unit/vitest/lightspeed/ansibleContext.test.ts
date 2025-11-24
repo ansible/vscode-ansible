@@ -1,15 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AnsibleContextProcessor } from "../../../../src/features/lightspeed/ansibleContext.js";
 import type { AnsibleContext } from "../../../../src/features/lightspeed/ansibleContext.js";
-import {
-  ANSIBLE_CONTENT,
-  TEST_PROMPTS,
-} from "./testConstants.js";
+import { ANSIBLE_CONTENT, TEST_PROMPTS } from "./testConstants.js";
 
 describe("AnsibleContextProcessor", () => {
   // Mock console.warn to avoid noise in test output
   beforeEach(() => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {
+      // Intentionally empty - suppresses console.warn in tests
+    });
   });
 
   describe("enhancePromptForAnsible", () => {
@@ -224,7 +223,8 @@ describe("AnsibleContextProcessor", () => {
     });
 
     it("should handle task names with quotes", () => {
-      const prompt = '- name: "Task with quotes"\n  ansible.builtin.debug:\n    msg: "test"';
+      const prompt =
+        '- name: "Task with quotes"\n  ansible.builtin.debug:\n    msg: "test"';
       const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
 
       expect(taskNames).toHaveLength(1);
@@ -232,7 +232,8 @@ describe("AnsibleContextProcessor", () => {
     });
 
     it("should handle task names with special characters", () => {
-      const prompt = "- name: Task (with) [special] chars\n  ansible.builtin.debug:\n    msg: test";
+      const prompt =
+        "- name: Task (with) [special] chars\n  ansible.builtin.debug:\n    msg: test";
       const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
 
       expect(taskNames).toHaveLength(1);
@@ -246,7 +247,8 @@ describe("AnsibleContextProcessor", () => {
     });
 
     it("should handle task names with indentation", () => {
-      const prompt = "  - name: Indented task\n    ansible.builtin.debug:\n      msg: test";
+      const prompt =
+        "  - name: Indented task\n    ansible.builtin.debug:\n      msg: test";
       const taskNames = AnsibleContextProcessor.extractTaskNames(prompt);
 
       expect(taskNames).toHaveLength(1);
@@ -378,7 +380,8 @@ describe("AnsibleContextProcessor", () => {
     });
 
     it("should validate playbook with hosts", () => {
-      const content = "---\n- hosts: all\n  tasks:\n    - name: Test\n      debug:\n        msg: test";
+      const content =
+        "---\n- hosts: all\n  tasks:\n    - name: Test\n      debug:\n        msg: test";
       const result = AnsibleContextProcessor.validateAnsibleContent(content);
 
       expect(result.valid).toBe(true);
@@ -465,33 +468,27 @@ describe("AnsibleContextProcessor", () => {
 
   describe("getTemperatureForFileType", () => {
     it("should return correct temperature for playbook", () => {
-      const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        "playbook",
-      );
+      const temp =
+        AnsibleContextProcessor.getTemperatureForFileType("playbook");
 
       expect(temp).toBe(0.1);
     });
 
     it("should return correct temperature for tasks", () => {
-      const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        "tasks",
-      );
+      const temp = AnsibleContextProcessor.getTemperatureForFileType("tasks");
 
       expect(temp).toBe(0.1);
     });
 
     it("should return correct temperature for handlers", () => {
-      const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        "handlers",
-      );
+      const temp =
+        AnsibleContextProcessor.getTemperatureForFileType("handlers");
 
       expect(temp).toBe(0.05);
     });
 
     it("should return correct temperature for role", () => {
-      const temp = AnsibleContextProcessor.getTemperatureForFileType(
-        "role",
-      );
+      const temp = AnsibleContextProcessor.getTemperatureForFileType("role");
 
       expect(temp).toBe(0.15);
     });
@@ -505,49 +502,40 @@ describe("AnsibleContextProcessor", () => {
 
   describe("getMaxTokensForFileType", () => {
     it("should return correct max tokens for playbook", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        "playbook",
-      );
+      const tokens =
+        AnsibleContextProcessor.getMaxTokensForFileType("playbook");
 
       expect(tokens).toBe(2000);
     });
 
     it("should return correct max tokens for tasks", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        "tasks",
-      );
+      const tokens = AnsibleContextProcessor.getMaxTokensForFileType("tasks");
 
       expect(tokens).toBe(800);
     });
 
     it("should return correct max tokens for handlers", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        "handlers",
-      );
+      const tokens =
+        AnsibleContextProcessor.getMaxTokensForFileType("handlers");
 
       expect(tokens).toBe(400);
     });
 
     it("should return correct max tokens for vars", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        "vars",
-      );
+      const tokens = AnsibleContextProcessor.getMaxTokensForFileType("vars");
 
       expect(tokens).toBe(600);
     });
 
     it("should return correct max tokens for role", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        "role",
-      );
+      const tokens = AnsibleContextProcessor.getMaxTokensForFileType("role");
 
       expect(tokens).toBe(2500);
     });
 
     it("should return correct max tokens for inventory", () => {
-      const tokens = AnsibleContextProcessor.getMaxTokensForFileType(
-        "inventory",
-      );
+      const tokens =
+        AnsibleContextProcessor.getMaxTokensForFileType("inventory");
 
       expect(tokens).toBe(1000);
     });
@@ -559,4 +547,3 @@ describe("AnsibleContextProcessor", () => {
     });
   });
 });
-
