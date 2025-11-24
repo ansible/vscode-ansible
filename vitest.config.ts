@@ -15,7 +15,10 @@ export default defineConfig({
     setupFiles: ["./test/unit/vitest/setup.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "html", "cobertura"],
+      // Output to a subdirectory to avoid overwriting mocha/c8 coverage
+      // The CI pattern ./**/coverage/unit/*cobertura-coverage.xml will still match this
+      reportsDirectory: "./out/coverage/unit/vitest",
       exclude: [
         "node_modules/",
         "out/",
@@ -24,7 +27,11 @@ export default defineConfig({
         "**/*.config.*",
       ],
     },
+    // Output test results in junit format for CI
+    outputFile: {
+      junit: "./out/junit/unit/vitest-test-results.xml",
+    },
+    reporters: ["default", "junit"],
     testTimeout: 30000,
   },
 });
-

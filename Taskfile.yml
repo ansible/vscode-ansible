@@ -208,6 +208,7 @@ tasks:
     aliases: [unit]
     cmds:
       - npm run unit-tests
+      - npm run unit-tests-vitest-coverage
     interactive: true
   package:
     desc: Package extension
