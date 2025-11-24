@@ -395,8 +395,6 @@ jobs:
           # out/test-resources/settings/logs
           if-no-files-found: ignore
           retention-days: 90
-        # until the WSL/gitleaks failure is resolved
-        continue-on-error: true
 
       - name: Upload test results to Codecov (als)
         if: ${{ !cancelled() && hashFiles('out/junit/als/*.xml') != '' }}
