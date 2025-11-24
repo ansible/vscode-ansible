@@ -9,6 +9,12 @@ export default defineConfig({
       extension: {
         entry: "src/extension.ts",
         //minify: false,
+        // Bundle vscode-languageclient instead of leaving it as external
+        // This is necessary because the VSIX packaging excludes dependencies
+        noExternal: [
+          "vscode-languageclient",
+          "@redhat-developer/vscode-redhat-telemetry",
+        ],
       },
       webview: {
         csp: `<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-{{nonce}}' 'unsafe-inline'; style-src {{cspSource}} 'unsafe-inline'; font-src {{cspSource}}; img-src 'self' {{cspSource}} https: data:;">`,
