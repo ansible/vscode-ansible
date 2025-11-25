@@ -11,10 +11,10 @@ DIR=$( cd -P "$( dirname "$SOURCE" )" > /dev/null 2>&1 && pwd )
 
 # installs the package inside an isolated project and executes its entry point
 # in order to check if we packaged everything needed.
-pushd "${DIR}/../out/test-als"
+pushd "${DIR}/../out/test-als" >/dev/null
 git checkout HEAD -- package.json
-npm add ../../@ansible-ansible-language-server-*.tgz
-npm install
+npm add --silent ../../@ansible-ansible-language-server-*.tgz
+npm install --silent --no-fund
 git checkout HEAD -- package.json
 ts-node ../../test/validate-ls.ts
 popd
@@ -32,7 +32,7 @@ else
     else
         echo "::warning::Version ${VERSION} was not published but is missing from the changelog, so we should not release."
     fi
-    npm publish --dry-run --access public "${DIR}/../"@ansible-ansible-language-server-*.tgz
+    npm publish --silent --dry-run --access public "${DIR}/../"@ansible-ansible-language-server-*.tgz
     echo "Version ${VERSION} can be published."
     if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
         echo "Setting can_release_to_npm=true"

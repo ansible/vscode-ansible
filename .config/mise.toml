@@ -34,6 +34,7 @@ mise_version = "2025.6.2"
 
 [tools]
 gh = "latest"
+jq = "latest"
 # do not add tools unsupported on windows such: gh, yarn
 node = "22.20.0"
 python = "3.13"
