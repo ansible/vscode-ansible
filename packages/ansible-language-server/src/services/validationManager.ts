@@ -121,7 +121,7 @@ export class ValidationManager {
             change.range.end.line,
           ]);
           if (invalidatedDiagnostics) {
-            for (const diagnostic of invalidatedDiagnostics as Array<Diagnostic>) {
+            for (const diagnostic of invalidatedDiagnostics) {
               diagnosticTree.remove(
                 [diagnostic.range.start.line, diagnostic.range.end.line],
                 diagnostic,
@@ -140,7 +140,7 @@ export class ValidationManager {
               integer.MAX_VALUE,
             ]);
             if (displacedDiagnostics) {
-              for (const diagnostic of displacedDiagnostics as Array<Diagnostic>) {
+              for (const diagnostic of displacedDiagnostics) {
                 diagnosticTree.remove(
                   [diagnostic.range.start.line, diagnostic.range.end.line],
                   diagnostic,
