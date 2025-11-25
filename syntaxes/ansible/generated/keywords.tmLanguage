@@ -11,7 +11,7 @@
         <key>comment</key>
         <array>
             <string>Extracted from:</string>
-            <string>https://docs.ansible.com/ansible/2.10/reference_appendices/playbooks_keywords.html</string>
+            <string>https://docs.ansible.com/projects/ansible/2.10/reference_appendices/playbooks_keywords.html</string>
             <string>Added `label`, `pause`, `loop_var`, `extended` as Ansible keywords (occur in loop_control)</string>
         </array>
         <key>patterns</key>
