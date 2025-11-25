@@ -394,7 +394,7 @@ if [[ -n ${DOCKER_HOST+x} ]]; then
     exit 1
 fi
 # Detect docker and ensure that it is usable (unless SKIP_DOCKER)
-DOCKER_VERSION="$(get_version docker 2>/dev/null || echo 'null' && log warning 'docker not found, skipping related tests')"
+DOCKER_VERSION="$(get_version docker 2>/dev/null || { echo 'null'; log warning 'docker not found, skipping related tests';} )"
 if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
 
     DOCKER_STDERR="$(docker --version 2>&1 >/dev/null)"
@@ -407,7 +407,7 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
         log error "Found DOCKER_HOST and this is not supported, please unset it."
         exit 1
     fi
-    docker container prune -f
+    docker container prune -f >/dev/null
     log notice "Pull our test container image with docker."
     pull_output=$(docker pull "${IMAGE}" 2>&1 >/dev/null) || {
         log error "Failed to pull image, maybe current user is not in docker group? Run 'sudo sh -c \"groupadd -f docker && usermod -aG docker $USER\"' and relogin to fix it.\n${pull_output}"
@@ -417,12 +417,12 @@ if [[ "${DOCKER_VERSION}" != 'null' ]] && [[ "${SKIP_DOCKER:-}" != '1' ]]; then
     EE_ANSIBLE_VERSION=$(get_version \
         docker run --rm "${IMAGE}" ansible --version)
     EE_ANSIBLE_LINT_VERSION=$(get_version \
-        docker run "${IMAGE}" ansible-lint --nocolor --version)
+        docker run --rm "${IMAGE}" ansible-lint --nocolor --version)
     log notice "ansible: ${EE_ANSIBLE_VERSION}, ansible-lint: ${EE_ANSIBLE_LINT_VERSION}"
     # Test docker ability to mount current folder with write access, default mount options
-    docker run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
-        bash -c "[ -e $PWD ] && [ -d $PWD ] \
-        && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+    docker run --rm -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
+        bash -c "[ -e $PWD ] && [ -d $PWD ] || \
+        { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
 fi
 
 if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
@@ -463,15 +463,13 @@ if [[ "${SKIP_PODMAN:-}" != '1' ]]; then
             }
         # validation is done later
         podman info >out/podman.log 2>&1
-        podman run hello-world >out/podman.log 2>&1
+        podman run --rm hello-world >out/podman.log 2>&1
         du -ahc ~/.config/containers ~/.local/share/containers  >out/podman.log 2>&1 || true
         podman machine inspect >out/podman.log 2>&1
     fi
-fi
-# Detect podman and ensure that it is usable (unless SKIP_PODMAN)
-PODMAN_VERSION="$(get_version podman || echo null)"
-if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
-    podman container prune -f
+    # Detect podman and ensure that it is usable (unless SKIP_PODMAN)
+    PODMAN_VERSION="$(get_version podman 2>/dev/null || { echo 'null'; log warning 'podman not found, skipping related tests';} )"
+    podman container prune -f >/dev/null
     log notice "Pull our test container image with podman."
     pull_output=$(podman pull --quiet "${IMAGE}" 2>&1 >/dev/null) || {
         log error "Failed to pull image.\n${pull_output}"
@@ -488,6 +486,8 @@ if [[ "${PODMAN_VERSION}" != 'null' ]] && [[ "${SKIP_PODMAN:-}" != '1' ]]; then
     log notice "Test podman ability to mount current folder with write access, default mount options"
     podman run -v "$PWD:$PWD" ghcr.io/ansible/community-ansible-dev-tools:latest \
         bash -c "[ -e $PWD ] && [ -d $PWD ] && echo 'Mounts working' || { echo 'Mounts not working. You might need to either disable or make selinux permissive.'; exit 1; }"
+else
+    PODMAN_VERSION=null
 fi
 
 # Create a build manifest so we can compare between builds and machines, this

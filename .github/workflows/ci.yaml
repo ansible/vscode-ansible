@@ -49,6 +49,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         MISE_TRUSTED_CONFIG_PATHS: /
+        YARN_ENABLE_HARDENED_MODE: "1"
     continue-on-error: false
     outputs:
       commit_context: ${{ steps.extract_context.outputs.context }}
@@ -143,6 +144,7 @@ jobs:
       SKIP_PODMAN: ${{ matrix.env.SKIP_PODMAN || 0 }}
       IS_WSL: ${{ contains(matrix.name, 'wsl') && 1 || 0 }}
       TASKFILE_ARGS: --output=group --output-group-begin='::group::{{.TASK}}' --output-group-end='::endgroup::'
+      YARN_ENABLE_HARDENED_MODE: "0" # 'preflight' requires it on, here we optimize for speed
 
     defaults:
       run:
