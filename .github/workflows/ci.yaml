@@ -537,6 +537,17 @@ jobs:
           fail_ci_if_error: true
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
 
+      - name: Upload unit test coverage data (vitest) [2b/5]
+        if: ${{ always() }}
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
+        with:
+          name: unit-vitest
+          files: ./**/coverage/unit/vitest/cobertura-coverage.xml
+          flags: unit
+          disable_search: true
+          fail_ci_if_error: false
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+
       - name: Upload ui test coverage data [3/5]
         if: ${{ always() }}
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7 # v5.5.1
