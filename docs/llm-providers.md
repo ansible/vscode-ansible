@@ -6,13 +6,21 @@ The Ansible VS Code extension supports multiple LLM providers including Red Hat'
 
 When using LLM providers, the following Ansible Lightspeed features are available:
 
+<<<<<<< HEAD
 **Supported in Phase 1:**
+=======
+✅ **Supported in Phase 1:**
+>>>>>>> cd57ed25 (feat: base SDK changes)
 
 - Playbook Generation
 - Role Generation
 - Interactive Chat (if provider supports it)
 
+<<<<<<< HEAD
 **Not Supported in Phase 1:**
+=======
+❌ **Not Supported in Phase 1:**
+>>>>>>> cd57ed25 (feat: base SDK changes)
 
 - Inline Task Suggestions
 - Content Source Matching
@@ -153,7 +161,11 @@ You can easily switch between providers using the dropdown:
 
 ## Security Considerations
 
+<<<<<<< HEAD
 **Important Security Notes:**
+=======
+⚠️ **Important Security Notes:**
+>>>>>>> cd57ed25 (feat: base SDK changes)
 
 1. **API Key Storage:** API keys are stored in VS Code settings. Consider using environment variables for sensitive keys.
 
