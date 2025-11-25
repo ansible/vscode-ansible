@@ -24,3 +24,4 @@ ignores:
   - vscode
   - webpack-cli
   - yarn-audit-fix
+  - typescript-eslint/eslint-plugin
