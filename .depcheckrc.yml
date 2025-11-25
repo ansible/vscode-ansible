@@ -24,4 +24,4 @@ ignores:
   - vscode
   - webpack-cli
   - yarn-audit-fix
-  - typescript-eslint/eslint-plugin
+  - "@typescript-eslint/eslint-plugin" # used by eslint.config.mjs
