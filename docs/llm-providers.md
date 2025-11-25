@@ -153,11 +153,7 @@ You can easily switch between providers using the dropdown:
 
 ## Security Considerations
 
-<<<<<<< HEAD
 **Important Security Notes:**
-=======
-⚠️ **Important Security Notes:**
->>>>>>> cd57ed25 (feat: base SDK changes)
 
 1. **API Key Storage:** API keys are stored in VS Code settings. Consider using environment variables for sensitive keys.
 
