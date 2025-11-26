@@ -50,7 +50,6 @@ UI_TARGET="${UI_TARGET:-*Test.js}"
 OPTSTRING=":c"
 
 # https://github.com/microsoft/vscode/issues/204005
-unset NODE_OPTIONS
 rm -f out/log/.failed >/dev/null
 
 function start_server() {
