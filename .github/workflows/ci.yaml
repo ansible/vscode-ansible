@@ -326,31 +326,36 @@ jobs:
           EOT
           podman info
 
+      - name: Save ready_to_test=true
+        id: ready_to_test
+        if: ${{ contains(matrix.name, 'test') && success() }}
+        run: echo "ready_to_test=true" >> "$GITHUB_OUTPUT"
+
       - name: task ${{ matrix.task-name }}
-        if: "${{ !contains(matrix.name, 'test') }}"
+        if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
         run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task mcp
-        if: contains(matrix.name, 'test')
+        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task unit
-        if: contains(matrix.name, 'test')
+        if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
         run: task unit ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
         run: task ui ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
-        if: ${{ !cancelled() && contains(matrix.name, 'test') }}
+        if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
         run: task als ${{ matrix.env.TASKFILE_ARGS }}
 
       - name: Upload vsix artifact

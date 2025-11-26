@@ -31,7 +31,7 @@ export default defineConfig({
     timeout: 50_000,
     reporter: "cypress-multi-reporters",
     reporterOptions: {
-      reporterEnabled: "spec, mocha-junit-reporter",
+      reporterEnabled: "spec,mocha-junit-reporter",
       mochaJunitReporterReporterOptions: {
         attachments: true,
         includePending: true,

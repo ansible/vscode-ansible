@@ -1,6 +1,5 @@
 {
-  "//": "Do not enable 'check-coverage' or text reporters because we loop over the tests from test-launcher.sh.",
-  "check-coverage": false,
+  "check-coverage": true,
   "clean": true,
   "exclude": [
     "**/__tests__/**",
@@ -17,7 +16,8 @@
     "test{,s}/**"
   ],
   "exclude-after-remap": true,
-  "reporter": ["cobertura", "lcov"],
-  "reports-dir": "./out/coverage/ui",
-  "temp-directory": "./out/tmp/.c8-tmp-ui"
+  "lines": 91.45,
+  "reporter": ["cobertura", "lcov", "text"],
+  "reports-dir": "./out/coverage/unit",
+  "temp-directory": "./out/tmp/.c8-tmp-unit"
 }
