@@ -108,8 +108,7 @@ describe("Ansible MCP Server", () => {
       expect(toolNames).toContain("ade_environment_info");
       expect(toolNames).toContain("ade_setup_environment");
       expect(toolNames).toContain("adt_check_env");
-      expect(toolNames).toContain("ansible_create_playbook");
-      expect(toolNames).toContain("ansible_create_collection");
+      expect(toolNames).toContain("create_ansible_projects");
       expect(toolNames).toContain("define_and_build_execution_env");
       expect(toolNames).toHaveLength(TOOL_COUNT);
     });

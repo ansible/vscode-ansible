@@ -76,6 +76,8 @@ modelines
 mycollection
 mymodule
 mynamespace
+myorg
+myproject
 nocolor
 nodenext
 noheading
