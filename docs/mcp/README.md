@@ -38,13 +38,43 @@ The Ansible MCP Server provides the following capabilities:
 
 ## Getting Started
 
-The Ansible MCP Server is currently available for testing and development. It runs as a child process and communicates via stdio transport.
+The Ansible MCP Server is currently available as a technical preview.
+
+The server runs as a child process and communicates via stdio transport.
 
 ### Requirements
 
 - Python 3.11 or higher
 - Node.js 18 or higher
 - Ansible development tools (can be auto-installed)
+
+### Starting the Server
+
+The MCP server is automatically started by MCP-compatible AI assistants when configured. No manual installation or server management is required.
+
+**For Cursor IDE:**
+
+The extension automatically starts the MCP server when accessed from Cursor's MCP integration.
+
+**For Claude Desktop:**
+
+Add the following configuration to your Claude Desktop settings:
+
+```json
+{
+  "mcpServers": {
+    "ansible": {
+      "command": "node",
+      "args": [
+        "/path/to/vscode-ansible/out/mcp/index.js"
+      ],
+      "env": {
+        "WORKSPACE_ROOT": "/path/to/your/ansible/project"
+      }
+    }
+  }
+}
+```
 
 ## Architecture
 

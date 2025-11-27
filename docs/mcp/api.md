@@ -3,16 +3,51 @@
 **Version:** 0.1.0
 **Protocol:** Model Context Protocol (MCP) 1.0
 **Base URL:** stdio transport (no HTTP endpoint)
-**Transport:** stdio, WebSocket (planned)
+**Transport:** stdio
 
 ## Table of Contents
 
-1. [API Overview](#api-overview)
-2. [Authentication & Security](#authentication--security)
-3. [Resources](#resources)
-4. [Tool Endpoints](#tool-endpoints)
-5. [Error Responses](#error-responses)
-6. [Data Types](#data-types)
+1. [API Reference Summary](#api-reference-summary)
+2. [API Overview](#api-overview)
+3. [Authentication & Security](#authentication--security)
+4. [Resources](#resources)
+5. [Tool Endpoints](#tool-endpoints)
+6. [Error Responses](#error-responses)
+7. [Data Types](#data-types)
+
+---
+
+## API Reference Summary
+
+### Tools Summary
+
+| Endpoint                          | Required Parameters   | Optional Parameters                                                                                            | Returns                          |
+| --------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| `zen_of_ansible`                  | -                     | -                                                                                                              | Ansible philosophy text          |
+| `ansible_content_best_practices`  | -                     | -                                                                                                              | Best practices guidelines        |
+| `list_available_tools`            | -                     | -                                                                                                              | Tool list                        |
+| `ansible_lint`                    | `filePath` ⚠️        | `fix` ⭕                                                                                                       | Lint results                     |
+| `ade_environment_info`            | -                     | -                                                                                                              | Environment info                 |
+| `ade_setup_environment`           | -                     | `envName` ⭕, `pythonVersion` ⭕, `collections` ⭕, `installRequirements` ⭕, `requirementsFile` ⭕            | Setup results                    |
+| `adt_check_env`                   | -                     | -                                                                                                              | Installation status              |
+| `ansible_create_playbook`         | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
+| `ansible_create_collection`       | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
+| `define_and_build_execution_env`  | `baseImage` ⚠️, `tag` ⚠️ | `destinationPath` ⭕, `collections` ⭕, `systemPackages` ⭕, `pythonPackages` ⭕, `generatedYaml` ⭕    | Prompt or file creation result   |
+| `ansible_navigator`               | `userMessage` ⚠️*    | `filePath` ⭕, `mode` ⭕, `environment` ⭕, `disableExecutionEnvironment` ⭕                                    | Playbook execution results or usage guide |
+
+*Required for execution mode; optional for information mode
+
+⚠️ = Required
+⭕ = Optional
+
+### Resources Summary
+
+| Resource       | URI                                        | Type     |
+| -------------- | ------------------------------------------ | -------- |
+| EE Schema      | `schema://execution-environment`           | JSON     |
+| EE Sample      | `sample://execution-environment`           | YAML     |
+| EE Rules       | `rules://execution-environment`            | Markdown |
+| Best Practices | `guidelines://ansible-content-best-practices` | Markdown |
 
 ---
 
@@ -30,17 +65,11 @@
 
 ### Transport Protocol
 
-**Current:** stdio (standard input/output)
+stdio (standard input/output)
 
 - No network endpoint
 - Process-based communication
 - Request/response over stdin/stdout
-
-**Planned:** WebSocket
-
-- Network-based communication
-- Token authentication
-- TLS/SSL encryption
 
 ### Request Format
 
@@ -123,30 +152,6 @@ All requests follow the JSON-RPC 2.0 format:
 | Variable | Purpose | Required | Default |
 |----------|---------|----------|---------|
 | `WORKSPACE_ROOT` | Root directory for file operations | No | `process.cwd()` |
-
-### Planned Implementation (WebSocket)
-
-**Authentication:**
-
-- Token-based authentication via `MCP_TOKEN` environment variable
-- Bearer token in HTTP headers or WebSocket handshake
-
-**Authorization:**
-
-- Role-based access control (planned)
-- Tool-level permissions (planned)
-
-**Encryption:**
-
-- TLS/SSL for WebSocket connections
-- Certificate validation
-
-**Environment Variables:**
-
-| Variable | Purpose | Required |
-|----------|---------|----------|
-| `MCP_PORT` | WebSocket server port | Yes |
-| `MCP_TOKEN` | Authentication token | Yes |
 
 ### Security Considerations
 
@@ -1550,40 +1555,6 @@ All errors use consistent format:
 - **Min Version:** 3.8.0
 - **Install:** <https://www.python.org/downloads/>
 - **Version Check:** `python3 --version`
-
----
-
-## API Reference Summary
-
-### Tools Summary
-
-| Endpoint                          | Required Parameters   | Optional Parameters                                                                                            | Returns                          |
-| --------------------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `zen_of_ansible`                  | -                     | -                                                                                                              | Ansible philosophy text          |
-| `ansible_content_best_practices`  | -                     | -                                                                                                              | Best practices guidelines        |
-| `list_available_tools`            | -                     | -                                                                                                              | Tool list                        |
-| `ansible_lint`                    | `filePath` ⚠️        | `fix` ⭕                                                                                                       | Lint results                     |
-| `ade_environment_info`            | -                     | -                                                                                                              | Environment info                 |
-| `ade_setup_environment`           | -                     | `envName` ⭕, `pythonVersion` ⭕, `collections` ⭕, `installRequirements` ⭕, `requirementsFile` ⭕            | Setup results                    |
-| `adt_check_env`                   | -                     | -                                                                                                              | Installation status              |
-| `ansible_create_playbook`         | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
-| `ansible_create_collection`       | `name` ⚠️            | `path` ⭕                                                                                                      | Creation status                  |
-| `define_and_build_execution_env`  | `baseImage` ⚠️, `tag` ⚠️ | `destinationPath` ⭕, `collections` ⭕, `systemPackages` ⭕, `pythonPackages` ⭕, `generatedYaml` ⭕    | Prompt or file creation result   |
-| `ansible_navigator`               | `userMessage` ⚠️*    | `filePath` ⭕, `mode` ⭕, `environment` ⭕, `disableExecutionEnvironment` ⭕                                    | Playbook execution results or usage guide |
-
-*Required for execution mode; optional for information mode
-
-⚠️ = Required
-⭕ = Optional
-
-### Resources Summary
-
-| Resource       | URI                                        | Type     |
-| -------------- | ------------------------------------------ | -------- |
-| EE Schema      | `schema://execution-environment`           | JSON     |
-| EE Sample      | `sample://execution-environment`           | YAML     |
-| EE Rules       | `rules://execution-environment`            | Markdown |
-| Best Practices | `guidelines://ansible-content-best-practices` | Markdown |
 
 ---
 

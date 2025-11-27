@@ -375,31 +375,10 @@ The extension includes an MCP server that enables AI assistants and LLM-powered 
 - 🚀 Playbook execution with ansible-navigator (auto-detection, Podman handling)
 - 📖 Ansible content best practices and guidelines
 
-### Quick Start
+### Learn More
 
-```bash
-# Install and run the MCP server
-npm install -g @ansible/ansible-mcp-server
-ansible-mcp-server --stdio
-```
-
-### API Documentation
-
-See **[MCP API Endpoint Documentation](mcp/api.md)** for technical API reference including:
-
-- All 11 tool endpoints with complete specifications
-- Request/response formats and examples
-- Security and authentication implementation details
-- All parameters and options
-- 4 resource URIs and schemas (EE schema, sample, rules, best practices)
-- Error response types
-- Data type definitions
-
-**Tools included:**
-
-- Core: zen_of_ansible, list_available_tools, ansible_lint, ade_environment_info, ade_setup_environment, adt_check_env, ansible_create_playbook, ansible_create_collection, define_and_build_execution_env
-- Navigator branch: ansible_navigator
-- Agents branch: ansible_content_best_practices
+- **[MCP Server Overview](mcp/README.md)** - Features, architecture, and getting started guide
+- **[API Reference](mcp/api.md)** - Complete technical API documentation for all tools and resources
 
 ## Contact
 
