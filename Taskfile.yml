@@ -220,8 +220,6 @@ tasks:
       - tools/helper
       - src/**/*
       - test/**/*
-      - packages/*/src/**/*
-      - packages/*/test/**/*
       - media/**/*
     generates:
       - "*.vsix"
