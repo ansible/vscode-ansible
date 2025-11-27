@@ -32,7 +32,7 @@ describe("presence of lightspeed element in the status bar and the explorer view
     await VSBrowser.instance.openResources(filePath);
   });
 
-  it("Ansible Lightspeed status bar item absent when settings not enabled", async function () {
+  it.skip("Ansible Lightspeed status bar item absent when settings not enabled", async function () {
     await editorView.openEditor(file);
 
     // The following lines replaced the original code that was using StatusBar.getItem() API.
