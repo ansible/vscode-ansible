@@ -361,13 +361,12 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
   );
 
   // Schema with userMessage - tool extracts filename from user's prompt
+  // Using Zod schema to match other tools (required for proper MCP tool discovery)
   const navigatorInputSchema = {
-    type: "object",
-    properties: {
-      userMessage: {
-        type: "string",
-        description:
-          "**REQUIRED:** The user's original message/prompt. Just pass it as-is (DO NOT leave empty). " +
+    userMessage: z
+      .string()
+      .describe(
+        "**REQUIRED:** The user's original message/prompt. Just pass it as-is (DO NOT leave empty). " +
           "The tool will parse it to extract the playbook filename. " +
           "\n" +
           "**EXAMPLES OF CORRECT USAGE:** " +
@@ -376,41 +375,41 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
           '- User says: \'run playbooks/site.yml\' → You MUST pass: {"userMessage": "run playbooks/site.yml"} ' +
           "\n" +
           "**DO NOT call this tool with empty userMessage or {}. Always provide the user's message.**",
-      },
-      filePath: {
-        type: "string",
-        description:
-          "Advanced: Direct file path to the playbook. " +
+      ),
+    filePath: z
+      .string()
+      .optional()
+      .describe(
+        "Advanced: Direct file path to the playbook. " +
           "If provided, this takes precedence over userMessage parsing. " +
           "Most of the time, just use userMessage instead.",
-      },
-      mode: {
-        type: "string",
-        enum: ["stdout", "interactive"],
-        default: "stdout",
-        description:
-          "Output mode: 'stdout' (default for this tool, direct terminal output) or 'interactive' (TUI for exploration). " +
+      ),
+    mode: z
+      .enum(["stdout", "interactive"])
+      .optional()
+      .default("stdout")
+      .describe(
+        "Output mode: 'stdout' (default for this tool, direct terminal output) or 'interactive' (TUI for exploration). " +
           "Only specify if user explicitly requests a different mode.",
-      },
-      environment: {
-        type: "string",
-        default: "auto",
-        description:
-          "Environment selection: 'auto' (default, checks PATH first, then venv), 'system' (only use PATH/system), " +
+      ),
+    environment: z
+      .string()
+      .optional()
+      .default("auto")
+      .describe(
+        "Environment selection: 'auto' (default, checks PATH first, then venv), 'system' (only use PATH/system), " +
           "'venv' (only use virtual environment), or a specific venv name/path (e.g., 'ansible-dev', 'venv', '/path/to/venv'). " +
           "When a specific venv name is provided, the tool searches in the workspace and parent directories.",
-      },
-      disableExecutionEnvironment: {
-        type: "boolean",
-        default: false,
-        description:
-          "Set to `true` to disable execution environments (passes --ee false). " +
+      ),
+    disableExecutionEnvironment: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Set to `true` to disable execution environments (passes --ee false). " +
           "**Use this if you encounter Podman/Docker errors.** " +
           "When disabled, ansible-navigator will use the local Ansible installation instead of containerized execution environments.",
-      },
-    },
-    required: ["userMessage"], // userMessage is REQUIRED - LLM must pass the user's prompt
-    additionalProperties: false,
+      ),
   };
 
   registerToolWithDeps(
