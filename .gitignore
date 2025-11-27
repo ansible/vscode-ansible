@@ -23,7 +23,6 @@ coverage
 .idea
 *.pyc
 
-test/testFixtures/.vscode/
 examples/.vscode/
 .cache
 site

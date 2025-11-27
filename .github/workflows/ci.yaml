@@ -65,7 +65,7 @@ jobs:
           mise cfg
           mise exec -- which python3
           mise exec -- printenv NODE_OPTIONS || true
-          task setup
+          task setup && task setup --status
 
       - name: Install ansible-dev-tools
         run: |
@@ -101,12 +101,12 @@ jobs:
       - name: task build
         timeout-minutes: 2 # expected under 1 minutes
         run: |
-          task build
+          task build && task build --status
 
       - name: task package
         timeout-minutes: 2 # expected under 1 minutes
         run: |
-          task als:package
+          task als:package && task als:package --status
 
       - name: Run context-specific command
         if: >-
@@ -123,12 +123,12 @@ jobs:
       - name: task docs
         timeout-minutes: 1
         run: |
-          task docs
+          task docs && task docs --status
 
       - name: task package
         timeout-minutes: 2
         run: |
-          task package
+          task package && task package --status
 
   build:
     name: ${{ matrix.name }}
@@ -236,6 +236,12 @@ jobs:
             xvfb
           # asdf nodejs plugin requires: dirmngr gpg curl gawk
 
+      - name: Configure yarn cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: ~/.config/yarn/berry/cache
+          key: ${{ runner.os }}-${{ hashFiles('**/package.json', '**/yarn.lock') }}
+
       - name: Enable caching for vscode resources
         if: "${{ contains(matrix.name, 'test') }}"
         # left out due to having their own caching: yarn, node_modules, mise
@@ -257,11 +263,6 @@ jobs:
       #       ~/.local/share/containers
       #       ~/.config/containers
       #     key: ${{ runner.os }}-${{ matrix.task-name }}-${{ hashFiles('package.json', 'yarn.lock', '.config/requirements.txt', '**/Taskfile.yml', 'tools/*.*') }}
-
-      - name: Setup task
-        uses: arduino/setup-task@b91d5d2c96a56797b48ac1e0e89220bf64044611 # v2.0.0
-        with:
-          version: 3.37.2
 
       - name: Setup python
         uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
@@ -298,8 +299,13 @@ jobs:
       - name: task setup
         # starting podman machine can randomly get stuck on macos
         timeout-minutes: 25
-        run: task setup
+        run: task setup && task setup --status
         id: setup
+
+      - name: task build
+        id: build
+        run: |
+          task build && task build --status
 
       ## uncomment to debug on GHA runner
       # - name: Setup tmate session
@@ -307,7 +313,7 @@ jobs:
       - name: task package
         id: package
         run: |
-          task package ${{ matrix.env.TASKFILE_ARGS }}
+          task package ${{ matrix.env.TASKFILE_ARGS }} && task package ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: configure podman
         if: ${{ matrix.name == 'test (linux)' }}
@@ -327,30 +333,38 @@ jobs:
 
       - name: task ${{ matrix.task-name }}
         if: "${{ !contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}"
-        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }}
+        run: task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} && task ${{ matrix.task-name }} ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task mcp
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }}
+        run: task mcp:test ${{ matrix.env.TASKFILE_ARGS }} && task mcp:test ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task unit
         if: contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true'
-        run: task unit ${{ matrix.env.TASKFILE_ARGS }}
+        run: task unit ${{ matrix.env.TASKFILE_ARGS }} && task unit ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task ui
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && !contains(matrix.name, 'wsl') && steps.ready_to_test.outputs.ready_to_test == 'true'}}
-        run: task ui ${{ matrix.env.TASKFILE_ARGS }}
+        run: |
+          set -e
+          task ui ${{ matrix.env.TASKFILE_ARGS }} || { task flush && task ui ${{ matrix.env.TASKFILE_ARGS }}; }
+          task ui ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task e2e
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: task e2e ${{ matrix.env.TASKFILE_ARGS }}
+        run: |
+          set -e
+          task e2e ${{ matrix.env.TASKFILE_ARGS }}
+        # Add these once e2e is fixed:
+        #  || { task flush && task e2e ${{ matrix.env.TASKFILE_ARGS }}; }
+        #  task e2e ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: task als
         # https://github.com/ansible/vscode-ansible/issues/1451
         if: ${{ !cancelled() && contains(matrix.name, 'test') && steps.ready_to_test.outputs.ready_to_test == 'true' }}
-        run: task als ${{ matrix.env.TASKFILE_ARGS }}
+        run: task als ${{ matrix.env.TASKFILE_ARGS }} && task als ${{ matrix.env.TASKFILE_ARGS }} --status
 
       - name: Upload vsix artifact
         if: ${{ matrix.name == 'test (linux)' }}
