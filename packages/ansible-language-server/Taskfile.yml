@@ -10,6 +10,11 @@ vars:
     sh: ./tools/get-image-version
   VIRTUAL_ENV:
     sh: echo "${HOME}/.local/share/virtualenvs/vsa"
+includes:
+  base:
+    taskfile: ../../Taskfile.base.yml
+    internal: true
+    flatten: true
 tasks:
   default:
     dir: "{{ .TASKFILE_DIR }}"
@@ -17,15 +22,29 @@ tasks:
     env:
       VERSION:
         sh: node -p "require('./package.json').version"
+    sources:
+      - src/**/*.*
+      - test/**/*.*
+      - tsconfig.json
+      - webpack.config.js
+      - .c8rc.json
+      - .mocharc.json
+      - package.json
+      - yarn.lock
+      - pyproject.toml
+    generates:
+      - "*.tgz"
+    deps:
+      - package
     cmds:
-      - task: package
       - task: test
       - echo Done ansible-language-server {{.VERSION}}!
   build:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Build the project
+    deps:
+      - install
     cmds:
-      - task -d ../.. install
       - npm exec -- yarn run compile
     sources:
       - package-lock.json
@@ -34,31 +53,35 @@ tasks:
       - test/**/*.*
       - tsconfig.json
       - webpack.config.js
-  .test:
-    # Keep the desc empty to hide entry when listing
-    # desc: Run all tests
-    dir: "{{ .TASKFILE_DIR }}"
-    cmds:
-      - task: build
-      - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
-    interactive: true
   test:
     desc: Run all tests using node (same version as vscode), will skip @ee tests if both SKIP_PODMAN=1 and SKIP_DOCKER=1.
     dir: "{{ .TASKFILE_DIR }}"
+    interactive: true
+    deps:
+      - build
+    sources:
+      - ../../yarn.lock
+      - ../../pyproject.toml
+      - ../../uv.lock
+      - package.json
+      - src/**/*.*
+      - test/**/*.*
+      - tsconfig.json
+      - webpack.config.js
+      - .c8rc.json
+      - .mocharc.json
+    generates:
+      - ../../out/junit/als/.passed
     cmds:
-      - task: .test
-  test-node-lts:
-    dir: "{{ .TASKFILE_DIR }}"
-    desc: Run all tests using node-lts (future)
-    cmds:
-      - task -d ../.. install
-      - task: .test
-      - defer: git clean -dxf
+      - rm -f ../../out/junit/als/.passed
+      - bash -c ". {{.VIRTUAL_ENV}}/bin/activate && command -v ansible-lint && npm run test"
+      - touch ../../out/junit/als/.passed
   test-with-ee:
     dir: "{{ .TASKFILE_DIR }}"
     desc: Run only ee tests
+    deps:
+      - build
     cmds:
-      - task: build
       - >
         . {{.VIRTUAL_ENV}}/bin/activate &&
         bash -c 'npm run test-with-ee'
@@ -66,8 +89,9 @@ tasks:
   test-without-ee:
     desc: Run only non-ee tests
     dir: "{{ .TASKFILE_DIR }}"
+    deps:
+      - build
     cmds:
-      - task: build
       - bash -c '. {{.VIRTUAL_ENV}}/bin/activate && npm run test-without-ee'
     interactive: true
   package:
@@ -76,12 +100,13 @@ tasks:
     sources:
       - ../../docs/als/changelog.md
       - README.md
-      - package*.json
-      - out/**/*.*
+      - package.json
+      - out/server/
     generates:
       - "*.tgz"
+    deps:
+      - build
     cmds:
-      - task: build
       - rm -f {{ .TASKFILE_DIR }}/*.tgz
       - npm exec -- yarn pack --out '{{ .TASKFILE_DIR }}/%s-%v.tgz'
     silent: false
