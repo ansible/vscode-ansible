@@ -1,7 +1,7 @@
 {
-  "check-coverage": true,
-  "extends": "../../.c8rc",
   "branches": 80.31,
+  "check-coverage": true,
+  "extends": "../../.c8rc.json",
   "lines": 0,
   "reporter": ["cobertura", "lcov", "text", "text-summary"],
   "reports-dir": "../../out/coverage/als",

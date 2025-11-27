@@ -25,7 +25,8 @@ RUN \
 --mount=type=cache,target=/root/.cache/mise,sharing=locked \
 --mount=type=cache,target=/var/cache/apt/archives/,sharing=locked \
 --mount=type=cache,target=/var/lib/apt/lists/,sharing=locked \
-DEBIAN_FRONTEND=noninteractive apt-get update -qq -y -o=Dpkg::Use-Pty=0 && apt-get install -qq -y -o=Dpkg::Use-Pty=0 --no-install-recommends \
+DEBIAN_FRONTEND=noninteractive apt-get -qq -o=Dpkg::Use-Pty=0 update 2> /dev/null && \
+apt-get -qq -o=Dpkg::Use-Pty=0 install --no-install-recommends \
 curl \
 file \
 git \
@@ -54,9 +55,13 @@ libxrandr2 \
 libxshmfence1 \
 lsof \
 sudo \
-xvfb && \
+xauth \
+xvfb \
+2> /dev/null && \
 mkdir -p /root/.local/bin && \
 mise install && \
 mise list && \
 mise exec -- uv sync --no-progress -q --active && \
-mise exec -- python --version
+mise exec -- python --version && \
+mise exec -- pre-commit --version && \
+mise exec -- pre-commit install-hooks

@@ -79,7 +79,6 @@ mynamespace
 myorg
 myproject
 nocolor
-nodenext
 noheading
 norecursedirs
 npmjs

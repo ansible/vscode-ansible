@@ -394,7 +394,7 @@ describe("Content Creator UI Tests", function () {
       );
     });
 
-    it("Check create-ansible-collection webview elements", async function () {
+    it("Check create-ansible-collection webview elements 2", async function () {
       await testWebViewElements(
         "Ansible: Create New Collection",
         "Create Ansible collection",

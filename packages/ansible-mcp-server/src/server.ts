@@ -10,6 +10,7 @@ import {
   createZenOfAnsibleHandler,
   createListToolsHandler,
   createAnsibleLintHandler,
+  createAnsibleNavigatorHandler,
   createADEEnvironmentInfoHandler,
   createADESetupEnvironmentHandler,
   createADTCheckEnvHandler,
@@ -313,11 +314,22 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
     {
       title: "Ansible Lint",
       description:
-        "Run ansible-lint on Ansible files with human-readable input support for linting. Optionally apply automatic fixes using --fix flag.",
+        "**PREFERRED APPROACH**: Instead of using this MCP tool, use terminal commands to run ansible-lint. " +
+        "Execute commands like: `ansible-lint playbooks/deploy.yml` or `ansible-lint site.yml --fix`. " +
+        "The LLM can infer the file path from the currently open file, files mentioned in conversation, or workspace context. " +
+        "This approach works better because the LLM naturally understands file paths in terminal commands. " +
+        "\n\n" +
+        "**Alternative (if terminal is not available)**: This tool can run ansible-lint programmatically, " +
+        "but requires the `filePath` parameter. The tool will attempt auto-detection if filePath is not provided, " +
+        "but using terminal commands is the recommended approach.",
       inputSchema: {
         filePath: z
           .string()
-          .describe("The path to the Ansible playbook file to lint."),
+          .describe(
+            "Path to the Ansible playbook file to lint. " +
+              "**Note**: Using terminal commands (e.g., 'ansible-lint playbooks/deploy.yml') is preferred. " +
+              "This parameter is only needed if using the MCP tool directly.",
+          ),
         fix: z
           .boolean()
           .optional()
@@ -345,6 +357,142 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       },
     },
     createAnsibleLintHandler(),
+    [],
+  );
+
+  // Schema with userMessage - tool extracts filename from user's prompt
+  // Using Zod schema to match other tools (required for proper MCP tool discovery)
+  const navigatorInputSchema = {
+    userMessage: z
+      .string()
+      .describe(
+        "**REQUIRED:** The user's original message/prompt. Just pass it as-is (DO NOT leave empty). " +
+          "The tool will parse it to extract the playbook filename. " +
+          "\n" +
+          "**EXAMPLES OF CORRECT USAGE:** " +
+          '- User says: \'run play1.yml\' → You MUST pass: {"userMessage": "run play1.yml"} ' +
+          '- User says: \'execute deploy playbook\' → You MUST pass: {"userMessage": "execute deploy playbook"} ' +
+          '- User says: \'run playbooks/site.yml\' → You MUST pass: {"userMessage": "run playbooks/site.yml"} ' +
+          "\n" +
+          "**DO NOT call this tool with empty userMessage or {}. Always provide the user's message.**",
+      ),
+    filePath: z
+      .string()
+      .optional()
+      .describe(
+        "Advanced: Direct file path to the playbook. " +
+          "If provided, this takes precedence over userMessage parsing. " +
+          "Most of the time, just use userMessage instead.",
+      ),
+    mode: z
+      .enum(["stdout", "interactive"])
+      .optional()
+      .default("stdout")
+      .describe(
+        "Output mode: 'stdout' (default for this tool, direct terminal output) or 'interactive' (TUI for exploration). " +
+          "Only specify if user explicitly requests a different mode.",
+      ),
+    environment: z
+      .string()
+      .optional()
+      .default("auto")
+      .describe(
+        "Environment selection: 'auto' (default, checks PATH first, then venv), 'system' (only use PATH/system), " +
+          "'venv' (only use virtual environment), or a specific venv name/path (e.g., 'ansible-dev', 'venv', '/path/to/venv'). " +
+          "When a specific venv name is provided, the tool searches in the workspace and parent directories.",
+      ),
+    disableExecutionEnvironment: z
+      .boolean()
+      .optional()
+      .default(false)
+      .describe(
+        "Set to `true` to disable execution environments (passes --ee false). " +
+          "**Use this if you encounter Podman/Docker errors.** " +
+          "When disabled, ansible-navigator will use the local Ansible installation instead of containerized execution environments.",
+      ),
+  };
+
+  registerToolWithDeps(
+    "ansible_navigator",
+    {
+      title: "Ansible Navigator",
+      description:
+        "Runs Ansible playbooks using ansible-navigator with smart features and provides information about available modes and options. " +
+        "\n\n" +
+        "**TWO MODES OF OPERATION:** " +
+        "\n" +
+        "**1. INFORMATION MODE (call with empty {}):** " +
+        "When user asks about features, modes, or capabilities, call with {} to show comprehensive guide. " +
+        "\n" +
+        "Examples: " +
+        "- 'what modes are available?' → Call: {} " +
+        "- 'how does ansible-navigator work?' → Call: {} " +
+        "- 'tell me about navigator options' → Call: {} " +
+        "\n\n" +
+        "**2. EXECUTION MODE (call with userMessage):** " +
+        "**When user asks to RUN a playbook, ALWAYS call this tool with their message.** " +
+        "\n" +
+        "The tool provides smart features: " +
+        "- 🔍 Auto-detects playbook files from user's message " +
+        "- 🐳 Handles Podman/Docker errors automatically (retries with --ee false) " +
+        "- 🔧 Environment auto-detection (PATH, venv, system) " +
+        "- 📊 Clean, formatted output with configuration details " +
+        "- 💡 Explains what happened and how to customize settings " +
+        "\n\n" +
+        "**EXECUTION EXAMPLES:** " +
+        "```\n" +
+        "User: 'run play1.yml'\n" +
+        '→ Call: {"userMessage": "run play1.yml"}\n' +
+        "\n" +
+        "User: 'run play1 in minimal mode'\n" +
+        '→ Call: {"userMessage": "run play1 in minimal mode", "mode": "stdout"}\n' +
+        "\n" +
+        "User: 'execute deploy playbook'\n" +
+        '→ Call: {"userMessage": "execute deploy playbook"}\n' +
+        "\n" +
+        "User: 'run playbooks/site.yml without Podman'\n" +
+        '→ Call: {"userMessage": "run playbooks/site.yml", "disableExecutionEnvironment": true}\n' +
+        "\n" +
+        "User: 'run using my venv at /custom/path'\n" +
+        '→ Call: {"userMessage": "run playbook", "environment": "/custom/path"}\n' +
+        "```\n" +
+        "\n\n" +
+        "**IMPORTANT:** Always pass the user's original message in userMessage. The tool extracts the playbook name and handles everything else.",
+      inputSchema: navigatorInputSchema,
+      annotations: {
+        keywords: [
+          "ansible-navigator",
+          "navigator",
+          "run",
+          "execute",
+          "playbook",
+          "playbook-execution",
+          "ansible-execution",
+          "ansible-run",
+          "yml",
+          "yaml",
+          // Common playbook names
+          "play1",
+          "play2",
+          "play3",
+          "deploy",
+          "site",
+          "main",
+          "test",
+          "setup",
+          "config",
+          "install",
+        ],
+        useCases: [
+          "Run Ansible playbooks using ansible-navigator",
+          "Execute Ansible files with ansible-navigator",
+          "Debug Ansible playbook execution issues",
+          "Test Ansible playbook execution",
+        ],
+      },
+    },
+    // Use the real handler directly - it has auto-detection logic built in
+    createAnsibleNavigatorHandler(),
     [],
   );
 
@@ -708,9 +856,13 @@ export function createAnsibleMcpServer(workspaceRoot: string) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const handlers = (server as any)._registeredTools;
       if (handlers && handlers[toolName]?.callback) {
-        return await handlers[toolName].callback(
-          request.params.arguments || {},
-        );
+        // Pass workspaceRoot to handlers that need it (like ansible_navigator)
+        const handlerArgs = request.params.arguments || {};
+
+        if (toolName === "ansible_navigator") {
+          return await handlers[toolName].callback(handlerArgs, workspaceRoot);
+        }
+        return await handlers[toolName].callback(handlerArgs);
       }
 
       // Log available tools for debugging

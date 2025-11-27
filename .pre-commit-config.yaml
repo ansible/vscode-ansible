@@ -87,12 +87,11 @@ repos:
           - --color
           - --format=gha
           - --fix
+          - --max-warnings=0
           - --cache
-          - --max-warnings
-          - "0"
+          - --cache-strategy=content
         pass_filenames: false
-        files: \.m?[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
-        types: [file]
+        always_run: true
 
       - id: git-dirty
         name: Check if git reports dirty
