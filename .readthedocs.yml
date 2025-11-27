@@ -39,9 +39,7 @@ build:
   jobs:
     build:
       html:
-        # NODE_OPTIONS must be kept in sync with one inside .env file
         - >
-          NODE_OPTIONS=--max-old-space-size=8192
           UV_PROJECT_ENVIRONMENT=$READTHEDOCS_VIRTUALENV_PATH
           PATH=~/.local/bin:$PATH
           CI=1
