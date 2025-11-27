@@ -55,6 +55,7 @@ libxrandr2 \
 libxshmfence1 \
 lsof \
 sudo \
+xauth \
 xvfb \
 2> /dev/null && \
 mkdir -p /root/.local/bin && \

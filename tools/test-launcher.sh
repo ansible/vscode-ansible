@@ -17,6 +17,8 @@ cleanup()
         EXIT_CODE=99
     fi
     log notice "Final clean up"
+    # prevents CI issues (git-leaks), also we do not need the html report
+    rm -rf out/coverage/*/lcov-report/out
     stop_server
 
     if [[ -f out/log/.failed ]]; then
