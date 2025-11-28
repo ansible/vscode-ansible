@@ -39,8 +39,6 @@ export class Log {
 let lightspeedLoggerInstance: Log | null = null;
 
 export function getLightspeedLogger(): Log {
-  if (!lightspeedLoggerInstance) {
-    lightspeedLoggerInstance = new Log();
-  }
+  lightspeedLoggerInstance ??= new Log();
   return lightspeedLoggerInstance;
 }

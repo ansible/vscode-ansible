@@ -35,9 +35,9 @@ export class GoogleProvider extends BaseLLMProvider {
   readonly name = "google";
   readonly displayName = "Google Gemini";
 
-  private client: GoogleGenAI;
-  private modelName: string;
-  private logger = getLightspeedLogger();
+  private readonly client: GoogleGenAI;
+  private readonly modelName: string;
+  private readonly logger = getLightspeedLogger();
 
   constructor(config: GoogleConfig) {
     super(config, config.timeout);
