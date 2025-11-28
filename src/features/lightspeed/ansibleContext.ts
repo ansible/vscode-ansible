@@ -128,9 +128,8 @@ Generate Ansible inventory content with:
 
     let taskCount = 0;
     for (const indicator of taskIndicators) {
-      const matches = prompt.match(indicator);
-      if (matches) {
-        taskCount += matches.length;
+      while (indicator.exec(prompt) !== null) {
+        taskCount++;
       }
     }
 
@@ -178,7 +177,9 @@ Generate Ansible inventory content with:
     const trimmed = prompt.trim();
 
     // If it doesn't start with a task indicator, add one
-    if (!trimmed.match(/^\s*-\s+name:/m) && !trimmed.match(/^\s*-\s+\w+:/m)) {
+    const namePattern = /^\s*-\s+name:/m;
+    const modulePattern = /^\s*-\s+\w+:/m;
+    if (!namePattern.test(trimmed) && !modulePattern.test(trimmed)) {
       // Check if it's just a task name or description
       if (!trimmed.includes(":")) {
         return `- name: ${trimmed}\n  `;
@@ -193,14 +194,13 @@ Generate Ansible inventory content with:
    */
   static extractTaskNames(prompt: string): string[] {
     const taskNames: string[] = [];
-    const nameMatches = prompt.match(/^\s*-\s+name:\s*(.+)$/gm);
+    const nameRegex = /^\s*-\s+name:\s*(.+)$/gm;
 
-    if (nameMatches) {
-      for (const match of nameMatches) {
-        const name = match.replace(/^\s*-\s+name:\s*/, "").trim();
-        if (name) {
-          taskNames.push(name);
-        }
+    let match;
+    while ((match = nameRegex.exec(prompt)) !== null) {
+      const name = match[1].trim();
+      if (name) {
+        taskNames.push(name);
       }
     }
 
@@ -320,9 +320,9 @@ Generate Ansible inventory content with:
       playbook: 0.1, // Low for structured content
       tasks: 0.1, // Low for precise task definitions
       handlers: 0.05, // Very low for handlers
-      vars: 0.0, // Deterministic for variables
+      vars: 0, // Deterministic for variables
       role: 0.15, // Slightly higher for creative role structure
-      inventory: 0.0, // Deterministic for inventory
+      inventory: 0, // Deterministic for inventory
     };
 
     return temperatures[fileType as keyof typeof temperatures] || 0.1;

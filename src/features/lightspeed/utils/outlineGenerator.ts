@@ -1,6 +1,43 @@
 import * as yaml from "yaml";
 
 /**
+ * Extract task names from a task list
+ */
+function extractTaskNames(taskList: unknown[]): string[] {
+  const taskNames: string[] = [];
+  for (const task of taskList) {
+    if (task && typeof task === "object" && "name" in task && task.name) {
+      taskNames.push(task.name as string);
+    }
+  }
+  return taskNames;
+}
+
+/**
+ * Extract tasks from a single play
+ */
+function extractTasksFromPlay(play: Record<string, unknown>): string[] {
+  const tasks: string[] = [];
+
+  // Extract from tasks
+  if (play.tasks && Array.isArray(play.tasks)) {
+    tasks.push(...extractTaskNames(play.tasks));
+  }
+
+  // Extract from pre_tasks
+  if (play.pre_tasks && Array.isArray(play.pre_tasks)) {
+    tasks.push(...extractTaskNames(play.pre_tasks));
+  }
+
+  // Extract from post_tasks
+  if (play.post_tasks && Array.isArray(play.post_tasks)) {
+    tasks.push(...extractTaskNames(play.post_tasks));
+  }
+
+  return tasks;
+}
+
+/**
  * Generate an outline (numbered list of tasks) from a playbook YAML
  * This mimics the WCA backend behavior for createOutline
  */
@@ -14,31 +51,10 @@ export function generateOutlineFromPlaybook(playbookYaml: string): string {
 
     const tasks: string[] = [];
 
-    // Extract tasks from the playbook
+    // Extract tasks from all plays
     for (const play of parsed) {
-      if (play.tasks && Array.isArray(play.tasks)) {
-        for (const task of play.tasks) {
-          if (task.name) {
-            tasks.push(task.name);
-          }
-        }
-      }
-
-      // Also check pre_tasks and post_tasks
-      if (play.pre_tasks && Array.isArray(play.pre_tasks)) {
-        for (const task of play.pre_tasks) {
-          if (task.name) {
-            tasks.push(task.name);
-          }
-        }
-      }
-
-      if (play.post_tasks && Array.isArray(play.post_tasks)) {
-        for (const task of play.post_tasks) {
-          if (task.name) {
-            tasks.push(task.name);
-          }
-        }
+      if (play && typeof play === "object") {
+        tasks.push(...extractTasksFromPlay(play as Record<string, unknown>));
       }
     }
 
