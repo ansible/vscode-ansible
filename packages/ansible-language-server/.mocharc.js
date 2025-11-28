@@ -23,4 +23,3 @@ module.exports = {
   // https://www.w3resource.com/mocha/testing-mocha.php#:~:text=FAST%3A%20All%20tests%20that%20run,shows%20the%20duration%20in%20red.
   slow: 8000, // tests with >0.5x will show duration in yellow, and >1x in red.
 };
-
