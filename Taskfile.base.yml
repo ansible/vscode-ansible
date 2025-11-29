@@ -1,0 +1,41 @@
+---
+# see https://taskfile.dev/#/
+version: "3"
+tasks:
+  install:
+    cmds:
+      - uv sync --no-progress -q --active
+      - yarn install --immutable --silent
+    deps:
+      - setup
+    dir: "{{ .TASKFILE_DIR }}"
+    generates:
+      - node_modules/.yarn-state.yml
+    sources:
+      - package.json
+      - packages/*/package.json
+      - pyproject.toml
+      - tools/test-setup.sh
+      - uv.lock
+      - yarn.lock
+    run: once
+    interactive: true
+  setup:
+    desc: Install dependencies
+    env:
+      # used inside test-setup.sh
+      OS: "{{OS}}"
+      ARCH: "{{ARCH}}"
+    dir: "{{ .TASKFILE_DIR }}"
+    cmds:
+      - bash ./tools/precheck.sh
+      - bash ./tools/test-setup.sh
+    sources:
+      - ./tools/precheck.sh
+      - ./tools/test-setup.sh
+      - pyproject.toml
+      - tools/test-setup.sh
+    generates:
+      - out/log/manifest-*.yml
+    run: once
+    interactive: true
