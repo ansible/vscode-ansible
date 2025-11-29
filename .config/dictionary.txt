@@ -54,6 +54,7 @@ equalto
 eslintcache
 extest
 fqcn
+genai
 githubcli
 haaaad
 highlightjs
