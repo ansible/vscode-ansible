@@ -20,7 +20,7 @@ Before you begin, make sure your system has:
 - The [`ansible-dev-tools`](https://github.com/ansible/ansible-dev-tools) python
   package
 - A supported version of
-  [`ansible-core`](https://docs.ansible.com/ansible/latest/reference_appendices/release_and_maintenance.html)
+  [`ansible-core`](https://docs.ansible.com/projects/ansible/latest/reference_appendices/release_and_maintenance.html)
 - Optionally, a `devcontainer.yaml` file to develop in a devcontainer
   eliminating the need to install and manage python versions and packages.
 
@@ -118,7 +118,7 @@ This extension supports generating dev containers to provide isolated,
 consistent Ansible development environments in VS Code. The
 [Microsoft Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 is required for this feature. See the
-[Ansible Development Tools (ADT)- Execution Environment documentation](https://ansible.readthedocs.io/projects/dev-tools/container/)
+[Ansible Development Tools (ADT)- Execution Environment documentation](https://docs.ansible.com/projects/dev-tools/container/)
 for more information on what is included in the generated dev container.
 
 ### Create a dev container
@@ -298,7 +298,7 @@ is provided instantaneously.
 On opening and saving a document, `ansible-lint` is executed in the background
 and any findings are presented as errors. You might find it useful that
 rules/tags added to `warn_list` (see
-[Ansible Lint Documentation](https://ansible.readthedocs.io/projects/lint/configuring/))
+[Ansible Lint Documentation](https://docs.ansible.com/projects/lint/configuring/))
 are shown as warnings instead.
 
 ### Smart autocompletion
@@ -314,7 +314,7 @@ improve user experience:
   shown last, otherwise ordering from the documentation is preserved
 - FQCNs (fully qualified collection names) are inserted only when necessary;
   collections configured with the
-  [`collections` keyword](https://docs.ansible.com/ansible/latest/collections_guide/index.html#simplifying-module-names-with-the-collections-keyword)
+  [`collections` keyword](https://docs.ansible.com/projects/ansible/latest/collections_guide/index.html#simplifying-module-names-with-the-collections-keyword)
   are honored. This behavior can be disabled in extension settings.
 
 ### Auto-closing Jinja expressions
@@ -366,7 +366,7 @@ which you can learn more about at
 ## Contact
 
 We welcome your feedback, questions and ideas. Learn how to
-[contact the Ansible VS Code team](https://ansible.readthedocs.io/projects/vscode-ansible/contact/).
+[contact the Ansible VS Code team](https://docs.ansible.com/projects/vscode-ansible/contact/).
 
 ## Credit
 

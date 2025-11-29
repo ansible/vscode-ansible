@@ -16,7 +16,7 @@ only to topics you need!
   fellow enthusiasts.
 - [News & Announcements](https://forum.ansible.com/c/news/5): track project-wide
   announcements including social events. The
-  [Bullhorn newsletter](https://docs.ansible.com/ansible/devel/community/communication.html#the-bullhorn),
+  [Bullhorn newsletter](https://docs.ansible.com/projects/ansible/devel/community/communication.html#the-bullhorn),
   which is used to announce releases and important changes, can also be found
   here.
 
@@ -28,5 +28,5 @@ for some practical advice on finding your way around.
 
 - [#devtools:ansible.im](https://matrix.to/#/#devtools:ansible.im): a chat
   channel via the Matrix protocol. See the
-  [Ansible communication guide](https://docs.ansible.com/ansible/devel/community/communication.html#real-time-chat)
+  [Ansible communication guide](https://docs.ansible.com/projects/ansible/devel/community/communication.html#real-time-chat)
   to learn how to join.

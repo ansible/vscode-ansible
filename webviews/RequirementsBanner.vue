@@ -6,7 +6,7 @@
       <div class="banner-message">
         <template v-if="failures.length === 1 && failures[0].type === 'ansible-creator'">
           This feature requires ansible-creator version <b>25.0.1</b> or higher.
-          To upgrade or install ansible-creator, please refer to the official installation and upgrade <a href="https://ansible.readthedocs.io/projects/creator/installing/">guide</a>.
+          To upgrade or install ansible-creator, please refer to the official installation and upgrade <a href="https://docs.ansible.com/projects/creator/installing/">guide</a>.
         </template>
         <template v-else>
           <ul>

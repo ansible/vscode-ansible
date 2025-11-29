@@ -4,7 +4,7 @@
     name = 'Grammar for detecting Ansible keywords';
     comment = (
         'Extracted from:',
-        'https://docs.ansible.com/ansible/2.10/reference_appendices/playbooks_keywords.html',
+        'https://docs.ansible.com/projects/ansible/2.10/reference_appendices/playbooks_keywords.html',
         'Added `label`, `pause`, `loop_var`, `extended` as Ansible keywords (occur in loop_control)'
     );
     patterns = (

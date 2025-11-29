@@ -12,4 +12,4 @@ Please read our [policies for reporting bugs][bug reports policy] if you want to
 report a security issue that might affect Ansible.
 
 [bug reports policy]:
-  https://docs.ansible.com/ansible/devel/community/reporting_bugs_and_features.html#reporting-a-bug
+  https://docs.ansible.com/projects/ansible/devel/community/reporting_bugs_and_features.html#reporting-a-bug

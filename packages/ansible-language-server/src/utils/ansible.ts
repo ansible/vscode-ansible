@@ -703,7 +703,7 @@ taskKeywords.set(
   `Allows handlers to listen on topics that can group multiple handlers.
 
   NOTE:
-  Applies only to handlers. See [listen](https://docs.ansible.com/ansible/latest/user_guide/playbooks_intro.html#handlers-running-when-notified)`,
+  Applies only to handlers. See [listen](https://docs.ansible.com/projects/ansible/latest/user_guide/playbooks_intro.html#handlers-running-when-notified)`,
 );
 
 export const playExclusiveKeywords = new Map(
