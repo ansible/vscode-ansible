@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ProviderManager } from "../../../../src/features/lightspeed/providerManager";
 import type { SettingsManager } from "../../../../src/settings";
 import type { LightSpeedAPI } from "../../../../src/features/lightspeed/api";
-import type { LLMProvider, ProviderStatus } from "../../../../src/features/lightspeed/providers/base";
+import type {
+  LLMProvider,
+  ProviderStatus,
+} from "../../../../src/features/lightspeed/providers/base";
 import {
   PROVIDER_TYPES,
   MODEL_NAMES,
@@ -32,7 +35,8 @@ vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
         {
           type: "wca",
           name: "wca",
-          displayName: "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+          displayName:
+            "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
           description: "Official Red Hat Ansible Lightspeed service",
         },
         {
@@ -50,8 +54,14 @@ vi.mock("../../../../src/features/lightspeed/providers/factory", () => {
 
 // Mock isError utility
 vi.mock("../../../../src/features/lightspeed/utils/errors", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   isError: vi.fn((response: any) => {
-    return response && (response.code || response.message) && !response.playbook && !response.role;
+    return (
+      response &&
+      (response.code || response.message) &&
+      !response.playbook &&
+      !response.role
+    );
   }),
 }));
 
@@ -85,18 +95,23 @@ describe("ProviderManager", () => {
     } as unknown as LightSpeedAPI;
 
     // Get the mock provider from the factory
-    const factoryModule = await import("../../../../src/features/lightspeed/providers/factory.js");
+    const factoryModule = await import(
+      "../../../../src/features/lightspeed/providers/factory.js"
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockLlmProvider = (factoryModule as any).__mockGoogleProvider;
 
     // Reset mock implementations
-    vi.mocked(mockLlmProvider.getStatus).mockResolvedValue({
+    const getStatus = vi.mocked(mockLlmProvider.getStatus);
+    const createProvider = vi.mocked(providerFactory.createProvider);
+    getStatus.mockResolvedValue({
       connected: true,
       modelInfo: {
         name: MODEL_NAMES.GEMINI_PRO,
         capabilities: ["completion", "chat", "generation"],
       },
     });
-    vi.mocked(providerFactory.createProvider).mockReturnValue(mockLlmProvider);
+    createProvider.mockReturnValue(mockLlmProvider);
   });
 
   describe("constructor and initialization", () => {
@@ -104,20 +119,22 @@ describe("ProviderManager", () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
 
       // Wait for async initialization
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(providerFactory.createProvider).toHaveBeenCalledWith(
+      const createProvider2 = vi.mocked(providerFactory.createProvider);
+      const getStatus2 = vi.mocked(mockLlmProvider.getStatus);
+      expect(createProvider2).toHaveBeenCalledWith(
         PROVIDER_TYPES.GOOGLE,
         mockSettingsManager.settings.lightSpeedService,
       );
-      expect(mockLlmProvider.getStatus).toHaveBeenCalled();
+      expect(getStatus2).toHaveBeenCalled();
     });
 
     it("should not initialize provider when lightspeed is disabled", async () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(providerFactory.createProvider).not.toHaveBeenCalled();
     });
@@ -128,19 +145,24 @@ describe("ProviderManager", () => {
       };
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(providerFactory.createProvider).not.toHaveBeenCalled();
+      const createProvider4 = vi.mocked(providerFactory.createProvider);
+      expect(createProvider4).not.toHaveBeenCalled();
     });
 
     it("should handle provider initialization errors", async () => {
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {
+          // Empty implementation for testing
+        });
       vi.mocked(providerFactory.createProvider).mockImplementation(() => {
         throw new Error("Invalid API key");
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Failed to initialize LLM provider:",
@@ -151,14 +173,18 @@ describe("ProviderManager", () => {
     });
 
     it("should store error status when provider fails to connect", async () => {
-      const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const consoleWarnSpy = vi
+        .spyOn(console, "warn")
+        .mockImplementation(() => {
+          // Empty implementation for testing
+        });
       vi.mocked(mockLlmProvider.getStatus).mockResolvedValue({
         connected: false,
         error: "API key invalid",
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(consoleWarnSpy).toHaveBeenCalledWith(
         expect.stringContaining("failed to connect"),
@@ -172,21 +198,23 @@ describe("ProviderManager", () => {
   describe("refreshProviders", () => {
     it("should reinitialize provider on refresh", async () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       vi.clearAllMocks();
 
       await providerManager.refreshProviders();
 
-      expect(providerFactory.createProvider).toHaveBeenCalled();
-      expect(mockLlmProvider.getStatus).toHaveBeenCalled();
+      const createProvider5 = vi.mocked(providerFactory.createProvider);
+      const getStatus3 = vi.mocked(mockLlmProvider.getStatus);
+      expect(createProvider5).toHaveBeenCalled();
+      expect(getStatus3).toHaveBeenCalled();
     });
   });
 
   describe("getActiveProvider", () => {
     it("should return llmprovider when Google provider is configured", async () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const activeProvider = providerManager.getActiveProvider();
 
@@ -199,7 +227,7 @@ describe("ProviderManager", () => {
       };
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const activeProvider = providerManager.getActiveProvider();
 
@@ -210,7 +238,7 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const activeProvider = providerManager.getActiveProvider();
 
@@ -223,7 +251,7 @@ describe("ProviderManager", () => {
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const activeProvider = providerManager.getActiveProvider();
 
@@ -235,7 +263,7 @@ describe("ProviderManager", () => {
     it("should return WCA status when requested", async () => {
       mockSettingsManager.settings.lightSpeedService.enabled = true;
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const status = providerManager.getProviderStatus("wca");
 
@@ -260,7 +288,7 @@ describe("ProviderManager", () => {
       vi.mocked(mockLlmProvider.getStatus).mockResolvedValue(mockStatus);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const status = providerManager.getProviderStatus("llmprovider");
 
@@ -271,9 +299,10 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      mockSettingsManager.settings.lightSpeedService.provider = "unknown" as any;
+      mockSettingsManager.settings.lightSpeedService.provider =
+        "unknown" as any;
 
       const status = providerManager.getProviderStatus("llmprovider");
 
@@ -289,10 +318,12 @@ describe("ProviderManager", () => {
         suggestionId: TEST_RESPONSES.SUGGESTION_ID,
       };
 
-      vi.mocked(mockLlmProvider.completionRequest).mockResolvedValue(mockCompletion);
+      vi.mocked(mockLlmProvider.completionRequest).mockResolvedValue(
+        mockCompletion,
+      );
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -319,7 +350,7 @@ describe("ProviderManager", () => {
       vi.mocked(mockWcaApi.completionRequest).mockResolvedValue(mockCompletion);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -336,7 +367,7 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -357,10 +388,12 @@ describe("ProviderManager", () => {
         model: MODEL_NAMES.GEMINI_PRO,
       };
 
-      vi.mocked(mockLlmProvider.chatRequest).mockResolvedValue(mockChatResponse);
+      vi.mocked(mockLlmProvider.chatRequest).mockResolvedValue(
+        mockChatResponse,
+      );
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         message: "How do I install nginx?",
@@ -379,7 +412,7 @@ describe("ProviderManager", () => {
       };
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         message: "How do I install nginx?",
@@ -394,7 +427,7 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         message: "How do I install nginx?",
@@ -414,10 +447,12 @@ describe("ProviderManager", () => {
         model: MODEL_NAMES.GEMINI_PRO,
       };
 
-      vi.mocked(mockLlmProvider.generatePlaybook).mockResolvedValue(mockPlaybook);
+      vi.mocked(mockLlmProvider.generatePlaybook).mockResolvedValue(
+        mockPlaybook,
+      );
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -442,11 +477,13 @@ describe("ProviderManager", () => {
         generationId: "playbook-gen-123",
       };
 
-      vi.mocked(mockWcaApi.playbookGenerationRequest).mockResolvedValue(mockWcaResponse);
+      vi.mocked(mockWcaApi.playbookGenerationRequest).mockResolvedValue(
+        mockWcaResponse,
+      );
       vi.mocked(isError).mockReturnValue(false);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -473,7 +510,7 @@ describe("ProviderManager", () => {
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -495,11 +532,13 @@ describe("ProviderManager", () => {
         message: "Invalid prompt",
       };
 
-      vi.mocked(mockWcaApi.playbookGenerationRequest).mockResolvedValue(mockErrorResponse);
+      vi.mocked(mockWcaApi.playbookGenerationRequest).mockResolvedValue(
+        mockErrorResponse,
+      );
       vi.mocked(isError).mockReturnValue(true);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -515,7 +554,7 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.INSTALL_NGINX,
@@ -539,7 +578,7 @@ describe("ProviderManager", () => {
       vi.mocked(mockLlmProvider.generateRole).mockResolvedValue(mockRole);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.CREATE_ROLE,
@@ -572,11 +611,13 @@ describe("ProviderManager", () => {
         ],
       };
 
-      vi.mocked(mockWcaApi.roleGenerationRequest).mockResolvedValue(mockWcaResponse);
+      vi.mocked(mockWcaApi.roleGenerationRequest).mockResolvedValue(
+        mockWcaResponse,
+      );
       vi.mocked(isError).mockReturnValue(false);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.CREATE_ROLE,
@@ -603,7 +644,7 @@ describe("ProviderManager", () => {
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.CREATE_ROLE,
@@ -625,11 +666,13 @@ describe("ProviderManager", () => {
         message: "Invalid role prompt",
       };
 
-      vi.mocked(mockWcaApi.roleGenerationRequest).mockResolvedValue(mockErrorResponse);
+      vi.mocked(mockWcaApi.roleGenerationRequest).mockResolvedValue(
+        mockErrorResponse,
+      );
       vi.mocked(isError).mockReturnValue(true);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.CREATE_ROLE,
@@ -645,7 +688,7 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const params = {
         prompt: TEST_PROMPTS.CREATE_ROLE,
@@ -667,7 +710,7 @@ describe("ProviderManager", () => {
       });
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const status = await providerManager.testProviderConnection("wca");
 
@@ -690,7 +733,7 @@ describe("ProviderManager", () => {
       );
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const status = await providerManager.testProviderConnection("wca");
 
@@ -712,9 +755,10 @@ describe("ProviderManager", () => {
       vi.mocked(mockLlmProvider.getStatus).mockResolvedValue(mockStatus);
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      const status = await providerManager.testProviderConnection("llmprovider");
+      const status =
+        await providerManager.testProviderConnection("llmprovider");
 
       expect(mockLlmProvider.getStatus).toHaveBeenCalled();
       expect(status).toEqual(mockStatus);
@@ -724,9 +768,10 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
-      const status = await providerManager.testProviderConnection("llmprovider");
+      const status =
+        await providerManager.testProviderConnection("llmprovider");
 
       expect(status).toEqual({
         connected: false,
@@ -738,14 +783,15 @@ describe("ProviderManager", () => {
   describe("getAvailableProviders", () => {
     it("should return available providers with Google active", async () => {
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const providers = providerManager.getAvailableProviders();
 
       expect(providers).toEqual([
         {
           type: PROVIDER_TYPES.WCA,
-          displayName: "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+          displayName:
+            "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
           active: false,
         },
         {
@@ -762,14 +808,15 @@ describe("ProviderManager", () => {
       };
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const providers = providerManager.getAvailableProviders();
 
       expect(providers).toEqual([
         {
           type: PROVIDER_TYPES.WCA,
-          displayName: "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
+          displayName:
+            "Red Hat Ansible Lightspeed with IBM watsonx Code Assistant",
           active: true,
         },
         {
@@ -784,11 +831,11 @@ describe("ProviderManager", () => {
       mockSettingsManager.settings.lightSpeedService.enabled = false;
 
       providerManager = new ProviderManager(mockSettingsManager, mockWcaApi);
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
 
       const providers = providerManager.getAvailableProviders();
 
-      expect(providers.every(p => !p.active)).toBe(true);
+      expect(providers.every((p) => !p.active)).toBe(true);
     });
   });
 });

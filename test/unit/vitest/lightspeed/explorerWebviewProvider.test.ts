@@ -3,10 +3,7 @@ import * as vscode from "vscode";
 import { LightspeedExplorerWebviewViewProvider } from "../../../../src/features/lightspeed/explorerWebviewViewProvider";
 import type { LightspeedUser } from "../../../../src/features/lightspeed/lightspeedUser";
 import type { SettingsManager } from "../../../../src/settings";
-import {
-  PROVIDER_TYPES,
-  TEST_LIGHTSPEED_SETTINGS,
-} from "./testConstants";
+import { PROVIDER_TYPES, TEST_LIGHTSPEED_SETTINGS } from "./testConstants";
 
 // Mock vscode module
 vi.mock("vscode", () => {
@@ -35,7 +32,9 @@ vi.mock("../../../../src/utils/logger", () => ({
 // Mock explorerView utilities
 vi.mock("../../../../src/features/lightspeed/utils/explorerView", () => ({
   getWebviewContentWithLoginForm: vi.fn(() => "<html>Login Form</html>"),
-  getWebviewContentWithActiveSession: vi.fn(() => "<html>Active Session</html>"),
+  getWebviewContentWithActiveSession: vi.fn(
+    () => "<html>Active Session</html>",
+  ),
   setWebviewMessageListener: vi.fn(),
 }));
 
@@ -144,9 +143,10 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
     });
 
     it("should set webview html content", async () => {
-      vi.mocked(mockLightspeedUser.getLightspeedUserContent).mockResolvedValue(
-        "Test User Content",
+      const getLightspeedUserContent3 = vi.mocked(
+        mockLightspeedUser.getLightspeedUserContent,
       );
+      getLightspeedUserContent3.mockResolvedValue("Test User Content");
 
       await provider.resolveWebviewView(
         mockWebviewView,
@@ -174,10 +174,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         {} as vscode.CancellationToken,
       );
 
-      expect(setWebviewMessageListener).toHaveBeenCalledWith(
-        mockWebview,
-        [],
-      );
+      expect(setWebviewMessageListener).toHaveBeenCalledWith(mockWebview, []);
     });
   });
 
@@ -226,7 +223,9 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         false,
         false,
       );
-      expect(mockLightspeedUser.getLightspeedUserContent).not.toHaveBeenCalled();
+      expect(
+        vi.mocked(mockLightspeedUser.getLightspeedUserContent),
+      ).not.toHaveBeenCalled();
     });
 
     it("should pass correct playbook and role status for Google provider", async () => {
@@ -234,6 +233,8 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
       vi.mocked(isDocumentInRole).mockResolvedValue(true);
 
       // Mock active editor with ansible document
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           languageId: "ansible",
@@ -266,9 +267,10 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
     });
 
     it("should show login form when WCA user is not authenticated", async () => {
-      vi.mocked(mockLightspeedUser.getLightspeedUserContent).mockResolvedValue(
-        "",
+      const getLightspeedUserContent = vi.mocked(
+        mockLightspeedUser.getLightspeedUserContent,
       );
+      getLightspeedUserContent.mockResolvedValue("");
 
       await provider.resolveWebviewView(
         mockWebviewView,
@@ -276,7 +278,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         {} as vscode.CancellationToken,
       );
 
-      expect(mockLightspeedUser.getLightspeedUserContent).toHaveBeenCalled();
+      expect(getLightspeedUserContent).toHaveBeenCalled();
       expect(getWebviewContentWithLoginForm).toHaveBeenCalledWith(
         mockWebview,
         mockExtensionUri,
@@ -286,6 +288,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
 
   describe("hasPlaybookOpened", () => {
     it("should return false when no active editor", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = undefined;
 
       await provider.resolveWebviewView(
@@ -304,6 +307,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
     });
 
     it("should return false when document is not ansible language", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           languageId: "yaml",
@@ -323,6 +327,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
     it("should return true when ansible playbook is open", async () => {
       vi.mocked(isPlaybook).mockReturnValue(true);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           languageId: "ansible",
@@ -351,6 +356,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         throw new Error("Parse error");
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           languageId: "ansible",
@@ -376,6 +382,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
 
   describe("hasRoleOpened", () => {
     it("should return false when no active editor", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = undefined;
 
       await provider.resolveWebviewView(
@@ -390,6 +397,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
     it("should return true when role document is open", async () => {
       vi.mocked(isDocumentInRole).mockResolvedValue(true);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           uri: { fsPath: "/path/to/roles/myrole/tasks/main.yml" },
@@ -417,6 +425,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         new Error("File system error"),
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           uri: { fsPath: "/path/to/file.yml" },
@@ -450,6 +459,7 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
       vi.mocked(isPlaybook).mockReturnValue(true);
       vi.mocked(isDocumentInRole).mockResolvedValue(true);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (vscode.window as any).activeTextEditor = {
         document: {
           languageId: "ansible",
@@ -479,9 +489,10 @@ describe("LightspeedExplorerWebviewViewProvider", () => {
         ...TEST_LIGHTSPEED_SETTINGS.WCA,
       };
 
-      vi.mocked(mockLightspeedUser.getLightspeedUserContent).mockResolvedValue(
-        "",
+      const getLightspeedUserContent2 = vi.mocked(
+        mockLightspeedUser.getLightspeedUserContent,
       );
+      getLightspeedUserContent2.mockResolvedValue("");
 
       await provider.resolveWebviewView(
         mockWebviewView,

@@ -43,54 +43,63 @@ vi.mock("../../../../../src/extension", () => {
   };
 });
 
-vi.mock("../../../../../src/features/lightspeed/vue/views/lightspeedUtils", async () => {
-  const actual = await vi.importActual(
-    "../../../../../src/features/lightspeed/vue/views/lightspeedUtils",
-  );
-  return {
-    ...actual,
-    contentMatch: vi.fn(),
-    updatePromptHistory: vi.fn(),
-    generatePlaybook: vi.fn(),
-    explainPlaybook: vi.fn(),
-    explainRole: vi.fn(),
-    generateRole: vi.fn(),
-    thumbsUpDown: vi.fn(),
-  };
-});
+vi.mock(
+  "../../../../../src/features/lightspeed/vue/views/lightspeedUtils",
+  async () => {
+    const actual = await vi.importActual(
+      "../../../../../src/features/lightspeed/vue/views/lightspeedUtils",
+    );
+    return {
+      ...actual,
+      contentMatch: vi.fn(),
+      updatePromptHistory: vi.fn(),
+      generatePlaybook: vi.fn(),
+      explainPlaybook: vi.fn(),
+      explainRole: vi.fn(),
+      generateRole: vi.fn(),
+      thumbsUpDown: vi.fn(),
+    };
+  },
+);
 
-vi.mock("../../../../../src/features/lightspeed/vue/views/fileOperations", () => {
-  class MockFileOperations {
-    openLogFile = vi.fn();
-    openFolderInWorkspaceProjects = vi.fn();
-    openFolderInWorkspacePlugin = vi.fn();
-    openFolderInWorkspaceRole = vi.fn();
-    openFolderInWorkspaceDevcontainer = vi.fn();
-    openDevfile = vi.fn();
-    openFileInEditor = vi.fn();
-  }
+vi.mock(
+  "../../../../../src/features/lightspeed/vue/views/fileOperations",
+  () => {
+    class MockFileOperations {
+      openLogFile = vi.fn();
+      openFolderInWorkspaceProjects = vi.fn();
+      openFolderInWorkspacePlugin = vi.fn();
+      openFolderInWorkspaceRole = vi.fn();
+      openFolderInWorkspaceDevcontainer = vi.fn();
+      openDevfile = vi.fn();
+      openFileInEditor = vi.fn();
+    }
 
-  return {
-    FileOperations: MockFileOperations,
-    openNewPlaybookEditor: vi.fn(),
-    getCollectionsFromWorkspace: vi.fn().mockResolvedValue([]),
-    getRoleBaseDir: vi.fn(),
-    fileExists: vi.fn(),
-  };
-});
+    return {
+      FileOperations: MockFileOperations,
+      openNewPlaybookEditor: vi.fn(),
+      getCollectionsFromWorkspace: vi.fn().mockResolvedValue([]),
+      getRoleBaseDir: vi.fn(),
+      fileExists: vi.fn(),
+    };
+  },
+);
 
-vi.mock("../../../../../src/features/lightspeed/vue/views/ansibleCreatorUtils", () => {
-  class MockAnsibleCreatorOperations {
-    runInitCommand = vi.fn();
-    runPluginAddCommand = vi.fn();
-    runRoleAddCommand = vi.fn();
-    isADEPresent = vi.fn();
-  }
+vi.mock(
+  "../../../../../src/features/lightspeed/vue/views/ansibleCreatorUtils",
+  () => {
+    class MockAnsibleCreatorOperations {
+      runInitCommand = vi.fn();
+      runPluginAddCommand = vi.fn();
+      runRoleAddCommand = vi.fn();
+      isADEPresent = vi.fn();
+    }
 
-  return {
-    AnsibleCreatorOperations: MockAnsibleCreatorOperations,
-  };
-});
+    return {
+      AnsibleCreatorOperations: MockAnsibleCreatorOperations,
+    };
+  },
+);
 
 vi.mock("../../../../../src/utils/telemetryUtils", () => {
   return {
@@ -130,14 +139,25 @@ describe("WebviewMessageHandlers", () => {
     vi.clearAllMocks();
 
     // Reset provider to default
-    lightSpeedManager.settingsManager.settings.lightSpeedService.provider = "google";
+    lightSpeedManager.settingsManager.settings.lightSpeedService.provider =
+      "google";
 
     // Reset mocks to default implementations
     if (lightSpeedManager.providerManager) {
-      (lightSpeedManager.providerManager.generatePlaybook as ReturnType<typeof vi.fn>).mockReset();
+      (
+        lightSpeedManager.providerManager.generatePlaybook as ReturnType<
+          typeof vi.fn
+        >
+      ).mockReset();
     }
-    (lightSpeedManager.apiInstance.playbookGenerationRequest as ReturnType<typeof vi.fn>).mockReset();
-    (lightSpeedManager.apiInstance.feedbackRequest as ReturnType<typeof vi.fn>).mockReset();
+    (
+      lightSpeedManager.apiInstance.playbookGenerationRequest as ReturnType<
+        typeof vi.fn
+      >
+    ).mockReset();
+    (
+      lightSpeedManager.apiInstance.feedbackRequest as ReturnType<typeof vi.fn>
+    ).mockReset();
 
     // Setup mock webview
     mockWebview = {
@@ -162,13 +182,16 @@ describe("WebviewMessageHandlers", () => {
   describe("handleGeneratePlaybook", () => {
     it("should successfully generate playbook with LLM provider and post message to webview", async () => {
       const mockPlaybookResponse: PlaybookGenerationResponseParams = {
-        playbook: "---\n- name: Test playbook\n  hosts: all\n  tasks:\n    - name: Test task\n      debug:\n        msg: Hello",
+        playbook:
+          "---\n- name: Test playbook\n  hosts: all\n  tasks:\n    - name: Test task\n      debug:\n        msg: Hello",
         outline: "1. Test task",
         generationId: "test-generation-id",
       };
 
       // Mock generatePlaybook to return success
-      const generatePlaybookSpy = vi.spyOn(lightspeedUtils, "generatePlaybook").mockResolvedValue(mockPlaybookResponse);
+      const generatePlaybookSpy = vi
+        .spyOn(lightspeedUtils, "generatePlaybook")
+        .mockResolvedValue(mockPlaybookResponse);
 
       const message = {
         type: "generatePlaybook",
@@ -218,7 +241,9 @@ describe("WebviewMessageHandlers", () => {
       };
 
       // Mock generatePlaybook to return error
-      vi.spyOn(lightspeedUtils, "generatePlaybook").mockResolvedValue(mockError);
+      vi.spyOn(lightspeedUtils, "generatePlaybook").mockResolvedValue(
+        mockError,
+      );
 
       const message = {
         type: "generatePlaybook",
@@ -247,7 +272,6 @@ describe("WebviewMessageHandlers", () => {
     });
   });
 
-
   describe("handleMessage dispatcher", () => {
     it("should route message to correct handler based on 'type' field", async () => {
       const message = {
@@ -269,7 +293,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers.handleMessage(message, mockWebview, mockContext);
 
-      expect(consoleSpy).toHaveBeenCalledWith("Unknown message type/command: unknownMessageType");
+      expect(consoleSpy).toHaveBeenCalledWith(
+        "Unknown message type/command: unknownMessageType",
+      );
       consoleSpy.mockRestore();
     });
   });
@@ -367,11 +393,17 @@ describe("WebviewMessageHandlers", () => {
 
     it("should handle getRecentPrompts", () => {
       const recentPrompts = ["prompt1", "prompt2"];
-      (mockContext.workspaceState.get as ReturnType<typeof vi.fn>).mockReturnValue(recentPrompts);
+      (
+        mockContext.workspaceState.get as ReturnType<typeof vi.fn>
+      ).mockReturnValue(recentPrompts);
 
       const message = { type: "getRecentPrompts" };
 
-      messageHandlers["handleGetRecentPrompts"](message, mockWebview, mockContext);
+      messageHandlers["handleGetRecentPrompts"](
+        message,
+        mockWebview,
+        mockContext,
+      );
 
       expect(mockContext.workspaceState.get).toHaveBeenCalledWith(
         "ansible.lightspeed.recent_prompts",
@@ -542,7 +574,11 @@ describe("WebviewMessageHandlers", () => {
         },
       };
 
-      await messageHandlers["handleGenerateRole"](message, mockWebview, mockContext);
+      await messageHandlers["handleGenerateRole"](
+        message,
+        mockWebview,
+        mockContext,
+      );
 
       expect(generateRole).toHaveBeenCalledWith(
         lightSpeedManager.apiInstance,
@@ -585,7 +621,11 @@ describe("WebviewMessageHandlers", () => {
         },
       };
 
-      await messageHandlers["handleGenerateRole"](message, mockWebview, mockContext);
+      await messageHandlers["handleGenerateRole"](
+        message,
+        mockWebview,
+        mockContext,
+      );
 
       expect(mockWebview.postMessage).toHaveBeenCalledWith({
         type: "errorMessage",
@@ -632,7 +672,8 @@ describe("WebviewMessageHandlers", () => {
     });
 
     it("should handle feedback for LLM provider with telemetry", async () => {
-      lightSpeedManager.settingsManager.settings.lightSpeedService.provider = "google";
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider =
+        "google";
 
       const feedbackRequest: FeedbackRequestParams = {
         model: "gpt-4",
@@ -661,14 +702,21 @@ describe("WebviewMessageHandlers", () => {
       );
 
       // Should not call API feedbackRequest for LLM providers
-      expect(lightSpeedManager.apiInstance.feedbackRequest).not.toHaveBeenCalled();
+      expect(
+        lightSpeedManager.apiInstance.feedbackRequest,
+      ).not.toHaveBeenCalled();
     });
 
     it("should handle feedback telemetry error gracefully", async () => {
-      lightSpeedManager.settingsManager.settings.lightSpeedService.provider = "google";
-      vi.mocked(sendTelemetry).mockRejectedValueOnce(new Error("Telemetry error"));
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider =
+        "google";
+      vi.mocked(sendTelemetry).mockRejectedValueOnce(
+        new Error("Telemetry error"),
+      );
 
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const feedbackRequest: FeedbackRequestParams = {
         model: "gpt-4",
@@ -692,7 +740,8 @@ describe("WebviewMessageHandlers", () => {
     });
 
     it("should handle feedback for WCA provider with API call", async () => {
-      lightSpeedManager.settingsManager.settings.lightSpeedService.provider = "wca";
+      lightSpeedManager.settingsManager.settings.lightSpeedService.provider =
+        "wca";
 
       const feedbackRequest: FeedbackRequestParams = {
         model: "wca-model",
@@ -710,10 +759,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleFeedback"](message);
 
-      expect(lightSpeedManager.apiInstance.feedbackRequest).toHaveBeenCalledWith(
-        feedbackRequest,
-        false,
-      );
+      expect(
+        lightSpeedManager.apiInstance.feedbackRequest,
+      ).toHaveBeenCalledWith(feedbackRequest, false);
 
       // Should not call sendTelemetry for WCA provider
       expect(vi.mocked(sendTelemetry)).not.toHaveBeenCalled();
@@ -750,10 +798,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitCreatePlugin"](message, mockWebview);
 
-      expect(messageHandlers["creatorOps"].runPluginAddCommand).toHaveBeenCalledWith(
-        message.payload,
-        mockWebview,
-      );
+      expect(
+        messageHandlers["creatorOps"].runPluginAddCommand,
+      ).toHaveBeenCalledWith(message.payload, mockWebview);
     });
 
     it("should handle init-create-role", async () => {
@@ -766,10 +813,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitCreateRole"](message, mockWebview);
 
-      expect(messageHandlers["creatorOps"].runRoleAddCommand).toHaveBeenCalledWith(
-        message.payload,
-        mockWebview,
-      );
+      expect(
+        messageHandlers["creatorOps"].runRoleAddCommand,
+      ).toHaveBeenCalledWith(message.payload, mockWebview);
     });
 
     it("should handle check-ade-presence", async () => {
@@ -811,9 +857,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenScaffoldedFolder"](message);
 
-      expect(messageHandlers["fileOps"].openFolderInWorkspaceProjects).toHaveBeenCalledWith(
-        "/path/to/collection",
-      );
+      expect(
+        messageHandlers["fileOps"].openFolderInWorkspaceProjects,
+      ).toHaveBeenCalledWith("/path/to/collection");
     });
 
     it("should handle init-open-scaffolded-folder with projectUrl", async () => {
@@ -826,9 +872,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenScaffoldedFolder"](message);
 
-      expect(messageHandlers["fileOps"].openFolderInWorkspaceProjects).toHaveBeenCalledWith(
-        "/path/to/project",
-      );
+      expect(
+        messageHandlers["fileOps"].openFolderInWorkspaceProjects,
+      ).toHaveBeenCalledWith("/path/to/project");
     });
 
     it("should handle init-open-scaffolded-folder-plugin", async () => {
@@ -843,11 +889,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenScaffoldedFolderPlugin"](message);
 
-      expect(messageHandlers["fileOps"].openFolderInWorkspacePlugin).toHaveBeenCalledWith(
-        "/path/to/project",
-        "test_plugin",
-        "module",
-      );
+      expect(
+        messageHandlers["fileOps"].openFolderInWorkspacePlugin,
+      ).toHaveBeenCalledWith("/path/to/project", "test_plugin", "module");
     });
 
     it("should handle init-open-role-folder", async () => {
@@ -861,10 +905,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenRoleFolder"](message);
 
-      expect(messageHandlers["fileOps"].openFolderInWorkspaceRole).toHaveBeenCalledWith(
-        "/path/to/project",
-        "test_role",
-      );
+      expect(
+        messageHandlers["fileOps"].openFolderInWorkspaceRole,
+      ).toHaveBeenCalledWith("/path/to/project", "test_role");
     });
 
     it("should handle init-open-devcontainer-folder", async () => {
@@ -877,9 +920,9 @@ describe("WebviewMessageHandlers", () => {
 
       await messageHandlers["handleInitOpenDevcontainerFolder"](message);
 
-      expect(messageHandlers["fileOps"].openFolderInWorkspaceDevcontainer).toHaveBeenCalledWith(
-        "/path/to/project",
-      );
+      expect(
+        messageHandlers["fileOps"].openFolderInWorkspaceDevcontainer,
+      ).toHaveBeenCalledWith("/path/to/project");
     });
 
     it("should handle init-open-devfile", async () => {
@@ -932,7 +975,9 @@ describe("WebviewMessageHandlers", () => {
     });
 
     it("should return empty string when no workspace folders", () => {
-      vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(undefined);
+      vi.spyOn(vscode.workspace, "workspaceFolders", "get").mockReturnValue(
+        undefined,
+      );
 
       const result = messageHandlers["getWorkspaceFolder"]();
 

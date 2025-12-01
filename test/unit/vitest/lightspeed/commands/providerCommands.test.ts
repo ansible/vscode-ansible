@@ -131,13 +131,10 @@ describe("ProviderCommands", () => {
       update: vi.fn(),
     };
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
-      mockConfig as any,
+      mockConfig as unknown as vscode.WorkspaceConfiguration,
     );
 
-    providerCommands = new ProviderCommands(
-      mockContext,
-      mockLightSpeedManager,
-    );
+    providerCommands = new ProviderCommands(mockContext, mockLightSpeedManager);
   });
 
   describe("registerCommands", () => {
@@ -169,15 +166,21 @@ describe("ProviderCommands", () => {
 
   describe("testProviderConnection", () => {
     it("should show warning when no provider is active", async () => {
-      vi.mocked(mockProviderManager.getActiveProvider).mockReturnValue(null);
+      const getActiveProvider = vi.mocked(
+        mockProviderManager.getActiveProvider,
+      );
+      getActiveProvider.mockReturnValue(null);
 
       // Access private method via type assertion
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).testProviderConnection();
 
       expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
         "No provider is currently active. Please configure a provider first.",
       );
-      expect(mockProviderManager.testProviderConnection).not.toHaveBeenCalled();
+      expect(
+        vi.mocked(mockProviderManager.testProviderConnection),
+      ).not.toHaveBeenCalled();
     });
 
     it("should test Google provider connection successfully", async () => {
@@ -189,27 +192,31 @@ describe("ProviderCommands", () => {
         },
       };
 
-      vi.mocked(mockProviderManager.getActiveProvider).mockReturnValue(
-        "llmprovider",
+      const getActiveProvider2 = vi.mocked(mockProviderManager.getActiveProvider);
+      const testProviderConnection = vi.mocked(
+        mockProviderManager.testProviderConnection,
       );
-      vi.mocked(mockProviderManager.testProviderConnection).mockResolvedValue(
-        mockStatus,
-      );
+      getActiveProvider2.mockReturnValue("llmprovider");
+      testProviderConnection.mockResolvedValue(mockStatus);
 
       // Mock withProgress to execute the callback immediately
       vi.mocked(vscode.window.withProgress).mockImplementation(
         async (options, task) => {
-          const mockProgress = { report: vi.fn() };
-          const mockToken = { isCancellationRequested: false, onCancellationRequested: vi.fn() };
-          return await task(mockProgress as any, mockToken as any);
+          const mockProgress: vscode.Progress<{ message?: string }> = {
+            report: vi.fn(),
+          };
+          const mockToken: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: vi.fn(),
+          } as vscode.CancellationToken;
+          return await task(mockProgress, mockToken);
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).testProviderConnection();
 
-      expect(mockProviderManager.testProviderConnection).toHaveBeenCalledWith(
-        "llmprovider",
-      );
+      expect(testProviderConnection).toHaveBeenCalledWith("llmprovider");
       expect(vscode.window.withProgress).toHaveBeenCalledWith(
         {
           location: vscode.ProgressLocation.Notification,
@@ -232,21 +239,29 @@ describe("ProviderCommands", () => {
         error: "Invalid API key",
       };
 
-      vi.mocked(mockProviderManager.getActiveProvider).mockReturnValue(
-        "llmprovider",
+      const getActiveProvider = vi.mocked(
+        mockProviderManager.getActiveProvider,
       );
-      vi.mocked(mockProviderManager.testProviderConnection).mockResolvedValue(
-        mockStatus,
+      const testProviderConnection = vi.mocked(
+        mockProviderManager.testProviderConnection,
       );
+      getActiveProvider.mockReturnValue("llmprovider");
+      testProviderConnection.mockResolvedValue(mockStatus);
 
       vi.mocked(vscode.window.withProgress).mockImplementation(
         async (options, task) => {
-          const mockProgress = { report: vi.fn() };
-          const mockToken = { isCancellationRequested: false, onCancellationRequested: vi.fn() };
-          return await task(mockProgress as any, mockToken as any);
+          const mockProgress: vscode.Progress<{ message?: string }> = {
+            report: vi.fn(),
+          };
+          const mockToken: vscode.CancellationToken = {
+            isCancellationRequested: false,
+            onCancellationRequested: vi.fn(),
+          } as vscode.CancellationToken;
+          return await task(mockProgress, mockToken);
         },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).testProviderConnection();
 
       expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
@@ -293,10 +308,12 @@ describe("ProviderCommands", () => {
       };
 
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
-        mockConfig as any,
+        mockConfig as unknown as vscode.WorkspaceConfiguration,
       );
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockProviderInfo as any,
+        mockProviderInfo as unknown as vscode.QuickPickItem & {
+          provider: unknown;
+        },
       );
       vi.mocked(vscode.window.showInputBox)
         .mockResolvedValueOnce(TEST_API_KEYS.GOOGLE) // API key
@@ -374,13 +391,16 @@ describe("ProviderCommands", () => {
       };
 
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
-        mockConfig as any,
+        mockConfig as unknown as vscode.WorkspaceConfiguration,
       );
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockProviderInfo as any,
+        mockProviderInfo as unknown as vscode.QuickPickItem & {
+          provider: unknown;
+        },
       );
       vi.mocked(vscode.window.showInputBox).mockResolvedValue(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
       expect(vscode.window.showInputBox).toHaveBeenCalled();
@@ -429,10 +449,12 @@ describe("ProviderCommands", () => {
       };
 
       vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
-        mockConfig as any,
+        mockConfig as unknown as vscode.WorkspaceConfiguration,
       );
       vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockProviderInfo as any,
+        mockProviderInfo as unknown as vscode.QuickPickItem & {
+          provider: unknown;
+        },
       );
       vi.mocked(vscode.window.showInputBox).mockResolvedValue(
         TEST_API_KEYS.GOOGLE,
@@ -441,6 +463,7 @@ describe("ProviderCommands", () => {
         undefined,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).configureLlmProvider();
 
       expect(mockConfig.update).toHaveBeenCalledWith(
@@ -486,33 +509,41 @@ describe("ProviderCommands", () => {
         },
       ];
 
-      vi.mocked(mockProviderManager.getActiveProvider).mockReturnValue(
-        "llmprovider",
+      const getActiveProvider = vi.mocked(
+        mockProviderManager.getActiveProvider,
       );
-      vi.mocked(mockProviderManager.getProviderStatus).mockReturnValue(
-        mockStatus,
+      const getProviderStatus = vi.mocked(
+        mockProviderManager.getProviderStatus,
       );
-      vi.mocked(mockProviderManager.getAvailableProviders).mockReturnValue(
-        mockAvailableProviders as any,
+      const getAvailableProviders = vi.mocked(
+        mockProviderManager.getAvailableProviders,
+      );
+      getActiveProvider.mockReturnValue("llmprovider");
+      getProviderStatus.mockReturnValue(mockStatus);
+      getAvailableProviders.mockReturnValue(
+        mockAvailableProviders as unknown as Array<{
+          type: string;
+          displayName: string;
+          active: boolean;
+        }>,
       );
 
       const mockDoc = {
         content: "",
       };
       vi.mocked(vscode.workspace.openTextDocument).mockResolvedValue(
-        mockDoc as any,
+        mockDoc as unknown as vscode.TextDocument,
       );
       vi.mocked(vscode.window.showTextDocument).mockResolvedValue(
-        {} as any,
+        {} as unknown as vscode.TextEditor,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).showProviderStatus();
 
-      expect(mockProviderManager.getActiveProvider).toHaveBeenCalled();
-      expect(mockProviderManager.getProviderStatus).toHaveBeenCalledWith(
-        "llmprovider",
-      );
-      expect(mockProviderManager.getAvailableProviders).toHaveBeenCalled();
+      expect(getActiveProvider).toHaveBeenCalled();
+      expect(getProviderStatus).toHaveBeenCalledWith("llmprovider");
+      expect(getAvailableProviders).toHaveBeenCalled();
 
       expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith({
         content: expect.stringContaining("✅ **Active Provider**: LLMPROVIDER"),
@@ -521,14 +552,18 @@ describe("ProviderCommands", () => {
 
       const callArgs = vi.mocked(vscode.workspace.openTextDocument).mock
         .calls[0][0] as { content: string };
-      expect(callArgs.content).toContain(`📋 **Model**: ${MODEL_NAMES.GEMINI_PRO}`);
+      expect(callArgs.content).toContain(
+        `📋 **Model**: ${MODEL_NAMES.GEMINI_PRO}`,
+      );
       expect(callArgs.content).toContain(
         "🔧 **Capabilities**: completion, chat, generation",
       );
       expect(callArgs.content).toContain(
         `🟢 **${GOOGLE_PROVIDER.DISPLAY_NAME}** (${PROVIDER_TYPES.GOOGLE})`,
       );
-      expect(callArgs.content).toContain("⚪ **Red Hat Ansible Lightspeed** (wca)");
+      expect(callArgs.content).toContain(
+        "⚪ **Red Hat Ansible Lightspeed** (wca)",
+      );
 
       expect(vscode.window.showTextDocument).toHaveBeenCalledWith(mockDoc);
     });
@@ -542,21 +577,32 @@ describe("ProviderCommands", () => {
         },
       ];
 
-      vi.mocked(mockProviderManager.getActiveProvider).mockReturnValue(null);
-      vi.mocked(mockProviderManager.getAvailableProviders).mockReturnValue(
-        mockAvailableProviders as any,
+      const getActiveProvider = vi.mocked(
+        mockProviderManager.getActiveProvider,
+      );
+      const getAvailableProviders = vi.mocked(
+        mockProviderManager.getAvailableProviders,
+      );
+      getActiveProvider.mockReturnValue(null);
+      getAvailableProviders.mockReturnValue(
+        mockAvailableProviders as unknown as Array<{
+          type: string;
+          displayName: string;
+          active: boolean;
+        }>,
       );
 
       const mockDoc = {
         content: "",
       };
       vi.mocked(vscode.workspace.openTextDocument).mockResolvedValue(
-        mockDoc as any,
+        mockDoc as unknown as vscode.TextDocument,
       );
       vi.mocked(vscode.window.showTextDocument).mockResolvedValue(
-        {} as any,
+        {} as unknown as vscode.TextEditor,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).showProviderStatus();
 
       const callArgs = vi.mocked(vscode.workspace.openTextDocument).mock
@@ -581,26 +627,36 @@ describe("ProviderCommands", () => {
         },
       ];
 
-      vi.mocked(mockProviderManager.getActiveProvider).mockReturnValue(
-        "llmprovider",
+      const getActiveProvider = vi.mocked(
+        mockProviderManager.getActiveProvider,
       );
-      vi.mocked(mockProviderManager.getProviderStatus).mockReturnValue(
-        mockStatus,
+      const getProviderStatus = vi.mocked(
+        mockProviderManager.getProviderStatus,
       );
-      vi.mocked(mockProviderManager.getAvailableProviders).mockReturnValue(
-        mockAvailableProviders as any,
+      const getAvailableProviders = vi.mocked(
+        mockProviderManager.getAvailableProviders,
+      );
+      getActiveProvider.mockReturnValue("llmprovider");
+      getProviderStatus.mockReturnValue(mockStatus);
+      getAvailableProviders.mockReturnValue(
+        mockAvailableProviders as unknown as Array<{
+          type: string;
+          displayName: string;
+          active: boolean;
+        }>,
       );
 
       const mockDoc = {
         content: "",
       };
       vi.mocked(vscode.workspace.openTextDocument).mockResolvedValue(
-        mockDoc as any,
+        mockDoc as unknown as vscode.TextDocument,
       );
       vi.mocked(vscode.window.showTextDocument).mockResolvedValue(
-        {} as any,
+        {} as unknown as vscode.TextEditor,
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).showProviderStatus();
 
       const callArgs = vi.mocked(vscode.workspace.openTextDocument).mock
@@ -637,20 +693,32 @@ describe("ProviderCommands", () => {
         update: vi.fn(),
       };
 
-      vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
-        mockConfig as any,
+      const getConfiguration = vi.mocked(vscode.workspace.getConfiguration);
+      const getAvailableProviders = vi.mocked(
+        mockProviderManager.getAvailableProviders,
       );
-      vi.mocked(mockProviderManager.getAvailableProviders).mockReturnValue(
+      const showQuickPick = vi.mocked(vscode.window.showQuickPick);
+      getConfiguration.mockReturnValue(
+        mockConfig as unknown as vscode.WorkspaceConfiguration,
+      );
+      getAvailableProviders.mockReturnValue(
         mockAvailableProviders.map((p) => ({
           type: p.provider.type,
           displayName: p.provider.displayName,
           active: p.description.includes("Active"),
-        })) as any,
+        })) as unknown as Array<{
+          type: string;
+          displayName: string;
+          active: boolean;
+        }>,
       );
-      vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockAvailableProviders[0] as any,
+      showQuickPick.mockResolvedValue(
+        mockAvailableProviders[0] as unknown as vscode.QuickPickItem & {
+          provider: unknown;
+        },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).switchProvider();
 
       expect(vscode.window.showQuickPick).toHaveBeenCalledWith(
@@ -675,27 +743,41 @@ describe("ProviderCommands", () => {
         true,
         vscode.ConfigurationTarget.Workspace,
       );
-      expect(mockProviderManager.refreshProviders).toHaveBeenCalled();
+      expect(
+        vi.mocked(mockProviderManager.refreshProviders),
+      ).toHaveBeenCalled();
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(
         `Switched to ${GOOGLE_PROVIDER.DISPLAY_NAME}`,
       );
     });
 
     it("should handle user cancellation during provider selection", async () => {
-      vi.mocked(mockProviderManager.getAvailableProviders).mockReturnValue([
+      const getAvailableProviders5 = vi.mocked(
+        mockProviderManager.getAvailableProviders,
+      );
+      const showQuickPick4 = vi.mocked(vscode.window.showQuickPick);
+      const getConfiguration4 = vi.mocked(vscode.workspace.getConfiguration);
+      getAvailableProviders5.mockReturnValue([
         {
           type: PROVIDER_TYPES.GOOGLE,
           displayName: GOOGLE_PROVIDER.DISPLAY_NAME,
           active: false,
         },
-      ] as any);
-      vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
+      ] as unknown as Array<{
+        type: string;
+        displayName: string;
+        active: boolean;
+      }>);
+      showQuickPick4.mockResolvedValue(undefined);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).switchProvider();
 
-      expect(vscode.window.showQuickPick).toHaveBeenCalled();
-      expect(vscode.workspace.getConfiguration).not.toHaveBeenCalled();
-      expect(mockProviderManager.refreshProviders).not.toHaveBeenCalled();
+      expect(showQuickPick4).toHaveBeenCalled();
+      expect(getConfiguration4).not.toHaveBeenCalled();
+      expect(
+        vi.mocked(mockProviderManager.refreshProviders),
+      ).not.toHaveBeenCalled();
     });
 
     it("should handle errors during provider switch", async () => {
@@ -715,20 +797,32 @@ describe("ProviderCommands", () => {
         update: vi.fn().mockRejectedValue(new Error("Update failed")),
       };
 
-      vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(
-        mockConfig as any,
+      const getConfiguration3 = vi.mocked(vscode.workspace.getConfiguration);
+      const getAvailableProviders3 = vi.mocked(
+        mockProviderManager.getAvailableProviders,
       );
-      vi.mocked(mockProviderManager.getAvailableProviders).mockReturnValue(
+      const showQuickPick3 = vi.mocked(vscode.window.showQuickPick);
+      getConfiguration3.mockReturnValue(
+        mockConfig as unknown as vscode.WorkspaceConfiguration,
+      );
+      getAvailableProviders3.mockReturnValue(
         mockAvailableProviders.map((p) => ({
           type: p.provider.type,
           displayName: p.provider.displayName,
           active: false,
-        })) as any,
+        })) as unknown as Array<{
+          type: string;
+          displayName: string;
+          active: boolean;
+        }>,
       );
-      vi.mocked(vscode.window.showQuickPick).mockResolvedValue(
-        mockAvailableProviders[0] as any,
+      showQuickPick3.mockResolvedValue(
+        mockAvailableProviders[0] as unknown as vscode.QuickPickItem & {
+          provider: unknown;
+        },
       );
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await (providerCommands as any).switchProvider();
 
       expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(

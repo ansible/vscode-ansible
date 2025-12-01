@@ -12,7 +12,10 @@ import type {
   ExplanationResponseParams,
   GenerationListEntry,
 } from "../../../../../src/interfaces/lightspeed";
-import { IError, isError } from "../../../../../src/features/lightspeed/utils/errors";
+import {
+  IError,
+  isError,
+} from "../../../../../src/features/lightspeed/utils/errors";
 import {
   TEST_PROMPTS,
   TEST_CONTENT,
